@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { parseJsonl } from '../src/experimental/training/datasets/jsonl.js';
 import { loadEvalDataset } from '../src/experimental/training/operator-eval.js';
 import { evaluateAgentHeldoutRows } from '../src/experimental/training/operator-agent-eval.js';
-import { loadTrainingWorkloadPack } from '../src/experimental/training/workloads.js';
+import { loadTrainingWorkloadCapsule } from '../src/experimental/training/workloads.js';
 import { sha256Hex } from '../src/utils/sha256.js';
 
 function parseArgs(argv) {
@@ -235,7 +235,7 @@ function buildReportPayload(context) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const loadedWorkload = args.workload ? await loadTrainingWorkloadPack(args.workload) : null;
+  const loadedWorkload = args.workload ? await loadTrainingWorkloadCapsule(args.workload) : null;
   const workload = loadedWorkload?.workload || null;
   const evalDataset = workload ? resolveEvalDataset(workload, args.evalDatasetId) : null;
   const policy = await readPolicy(args.policy) || evalDataset?.agentEval || null;

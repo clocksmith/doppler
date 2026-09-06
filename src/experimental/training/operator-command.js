@@ -1,7 +1,7 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
-import { loadTrainingWorkloadPack } from './workloads.js';
+import { loadTrainingWorkloadCapsule } from './workloads.js';
 import {
   buildFrozenSubset,
   createDistillationRunArtifacts,
@@ -445,7 +445,7 @@ async function qualityGateDistillRun(runRoot, loadedWorkload) {
 async function runDistillCommand(request) {
   const action = String(request.action || '').trim();
   const loadedWorkload = request.workloadPath
-    ? await loadTrainingWorkloadPack(request.workloadPath)
+    ? await loadTrainingWorkloadCapsule(request.workloadPath)
     : await loadWorkloadFromRunRoot(request.runRoot);
   const runArtifacts = await createDistillationRunArtifacts({
     loadedWorkload,
@@ -590,7 +590,7 @@ async function runDistillCommand(request) {
 async function runLoraCommand(request) {
   const action = String(request.action || '').trim();
   const loadedWorkload = request.workloadPath
-    ? await loadTrainingWorkloadPack(request.workloadPath)
+    ? await loadTrainingWorkloadCapsule(request.workloadPath)
     : await loadWorkloadFromRunRoot(request.runRoot);
   if (action === 'run') {
     const result = await runLoraPipeline({

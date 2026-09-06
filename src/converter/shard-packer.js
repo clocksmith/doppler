@@ -56,7 +56,7 @@ export class ShardPacker {
   }
 
   
-  async pack(tensors, options = {}) {
+  async capsule(tensors, options = {}) {
     const { onProgress, signal } = options;
     const totalTensors = tensors.length;
 
@@ -72,7 +72,7 @@ export class ShardPacker {
       const groupId = resolveTensorGroup(tensor, this.#modelType);
       this.#addTensorToGroup(groupId, tensor.name);
 
-      // Pack tensor data into shards
+      // Capsule tensor data into shards
       const role = resolveTensorRole(tensor);
       if (this.#supportsStreaming) {
         if (typeof tensor.getChunks === 'function') {

@@ -33,7 +33,7 @@ try {
   page.on('pageerror', error => consoleMessages.push({ type: 'pageerror', text: String(error) }));
   await page.goto(origin);
   report = await page.evaluate(async (sealed) => {
-    const { createForecastProgramFactory } = await import('/src/pack-runtime.js');
+    const { createForecastProgramFactory } = await import('/src/capsule-runtime.js');
     const { computeCanonicalSha256, hashBytesSha256 } = await import('/src/formats/canonical-hash.js');
     const candidate = await (await fetch('/model/candidate.json')).json();
     const reference = await (await fetch('/model/source/reference.json')).json();
@@ -53,11 +53,11 @@ try {
         return bytes;
       } };
       if (sealed) {
-        const { openPack } = await import('/src/pack-runtime.js');
-        const pack = await (await fetch('/model/pack.json')).json();
+        const { openCapsule } = await import('/src/capsule-runtime.js');
+        const capsule = await (await fetch('/model/capsule.json')).json();
         profile = await (await fetch('/model/trust-profile.json')).json();
         const releaseEvents = await (await fetch('/model/release-events.json')).json();
-        program = await openPack(pack, { artifactStore, trustedSigners: profile.trustedSigners,
+        program = await openCapsule(capsule, { artifactStore, trustedSigners: profile.trustedSigners,
           device: { getDevice: () => device, getProfile: () => ({ surface: 'browser-webgpu', hasF16: device.features.has('shader-f16'),
             hasSubgroups: device.features.has('subgroups'), maxBufferSize: device.limits.maxBufferSize }) },
           programFactory: createForecastProgramFactory(device), session: { releaseEvents,
@@ -66,7 +66,7 @@ try {
             persistReleaseCheckpoint: value => {
               localStorage.setItem('doppler-release-checkpoint', JSON.stringify(value)); checkpoint = value;
             } } });
-      } else program = await createForecastProgramFactory(device)({ pack: candidate, targetPlan: candidate.targetPlan, artifactStore });
+      } else program = await createForecastProgramFactory(device)({ capsule: candidate, targetPlan: candidate.targetPlan, artifactStore });
       for (const testCase of reference.cases) {
         const start = performance.now();
         const request = { context: testCase.context, horizon: testCase.horizon };
@@ -86,7 +86,7 @@ try {
     } catch (error) { failure = String(error?.stack ?? error); }
     finally { try { await program?.close(); } finally { device.destroy(); } }
     return { schema: 'doppler.forecast-qualification/v1', status: failure ? 'failed' : 'passed', surface: 'browser-webgpu',
-      boundary: sealed ? 'signed-pack-session' : 'candidate-program', packIdentity: program?.packIdentity ?? null, checkpoint,
+      boundary: sealed ? 'signed-capsule-session' : 'candidate-program', capsuleIdentity: program?.capsuleIdentity ?? null, checkpoint,
       adapter: adapterInfo, userAgent: navigator.userAgent, candidateHash: computeCanonicalSha256(candidate),
       executionGraphHash: candidate.program.executionGraphHash, artifactClosureHash: computeCanonicalSha256(candidate.artifacts),
       referenceHash: computeCanonicalSha256(reference), tolerance: reference.tolerance, rows, failure };

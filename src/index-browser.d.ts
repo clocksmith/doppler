@@ -5,5 +5,5 @@ export {
   generate,
   load,
   open,
-  openPack,
+  openCapsule,
 } from './client/doppler-api.browser.js';

@@ -128,7 +128,7 @@ export class PipelineState {
     logicalModelId?: string | null;
     modelId?: string | null;
     sourceCheckpointId?: string | null;
-    weightPackId?: string | null;
+    weightCapsuleId?: string | null;
     manifestVariantId?: string | null;
     artifactVariantId?: string | null;
   } | null;

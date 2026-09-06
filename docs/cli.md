@@ -139,7 +139,7 @@ either an installed binary or the explicit npm package form:
 ```bash
 doppler release --manifest doppler-release.json \
   --out .doppler-release/evidence \
-  --pack-trusted-signers trust/pack-signers.json \
+  --capsule-trusted-signers trust/capsule-signers.json \
   --fleet-trusted-signers trust/fleet-signers.json \
   --fleet-receipts evidence/windows.json,evidence/macos.json \
   --signing-private-key "$RELEASE_PRIVATE_JWK_PATH" \
@@ -158,14 +158,14 @@ doppler release --action qualify \
   --target windows-x64-nvidia-webgpu \
   --device-identity evidence/windows-device.json \
   --out .doppler-release/windows \
-  --pack-trusted-signers trust/pack-signers.json \
+  --capsule-trusted-signers trust/capsule-signers.json \
   --signing-private-key "$FLEET_PRIVATE_JWK_PATH" \
   --signing-public-key "$FLEET_PUBLIC_JWK_PATH" \
   --signing-authority customer-windows-agent
 ```
 
-`decide` verifies the Pack and every exact-device fleet receipt, then writes a
-retained `candidate.pack.json`, `release-decision.json`,
+`decide` verifies the Capsule and every exact-device fleet receipt, then writes a
+retained `candidate.capsule.json`, `release-decision.json`,
 `known-exclusions.json`, `rollback-target.json`, and
 `revocation-configuration.json`. A blocked decision also writes and retains
 `failure-bundle.json`. A failed qualification or blocked decision still prints

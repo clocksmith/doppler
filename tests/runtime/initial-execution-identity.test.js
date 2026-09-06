@@ -8,10 +8,10 @@ import {
   resolveProgramLoadRuntimeConfig,
 } from '../../src/config/initial-execution-identity.js';
 import {
-  TEST_PACK_AUTHORITY,
-  TEST_PACK_PUBLIC_KEY,
-  createSignedPackFixture,
-} from '../helpers/pack-v2-fixture.js';
+  TEST_CAPSULE_AUTHORITY,
+  TEST_CAPSULE_PUBLIC_KEY,
+  createSignedCapsuleFixture,
+} from '../helpers/capsule-v2-fixture.js';
 
 const digest = (character) => `sha256:${character.repeat(64)}`;
 const graphHash = `sha256:${'3'.repeat(64)}`;
@@ -32,7 +32,7 @@ const expectedIdentity = createInitialExecutionIdentity(fields);
 const expectedIdentityV2 = createInitialExecutionIdentityV2({
   ...fields,
   programLoadPolicy: {
-    schema: 'doppler.pack-program-load-policy/v2',
+    schema: 'doppler.capsule-program-load-policy/v2',
     runtimeConfig: {
       inference: {
         session: { decodeLoop: { batchSize: 1 } },
@@ -45,7 +45,7 @@ const expectedIdentityV2 = createInitialExecutionIdentityV2({
 const legacyPolicyIdentity = createInitialExecutionIdentityV2({
   ...fields,
   programLoadPolicy: {
-    schema: 'doppler.pack-program-load-policy/v1',
+    schema: 'doppler.capsule-program-load-policy/v1',
     runtimeConfig: { inference: { session: {}, compute: {} } },
   },
 });
@@ -56,7 +56,7 @@ assert.throws(
   () => createInitialExecutionIdentityV2({
     ...fields,
     programLoadPolicy: {
-      schema: 'doppler.pack-program-load-policy/v2',
+      schema: 'doppler.capsule-program-load-policy/v2',
       runtimeConfig: { inference: { session: {}, compute: {} } },
     },
   }),
@@ -67,7 +67,7 @@ assert.throws(
   () => createInitialExecutionIdentityV2({
     ...fields,
     programLoadPolicy: {
-      schema: 'doppler.pack-program-load-policy/v2',
+      schema: 'doppler.capsule-program-load-policy/v2',
       runtimeConfig: {
         inference: {
           session: {},
@@ -80,7 +80,7 @@ assert.throws(
   /generation may contain only disableMultiTokenDecode/,
   'application generation policy must not leak into the signed program-load policy'
 );
-const fixture = await createSignedPackFixture({ initialExecutionIdentity: expectedIdentity, operation: 'encodeSequence' });
+const fixture = await createSignedCapsuleFixture({ initialExecutionIdentity: expectedIdentity, operation: 'encodeSequence' });
 const events = [];
 let buffersCreated = 0;
 const device = {
@@ -107,11 +107,11 @@ const baseProgram = {
 const runtime = createDopplerRuntime({
   device,
   artifactStore: fixture.artifactStore,
-  trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
+  trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
   observer: { observe(event) { events.push(event.type); } },
   async programFactory() { return baseProgram; },
 });
-const session = await runtime.openPack(fixture.pack);
+const session = await runtime.openCapsule(fixture.capsule);
 assert.equal(session.observedInitialExecutionIdentity.digest, expectedIdentityV2.digest);
 assertInitialExecutionIdentity(expectedIdentity, session.observedInitialExecutionIdentity);
 assert.deepEqual(resolveProgramLoadRuntimeConfig(expectedIdentityV2), {
@@ -135,7 +135,7 @@ let mismatchProgramClosed = false;
 const mismatchedRuntime = createDopplerRuntime({
   device,
   artifactStore: fixture.artifactStore,
-  trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
+  trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
   async programFactory() {
     return {
       ...baseProgram,
@@ -144,7 +144,7 @@ const mismatchedRuntime = createDopplerRuntime({
     };
   },
 });
-await assert.rejects(mismatchedRuntime.openPack(fixture.pack), /dtypeLane/);
+await assert.rejects(mismatchedRuntime.openCapsule(fixture.capsule), /dtypeLane/);
 assert.equal(buffersCreated, 0, 'identity mismatch must fail before resource binding or first dispatch');
 assert.equal(mismatchProgramClosed, true, 'identity mismatch must close the loaded program');
 
@@ -157,7 +157,7 @@ for (const [field, replacement] of [
   let observedIdentity = expectedIdentityV2;
   const changing = createDopplerRuntime({
     device, artifactStore: fixture.artifactStore,
-    trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
+    trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
     async programFactory() {
       return {
         ...baseProgram,
@@ -169,7 +169,7 @@ for (const [field, replacement] of [
       };
     },
   });
-  const changingSession = await changing.openPack(fixture.pack);
+  const changingSession = await changing.openCapsule(fixture.capsule);
   await assert.rejects(changingSession.encodeSequence('MKT'), new RegExp(field));
   await changingSession.close();
 }
@@ -207,7 +207,7 @@ const resolvedRuntimeSession = {
     appliedTransforms: [{ id: 'fuse-qkv' }],
   },
   dtypes: { activation: 'f32', output: 'f32', kv: 'f32', math: 'f32', accumulation: 'f32' },
-  kernelPath: { id: 'portable', source: 'pack', hash: digest('8'), definition: {} },
+  kernelPath: { id: 'portable', source: 'capsule', hash: digest('8'), definition: {} },
   capabilityPolicy: { f16: false },
   laneIntegrity: { status: 'passed' },
 };

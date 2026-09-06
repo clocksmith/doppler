@@ -145,7 +145,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
         currentLanes: [
           {
             modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
-            role: 'complete-q4k-text-vision-weight-pack',
+            role: 'complete-q4k-text-vision-weight-capsule',
             claimStatus: 'verified',
           },
         ],
@@ -601,8 +601,8 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
   await fs.mkdir(tempDir, { recursive: true });
   try {
     await fs.writeFile(receiptPath, `${JSON.stringify({
-      receiptVersion: 'doppler_serve_receipt_v1',
-      schemaVersion: 1,
+      receiptVersion: 'doppler_serve_receipt_v2',
+      schemaVersion: 2,
       surface: 'serve',
       status: 'pass',
       runtime: 'doppler-gpu',
@@ -615,7 +615,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
       resolvedModel: 'gemma-4-e2b-it-q4k-ehf16-af32',
       artifact: {
         sourceCheckpointId: 'google/gemma-4-e2b-it',
-        weightPackId: 'gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1',
+        weightCapsuleId: 'gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1',
         manifestVariantId: 'gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1',
       },
       request: {
@@ -678,8 +678,8 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
     }), []);
 
     await fs.writeFile(diagnosticReceiptPath, `${JSON.stringify({
-      receiptVersion: 'doppler_serve_receipt_v1',
-      schemaVersion: 1,
+      receiptVersion: 'doppler_serve_receipt_v2',
+      schemaVersion: 2,
       surface: 'serve',
       status: 'diagnostic',
       runtime: 'doppler-gpu',
@@ -688,7 +688,7 @@ import { assertManifestArtifactIntegrity } from '../helpers/local-model-fixture.
       resolvedModel: 'gemma-4-e2b-it-q4k-ehf16-af32',
       artifact: {
         sourceCheckpointId: 'google/gemma-4-e2b-it',
-        weightPackId: 'gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1',
+        weightCapsuleId: 'gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1',
         manifestVariantId: 'gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1',
       },
       request: {

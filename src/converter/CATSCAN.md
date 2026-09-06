@@ -6,22 +6,22 @@ Parent: [Shipped Source](../CATSCAN.md)
 
 ## Target
 
-Compile source facts into ModelIR, qualified TargetPlans, and immutable Packs; materialize reproducible artifacts without inventing runtime policy later.
+Compile source facts into ModelIR, qualified TargetPlans, and immutable Capsules; materialize reproducible artifacts without inventing runtime policy later.
 
 ## Authority
 
-- Owns source interpretation, semantic lowering, candidate evaluation, qualification construction, Pack construction, tensor transformation, and artifact materialization.
+- Owns source interpretation, semantic lowering, candidate evaluation, qualification construction, Capsule construction, tensor transformation, and artifact materialization.
 - Does not own runtime overrides, model support claims, or post-conversion mutation of artifact facts.
 
 ## Scope
 
 - [Forge stages](forge-stages.js), source-fact validation, candidate evaluation, quantizers, tokenizer copying, and shard packing.
-- [Command orchestration](../tooling/model-pack-forge.js) supplies file and signing inputs; compiler algorithms remain here.
+- [Command orchestration](../tooling/model-capsule-forge.js) supplies file and signing inputs; compiler algorithms remain here.
 
 ## Contracts
 
 - Input: Source checkpoints and [conversion/runtime ownership contract](../../docs/conversion-runtime-contract.md).
-- Output: ModelIR, TargetPlans, Packs, evaluation receipts, and [RDRR artifacts](../formats/rdrr/CATSCAN.md).
+- Output: ModelIR, TargetPlans, Capsules, evaluation receipts, and [RDRR artifacts](../formats/rdrr/CATSCAN.md).
 
 ## Invariants
 

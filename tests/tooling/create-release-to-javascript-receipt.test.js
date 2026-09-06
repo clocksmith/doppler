@@ -15,7 +15,7 @@ await fs.mkdir(path.join(repoRoot, 'reports'), { recursive: true });
 await fs.mkdir(path.join(repoRoot, '.tmp'), { recursive: true });
 await fs.writeFile(path.join(repoRoot, 'src', 'accepted.js'), 'export const accepted = true;\n');
 await fs.writeFile(path.join(repoRoot, 'reports', 'parity.json'), '{"status":"passed"}\n');
-await fs.writeFile(path.join(repoRoot, '.tmp', 'pack.json'), '{"packId":"pack.test"}\n');
+await fs.writeFile(path.join(repoRoot, '.tmp', 'capsule.json'), '{"capsuleId":"capsule.test"}\n');
 
 const spec = {
   campaignId: 'heterogeneous-model-ir-v2:qwen-test',
@@ -41,17 +41,17 @@ const spec = {
     accepted: [{ id: 'accepted' }],
   },
   acceptedCode: { revision: 'deadbeef', files: ['src/accepted.js'] },
-  qualification: { status: 'passed', packId: 'pack.test', packPath: '.tmp/pack.json' },
+  qualification: { status: 'passed', capsuleId: 'capsule.test', capsulePath: '.tmp/capsule.json' },
   evidence: [{ kind: 'parity', path: 'reports/parity.json' }],
 };
 
 const receipt = await materializeReleaseToJavaScriptReceipt(spec, { repoRoot });
 assert.equal(validateReleaseToJavaScriptReceipt(receipt).ok, true);
 assert.match(receipt.acceptedCode.files[0].digest, /^sha256:[0-9a-f]{64}$/);
-assert.match(receipt.qualification.packDigest, /^sha256:[0-9a-f]{64}$/);
+assert.match(receipt.qualification.capsuleDigest, /^sha256:[0-9a-f]{64}$/);
 assert.match(receipt.evidence[0].digest, /^sha256:[0-9a-f]{64}$/);
 assert.equal(receipt.humanAuthoredSemanticDecisions, 0);
-assert.equal(receipt.elapsed.publicationToSignedPackMs, null);
+assert.equal(receipt.elapsed.publicationToSignedCapsuleMs, null);
 
 const specPath = path.join(repoRoot, 'spec.json');
 const outputPath = path.join(repoRoot, 'receipt.json');

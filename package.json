@@ -1,9 +1,9 @@
 {
   "name": "doppler-gpu",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "AI-native model release foundry and evidence-backed WebGPU runtime for JavaScript",
-  "main": "src/pack-runtime.js",
-  "types": "src/pack-runtime.d.ts",
+  "main": "src/capsule-runtime.js",
+  "types": "src/capsule-runtime.d.ts",
   "type": "module",
   "bin": {
     "doppler": "src/cli/doppler-cli.js",
@@ -24,9 +24,9 @@
     "trainer-handoff:verify": "node tools/verify-trainer-artifact-handoff.js verify --contract tools/policies/nativekd2-bf16-baseline-handoff.json --repo-root clocksmith/doppler=. --repo-root clocksmith/gamma=../gamma",
     "trainer-handoff:import": "node tools/verify-trainer-artifact-handoff.js import --contract tools/policies/nativekd2-bf16-baseline-handoff.json --repo-root clocksmith/doppler=. --repo-root clocksmith/gamma=../gamma",
     "program-bundle:export": "node tools/export-program-bundle.js",
-    "forge:pack": "node tools/forge-model-pack.js",
+    "forge:capsule": "node tools/forge-model-capsule.js",
     "forge:release-receipt": "node tools/create-release-to-javascript-receipt.js",
-    "pack-v2:check": "node tools/run-node-tests.js tests/config/model-ir.test.js tests/config/model-ir-v2.test.js tests/config/target-plan.test.js tests/converter/execution-candidate-forge.test.js tests/converter/forge-stages.test.js tests/converter/lineage-lowering-forge.test.js tests/converter/manifest-conversion-postflight.test.js tests/converter/manifest-conversion-preflight.test.js tests/converter/release-to-javascript-receipt.test.js tests/converter/safetensors-header-evidence.test.js tests/converter/semantic-manifest-lowering.test.js tests/converter/source-acquisition.test.js tests/converter/source-truth-forge.test.js tests/converter/tensor-role-closure.test.js tests/inference/embedding-normalization-contract.test.js tests/inference/heterogeneous-attention-contract.test.js tests/inference/logit-output-transform.test.js tests/inference/postnorm-contract.test.js tests/pack/pack-v2.test.js tests/pack/pack-v3.test.js tests/pack/pack-retained-local-use.test.js tests/runtime/pack-artifact-source.test.js tests/runtime/initial-execution-identity.test.js tests/runtime/pack-load-options.test.js tests/runtime/pack-rerank.test.js tests/runtime/pack-runtime-entrypoint.test.js tests/runtime/plan-bind-execute.test.js tests/runtime/target-selector.test.js tests/tooling/audit-model-ir-lowerability.test.js tests/tooling/create-release-to-javascript-receipt.test.js tests/tooling/forge-model-pack.test.js tests/tooling/forge-source-truth.test.js tests/tooling/glimmer-hf-reference-contract.test.js tests/tooling/heterogeneous-source-truth.test.js tests/tooling/qualify-pack-v0-node.test.js tests/tooling/source-intake.test.js",
+    "capsule-v2:check": "node tools/run-node-tests.js tests/config/model-ir.test.js tests/config/model-ir-v2.test.js tests/config/target-plan.test.js tests/converter/execution-candidate-forge.test.js tests/converter/forge-stages.test.js tests/converter/lineage-lowering-forge.test.js tests/converter/manifest-conversion-postflight.test.js tests/converter/manifest-conversion-preflight.test.js tests/converter/release-to-javascript-receipt.test.js tests/converter/safetensors-header-evidence.test.js tests/converter/semantic-manifest-lowering.test.js tests/converter/source-acquisition.test.js tests/converter/source-truth-forge.test.js tests/converter/tensor-role-closure.test.js tests/inference/embedding-normalization-contract.test.js tests/inference/heterogeneous-attention-contract.test.js tests/inference/logit-output-transform.test.js tests/inference/postnorm-contract.test.js tests/capsule/capsule-v2.test.js tests/capsule/capsule-v3.test.js tests/capsule/capsule-retained-local-use.test.js tests/runtime/capsule-artifact-source.test.js tests/runtime/initial-execution-identity.test.js tests/runtime/capsule-load-options.test.js tests/runtime/capsule-rerank.test.js tests/runtime/capsule-runtime-entrypoint.test.js tests/runtime/plan-bind-execute.test.js tests/runtime/target-selector.test.js tests/tooling/audit-model-ir-lowerability.test.js tests/tooling/create-release-to-javascript-receipt.test.js tests/tooling/forge-model-capsule.test.js tests/tooling/forge-source-truth.test.js tests/tooling/glimmer-hf-reference-contract.test.js tests/tooling/heterogeneous-source-truth.test.js tests/tooling/qualify-capsule-v0-node.test.js tests/tooling/source-intake.test.js",
     "forge:lowerability:glimmer:check": "node tools/audit-model-ir-lowerability.js --model-ir-receipt reports/model-ir-v2/glimmer-30b.model-ir-receipt.json --vocabulary src/config/forge/lowering-vocabularies/heterogeneous-text-v2.json --entry-point text.generate --out reports/model-ir-v2/glimmer-30b.lowerability-audit.json --check",
     "forge:semantic:glimmer:sync": "node tools/materialize-semantic-conversion.js --recipe src/config/forge/semantic-lowering/glimmer-30b-text.json",
     "forge:semantic:glimmer:check": "node tools/materialize-semantic-conversion.js --recipe src/config/forge/semantic-lowering/glimmer-30b-text.json --check",
@@ -43,9 +43,9 @@
     "forge:reference:glimmer": "python3 tools/glimmer-hf-text-reference.py --policy src/config/forge/reference/glimmer-30b-text.json",
     "forge:lineage:qwen38:sync": "node tools/materialize-lineage-conversion.js --recipe src/config/forge/lineage/qwen3.8-27b.json",
     "forge:lineage:qwen38:check": "node tools/materialize-lineage-conversion.js --recipe src/config/forge/lineage/qwen3.8-27b.json --check",
-    "pack-v2:gpu:node": "node tools/qualify-pack-v0-node.js",
-    "pack-v2:gpu:dispatch": "node --input-type=module -e \"const {bootstrapNodeWebGPU}=await import('./src/tooling/node-webgpu.js'); const result=await bootstrapNodeWebGPU(); if(!result.ok) throw new Error(result.detail); globalThis.__DOPPLER_REQUIRE_PHYSICAL_WEBGPU__=true; await import('./tests/kernels/pack-command-executor-physical.test.js')\"",
-    "pack-v2:gpu:browser": "node tools/qualify-pack-v0-browser.js",
+    "capsule-v2:gpu:node": "node tools/qualify-capsule-v0-node.js",
+    "capsule-v2:gpu:dispatch": "node --input-type=module -e \"const {bootstrapNodeWebGPU}=await import('./src/tooling/node-webgpu.js'); const result=await bootstrapNodeWebGPU(); if(!result.ok) throw new Error(result.detail); globalThis.__DOPPLER_REQUIRE_PHYSICAL_WEBGPU__=true; await import('./tests/kernels/capsule-command-executor-physical.test.js')\"",
+    "capsule-v2:gpu:browser": "node tools/qualify-capsule-v0-browser.js",
     "program-bundle:reference": "node tools/run-program-bundle-reference.js",
     "program-bundle:reference:gemma4-int4ple": "node tools/run-program-bundle-reference.js --manifest models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json --conversion-config src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json --out examples/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.program-bundle.json --surface browser --prompt \"The color of the sky is\" --max-tokens 8",
     "program-bundle:check": "node tools/check-program-bundle.js examples/program-bundles/*.json",
@@ -85,8 +85,8 @@
     "training:wgsl:seed-candidates": "node tools/run-wgsl-repair-seed-candidates.js",
     "training:wgsl:seed-select": "node tools/select-wgsl-repair-v13-seed.js",
     "training:contract:delta": "node tools/emit-training-contract-delta.js",
-    "training:workloads:verify": "node tools/verify-training-workload-packs.js --registry src/experimental/training/workload-packs/registry.json",
-    "training:report-ids:publish": "node tools/publish-training-report-ids.js --registry src/experimental/training/workload-packs/registry.json",
+    "training:workloads:verify": "node tools/verify-training-workload-capsules.js --registry src/experimental/training/workload-capsules/registry.json",
+    "training:report-ids:publish": "node tools/publish-training-report-ids.js --registry src/experimental/training/workload-capsules/registry.json",
     "test": "npm run test:unit",
     "typecheck:source": "tsc -p tsconfig.source-strict.json --noEmit",
     "typecheck:source-runtime": "tsc -p tsconfig.source-runtime.json --noEmit",
@@ -128,10 +128,10 @@
     "goals:check": "node tools/check-goal-completion.js",
     "model-family:intake:check": "node tools/check-model-family-intake.js",
     "goals:report": "node tools/render-goal-completion-summary.js",
-    "production-release:check": "node tools/run-node-tests.js tests/config/production-release.test.js tests/config/github-release-action.test.js tests/client/electron-release-adapter.test.js tests/client/electron-pack-runtime.test.js tests/client/electron-release-episode.test.js tests/tooling/command-api-release.test.js tests/tooling/production-release.test.js tests/tooling/forge-model-pack.test.js",
+    "production-release:check": "node tools/run-node-tests.js tests/config/production-release.test.js tests/config/github-release-action.test.js tests/client/electron-release-adapter.test.js tests/client/electron-capsule-runtime.test.js tests/client/electron-release-episode.test.js tests/tooling/command-api-release.test.js tests/tooling/production-release.test.js tests/tooling/forge-model-capsule.test.js",
     "model-release:check": "node tools/check-model-release-platform.js && node tools/run-node-tests.js tests/config/model-release-platform.test.js && npm run production-release:check",
     "commands:surface:check": "node tools/check-command-surface-contract.js",
-    "check:green": "node tools/run-node-tests.js --scripts agents:verify catscan:check goals:check model-family:intake:check model-release:check product:portfolio:check product:prospects:check product:readiness:check revocations:check revocations:authority:check product:integrations:check provider:conformance:check runtime:ownership:check runtime:closure:check public:boundaries:check package:smoke commands:surface:check api:docs:check config:single-source:check rules:bundle:check routing:audit:check negative-results:check evidence:workflows:check optimization:control:check promotion:monitoring:check inference:boundaries:check source:style:check source:architecture:check capability-policy:check imports:check:browser pending:check exports:parity:check typecheck:source artifact:contract:check adapter-artifacts:check claims:evidence:check release-claims:check support:matrix:check support:subsystems:check policy:schemas:check program-bundle:schema:check program-bundle:check test:unit pack-v2:check",
+    "check:green": "node tools/run-node-tests.js --scripts agents:verify catscan:check goals:check model-family:intake:check model-release:check product:portfolio:check product:prospects:check product:readiness:check revocations:check revocations:authority:check product:integrations:check provider:conformance:check runtime:ownership:check runtime:closure:check public:boundaries:check package:smoke commands:surface:check api:docs:check config:single-source:check rules:bundle:check routing:audit:check negative-results:check evidence:workflows:check optimization:control:check promotion:monitoring:check inference:boundaries:check source:style:check source:architecture:check capability-policy:check imports:check:browser pending:check exports:parity:check typecheck:source artifact:contract:check adapter-artifacts:check claims:evidence:check release-claims:check support:matrix:check support:subsystems:check policy:schemas:check program-bundle:schema:check program-bundle:check test:unit capsule-v2:check",
     "verify:model": "node src/cli/doppler-cli.js verify",
     "quickstart:sync": "node tools/sync-quickstart-registry.js",
     "quickstart:check": "node tools/sync-quickstart-registry.js --check",
@@ -199,8 +199,8 @@
     "runtime:ownership:evidence-id": "node tools/hash-runtime-ownership-execution-evidence.js",
     "runtime:ownership:record": "node tools/record-runtime-ownership-evaluation.js",
     "runtime:ownership:check": "node tools/check-runtime-ownership-decisions.js && node tools/run-node-tests.js tests/config/runtime-ownership-decisions.test.js tests/tooling/runtime-ownership-execution-evidence.test.js tests/tooling/record-runtime-ownership-evaluation.test.js",
-    "runtime:closure:sync": "node tools/check-pack-runtime-closure.js --write",
-    "runtime:closure:check": "node tools/check-pack-runtime-closure.js",
+    "runtime:closure:sync": "node tools/check-capsule-runtime-closure.js --write",
+    "runtime:closure:check": "node tools/check-capsule-runtime-closure.js",
     "bun:qualification:record": "node tools/record-bun-product-qualification.js",
     "bun:qualification:check": "node tools/check-bun-product-qualification.js && node tools/run-node-tests.js tests/config/bun-product-qualification.test.js tests/tooling/record-bun-product-qualification.test.js",
     "revocations:check": "node tools/check-revocation-registry.js && node tools/run-node-tests.js tests/config/revocation-policy.test.js tests/config/quickstart-registry-sync.test.js tests/config/signed-revocation-updates.test.js",
@@ -212,25 +212,25 @@
   },
   "exports": {
     ".": {
-      "types": "./src/pack-runtime.d.ts",
-      "import": "./src/pack-runtime.js"
+      "types": "./src/capsule-runtime.d.ts",
+      "import": "./src/capsule-runtime.js"
     },
     "./runtime": {
-      "types": "./src/pack-runtime.d.ts",
-      "import": "./src/pack-runtime.js"
+      "types": "./src/capsule-runtime.d.ts",
+      "import": "./src/capsule-runtime.js"
     },
     "./host": {
-      "types": "./src/client/pack-host.d.ts",
-      "browser": "./src/client/pack-host.browser.js",
-      "import": "./src/client/pack-host.js"
+      "types": "./src/client/capsule-host.d.ts",
+      "browser": "./src/client/capsule-host.browser.js",
+      "import": "./src/client/capsule-host.js"
     },
     "./serve": {
-      "types": "./src/cli/serve/pack-handler.d.ts",
-      "import": "./src/cli/serve/pack-handler.js"
+      "types": "./src/cli/serve/capsule-handler.d.ts",
+      "import": "./src/cli/serve/capsule-handler.js"
     },
-    "./pack": {
-      "types": "./src/pack.d.ts",
-      "import": "./src/pack.js"
+    "./capsule": {
+      "types": "./src/capsule.d.ts",
+      "import": "./src/capsule.js"
     },
     "./compat": {
       "types": "./src/index.d.ts",

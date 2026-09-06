@@ -113,7 +113,7 @@ export interface PackerTensorInput {
 export declare class ShardPacker {
   constructor(io: ShardIO, options: ShardPackerOptions);
 
-  pack(
+  capsule(
     tensors: PackerTensorInput[],
     options?: { onProgress?: ShardPackerOptions['onProgress']; signal?: AbortSignal }
   ): Promise<ShardPackerResult>;

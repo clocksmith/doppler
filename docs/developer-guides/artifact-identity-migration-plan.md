@@ -6,7 +6,7 @@ Migrate Doppler from `modelId` as a combined artifact/runtime/release identity
 to an explicit identity stack:
 
 ```text
-source checkpoint -> weight pack -> manifest variant -> release/catalog entry
+source checkpoint -> weight capsule -> manifest variant -> release/catalog entry
 ```
 
 This plan is intentionally resumable. Each phase has checkboxes, exit criteria,
@@ -33,7 +33,7 @@ and notes about what to inspect before continuing.
 
 This makes two distinct cases hard to model safely.
 
-Case A: same source checkpoint, different converted weight packs.
+Case A: same source checkpoint, different converted weight capsules.
 
 Example:
 
@@ -42,9 +42,9 @@ Example:
 
 These share `google/gemma-4-E2B-it` as source, but they do not share Doppler
 shards. INT4 PLE changes `embed_tokens_per_layer.weight` materialization and
-therefore requires its own weight pack.
+therefore requires its own weight capsule.
 
-Case B: same converted weight pack, different manifest/runtime plans.
+Case B: same converted weight capsule, different manifest/runtime plans.
 
 Example:
 
@@ -52,7 +52,7 @@ Example:
 - A promoted selective-f16 decode manifest that uses the same shards.
 
 These should not duplicate shards. They should become manifest variants over a
-shared weight pack with an explicit `weightsRef`.
+shared weight capsule with an explicit `weightsRef`.
 
 ## Target Contract
 
@@ -66,7 +66,7 @@ Every promoted artifact should resolve through these identities.
     "revision": "b4a601102c3d45e2b7b50e2057a6d5ec8ed4adcf",
     "sourceFormat": "safetensors"
   },
-  "weightPack": {
+  "weightCapsule": {
     "id": "gemma4-e2b-text-q4k-ehf16-int4ple-v1",
     "sourceCheckpointId": "google/gemma-4-E2B-it@b4a601102c3d45e2b7b50e2057a6d5ec8ed4adcf",
     "modalitySet": ["text"],
@@ -83,7 +83,7 @@ Every promoted artifact should resolve through these identities.
   },
   "manifestVariant": {
     "id": "gemma4-e2b-text-q4k-int4ple-af32-exec-v1",
-    "weightPackId": "gemma4-e2b-text-q4k-ehf16-int4ple-v1",
+    "weightCapsuleId": "gemma4-e2b-text-q4k-ehf16-int4ple-v1",
     "executionGraphHash": "sha256:...",
     "sessionHash": "sha256:...",
     "stability": "experimental"
@@ -98,10 +98,10 @@ Every promoted artifact should resolve through these identities.
 ## Required Semantics
 
 - [x] `sourceCheckpoint` identifies upstream source bytes and revision.
-- [x] `weightPack` identifies converted Doppler tensors and shards.
-- [x] `manifestVariant` identifies inference/session/execution policy for a weight pack.
+- [x] `weightCapsule` identifies converted Doppler tensors and shards.
+- [x] `manifestVariant` identifies inference/session/execution policy for a weight capsule.
 - [x] `release.modelId` remains the user-facing catalog/demo id.
-- [x] `weightsRef` is allowed only when a manifest variant uses an external/shared weight pack.
+- [x] `weightsRef` is allowed only when a manifest variant uses an external/shared weight capsule.
 - [x] A manifest with inline `shards[]` must have every shard present in the same artifact root before publication/demo source selection.
 - [x] A manifest without complete local shards must have a resolvable `weightsRef` on explicit runtime source paths.
 - [x] Runtime profiles remain investigation/calibration overlays until explicitly promoted.
@@ -121,8 +121,8 @@ the distinction must remain.
     "sourceFormat": "safetensors",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json",
     "conversionConfigDigest": "sha256:...",
-    "weightPackId": "gemma4-e2b-text-q4k-ehf16-int4ple-v1",
-    "weightPackHash": "sha256:...",
+    "weightCapsuleId": "gemma4-e2b-text-q4k-ehf16-int4ple-v1",
+    "weightCapsuleHash": "sha256:...",
     "manifestVariantId": "gemma4-e2b-text-q4k-int4ple-af32-exec-v1",
     "modalitySet": ["text"],
     "materializationProfile": "range_backed-int4ple",
@@ -136,7 +136,7 @@ Add `weightsRef` only for manifest variants that share another artifact's shards
 ```json
 {
   "weightsRef": {
-    "weightPackId": "gemma4-e2b-text-q4k-ehf16-int4ple-v1",
+    "weightCapsuleId": "gemma4-e2b-text-q4k-ehf16-int4ple-v1",
     "artifactRoot": "models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
     "manifestDigest": "sha256:...",
     "shardSetHash": "sha256:..."
@@ -152,7 +152,7 @@ Backfill catalog entries with enough identity to avoid guessing from names.
 {
   "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
   "sourceCheckpointId": "google/gemma-4-E2B-it@b4a601102c3d45e2b7b50e2057a6d5ec8ed4adcf",
-  "weightPackId": "gemma4-e2b-text-q4k-ehf16-int4ple-v1",
+  "weightCapsuleId": "gemma4-e2b-text-q4k-ehf16-int4ple-v1",
   "manifestVariantId": "gemma4-e2b-text-q4k-int4ple-af32-exec-v1",
   "artifactCompleteness": "complete",
   "runtimePromotionState": "manifest-owned",
@@ -273,14 +273,14 @@ Objective: make new conversions emit identity metadata.
 
 - [x] Add source checkpoint metadata to converter output.
 - [x] Add conversion config path and digest to converter output.
-- [x] Derive deterministic `weightPackId`.
+- [x] Derive deterministic `weightCapsuleId`.
 - [x] Derive deterministic `manifestVariantId`.
 - [x] Derive deterministic `shardSetHash`.
 - [x] Include modality set in emitted metadata.
 - [x] Include materialization profile in emitted metadata.
 - [x] Keep `modelId` as release/catalog id, not weight identity.
 
-Suggested `weightPackId` inputs:
+Suggested `weightCapsuleId` inputs:
 
 - Source checkpoint id.
 - Source revision.
@@ -294,7 +294,7 @@ Suggested `weightPackId` inputs:
 
 Suggested `manifestVariantId` inputs:
 
-- Weight pack id.
+- Weight capsule id.
 - Inference schema id.
 - Execution graph hash.
 - Session hash.
@@ -305,8 +305,8 @@ Exit criteria:
 
 - [x] Reconverted artifacts include `artifactIdentity`.
 - [x] Reconverted same config produces the same ids.
-- [x] Changing only runtime execution/session changes `manifestVariantId`, not `weightPackId`.
-- [x] Changing quantization/materialization changes `weightPackId`.
+- [x] Changing only runtime execution/session changes `manifestVariantId`, not `weightCapsuleId`.
+- [x] Changing quantization/materialization changes `weightCapsuleId`.
 
 ## Phase 3: Artifact Contract Checker
 
@@ -317,9 +317,9 @@ Objective: fail broken artifacts before runtime tries to fetch a shard.
 - [ ] Checker validates all local `shards[]`.
 - [ ] Checker validates shard hashes/sizes when metadata exists.
 - [x] Checker validates `weightsRef` target existence.
-- [x] Checker validates `weightsRef.weightPackId` matches target.
+- [x] Checker validates `weightsRef.weightCapsuleId` matches target.
 - [x] Checker validates `artifactCompleteness`.
-- [x] Checker validates catalog `weightPackId` and `manifestVariantId`.
+- [x] Checker validates catalog `weightCapsuleId` and `manifestVariantId`.
 - [x] Checker validates HF publish candidates.
 - [ ] Checker supports `--check` for CI.
 
@@ -344,9 +344,9 @@ Objective: move load failures from mid-shard fetch to artifact contract resoluti
 
 - [x] Resolve artifact identity before model load.
 - [x] If manifest has local `shards[]`, check presence before GPU allocation.
-- [x] If manifest has `weightsRef`, resolve the referenced weight pack before GPU allocation on explicit runtime source paths.
+- [x] If manifest has `weightsRef`, resolve the referenced weight capsule before GPU allocation on explicit runtime source paths.
 - [x] Reject unresolved `weightsRef`.
-- [x] Reject mismatched `weightPackId`.
+- [x] Reject mismatched `weightCapsuleId`.
 - [x] Reject incomplete local artifacts.
 - [x] Keep explicit `modelUrl` fail-closed.
 - [x] Do not fallback to HF or another model implicitly.
@@ -364,7 +364,7 @@ Objective: make user-facing selection resolve through the identity stack.
 New resolution path:
 
 ```text
-catalog entry -> manifestVariantId -> weightPackId -> artifact source
+catalog entry -> manifestVariantId -> weightCapsuleId -> artifact source
 ```
 
 - [x] Add identity fields to `models/catalog.json`.
@@ -379,7 +379,7 @@ catalog entry -> manifestVariantId -> weightPackId -> artifact source
 Exit criteria:
 
 - [x] Demo cannot surface metadata-only INT4 PLE folders as loadable.
-- [ ] Demo can surface promoted manifest variants sharing a weight pack.
+- [ ] Demo can surface promoted manifest variants sharing a weight capsule.
 - [x] Catalog remains backward-compatible for legacy entries during migration.
 
 ## Phase 6: HF Publish Gate
@@ -398,13 +398,13 @@ Required rejection:
 ```text
 PublishArtifactError:
 models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple has manifest.json but no shards.
-Add a valid weightsRef or publish the matching weight pack.
+Add a valid weightsRef or publish the matching weight capsule.
 ```
 
 Exit criteria:
 
 - [x] HF cannot contain a release-visible manifest-only artifact accidentally.
-- [x] Every hosted catalog entry resolves to a complete weight pack.
+- [x] Every hosted catalog entry resolves to a complete weight capsule.
 
 ## Phase 7: Backfill Existing Artifacts
 
@@ -425,7 +425,7 @@ Known examples to classify:
 
 Classification rules:
 
-- [x] Same source checkpoint plus different converted tensors means separate weight packs.
+- [x] Same source checkpoint plus different converted tensors means separate weight capsules.
 - [x] Same shards plus different execution/session means manifest variants.
 - [ ] Sidecar manifest files must become named manifest variants or be removed.
 - [x] `runtimeProfile`-only behavior remains unpromoted unless backed by evidence.
@@ -434,7 +434,7 @@ Classification rules:
 Exit criteria:
 
 - [x] Every catalog entry has source checkpoint id.
-- [x] Every catalog entry has weight pack id.
+- [x] Every catalog entry has weight capsule id.
 - [x] Every catalog entry has manifest variant id.
 - [x] Every catalog entry has artifact completeness status.
 
@@ -468,7 +468,7 @@ Exit criteria:
 Objective: remove temporary compatibility once inventory is clean.
 
 - [x] Require `artifactIdentity` for promoted artifacts.
-- [x] Require `weightPackId` for promoted artifacts.
+- [x] Require `weightCapsuleId` for promoted artifacts.
 - [x] Require `manifestVariantId` for promoted artifacts.
 - [x] Forbid manifest-only artifact folders without `weightsRef`.
 - [x] Forbid catalog entries without identity fields.
@@ -491,7 +491,7 @@ Completed code/config migration:
   fields from explicit conversion inputs, source metadata, shard hashes,
   quantization/materialization policy, and manifest execution/session content.
 - `models/catalog.json` is backfilled with `sourceCheckpointId`,
-  `weightPackId`, `manifestVariantId`, `artifactCompleteness`,
+  `weightCapsuleId`, `manifestVariantId`, `artifactCompleteness`,
   `runtimePromotionState`, and `weightsRefAllowed`.
 - Quickstart registry generation requires complete hosted artifact identity and
   mirrors those fields into `src/config/quickstart-registry.json`.
@@ -509,7 +509,7 @@ Known remaining artifact work:
 - Existing hosted artifacts must be republished from reconverted manifests
   before the stricter remote registry checker will pass against old revisions.
 - Runtime and hosted registry `weightsRef` loading are supported for explicit
-  URL/file runtime sources and HF manifest-only publication. Shared weight-pack
+  URL/file runtime sources and HF manifest-only publication. Shared weight-capsule
   variants remain excluded from quickstart/demo OPFS promotion until
   variant-aware storage exists.
 - Local incomplete artifact folders listed in the Phase 0 receipt remain
@@ -565,10 +565,10 @@ node src/cli/doppler-cli.js verify --config '{"request":{"workload":"inference",
 
 - [ ] `modelId` is only release/catalog identity.
 - [ ] `sourceCheckpointId` identifies upstream bytes.
-- [ ] `weightPackId` identifies Doppler converted shards.
+- [ ] `weightCapsuleId` identifies Doppler converted shards.
 - [ ] `manifestVariantId` identifies runtime-visible manifest behavior.
 - [ ] Shared-weight manifest variants use explicit `weightsRef`.
-- [ ] Distinct converted layouts use distinct weight packs.
+- [ ] Distinct converted layouts use distinct weight capsules.
 - [ ] Loader fails before shard fetch when artifact contracts are invalid.
 - [ ] Demo only shows loadable artifacts or explicitly marked unavailable entries.
 - [ ] HF publication cannot publish incomplete artifact folders accidentally.

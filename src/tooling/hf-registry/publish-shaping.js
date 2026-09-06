@@ -67,12 +67,12 @@ export function buildHostedRegistryPayload(payload, revisionOverrides = new Map(
   const approved = Array.isArray(source.models)
     ? source.models.filter((entry) => isHostedRegistryApprovedEntry(entry))
     : [];
-  const primaryWeightPackIds = collectPrimaryWeightPackIds(approved);
+  const primaryWeightCapsuleIds = collectPrimaryWeightCapsuleIds(approved);
   const models = approved.map((entry) => {
     const shapeErrors = validateRegistryEntryArtifactIdentity(
       entry,
       'for hosted registry entries',
-      { primaryWeightPackIds }
+      { primaryWeightCapsuleIds }
     );
     if (shapeErrors.length > 0) {
       throw new Error(shapeErrors.join('\n'));
@@ -98,7 +98,7 @@ export function buildHostedRegistryPayload(payload, revisionOverrides = new Map(
 function validateRegistryEntryArtifactIdentity(entry, suffix, options = {}) {
   const errors = [];
   const modelId = normalizeText(entry?.modelId) || 'unknown-model';
-  for (const field of ['sourceCheckpointId', 'weightPackId', 'manifestVariantId']) {
+  for (const field of ['sourceCheckpointId', 'weightCapsuleId', 'manifestVariantId']) {
     if (!normalizeText(entry?.[field])) {
       errors.push(`${modelId}: ${field} is required ${suffix}`);
     }
@@ -126,13 +126,13 @@ function validateRegistryEntryArtifactIdentity(entry, suffix, options = {}) {
         `${modelId}: artifactCompleteness="weights-ref" requires weightsRefAllowed=true ${suffix}`
       );
     }
-    const primaryWeightPackIds = options.primaryWeightPackIds;
-    if (primaryWeightPackIds instanceof Set) {
-      const weightPackId = normalizeText(entry?.weightPackId);
-      if (weightPackId && !primaryWeightPackIds.has(weightPackId)) {
+    const primaryWeightCapsuleIds = options.primaryWeightCapsuleIds;
+    if (primaryWeightCapsuleIds instanceof Set) {
+      const weightCapsuleId = normalizeText(entry?.weightCapsuleId);
+      if (weightCapsuleId && !primaryWeightCapsuleIds.has(weightCapsuleId)) {
         errors.push(
           `${modelId}: artifactCompleteness="weights-ref" requires a primary lane ` +
-          `with weightPackId="${weightPackId}" published in the same payload ${suffix}`
+          `with weightCapsuleId="${weightCapsuleId}" published in the same payload ${suffix}`
         );
       }
     }
@@ -147,14 +147,14 @@ function validateRegistryEntryArtifactIdentity(entry, suffix, options = {}) {
   return errors;
 }
 
-function collectPrimaryWeightPackIds(entries) {
+function collectPrimaryWeightCapsuleIds(entries) {
   const ids = new Set();
   if (!Array.isArray(entries)) return ids;
   for (const entry of entries) {
     if (entry?.artifactCompleteness === 'complete' && entry?.weightsRefAllowed === false) {
-      const weightPackId = normalizeText(entry?.weightPackId);
-      if (weightPackId) {
-        ids.add(weightPackId);
+      const weightCapsuleId = normalizeText(entry?.weightCapsuleId);
+      if (weightCapsuleId) {
+        ids.add(weightCapsuleId);
       }
     }
   }

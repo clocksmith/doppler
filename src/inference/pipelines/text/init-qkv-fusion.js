@@ -235,7 +235,7 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
     }
 
     if (requiresQ4K && qFormat.dtype !== 'q4k') {
-      log.debug('QKV Fusion', `Layer ${l}: qkv_proj requires Q4K weights, skipping ${qFormat.dtype} pack`);
+      log.debug('QKV Fusion', `Layer ${l}: qkv_proj requires Q4K weights, skipping ${qFormat.dtype} capsule`);
       continue;
     }
     if (qFormat.dtype === 'q4k' && !allowQ4K) {

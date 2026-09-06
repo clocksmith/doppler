@@ -190,7 +190,7 @@ const job = {
       operatorReference: {
         'decode-m1': { passed: true, kernelDigest },
       },
-      boundaryPack: {
+      boundaryCapsule: {
         schema: 'doppler.boundary-comparison-receipt/v1',
         promotionGate: {
           boundaryCompatible: true,

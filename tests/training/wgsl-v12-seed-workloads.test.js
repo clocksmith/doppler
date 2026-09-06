@@ -33,7 +33,7 @@ assert.throws(
 );
 
 for (const lane of ['anchor', 'external20', 'random20']) {
-  const root = 'src/experimental/training/workload-packs';
+  const root = 'src/experimental/training/workload-capsules';
   const source = JSON.parse(await readFile(
     `${root}/lora-doppler-wgsl-qwen35-9b-v12-${lane}.json`,
     'utf8'

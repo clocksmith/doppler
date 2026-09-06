@@ -14,8 +14,8 @@ inputs:
   output:
     description: Evidence output directory.
     required: true
-  pack-trusted-signers:
-    description: Trusted Pack signer map path.
+  capsule-trusted-signers:
+    description: Trusted Capsule signer map path.
     required: true
   fleet-trusted-signers:
     description: Trusted fleet receipt signer map path for decide.
@@ -30,7 +30,7 @@ inputs:
     description: Exact Electron device identity path for qualify.
     required: false
   forge-config:
-    description: Optional Forge config path for candidate Pack construction.
+    description: Optional Forge config path for candidate Capsule construction.
     required: false
   signing-private-key:
     description: Release evidence Ed25519 private JWK path.
@@ -74,7 +74,7 @@ runs:
         RELEASE_ACTION: ${{ inputs.action }}
         RELEASE_MANIFEST: ${{ inputs.manifest }}
         RELEASE_OUTPUT: ${{ inputs.output }}
-        PACK_TRUST: ${{ inputs.pack-trusted-signers }}
+        CAPSULE_TRUST: ${{ inputs.capsule-trusted-signers }}
         FLEET_TRUST: ${{ inputs.fleet-trusted-signers }}
         FLEET_RECEIPTS: ${{ inputs.fleet-receipts }}
         TARGET_ID: ${{ inputs.target }}
@@ -89,7 +89,7 @@ runs:
           --action "$RELEASE_ACTION"
           --manifest "$RELEASE_MANIFEST"
           --out "$RELEASE_OUTPUT"
-          --pack-trusted-signers "$PACK_TRUST"
+          --capsule-trusted-signers "$CAPSULE_TRUST"
           --signing-private-key "$SIGNING_PRIVATE_KEY"
           --signing-public-key "$SIGNING_PUBLIC_KEY"
           --signing-authority "$SIGNING_AUTHORITY"

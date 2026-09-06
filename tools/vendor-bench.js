@@ -2225,13 +2225,13 @@ async function assertClaimMatrixArtifact(lane, catalogEntry, label) {
   if (expectedSourceRevision && lane.model.sourceRevision !== expectedSourceRevision) {
     throw new Error(`${label}.model.sourceRevision must match manifest artifactIdentity.sourceRevision`);
   }
-  const expectedWeightPackId = asNonEmptyStringValue(identity.weightPackId);
-  if (expectedWeightPackId && lane.artifact.weightPackId !== expectedWeightPackId) {
-    throw new Error(`${label}.artifact.weightPackId must match manifest artifactIdentity.weightPackId`);
+  const expectedWeightCapsuleId = asNonEmptyStringValue(identity.weightCapsuleId);
+  if (expectedWeightCapsuleId && lane.artifact.weightCapsuleId !== expectedWeightCapsuleId) {
+    throw new Error(`${label}.artifact.weightCapsuleId must match manifest artifactIdentity.weightCapsuleId`);
   }
-  const expectedWeightPackHash = asNonEmptyStringValue(identity.weightPackHash);
-  if (expectedWeightPackHash && lane.artifact.weightPackHash !== expectedWeightPackHash) {
-    throw new Error(`${label}.artifact.weightPackHash must match manifest artifactIdentity.weightPackHash`);
+  const expectedWeightCapsuleHash = asNonEmptyStringValue(identity.weightCapsuleHash);
+  if (expectedWeightCapsuleHash && lane.artifact.weightCapsuleHash !== expectedWeightCapsuleHash) {
+    throw new Error(`${label}.artifact.weightCapsuleHash must match manifest artifactIdentity.weightCapsuleHash`);
   }
   const expectedManifestVariantId = asNonEmptyStringValue(identity.manifestVariantId);
   if (expectedManifestVariantId && lane.artifact.manifestVariantId !== expectedManifestVariantId) {

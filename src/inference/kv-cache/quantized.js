@@ -49,14 +49,14 @@ export class QuantizedKVCache {
     }
 
     // Packing parameters
-    this.packFactor = Math.floor(32 / this.bitWidth);
-    this.packedStride = Math.ceil(this.headDim / this.packFactor);
+    this.capsuleFactor = Math.floor(32 / this.bitWidth);
+    this.packedStride = Math.ceil(this.headDim / this.capsuleFactor);
 
     // Prod-mode packing (b-1 bits for MSE, 1-bit for residual)
     if (this.prodMode) {
       this.mseBitWidth = this.bitWidth - 1;
-      this.msePackFactor = Math.floor(32 / this.mseBitWidth);
-      this.msePackedStride = Math.ceil(this.headDim / this.msePackFactor);
+      this.mseCapsuleFactor = Math.floor(32 / this.mseBitWidth);
+      this.msePackedStride = Math.ceil(this.headDim / this.mseCapsuleFactor);
       this.residualPackedStride = Math.ceil(this.headDim / 32);
     }
 

@@ -369,7 +369,7 @@ function buildArtifactIdentityRefreshPatch(manifest, rawConversionConfig, conver
     conversionConfigPath: conversionConfigPathValue,
     conversionConfigDigest,
     sourceFormat: explicit.sourceFormat ?? previous.sourceFormat,
-    weightPackHash: explicit.weightPackHash ?? previous.weightPackHash,
+    weightCapsuleHash: explicit.weightCapsuleHash ?? previous.weightCapsuleHash,
     shardSetHash: explicit.shardSetHash ?? previous.shardSetHash,
     modalitySet: explicit.modalitySet ?? previous.modalitySet,
     materializationProfile: explicit.materializationProfile ?? previous.materializationProfile,

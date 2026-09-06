@@ -134,7 +134,7 @@
       "sourceRevision": "a59b831785f907e96e6a246b1d142bfb76df31ee",
       "sourceFormat": "safetensors",
       "conversionConfigPath": "src/config/conversion/esmc/esmc-300m-f32-af32.json",
-      "weightPackId": "esmc-300m-f32-af32-wp-v1",
+      "weightCapsuleId": "esmc-300m-f32-af32-wp-v1",
       "manifestVariantId": "esmc-300m-f32-af32-mv-exec-v1",
       "modalitySet": ["protein_sequence"],
       "materializationProfile": "f32-weights-f32-activations",

@@ -11,7 +11,7 @@ const requestInput = {
   action: 'decide',
   manifestPath: 'doppler-release.json',
   outputDirectory: '.doppler-release/evidence',
-  packTrustedSignersPath: 'trust/pack.json',
+  capsuleTrustedSignersPath: 'trust/capsule.json',
   fleetTrustedSignersPath: 'trust/fleet.json',
   fleetReceiptPaths: ['receipts/windows.json', 'receipts/macos.json'],
   signingPrivateKeyPath: 'keys/private.json',
@@ -42,7 +42,7 @@ const parsed = {
   flags: {
     manifest: 'doppler-release.json',
     out: '.doppler-release/evidence',
-    'pack-trusted-signers': 'trust/pack.json',
+    'capsule-trusted-signers': 'trust/capsule.json',
     'fleet-trusted-signers': 'trust/fleet.json',
     'fleet-receipts': 'receipts/windows.json,receipts/macos.json',
     'signing-private-key': 'keys/private.json',

@@ -89,7 +89,7 @@
         "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg"
       },
       "sourceCheckpointId": "google/gemma-3-270m-it",
-      "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -161,7 +161,7 @@
         }
       },
       "sourceCheckpointId": "google/gemma-3-270m-it",
-      "weightPackId": "gemma-3-270m-it-f16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-3-270m-it-f16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-3-270m-it-f16-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -239,7 +239,7 @@
         }
       },
       "sourceCheckpointId": "google/embeddinggemma-300m",
-      "weightPackId": "google-embeddinggemma-300m-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "google-embeddinggemma-300m-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -319,7 +319,7 @@
         }
       },
       "sourceCheckpointId": "google/gemma-3-1b-it",
-      "weightPackId": "gemma-3-1b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-3-1b-it-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-3-1b-it-q4k-ehf16-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -400,7 +400,7 @@
         }
       },
       "sourceCheckpointId": "google/gemma-4-E2B-it",
-      "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -485,7 +485,7 @@
         }
       },
       "sourceCheckpointId": "google/gemma-4-E2B-it",
-      "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
       "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -510,7 +510,7 @@
         ]
       },
       "label": "Gemma 4 E2B Instruct (Q4K/F16a/INT4 PLE)",
-      "description": "Gemma 4 E2B multimodal Doppler/WebGPU f16 activation variant. Shares the existing Q4K/INT4 PLE weight pack and falls back to AF32 when capability rules reject AF16.",
+      "description": "Gemma 4 E2B multimodal Doppler/WebGPU f16 activation variant. Shares the existing Q4K/INT4 PLE weight capsule and falls back to AF32 when capability rules reject AF16.",
       "modes": [
         "text",
         "vision"
@@ -554,7 +554,7 @@
           "result": "pass",
           "lastVerifiedAt": "2026-05-07",
           "source": "manifest-variant-identity",
-          "notes": "F16 activation sibling over the verified Gemma 4 E2B INT4 PLE weight pack. Package-visible runtime evidence is staged at reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-15-34.710Z.json; Apple Metal capability resolution still fails closed to the AF32 primary when this lane is incompatible.",
+          "notes": "F16 activation sibling over the verified Gemma 4 E2B INT4 PLE weight capsule. Package-visible runtime evidence is staged at reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-15-34.710Z.json; Apple Metal capability resolution still fails closed to the AF32 primary when this lane is incompatible.",
           "contracts": {
             "executionContractOk": true
           }
@@ -567,7 +567,7 @@
         }
       },
       "sourceCheckpointId": "google/gemma-4-E2B-it",
-      "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
       "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-mv-f16-activations-v1",
       "artifactCompleteness": "weights-ref",
       "runtimePromotionState": "manifest-owned",
@@ -640,7 +640,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-12B-it",
-      "weightPackId": "gemma-4-12b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-12b-it-text-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-4-12b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -663,7 +663,7 @@
         ]
       },
       "label": "Gemma 4 12B Instruct Text (Q4K/F16a)",
-      "description": "Gemma 4 12B text-only local f16 activation sibling over the existing Q4K weight pack.",
+      "description": "Gemma 4 12B text-only local f16 activation sibling over the existing Q4K weight capsule.",
       "modes": [
         "text"
       ],
@@ -713,7 +713,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-12B-it",
-      "weightPackId": "gemma-4-12b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-12b-it-text-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-4-12b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
       "artifactCompleteness": "weights-ref",
       "runtimePromotionState": "manifest-owned",
@@ -787,7 +787,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-12B-it-qat-w4a16-ct",
-      "weightPackId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-wp-catalog-v1",
       "manifestVariantId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-mv-w4a16-ct-reference-f16-dequant-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -846,7 +846,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/diffusiongemma-26B-A4B-it",
-      "weightPackId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16-wp-34a45084026a",
+      "weightCapsuleId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16-wp-34a45084026a",
       "manifestVariantId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16-mv-f5de4fbe6653",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -924,7 +924,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-31B-it",
-      "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -947,7 +947,7 @@
         ]
       },
       "label": "Gemma 4 31B Instruct Text (Q4K/F16a)",
-      "description": "Gemma 4 31B text-only Doppler/WebGPU f16 activation variant. Shares the existing Q4K/F16 embedding and head weight pack; Doe/Cerebras f16 CSL lowering is intentionally unsupported.",
+      "description": "Gemma 4 31B text-only Doppler/WebGPU f16 activation variant. Shares the existing Q4K/F16 embedding and head weight capsule; Doe/Cerebras f16 CSL lowering is intentionally unsupported.",
       "modes": [
         "text"
       ],
@@ -997,7 +997,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "google/gemma-4-31B-it",
-      "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
       "artifactCompleteness": "weights-ref",
       "runtimePromotionState": "manifest-owned",
@@ -1074,7 +1074,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
-      "weightPackId": "translategemma-4b-1b-enes-q4k-ehf16-af32-wp-16acf07340bd",
+      "weightCapsuleId": "translategemma-4b-1b-enes-q4k-ehf16-af32-wp-16acf07340bd",
       "manifestVariantId": "translategemma-4b-1b-enes-q4k-ehf16-af32-mv-b3c719ee90e7",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -1153,7 +1153,7 @@
         }
       },
       "sourceCheckpointId": "google/translategemma-4b-it",
-      "weightPackId": "translategemma-4b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "translategemma-4b-it-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "translategemma-4b-it-q4k-ehf16-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -1241,7 +1241,7 @@
         }
       },
       "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
-      "weightPackId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -1338,7 +1338,7 @@
         }
       },
       "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-      "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v2",
+      "weightCapsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v2",
       "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -1428,7 +1428,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-      "weightPackId": "qwen-3-reranker-0-6b-f16-af32-wp-catalog-v1",
+      "weightCapsuleId": "qwen-3-reranker-0-6b-f16-af32-wp-catalog-v1",
       "manifestVariantId": "qwen-3-reranker-0-6b-f16-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -1498,7 +1498,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "openbmb/MiniCPM4-0.5B",
-      "weightPackId": "minicpm4-0-5b-f16-af32-wp-catalog-v1",
+      "weightCapsuleId": "minicpm4-0-5b-f16-af32-wp-catalog-v1",
       "manifestVariantId": "minicpm4-0-5b-f16-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "unpromoted",
@@ -1600,7 +1600,7 @@
         }
       },
       "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
-      "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+      "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
       "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -1684,7 +1684,7 @@
         }
       },
       "sourceCheckpointId": "Qwen/Qwen3.5-2B",
-      "weightPackId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
+      "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
       "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -1763,7 +1763,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "Qwen/Qwen3.6-27B",
-      "weightPackId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
+      "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
       "manifestVariantId": "qwen-3-6-27b-q4k-ehaf16-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -1786,7 +1786,7 @@
         ]
       },
       "label": "Qwen 3.6 27B (Q4K/F16a)",
-      "description": "Qwen 3.6 27B text-only Doppler/WebGPU f16 lane. Shares the existing Q4K/F16 embedding weight pack; Doe/Cerebras f16 CSL lowering is intentionally unsupported.",
+      "description": "Qwen 3.6 27B text-only Doppler/WebGPU f16 lane. Shares the existing Q4K/F16 embedding weight capsule; Doe/Cerebras f16 CSL lowering is intentionally unsupported.",
       "modes": [
         "text"
       ],
@@ -1837,7 +1837,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "Qwen/Qwen3.6-27B",
-      "weightPackId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
+      "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
       "manifestVariantId": "qwen-3-6-27b-q4k-eaf16-mv-exec-v1",
       "artifactCompleteness": "weights-ref",
       "runtimePromotionState": "manifest-owned",
@@ -1860,7 +1860,7 @@
         ]
       },
       "label": "Qwen 3.8 27B (F16/F32a)",
-      "description": "Qwen 3.8 27B text model with hybrid linear attention. The manifest-owned F16/F32 lane passes deterministic source-token parity and signed Pack execution qualification.",
+      "description": "Qwen 3.8 27B text model with hybrid linear attention. The manifest-owned F16/F32 lane passes deterministic source-token parity and signed Capsule execution qualification.",
       "modes": [
         "text"
       ],
@@ -1892,14 +1892,14 @@
           "tested": "verified"
         },
         "tested": {
-          "suite": "source-parity-and-pack",
+          "suite": "source-parity-and-capsule",
           "surface": [
             "node"
           ],
           "result": "pass",
           "lastVerifiedAt": "2026-08-23",
           "source": "model-ir-v2-release-to-javascript",
-          "notes": "Node/WebGPU generated all 128 pinned greedy tokens with exact source parity, and the signed Pack v2 qualification passed. Evidence: reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json and reports/model-ir-v2/qwen3.8-27b.release-to-javascript-receipt.json. The artifact remains local-only until publication is separately approved.",
+          "notes": "Node/WebGPU generated all 128 pinned greedy tokens with exact source parity, and the signed Capsule v2 qualification passed. Evidence: reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json and reports/model-ir-v2/qwen3.8-27b.release-to-javascript-receipt.json. The artifact remains local-only until publication is separately approved.",
           "contracts": {
             "executionContractOk": true
           }
@@ -1907,7 +1907,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "Qwen/Qwen3.8-27B",
-      "weightPackId": "qwen3-8-27b-text-f16-af32-wp-990c3ddb1675",
+      "weightCapsuleId": "qwen3-8-27b-text-f16-af32-wp-990c3ddb1675",
       "manifestVariantId": "qwen3-8-27b-text-f16-af32-mv-4f6c6b282ab6",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -1977,7 +1977,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
-      "weightPackId": "muse-glimmer-30b-text-f16-af32-wp-da829391e53b",
+      "weightCapsuleId": "muse-glimmer-30b-text-f16-af32-wp-da829391e53b",
       "manifestVariantId": "muse-glimmer-30b-text-f16-af32-mv-4b07f1d027c2",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "unpromoted",
@@ -2045,7 +2045,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
-      "weightPackId": "muse-glimmer-30b-text-bf16-af32-wp-dcc50556375d",
+      "weightCapsuleId": "muse-glimmer-30b-text-bf16-af32-wp-dcc50556375d",
       "manifestVariantId": "muse-glimmer-30b-text-bf16-af32-mv-080be51060ba",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "unpromoted",
@@ -2102,7 +2102,7 @@
       },
       "vendorBenchmark": null,
       "sourceCheckpointId": "LiquidAI/LFM2.5-1.2B-Instruct",
-      "weightPackId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-mv-exec-v1",
       "artifactCompleteness": "incomplete",
       "runtimePromotionState": "unpromoted",
@@ -2176,7 +2176,7 @@
         }
       },
       "sourceCheckpointId": "chandar-lab/AMPLIFY_120M@d918a9e8c64dc43f6ec4996022c3deba14d66470",
-      "weightPackId": "amplify-120m-f16-af32-wp-v1",
+      "weightCapsuleId": "amplify-120m-f16-af32-wp-v1",
       "manifestVariantId": "amplify-120m-f16-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -2248,7 +2248,7 @@
         }
       },
       "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
-      "weightPackId": "esm2-t12-35m-ur50d-f32-af32-wp-v1",
+      "weightCapsuleId": "esm2-t12-35m-ur50d-f32-af32-wp-v1",
       "manifestVariantId": "esm2-t12-35m-ur50d-f32-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -2320,7 +2320,7 @@
         }
       },
       "sourceCheckpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
-      "weightPackId": "esmc-300m-f32-af32-wp-v1",
+      "weightCapsuleId": "esmc-300m-f32-af32-wp-v1",
       "manifestVariantId": "esmc-300m-f32-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",
@@ -2392,7 +2392,7 @@
         }
       },
       "sourceCheckpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1",
-      "weightPackId": "nucleotide-transformer-v2-50m-f32-af32-wp-v1",
+      "weightCapsuleId": "nucleotide-transformer-v2-50m-f32-af32-wp-v1",
       "manifestVariantId": "nucleotide-transformer-v2-50m-f32-af32-mv-exec-v1",
       "artifactCompleteness": "complete",
       "runtimePromotionState": "manifest-owned",

@@ -1,4 +1,4 @@
-import type { DopplerPack } from './pack.js';
+import type { DopplerCapsule } from './capsule.js';
 import type { TargetPlan } from './target-plan.js';
 export const FORECAST_MANIFEST_SCHEMA: 'doppler.forecast-manifest/v1';
 export interface ForecastContract {
@@ -22,4 +22,4 @@ export interface ForecastManifest {
   execution: { steps: Array<Record<string, unknown>> };
   uploads: Array<{ slotId: string; artifactId: string; offsetBytes: number; sizeBytes: number }>;
 }
-export declare function validateForecastManifest(manifest: unknown, pack: DopplerPack, targetPlan: TargetPlan): ForecastContract;
+export declare function validateForecastManifest(manifest: unknown, capsule: DopplerCapsule, targetPlan: TargetPlan): ForecastContract;

@@ -27,7 +27,7 @@ Present the shared Doppler command contract as a clear, scriptable Node command-
 - CLI shorthand normalizes into the same command contract used by other surfaces.
 - Unsupported surfaces fail closed.
 - Exit status reflects command outcome.
-- Pack HTTP serving borrows the application's pinned session and delegates to
+- Capsule HTTP serving borrows the application's pinned session and delegates to
   its operation contract; it never selects releases or owns inference semantics.
 
 ## Acceptance

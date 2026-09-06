@@ -71,7 +71,7 @@ const matrix = await readJson(MATRIX_PATH);
       'external-executable-model-adoption',
       'canonical-production-release-contract',
       'electron-reference-release',
-      'pack-first-electron-reranking',
+      'capsule-first-electron-reranking',
       'production-release-toolchain',
       'maintained-application-integrations',
       'electron-fleet-qualification',

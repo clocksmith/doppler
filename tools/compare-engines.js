@@ -1728,12 +1728,12 @@ async function loadQuickstartRegistry() {
     if (
       typeof row?.sourceCheckpointId !== 'string'
       || row.sourceCheckpointId.trim().length === 0
-      || typeof row?.weightPackId !== 'string'
-      || row.weightPackId.trim().length === 0
+      || typeof row?.weightCapsuleId !== 'string'
+      || row.weightCapsuleId.trim().length === 0
       || typeof row?.manifestVariantId !== 'string'
       || row.manifestVariantId.trim().length === 0
     ) {
-      throw new Error(`doppler-registry.json quickstart entry "${modelId}" must define sourceCheckpointId, weightPackId, and manifestVariantId`);
+      throw new Error(`doppler-registry.json quickstart entry "${modelId}" must define sourceCheckpointId, weightCapsuleId, and manifestVariantId`);
     }
     if (row?.artifactCompleteness !== 'complete' || row?.runtimePromotionState !== 'manifest-owned' || row?.weightsRefAllowed !== false) {
       throw new Error(`doppler-registry.json quickstart entry "${modelId}" must be complete and manifest-owned`);
@@ -1826,7 +1826,7 @@ async function resolveDopplerModelSource(compareProfile, dopplerModelId, explici
         source: toRepoRelativeSourcePath(quickstartRegistry.source),
         sourceSha256: quickstartRegistry.sourceSha256,
         sourceCheckpointId: registryEntry.sourceCheckpointId,
-        weightPackId: registryEntry.weightPackId,
+        weightCapsuleId: registryEntry.weightCapsuleId,
         manifestVariantId: registryEntry.manifestVariantId,
       },
       modelBaseDir: null,
@@ -2562,7 +2562,7 @@ async function preflightDopplerManifestContract(dopplerModelSource, dopplerModel
   const artifactIdentity = manifest?.artifactIdentity && typeof manifest.artifactIdentity === 'object'
     ? {
       sourceCheckpointId: manifest.artifactIdentity.sourceCheckpointId ?? null,
-      weightPackId: manifest.artifactIdentity.weightPackId ?? null,
+      weightCapsuleId: manifest.artifactIdentity.weightCapsuleId ?? null,
       manifestVariantId: manifest.artifactIdentity.manifestVariantId ?? null,
       shardSetHash: manifest.artifactIdentity.shardSetHash ?? null,
       artifactCompleteness: manifest.artifactIdentity.artifactCompleteness ?? null,

@@ -1,11 +1,11 @@
 # Training Migrations
 
-Migration summary for the training command surface, workload-pack schema, and artifact/report contracts.
+Migration summary for the training command surface, workload-capsule schema, and artifact/report contracts.
 
 ## Current Schema Baseline
 
 - training command schema version is pinned to `1`
-- workload-pack schema version is pinned to `1`
+- workload-capsule schema version is pinned to `1`
 - `trainingSchemaVersion` must be `1` for training flows
 
 ## Command Contract Migration Highlights
@@ -21,9 +21,9 @@ Migration summary for the training command surface, workload-pack schema, and ar
 - invalid field and surface combinations remain fail closed
 - `forceResumeReason`, `forceResumeSource`, and `checkpointOperator` still require `forceResume=true` on legacy harness flows
 
-## Workload-Pack Migration Highlights
+## Workload-Capsule Migration Highlights
 
-- workload packs under `src/experimental/training/workload-packs/` are now the canonical source of truth for operator runs
+- workload capsules under `src/experimental/training/workload-capsules/` are now the canonical source of truth for operator runs
 - shared workload fields include model IDs, dataset IDs and paths, eval datasets, checkpoint cadence, selection policy, surface support, and training policy
 - LoRA workload fields now carry adapter, freeze, export, and activation policy
 - distill workload fields now carry stage plan, KD and triplet parameters, pair-policy filters, and subset policy
@@ -80,7 +80,7 @@ Core replay context fields remain part of the metrics contract:
 - producers: emit required workload, checkpoint, eval, and artifact fields explicitly
 - consumers: treat missing required fields as invalid payloads
 - preserve deterministic content-hash semantics when introducing new fields
-- prefer workload-pack updates over new runtime-only flags
+- prefer workload-capsule updates over new runtime-only flags
 
 ## Historical Notes
 

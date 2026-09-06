@@ -101,7 +101,7 @@
       "sourceCheckpointId": "google/gemma-4-12B-it",
       "sourceRepo": "google/gemma-4-12B-it",
       "sourceRevision": "5926caa4ec0cac5cbfadaf4077420520de1d5205",
-      "weightPackId": "gemma-4-12b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-12b-it-text-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-4-12b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
       "artifactCompleteness": "complete"
     }

@@ -30,13 +30,13 @@
     "candidate": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["logicalModelId", "sourceRevision", "sourceRevisionDigest", "packPath", "packSemanticRoot"],
+      "required": ["logicalModelId", "sourceRevision", "sourceRevisionDigest", "capsulePath", "capsuleSemanticRoot"],
       "properties": {
         "logicalModelId": { "$ref": "#/$defs/nonEmpty" },
         "sourceRevision": { "$ref": "#/$defs/nonEmpty" },
         "sourceRevisionDigest": { "$ref": "#/$defs/digest" },
-        "packPath": { "$ref": "#/$defs/repoPath" },
-        "packSemanticRoot": { "$ref": "#/$defs/digest" }
+        "capsulePath": { "$ref": "#/$defs/repoPath" },
+        "capsuleSemanticRoot": { "$ref": "#/$defs/digest" }
       }
     },
     "application": {
@@ -231,10 +231,10 @@
     "releaseTarget": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["releaseId", "packSemanticRoot"],
+      "required": ["releaseId", "capsuleSemanticRoot"],
       "properties": {
         "releaseId": { "$ref": "#/$defs/nonEmpty" },
-        "packSemanticRoot": { "$ref": "#/$defs/digest" },
+        "capsuleSemanticRoot": { "$ref": "#/$defs/digest" },
         "authority": { "const": "customer" }
       }
     }

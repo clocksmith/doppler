@@ -44,7 +44,7 @@ These stable invariant IDs are normative:
 | `INV-PARITY-005` | Browser, Node, immediate, recorded, benchmark, and replay adapters consume the same normalized semantic request or plan. Executors may differ only in transport, submission, retention, completion tasks, and evidence capture. | plan parity tests + `npm run source:architecture:check` |
 | `INV-RESOURCE-006` | Every concrete resource has tagged ownership: `borrowed`, `scopeOwned`, `submitOwned`, `transferred`, or `retained`. Ownership changes use explicit scope operations. | resource-scope failure and alias tests |
 | `INV-RECEIPT-007` | Structural refactors preserve canonical behavior receipts containing command, session, plan, operation order, dtype transitions, resource events, and first failure boundary. | refactor-receipt tests |
-| `INV-COMPUTE-008` | During Pack/Runtime model execution, JavaScript never performs tensor arithmetic or tensor-layout transforms; declared WGSL programs own those operations. Reviewed Forge construction, artifact codecs/materialization, host input preprocessing, scalar control, observation, and reference boundaries cannot act as runtime fallbacks. | `npm run source:style:check` + kernel reference tests |
+| `INV-COMPUTE-008` | During Capsule/Runtime model execution, JavaScript never performs tensor arithmetic or tensor-layout transforms; declared WGSL programs own those operations. Reviewed Forge construction, artifact codecs/materialization, host input preprocessing, scalar control, observation, and reference boundaries cannot act as runtime fallbacks. | `npm run source:style:check` + kernel reference tests |
 | `INV-GEOMETRY-009` | Runtime-required tensor and spatial geometry is explicit in ModelIR, TargetPlan, manifest, or resolved session data and is never inferred from counts or identity heuristics. | `npm run source:style:check` + manifest/pipeline contract tests |
 
 The contract layering is:
@@ -76,7 +76,7 @@ construction, descriptor-bound byte decoding/materialization, application-input
 preprocessing, observation that cannot feed execution, and deterministic
 reference implementations are distinct reviewed roles. Numerically creative
 prototypes may remain under `src/experimental/` only while production imports
-are mechanically forbidden and support policy excludes them from Pack Runtime
+are mechanically forbidden and support policy excludes them from Capsule Runtime
 claims. The source-compute policy inventories these roles by exact module and
 symbol; unreviewed or stale entries fail the style gate.
 

@@ -82,7 +82,7 @@ import {
     'bad-model: hf.revision is required when lifecycle.availability.hf=true',
     'bad-model: hf.path is required when lifecycle.availability.hf=true',
     'bad-model: sourceCheckpointId is required when lifecycle.availability.hf=true',
-    'bad-model: weightPackId is required when lifecycle.availability.hf=true',
+    'bad-model: weightCapsuleId is required when lifecycle.availability.hf=true',
     'bad-model: manifestVariantId is required when lifecycle.availability.hf=true',
     'bad-model: weightsRefAllowed must be a boolean when lifecycle.availability.hf=true',
     'bad-model: artifactCompleteness must be "complete" or "weights-ref" when lifecycle.availability.hf=true',
@@ -173,7 +173,7 @@ import {
         modelId: 'verified-gemma',
         sortOrder: 1,
         sourceCheckpointId: 'google/gemma-3-270m-it',
-        weightPackId: 'verified-gemma-wp-catalog-v1',
+        weightCapsuleId: 'verified-gemma-wp-catalog-v1',
         manifestVariantId: 'verified-gemma-mv-exec-v1',
         artifactCompleteness: 'complete',
         runtimePromotionState: 'manifest-owned',
@@ -208,7 +208,7 @@ import {
         modelId: 'verified-primary',
         sortOrder: 1,
         sourceCheckpointId: 'unit/primary',
-        weightPackId: 'shared-wp-catalog-v1',
+        weightCapsuleId: 'shared-wp-catalog-v1',
         manifestVariantId: 'verified-primary-mv-exec-v1',
         artifactCompleteness: 'complete',
         runtimePromotionState: 'manifest-owned',
@@ -232,7 +232,7 @@ import {
         modelId: 'verified-variant',
         sortOrder: 2,
         sourceCheckpointId: 'unit/primary',
-        weightPackId: 'shared-wp-catalog-v1',
+        weightCapsuleId: 'shared-wp-catalog-v1',
         manifestVariantId: 'verified-variant-mv-exec-v1',
         artifactCompleteness: 'weights-ref',
         runtimePromotionState: 'manifest-owned',
@@ -271,7 +271,7 @@ import {
           modelId: 'orphan-variant',
           sortOrder: 1,
           sourceCheckpointId: 'unit/primary',
-          weightPackId: 'missing-wp-catalog-v1',
+          weightCapsuleId: 'missing-wp-catalog-v1',
           manifestVariantId: 'orphan-variant-mv-exec-v1',
           artifactCompleteness: 'weights-ref',
           runtimePromotionState: 'manifest-owned',
@@ -293,7 +293,7 @@ import {
         },
       ],
     }),
-    /requires a primary lane with weightPackId="missing-wp-catalog-v1"/
+    /requires a primary lane with weightCapsuleId="missing-wp-catalog-v1"/
   );
 }
 

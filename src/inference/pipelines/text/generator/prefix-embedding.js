@@ -217,7 +217,7 @@ export async function applyPrefixEmbeddingOverride(
         fromDtype: 'f32',
         toDtype: 'f16',
         op: 'prefill_embedding_override',
-        detail: 'Prefix embedding override would pack GPU-provided f32 features into an f16 activation buffer.',
+        detail: 'Prefix embedding override would capsule GPU-provided f32 features into an f16 activation buffer.',
         transitionDeclaredBy,
       });
       const castedOverride = await castF32ToF16(overrideTensor);
@@ -239,7 +239,7 @@ export async function applyPrefixEmbeddingOverride(
         fromDtype: 'f32',
         toDtype: 'f16',
         op: 'prefill_embedding_override',
-        detail: 'Prefix embedding override would pack CPU-provided f32 features into an f16 activation buffer.',
+        detail: 'Prefix embedding override would capsule CPU-provided f32 features into an f16 activation buffer.',
         transitionDeclaredBy,
       });
       const packedOverride = f32ToF16Array(override.embeddings);

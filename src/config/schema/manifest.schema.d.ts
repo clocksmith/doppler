@@ -188,7 +188,7 @@ export type ArtifactCompleteness =
  * Additive artifact identity metadata.
  *
  * During the migration, this section may be absent from legacy manifests.
- * When present, fields identify source bytes, converted weight pack identity,
+ * When present, fields identify source bytes, converted weight capsule identity,
  * and manifest/runtime-policy variant identity without overloading modelId.
  */
 export interface ManifestArtifactIdentitySchema {
@@ -198,8 +198,8 @@ export interface ManifestArtifactIdentitySchema {
   sourceFormat?: SourceArtifactFormat;
   conversionConfigPath?: string;
   conversionConfigDigest?: string;
-  weightPackId?: string;
-  weightPackHash?: string;
+  weightCapsuleId?: string;
+  weightCapsuleHash?: string;
   shardSetHash?: string;
   manifestVariantId?: string;
   modalitySet?: string[];
@@ -208,14 +208,14 @@ export interface ManifestArtifactIdentitySchema {
 }
 
 /**
- * Reference from a manifest variant to a shared/external weight pack.
+ * Reference from a manifest variant to a shared/external weight capsule.
  *
  * Runtime shard resolution does not consume this field yet. While migration is
  * in progress, a manifest with incomplete local shards must still fail unless
  * the loader path has explicit weightsRef support.
  */
 export interface ManifestWeightsRefSchema {
-  weightPackId: string;
+  weightCapsuleId: string;
   artifactRoot: string;
   manifestDigest: string;
   shardSetHash: string;

@@ -45,9 +45,9 @@ Optional additive surfaces:
 The manifest may include additive identity metadata while Doppler migrates away
 from `modelId` as the combined release/artifact/runtime identity.
 
-- `artifactIdentity` identifies source checkpoint bytes, converted weight pack
+- `artifactIdentity` identifies source checkpoint bytes, converted weight capsule
   identity, and manifest/runtime-policy variant identity.
-- `weightsRef` identifies a shared or external weight pack for a manifest
+- `weightsRef` identifies a shared or external weight capsule for a manifest
   variant that does not own its local shards.
 - Legacy manifests may omit both fields during migration.
 - When either field is present, its shape is validated by the RDRR parser.

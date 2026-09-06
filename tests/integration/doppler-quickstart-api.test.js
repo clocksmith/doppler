@@ -69,7 +69,7 @@ assert.equal(dr, doppler);
     inference: {},
     hashAlgorithm: 'sha256',
     artifactIdentity: {
-      weightPackId: 'toy-wp',
+      weightCapsuleId: 'toy-wp',
       shardSetHash: 'sha256:toy-shards',
     },
     tensorsFile: 'tensors.json',
@@ -104,10 +104,10 @@ assert.equal(dr, doppler);
       manifest: {
         modelId: 'variant',
         artifactIdentity: {
-          weightPackId: 'toy-wp',
+          weightCapsuleId: 'toy-wp',
         },
         weightsRef: {
-          weightPackId: 'toy-wp',
+          weightCapsuleId: 'toy-wp',
           artifactRoot: '../weights',
           manifestDigest: `sha256:${digest}`,
           shardSetHash: 'sha256:toy-shards',
@@ -132,8 +132,8 @@ assert.equal(dr, doppler);
     inference: {},
     hashAlgorithm: 'sha256',
     artifactIdentity: {
-      weightPackId: 'legacy-wp',
-      weightPackHash: 'sha256:legacy-weight-pack',
+      weightCapsuleId: 'legacy-wp',
+      weightCapsuleHash: 'sha256:legacy-weight-capsule',
     },
     tensorsFile: 'tensors.json',
     shards: [
@@ -167,13 +167,13 @@ assert.equal(dr, doppler);
       manifest: {
         modelId: 'legacy-variant',
         artifactIdentity: {
-          weightPackId: 'legacy-wp',
+          weightCapsuleId: 'legacy-wp',
         },
         weightsRef: {
-          weightPackId: 'legacy-wp',
+          weightCapsuleId: 'legacy-wp',
           artifactRoot: '../legacy-weights',
           manifestDigest: `sha256:${digest}`,
-          shardSetHash: 'sha256:legacy-weight-pack',
+          shardSetHash: 'sha256:legacy-weight-capsule',
         },
       },
     });

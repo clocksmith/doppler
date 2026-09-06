@@ -39,7 +39,7 @@ const modalitySet = ['text'];
 const materializationProfile = 'standard';
 const resolvedConfig = createConverterConfig(conversionConfig);
 const shardSetHash = stableDigest({ hashAlgorithm: 'sha256', shards: manifest.shards });
-const weightPackHash = stableDigest({
+const weightCapsuleHash = stableDigest({
   sourceCheckpointId,
   sourceFormat,
   modelType: manifest.modelType,
@@ -50,9 +50,9 @@ const weightPackHash = stableDigest({
   sharding: { shardSizeBytes: 64 },
   output: { textOnly: true },
 });
-const weightPackId = `postflight-test-wp-${weightPackHash.slice(7, 19)}`;
+const weightCapsuleId = `postflight-test-wp-${weightCapsuleHash.slice(7, 19)}`;
 const manifestVariantHash = stableDigest({
-  weightPackId,
+  weightCapsuleId,
   modelType: manifest.modelType,
   inference,
   config: resolvedConfig.manifest,
@@ -63,8 +63,8 @@ manifest.artifactIdentity = {
   sourceRevision: 'abc123',
   sourceFormat,
   conversionConfigDigest: stableDigest(conversionConfig),
-  weightPackId,
-  weightPackHash,
+  weightCapsuleId,
+  weightCapsuleHash,
   shardSetHash,
   manifestVariantId: `postflight-test-mv-${manifestVariantHash.slice(7, 19)}`,
   modalitySet,
@@ -125,7 +125,7 @@ const receipt = createManifestConversionPostflightReceipt(inputs);
 assert.equal(receipt.dispositions.conversionExecuted, true);
 assert.equal(receipt.dispositions.physicalShardClosureVerified, true);
 assert.equal(receipt.dispositions.qualificationStarted, false);
-assert.equal(receipt.dispositions.packEligible, false);
+assert.equal(receipt.dispositions.capsuleEligible, false);
 assert.equal(receipt.conversionEvidence.durationMs, 60000);
 assert.equal(receipt.physicalClosure.shardBytes, 64);
 assert.equal(validateManifestConversionPostflightReceipt(receipt).ok, true);
@@ -157,7 +157,8 @@ const checkedIn = JSON.parse(await fs.readFile(
   'reports/model-ir-v2/glimmer-30b.conversion-postflight.json',
   'utf8'
 ));
-assert.equal(validateManifestConversionPostflightReceipt(checkedIn).ok, true);
+// Historical evidence is retained, not relabeled as a current Capsule receipt.
+assert.equal(validateManifestConversionPostflightReceipt(checkedIn).ok, false);
 assert.equal(checkedIn.conversionEvidence.tensorCount, 627);
 assert.equal(checkedIn.physicalClosure.shardCount, 831);
 assert.equal(checkedIn.dispositions.packEligible, false);

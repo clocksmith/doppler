@@ -1,5 +1,6 @@
 import { log } from '../../debug/index.js';
 import { createPipeline } from '../../generation/index.js';
+import { createCapsuleLoadScope, assertCapsuleLoadActive } from '../runtime/capsule-acquisition.js';
 import { listQuickstartModels } from '../doppler-registry.js';
 import {
   createDefaultNodeLoadProgressLogger,
@@ -30,8 +31,8 @@ import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { getKernelCapabilities, initDevice } from '../../gpu/device.js';
 import { runWithShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
 import { createDopplerRuntime } from '../runtime/composition-root.js';
-import { createPackProgramAdapter } from '../runtime/pack-program-adapter.js';
-import { createPackArtifactSource } from '../runtime/pack-artifact-source.js';
+import { createCapsuleProgramAdapter } from '../runtime/capsule-program-adapter.js';
+import { createCapsuleArtifactSource } from '../runtime/capsule-artifact-source.js';
 import { resolveProgramLoadRuntimeConfig } from '../../config/initial-execution-identity.js';
 import { normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
@@ -134,7 +135,7 @@ export async function resolvePersistentBrowserLoadSource(
   };
 }
 
-export function resolvePackProgramLoadOptions(targetPlan) {
+export function resolveCapsuleProgramLoadOptions(targetPlan) {
   const identity = targetPlan?.initialExecutionIdentity;
   if (!identity) return {};
   const runtimeConfig = resolveProgramLoadRuntimeConfig(identity);
@@ -178,7 +179,7 @@ function resolveArtifactStorageContext(loadSource) {
 export function createDopplerRuntimeService({
   ensureWebGPUAvailable,
   defaultLoadProgressLogger = null,
-  resolvePackInput = null,
+  resolveCapsuleInput = null,
 } = {}) {
   if (typeof ensureWebGPUAvailable !== 'function') {
     throw new Error('createDopplerRuntimeService requires ensureWebGPUAvailable.');
@@ -228,7 +229,7 @@ export function createDopplerRuntimeService({
       logicalModelId: resolved.logicalModelId,
       modelId: manifestPayload.manifest?.modelId ?? resolved.modelId,
       sourceCheckpointId: manifestPayload.manifest?.artifactIdentity?.sourceCheckpointId,
-      weightPackId: manifestPayload.manifest?.artifactIdentity?.weightPackId,
+      weightCapsuleId: manifestPayload.manifest?.artifactIdentity?.weightCapsuleId,
       manifestVariantId: manifestPayload.manifest?.artifactIdentity?.manifestVariantId,
       artifactVariantId: manifestPayload.manifestHash,
     });
@@ -351,57 +352,71 @@ export function createDopplerRuntimeService({
     return createScopedModelSession(await load(model, options));
   }
 
-  async function openPack(packSource, options = {}) {
-    if (typeof resolvePackInput !== 'function') {
-      throw new Error('doppler.openPack() is unavailable because no Pack source resolver is configured.');
+  async function openCapsule(capsuleSource, options = {}) {
+    if (typeof resolveCapsuleInput !== 'function') {
+      throw new Error('doppler.openCapsule() is unavailable because no Capsule source resolver is configured.');
     }
     if (options.modelLoadOptions !== undefined) {
-      throw new Error('doppler.openPack() prohibits modelLoadOptions because signed TargetPlan policy is authoritative.');
+      throw new Error('doppler.openCapsule() prohibits modelLoadOptions because signed TargetPlan policy is authoritative.');
     }
     options = { ...options, ...normalizeTargetPlanSelectionPolicy({
       acceptedTargetPlanDigests: options.acceptedTargetPlanDigests,
       requiredOperations: options.requiredOperations,
       preferredTargetPlanDigests: options.preferredTargetPlanDigests,
     }) };
-    await ensureWebGPUAvailable();
-    const resolvedPack = await resolvePackInput(packSource, options);
-    if (!resolvedPack?.pack || !resolvedPack?.artifactStore) {
-      throw new Error('Pack source resolver must return pack and artifactStore.');
-    }
-    const gpuDevice = await runWithShaderSourceScope(null, () => initDevice());
-    const capabilities = getKernelCapabilities();
-    const device = {
-      getDevice() {
-        return gpuDevice;
-      },
-      getProfile() {
-        return {
-          surface: isNodeRuntime() ? 'node-webgpu' : 'browser-webgpu',
-          hasF16: capabilities.hasF16 === true,
-          hasSubgroups: capabilities.hasSubgroups === true,
-          maxBufferSize: Number(capabilities.maxBufferSize || gpuDevice.limits?.maxBufferSize || 0),
-          adapter: capabilities.adapterInfo ?? null,
-        };
-      },
-    };
-    const packRuntime = createDopplerRuntime({
-      device,
-      artifactStore: resolvedPack.artifactStore,
-      trustedSigners: options.trustedSigners ?? {},
-      cache: options.verificationCache ?? null,
-      observer: options.observer ?? null,
-      async programFactory({ pack, targetPlan, artifactStore }) {
-        const source = await createPackArtifactSource(pack, artifactStore);
-        const modelHandle = await load(source, { ...resolvePackProgramLoadOptions(targetPlan), isolatedLoader: true });
-        try {
-          return createPackProgramAdapter(modelHandle, pack, targetPlan);
-        } catch (error) {
-          await modelHandle.unload();
-          throw error;
-        }
-      },
-    });
-    return packRuntime.openPack(resolvedPack.pack, options);
+    const acquisition = createCapsuleLoadScope(options);
+    options = acquisition.options;
+    try {
+      const resolvedCapsule = await resolveCapsuleInput(capsuleSource, options);
+      assertCapsuleLoadActive(options.signal);
+      if (!resolvedCapsule?.capsule || !resolvedCapsule?.artifactStore) {
+        throw new Error('Capsule source resolver must return capsule and artifactStore.');
+      }
+      let gpuDevice;
+      const device = {
+        getDevice() {
+          if (!gpuDevice) throw new Error('Capsule device must be selected before resource binding.');
+          return gpuDevice;
+        },
+        async getProfile() {
+          await ensureWebGPUAvailable();
+          assertCapsuleLoadActive(options.signal);
+          gpuDevice = await runWithShaderSourceScope(null, () => initDevice());
+          assertCapsuleLoadActive(options.signal);
+          const capabilities = getKernelCapabilities();
+          return {
+            surface: isNodeRuntime() ? 'node-webgpu' : 'browser-webgpu',
+            hasF16: capabilities.hasF16 === true,
+            hasSubgroups: capabilities.hasSubgroups === true,
+            maxBufferSize: Number(capabilities.maxBufferSize || gpuDevice.limits?.maxBufferSize || 0),
+            adapter: capabilities.adapterInfo ?? null,
+          };
+        },
+      };
+      const capsuleRuntime = createDopplerRuntime({
+        device,
+        artifactStore: resolvedCapsule.artifactStore,
+        trustedSigners: options.trustedSigners ?? {},
+        cache: options.verificationCache ?? null,
+        observer: options.observer ?? null,
+        async programFactory({ capsule, targetPlan, artifactStore, options: programOptions }) {
+          const source = await createCapsuleArtifactSource(capsule, artifactStore);
+          assertCapsuleLoadActive(programOptions.signal);
+          const modelHandle = await load(source, { ...resolveCapsuleProgramLoadOptions(targetPlan), isolatedLoader: true });
+          try {
+            assertCapsuleLoadActive(programOptions.signal);
+            return createCapsuleProgramAdapter(modelHandle, capsule, targetPlan);
+          } catch (error) {
+            try { await modelHandle.unload(); } catch (cleanupError) {
+              throw new AggregateError([error, cleanupError], 'Capsule program binding and cleanup failed.', { cause: error });
+            }
+            throw error;
+          }
+        },
+      });
+      return await capsuleRuntime.openCapsule(resolvedCapsule.capsule, options);
+    } catch (error) { acquisition.abort(error); throw error; }
+    finally { acquisition.close(); }
   }
 
   async function generate(model, input, options = {}) {
@@ -443,7 +458,7 @@ export function createDopplerRuntimeService({
 
   doppler.load = load;
   doppler.open = open;
-  doppler.openPack = openPack;
+  doppler.openCapsule = openCapsule;
   doppler.generate = generate;
   doppler.text = async function text(prompt, options = {}) {
     if (!options || typeof options !== 'object' || options.model == null) {
@@ -522,7 +537,7 @@ export function createDopplerRuntimeService({
     doppler,
     load,
     open,
-    openPack,
+    openCapsule,
     generate,
     clearModelCache,
     resolveLoadProgressHandlers(options = {}) {

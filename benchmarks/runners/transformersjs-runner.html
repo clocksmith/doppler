@@ -898,15 +898,15 @@ async function releaseGenerator(generator) {
   }
 }
 
-function normalizePromptPackEntry(entry, index) {
+function normalizePromptCapsuleEntry(entry, index) {
   if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-    throw new Error(`promptPack[${index}] must be an object`);
+    throw new Error(`promptCapsule[${index}] must be an object`);
   }
   const id = typeof entry.id === 'string' && entry.id.trim() !== ''
     ? entry.id.trim()
     : `prompt-${index + 1}`;
   if (typeof entry.text !== 'string' || entry.text.length === 0) {
-    throw new Error(`promptPack[${index}] is missing non-empty text`);
+    throw new Error(`promptCapsule[${index}] is missing non-empty text`);
   }
   return {
     id,
@@ -2010,14 +2010,14 @@ window.__runBench = async (config) => {
   };
 };
 
-window.__runGreedyPromptPack = async (config = {}) => {
+window.__runGreedyPromptCapsule = async (config = {}) => {
   const modelId = String(config?.modelId || '').trim();
   if (!modelId) {
     throw new Error('modelId is required');
   }
-  const promptPackRaw = Array.isArray(config?.promptPack) ? config.promptPack : null;
-  if (!promptPackRaw || promptPackRaw.length < 1) {
-    throw new Error('promptPack must be a non-empty array');
+  const promptCapsuleRaw = Array.isArray(config?.promptCapsule) ? config.promptCapsule : null;
+  if (!promptCapsuleRaw || promptCapsuleRaw.length < 1) {
+    throw new Error('promptCapsule must be a non-empty array');
   }
   const maxNewTokens = Number.isFinite(Number(config?.maxNewTokens))
     ? Math.max(1, Math.floor(Number(config.maxNewTokens)))
@@ -2041,11 +2041,11 @@ window.__runGreedyPromptPack = async (config = {}) => {
       maxNewTokens,
       config?.sampling ?? { temperature: 0, topK: 1, topP: 1 }
     );
-    const promptPack = promptPackRaw.map(normalizePromptPackEntry);
+    const promptCapsule = promptCapsuleRaw.map(normalizePromptCapsuleEntry);
     const results = [];
 
-    for (let index = 0; index < promptPack.length; index += 1) {
-      const promptEntry = promptPack[index];
+    for (let index = 0; index < promptCapsule.length; index += 1) {
+      const promptEntry = promptCapsule[index];
       const generationPrompt = await renderGenerationPrompt(generator, promptEntry.text, useChatTemplate);
       const generatedParts = [];
       const generatedTokenIds = [];

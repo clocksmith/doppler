@@ -91,7 +91,7 @@ const receipt = await calibrateRegisteredVariants(plan, {
         kernelDigest: input.candidate.reference.kernelDigest,
       };
     }
-    if (input.mode === 'boundary-pack') {
+    if (input.mode === 'boundary-capsule') {
       return {
         schema: 'doppler.boundary-comparison-receipt/v1',
         promotionGate: {
@@ -108,7 +108,7 @@ const receipt = await calibrateRegisteredVariants(plan, {
     decision: { accepted: true },
   }),
 });
-assert.deepEqual(calls, ['operator-reference', 'boundary-pack', 'token-parity']);
+assert.deepEqual(calls, ['operator-reference', 'boundary-capsule', 'token-parity']);
 assert.equal(receipt.results[0].decision, 'proposed');
 assert.equal(receipt.results[0].proposal.activation, 'manual-promotion-required');
 assert.equal(
@@ -129,7 +129,7 @@ await assert.rejects(
           kernelDigest: input.candidate.reference.kernelDigest,
         };
       }
-      if (input.mode === 'boundary-pack') {
+      if (input.mode === 'boundary-capsule') {
         return {
           schema: 'doppler.boundary-comparison-receipt/v1',
           promotionGate: {

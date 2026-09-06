@@ -9,13 +9,13 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 
 ### Primary app-facing surface
 
-- [Pack Runtime API](root.md) - start with `doppler-gpu/host`; use `doppler-gpu`
+- [Capsule Runtime API](root.md) - start with `doppler-gpu/host`; use `doppler-gpu`
   or `doppler-gpu/runtime` when supplying explicit execution ports
 - [Compatibility API](compat.md) - `doppler-gpu/compat`
 
 ### Exported advanced surfaces
 
-- [Pack HTTP adapter](serve.md) - `doppler-gpu/serve`; optional Node transport over an application-owned session
+- [Capsule HTTP adapter](serve.md) - `doppler-gpu/serve`; optional Node transport over an application-owned session
 - [Advanced Export Map](advanced-root-exports.md) - migration map from the old broad root surface to dedicated advanced subpaths
 - [Loaders API](loaders.md) - `doppler-gpu/loaders`
 - [Orchestration API](orchestration.md) - `doppler-gpu/orchestration`

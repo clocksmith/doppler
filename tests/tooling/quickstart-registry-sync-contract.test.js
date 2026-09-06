@@ -31,7 +31,7 @@ function quickstartModel(overrides = {}) {
       path: 'models/verified-text-model',
     },
     sourceCheckpointId: 'source/checkpoint',
-    weightPackId: 'verified-text-model-wp-v1',
+    weightCapsuleId: 'verified-text-model-wp-v1',
     manifestVariantId: 'verified-text-model-mv-v1',
     artifactCompleteness: 'complete',
     runtimePromotionState: 'manifest-owned',

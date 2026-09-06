@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
-import { loadTrainingWorkloadPack } from '../../src/experimental/training/workloads.js';
+import { loadTrainingWorkloadCapsule } from '../../src/experimental/training/workloads.js';
 import { buildWriterSeedWorkload } from '../../tools/materialize-wgsl-writer-v2-seed-workloads.js';
 import { runWgslWriterV2Training } from '../../tools/run-wgsl-writer-v2-training.js';
 
@@ -71,7 +71,7 @@ assert.equal(
 const template = readJson(policy.workloads[0].path);
 for (const binding of policy.workloads) {
   assert.equal(sha256File(binding.path), binding.sha256, binding.path);
-  const loaded = await loadTrainingWorkloadPack(binding.path);
+  const loaded = await loadTrainingWorkloadCapsule(binding.path);
   assert.equal(loaded.workload.seed, binding.seed);
   assert.equal(loaded.workload.datasetPath, policy.dataset.path);
   assert.equal(loaded.workload.training.steps, policy.trainer.training.steps);

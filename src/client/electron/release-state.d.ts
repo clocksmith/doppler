@@ -1,8 +1,8 @@
 export declare const ELECTRON_RELEASE_STATE_SCHEMA: 'doppler.electron-release-state/v1';
 export declare const ELECTRON_REVOCATION_SNAPSHOT_SCHEMA: 'doppler.electron-revocation-snapshot/v1';
 
-export interface ElectronPackReference {
-  packId: string;
+export interface ElectronCapsuleReference {
+  capsuleId: string;
   semanticRoot: `sha256:${string}`;
   path: string;
 }
@@ -36,12 +36,12 @@ export interface ElectronReleaseState {
 
 export interface ElectronReleaseStateCoordinator {
   load(): Promise<ElectronReleaseState>;
-  installCandidate(pack: ElectronPackReference, decisionDigest: `sha256:${string}`): Promise<ElectronReleaseState>;
+  installCandidate(capsule: ElectronCapsuleReference, decisionDigest: `sha256:${string}`): Promise<ElectronReleaseState>;
   activateCandidate(decision: Record<string, unknown>, customerAuthorizationDigest: `sha256:${string}`): Promise<ElectronReleaseState>;
   rejectCandidate(failureBundleDigest: `sha256:${string}`): Promise<ElectronReleaseState>;
   rollback(customerAuthorizationDigest: `sha256:${string}`): Promise<ElectronReleaseState>;
   applyRevocationSnapshot(snapshot: ElectronRevocationSnapshot): Promise<ElectronReleaseState>;
-  resolveCurrent(): Promise<ElectronPackReference>;
+  resolveCurrent(): Promise<ElectronCapsuleReference>;
 }
 
 export declare function validateElectronReleaseState(value: unknown): ElectronReleaseState;

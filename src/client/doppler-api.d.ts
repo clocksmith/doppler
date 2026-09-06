@@ -18,10 +18,10 @@ import type {
   DopplerPromptInput,
   DopplerScopedGenerateOptions,
   DopplerScopedModelSession,
-  DopplerPackOpenOptions,
+  DopplerCapsuleOpenOptions,
   LoRAManifest,
 } from './runtime/index.js';
-import type { DopplerPack } from '../config/pack.js';
+import type { DopplerCapsule } from '../config/capsule.js';
 import type { DopplerRuntimeSession } from './runtime/composition-root.js';
 import type {
   DopplerSignedRevocationAuthorityOptions,
@@ -41,7 +41,7 @@ export interface DopplerNamespace {
   (prompt: string, options: DopplerCallOptions): AsyncGenerator<string, void, void>;
   load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModel>;
   open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;
-  openPack(pack: string | DopplerPack, options?: DopplerPackOpenOptions): Promise<DopplerRuntimeSession>;
+  openCapsule(capsule: string | DopplerCapsule, options?: DopplerCapsuleOpenOptions): Promise<DopplerRuntimeSession>;
   generate(
     model: DopplerModelSource,
     input: DopplerPromptInput,
@@ -73,9 +73,9 @@ export declare function open(
   options?: DopplerLoadOptions
 ): Promise<DopplerScopedModelSession>;
 
-export declare function openPack(
-  pack: string | DopplerPack,
-  options?: DopplerPackOpenOptions
+export declare function openCapsule(
+  capsule: string | DopplerCapsule,
+  options?: DopplerCapsuleOpenOptions
 ): Promise<DopplerRuntimeSession>;
 
 export declare function generate(
@@ -105,7 +105,7 @@ export type {
   DopplerPromptInput,
   DopplerScopedGenerateOptions,
   DopplerScopedModelSession,
-  DopplerPackOpenOptions,
+  DopplerCapsuleOpenOptions,
 };
 
 export type {

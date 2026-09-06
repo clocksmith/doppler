@@ -206,7 +206,7 @@ export function buildArtifactUploadPlan(entry, options = {}) {
   return {
     modelId,
     sourceCheckpointId: normalizeText(entry?.sourceCheckpointId),
-    weightPackId: normalizeText(entry?.weightPackId),
+    weightCapsuleId: normalizeText(entry?.weightCapsuleId),
     manifestVariantId: normalizeText(entry?.manifestVariantId),
     weightsRefAllowed: entry?.weightsRefAllowed === true,
     repoId,
@@ -317,22 +317,22 @@ async function fetchManifestText(manifestUrl) {
 }
 
 function assertWeightsRefIdentity(modelId, variantManifest, weightsManifest, weightsRef, storageBaseUrl) {
-  const expectedWeightPackId = normalizeText(weightsRef?.weightPackId);
-  if (!expectedWeightPackId) {
-    throw new Error(`${modelId}: weightsRef.weightPackId is required.`);
+  const expectedWeightCapsuleId = normalizeText(weightsRef?.weightCapsuleId);
+  if (!expectedWeightCapsuleId) {
+    throw new Error(`${modelId}: weightsRef.weightCapsuleId is required.`);
   }
-  const variantWeightPackId = normalizeText(variantManifest?.artifactIdentity?.weightPackId);
-  if (variantWeightPackId && variantWeightPackId !== expectedWeightPackId) {
+  const variantWeightCapsuleId = normalizeText(variantManifest?.artifactIdentity?.weightCapsuleId);
+  if (variantWeightCapsuleId && variantWeightCapsuleId !== expectedWeightCapsuleId) {
     throw new Error(
-      `${modelId}: weightsRef.weightPackId "${expectedWeightPackId}" does not match ` +
-      `manifest artifactIdentity.weightPackId "${variantWeightPackId}".`
+      `${modelId}: weightsRef.weightCapsuleId "${expectedWeightCapsuleId}" does not match ` +
+      `manifest artifactIdentity.weightCapsuleId "${variantWeightCapsuleId}".`
     );
   }
-  const targetWeightPackId = normalizeText(weightsManifest?.artifactIdentity?.weightPackId);
-  if (targetWeightPackId !== expectedWeightPackId) {
+  const targetWeightCapsuleId = normalizeText(weightsManifest?.artifactIdentity?.weightCapsuleId);
+  if (targetWeightCapsuleId !== expectedWeightCapsuleId) {
     throw new Error(
-      `${modelId}: weightsRef target ${storageBaseUrl} has artifactIdentity.weightPackId ` +
-      `"${targetWeightPackId}", expected "${expectedWeightPackId}".`
+      `${modelId}: weightsRef target ${storageBaseUrl} has artifactIdentity.weightCapsuleId ` +
+      `"${targetWeightCapsuleId}", expected "${expectedWeightCapsuleId}".`
     );
   }
   const expectedShardSetHash = normalizeText(weightsRef?.shardSetHash);
@@ -399,7 +399,7 @@ async function assertCompleteUploadArtifact(uploadPlan, options = {}) {
   if (!identity || typeof identity !== 'object' || Array.isArray(identity)) {
     throw new Error(`${modelId}: manifest artifactIdentity is required before publication.`);
   }
-  for (const field of ['sourceCheckpointId', 'weightPackId', 'manifestVariantId']) {
+  for (const field of ['sourceCheckpointId', 'weightCapsuleId', 'manifestVariantId']) {
     const expected = normalizeText(uploadPlan?.[field]);
     const actual = normalizeText(identity?.[field]);
     if (!expected || actual !== expected) {
@@ -411,7 +411,7 @@ async function assertCompleteUploadArtifact(uploadPlan, options = {}) {
   if (manifest?.weightsRef != null) {
     if (!manifestOnly) {
       throw new Error(
-        `${modelId}: manifest declares weightsRef; publish it with --manifest-only after the referenced weight pack is hosted.`
+        `${modelId}: manifest declares weightsRef; publish it with --manifest-only after the referenced weight capsule is hosted.`
       );
     }
     if (uploadPlan.weightsRefAllowed !== true) {
@@ -537,7 +537,7 @@ export function assertPromotionReady(entry, options = {}) {
   const availabilityHf = lifecycle?.availability?.hf;
   const requiredIdentityFields = [
     'sourceCheckpointId',
-    'weightPackId',
+    'weightCapsuleId',
     'manifestVariantId',
   ];
   for (const field of requiredIdentityFields) {

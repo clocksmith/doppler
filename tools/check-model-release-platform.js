@@ -20,25 +20,25 @@ const EXPECTED = Object.freeze({
   forgeStages: ['inspect', 'normalize', 'analyze', 'lower', 'specialize', 'search', 'verify', 'qualify', 'package', 'sign'],
   runtimeSteps: ['validate', 'select', 'bind', 'allocate', 'execute', 'observe'],
   providers: ['doppler-webgpu', 'browser-dawn', 'doe-runtime', 'onnx-runtime', 'webnn', 'vendor-native', 'cpu-reference'],
-  apiSurfaces: ['open-pack', 'dynamic-load', 'openai-server', 'generation', 'embedding', 'electron-reranking'],
+  apiSurfaces: ['open-capsule', 'dynamic-load', 'openai-server', 'generation', 'embedding', 'electron-reranking'],
   applicationClasses: ['electron-reranking'],
   referenceIntegrations: ['reploid-generation', 'dream-embedding-retrieval', 'columbo-reranking'],
-  recovery: ['content-hash-shard-resume', 'failed-upgrade-preserves-previous-pack', 'portable-state-snapshot-identity'],
+  recovery: ['content-hash-shard-resume', 'failed-upgrade-preserves-previous-capsule', 'portable-state-snapshot-identity'],
   goalRows: [
-    ['open-execution-network', 'esm2-public-pack-execution'],
+    ['open-execution-network', 'esm2-public-capsule-execution'],
     ['open-execution-network', 'origin-independent-peer-recovery'],
     ['open-execution-network', 'admitted-history-scheduler-benefit'],
     ['open-execution-network', 'independent-free-adoption'],
     ['local-webgpu-product-surface', 'canonical-production-release-contract'],
     ['local-webgpu-product-surface', 'electron-reference-release'],
-    ['local-webgpu-product-surface', 'pack-first-electron-reranking'],
+    ['local-webgpu-product-surface', 'capsule-first-electron-reranking'],
     ['local-webgpu-product-surface', 'production-release-toolchain'],
     ['local-webgpu-product-surface', 'electron-fleet-qualification'],
     ['local-webgpu-product-surface', 'revocation-and-customer-rollback'],
     ['local-webgpu-product-surface', 'doppler-production-release-offer'],
     ['local-webgpu-product-surface', 'three-unrelated-design-partners'],
-    ['model-artifact-runtime-contract', 'complete-pack-release-closure'],
-    ['model-artifact-runtime-contract', 'pack-first-compatibility-migration'],
+    ['model-artifact-runtime-contract', 'complete-capsule-release-closure'],
+    ['model-artifact-runtime-contract', 'capsule-first-compatibility-migration'],
   ],
 });
 
@@ -152,12 +152,12 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
   exactArray(policy?.architecture?.runtimeSteps, EXPECTED.runtimeSteps, 'architecture.runtimeSteps', errors);
   pathRows.push(['architecture.authorityPaths', policy?.architecture?.authorityPaths]);
   pathRows.push(['modelIR.authorityPaths', policy?.modelIR?.authorityPaths]);
-  pathRows.push(['pack.authorityPaths', policy?.pack?.authorityPaths]);
+  pathRows.push(['capsule.authorityPaths', policy?.capsule?.authorityPaths]);
 
   validateTrackedRequirements(
-    policy?.pack?.requiredReleaseElements,
+    policy?.capsule?.requiredReleaseElements,
     blockerCodes,
-    'pack.requiredReleaseElements',
+    'capsule.requiredReleaseElements',
     errors,
     pathRows
   );
@@ -256,7 +256,7 @@ export async function validateModelReleasePlatform(policy, matrix, options = {})
     ok: errors.length === 0,
     errors,
     partialRequirements: [
-      ...(policy?.pack?.requiredReleaseElements || []),
+      ...(policy?.capsule?.requiredReleaseElements || []),
       ...(policy?.recovery || []),
     ].filter((row) => row.implementationState === 'partial').map((row) => row.id),
     migrationSurfaces: (policy?.apiConvergence || [])

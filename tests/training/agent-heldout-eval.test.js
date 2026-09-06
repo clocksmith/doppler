@@ -10,10 +10,10 @@ import {
   extractFileReferences,
   summarizeAgentEvalReportRequirements,
 } from '../../src/experimental/training/operator-agent-eval.js';
-import { loadTrainingWorkloadPack } from '../../src/experimental/training/workloads.js';
+import { loadTrainingWorkloadCapsule } from '../../src/experimental/training/workloads.js';
 
-const workload = await loadTrainingWorkloadPack(
-  'src/experimental/training/workload-packs/lora-doppler-code-agent-tiny.json'
+const workload = await loadTrainingWorkloadCapsule(
+  'src/experimental/training/workload-capsules/lora-doppler-code-agent-tiny.json'
 );
 const evalDataset = workload.workload.evalDatasets.find(
   (entry) => entry.id === 'doppler-agent-heldout-suite-tiny-eval'
@@ -73,7 +73,7 @@ try {
   const result = spawnSync(process.execPath, [
     'tools/run-agent-heldout-eval.js',
     '--workload',
-    'src/experimental/training/workload-packs/lora-doppler-code-agent-tiny.json',
+    'src/experimental/training/workload-capsules/lora-doppler-code-agent-tiny.json',
     '--candidates',
     candidatesPath,
     '--patch-root',

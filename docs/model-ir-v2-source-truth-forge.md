@@ -1,8 +1,8 @@
 # Heterogeneous ModelIR v2 and Source-Truth Forge
 
 This document defines the semantic and provenance contract for bringing an
-unfamiliar checkpoint into Doppler. It extends the immutable Pack architecture
-in [ADR-0001](adr/0001-dual-hexagon-pack-spine.md); it does not create a second
+unfamiliar checkpoint into Doppler. It extends the immutable Capsule architecture
+in [ADR-0001](adr/0001-dual-hexagon-capsule-spine.md); it does not create a second
 runtime architecture.
 
 ## Objective
@@ -20,7 +20,7 @@ The governing plane boundary is:
 
 Every reachable shader is a content-addressed member of one TargetPlan kernel
 closure. A shader-byte or entry-point change therefore changes the TargetPlan
-and Pack identity.
+and Capsule identity.
 
 ## ModelIR v2 shape
 
@@ -81,13 +81,13 @@ lineage template is reused. Template reuse is permitted only after explicit
 compatibility assertions pass against current source facts.
 
 The source receipt retains the upstream semantic model identity. A lineage
-receipt derives a Pack-bound ModelIR copy whose `modelId` identifies the
+receipt derives a Capsule-bound ModelIR copy whose `modelId` identifies the
 materialized artifact while `sourceIdentity` and every semantic fact remain
 unchanged. Forge packages that receipt as `source-truth-evidence`, binds its
-artifact ID into the Pack program, and verifies its bytes with the rest of the
+artifact ID into the Capsule program, and verifies its bytes with the rest of the
 artifact closure.
 
-## Complete source topology and partial Pack scope
+## Complete source topology and partial Capsule scope
 
 Forge preserves everything the source checkpoint contains. Product support is
 represented separately:
@@ -96,9 +96,9 @@ represented separately:
 2. `entryPoints[].status` states which paths have a valid lowering.
 3. TargetPlan qualification states the exact executable capability and target
    envelope.
-4. Pack support scope publishes only those qualified entry points.
+4. Capsule support scope publishes only those qualified entry points.
 
-A text-only Pack may therefore represent perception and drafter components
+A text-only Capsule may therefore represent perception and drafter components
 while leaving their entry points unlowered. It may claim `text.generate`; it
 may not claim complete multimodal or speculative support.
 
@@ -168,10 +168,10 @@ or `candidateEvaluationPath` in its JSON config. That JSON contains `contract`,
 `searchReceipt` and the input-file identity with its ordinary build receipt.
 Keep the input and receipt together; neither is automatic public promotion.
 
-Repository/host I/O remains in `src/tooling/model-pack-forge.js`; compilation,
+Repository/host I/O remains in `src/tooling/model-capsule-forge.js`; compilation,
 semantic decisions, and this selection algorithm remain under `src/converter/`.
 The architecture gate prevents the Forge algorithm from importing model-host
-composition or Pack execution. This split is intentional, not two Forge engines.
+composition or Capsule execution. This split is intentional, not two Forge engines.
 
 Promotion requires:
 
@@ -192,16 +192,16 @@ raw prompt-token comparison, the complete generated-token comparison, and the
 first mismatch. A mismatch report is retained, but no Program Bundle is
 emitted.
 
-The Pack compiler accepts these promoted inputs explicitly:
+The Capsule compiler accepts these promoted inputs explicitly:
 
 ```bash
-node tools/forge-model-pack.js \
+node tools/forge-model-capsule.js \
   --program-bundle <program-bundle.json> \
   --model-ir-receipt <model-ir-receipt.json> \
   --initial-identity <physical-qualification-report.json> \
   --qualification-report <physical-qualification-report.json> \
-  --release-manifest <pack-release-v1.json> \
-  --out <model.pack.json>
+  --release-manifest <capsule-release-v1.json> \
+  --out <model.capsule.json>
 ```
 
 For ModelIR v2, Forge refuses specialization unless identity v2 was observed
@@ -241,19 +241,19 @@ Each campaign retains:
 - accepted code identity;
 - reference and Doppler transcripts;
 - first-divergence boundary captures when parity fails;
-- qualification and signed-Pack identity; and
+- qualification and signed-Capsule identity; and
 - elapsed publication-to-qualified-JavaScript measurement.
 
-The north-star measures are publication-to-first-correct-signed-Pack elapsed
+The north-star measures are publication-to-first-correct-signed-Capsule elapsed
 time and the number of human-authored semantic decisions required for the new
 architecture. A generated candidate count without retained rejection evidence
 does not measure Forge quality.
 
 ## Current evidence boundaries
 
-The permanent Gemma Pack Runtime v0 golden slice is frozen by tag
-`pack-runtime-v0-gemma3-270m-golden`. Qwen3.8 `text.generate` now has a
-development-signed Pack on physical Node WebGPU: the AMD/RADV receipt records
+The permanent Gemma Capsule Runtime v0 golden slice is frozen by tag
+`capsule-runtime-v0-gemma3-270m-golden`. Qwen3.8 `text.generate` now has a
+development-signed Capsule on physical Node WebGPU: the AMD/RADV receipt records
 128/128 exact greedy tokens, 824/824 verified artifacts, initial execution
 identity equality before prefill, and an unchanged TargetPlan digest. The
 Release-to-JavaScript receipt under `reports/model-ir-v2/` binds its candidate
@@ -266,7 +266,7 @@ local- and full-attention block classes resolve to generic v2 lowerings, all
 required state kinds are implemented, and the semantic manifest lowering
 receipt binds the source facts, session policy, execution graph, and kernel
 digests without a Glimmer-named Runtime branch. The source ModelIR still records
-the original entry point as `unlowered`; the Pack-bound ModelIR copy and
+the original entry point as `unlowered`; the Capsule-bound ModelIR copy and
 lowering receipt are the separate evidence that an execution candidate exists.
 
 Physical Node WebGPU candidate reports now exercise that lowering on AMD/RADV.
@@ -275,5 +275,5 @@ passes source-token parity. The BF16-storage candidate restores exact source
 tokens through generation index 6 and first diverges at index 7; the committed
 boundary comparisons remain diagnostic and `promotionEligible=false`.
 `vision.encode` remains unlowered, and there is no qualified or signed Glimmer
-Pack, browser evidence, application evidence, multimodal evidence, speculative
+Capsule, browser evidence, application evidence, multimodal evidence, speculative
 evidence, or Doe evidence.

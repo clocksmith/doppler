@@ -128,7 +128,7 @@ assert.ok(
 // --- 4. Fallback: tensor with non-even cols falls back to q4k path ---
 const oddTensor = {
   name: 'model.language_model.embed_tokens_per_layer.weight',
-  shape: [rows, 7], // odd cols → cannot nibble-pack → fallback
+  shape: [rows, 7], // odd cols → cannot nibble-capsule → fallback
   dtype: 'F32',
 };
 const oddBytes = new Uint8Array(new Float32Array(rows * 7).buffer);

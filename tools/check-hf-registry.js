@@ -133,10 +133,10 @@ function verifyManifestIdentity(modelId, manifest, entry) {
   const identity = manifest?.artifactIdentity;
   const expected = {
     sourceCheckpointId: normalizeText(entry?.sourceCheckpointId),
-    weightPackId: normalizeText(entry?.weightPackId),
+    weightCapsuleId: normalizeText(entry?.weightCapsuleId),
     manifestVariantId: normalizeText(entry?.manifestVariantId),
   };
-  if (!expected.sourceCheckpointId && !expected.weightPackId && !expected.manifestVariantId) {
+  if (!expected.sourceCheckpointId && !expected.weightCapsuleId && !expected.manifestVariantId) {
     return;
   }
   if (!identity || typeof identity !== 'object') {
@@ -237,22 +237,22 @@ async function readJsonFile(filePath) {
 }
 
 function assertWeightsRefIdentity(modelId, variantManifest, weightsManifest, weightsRef, storageBaseUrl) {
-  const expectedWeightPackId = normalizeText(weightsRef?.weightPackId);
-  if (!expectedWeightPackId) {
-    throw new Error(`${modelId}: weightsRef.weightPackId is required`);
+  const expectedWeightCapsuleId = normalizeText(weightsRef?.weightCapsuleId);
+  if (!expectedWeightCapsuleId) {
+    throw new Error(`${modelId}: weightsRef.weightCapsuleId is required`);
   }
-  const variantWeightPackId = normalizeText(variantManifest?.artifactIdentity?.weightPackId);
-  if (variantWeightPackId && variantWeightPackId !== expectedWeightPackId) {
+  const variantWeightCapsuleId = normalizeText(variantManifest?.artifactIdentity?.weightCapsuleId);
+  if (variantWeightCapsuleId && variantWeightCapsuleId !== expectedWeightCapsuleId) {
     throw new Error(
-      `${modelId}: weightsRef.weightPackId "${expectedWeightPackId}" does not match ` +
-      `manifest artifactIdentity.weightPackId "${variantWeightPackId}"`
+      `${modelId}: weightsRef.weightCapsuleId "${expectedWeightCapsuleId}" does not match ` +
+      `manifest artifactIdentity.weightCapsuleId "${variantWeightCapsuleId}"`
     );
   }
-  const targetWeightPackId = normalizeText(weightsManifest?.artifactIdentity?.weightPackId);
-  if (targetWeightPackId !== expectedWeightPackId) {
+  const targetWeightCapsuleId = normalizeText(weightsManifest?.artifactIdentity?.weightCapsuleId);
+  if (targetWeightCapsuleId !== expectedWeightCapsuleId) {
     throw new Error(
-      `${modelId}: weightsRef target ${storageBaseUrl} has artifactIdentity.weightPackId ` +
-      `"${targetWeightPackId}", expected "${expectedWeightPackId}"`
+      `${modelId}: weightsRef target ${storageBaseUrl} has artifactIdentity.weightCapsuleId ` +
+      `"${targetWeightCapsuleId}", expected "${expectedWeightCapsuleId}"`
     );
   }
   const expectedShardSetHash = normalizeText(weightsRef?.shardSetHash);
@@ -495,7 +495,7 @@ export async function validateRemoteRegistry(payload, registryUrl, localCatalog 
           `(${remoteHf.repoId}@${remoteHf.revision}:${remoteHf.path})`
         );
       }
-      for (const field of ['sourceCheckpointId', 'weightPackId', 'manifestVariantId']) {
+      for (const field of ['sourceCheckpointId', 'weightCapsuleId', 'manifestVariantId']) {
         const localValue = normalizeText(localEntry?.[field]);
         const remoteValue = normalizeText(remoteEntry?.[field]);
         if (localValue !== remoteValue) {

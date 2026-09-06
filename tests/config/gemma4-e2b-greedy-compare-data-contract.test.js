@@ -3,11 +3,11 @@ import fs from 'node:fs/promises';
 
 const summary512Path = new URL('../../tools/data/gemma4-e2b-greedy-compare/summary-512.json', import.meta.url);
 const interestingSummaryPath = new URL('../../tools/data/gemma4-e2b-greedy-compare/interesting-10-8tok-summary.json', import.meta.url);
-const interestingPromptPackPath = new URL('../../tools/data/gemma4-e2b-greedy-compare/interesting-10-prompts.json', import.meta.url);
+const interestingPromptCapsulePath = new URL('../../tools/data/gemma4-e2b-greedy-compare/interesting-10-prompts.json', import.meta.url);
 
 const summary512 = JSON.parse(await fs.readFile(summary512Path, 'utf8'));
 const interestingSummary = JSON.parse(await fs.readFile(interestingSummaryPath, 'utf8'));
-const interestingPromptPack = JSON.parse(await fs.readFile(interestingPromptPackPath, 'utf8'));
+const interestingPromptCapsule = JSON.parse(await fs.readFile(interestingPromptCapsulePath, 'utf8'));
 
 assert.deepEqual(summary512.aggregate, {
   promptCount: 512,
@@ -15,6 +15,7 @@ assert.deepEqual(summary512.aggregate, {
   sameFullTokenSequenceCount: 329,
   firstTokenMismatchCount: 183,
 });
+// Original benchmark record fields are retained verbatim, not runtime aliases.
 assert.equal(summary512.promptPackPath, 'tools/data/gemma4-e2b-blog-prompts-512.json');
 
 assert.deepEqual(interestingSummary.aggregate, {
@@ -24,7 +25,7 @@ assert.deepEqual(interestingSummary.aggregate, {
   firstTokenMismatchCount: 10,
 });
 assert.equal(interestingSummary.promptPackPath, 'tools/data/gemma4-e2b-greedy-compare/interesting-10-prompts.json');
-assert.equal(interestingPromptPack.length, 10);
+assert.equal(interestingPromptCapsule.length, 10);
 
 const interestingIds = new Set(interestingSummary.prompts.map((entry) => entry.id));
 for (const id of [

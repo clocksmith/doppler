@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:doppler:capsule-schema:v3",
+  "title": "Doppler immutable executable Capsule v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schemaVersion", "capsuleId", "modelId", "semanticRoot", "modelIR", "targetPlans", "wgslModules", "artifacts", "program", "signature"],
+  "properties": {
+    "schema": { "const": "doppler.capsule/v3" },
+    "schemaVersion": { "const": 3 },
+    "capsuleId": { "type": "string", "minLength": 1 },
+    "modelId": { "$ref": "urn:doppler:capsule-schema:v2#/properties/modelId" },
+    "semanticRoot": { "$ref": "urn:doppler:capsule-schema:v2#/$defs/digest" },
+    "modelIR": { "$ref": "urn:doppler:capsule-schema:v2#/properties/modelIR" },
+    "targetPlans": { "$ref": "urn:doppler:capsule-schema:v2#/properties/targetPlans" },
+    "wgslModules": { "$ref": "urn:doppler:capsule-schema:v2#/properties/wgslModules" },
+    "artifacts": { "$ref": "urn:doppler:capsule-schema:v2#/properties/artifacts" },
+    "program": { "$ref": "urn:doppler:capsule-schema:v2#/properties/program" },
+    "signature": { "$ref": "urn:doppler:capsule-schema:v2#/properties/signature" }
+  }
+}

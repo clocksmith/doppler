@@ -12,7 +12,7 @@ These scripts run the original SafeTensor model weights via PyTorch/transformers
 These scripts are diagnostic adapters, not an independent promotion workflow.
 For promotion, a source-runtime script must emit
 `doppler.boundary-provider-capture/v1`; bind it with
-`doppler boundary source-pack`, then compare it using the canonical boundary
+`doppler boundary source-capsule`, then compare it using the canonical boundary
 workflow. `tools/qwen35-hf-boundary-reference.py` is the reference provider
 adapter.
 

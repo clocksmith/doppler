@@ -2,8 +2,8 @@ import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 
 export const FORECAST_MANIFEST_SCHEMA = 'doppler.forecast-manifest/v1';
 
-export function validateForecastManifest(manifest, pack, targetPlan) {
-  if (manifest?.schema !== FORECAST_MANIFEST_SCHEMA || manifest.modelId !== pack.modelId) {
+export function validateForecastManifest(manifest, capsule, targetPlan) {
+  if (manifest?.schema !== FORECAST_MANIFEST_SCHEMA || manifest.modelId !== capsule.modelId) {
     throw new Error('Forecast program requires its signed numeric forecasting manifest.');
   }
   const contract = manifest.forecast;
@@ -22,7 +22,7 @@ export function validateForecastManifest(manifest, pack, targetPlan) {
     || !Array.isArray(targetPlan.phases.forecast) || Object.keys(targetPlan.phases).length !== 1
     || manifest.executionGraphHash !== targetPlan.executionGraphHash
     || computeCanonicalSha256(manifest.execution) !== targetPlan.executionGraphHash
-    || computeCanonicalSha256(manifest.execution) !== computeCanonicalSha256(pack.program.execution)
+    || computeCanonicalSha256(manifest.execution) !== computeCanonicalSha256(capsule.program.execution)
     || computeCanonicalSha256(manifest.execution.steps) !== computeCanonicalSha256(targetPlan.phases.forecast)) {
     throw new Error('Forecast manifest does not match the signed execution graph and dtype lane.');
   }
@@ -41,7 +41,7 @@ export function validateForecastManifest(manifest, pack, targetPlan) {
   const uploaded = new Set();
   for (const upload of manifest.uploads) {
     const slot = slots.get(upload.slotId);
-    const artifact = pack.artifacts.find(entry => entry.artifactId === upload.artifactId);
+    const artifact = capsule.artifacts.find(entry => entry.artifactId === upload.artifactId);
     if (!slot || slot.owner !== 'runtime' || slot.size.op !== 'constant' || !slot.usage?.includes('copy-dst')
       || !artifact || !Number.isSafeInteger(upload.offsetBytes) || upload.offsetBytes < 0
       || !Number.isSafeInteger(upload.sizeBytes) || upload.sizeBytes !== slot.size.bytes

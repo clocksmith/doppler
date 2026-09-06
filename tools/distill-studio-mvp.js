@@ -12,12 +12,12 @@ function parseArgs(argv) {
     teacher: null,
     student: null,
     holdout: null,
-    workloadPack: null,
+    workloadCapsule: null,
     out: 'reports/distill-studio/mvp-output.json',
   };
   const rest = argv.slice(2);
   if (rest.length === 0) {
-    throw new Error('Usage: node tools/distill-studio-mvp.js <replay-teacher|branch-compare|mini-eval> [--teacher <path>] [--student <path>] [--holdout <path>] [--workload-pack <path>] [--out <path>]');
+    throw new Error('Usage: node tools/distill-studio-mvp.js <replay-teacher|branch-compare|mini-eval> [--teacher <path>] [--student <path>] [--holdout <path>] [--workload-capsule <path>] [--out <path>]');
   }
   parsed.mode = rest[0];
   for (let i = 1; i < rest.length; i += 1) {
@@ -37,8 +37,8 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
-    if (arg === '--workload-pack') {
-      parsed.workloadPack = rest[i + 1] || null;
+    if (arg === '--workload-capsule') {
+      parsed.workloadCapsule = rest[i + 1] || null;
       i += 1;
       continue;
     }
@@ -84,24 +84,24 @@ function computeReportId(reportObj, rawJson) {
   return createHash('sha256').update(rawJson).digest('hex');
 }
 
-function resolveWorkloadPackTraceability(workloadPack) {
-  if (!workloadPack) return null;
-  const id = String(workloadPack.value?.id || '').trim();
+function resolveWorkloadCapsuleTraceability(workloadCapsule) {
+  if (!workloadCapsule) return null;
+  const id = String(workloadCapsule.value?.id || '').trim();
   if (!id) {
-    throw new Error('--workload-pack must include a non-empty "id" field.');
+    throw new Error('--workload-capsule must include a non-empty "id" field.');
   }
   return {
     id,
-    path: workloadPack.absolute,
-    sha256: createHash('sha256').update(workloadPack.raw).digest('hex'),
+    path: workloadCapsule.absolute,
+    sha256: createHash('sha256').update(workloadCapsule.raw).digest('hex'),
   };
 }
 
-function buildTraceability({ teacher, student, workloadPack }) {
+function buildTraceability({ teacher, student, workloadCapsule }) {
   const traceability = {
     teacherReportId: computeReportId(teacher.value, teacher.raw),
     studentReportId: student ? computeReportId(student.value, student.raw) : null,
-    workloadPack: resolveWorkloadPackTraceability(workloadPack),
+    workloadCapsule: resolveWorkloadCapsuleTraceability(workloadCapsule),
   };
   return traceability;
 }
@@ -192,9 +192,9 @@ async function main() {
   }
   const teacher = await readJson(args.teacher, '--teacher');
   const student = args.student ? await readJson(args.student, '--student') : null;
-  const workloadPack = args.workloadPack ? await readJson(args.workloadPack, '--workload-pack') : null;
+  const workloadCapsule = args.workloadCapsule ? await readJson(args.workloadCapsule, '--workload-capsule') : null;
   const holdout = await readHoldout(args.holdout);
-  const traceability = buildTraceability({ teacher, student, workloadPack });
+  const traceability = buildTraceability({ teacher, student, workloadCapsule });
 
   let output;
   if (args.mode === 'replay-teacher') {

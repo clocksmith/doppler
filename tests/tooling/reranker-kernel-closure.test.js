@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildWgslClosure } from '../../src/tooling/program-bundle/wgsl-closure.js';
 import { createShaderSourceScope, getScopedShaderSource, runWithShaderSourceScope } from '../../src/gpu/kernels/shader-source-scope.js';
-import { assertRerankerObservedShaderClosure } from '../../tools/build-reranker-evaluation-pack.js';
+import { assertRerankerObservedShaderClosure } from '../../tools/build-reranker-evaluation-capsule.js';
 
 const repoRoot = fileURLToPath(new URL('../../', import.meta.url));
 const recipe = JSON.parse(await fs.readFile(path.join(repoRoot,
@@ -21,7 +21,7 @@ const f16Recipe = JSON.parse(await fs.readFile(path.join(repoRoot,
 assert.deepEqual(f16Recipe.inference.rerank, recipe.inference.rerank, 'precision variants preserve the scoring contract');
 const f16Closure = await buildWgslClosure(f16Recipe.execution, [], { repoRoot });
 for (const file of [...required.slice(1), 'split_qkv.wgsl']) {
-  assert(f16Closure.modules.some(module => module.file === file), `F16 Pack must seal ${file}`);
+  assert(f16Closure.modules.some(module => module.file === file), `F16 Capsule must seal ${file}`);
 }
 assert(!f16Closure.modules.some(module => module.file === required[0]), 'F16 closure must not borrow Q4K dequantization');
 const f16Requests = { requests: [...required.slice(1), 'split_qkv.wgsl', 'probe_shader_f16.wgsl', 'submit_probe.wgsl']
@@ -50,7 +50,7 @@ assert.equal(missing.modules.some(module => module.file === required[0]), false)
 const missingScope = createShaderSourceScope(new Map(missing.modules.map(module => [module.file,
   missing.packageFiles.find(file => file.path === module.sourcePath).contents])));
 await assert.rejects(runWithShaderSourceScope(missingScope, async () => getScopedShaderSource(required[0])),
-  /outside the verified Pack source closure/);
+  /outside the verified Capsule source closure/);
 const stale = structuredClone(recipe.execution);
 stale.kernels.dequant_q4_f16.digest = `sha256:${'0'.repeat(64)}`;
 await assert.rejects(buildWgslClosure(stale, [], { repoRoot }), /kernel digest mismatch/);

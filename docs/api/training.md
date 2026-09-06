@@ -7,7 +7,7 @@ import {
   bootstrapNativeTrainingHost,
   getTrainingCapabilities,
   loadNativeQwenTrainingPipeline,
-  loadTrainingWorkloadPack,
+  loadTrainingWorkloadCapsule,
   releaseNativeTrainingHost,
   trainSftLoRA,
 } from 'doppler-gpu/training';
@@ -23,7 +23,7 @@ exports workload-file and report orchestration APIs.
 Load a frozen workload and select a backend explicitly:
 
 ```js
-const loadedWorkload = await loadTrainingWorkloadPack('./workload.json');
+const loadedWorkload = await loadTrainingWorkloadCapsule('./workload.json');
 const capabilities = getTrainingCapabilities(loadedWorkload.workload);
 
 const backend = capabilities.backends.webgpuNative.supported

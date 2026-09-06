@@ -2231,7 +2231,7 @@ const testHarness = {
     const elementsPerHead = seqLen * headDim;
     const totalElements = seqLen * numHeads * headDim;
 
-    const packByHead = (source) => {
+    const capsuleByHead = (source) => {
       const packed = new Float32Array(totalElements);
       for (let h = 0; h < numHeads; h++) {
         const headBase = h * elementsPerHead;
@@ -2261,10 +2261,10 @@ const testHarness = {
       return unpacked;
     };
 
-    const qPacked = packByHead(q);
-    const kPacked = packByHead(k);
-    const vPacked = packByHead(v);
-    const gPacked = packByHead(gradOutput);
+    const qPacked = capsuleByHead(q);
+    const kPacked = capsuleByHead(k);
+    const vPacked = capsuleByHead(v);
+    const gPacked = capsuleByHead(gradOutput);
 
     const qBuf = makeBuffer(qPacked);
     const kBuf = makeBuffer(kPacked);

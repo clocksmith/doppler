@@ -6,7 +6,7 @@ retaining useful executable models because Doppler makes them easier to ship,
 faster, or more dependable. Free adoption counts; payment, Doe, Poolday, and
 Reploid are not prerequisites for technical completion.
 
-Doppler owns model semantics, source lineage, signed immutable Packs, artifact
+Doppler owns model semantics, source lineage, signed immutable Capsules, artifact
 integrity, qualified TargetPlan selection, and execution. Poolday owns participation,
 authorization, assignment, transport, comparison, requester acceptance, and
 admission of reusable evidence. The runtime never invents a plan or silently
@@ -17,7 +17,7 @@ changes signed model behavior.
 Start with the maintained Electron reranker application using
 `qwen-3-reranker-0-6b-q4k-ehf16-af32`. Preserve application logic and its frozen
 correctness oracle. An unrelated maintainer must install the distributable
-runtime and real Pack, execute on declared physical devices, voluntarily retain
+runtime and real Capsule, execute on declared physical devices, voluntarily retain
 the result for a measured application improvement, and ship a second model
 revision with less release effort without weakening acceptance. Preserve the
 incumbent comparison, rejected candidates, recovery, and application-owned
@@ -40,18 +40,18 @@ a model. See [the onboarding playbook](developer-guides/model-onboarding-playboo
 ESM-2 35M, `esm2-t12-35m-ur50d-f32-af32`, remains the first network demonstration.
 The connected capability is acquire, verify, execute locally, optionally
 redistribute authorized artifacts, and explicitly delegate complete jobs.
-Each selected execution peer runs the complete model. Downloading a Pack does
+Each selected execution peer runs the complete model. Downloading a Capsule does
 not authorize redistribution or delegation.
 
-The demonstration uses actual signed Pack bytes, actual weights, and physical
-browser execution through public `openPack()` and `encodeSequence()`. A fixed
+The demonstration uses actual signed Capsule bytes, actual weights, and physical
+browser execution through public `openCapsule()` and `encodeSequence()`. A fixed
 vector, injected model program, local-tab identity, or successful contract test
 does not establish that proof. Freeze a public-sequence corpus, requested outputs,
 resource limits, and numerical correctness oracle before qualification.
 
 One retained episode must connect:
 
-1. A fresh receiver reconstructs the exact Pack and complete artifact closure
+1. A fresh receiver reconstructs the exact Capsule and complete artifact closure
    from multiple authorized peers on independent machines, with origin and
    alternate mirrors disabled.
 2. Corruption is rejected and participant loss is recovered without weakening
@@ -59,7 +59,7 @@ One retained episode must connect:
 3. Local execution and explicitly delegated complete jobs produce useful,
    oracle-valid, assignment-bound results under the same frozen acceptance policy.
 4. Poolday retains outputs, disagreements, failures, review decisions, source
-   attribution, transfer and execution costs, and the Pack/assignment lineage.
+   attribution, transfer and execution costs, and the Capsule/assignment lineage.
 5. Admitted history changes a later held-out assignment and improves a predeclared
    meaningful outcome against both no-history and competent frozen reliability
    schedulers, with uncertainty reported and correctness unchanged.
@@ -82,7 +82,7 @@ delegation separately opt-in.
 Doppler and Poolday remain usable independently. Electron, Qwen, Bun, existing
 reference integrations, and provider qualification retain their own supported
 boundaries and evidence. They are not simultaneous network launch gates.
-Doe improvements and agent-proposed Pack improvements are separate later
+Doe improvements and agent-proposed Capsule improvements are separate later
 experiments and neither blocks this initial network. No scientific or biological
 claim follows from matching embeddings.
 
@@ -90,7 +90,7 @@ claim follows from matching embeddings.
 
 Doppler Production Release and Doppler Release Operations remain commercial
 hypotheses for TypeScript/Electron products on Windows and macOS. Existing
-Pack-first reranking, release tooling, application qualification, revocation,
+Capsule-first reranking, release tooling, application qualification, revocation,
 and customer-controlled rollback remain usable. The application retains
 activation authority; neither Doppler nor Poolday self-promotes a release.
 
@@ -444,7 +444,7 @@ safe candidates were attempted.
 | --- | --- |
 | Open ESM-2 execution network, authorized custody, explicit complete-job delegation | Optional network experiment |
 | Release CLI, Electron adapter, fleet action | Goal 1; commercial evidence separate |
-| Browser execution, JS orchestration, WGSL kernels, Pack execution | Goals 1 and 2 |
+| Browser execution, JS orchestration, WGSL kernels, Capsule execution | Goals 1 and 2 |
 | RDRR, conversion, manifests, catalog, hosted model IDs | Goal 2 |
 | Runtime profiles, schema defaults, rule maps, kernel refs | Goal 2 |
 | Release receipts, model matrix, subsystem tiers | Goal 3 |
@@ -521,7 +521,7 @@ advantage thresholds. Performance evidence is necessary where claimed but is
 not sufficient by itself.
 
 `src/config/revocation-registry.json` is the bundled deny-only authority for
-logical models, resolved models, source checkpoints, weight packs, manifest
+logical models, resolved models, source checkpoints, weight capsules, manifest
 variants, exact manifest hashes, adapter IDs, and adapter source or execution
 digests. `npm run revocations:check` validates the registry, retained evidence,
 quickstart filtering, model and adapter catalog lifecycle, and withdrawal from

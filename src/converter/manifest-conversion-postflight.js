@@ -97,7 +97,7 @@ export function validateManifestConversionPostflightReceipt(receipt) {
       conversionExecuted: true,
       physicalShardClosureVerified: true,
       qualificationStarted: false,
-      packEligible: false,
+      capsuleEligible: false,
     }, 'Receipt dispositions');
     requireEqual(requireDigest(receipt.receiptDigest, 'receipt.receiptDigest'), digest(receiptCore(receipt)), 'Receipt digest');
   } catch (error) {
@@ -190,7 +190,7 @@ function validateArtifactIdentity(manifest, conversionConfig, preflight) {
     shards: manifest.shards.map(normalizeManifestShard),
   });
   requireEqual(identity.shardSetHash, shardSetHash, 'Shard-set identity');
-  const weightPackHash = digest({
+  const weightCapsuleHash = digest({
     sourceCheckpointId: identity.sourceCheckpointId,
     sourceFormat: identity.sourceFormat,
     modelType: manifest.modelType,
@@ -201,13 +201,13 @@ function validateArtifactIdentity(manifest, conversionConfig, preflight) {
     sharding: { shardSizeBytes: resolvedConfig.sharding.shardSizeBytes },
     output: { textOnly: resolvedConfig.output.textOnly === true },
   });
-  requireEqual(identity.weightPackHash, weightPackHash, 'Weight-pack identity');
+  requireEqual(identity.weightCapsuleHash, weightCapsuleHash, 'Weight-capsule identity');
   const modelIdPrefix = sanitizeModelId(manifest.modelId) ?? 'model';
-  const weightPackId = explicitIdentity.weightPackId
-    ?? `${modelIdPrefix}-wp-${weightPackHash.slice(7, 19)}`;
-  requireEqual(identity.weightPackId, weightPackId, 'Weight-pack ID');
+  const weightCapsuleId = explicitIdentity.weightCapsuleId
+    ?? `${modelIdPrefix}-wp-${weightCapsuleHash.slice(7, 19)}`;
+  requireEqual(identity.weightCapsuleId, weightCapsuleId, 'Weight-capsule ID');
   const manifestVariantHash = digest({
-    weightPackId: identity.weightPackId,
+    weightCapsuleId: identity.weightCapsuleId,
     modelType: manifest.modelType,
     inference: manifest.inference,
     config: resolvedConfig.manifest,
@@ -310,7 +310,7 @@ export function createManifestConversionPostflightReceipt({
       conversionExecuted: true,
       physicalShardClosureVerified: true,
       qualificationStarted: false,
-      packEligible: false,
+      capsuleEligible: false,
     },
   };
   const receipt = { ...core, receiptDigest: digest(core) };

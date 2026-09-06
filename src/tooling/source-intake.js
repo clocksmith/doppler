@@ -68,7 +68,7 @@ function createFact({
     confidence,
     status,
     verification: verificationBoundary
-      ? { kind: 'boundary-pack', boundary: verificationBoundary }
+      ? { kind: 'boundary-capsule', boundary: verificationBoundary }
       : { kind: 'contract-test', boundary: null },
     ...(note ? { note } : {}),
   };

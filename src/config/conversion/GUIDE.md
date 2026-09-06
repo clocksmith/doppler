@@ -36,7 +36,7 @@ Checked-in config inventory:
 | `gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json` | `gemma-4-e2b-it-q4k-ehf16-af32` | Gemma 4 E2B Q4K, execution-v1 graph |
 | `gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json` | `gemma-4-e2b-it-q4k-ehf16-af32-int4ple` | Gemma 4 E2B Q4K with INT4 PLE policy |
 | `gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json` | `gemma-4-12b-it-text-q4k-ehf16-af32` | Gemma 4 12B text-only Q4K, execution-v1 graph |
-| `gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json` | `gemma-4-12b-it-text-q4k-ehf16-af16` | Gemma 4 12B text-only Q4K f16 activation sibling over the existing weight pack |
+| `gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json` | `gemma-4-12b-it-text-q4k-ehf16-af16` | Gemma 4 12B text-only Q4K f16 activation sibling over the existing weight capsule |
 | `gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16.json` | `gemma-4-12b-it-text-w4a16-ct-ehf16-af16` | Gemma 4 12B official W4A16 compressed-tensors QAT reference-dequant lane |
 | `gemma4/gemma-4-moe-q4k-ehf16-af32.json` | `gemma-4-moe-q4k-ehf16-af32` | Gemma 4 MoE Q4K |
 | `diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json` | `diffusiongemma-26b-a4b-it-q4k-ehf16-af16` | DiffusionGemma text-only Q4K f16 activation block-diffusion artifact |
@@ -48,7 +48,7 @@ Checked-in config inventory:
 | `qwen3/qwen-3-5-9b-f16-af32.json` | `qwen-3-5-9b-f16-af32` | Qwen 3.5 9B F16 correctness control |
 | `qwen3/qwen-3-5-9b-q4k-ehaf16.json` | `qwen-3-5-9b-q4k-ehaf16` | Qwen 3.5 9B mixed Q4K/F16 correctness investigation; not catalog-promoted |
 | `qwen3/qwen-3-6-27b-q4k-ehaf16.json` | `qwen-3-6-27b-q4k-ehaf16` | Qwen 3.6 27B f32 activation lane |
-| `qwen3/qwen-3-6-27b-q4k-eaf16.json` | `qwen-3-6-27b-q4k-eaf16` | Qwen 3.6 27B f16 sibling over the existing Q4K weight pack |
+| `qwen3/qwen-3-6-27b-q4k-eaf16.json` | `qwen-3-6-27b-q4k-eaf16` | Qwen 3.6 27B f16 sibling over the existing Q4K weight capsule |
 | `qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json` | `qwen-3-embedding-0-6b-q4k-ehf16-af32` | Qwen3 SentenceTransformers embedding target with last-token L2 postprocessing |
 | `qwen3/qwen-3-reranker-0-6b-f16-af32.json` | `qwen-3-reranker-0-6b-f16-af32` | Qwen3 SentenceTransformers reranker target; F16 lane passes semantic rerank verification |
 | `qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json` | `qwen-3-reranker-0-6b-q4k-ehf16-af32` | Qwen3 SentenceTransformers reranker Q4K lane with F16 MLP projections and manifest-owned true-logit scoring; passes semantic rerank verification |

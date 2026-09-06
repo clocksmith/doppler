@@ -4,7 +4,7 @@ Repository: https://github.com/clocksmith/doppler
 
 **Prime Directive:** Build Doppler as an AI-native Model Release Foundry for
 JavaScript and WebGPU: Forge produces source-truth, qualified, signed immutable
-Packs; the deliberately uncreative Runtime validates, selects, binds, executes,
+Capsules; the deliberately uncreative Runtime validates, selects, binds, executes,
 and observes their declared programs across browser, Node, and CLI surfaces.
 
 **File Extensions:** Always use `.js`. Never create `.mjs` files. The repo uses `"type": "module"` in `package.json`, so all `.js` files are ES modules. The `.mjs` extension is redundant and prohibited.

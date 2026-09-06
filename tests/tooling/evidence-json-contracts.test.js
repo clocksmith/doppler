@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { isPlainObject } from '../../src/formats/plain-object.js';
 import { validateExactKeys } from '../../tools/lib/json-object-validation.js';
 import { canonicalizeJson, computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
@@ -33,7 +32,7 @@ for (const value of [{}, Object.create(null), new Date(), new Map(), new class {
 }
 
 // These established byte contracts are intentionally different. Consolidating
-// their algorithms would rewrite signed Pack/evidence identities.
+// their algorithms would rewrite signed Capsule/evidence identities.
 const value = { B: 1, a: 2 };
 assert.equal(canonicalizeJson(value), '{"a":2,"B":1}');
 assert.equal(computeCanonicalSha256(value), 'sha256:f4fb4f23c18557f189581b45e08078afb6b588addef57f8b1b4c80cef4a8716d');
@@ -48,8 +47,9 @@ assert.throws(() => canonicalizeJson({ number: Infinity }), /non-finite/);
 
 // Inventory only the checker/recorder boundary. Frozen experimental tools may
 // retain historical implementations where their exact source is receipt-bound.
-const files = execFileSync('git', ['ls-files', 'tools/check-*.js', 'tools/record-*.js'], { encoding: 'utf8' })
-  .trim().split('\n');
+const files = readdirSync('tools')
+  .filter((file) => /^(check|record)-.*\.js$/.test(file))
+  .map((file) => `tools/${file}`);
 for (const file of files) {
   assert.doesNotMatch(readFileSync(file, 'utf8'), /function isPlainObject\(value\)/, file);
 }

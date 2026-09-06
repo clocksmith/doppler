@@ -35,7 +35,7 @@
           "fallback visibility and rollback correctness"
         ],
         "deliverables": [
-          "immutable signed Pack and release manifest",
+          "immutable signed Capsule and release manifest",
           "application-level qualification decision",
           "provider and fleet compatibility evidence",
           "reproducible failure bundles and typed exclusions",
@@ -77,7 +77,7 @@
       "claimAllowed": false,
       "workloads": ["document-intelligence", "embedding-retrieval"],
       "pilot": {
-        "objective": "Turn one planned Joplin semantic-search model release into an externally maintained embedding Pack with index-compatible upgrade and rollback.",
+        "objective": "Turn one planned Joplin semantic-search model release into an externally maintained embedding Capsule with index-compatible upgrade and rollback.",
         "requiredCustomerInputs": [
           "pinned Joplin desktop revision",
           "pinned embedding model and tokenizer identities",
@@ -95,7 +95,7 @@
           "rollback without an unnecessary index rebuild"
         ],
         "deliverables": [
-          "immutable embedding Pack and release manifest",
+          "immutable embedding Capsule and release manifest",
           "index migration and compatibility decision",
           "packaged-desktop fleet evidence",
           "memory and renderer failure bundles",

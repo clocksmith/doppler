@@ -44,7 +44,7 @@ const upF32 = new Float32Array(N * K);
 for (let i = 0; i < gateF32.length; i++) gateF32[i] = (rng() - 0.5) * 0.1;
 for (let i = 0; i < upF32.length; i++) upF32[i] = (rng() - 0.5) * 0.1;
 
-function packRows(weights, numRows, kPerRow) {
+function capsuleRows(weights, numRows, kPerRow) {
   const numBlocks = Math.ceil(kPerRow / 256);
   const packed = new Uint8Array(numRows * numBlocks * blockBytes);
   for (let row = 0; row < numRows; row++) {
@@ -55,8 +55,8 @@ function packRows(weights, numRows, kPerRow) {
   return packed;
 }
 
-const Wgate = packRows(gateF32, N, K);
-const Wup = packRows(upF32, N, K);
+const Wgate = capsuleRows(gateF32, N, K);
+const Wup = capsuleRows(upF32, N, K);
 
 const expected = fusedFfnQ4KRef({
   input,

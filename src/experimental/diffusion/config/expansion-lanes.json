@@ -6,7 +6,7 @@
       "id": "sd3-larger-targets",
       "status": "started",
       "scope": "Expand deterministic harness coverage beyond 512x512-equivalent smoke to larger SD3 image targets.",
-      "nextAction": "Add gated 1024x1024 runtime contract fixture pack and optional CI lane."
+      "nextAction": "Add gated 1024x1024 runtime contract fixture capsule and optional CI lane."
     },
     {
       "id": "sd3-quantized-path",

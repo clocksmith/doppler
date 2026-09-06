@@ -304,7 +304,7 @@ function isQualifiedTargetOperation(plan, surface, operation) {
 export function selectQualifiedTargetPlan(targetPlans, deviceProfile, selectionPolicy = {}) {
   const policy = normalizeTargetPlanSelectionPolicy(selectionPolicy);
   if (!Array.isArray(targetPlans) || targetPlans.length === 0) {
-    throw new Error('TargetSelector: Pack contains no target plans.');
+    throw new Error('TargetSelector: Capsule contains no target plans.');
   }
   if (!deviceProfile) {
     throw new Error('TargetSelector: deviceProfile is required for target selection.');
@@ -334,7 +334,7 @@ export function selectQualifiedTargetPlan(targetPlans, deviceProfile, selectionP
     const preferredIndex = policy.preferredTargetPlanDigests?.indexOf(digest) ?? -1;
     const preference = preferredIndex === -1 ? Infinity : preferredIndex;
     // Application preference orders only eligible plans. Equal preferences keep
-    // signed Pack order; neither authority nor executable semantics change.
+    // signed Capsule order; neither authority nor executable semantics change.
     if (selected === null || preference < selectedPreference) {
       selected = plan;
       selectedPreference = preference;
@@ -344,7 +344,7 @@ export function selectQualifiedTargetPlan(targetPlans, deviceProfile, selectionP
 
   const available = targetPlans.map((plan) => plan.targetId || 'unknown').join(', ');
   throw new Error(
-    `TargetSelector: Device does not satisfy capability predicates and surface qualification with the application selection policy for any prequalified target plan in Pack. Available targets: [${available}]. (surface: ${deviceProfile.surface}, hasF16: ${Boolean(deviceProfile.hasF16)}, hasSubgroups: ${Boolean(deviceProfile.hasSubgroups)}) ${rejected.join('; ')}`
+    `TargetSelector: Device does not satisfy capability predicates and surface qualification with the application selection policy for any prequalified target plan in Capsule. Available targets: [${available}]. (surface: ${deviceProfile.surface}, hasF16: ${Boolean(deviceProfile.hasF16)}, hasSubgroups: ${Boolean(deviceProfile.hasSubgroups)}) ${rejected.join('; ')}`
   );
 }
 

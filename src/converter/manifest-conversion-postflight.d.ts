@@ -51,7 +51,7 @@ export interface ManifestConversionPostflightReceipt {
     conversionExecuted: true;
     physicalShardClosureVerified: true;
     qualificationStarted: false;
-    packEligible: false;
+    capsuleEligible: false;
   };
   receiptDigest: `sha256:${string}`;
 }

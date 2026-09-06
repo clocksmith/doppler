@@ -8,6 +8,18 @@ budget.
 
 ## [Unreleased]
 
+### Breaking: Capsule naming (0.6.0)
+
+- Replace the Pack product name with Capsule throughout the public API,
+  declarations, module paths, configuration, CLI, Forge, and runtime.
+  Use `openCapsule()`, `doppler-gpu/capsule`, and `Capsule*` types.
+  There are no former-name aliases or old-schema readers in the Capsule runtime.
+- Rename identity/receipt fields and signed namespaces. Rebuild and sign new
+  Capsules; editing an old signed document is not a valid migration.
+- Keep model bytes, tokenizer vocabularies, and retained observations unchanged.
+  Historical records are not fresh Capsule qualification.
+- See `docs/capsule-naming-migration.md` for consumer and artifact migration.
+
 ### Added
 
 - Added strict Doe provider-v1 acquisition with explicit ordered providers,

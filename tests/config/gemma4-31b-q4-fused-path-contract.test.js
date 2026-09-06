@@ -1,9 +1,11 @@
+// Historical artifact identities are checked against their frozen conversion inputs.
+// Current Capsule configurations require new conversion/qualification, not relabeling.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 
 const MODEL_ID = 'gemma-4-31b-it-text-q4k-ehf16-af32';
-const CONFIG_PATH = `src/config/conversion/gemma4/${MODEL_ID}.json`;
+const CONFIG_PATH = `tests/fixtures/pre-capsule/src/config/conversion/gemma4/${MODEL_ID}.json`;
 const MANIFEST_PATH = `models/local/${MODEL_ID}/manifest.json`;
 
 const PROJECTION_OPS = new Set(['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']);

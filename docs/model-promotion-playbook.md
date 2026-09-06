@@ -199,7 +199,7 @@ Pass `--bootstrap` to publish such an entry. The flag rejects any entry where `a
 
 #### Manifest-only `weightsRef` republish
 
-When a kernel-ref swap or routing change regenerates only `manifest.json`, the manifest must declare `weightsRef` to the already-hosted weight pack and the catalog entry must set `weightsRefAllowed: true`. Pass `--manifest-only`; the tool uploads only manifest metadata, verifies the referenced weight-pack manifest digest and required artifact files before upload, rebuilds the hosted registry, probes the published manifest, and verifies the referenced files again at the published revision.
+When a kernel-ref swap or routing change regenerates only `manifest.json`, the manifest must declare `weightsRef` to the already-hosted weight capsule and the catalog entry must set `weightsRefAllowed: true`. Pass `--manifest-only`; the tool uploads only manifest metadata, verifies the referenced weight-capsule manifest digest and required artifact files before upload, rebuilds the hosted registry, probes the published manifest, and verifies the referenced files again at the published revision.
 
 #### Dry run
 

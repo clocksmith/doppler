@@ -79,7 +79,7 @@ function resolveCorrectnessEvidence(job, input) {
     }
     return result;
   }
-  if (input.mode === 'boundary-pack') return evidence.boundaryPack;
+  if (input.mode === 'boundary-capsule') return evidence.boundaryCapsule;
   return evidence.tokenParity;
 }
 

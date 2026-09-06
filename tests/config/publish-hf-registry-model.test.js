@@ -16,7 +16,7 @@ function promotionReadyEntry(overrides = {}) {
   const base = {
     modelId: 'translategemma-4b-it-q4k-ehf16-af32',
     sourceCheckpointId: 'google/translategemma-4b-it',
-    weightPackId: 'translategemma-4b-it-q4k-ehf16-af32-wp-catalog-v1',
+    weightCapsuleId: 'translategemma-4b-it-q4k-ehf16-af32-wp-catalog-v1',
     manifestVariantId: 'translategemma-4b-it-q4k-ehf16-af32-mv-exec-v1',
     artifactCompleteness: 'complete',
     runtimePromotionState: 'manifest-owned',
@@ -52,7 +52,7 @@ async function writeTinyArtifact(root, entry) {
     modelId: entry.modelId,
     artifactIdentity: {
       sourceCheckpointId: entry.sourceCheckpointId,
-      weightPackId: entry.weightPackId,
+      weightCapsuleId: entry.weightCapsuleId,
       manifestVariantId: entry.manifestVariantId,
     },
     tokenizer: {
@@ -296,7 +296,7 @@ async function writeCatalog(root, entries) {
   const entry = promotionReadyEntry({
     modelId: 'gemma-4-e2b-it-q4k-ehf16-af32',
     sourceCheckpointId: 'google/gemma-4-E2B-it',
-    weightPackId: 'gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1',
+    weightCapsuleId: 'gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1',
     manifestVariantId: 'gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1',
     hf: {
       repoId: 'clocksmith/rdrr',
@@ -337,7 +337,7 @@ async function writeCatalog(root, entries) {
   const entry = promotionReadyEntry({
     modelId: 'missing-shard-model',
     sourceCheckpointId: 'unit/missing-shard',
-    weightPackId: 'missing-shard-wp-catalog-v1',
+    weightCapsuleId: 'missing-shard-wp-catalog-v1',
     manifestVariantId: 'missing-shard-mv-exec-v1',
     hf: {
       repoId: 'clocksmith/rdrr',
@@ -371,21 +371,21 @@ async function writeCatalog(root, entries) {
   const alpha = promotionReadyEntry({
     modelId: 'alpha-model',
     sourceCheckpointId: 'unit/alpha',
-    weightPackId: 'alpha-wp-catalog-v1',
+    weightCapsuleId: 'alpha-wp-catalog-v1',
     manifestVariantId: 'alpha-mv-exec-v1',
     hf: { repoId: 'clocksmith/rdrr', revision: 'old-alpha', path: 'models/alpha-model' },
   });
   const beta = promotionReadyEntry({
     modelId: 'beta-model',
     sourceCheckpointId: 'unit/beta',
-    weightPackId: 'beta-wp-catalog-v1',
+    weightCapsuleId: 'beta-wp-catalog-v1',
     manifestVariantId: 'beta-mv-exec-v1',
     hf: { repoId: 'clocksmith/rdrr', revision: 'old-beta', path: 'models/beta-model' },
   });
   const blocked = promotionReadyEntry({
     modelId: 'blocked-model',
     sourceCheckpointId: 'unit/blocked',
-    weightPackId: 'blocked-wp-catalog-v1',
+    weightCapsuleId: 'blocked-wp-catalog-v1',
     manifestVariantId: 'blocked-mv-exec-v1',
     hf: { repoId: 'clocksmith/rdrr', revision: 'old-blocked', path: 'models/blocked-model' },
     lifecycle: {

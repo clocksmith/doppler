@@ -4,8 +4,8 @@
   "updatedAtUtc": "2026-08-22T00:00:00.000Z",
   "subsystems": [
     {
-      "id": "api.pack-http-adapter",
-      "label": "Pack session HTTP adapter",
+      "id": "api.capsule-http-adapter",
+      "label": "Capsule session HTTP adapter",
       "scope": "api",
       "tier": "experimental",
       "owner": "tooling",
@@ -16,8 +16,8 @@
       "packageExport": "./serve",
       "command": null,
       "docs": ["docs/api/serve.md"],
-      "entrypoints": ["src/cli/serve/pack-handler.js"],
-      "notes": "Optional Node HTTP transport over an application-owned Pack session; no separate inference engine or remote-delegation authority. Synthetic connected tests are not model or physical qualification."
+      "entrypoints": ["src/cli/serve/capsule-handler.js"],
+      "notes": "Optional Node HTTP transport over an application-owned Capsule session; no separate inference engine or remote-delegation authority. Synthetic connected tests are not model or physical qualification."
     },
     {
       "id": "api.root-facade",
@@ -36,10 +36,10 @@
         "docs/api/root.md"
       ],
       "entrypoints": [
-        "src/pack-runtime.js",
+        "src/capsule-runtime.js",
         "src/client/runtime/composition-root.js"
       ],
-      "notes": "Preferred Pack-native application surface with explicit trust and injected execution ports."
+      "notes": "Preferred Capsule-native application surface with explicit trust and injected execution ports."
     },
     {
       "id": "api.compat-facade",

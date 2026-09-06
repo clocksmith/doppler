@@ -103,7 +103,7 @@
     "hashAlgorithm": "blake3",
     "artifactIdentity": {
       "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-      "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-source-pinned-01-local-grid",
+      "weightCapsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-source-pinned-01-local-grid",
       "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-source-pinned-02-closed",
       "artifactCompleteness": "complete",
       "sourceRepo": "Qwen/Qwen3-Reranker-0.6B",

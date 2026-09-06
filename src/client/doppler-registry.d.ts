@@ -29,7 +29,7 @@ export interface QuickstartModelTypeCluster {
 export interface QuickstartRegistryEntry {
   modelId: string;
   sourceCheckpointId: string;
-  weightPackId: string;
+  weightCapsuleId: string;
   manifestVariantId: string;
   artifactCompleteness: string;
   runtimePromotionState: string;
@@ -50,7 +50,7 @@ export interface QuickstartRegistryEntry {
 export declare function listQuickstartModels(): Promise<Array<{
   modelId: string;
   sourceCheckpointId: string;
-  weightPackId: string;
+  weightCapsuleId: string;
   manifestVariantId: string;
   artifactCompleteness: string;
   runtimePromotionState: string;

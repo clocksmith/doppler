@@ -8,7 +8,7 @@ Repository owner: Doppler
 
 Doppler becomes the preferred system for converting attributable source models
 into portable, specialized JavaScript and WebGPU programs. Forge, ModelIR,
-TargetPlans, immutable Packs, the constrained Runtime, application integration,
+TargetPlans, immutable Capsules, the constrained Runtime, application integration,
 and lifecycle support form one product.
 
 The decisive strategy proof is voluntary adoption by an unrelated application.
@@ -35,8 +35,8 @@ This strategy does not require Poolday, Reploid, peer delivery, or Doe.
 
 ## Starting point
 
-The repository already implements the source-truth to Pack path, signed Pack
-validation, TargetPlan selection, Pack-bound execution, application adapters,
+The repository already implements the source-truth to Capsule path, signed Capsule
+validation, TargetPlan selection, Capsule-bound execution, application adapters,
 qualification contracts, and release machinery. Current evidence establishes
 mechanics. It does not establish voluntary external adoption, production use,
 payment, or repeat use.
@@ -46,11 +46,11 @@ payment, or repeat use.
 | Gate | Required work | Exit evidence | Does not prove |
 | --- | --- | --- | --- |
 | D0: adopter contract | Name one unrelated JavaScript application, owner, pinned revision, workload, source model, incumbent, acceptance suite, supported hosts, and activation authority. | Customer-authorized, versioned integration contract with no synthetic ownership fields. | Runtime correctness or demand. |
-| D1: source-to-Pack closure | Acquire attributable source facts, forge ModelIR, produce at least one qualified TargetPlan, and seal every required artifact into one signed Pack. | Pack validation, source lineage, packaged qualification evidence, and retained rejected candidates. | Application acceptance. |
+| D1: source-to-Capsule closure | Acquire attributable source facts, forge ModelIR, produce at least one qualified TargetPlan, and seal every required artifact into one signed Capsule. | Capsule validation, source lineage, packaged qualification evidence, and retained rejected candidates. | Application acceptance. |
 | D2: unchanged acceptance | Run the application's existing acceptance semantics against its incumbent and Doppler. Change only the declared provider or integration seam required to invoke Doppler. | Comparable application-level results, explicit exclusions, and no hidden fallback. | A material advantage or adoption. |
 | D3: material advantage | Predeclare and measure one adopter-valued advantage such as supported capability, installation simplicity, end-to-end latency, memory, offline custody, diagnostic depth, or correction speed. | Evidence showing the advantage without weakening correctness, reliability, or workload scope. | Production use. |
-| D4: voluntary adoption | The application owner chooses Doppler, distributes or activates the integration, and retains rollback authority. | Owner-attributed adoption record plus the exact shipped application, Pack, execution, and acceptance identities. | Recurring demand. |
-| D5: repeated dependence | Requalify a later model, Pack, application, browser, driver, or device change through Doppler. | A second owner-authorized release or upgrade using the same product contract. | Broad market adoption. |
+| D4: voluntary adoption | The application owner chooses Doppler, distributes or activates the integration, and retains rollback authority. | Owner-attributed adoption record plus the exact shipped application, Capsule, execution, and acceptance identities. | Recurring demand. |
+| D5: repeated dependence | Requalify a later model, Capsule, application, browser, driver, or device change through Doppler. | A second owner-authorized release or upgrade using the same product contract. | Broad market adoption. |
 
 Gates remain ordered. A later gate cannot repair missing evidence from an
 earlier gate.
@@ -60,19 +60,19 @@ earlier gate.
 ### Developer entry
 
 - Freeze the smallest application API that the selected adopter can maintain.
-- Keep Pack and execution identity inspectable beneath any convenience facade.
+- Keep Capsule and execution identity inspectable beneath any convenience facade.
 - Measure installation-to-first-accepted-output, integration changes, error
   recovery, and upgrade work.
 - Do not add a simplified API whose defaults bypass manifest, TargetPlan, or
   provider policy.
 
-### Forge and Pack closure
+### Forge and Capsule closure
 
 - Use one real source revision and one application workload.
 - Preserve unsupported operations and failed candidates as typed evidence.
 - Keep model semantics in ModelIR and hardware specialization in TargetPlans.
 - Bind source, tokenizer, kernels, execution graph, qualification, lifecycle,
-  and previous-release identity into the Pack.
+  and previous-release identity into the Capsule.
 
 ### Runtime ownership
 
@@ -86,7 +86,7 @@ earlier gate.
 
 - Let the application own activation and rollback.
 - Exercise cancellation, failure preservation, revocation, and restoration of
-  the previous Pack where the adopter's contract requires them.
+  the previous Capsule where the adopter's contract requires them.
 - Repeat qualification after a consequential identity change.
 
 ## Measures
@@ -100,7 +100,7 @@ earlier gate.
 - Repeat releases or model upgrades.
 - Paid production releases and recurring release operations.
 
-Catalog size, internal demo count, Pack count, and isolated kernel benchmarks
+Catalog size, internal demo count, Capsule count, and isolated kernel benchmarks
 remain supporting measures.
 
 ## Stop conditions
@@ -112,7 +112,7 @@ with credible adopters:
 - Integration requires application-specific forks that cannot become a stable
   product surface.
 - Doppler provides no material application advantage over qualified incumbents.
-- Pack qualification cannot remain reproducible across the declared support
+- Capsule qualification cannot remain reproducible across the declared support
   matrix.
 - Repeat releases behave like unrelated consulting engagements rather than a
   reusable compiler and runtime product.

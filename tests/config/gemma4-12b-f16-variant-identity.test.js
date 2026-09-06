@@ -1,3 +1,5 @@
+// Historical artifact identities are checked against their frozen conversion inputs.
+// Current Capsule configurations require new conversion/qualification, not relabeling.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -34,8 +36,8 @@ function hashText(value) {
   return `sha256:${crypto.createHash('sha256').update(String(value)).digest('hex')}`;
 }
 
-const af32Config = readJson(`src/config/conversion/gemma4/${AF32_MODEL_ID}.json`);
-const af16Config = readJson(`src/config/conversion/gemma4/${AF16_MODEL_ID}.json`);
+const af32Config = readJson(`tests/fixtures/pre-capsule/src/config/conversion/gemma4/${AF32_MODEL_ID}.json`);
+const af16Config = readJson(`tests/fixtures/pre-capsule/src/config/conversion/gemma4/${AF16_MODEL_ID}.json`);
 const af32ManifestPath = path.join('models', 'local', AF32_MODEL_ID, 'manifest.json');
 const af16ManifestPath = path.join('models', 'local', AF16_MODEL_ID, 'manifest.json');
 const af32ManifestText = fs.readFileSync(af32ManifestPath, 'utf8');
@@ -61,12 +63,12 @@ assert.equal(af16Manifest.quantizationInfo?.variantTag, 'q4k-ehf16-af16');
 assert.equal(
   af16Manifest.artifactIdentity?.weightPackId,
   af32Manifest.artifactIdentity?.weightPackId,
-  'af16 manifest variant must share the af32 weight pack id'
+  'af16 manifest variant must share the af32 weight capsule id'
 );
 assert.equal(
   af16Manifest.artifactIdentity?.weightPackHash,
   af32Manifest.artifactIdentity?.weightPackHash,
-  'af16 manifest variant must share the af32 weight pack hash'
+  'af16 manifest variant must share the af32 weight capsule hash'
 );
 assert.equal(
   af16Manifest.artifactIdentity?.shardSetHash,

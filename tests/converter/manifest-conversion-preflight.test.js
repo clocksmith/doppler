@@ -60,7 +60,7 @@ assert.equal(receipt.conversionPlan.commandCount > 0, true);
 assert.equal(receipt.dispositions.headerPreflightPassed, true);
 assert.equal(receipt.dispositions.weightBodiesPresent, true);
 assert.equal(receipt.dispositions.conversionExecuted, false);
-assert.equal(receipt.dispositions.packEligible, false);
+assert.equal(receipt.dispositions.capsuleEligible, false);
 
 const driftedConfig = structuredClone(conversionConfig);
 driftedConfig.inference.attention.queryScale = 4;

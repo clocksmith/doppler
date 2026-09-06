@@ -56,10 +56,10 @@ function instant(value, label) {
   return value;
 }
 
-function packRef(value, label) {
-  exact(value, ['packId', 'semanticRoot', 'path'], label);
+function capsuleRef(value, label) {
+  exact(value, ['capsuleId', 'semanticRoot', 'path'], label);
   return {
-    packId: text(value.packId, `${label}.packId`),
+    capsuleId: text(value.capsuleId, `${label}.capsuleId`),
     semanticRoot: digest(value.semanticRoot, `${label}.semanticRoot`),
     path: text(value.path, `${label}.path`),
   };
@@ -89,12 +89,12 @@ function releaseSlot(value, label) {
   if (value === null) return null;
   exactWithOptional(
     value,
-    ['pack', 'decisionDigest', 'changedAtUtc', 'customerAuthorizationDigest'],
+    ['capsule', 'decisionDigest', 'changedAtUtc', 'customerAuthorizationDigest'],
     ['revocationPolicy'],
     label
   );
   return {
-    pack: packRef(value.pack, `${label}.pack`),
+    capsule: capsuleRef(value.capsule, `${label}.capsule`),
     decisionDigest: digest(value.decisionDigest, `${label}.decisionDigest`),
     changedAtUtc: instant(value.changedAtUtc, `${label}.changedAtUtc`),
     customerAuthorizationDigest: value.customerAuthorizationDigest === null
@@ -108,9 +108,9 @@ function releaseSlot(value, label) {
 
 function candidateSlot(value) {
   if (value === null) return null;
-  exact(value, ['pack', 'decisionDigest', 'installedAtUtc'], 'electron release state.candidate');
+  exact(value, ['capsule', 'decisionDigest', 'installedAtUtc'], 'electron release state.candidate');
   return {
-    pack: packRef(value.pack, 'electron release state.candidate.pack'),
+    capsule: capsuleRef(value.capsule, 'electron release state.candidate.capsule'),
     decisionDigest: digest(value.decisionDigest, 'electron release state.candidate.decisionDigest'),
     installedAtUtc: instant(value.installedAtUtc, 'electron release state.candidate.installedAtUtc'),
   };
@@ -255,12 +255,12 @@ export function createElectronReleaseStateCoordinator(options) {
     return value;
   }
 
-  async function installCandidate(pack, decisionDigest) {
+  async function installCandidate(capsule, decisionDigest) {
     const current = await load();
     return commit(current, {
       ...current,
       candidate: {
-        pack: packRef(pack, 'candidate Pack'),
+        capsule: capsuleRef(capsule, 'candidate Capsule'),
         decisionDigest: digest(decisionDigest, 'candidate decisionDigest'),
         installedAtUtc: instant(now(), 'candidate installedAtUtc'),
       },
@@ -278,8 +278,8 @@ export function createElectronReleaseStateCoordinator(options) {
       throw new Error('Electron activation requires an eligible customer-authorized decision.');
     }
     const current = await load();
-    if (!current.candidate || current.candidate.pack.semanticRoot !== decision.pack.semanticRoot
-      || current.candidate.pack.packId !== decision.pack.packId
+    if (!current.candidate || current.candidate.capsule.semanticRoot !== decision.capsule.semanticRoot
+      || current.candidate.capsule.capsuleId !== decision.capsule.capsuleId
       || current.candidate.decisionDigest !== decision.digest) {
       throw new Error('Electron activation decision does not bind the installed candidate.');
     }
@@ -288,7 +288,7 @@ export function createElectronReleaseStateCoordinator(options) {
       ...current,
       previous: current.current,
       current: {
-        pack: current.candidate.pack,
+        capsule: current.candidate.capsule,
         decisionDigest: decision.digest,
         changedAtUtc,
         customerAuthorizationDigest: digest(
@@ -313,7 +313,7 @@ export function createElectronReleaseStateCoordinator(options) {
       failures: [
         ...current.failures,
         {
-          candidateSemanticRoot: current.candidate.pack.semanticRoot,
+          candidateSemanticRoot: current.candidate.capsule.semanticRoot,
           failureBundleDigest: digest(failureBundleDigest, 'failureBundleDigest'),
           rejectedAtUtc: instant(now(), 'candidate rejectedAtUtc'),
         },
@@ -357,7 +357,7 @@ export function createElectronReleaseStateCoordinator(options) {
       throw new Error('Electron revocation snapshot must advance monotonically.');
     }
     if (current.revocation && current.revocation.revokedSemanticRoots.some(root => !normalized.revokedSemanticRoots.includes(root))) {
-      throw new Error('Electron revocation snapshot must retain all previously revoked Pack roots.');
+      throw new Error('Electron revocation snapshot must retain all previously revoked Capsule roots.');
     }
     const verificationTime = new Date(instant(now(), 'revocation verification time')).getTime();
     if (new Date(normalized.issuedAtUtc).getTime() > verificationTime) {
@@ -383,7 +383,7 @@ export function createElectronReleaseStateCoordinator(options) {
 
   async function resolveCurrent() {
     const current = await load();
-    if (!current.current) throw new Error('Electron release state has no active Pack.');
+    if (!current.current) throw new Error('Electron release state has no active Capsule.');
     if (!current.revocation) throw new Error('Electron release state has no verified revocation snapshot.');
     if (await options.verifyRevocationSnapshot(structuredClone(current.revocation)) !== true) {
       throw new Error('Electron release state requires a currently verified revocation snapshot signature.');
@@ -393,7 +393,7 @@ export function createElectronReleaseStateCoordinator(options) {
       throw new Error('Electron release revocation state issuance is in the future.');
     }
     if (!current.current.revocationPolicy) {
-      throw new Error('Electron release state current Pack lacks a bound revocation policy.');
+      throw new Error('Electron release state current Capsule lacks a bound revocation policy.');
     }
     if (current.revocation.authorityId !== current.current.revocationPolicy.authorityId
       || current.revocation.policyDigest !== current.current.revocationPolicy.policyDigest) {
@@ -407,10 +407,10 @@ export function createElectronReleaseStateCoordinator(options) {
     if (new Date(current.revocation.expiresAtUtc).getTime() <= verificationTime) {
       throw new Error('Electron release revocation state is expired; execution fails closed.');
     }
-    if (current.revocation.revokedSemanticRoots.includes(current.current.pack.semanticRoot)) {
-      throw new Error('Electron release current Pack is revoked.');
+    if (current.revocation.revokedSemanticRoots.includes(current.current.capsule.semanticRoot)) {
+      throw new Error('Electron release current Capsule is revoked.');
     }
-    return structuredClone(current.current.pack);
+    return structuredClone(current.current.capsule);
   }
 
   return Object.freeze({

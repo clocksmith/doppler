@@ -1,7 +1,7 @@
 export const INITIAL_EXECUTION_IDENTITY_SCHEMA_ID: 'doppler.initial-execution-identity/v1';
 export const INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID: 'doppler.initial-execution-identity/v2';
-export const PROGRAM_LOAD_POLICY_V1_SCHEMA_ID: 'doppler.pack-program-load-policy/v1';
-export const PROGRAM_LOAD_POLICY_SCHEMA_ID: 'doppler.pack-program-load-policy/v2';
+export const PROGRAM_LOAD_POLICY_V1_SCHEMA_ID: 'doppler.capsule-program-load-policy/v1';
+export const PROGRAM_LOAD_POLICY_SCHEMA_ID: 'doppler.capsule-program-load-policy/v2';
 
 export interface InitialExecutionIdentityV1 {
   schema: 'doppler.initial-execution-identity/v1';
@@ -25,7 +25,7 @@ export interface InitialExecutionIdentityV1 {
 export interface InitialExecutionIdentityV2 extends Omit<InitialExecutionIdentityV1, 'schema' | 'digest'> {
   schema: 'doppler.initial-execution-identity/v2';
   programLoadPolicy: {
-    schema: 'doppler.pack-program-load-policy/v1';
+    schema: 'doppler.capsule-program-load-policy/v1';
     runtimeConfig: {
       inference: {
         session: Record<string, unknown>;
@@ -33,7 +33,7 @@ export interface InitialExecutionIdentityV2 extends Omit<InitialExecutionIdentit
       };
     };
   } | {
-    schema: 'doppler.pack-program-load-policy/v2';
+    schema: 'doppler.capsule-program-load-policy/v2';
     runtimeConfig: {
       inference: {
         session: Record<string, unknown>;

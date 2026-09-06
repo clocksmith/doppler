@@ -46,8 +46,8 @@ export interface AdapterArtifactRecord {
     modelSha256: string;
     manifestSha256: string;
     tokenizerSha256: string;
-    weightPackId: string;
-    weightPackSha256: string;
+    weightCapsuleId: string;
+    weightCapsuleSha256: string;
     manifestVariantId: string;
     conversionConfigSha256: string;
   };

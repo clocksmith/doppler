@@ -20,7 +20,7 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
 - `docs/model-support-matrix.md` via sync tooling
 - Artifact identity inventory via sync/check tooling
 - Manifest `artifactIdentity` and catalog identity fields:
-  `sourceCheckpointId`, `weightPackId`, `manifestVariantId`,
+  `sourceCheckpointId`, `weightCapsuleId`, `manifestVariantId`,
   `artifactCompleteness`, `runtimePromotionState`, `weightsRefAllowed`
 
 ## Recommended Order
@@ -35,7 +35,7 @@ Move a verified runtime artifact into catalog metadata, external-volume storage,
    catalog or external storage changed.
 7. Run catalog validation before any Hugging Face publication.
 8. Publish with `npm run registry:publish:hf` only after the metadata state is clean. The remote registry catalog should be rebuilt from the approved hosted subset, not patched from a stale local mirror.
-9. Publish manifest-only updates only when the manifest declares a valid `weightsRef` and the referenced weight pack is already hosted and checker-verified. Otherwise hosted publication requires every manifest-declared artifact file to be present.
+9. Publish manifest-only updates only when the manifest declares a valid `weightsRef` and the referenced weight capsule is already hosted and checker-verified. Otherwise hosted publication requires every manifest-declared artifact file to be present.
 
 ## Verification
 

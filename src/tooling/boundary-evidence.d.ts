@@ -1,4 +1,4 @@
-export declare const SOURCE_BOUNDARY_PACK_SCHEMA: 'doppler.source-boundary-pack/v1';
+export declare const SOURCE_BOUNDARY_CAPSULE_SCHEMA: 'doppler.source-boundary-capsule/v1';
 export declare const RUNTIME_BOUNDARY_CAPTURE_SCHEMA: 'doppler.runtime-boundary-capture/v1';
 export declare const BOUNDARY_COMPARISON_RECEIPT_SCHEMA:
   'doppler.boundary-comparison-receipt/v1';
@@ -28,12 +28,12 @@ export declare function buildRuntimeBoundaryCapture(options: {
   identity?: Record<string, unknown>;
 }): Record<string, unknown>;
 
-export declare function buildSourceBoundaryPack(options: {
+export declare function buildSourceBoundaryCapsule(options: {
   identity: Record<string, unknown>;
   boundaries: BoundaryEvidence[];
 }): Record<string, unknown>;
 
-export declare function buildSourceBoundaryPackFromProviderCapture(
+export declare function buildSourceBoundaryCapsuleFromProviderCapture(
   capture: Record<string, unknown>
 ): Record<string, unknown>;
 
@@ -42,7 +42,7 @@ export declare function buildDeterministicTokenEvidenceFromReferenceTranscript(
 ): Record<string, unknown>;
 
 export declare function compareBoundaryEvidence(options: {
-  sourcePack: Record<string, unknown>;
+  sourceCapsule: Record<string, unknown>;
   runtimeCapture: Record<string, unknown>;
   policy: Record<string, unknown>;
   artifactPrecision?: 'source' | 'quantized';

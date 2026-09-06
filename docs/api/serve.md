@@ -1,11 +1,11 @@
-# Pack HTTP adapter
+# Capsule HTTP adapter
 
 ## Purpose
 
-Serve an application-opened Pack session without another model loader or inference
+Serve an application-opened Capsule session without another model loader or inference
 implementation. `POST /v1/operations` accepts the same versioned request as
 `session.executeOperation()` and streams its unchanged events as newline-delimited
-JSON. `GET /v1/model` reports the pinned Pack, selected TargetPlan, and operations
+JSON. `GET /v1/model` reports the pinned Capsule, selected TargetPlan, and operations
 qualified on that session's actual surface.
 
 ## Import path and audience
@@ -23,7 +23,7 @@ adapter does not qualify a model or a physical device. Forecasting and remote
 delegation are not admitted by this HTTP contract.
 
 The existing `doppler-serve` executable remains the **compatibility** chat server.
-Its `/v1/chat/completions` contract is not this Pack endpoint. This change does not
+Its `/v1/chat/completions` contract is not this Capsule endpoint. This change does not
 claim OpenAI compatibility or finish migration of the compatibility CLI.
 
 ## Primary exports and minimal example
@@ -31,14 +31,14 @@ claim OpenAI compatibility or finish migration of the compatibility CLI.
 ```js
 import http from 'node:http';
 import { randomBytes } from 'node:crypto';
-import { openPack } from 'doppler-gpu/host';
-import { createPackServeHandler } from 'doppler-gpu/serve';
+import { openCapsule } from 'doppler-gpu/host';
+import { createCapsuleServeHandler } from 'doppler-gpu/serve';
 
-// Application inputs: exact Pack location, signer/adoption policy, and JSON
-// serving policy. Pack v3 still needs durable release-checkpoint persistence.
-const session = await openPack(packLocation, applicationTrustOptions);
+// Application inputs: exact Capsule location, signer/adoption policy, and JSON
+// serving policy. Capsule v3 still needs durable release-checkpoint persistence.
+const session = await openCapsule(capsuleLocation, applicationTrustOptions);
 const token = randomBytes(32).toString('hex');
-const handler = createPackServeHandler({ session, policy: servingPolicy, token });
+const handler = createCapsuleServeHandler({ session, policy: servingPolicy, token });
 const server = http.createServer(handler);
 server.listen(8080, '127.0.0.1');
 
@@ -54,7 +54,7 @@ sampling, precision, model, signing, or memory defaults are introduced here:
 
 ```json
 {
-  "schema": "doppler.pack-serve/v1",
+  "schema": "doppler.capsule-serve/v1",
   "maxRequestBytes": 65536,
   "maxResponseBytes": 4194304,
   "maxOutputBytes": 1048576,
@@ -79,7 +79,7 @@ Send an unchanged operation request, for example a rerank request:
 
 ```js
 const request = {
-  schema: 'doppler.pack-operation-request/v1',
+  schema: 'doppler.capsule-operation-request/v1',
   operation: { name: 'rerank', version: 1 },
   input: { application: acceptedRelease.application, query, documents },
   options: {},
@@ -121,12 +121,12 @@ does not invent chat formatting or change operation-specific output shapes.
   codes are retained when supplied; no success receipt is created on failure.
 - `handler.close()` rejects new work, aborts active work, and awaits its cleanup.
   It does **not** close the borrowed session or the HTTP server. The application
-  closes those resources and decides whether to activate a replacement Pack.
+  closes those resources and decides whether to activate a replacement Capsule.
 
 ## Code pointers and related surfaces
 
-- [HTTP adapter](../../src/cli/serve/pack-handler.js)
-- [Policy schema](../../src/config/pack-serve.schema.json)
-- [Connected HTTP tests](../../tests/integration/pack-serve.test.js)
-- [Pack runtime and operations](root.md)
+- [HTTP adapter](../../src/cli/serve/capsule-handler.js)
+- [Policy schema](../../src/config/capsule-serve.schema.json)
+- [Connected HTTP tests](../../tests/integration/capsule-serve.test.js)
+- [Capsule runtime and operations](root.md)
 - [Compatibility facade](compat.md)

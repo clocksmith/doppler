@@ -44,14 +44,14 @@ for (const field of policy.adoptionGate.requiredEvidence) {
   assert.deepEqual(report.migrationSurfaces, ['openai-server', 'generation', 'embedding']);
   assert.equal(
     policy.apiConvergence.find((row) => row.id === 'electron-reranking')?.mode,
-    'pack-authoritative'
+    'capsule-authoritative'
   );
   assert.deepEqual(report.partialRequirements, []);
   assert.deepEqual(report.implementedPromotionGates, [
     'canonical-product-contract',
     'electron-reference-release',
-    'pack-release-closure',
-    'pack-first-electron-reranking',
+    'capsule-release-closure',
+    'capsule-first-electron-reranking',
     'doppler-release-command',
     'github-release-action',
   ]);
@@ -69,7 +69,7 @@ for (const field of policy.adoptionGate.requiredEvidence) {
     policy.promotionSequence.find((row) => row.id === 'three-unrelated-design-partners')?.blockerCode,
     'three-unrelated-design-partners-missing'
   );
-  assert.ok(policy.pack.requiredReleaseElements.find(
+  assert.ok(policy.capsule.requiredReleaseElements.find(
     (row) => row.id === 'version-supersession-migration'
   )?.implementationState === 'implemented');
   assert.ok(policy.recovery.find(
@@ -96,13 +96,13 @@ for (const field of policy.adoptionGate.requiredEvidence) {
 
 {
   const broken = clone(policy);
-  const migration = broken.pack.requiredReleaseElements
+  const migration = broken.capsule.requiredReleaseElements
     .find((row) => row.id === 'version-supersession-migration');
   migration.implementationState = 'partial';
   migration.blockerCode = null;
   const report = await validateModelReleasePlatform(broken, matrix);
   assert.ok(
-    report.errors.includes('pack.requiredReleaseElements.version-supersession-migration: partial rows require a blockerCode'),
+    report.errors.includes('capsule.requiredReleaseElements.version-supersession-migration: partial rows require a blockerCode'),
     report.errors.join('\n')
   );
 }
@@ -133,7 +133,7 @@ for (const field of policy.networkAcceptance.requiredEvidence) {
   broken.networkAcceptance.requiredEvidence = broken.networkAcceptance.requiredEvidence.filter((value) => value !== field);
   assert.equal((await validateModelReleasePlatform(broken, matrix)).ok, false, field);
 }
-for (const field of ['paymentRequired', 'doeRequired', 'agentPackImprovementRequired', 'electronCustomerRequired']) {
+for (const field of ['paymentRequired', 'doeRequired', 'agentCapsuleImprovementRequired', 'electronCustomerRequired']) {
   const broken = clone(policy);
   broken.networkAcceptance[field] = true;
   assert.equal((await validateModelReleasePlatform(broken, matrix)).ok, false, field);

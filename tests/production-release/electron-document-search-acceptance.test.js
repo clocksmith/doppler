@@ -16,7 +16,7 @@ const receipt = {
   applicationRevisionDigest: release.application.revisionDigest,
   workload: release.acceptance.workload,
   oracle: release.acceptance.oracle,
-  packSemanticRoot: release.candidate.packSemanticRoot,
+  capsuleSemanticRoot: release.candidate.capsuleSemanticRoot,
   targetPlanId: process.env.DOPPLER_TARGET_PLAN_ID ?? 'webgpu-f32-portable',
   resolvedExecutionId: `sha256:${'f'.repeat(64)}`,
   providerId: 'doppler-webgpu',

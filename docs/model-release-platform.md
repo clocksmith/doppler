@@ -27,14 +27,14 @@ commercial and fleet evidence. `promotionSequence` is explicitly scoped to
 
 The validated contract is
 `tools/policies/model-release-platform.json`. `npm run model-release:check`
-binds that policy to the goal matrix and verifies the Forge/Pack/Runtime split,
-the seven Pack release requirements, provider neutrality, Pack-first migration,
+binds that policy to the goal matrix and verifies the Forge/Capsule/Runtime split,
+the seven Capsule release requirements, provider neutrality, Capsule-first migration,
 recovery, commercial boundary, and ordered promotion gates. A passing check
 means the contract describes its gaps honestly; it does not establish external
 adoption or production authority.
 
 The repository implementation is closed for the canonical product contract,
-reference release manifest, Pack release contract, Pack-first Electron
+reference release manifest, Capsule release contract, Capsule-first Electron
 reranking, `doppler release`, the non-promoting GitHub Action, and the typed
 Electron adapter. The policy separately reports gates that still require
 customer-operated device receipts, a production revocation authority, and paid
@@ -52,9 +52,9 @@ For one Doppler Production Release, a customer supplies:
 - the incumbent provider control and data-custody rules;
 - the previous working release, rollout rules, and rollback target.
 
-Doppler returns an immutable Pack, a signed eligible-or-blocked release decision,
+Doppler returns an immutable Capsule, a signed eligible-or-blocked release decision,
 qualification receipts, typed exclusions, retained failure evidence, the
-previous working Pack and rollback target, and revocation configuration.
+previous working Capsule and rollback target, and revocation configuration.
 Doppler Release Operations repeats that process for upgrades, requalification,
 incidents, revocation, and support-fleet changes.
 
@@ -83,9 +83,9 @@ prospects. The validated register deliberately reports zero qualified customers.
 It cannot satisfy this section's external, paid, fleet, rollback, revocation, or
 repeat-upgrade gates.
 
-## Pack release closure
+## Capsule release closure
 
-The immutable Pack is the supported release unit. Pack v2 now binds and rejects
+The immutable Capsule is the supported release unit. Capsule v2 now binds and rejects
 drift across all seven release elements:
 
 1. Source revision, licence, and provenance.
@@ -96,39 +96,39 @@ drift across all seven release elements:
 6. Failed-upgrade preservation.
 7. Portable state-snapshot identity.
 
-Pack v2 remains readable and historical bytes are not rewritten. The compatible
+Capsule v2 remains readable and historical bytes are not rewritten. The compatible
 v3 path separates executable identity from signed, chained release events; see
-[Pack identity migration](pack-identity-migration.md). Event verification adds
+[Capsule identity migration](capsule-identity-migration.md). Event verification adds
 explicit time, checkpoint persistence, anti-rollback, revocation, and key rotation.
 This is contract implementation, not production authority qualification or
 external customer evidence.
 
-## Pack-first production path
+## Capsule-first production path
 
 The [Electron integration example](../examples/electron-document-search/README.md)
 composes explicit runtime ports through public package exports. Renderer
-reranking accepts the same application-bound request object as Pack Runtime;
+reranking accepts the same application-bound request object as Capsule Runtime;
 release inspection and fail-closed `resolve-current` IPC are separate actions.
 The default production-release checks exercise the renderer together with the
-real signed-Pack contract and a two-release fixture episode. The installed
+real signed-Capsule contract and a two-release fixture episode. The installed
 tarball smoke repeats the consumer path without repository-private imports.
 These are contract tests with synthetic execution, not physical fleet receipts.
 
-The implemented standalone production path is Electron reranking. It must validate the Pack,
+The implemented standalone production path is Electron reranking. It must validate the Capsule,
 select a qualified TargetPlan for the exact device tuple, bind a SessionPlan,
 execute the application workload, and retain application and fleet evidence.
-The runtime now exposes this narrow path as a Pack-bound rerank session: the
+The runtime now exposes this narrow path as a Capsule-bound rerank session: the
 caller must present the exact application revision, workload, and oracle
-identities signed into the Pack, and the result is a receipt bound to the Pack,
+identities signed into the Capsule, and the result is a receipt bound to the Capsule,
 selected TargetPlan, lifecycle, and revocation policy. Repository tests use a
 mock program and therefore establish contract behavior, not WebGPU fleet
 qualification.
 
-Application-gate evidence must identify the Pack semantic root, selected
+Application-gate evidence must identify the Capsule semantic root, selected
 TargetPlan, resolved execution digest, provider, and exact device target in
 addition to the application revision, workload, oracle, evaluator, quality,
 latency, memory, startup, recovery, and failed samples. The qualification agent
-passes the Pack, target, and device paths through explicit environment fields
+passes the Capsule, target, and device paths through explicit environment fields
 and rejects a receipt that reports a different execution. A generic application
 smoke receipt cannot be wrapped into fleet evidence.
 Dynamic model loading remains an explicit intake/conversion compatibility
@@ -156,7 +156,7 @@ The public command forms are `doppler release` and
 `npx --package doppler-gpu doppler release`; the npm package is named
 `doppler-gpu`. The command has explicit `qualify` and `decide` phases. It emits
 signed fleet receipts or an eligible/blocked decision plus immutable evidence,
-including a retained copy of the exact candidate Pack envelope, and always
+including a retained copy of the exact candidate Capsule envelope, and always
 reports `activationPerformed: false`. The reusable workflow preserves every
 downloaded artifact but passes only schema-identified Electron fleet receipts
 to the decision command; application receipts, device inputs, and failure JSON

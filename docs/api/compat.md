@@ -3,8 +3,8 @@
 ## Purpose
 
 `doppler-gpu/compat` preserves the former manifest-loading application facade
-while supported production models migrate to signed Packs. It exports `dr`,
-`doppler`, `load`, `open`, `generate`, `openPack`, and provider construction.
+while supported production models migrate to signed Capsules. It exports `dr`,
+`doppler`, `load`, `open`, `generate`, `openCapsule`, and provider construction.
 
 ```js
 import { dr } from 'doppler-gpu/compat';
@@ -15,12 +15,12 @@ await session.close();
 ```
 
 This route is explicit compatibility, not the default production authority.
-New integrations should import `doppler-gpu` and execute signed Packs. The
-compatibility `openPack()` still requires explicit signer trust and rejects
+New integrations should import `doppler-gpu` and execute signed Capsules. The
+compatibility `openCapsule()` still requires explicit signer trust and rejects
 behavior-changing `modelLoadOptions`.
 
 ## Code pointers
 
 - [Compatibility entrypoint](../../src/index.js)
-- [Pack Runtime API](root.md)
+- [Capsule Runtime API](root.md)
 

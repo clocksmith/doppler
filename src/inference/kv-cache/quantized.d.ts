@@ -11,10 +11,10 @@ export class QuantizedKVCache {
   quantMode: 'turboquant' | 'turboquant_prod';
   bitWidth: number;
   prodMode: boolean;
-  packFactor: number;
+  capsuleFactor: number;
   packedStride: number;
   mseBitWidth?: number;
-  msePackFactor?: number;
+  mseCapsuleFactor?: number;
   msePackedStride?: number;
   residualPackedStride?: number;
   currentSeqLen: number;

@@ -27,7 +27,7 @@ const DEFAULT_TOP_K = 64;
 const DEFAULT_SUMMARY_TOP_K = 8;
 const DEFAULT_CONTINUATION_TOKENS = 8;
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
-const DEFAULT_PROMPT_PACK = path.join(TOOL_DIR, 'data', 'f16-precision-collapse-curated-prompts.json');
+const DEFAULT_PROMPT_CAPSULE = path.join(TOOL_DIR, 'data', 'f16-precision-collapse-curated-prompts.json');
 
 function cloneValue(value) {
   if (typeof structuredClone === 'function') {
@@ -48,7 +48,7 @@ function parseArgs(argv) {
   const parsed = {
     modelDir: DEFAULT_MODEL_DIR,
     modelId: null,
-    promptPack: null,
+    promptCapsule: null,
     runtimeProfile: DEFAULT_RUNTIME_PROFILE,
     topK: DEFAULT_TOP_K,
     summaryTopK: DEFAULT_SUMMARY_TOP_K,
@@ -79,10 +79,10 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
-    if (arg === '--prompt-pack') {
+    if (arg === '--prompt-capsule') {
       const value = argv[i + 1];
-      if (!value) throw new Error('--prompt-pack requires a path.');
-      parsed.promptPack = value;
+      if (!value) throw new Error('--prompt-capsule requires a path.');
+      parsed.promptCapsule = value;
       i += 1;
       continue;
     }
@@ -151,12 +151,12 @@ function printHelp() {
       `  --model-dir <path>           Local RDRR artifact directory (default: ${DEFAULT_MODEL_DIR})`,
       '  --model-id <id>              Optional modelId label for the report',
       `  --runtime-profile <id>       Runtime profile to apply (default: ${DEFAULT_RUNTIME_PROFILE})`,
-      '  --prompt-pack <path>         JSON prompt pack or Doe-style fixture with promptCandidates',
+      '  --prompt-capsule <path>         JSON prompt capsule or Doe-style fixture with promptCandidates',
       `  --top-k <n>                  Candidate slice width for replay (default: ${DEFAULT_TOP_K})`,
       `  --summary-top-k <n>          Top entries to keep in per-mode summaries (default: ${DEFAULT_SUMMARY_TOP_K})`,
       `  --continuation-tokens <n>    Forced-branch decode length including step 0 (default: ${DEFAULT_CONTINUATION_TOKENS})`,
       '  --out-dir <path>             Output directory (default: reports/f16-precision-collapse/<timestamp>)',
-      '  --max-prompts <n>            Limit the built-in prompt pack',
+      '  --max-prompts <n>            Limit the built-in prompt capsule',
       '  --use-chat-template          Enable chat template expansion',
       '  --no-chat-template           Disable chat template expansion (default)',
       '  --help, -h                   Show this help',
@@ -280,13 +280,13 @@ function normalizePromptRecord(record, index) {
   };
 }
 
-function loadPromptPack(promptPackPath) {
-  const raw = JSON.parse(fs.readFileSync(promptPackPath, 'utf8'));
+function loadPromptCapsule(promptCapsulePath) {
+  const raw = JSON.parse(fs.readFileSync(promptCapsulePath, 'utf8'));
   const prompts = Array.isArray(raw)
     ? raw
     : (Array.isArray(raw?.promptCandidates) ? raw.promptCandidates : null);
   if (!Array.isArray(prompts) || prompts.length === 0) {
-    throw new Error(`Prompt pack "${promptPackPath}" did not contain an array or promptCandidates array.`);
+    throw new Error(`Prompt capsule "${promptCapsulePath}" did not contain an array or promptCandidates array.`);
   }
   return prompts.map(normalizePromptRecord);
 }
@@ -440,7 +440,7 @@ function buildMarkdownSummary(report) {
   lines.push('## Winner flips');
   lines.push('');
   if (report.highlights.flips.length === 0) {
-    lines.push('No top-1 winner flips were observed in this prompt pack.');
+    lines.push('No top-1 winner flips were observed in this prompt capsule.');
   } else {
     for (const prompt of report.highlights.flips) {
       lines.push(`- \`${prompt.id}\`: f32=\`${prompt.modes.f32_forward.winnerText}\`, f16=\`${prompt.modes.f16_forward.winnerText}\`, gap=${prompt.modes.f32_forward.winnerGap?.toFixed(6) ?? 'n/a'}, branchDiffSteps=${prompt.branchComparison?.differingStepCount ?? 0}`);
@@ -499,11 +499,11 @@ async function main() {
       runtime: { runtimeConfig },
     });
 
-    const promptPackPath = path.resolve(args.promptPack ?? DEFAULT_PROMPT_PACK);
-    const promptPack = loadPromptPack(promptPackPath);
+    const promptCapsulePath = path.resolve(args.promptCapsule ?? DEFAULT_PROMPT_CAPSULE);
+    const promptCapsule = loadPromptCapsule(promptCapsulePath);
     const prompts = args.maxPrompts == null
-      ? promptPack
-      : promptPack.slice(0, Math.min(args.maxPrompts, promptPack.length));
+      ? promptCapsule
+      : promptCapsule.slice(0, Math.min(args.maxPrompts, promptCapsule.length));
     const { pipeline, manifest, capabilities } = harness;
     const tokenizer = pipeline.tokenizer;
     const lmHead = pipeline.weights.get('lm_head');
@@ -669,11 +669,11 @@ async function main() {
       modelId: manifest?.modelId ?? args.modelId ?? path.basename(args.modelDir),
       modelUrl,
       runtimeProfile: args.runtimeProfile,
-      promptPackPath,
+      promptCapsulePath,
       topK: args.topK,
       summaryTopK: args.summaryTopK,
       continuationTokens: args.continuationTokens,
-      promptPack: prompts.map(({ id, text }) => ({ id, text })),
+      promptCapsule: prompts.map(({ id, text }) => ({ id, text })),
       gpu: {
         provider: bootstrap.provider ?? null,
         adapter: bootstrap.adapter ?? null,

@@ -13,14 +13,14 @@ import {
   validateInitialExecutionIdentity,
 } from '../config/initial-execution-identity.js';
 import {
-  PACK_V2_PROGRAM_SCHEMA_ID,
-  buildPackV2,
-  signPackV2,
-} from '../config/pack-v2.js';
+  CAPSULE_V2_PROGRAM_SCHEMA_ID,
+  buildCapsuleV2,
+  signCapsuleV2,
+} from '../config/capsule-v2.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 import { buildQualificationRecords, promoteQualifiedModelIRV2 } from './forge-qualification.js';
-import { resolvePackEmbeddingContract } from '../config/embedding-contract.js';
+import { resolveCapsuleEmbeddingContract } from '../config/embedding-contract.js';
 import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
 
 export const FORGE_PIPELINE_VERSION = '2.0.0';
@@ -125,13 +125,13 @@ function assertModelTopologyRepresentable(manifest) {
   }
 }
 
-function normalizePackArtifact(artifact, input) {
+function normalizeCapsuleArtifact(artifact, input) {
   const sourcePath = resolveArtifactSourcePath(artifact, input);
-  const packPath = resolveLogicalArtifactPath(artifact);
+  const capsulePath = resolveLogicalArtifactPath(artifact);
   return {
-    artifactId: artifactId(artifact.role, packPath, artifact.hash),
+    artifactId: artifactId(artifact.role, capsulePath, artifact.hash),
     role: artifact.role,
-    path: packPath,
+    path: capsulePath,
     hash: artifact.hash,
     sizeBytes: artifact.sizeBytes,
     sourcePath,
@@ -156,15 +156,15 @@ function normalizeQualificationEvidence(evidence) {
     : { generatedTokens: requirePositiveInteger(evidence.generatedTokens, 'qualificationEvidence.generatedTokens') };
   const transcriptHash = requireString(evidence.transcriptHash, 'qualificationEvidence.transcriptHash');
   if (evidence.status !== 'passed') throw new Error('Forge only packages passed qualification evidence.');
-  const packPath = toPosix(path.join(
+  const capsulePath = toPosix(path.join(
     'artifacts',
     'evidence',
     `qualification-${surface.replace(/[^a-zA-Z0-9._-]+/g, '-')}-${evidenceHash.slice('sha256:'.length, 'sha256:'.length + 12)}.json`
   ));
   const artifact = {
-    artifactId: artifactId('qualification-evidence', packPath, evidenceHash),
+    artifactId: artifactId('qualification-evidence', capsulePath, evidenceHash),
     role: 'qualification-evidence',
-    path: packPath,
+    path: capsulePath,
     hash: evidenceHash,
     sizeBytes,
     sourcePath,
@@ -181,9 +181,9 @@ function normalizeQualificationEvidence(evidence) {
 }
 
 function stripForgeOnlyArtifactFields(artifact) {
-  const { sourcePath: ignoredSourcePath, ...packArtifact } = artifact;
+  const { sourcePath: ignoredSourcePath, ...capsuleArtifact } = artifact;
   void ignoredSourcePath;
-  return packArtifact;
+  return capsuleArtifact;
 }
 
 export async function stageInspect(input) {
@@ -218,7 +218,7 @@ export async function stageInspect(input) {
       qualificationEvidence: Array.isArray(input.qualificationEvidence) ? input.qualificationEvidence : [],
       modelIR: input.modelIR ?? null,
       modelIREvidence: input.modelIREvidence ?? null,
-      initialExecutionIdentity: input.initialExecutionIdentity ?? null, release: requireObject(input.release, 'Pack release contract'),
+      initialExecutionIdentity: input.initialExecutionIdentity ?? null, release: requireObject(input.release, 'Capsule release contract'),
     },
   };
 }
@@ -233,7 +233,7 @@ export function stageNormalize(inspected) {
   if (bundle.execution?.graphHash !== bundle.sources?.executionGraph?.hash) {
     throw new Error('Forge Program Bundle execution graph identities disagree.');
   }
-  const artifacts = bundle.artifacts.map((artifact) => normalizePackArtifact(artifact, input));
+  const artifacts = bundle.artifacts.map((artifact) => normalizeCapsuleArtifact(artifact, input));
   const qualificationEvidence = input.qualificationEvidence.map(normalizeQualificationEvidence);
   artifacts.push(...qualificationEvidence.map((evidence) => evidence.artifact));
   let modelIREvidenceArtifactId = null;
@@ -242,15 +242,15 @@ export function stageNormalize(inspected) {
     const sourcePath = path.resolve(requireString(evidence.sourcePath, 'modelIREvidence.sourcePath'));
     const hash = requireString(evidence.hash, 'modelIREvidence.hash');
     const sizeBytes = requirePositiveInteger(evidence.sizeBytes, 'modelIREvidence.sizeBytes');
-    const packPath = toPosix(path.join(
+    const capsulePath = toPosix(path.join(
       'artifacts',
       'evidence',
       `model-ir-${hash.slice('sha256:'.length, 'sha256:'.length + 12)}.json`
     ));
     const artifact = {
-      artifactId: artifactId('source-truth-evidence', packPath, hash),
+      artifactId: artifactId('source-truth-evidence', capsulePath, hash),
       role: 'source-truth-evidence',
-      path: packPath,
+      path: capsulePath,
       hash,
       sizeBytes,
       sourcePath,
@@ -407,7 +407,7 @@ export function stageAnalyze(normalized) {
         ? { sequence: structuredClone(requireObject(inference.sequence, 'manifest.inference.sequence')) }
         : {}),
       ...(manifest.modelType === 'embedding' || inference.supportsEmbedding === true
-        ? { embedding: resolvePackEmbeddingContract(manifest) }
+        ? { embedding: resolveCapsuleEmbeddingContract(manifest) }
         : {}),
     },
     phases: ['prefill', 'decode'],
@@ -672,7 +672,7 @@ export function stageSearch(specialized, evaluation) {
     }
     evaluationReceipt = evaluateForgeCandidates(evaluation);
     if (evaluationReceipt.selectedCandidateHashes.length === 0) {
-      const error = new Error('Forge search rejected every evaluated TargetPlan; no Pack may be signed.');
+      const error = new Error('Forge search rejected every evaluated TargetPlan; no Capsule may be signed.');
       error.evaluationReceipt = evaluationReceipt;
       throw error;
     }
@@ -744,7 +744,7 @@ export function stagePackage(qualified) {
   const normalized = qualified.normalized;
   const artifacts = normalized.artifacts.map(stripForgeOnlyArtifactFields);
   const findIds = (role) => artifacts.filter((artifact) => artifact.role === role).map((artifact) => artifact.artifactId);
-  const pack = buildPackV2({
+  const capsule = buildCapsuleV2({
     modelId: qualified.modelIR.modelId,
     createdAtUtc: requireString(normalized.programBundle.createdAtUtc, 'Program Bundle createdAtUtc'),
     modelIR: qualified.modelIR,
@@ -752,7 +752,7 @@ export function stagePackage(qualified) {
     wgslModules: qualified.wgslModules,
     artifacts,
     program: {
-      schema: PACK_V2_PROGRAM_SCHEMA_ID,
+      schema: CAPSULE_V2_PROGRAM_SCHEMA_ID,
       programBundleHash: normalized.programBundleHash,
       programBundleArtifactId: normalized.programBundleArtifactId,
       executionGraphHash: normalized.programBundle.execution.graphHash,
@@ -766,12 +766,12 @@ export function stagePackage(qualified) {
       referenceTranscript: normalized.programBundle.referenceTranscript,
     }, release: normalized.release,
   });
-  return { ...qualified, stage: 'package', ok: true, pack };
+  return { ...qualified, stage: 'package', ok: true, capsule };
 }
 
 export async function stageSign(packaged, signer) {
-  const pack = await signPackV2(packaged.pack, signer);
-  return { ...packaged, stage: 'sign', ok: true, pack, semanticRoot: pack.semanticRoot };
+  const capsule = await signCapsuleV2(packaged.capsule, signer);
+  return { ...packaged, stage: 'sign', ok: true, capsule, semanticRoot: capsule.semanticRoot };
 }
 
 export async function runForgePipeline(input, signer) {
@@ -786,7 +786,7 @@ export async function runForgePipeline(input, signer) {
   const packaged = stagePackage(qualified);
   const signed = await stageSign(packaged, signer);
   return {
-    pack: signed.pack,
+    capsule: signed.capsule,
     searchReceipt: searched.searchReceipt,
     stages: [inspected, normalized, analyzed, lowered, specialized, searched, verified, qualified, packaged, signed]
       .map((stage) => ({ stage: stage.stage, ok: stage.ok })),

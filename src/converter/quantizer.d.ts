@@ -36,7 +36,7 @@ export declare function quantizeQ4KBlock(data: Float32Array, offset: number): Ui
 
 /**
  * Flat Q4K quantization (original behavior).
- * Packs all elements sequentially - blocks may cross row boundaries.
+ * Capsules all elements sequentially - blocks may cross row boundaries.
  */
 export declare function quantizeToQ4KM(data: Float32Array, shape: number[]): QuantizeResult;
 

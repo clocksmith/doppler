@@ -11,7 +11,7 @@ export interface ServeSettings {
 export interface ServeRegistryEntry {
   modelId: string;
   sourceCheckpointId: string;
-  weightPackId: string;
+  weightCapsuleId: string;
   manifestVariantId: string;
   artifactCompleteness: string;
   runtimePromotionState: string;
@@ -130,7 +130,7 @@ export interface ServeReceiptBase {
     format: 'rdrr';
     source: 'quickstart-registry';
     sourceCheckpointId: string;
-    weightPackId: string;
+    weightCapsuleId: string;
     manifestVariantId: string;
     artifactCompleteness: string;
     runtimePromotionState: string;

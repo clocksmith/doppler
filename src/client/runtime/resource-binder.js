@@ -9,7 +9,7 @@ function observeDeviceLoss(device) {
   deviceLossStates.set(device, state);
   const lost = (info) => {
     state.error = createDopplerError(ERROR_CODES.GPU_DEVICE_LOST,
-      `Pack session GPU device lost (${info?.reason ?? 'unknown'}): ${info?.message ?? 'no device message'}. Close this session and explicitly reopen on a new device.`);
+      `Capsule session GPU device lost (${info?.reason ?? 'unknown'}): ${info?.message ?? 'no device message'}. Close this session and explicitly reopen on a new device.`);
   };
   if (device.lost && typeof device.lost.then === 'function') {
     device.lost.then(lost, (error) => lost({ reason: 'loss-observation-failed', message: error?.message }));
@@ -97,7 +97,7 @@ export function createResourceBinder(devicePort, program = null) {
           continue;
         }
         const buffer = device.createBuffer({
-          label: `doppler-pack:${slot.slotId}`,
+          label: `doppler-capsule:${slot.slotId}`,
           size: sizeBytes,
           usage: resolveUsage(slot),
         });

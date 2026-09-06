@@ -2,7 +2,7 @@ import { ERROR_CODES } from '../../errors/doppler-error.js';
 import { normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 
 function cancellationError() {
-  const error = new Error('Electron renderer Pack operation was cancelled.');
+  const error = new Error('Electron renderer Capsule operation was cancelled.');
   error.name = 'AbortError';
   error.code = 'DOPPLER_ELECTRON_CANCELLED';
   return error;
@@ -20,9 +20,9 @@ function deviceLossError(cause) {
   return error;
 }
 
-function assertSamePack(actual, expected) {
-  if (actual?.packId !== expected.packId || actual?.semanticRoot !== expected.semanticRoot) {
-    const error = new Error('Electron Pack session does not match the current authorized release.');
+function assertSameCapsule(actual, expected) {
+  if (actual?.capsuleId !== expected.capsuleId || actual?.semanticRoot !== expected.semanticRoot) {
+    const error = new Error('Electron Capsule session does not match the current authorized release.');
     error.code = 'DOPPLER_ELECTRON_RELEASE_CHANGED';
     throw error;
   }
@@ -39,20 +39,20 @@ export function createElectronRendererRuntime(options) {
   if (typeof options?.releaseState?.resolveCurrent !== 'function') {
     throw new Error('Electron renderer runtime requires releaseState.resolveCurrent().');
   }
-  if (typeof options.openPack !== 'function') {
-    throw new Error('Electron renderer runtime requires openPack().');
+  if (typeof options.openCapsule !== 'function') {
+    throw new Error('Electron renderer runtime requires openCapsule().');
   }
 
   async function openCurrent(openOptions = {}) {
     assertActive(openOptions.signal);
-    const pack = await options.releaseState.resolveCurrent();
+    const capsule = await options.releaseState.resolveCurrent();
     assertActive(openOptions.signal);
     let session;
     try {
-      session = await options.openPack(pack.path, openOptions);
-      assertSamePack(session, pack);
+      session = await options.openCapsule(capsule.path, openOptions);
+      assertSameCapsule(session, capsule);
       assertActive(openOptions.signal);
-      assertSamePack(await options.releaseState.resolveCurrent(), pack);
+      assertSameCapsule(await options.releaseState.resolveCurrent(), capsule);
       assertActive(openOptions.signal);
     } catch (error) {
       try {
@@ -60,6 +60,7 @@ export function createElectronRendererRuntime(options) {
       } catch {
         // Preserve the load, authorization, or cancellation failure.
       }
+      assertActive(openOptions.signal);
       throw translateError(error);
     }
     return session;
@@ -67,7 +68,7 @@ export function createElectronRendererRuntime(options) {
 
   async function rerank(request, openOptions = {}) {
     if (!request || typeof request !== 'object' || Array.isArray(request) || !request.application) {
-      throw new Error('Electron rerank requires a PackRerankRequest with an explicit application binding.');
+      throw new Error('Electron rerank requires a CapsuleRerankRequest with an explicit application binding.');
     }
     const signals = [openOptions.signal, request.options?.signal].filter(Boolean);
     const signal = signals.length === 2 && signals[0] !== signals[1]
@@ -78,12 +79,12 @@ export function createElectronRendererRuntime(options) {
     let failed = false;
     try {
       if (typeof session.rerank !== 'function') {
-        throw new Error('Electron current Pack does not expose the qualified reranking workload.');
+        throw new Error('Electron current Capsule does not expose the qualified reranking workload.');
       }
       const result = await session.rerank(signal
         ? { ...request, options: { ...request.options, signal } } : request);
       assertActive(signal);
-      assertSamePack(await options.releaseState.resolveCurrent(), session);
+      assertSameCapsule(await options.releaseState.resolveCurrent(), session);
       assertActive(signal);
       return result;
     } catch (error) {

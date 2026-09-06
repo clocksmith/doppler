@@ -404,7 +404,7 @@ export async function buildArtifactIdentity(options) {
     ?? (options.conversionConfig
       ? await hashArtifactValue(hashString, options.conversionConfig, 'conversionConfig')
       : null);
-  const shardSetHash = explicit.shardSetHash ?? explicit.weightPackHash
+  const shardSetHash = explicit.shardSetHash ?? explicit.weightCapsuleHash
     ?? await hashArtifactValue(
       hashString,
       {
@@ -424,7 +424,7 @@ export async function buildArtifactIdentity(options) {
     : inferArtifactModalitySet(options.modelType, options.tensorLocations, options.converterConfig);
   const materializationProfile = explicit.materializationProfile
     ?? resolveMaterializationProfile(options.quantizationInfo, options.inference);
-  const weightPackInput = {
+  const weightCapsuleInput = {
     sourceCheckpointId: sourceIdentity.sourceCheckpointId,
     sourceFormat,
     modelType: options.modelType,
@@ -439,14 +439,14 @@ export async function buildArtifactIdentity(options) {
       textOnly: options.converterConfig?.output?.textOnly === true,
     },
   };
-  const weightPackHash = explicit.weightPackHash
-    ?? await hashArtifactValue(hashString, weightPackInput, 'weightPack');
-  const weightPackId = explicit.weightPackId
-    ?? `${sanitizeModelId(options.modelId) ?? 'model'}-wp-${digestSuffix(weightPackHash)}`;
+  const weightCapsuleHash = explicit.weightCapsuleHash
+    ?? await hashArtifactValue(hashString, weightCapsuleInput, 'weightCapsule');
+  const weightCapsuleId = explicit.weightCapsuleId
+    ?? `${sanitizeModelId(options.modelId) ?? 'model'}-wp-${digestSuffix(weightCapsuleHash)}`;
   const manifestVariantHash = await hashArtifactValue(
     hashString,
     {
-      weightPackId,
+      weightCapsuleId,
       modelType: options.modelType,
       inference: options.inference,
       config: options.manifestConfig ?? null,
@@ -464,8 +464,8 @@ export async function buildArtifactIdentity(options) {
     sourceFormat,
     conversionConfigPath: explicit.conversionConfigPath ?? options.conversionConfigPath ?? undefined,
     conversionConfigDigest: conversionConfigDigest ?? undefined,
-    weightPackId,
-    weightPackHash,
+    weightCapsuleId,
+    weightCapsuleHash,
     shardSetHash,
     manifestVariantId,
     modalitySet,

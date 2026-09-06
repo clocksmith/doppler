@@ -116,7 +116,7 @@ LoRA run roots typically include:
 ## Hashing Policy
 
 - Hash function: SHA-256 hex for lineage and provenance linkage
-- `workloadSha256`: exact workload pack bytes
+- `workloadSha256`: exact workload capsule bytes
 - `configHash`: deterministic normalized workload or config hash
 - `datasetHash`: deterministic dataset content hash
 - `artifactHash`: deterministic normalized artifact payload hash
@@ -152,7 +152,7 @@ Each claimable artifact should carry:
 - Stage B distill artifacts must reference and validate Stage A dependency hashes
 - exported LoRA adapter artifacts must preserve the originating checkpoint linkage
 - compare and quality-gate reports must point back to the run root and workload lock
-- published workload packs include deterministic report-id bindings derived from workload content hashes
+- published workload capsules include deterministic report-id bindings derived from workload content hashes
 
 ## Trainer-to-Doppler Handoff
 
@@ -247,6 +247,6 @@ Use provenance and workload verification for manifests and reports:
 ```bash
 node tools/verify-training-provenance.js --manifest <manifest.json> [--stage1-manifest <manifest.json>]
 node tools/verify-training-provenance.js --report <report.json>
-node tools/verify-training-workload-packs.js --registry src/experimental/training/workload-packs/registry.json
-node tools/publish-training-report-ids.js --registry src/experimental/training/workload-packs/registry.json --out reports/training/report-ids/latest.json
+node tools/verify-training-workload-capsules.js --registry src/experimental/training/workload-capsules/registry.json
+node tools/publish-training-report-ids.js --registry src/experimental/training/workload-capsules/registry.json --out reports/training/report-ids/latest.json
 ```

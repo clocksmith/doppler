@@ -231,7 +231,7 @@ await assert.rejects(
       gpuCapabilities: { hasF16: false, hasSubgroups: false },
     }
   ),
-  /experimental.*production Pack/
+  /experimental.*production Capsule/
 );
 
 {
@@ -302,7 +302,7 @@ await assert.rejects(
 
   await assert.rejects(
     () => loader.loadTensor('model.layers.0.mlp.down_proj.weight', true, false),
-    /experimental.*production Pack/
+    /experimental.*production Capsule/
   );
   assert.equal(loader.gpuBuffers.size, 0);
 

@@ -19,13 +19,13 @@ import {
   verifyProductionReleaseEvidenceSignature,
 } from '../config/production-release-evidence.js';
 import {
-  hashPackV2Envelope,
-  verifyPackV2Signature,
-} from '../config/pack-v2.js';
+  hashCapsuleV2Envelope,
+  verifyCapsuleV2Signature,
+} from '../config/capsule-v2.js';
 import { selectQualifiedTargetPlan } from '../config/target-plan.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
-import { forgeModelPack } from './model-pack-forge.js';
-import { loadPackSigningKey, loadPackV2 } from './pack-v2.js';
+import { forgeModelCapsule } from './model-capsule-forge.js';
+import { loadCapsuleSigningKey, loadCapsuleV2 } from './capsule-v2.js';
 
 const execFileAsync = promisify(execFile);
 const DEVICE_IDENTITY_SCHEMA = 'doppler.electron-device-identity/v1';
@@ -94,8 +94,8 @@ async function loadSigner(request) {
   }
   return {
     authority: request.signingAuthority,
-    privateKeyJwk: await loadPackSigningKey(request.signingPrivateKeyPath),
-    publicKeyJwk: await loadPackSigningKey(request.signingPublicKeyPath),
+    privateKeyJwk: await loadCapsuleSigningKey(request.signingPrivateKeyPath),
+    publicKeyJwk: await loadCapsuleSigningKey(request.signingPublicKeyPath),
   };
 }
 
@@ -187,7 +187,7 @@ function validateDeviceIdentity(identity, target) {
   return identity;
 }
 
-function bindApplicationGateReceipt(receipt, release, pack, target, selectedTargetPlan) {
+function bindApplicationGateReceipt(receipt, release, capsule, target, selectedTargetPlan) {
   const errors = [];
   if (receipt.releaseId !== release.releaseId) errors.push('releaseId mismatch');
   if (receipt.applicationRevisionDigest !== release.application.revisionDigest) {
@@ -197,9 +197,9 @@ function bindApplicationGateReceipt(receipt, release, pack, target, selectedTarg
     || receipt.workload?.digest !== release.acceptance.workload.digest) errors.push('workload identity mismatch');
   if (receipt.oracle?.id !== release.acceptance.oracle.id
     || receipt.oracle?.digest !== release.acceptance.oracle.digest) errors.push('oracle identity mismatch');
-  if (receipt.packSemanticRoot !== pack.semanticRoot) errors.push('Pack semantic root mismatch');
-  if (!pack.targetPlans.some((plan) => plan.targetId === selectedTargetPlan.targetId)) {
-    errors.push('selected TargetPlan is not carried by the Pack');
+  if (receipt.capsuleSemanticRoot !== capsule.semanticRoot) errors.push('Capsule semantic root mismatch');
+  if (!capsule.targetPlans.some((plan) => plan.targetId === selectedTargetPlan.targetId)) {
+    errors.push('selected TargetPlan is not carried by the Capsule');
   }
   if (receipt.targetPlanId !== selectedTargetPlan.targetId) {
     errors.push('application gate TargetPlan does not match device selection');
@@ -238,7 +238,7 @@ async function executeApplicationGates(
         env: {
           ...process.env,
           DOPPLER_PRODUCTION_RELEASE_PATH: manifestPath,
-          DOPPLER_CANDIDATE_PACK_PATH: executionContext.packPath,
+          DOPPLER_CANDIDATE_CAPSULE_PATH: executionContext.capsulePath,
           DOPPLER_DEVICE_TARGET_ID: executionContext.target.id,
           DOPPLER_DEVICE_IDENTITY_PATH: executionContext.deviceIdentityPath,
           DOPPLER_TARGET_PLAN_ID: executionContext.selectedTargetPlan.targetId,
@@ -253,7 +253,7 @@ async function executeApplicationGates(
       const bindingErrors = bindApplicationGateReceipt(
         receipt,
         release,
-        executionContext.pack,
+        executionContext.capsule,
         executionContext.target,
         executionContext.selectedTargetPlan
       );
@@ -284,56 +284,56 @@ async function executeApplicationGates(
   return { receipts, failures };
 }
 
-function assertPackReleaseBinding(pack, release) {
+function assertCapsuleReleaseBinding(capsule, release) {
   const errors = [];
-  if (pack.modelId !== release.candidate.logicalModelId) errors.push('logical model mismatch');
-  if (pack.semanticRoot !== release.candidate.packSemanticRoot) errors.push('Pack semantic root mismatch');
-  const packRelease = pack.release;
-  if (packRelease.source.revision !== release.candidate.sourceRevision) errors.push('source revision mismatch');
-  if (packRelease.source.revisionDigest !== release.candidate.sourceRevisionDigest) {
+  if (capsule.modelId !== release.candidate.logicalModelId) errors.push('logical model mismatch');
+  if (capsule.semanticRoot !== release.candidate.capsuleSemanticRoot) errors.push('Capsule semantic root mismatch');
+  const capsuleRelease = capsule.release;
+  if (capsuleRelease.source.revision !== release.candidate.sourceRevision) errors.push('source revision mismatch');
+  if (capsuleRelease.source.revisionDigest !== release.candidate.sourceRevisionDigest) {
     errors.push('source revision digest mismatch');
   }
-  if (packRelease.application.applicationId !== release.application.applicationId) {
+  if (capsuleRelease.application.applicationId !== release.application.applicationId) {
     errors.push('application identity mismatch');
   }
-  if (packRelease.application.applicationRevision !== release.application.revision
-    || packRelease.application.applicationRevisionDigest !== release.application.revisionDigest) {
+  if (capsuleRelease.application.applicationRevision !== release.application.revision
+    || capsuleRelease.application.applicationRevisionDigest !== release.application.revisionDigest) {
     errors.push('application revision mismatch');
   }
   for (const field of ['workload', 'oracle']) {
-    if (packRelease.application[field].id !== release.acceptance[field].id
-      || packRelease.application[field].digest !== release.acceptance[field].digest) {
+    if (capsuleRelease.application[field].id !== release.acceptance[field].id
+      || capsuleRelease.application[field].digest !== release.acceptance[field].digest) {
       errors.push(`${field} identity mismatch`);
     }
   }
-  if (packRelease.revocation.authorityId !== release.revocation.authorityId
-    || packRelease.revocation.policyDigest !== release.revocation.policyDigest
-    || packRelease.revocation.offlineExpirySeconds !== release.revocation.offlineExpirySeconds
-    || packRelease.revocation.failClosedAfterExpiry !== release.revocation.failClosedAfterExpiry) {
+  if (capsuleRelease.revocation.authorityId !== release.revocation.authorityId
+    || capsuleRelease.revocation.policyDigest !== release.revocation.policyDigest
+    || capsuleRelease.revocation.offlineExpirySeconds !== release.revocation.offlineExpirySeconds
+    || capsuleRelease.revocation.failClosedAfterExpiry !== release.revocation.failClosedAfterExpiry) {
     errors.push('revocation policy mismatch');
   }
-  if (errors.length > 0) throw new Error(`Candidate Pack does not bind production release: ${errors.join('; ')}.`);
+  if (errors.length > 0) throw new Error(`Candidate Capsule does not bind production release: ${errors.join('; ')}.`);
 }
 
-async function loadBoundPack(release, request, repoRoot) {
-  const packPath = resolveWithinRoot(repoRoot, release.candidate.packPath, 'candidate.packPath');
+async function loadBoundCapsule(release, request, repoRoot) {
+  const capsulePath = resolveWithinRoot(repoRoot, release.candidate.capsulePath, 'candidate.capsulePath');
   if (request.forgeConfigPath) {
     const forgeConfig = (await readJson(request.forgeConfigPath, 'release Forge config')).value;
-    await forgeModelPack({
+    await forgeModelCapsule({
       ...forgeConfig,
       repoRoot,
-      outputPath: packPath,
+      outputPath: capsulePath,
       allowDevelopmentSigner: false,
     });
   }
-  const pack = await loadPackV2(packPath);
-  const trustedPackSigners = await loadTrustedSigners(
-    request.packTrustedSignersPath,
-    'trusted Pack signers'
+  const capsule = await loadCapsuleV2(capsulePath);
+  const trustedCapsuleSigners = await loadTrustedSigners(
+    request.capsuleTrustedSignersPath,
+    'trusted Capsule signers'
   );
-  await verifyPackV2Signature(pack, trustedPackSigners);
-  assertPackReleaseBinding(pack, release);
-  return { pack, packPath };
+  await verifyCapsuleV2Signature(capsule, trustedCapsuleSigners);
+  assertCapsuleReleaseBinding(capsule, release);
+  return { capsule, capsulePath };
 }
 
 async function qualifyTarget(release, manifestPath, request, repoRoot, outputDirectory) {
@@ -346,12 +346,12 @@ async function qualifyTarget(release, manifestPath, request, repoRoot, outputDir
     (await readJson(request.deviceIdentityPath, 'Electron device identity')).value,
     target
   );
-  const { pack, packPath } = await loadBoundPack(release, request, repoRoot);
-  const candidatePackPath = await copyFileAtomic(
-    packPath,
-    path.join(outputDirectory, 'candidate.pack.json')
+  const { capsule, capsulePath } = await loadBoundCapsule(release, request, repoRoot);
+  const candidateCapsulePath = await copyFileAtomic(
+    capsulePath,
+    path.join(outputDirectory, 'candidate.capsule.json')
   );
-  const selectedTargetPlan = selectQualifiedTargetPlan(pack.targetPlans, {
+  const selectedTargetPlan = selectQualifiedTargetPlan(capsule.targetPlans, {
     surface: device.surface,
     hasF16: device.hasF16,
     hasSubgroups: device.hasSubgroups,
@@ -364,8 +364,8 @@ async function qualifyTarget(release, manifestPath, request, repoRoot, outputDir
     repoRoot,
     outputDirectory,
     {
-      pack,
-      packPath,
+      capsule,
+      capsulePath,
       target,
       selectedTargetPlan,
       deviceIdentityPath: path.resolve(request.deviceIdentityPath),
@@ -380,7 +380,7 @@ async function qualifyTarget(release, manifestPath, request, repoRoot, outputDir
     receiptId: `${release.releaseId}-${target.id}`.replace(/-release-[0-9a-f]{16}-/u, '-'),
     releaseId: release.releaseId,
     targetId: target.id,
-    packSemanticRoot: pack.semanticRoot,
+    capsuleSemanticRoot: capsule.semanticRoot,
     applicationRevisionDigest: release.application.revisionDigest,
     workload: release.acceptance.workload,
     oracle: release.acceptance.oracle,
@@ -421,7 +421,7 @@ async function qualifyTarget(release, manifestPath, request, repoRoot, outputDir
     status: receipt.status,
     receiptPath,
     receiptDigest: receipt.digest,
-    candidatePackPath,
+    candidateCapsulePath,
     failureCount: gates.failures.length,
     activationPerformed: false,
   };
@@ -435,11 +435,11 @@ async function loadFleetReceipt(filePath, trustedSigners) {
   return receipt;
 }
 
-function validateFleetBinding(receipt, release, target, pack) {
+function validateFleetBinding(receipt, release, target, capsule) {
   const errors = [];
   if (receipt.releaseId !== release.releaseId) errors.push('releaseId mismatch');
   if (receipt.targetId !== target.id) errors.push('targetId mismatch');
-  if (receipt.packSemanticRoot !== release.candidate.packSemanticRoot) errors.push('Pack semantic root mismatch');
+  if (receipt.capsuleSemanticRoot !== release.candidate.capsuleSemanticRoot) errors.push('Capsule semantic root mismatch');
   if (receipt.applicationRevisionDigest !== release.application.revisionDigest) {
     errors.push('application revision mismatch');
   }
@@ -448,7 +448,7 @@ function validateFleetBinding(receipt, release, target, pack) {
   if (receipt.oracle.id !== release.acceptance.oracle.id
     || receipt.oracle.digest !== release.acceptance.oracle.digest) errors.push('oracle mismatch');
   try {
-    const selectedTargetPlan = selectQualifiedTargetPlan(pack?.targetPlans, {
+    const selectedTargetPlan = selectQualifiedTargetPlan(capsule?.targetPlans, {
       surface: receipt.device.surface,
       hasF16: receipt.device.hasF16,
       hasSubgroups: receipt.device.hasSubgroups,
@@ -477,24 +477,24 @@ function validateFleetBinding(receipt, release, target, pack) {
 
 async function decideRelease(release, request, repoRoot, outputDirectory) {
   const reasons = [];
-  let pack = null;
-  let packPath = resolveWithinRoot(repoRoot, release.candidate.packPath, 'candidate.packPath');
-  let candidatePackPath = null;
+  let capsule = null;
+  let capsulePath = resolveWithinRoot(repoRoot, release.candidate.capsulePath, 'candidate.capsulePath');
+  let candidateCapsulePath = null;
   try {
-    ({ pack, packPath } = await loadBoundPack(release, request, repoRoot));
-    candidatePackPath = await copyFileAtomic(
-      packPath,
-      path.join(outputDirectory, 'candidate.pack.json')
+    ({ capsule, capsulePath } = await loadBoundCapsule(release, request, repoRoot));
+    candidateCapsulePath = await copyFileAtomic(
+      capsulePath,
+      path.join(outputDirectory, 'candidate.capsule.json')
     );
   } catch (error) {
-    reasons.push({ code: 'artifact-invalid', scope: 'candidate-pack', detail: error.message, evidenceDigests: [] });
+    reasons.push({ code: 'artifact-invalid', scope: 'candidate-capsule', detail: error.message, evidenceDigests: [] });
     try {
-      candidatePackPath = await copyFileAtomic(
-        packPath,
-        path.join(outputDirectory, 'candidate.pack.json')
+      candidateCapsulePath = await copyFileAtomic(
+        capsulePath,
+        path.join(outputDirectory, 'candidate.capsule.json')
       );
     } catch {
-      candidatePackPath = null;
+      candidateCapsulePath = null;
     }
   }
   const trustedFleetSigners = await loadTrustedSigners(
@@ -538,7 +538,7 @@ async function decideRelease(release, request, repoRoot, outputDirectory) {
       });
       continue;
     }
-    const bindingErrors = validateFleetBinding(matches[0], release, target, pack);
+    const bindingErrors = validateFleetBinding(matches[0], release, target, capsule);
     if (bindingErrors.length > 0) {
       reasons.push({
         code: 'application-gate-failed',
@@ -554,13 +554,13 @@ async function decideRelease(release, request, repoRoot, outputDirectory) {
     schema: RELEASE_DECISION_SCHEMA,
     releaseId: release.releaseId,
     productionReleaseDigest: hashProductionRelease(release),
-    pack: {
-      packId: pack?.packId ?? 'invalid-candidate-pack',
-      semanticRoot: pack?.semanticRoot ?? release.candidate.packSemanticRoot,
-      envelopeDigest: pack
-        ? hashPackV2Envelope(pack)
+    capsule: {
+      capsuleId: capsule?.capsuleId ?? 'invalid-candidate-capsule',
+      semanticRoot: capsule?.semanticRoot ?? release.candidate.capsuleSemanticRoot,
+      envelopeDigest: capsule
+        ? hashCapsuleV2Envelope(capsule)
         : hashProductionReleaseEvidence({ invalidCandidate: release.candidate }),
-      path: path.relative(repoRoot, packPath),
+      path: path.relative(repoRoot, capsulePath),
     },
     eligibility,
     reasons,
@@ -574,7 +574,7 @@ async function decideRelease(release, request, repoRoot, outputDirectory) {
       digest: entry.digest,
       status: entry.status,
     })),
-    knownExclusions: pack?.release?.exclusions?.known ?? [],
+    knownExclusions: capsule?.release?.exclusions?.known ?? [],
     previousRelease: release.previousRelease,
     rollback: release.rollback,
     revocation: release.revocation,
@@ -599,8 +599,8 @@ async function decideRelease(release, request, repoRoot, outputDirectory) {
     failureBundlePath = await writeJsonAtomic(path.join(outputDirectory, 'failure-bundle.json'), {
       schema: RELEASE_FAILURE_BUNDLE_SCHEMA,
       releaseId: release.releaseId,
-      candidatePack: decision.pack,
-      candidatePackEvidencePath: candidatePackPath,
+      candidateCapsule: decision.capsule,
+      candidateCapsuleEvidencePath: candidateCapsulePath,
       previousRelease: release.previousRelease,
       rollback: release.rollback,
       reasons,
@@ -615,7 +615,7 @@ async function decideRelease(release, request, repoRoot, outputDirectory) {
     eligibility,
     decisionPath,
     decisionDigest: decision.digest,
-    candidatePackPath,
+    candidateCapsulePath,
     exclusionsPath,
     rollbackPath,
     revocationPath,
@@ -629,8 +629,8 @@ export async function runProductionRelease(request) {
   if (request.action !== 'qualify' && request.action !== 'decide') {
     throw new Error('release action must be "qualify" or "decide".');
   }
-  if (!request.manifestPath || !request.outputDirectory || !request.packTrustedSignersPath) {
-    throw new Error('release requires manifestPath, outputDirectory, and packTrustedSignersPath.');
+  if (!request.manifestPath || !request.outputDirectory || !request.capsuleTrustedSignersPath) {
+    throw new Error('release requires manifestPath, outputDirectory, and capsuleTrustedSignersPath.');
   }
   const repoRoot = path.resolve(request.repoRoot || process.cwd());
   const manifestFile = await readJson(request.manifestPath, 'production release manifest');

@@ -654,8 +654,8 @@
               "quantization",
               "manifestPath",
               "manifestSha256",
-              "weightPackId",
-              "weightPackHash",
+              "weightCapsuleId",
+              "weightCapsuleHash",
               "manifestVariantId",
               "shardSetHash",
               "sizeBytes",
@@ -686,14 +686,14 @@
                 "type": "string",
                 "pattern": "^[a-f0-9]{40}$"
               },
-              "weightPackId": {
+              "weightCapsuleId": {
                 "type": [
                   "string",
                   "null"
                 ],
                 "minLength": 1
               },
-              "weightPackHash": {
+              "weightCapsuleHash": {
                 "type": [
                   "string",
                   "null"

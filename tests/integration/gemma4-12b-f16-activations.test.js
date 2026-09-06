@@ -23,8 +23,8 @@ const conversionConfig = JSON.parse(
 
 assert.equal(conversionConfig.output.modelBaseId, AF16_MODEL_ID);
 assert.equal(
-  conversionConfig.manifest?.artifactIdentity?.weightPackId,
-  af32ConversionConfig.manifest?.artifactIdentity?.weightPackId
+  conversionConfig.manifest?.artifactIdentity?.weightCapsuleId,
+  af32ConversionConfig.manifest?.artifactIdentity?.weightCapsuleId
 );
 assert.notEqual(
   conversionConfig.manifest?.artifactIdentity?.manifestVariantId,

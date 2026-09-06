@@ -1,4 +1,4 @@
-import type { LoadedTrainingWorkload, TrainingWorkloadPack } from './workloads.js';
+import type { LoadedTrainingWorkload, TrainingWorkloadCapsule } from './workloads.js';
 
 export interface TrainingRunLayout {
   runRoot: string;
@@ -42,7 +42,7 @@ export declare function writeRunContract(
 export declare function buildArtifactBase(options: {
   artifactType: string;
   reportId: string;
-  workload: TrainingWorkloadPack;
+  workload: TrainingWorkloadCapsule;
   workloadPath: string;
   workloadSha256: string;
   datasetPath: string | null;

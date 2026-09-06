@@ -1,0 +1,4815 @@
+{
+  "schema": "doppler.semantic-manifest-lowering-receipt/v1",
+  "modelId": "muse-glimmer-30b-text-f16-af32",
+  "requestedModelId": "muse-glimmer-30b-text-f16-af32",
+  "entryPointId": "text.generate",
+  "sourceModelIRHash": "sha256:2f2d89c0cd20b9ad6a8c6374148c3188d42451db2bf8a8b59152946f6fefdef2",
+  "modelIRHash": "sha256:e5a72acbf9903b52ee860fa6bce657e712607b911a7f905482c36d0295c0a3ff",
+  "modelIR": {
+    "schema": "doppler.model-ir/v2",
+    "schemaVersion": 2,
+    "modelId": "muse-glimmer-30b-text-f16-af32",
+    "sourceIdentity": {
+      "checkpointId": "meta-models/Muse-Glimmer-30B",
+      "repository": "meta-models/Muse-Glimmer-30B",
+      "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+      "artifacts": [
+        {
+          "artifactId": "config",
+          "path": "config.json",
+          "role": "normalized-source-config",
+          "hash": "sha256:82056d17239486da0e73816aa12e9a65c864a31704cfb82dc8eb7de24a27c891",
+          "upstreamHash": "sha256:5a9df2d8a385b3d361ab6ae68d73586f4e775033933bd0cd863fb7f3820e6a14"
+        },
+        {
+          "artifactId": "generation",
+          "path": "generation_config.json",
+          "role": "normalized-generation-policy",
+          "hash": "sha256:16f368abc350898ea17be8e7703bfde9e01283b4bc5cb2b46c8dfcf93bce6288",
+          "upstreamHash": "sha256:1fa51889b1f8d3659802dedaa27e005b81e5c58483f13ecf13f2d97306bc6e35"
+        },
+        {
+          "artifactId": "headers",
+          "path": "model-00001-of-00002.safetensors#header+model-00002-of-00002.safetensors#header",
+          "role": "tensor-header-receipt",
+          "hash": "sha256:844bc94bb0c305d3c1de4bed978e9ff2a8fe1a9d663f190367e6016a91f6366d"
+        },
+        {
+          "artifactId": "reference",
+          "path": "huggingface/transformers@c7e57f79348480f73d3ef0ad8c47f807ef1378c8/src/transformers/models/muse_glimmer",
+          "role": "pinned-reference-implementation-semantics",
+          "hash": "sha256:77454d3df398e7af6d3f3e87ae8db8850ac0c1537571083f9443497c7693a1f8",
+          "upstreamFiles": [
+            {
+              "path": "modeling_muse_glimmer.py",
+              "hash": "sha256:fd285c1dc9f4dd996e875250c2b76016cbc359aa85d55aea2102527c88fa7050"
+            },
+            {
+              "path": "configuration_muse_glimmer.py",
+              "hash": "sha256:67900ce9164c509c9067687b1ed60e37270510d028c848ff2397ab92edfb3c16"
+            }
+          ]
+        }
+      ]
+    },
+    "provenance": {
+      "forgeVersion": "2.0.0",
+      "intakeDigest": "sha256:e09531ef23c178b16ed6ad244b68e8d1410f54e17715b1c370c766e7e1dd5861",
+      "facts": [
+        {
+          "id": "root.architecture",
+          "subject": "model",
+          "predicate": "architecture",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/architectures/0"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "MuseGlimmerForConditionalGeneration",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:65144d1e603a3a31e7a402af2873e71a524048c57ad561087791a225dc8b9b9a"
+          }
+        },
+        {
+          "id": "root.modelType",
+          "subject": "model",
+          "predicate": "modelType",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/model_type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "muse_glimmer",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:df23294efe66b9954e32dceea0f176e4cf9603e1db1f346be173b878293a5a00"
+          }
+        },
+        {
+          "id": "projector.hiddenSize",
+          "subject": "component.projector",
+          "predicate": "hiddenSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/projector_hidden_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 4096,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:14d921de037f6ef6d2f2ce89dad28c89b3c846df4f54ecd65a6e740ee7a12a97"
+          }
+        },
+        {
+          "id": "projector.activation",
+          "subject": "component.projector",
+          "predicate": "activation",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/projector_hidden_act"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "gelu",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:fcbd35bbbab7848eaa5f00b63c8e0e8361c0d61f1e9b3bf925f9d8e0cd5c9621"
+          }
+        },
+        {
+          "id": "projector.outHiddenSize",
+          "subject": "component.projector",
+          "predicate": "outHiddenSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/out_hidden_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 6144,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:5c3745f85f0ca716ad27b1d7f221eb790ee49d24a10f6f898f18704b0d4b8b35"
+          }
+        },
+        {
+          "id": "text.modelType",
+          "subject": "component.text",
+          "predicate": "modelType",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/model_type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "muse_glimmer_text",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:26ffa9d382ab324c6eed6d6baea28c95f009195b6935a3b80ceff90e28ed82d9"
+          }
+        },
+        {
+          "id": "text.hiddenSize",
+          "subject": "component.text",
+          "predicate": "hiddenSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/hidden_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 6656,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ce414da5e8d8012d29cf791e4654231a6eb10a67d76e73f5d3680be99e726d00"
+          }
+        },
+        {
+          "id": "text.vocabSize",
+          "subject": "component.text",
+          "predicate": "vocabSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/vocab_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 202048,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:940e81cc329ecb512a1932a5a8a3c30d16fa5eb26e7a785e192242d623d64bb1"
+          }
+        },
+        {
+          "id": "text.numLayers",
+          "subject": "component.text",
+          "predicate": "numLayers",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/num_hidden_layers"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 52,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:511192646d8941bad0c3be5000d2c5521e46b0dc67e47cf01250ded9ff5d4a1d"
+          }
+        },
+        {
+          "id": "text.maxPositionEmbeddings",
+          "subject": "component.text",
+          "predicate": "maxPositionEmbeddings",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/max_position_embeddings"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 131072,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:fe5ff8e9cfef77b8db0b49bd43b7cb2226f8771ba922313a3a2a72f8f67eaad0"
+          }
+        },
+        {
+          "id": "text.bosTokenId",
+          "subject": "component.text",
+          "predicate": "bosTokenId",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/bos_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 200000,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a42a59df5877700165f685a424371e6e292dea913dae8a4fdfe6da4e4027c7d4"
+          }
+        },
+        {
+          "id": "text.eosTokenId",
+          "subject": "component.text",
+          "predicate": "eosTokenId",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/eos_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 200001,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:53dd365263ff81c3ab8b5b38631e8ffbf77a9281d364480494e222a29dc8dd88"
+          }
+        },
+        {
+          "id": "generation.bosTokenId",
+          "subject": "entry.text.generate",
+          "predicate": "bosTokenId",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/bos_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 200000,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:3d79c73022346e7018451e9999e01e7c03aaafaa421df8f48c198964b796f1a6"
+          }
+        },
+        {
+          "id": "generation.stopTokenIds",
+          "subject": "entry.text.generate",
+          "predicate": "stopTokenIds",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/eos_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": [
+            200001,
+            200008
+          ],
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ef22195f3839f0e73ce51005cef55840158615e797a5a3693fdb4cc77fb6e36f"
+          }
+        },
+        {
+          "id": "generation.padTokenId",
+          "subject": "entry.text.generate",
+          "predicate": "padTokenId",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/pad_token_id"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 200018,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a50a3256ff3ca6ff3614c09ba2978288b2d896946bd2c3e732a40052176e1dfc"
+          }
+        },
+        {
+          "id": "generation.maxLength",
+          "subject": "entry.text.generate",
+          "predicate": "maxLength",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/max_length"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 131072,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:87fd27b3575f0ed2117387fdecea95afd4882409861b2b3377befbd23248457a"
+          }
+        },
+        {
+          "id": "generation.doSample",
+          "subject": "entry.text.generate",
+          "predicate": "doSample",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/do_sample"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:434fc52762b46dff0268b0637dce0587f61c080008323acccce9143510840387"
+          }
+        },
+        {
+          "id": "generation.temperature",
+          "subject": "entry.text.generate",
+          "predicate": "temperature",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/temperature"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 1,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:30d73ba38d46ccaac9b5c14bc383ebf7d43e83ffdbdf5f73e4b6425a5a95c16c"
+          }
+        },
+        {
+          "id": "generation.topP",
+          "subject": "entry.text.generate",
+          "predicate": "topP",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/top_p"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 0.95,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:44b16650104b6e5fbc34823d62b7aa2be8220ffc48a579c9f40ba781960aa7e9"
+          }
+        },
+        {
+          "id": "generation.topK",
+          "subject": "entry.text.generate",
+          "predicate": "topK",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/top_k"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 64,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:1911d76748554781b053efade776aff27a6ff99e432236b30c67ade0305fc288"
+          }
+        },
+        {
+          "id": "text.tieWordEmbeddings",
+          "subject": "component.text",
+          "predicate": "tieWordEmbeddings",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/tie_word_embeddings"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:e34c6ca378d6186d11348b98ef72651726219486eab9497832692eb43f9295c4"
+          }
+        },
+        {
+          "id": "text.layerTypes",
+          "subject": "component.text",
+          "predicate": "layerTypes",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/layer_types"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": [
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "sliding_attention",
+            "full_attention"
+          ],
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ec5955852c14d20122eb9a8c76647fc65fede491f5d3438a4cc622920bdbd95c"
+          }
+        },
+        {
+          "id": "text.numHeads",
+          "subject": "component.text",
+          "predicate": "numHeads",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/num_attention_heads"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 32,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a4572cd00948b5540d9417c6579f5f654a220818cee341a1645d5c611dd55736"
+          }
+        },
+        {
+          "id": "text.numKvHeads",
+          "subject": "component.text",
+          "predicate": "numKvHeads",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/num_key_value_heads"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 2,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c19da168fd6a4421339cc9cadb76ea40ec753bdc1a87b1de8f6595112c77788a"
+          }
+        },
+        {
+          "id": "text.headDim",
+          "subject": "component.text",
+          "predicate": "headDim",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/head_dim"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 128,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:6a684f633dba6a2fe93443e656078431b61a1be5942c3aab3934135938b9191f"
+          }
+        },
+        {
+          "id": "text.intermediateSize",
+          "subject": "component.text",
+          "predicate": "intermediateSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/intermediate_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 19968,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:7b24a3d2365f54123b05e037411e8f9e85c553d7da8983af7abf79c3858c29bd"
+          }
+        },
+        {
+          "id": "text.activation",
+          "subject": "component.text",
+          "predicate": "activation",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/hidden_activation"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "silu",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:99742a189a29866cc484582e8f05eef83cfe2a67893f8e4ca8f9e683019e542c"
+          }
+        },
+        {
+          "id": "text.rmsNormEps",
+          "subject": "component.text",
+          "predicate": "rmsNormEps",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/rms_norm_eps"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 0.00001,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:21714fc365f4801a65315ce128ec105679fce1ee7881d99b0edbf5eb7797c975"
+          }
+        },
+        {
+          "id": "text.postNormEps",
+          "subject": "component.text",
+          "predicate": "postNormEps",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/post_norm_eps"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 1e-8,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c828482fe82851e9b8832896ade4e04a960bb903f5b6f96d46ea7b2f4f5fe423"
+          }
+        },
+        {
+          "id": "text.slidingWindow",
+          "subject": "block.sliding",
+          "predicate": "window",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/sliding_window"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 2048,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:2eba3334298fedd5bf0773da05b1f966938b0fbb067c4a428b4d3ff0e6f4afd9"
+          }
+        },
+        {
+          "id": "text.slidingRopeTheta",
+          "subject": "block.sliding",
+          "predicate": "ropeTheta",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/layer_rope_theta/0"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 500000,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:3197e95f44bd958deb9dfbc6251166d081e1b6bf28391b651e372c280f6182b4"
+          }
+        },
+        {
+          "id": "text.ropeType",
+          "subject": "block.sliding",
+          "predicate": "ropeType",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/rope_parameters/rope_type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "default",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:0dcee1637c4481571098c784b9f3903cde1a344b265c9be261a8d5db6ece6206"
+          }
+        },
+        {
+          "id": "text.fullRopeTheta",
+          "subject": "block.full",
+          "predicate": "ropeTheta",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/layer_rope_theta/3"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 0,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a3ea8a6c920ab9eb298032b9f4aaf5d8f259c9dae1de7b8af196511c53469e4a"
+          }
+        },
+        {
+          "id": "text.qkScale",
+          "subject": "component.text",
+          "predicate": "qkScale",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/qk_scale_factor"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 3.87,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:1149c611ac2d223171c05bb6972d612d9790c5ef40df9126f36a452ae3d46a18"
+          }
+        },
+        {
+          "id": "text.outputMultiplier",
+          "subject": "component.text",
+          "predicate": "outputMultiplier",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/output_multiplier"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 0.19611613513818404,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:5686940cc655c86f8cf91675cf9a74e68ab45ec998a65fec4450d86d5833c659"
+          }
+        },
+        {
+          "id": "text.finalSoftcap",
+          "subject": "output.text",
+          "predicate": "finalLogitSoftcap",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/final_logit_softcapping"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 20,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:f2a80a9a2c8e3f1bb425a6afc02dad7a0cbbf0462a6ac16cc85d2e97a34cefce"
+          }
+        },
+        {
+          "id": "text.useCache",
+          "subject": "component.text",
+          "predicate": "useCache",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/use_cache"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:feefc01d881857efb21f55d704ae611220956e19898c562dd9edea96b6d3d031"
+          }
+        },
+        {
+          "id": "text.attentionBias",
+          "subject": "block.text-attention",
+          "predicate": "attentionBias",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/attention_bias"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:b6fba4f4638bdc75071bc78c5172903dabb194406dd76e723e113400b7b36252"
+          }
+        },
+        {
+          "id": "text.attentionScale",
+          "subject": "block.text-attention",
+          "predicate": "attentionScale",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/attentionScale"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "inverse-sqrt-head-dim",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:74d9ed35a4ef9924b468f869bb51656c4e364c0e7f11dc09f227c50ff82aefb3"
+          }
+        },
+        {
+          "id": "text.causalAttention",
+          "subject": "block.text-attention",
+          "predicate": "causal",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/causal"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a01929d141f662304a4ccae626af645c7013da909cfabf876ee766e862af4ec0"
+          }
+        },
+        {
+          "id": "text.queryKeyNorm",
+          "subject": "block.text-attention",
+          "predicate": "queryKeyNormalization",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/queryKeyNormalization"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "type": "rmsnorm",
+            "withScale": false
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:1c902ea27420a39b218fe1bec2c442f7917fe090a244076f3ba0e3e0c9529893"
+          }
+        },
+        {
+          "id": "text.queryScaleApplication",
+          "subject": "block.text-attention",
+          "predicate": "queryScale",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/queryScale"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 3.87,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:1c3dbf219cc504c4a55e023dbc61c42ba92c8d86a57c4bf1f5f959064c984e93"
+          }
+        },
+        {
+          "id": "text.outputGateEnabled",
+          "subject": "block.text-attention",
+          "predicate": "outputGate",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/outputGate/enabled"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:de529594ac06f3203f896329861402ba2eb69a0d6992e41f532744260e10bbf5"
+          }
+        },
+        {
+          "id": "text.outputGateType",
+          "subject": "block.text-attention",
+          "predicate": "outputGateType",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/outputGate/activation"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "sigmoid",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ec8f3a0191f9659e3bb0e1568118896332a3f6df62fbb5f7eff5ffadfa3306a5"
+          }
+        },
+        {
+          "id": "text.outputGatePosition",
+          "subject": "block.text-attention",
+          "predicate": "outputGatePosition",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/outputGate/position"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "attention-output-before-output-projection",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:6d604d2656a8f450785f8347540fa7a270669cc57de50a2c59834e9cd8709a68"
+          }
+        },
+        {
+          "id": "text.feedForwardType",
+          "subject": "block.text-feed-forward",
+          "predicate": "type",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textFeedForward/value/type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "gated-dense",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:5b667152f4924d5f63117c166be88b460ac6310cf64c63dff3710dc88acf1d84"
+          }
+        },
+        {
+          "id": "text.feedForwardGated",
+          "subject": "block.text-feed-forward",
+          "predicate": "gated",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textFeedForward/value/gated"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:dc74376abd8acab758535fab72fe9393ca0c19e0b22d1c95a2a0bdaa13b16255"
+          }
+        },
+        {
+          "id": "text.feedForwardOperation",
+          "subject": "block.text-feed-forward",
+          "predicate": "operation",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textFeedForward/value/operation"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "down(silu(gate(x))*up(x))",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:1137f4f9e430b197afba5fa3ac8567d432d4087c680bce6b0386a51b86341ada"
+          }
+        },
+        {
+          "id": "text.normType",
+          "subject": "block.text-normalization",
+          "predicate": "type",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textNormalization/value/type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "centered-rmsnorm-with-postnorm",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ab59391127977ebc6a1ec9b73fd9bb45e6204ee18fdd48171958125839be2d88"
+          }
+        },
+        {
+          "id": "text.normWeightOffset",
+          "subject": "block.text-normalization",
+          "predicate": "weightOffset",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textNormalization/value/weightOffset"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 1,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:e3c6c1380453e61bbd7e08144d5cdbbbc67a8d7884684e822f5d781a02f589ff"
+          }
+        },
+        {
+          "id": "text.postNormWeightOffset",
+          "subject": "block.text-normalization",
+          "predicate": "postNormWeightOffset",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textNormalization/value/postNormWeightOffset"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 1,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:44867669d50505da67f37334ef8e01e6011eca80f3d90f8b0111aa9828c94c73"
+          }
+        },
+        {
+          "id": "text.postNormPosition",
+          "subject": "block.text-normalization",
+          "predicate": "postNormPosition",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textNormalization/value/postNormPosition"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "sublayer-output-before-residual",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a5f3a00875a526b58f46e697fe10179d9f1e581d405ecef425526ce540468e07"
+          }
+        },
+        {
+          "id": "text.zeroThetaSemantics",
+          "subject": "block.full-attention",
+          "predicate": "zeroThetaSemantics",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textPositional/value/zeroTheta"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "no-rope",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4fa03f9803a59a1ba768e53939c5a33887b5e524d1e977e5588d5af25cc55dad"
+          }
+        },
+        {
+          "id": "text.nonzeroThetaSemantics",
+          "subject": "block.sliding-attention",
+          "predicate": "nonzeroThetaSemantics",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textPositional/value/nonzeroTheta"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "rope",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4b6ec7772b41ffbf597a2498a70583f844459ce925b8afb26693bbd8e0a1d1cd"
+          }
+        },
+        {
+          "id": "text.embeddingNormalization",
+          "subject": "component.text",
+          "predicate": "embeddingNormalization",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textEmbedding/value/normalization"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "type": "rmsnorm",
+            "withScale": false
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:691fbfbb615fd009af0f06f52d54bce1e51eec76abebf2841339fa13677b7c0a"
+          }
+        },
+        {
+          "id": "text.finalNormalization",
+          "subject": "component.text",
+          "predicate": "finalNormalization",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textEmbedding/value/finalNormalization"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "type": "rmsnorm",
+            "withScale": true
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:f6c7c62e47959c5a52edb4deadc855a561f74a4448d01de0d98465a0947b7119"
+          }
+        },
+        {
+          "id": "text.preSoftcapMultiplier",
+          "subject": "output.text",
+          "predicate": "preSoftcapMultiplier",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textLogits/value/preSoftcapMultiplier"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 0.19611613513818404,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:0cecff27ee757e0d8f5a1d0e0e04ced52f07a5a5c2de205c776253e0729423cc"
+          }
+        },
+        {
+          "id": "text.logitOperationOrder",
+          "subject": "output.text",
+          "predicate": "operationOrder",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textLogits/value/operationOrder"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": [
+            "language-model-head",
+            "multiply",
+            "divide-by-softcap",
+            "tanh",
+            "multiply-by-softcap"
+          ],
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:1ac0f820c0e84a860e4bca626f827ede758b4ac43746efb3b7faf9f7836ff156"
+          }
+        },
+        {
+          "id": "vision.modelType",
+          "subject": "component.vision",
+          "predicate": "modelType",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/model_type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": "muse_glimmer_vision",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:448f33e29ea066c1d5f428365919c5be63e345f1c59fa6ad7fc41208874db17b"
+          }
+        },
+        {
+          "id": "vision.hiddenSize",
+          "subject": "component.vision",
+          "predicate": "hiddenSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/hidden_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 1536,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:1e1795227d377194319fbc188703f309eb7ab1b4e7707b5bd7469c2d9bebdc15"
+          }
+        },
+        {
+          "id": "vision.numLayers",
+          "subject": "component.vision",
+          "predicate": "numLayers",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/num_hidden_layers"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 50,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:7fc8e137ecfd148f2b7eef6c1ea3e1517122c874e59620a6c507e42b8c943e23"
+          }
+        },
+        {
+          "id": "vision.layerTypes",
+          "subject": "component.vision",
+          "predicate": "layerTypes",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/layer_types"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": [
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "window_attention",
+            "window_attention",
+            "full_attention",
+            "window_attention",
+            "full_attention"
+          ],
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c6fa071045f391d461ff1237e9ddeceb3bee115d97b14e451e80f2029069c2b9"
+          }
+        },
+        {
+          "id": "vision.numHeads",
+          "subject": "component.vision",
+          "predicate": "numHeads",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/num_attention_heads"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 16,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:f72da3465417a7d662d7fb3503f99f58d19d1fed6b50fb327e89732b67c1ad59"
+          }
+        },
+        {
+          "id": "vision.intermediateSize",
+          "subject": "component.vision",
+          "predicate": "intermediateSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/intermediate_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 8960,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:8d98fa03edc603ae289557f6438e435215506af250be2f86c6323c146d4d7c04"
+          }
+        },
+        {
+          "id": "vision.normEps",
+          "subject": "component.vision",
+          "predicate": "normEps",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/layer_norm_eps"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 0.00001,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c1948ec687abf006aca7216a72e6475e70ed4c595f08f975ce86221d0831a61c"
+          }
+        },
+        {
+          "id": "vision.patchSize",
+          "subject": "component.vision",
+          "predicate": "patchSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/patch_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 14,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:190881ba8cfc7dfaa2f48ea414512de08596a56e62b2cd4cd5c9b0d58036a816"
+          }
+        },
+        {
+          "id": "vision.temporalPatch",
+          "subject": "component.vision",
+          "predicate": "temporalPatch",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/patch_temporal"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 2,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:b8dfcddbf54d5dab84a416a6c142bf4e18ce05cd636a038e6f56564ee4bb6d11"
+          }
+        },
+        {
+          "id": "vision.mergeSize",
+          "subject": "component.vision",
+          "predicate": "mergeSize",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/merge_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": 2,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:95b7dbe5e42a2477358a6757515595d101497616f7cc903f1d5cbc9d773fa14a"
+          }
+        },
+        {
+          "id": "vision.rope",
+          "subject": "component.vision",
+          "predicate": "rope",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vision_config/rope_parameters"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "rope_theta": 10000,
+            "rope_type": "default"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:cee6f9dc1bb520aecb05b9abd9a1156b324b83df1feb931667a683291ed0cd6a"
+          }
+        },
+        {
+          "id": "tensor.attentionGate",
+          "subject": "tensor.attentionGate",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00002.safetensors",
+              "tensorName": "model.language_model.layers.0.self_attn.gate_proj.weight",
+              "dtype": "BF16",
+              "shape": [
+                4096,
+                6656
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "shape": [
+              4096,
+              6656
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:2265b4d42124f07ac4346115b19a9ffd4b9716d3d336f7522887aeed51de8107"
+          }
+        },
+        {
+          "id": "tensor.postAttentionNorm",
+          "subject": "tensor.postAttentionNorm",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00002.safetensors",
+              "tensorName": "model.language_model.layers.0.post_attention_layernorm.weight",
+              "dtype": "BF16",
+              "shape": [
+                6656
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "shape": [
+              6656
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:5efe182ab5e70bd727cfdea2150b8e770004725ddca64d32d97eb9969e498ca2"
+          }
+        },
+        {
+          "id": "tensor.postFfnNorm",
+          "subject": "tensor.postFfnNorm",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00002.safetensors",
+              "tensorName": "model.language_model.layers.0.post_feedforward_layernorm.weight",
+              "dtype": "BF16",
+              "shape": [
+                6656
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "shape": [
+              6656
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4944166a0b7fa028e11557ac3669737cc60a0b180e98c632b4dd5176d85952ae"
+          }
+        },
+        {
+          "id": "tensor.slidingQuery",
+          "subject": "tensor.slidingQuery",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00002.safetensors",
+              "tensorName": "model.language_model.layers.0.self_attn.q_proj.weight",
+              "dtype": "BF16",
+              "shape": [
+                4096,
+                6656
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "shape": [
+              4096,
+              6656
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:8dafeb2209c21de9d9285ab5e895829d382928d8874402f90c2b3962c056522a"
+          }
+        },
+        {
+          "id": "tensor.fullQuery",
+          "subject": "tensor.fullQuery",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00002.safetensors",
+              "tensorName": "model.language_model.layers.3.self_attn.q_proj.weight",
+              "dtype": "BF16",
+              "shape": [
+                4096,
+                6656
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "shape": [
+              4096,
+              6656
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:f14060aa96c85f9aad762b44220eff58e8f8986272658840f10b908111f4de5d"
+          }
+        },
+        {
+          "id": "tensor.visionQuery",
+          "subject": "tensor.visionQuery",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00002.safetensors",
+              "tensorName": "model.vision_tower.layers.0.attn.q_proj.weight",
+              "dtype": "BF16",
+              "shape": [
+                1536,
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "shape": [
+              1536,
+              1536
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:65f569319927b5e799732aeea46b6845d2f83ed2af663fe6bf16f42b43a2b8d2"
+          }
+        },
+        {
+          "id": "tensor.adapterIn",
+          "subject": "tensor.adapterIn",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00002-of-00002.safetensors",
+              "tensorName": "model.vision_adapter.fc1.weight",
+              "dtype": "BF16",
+              "shape": [
+                4096,
+                6144
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "shape": [
+              4096,
+              6144
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:5604c80702d635f21e1c12282f85b421f7d78677ab8dd453d2ee0b2d30c2a772"
+          }
+        },
+        {
+          "id": "tensor.adapterOut",
+          "subject": "tensor.adapterOut",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00002-of-00002.safetensors",
+              "tensorName": "model.vision_projection.weight",
+              "dtype": "BF16",
+              "shape": [
+                6656,
+                4096
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "shape": [
+              6656,
+              4096
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:964ad17e0152086a196d90a83b6633f7bb294772f2c6794d300a4f6b026effb6"
+          }
+        },
+        {
+          "id": "tensor.lmHead",
+          "subject": "tensor.lmHead",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00002-of-00002.safetensors",
+              "tensorName": "lm_head.weight",
+              "dtype": "BF16",
+              "shape": [
+                202048,
+                6656
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "glimmer-source-truth-v2"
+          },
+          "value": {
+            "shape": [
+              202048,
+              6656
+            ],
+            "dtype": "BF16"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:70ce77f648127d8e0593ca6aef6cb8f0ad17cdcf904ce2721499edb306719335"
+          }
+        }
+      ]
+    },
+    "components": [
+      {
+        "id": "text-decoder",
+        "factRefs": [
+          "text.modelType",
+          "text.hiddenSize",
+          "text.vocabSize",
+          "text.numLayers",
+          "text.maxPositionEmbeddings",
+          "text.bosTokenId",
+          "text.eosTokenId",
+          "text.tieWordEmbeddings",
+          "text.embeddingNormalization",
+          "text.finalNormalization"
+        ],
+        "type": "text-decoder",
+        "role": "primary",
+        "properties": {
+          "modelType": "muse_glimmer_text",
+          "hiddenSize": 6656,
+          "vocabSize": 202048,
+          "numLayers": 52,
+          "maxPositionEmbeddings": 131072,
+          "bosTokenId": 200000,
+          "eosTokenId": 200001,
+          "tieWordEmbeddings": false,
+          "embeddingNormalization": {
+            "type": "rmsnorm",
+            "withScale": false
+          },
+          "finalNormalization": {
+            "type": "rmsnorm",
+            "withScale": true
+          }
+        }
+      },
+      {
+        "id": "vision-encoder",
+        "factRefs": [
+          "vision.modelType",
+          "vision.hiddenSize",
+          "vision.numLayers",
+          "vision.patchSize"
+        ],
+        "type": "vision-encoder",
+        "role": "auxiliary",
+        "properties": {
+          "modelType": "muse_glimmer_vision",
+          "hiddenSize": 1536,
+          "numLayers": 50,
+          "patchSize": 14,
+          "temporalPatchSize": 2
+        }
+      },
+      {
+        "id": "vision-projector",
+        "factRefs": [
+          "projector.hiddenSize",
+          "projector.activation",
+          "projector.outHiddenSize",
+          "tensor.adapterIn",
+          "tensor.adapterOut"
+        ],
+        "type": "projector",
+        "role": "connector",
+        "properties": {
+          "hiddenSize": 4096,
+          "activation": "gelu",
+          "inputSize": 6144,
+          "outputSize": 6656
+        }
+      }
+    ],
+    "blockClasses": [
+      {
+        "id": "sliding-attention",
+        "factRefs": [
+          "text.numHeads",
+          "text.numKvHeads",
+          "text.headDim",
+          "text.slidingWindow",
+          "text.slidingRopeTheta",
+          "text.ropeType",
+          "text.attentionScale",
+          "text.causalAttention",
+          "text.attentionBias",
+          "text.queryKeyNorm",
+          "text.queryScaleApplication",
+          "text.outputGateEnabled",
+          "text.outputGateType",
+          "text.outputGatePosition",
+          "text.normType",
+          "text.rmsNormEps",
+          "text.normWeightOffset",
+          "text.postNormEps",
+          "text.postNormWeightOffset",
+          "text.postNormPosition",
+          "text.nonzeroThetaSemantics",
+          "text.feedForwardType",
+          "text.feedForwardGated",
+          "text.feedForwardOperation",
+          "text.intermediateSize",
+          "text.activation",
+          "tensor.attentionGate",
+          "tensor.postAttentionNorm",
+          "tensor.postFfnNorm"
+        ],
+        "kind": "local-attention",
+        "geometry": {
+          "numHeads": 32,
+          "numKvHeads": 2,
+          "headDim": 128,
+          "window": 2048,
+          "attentionScale": "inverse-sqrt-head-dim",
+          "causal": true,
+          "attentionBias": false,
+          "queryKeyNorm": {
+            "type": "rmsnorm",
+            "withScale": false
+          },
+          "queryScale": 3.87,
+          "outputGate": true,
+          "outputGateType": "sigmoid",
+          "outputGatePosition": "attention-output-before-output-projection"
+        },
+        "normalization": {
+          "type": "centered-rmsnorm-with-postnorm",
+          "eps": 0.00001,
+          "weightOffset": 1,
+          "postNormEps": 1e-8,
+          "postNormWeightOffset": 1,
+          "postNormPosition": "sublayer-output-before-residual"
+        },
+        "positional": {
+          "type": "rope",
+          "theta": 500000,
+          "ropeType": "default"
+        },
+        "feedForward": {
+          "type": "gated-dense",
+          "gated": true,
+          "activation": "silu",
+          "operation": "down(silu(gate(x))*up(x))",
+          "intermediateSize": 19968
+        },
+        "phaseBehavior": {
+          "prefill": true,
+          "decode": true
+        }
+      },
+      {
+        "id": "full-attention",
+        "factRefs": [
+          "text.numHeads",
+          "text.numKvHeads",
+          "text.headDim",
+          "text.fullRopeTheta",
+          "text.attentionScale",
+          "text.causalAttention",
+          "text.attentionBias",
+          "text.queryKeyNorm",
+          "text.queryScaleApplication",
+          "text.outputGateEnabled",
+          "text.outputGateType",
+          "text.outputGatePosition",
+          "text.normType",
+          "text.rmsNormEps",
+          "text.normWeightOffset",
+          "text.postNormEps",
+          "text.postNormWeightOffset",
+          "text.postNormPosition",
+          "text.zeroThetaSemantics",
+          "text.feedForwardType",
+          "text.feedForwardGated",
+          "text.feedForwardOperation",
+          "text.intermediateSize",
+          "text.activation",
+          "tensor.attentionGate",
+          "tensor.postAttentionNorm",
+          "tensor.postFfnNorm"
+        ],
+        "kind": "full-attention",
+        "geometry": {
+          "numHeads": 32,
+          "numKvHeads": 2,
+          "headDim": 128,
+          "attentionScale": "inverse-sqrt-head-dim",
+          "causal": true,
+          "attentionBias": false,
+          "queryKeyNorm": {
+            "type": "rmsnorm",
+            "withScale": false
+          },
+          "queryScale": 3.87,
+          "outputGate": true,
+          "outputGateType": "sigmoid",
+          "outputGatePosition": "attention-output-before-output-projection"
+        },
+        "normalization": {
+          "type": "centered-rmsnorm-with-postnorm",
+          "eps": 0.00001,
+          "weightOffset": 1,
+          "postNormEps": 1e-8,
+          "postNormWeightOffset": 1,
+          "postNormPosition": "sublayer-output-before-residual"
+        },
+        "positional": {
+          "type": "no-rope",
+          "theta": 0
+        },
+        "feedForward": {
+          "type": "gated-dense",
+          "gated": true,
+          "activation": "silu",
+          "operation": "down(silu(gate(x))*up(x))",
+          "intermediateSize": 19968
+        },
+        "phaseBehavior": {
+          "prefill": true,
+          "decode": true
+        }
+      },
+      {
+        "id": "vision-window-attention",
+        "factRefs": [
+          "vision.numHeads",
+          "vision.hiddenSize",
+          "vision.intermediateSize",
+          "vision.normEps",
+          "vision.rope"
+        ],
+        "kind": "local-attention",
+        "geometry": {
+          "numHeads": 16,
+          "hiddenSize": 1536
+        },
+        "normalization": {
+          "type": "layernorm",
+          "eps": 0.00001
+        },
+        "positional": {
+          "rope_theta": 10000,
+          "rope_type": "default"
+        },
+        "feedForward": {
+          "type": "dense",
+          "intermediateSize": 8960
+        },
+        "phaseBehavior": {
+          "encode": true
+        }
+      },
+      {
+        "id": "vision-full-attention",
+        "factRefs": [
+          "vision.numHeads",
+          "vision.hiddenSize",
+          "vision.intermediateSize",
+          "vision.normEps",
+          "vision.rope"
+        ],
+        "kind": "full-attention",
+        "geometry": {
+          "numHeads": 16,
+          "hiddenSize": 1536
+        },
+        "normalization": {
+          "type": "layernorm",
+          "eps": 0.00001
+        },
+        "positional": {
+          "rope_theta": 10000,
+          "rope_type": "default"
+        },
+        "feedForward": {
+          "type": "dense",
+          "intermediateSize": 8960
+        },
+        "phaseBehavior": {
+          "encode": true
+        }
+      }
+    ],
+    "blockSchedules": [
+      {
+        "id": "text.schedule",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "text.layerTypes",
+          "text.numLayers"
+        ],
+        "blocks": [
+          {
+            "index": 0,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 1,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 2,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 3,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 4,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 5,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 6,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 7,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 8,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 9,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 10,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 11,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 12,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 13,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 14,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 15,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 16,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 17,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 18,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 19,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 20,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 21,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 22,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 23,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 24,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 25,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 26,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 27,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 28,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 29,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 30,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 31,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 32,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 33,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 34,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 35,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 36,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 37,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 38,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 39,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 40,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 41,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 42,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 43,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 44,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 45,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 46,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 47,
+            "blockClassId": "full-attention"
+          },
+          {
+            "index": 48,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 49,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 50,
+            "blockClassId": "sliding-attention"
+          },
+          {
+            "index": 51,
+            "blockClassId": "full-attention"
+          }
+        ]
+      },
+      {
+        "id": "vision.schedule",
+        "componentId": "vision-encoder",
+        "factRefs": [
+          "vision.layerTypes",
+          "vision.numLayers"
+        ],
+        "blocks": [
+          {
+            "index": 0,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 1,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 2,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 3,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 4,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 5,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 6,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 7,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 8,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 9,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 10,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 11,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 12,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 13,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 14,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 15,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 16,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 17,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 18,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 19,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 20,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 21,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 22,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 23,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 24,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 25,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 26,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 27,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 28,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 29,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 30,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 31,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 32,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 33,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 34,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 35,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 36,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 37,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 38,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 39,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 40,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 41,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 42,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 43,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 44,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 45,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 46,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 47,
+            "blockClassId": "vision-full-attention"
+          },
+          {
+            "index": 48,
+            "blockClassId": "vision-window-attention"
+          },
+          {
+            "index": 49,
+            "blockClassId": "vision-full-attention"
+          }
+        ]
+      }
+    ],
+    "stateSpaces": [
+      {
+        "id": "text.kv-state",
+        "factRefs": [
+          "text.useCache",
+          "text.numKvHeads",
+          "text.headDim",
+          "text.slidingWindow",
+          "text.maxPositionEmbeddings"
+        ],
+        "kind": "kv",
+        "persistence": "session",
+        "contract": {
+          "numKvHeads": 2,
+          "headDim": 128,
+          "localWindow": 2048,
+          "maxSequenceLength": 131072
+        }
+      }
+    ],
+    "tensorRoleBindings": [
+      {
+        "id": "text.attention-gate",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "tensor.attentionGate"
+        ],
+        "role": "attention-output-gate-projection",
+        "selector": {
+          "exact": "model.language_model.layers.0.self_attn.gate_proj.weight"
+        }
+      },
+      {
+        "id": "text.post-attention-norm",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "tensor.postAttentionNorm"
+        ],
+        "role": "post-attention-normalization",
+        "selector": {
+          "exact": "model.language_model.layers.0.post_attention_layernorm.weight"
+        }
+      },
+      {
+        "id": "text.post-feed-forward-norm",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "tensor.postFfnNorm"
+        ],
+        "role": "post-feed-forward-normalization",
+        "selector": {
+          "exact": "model.language_model.layers.0.post_feedforward_layernorm.weight"
+        }
+      },
+      {
+        "id": "text.sliding-query",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "tensor.slidingQuery"
+        ],
+        "role": "query-projection",
+        "selector": {
+          "exact": "model.language_model.layers.0.self_attn.q_proj.weight"
+        }
+      },
+      {
+        "id": "text.full-query",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "tensor.fullQuery"
+        ],
+        "role": "query-projection",
+        "selector": {
+          "exact": "model.language_model.layers.3.self_attn.q_proj.weight"
+        }
+      },
+      {
+        "id": "vision.query",
+        "componentId": "vision-encoder",
+        "factRefs": [
+          "tensor.visionQuery"
+        ],
+        "role": "query-projection",
+        "selector": {
+          "exact": "model.vision_tower.layers.0.attn.q_proj.weight"
+        }
+      },
+      {
+        "id": "projector.input",
+        "componentId": "vision-projector",
+        "factRefs": [
+          "tensor.adapterIn"
+        ],
+        "role": "connector-input",
+        "selector": {
+          "exact": "model.vision_adapter.fc1.weight"
+        }
+      },
+      {
+        "id": "projector.output",
+        "componentId": "vision-projector",
+        "factRefs": [
+          "tensor.adapterOut"
+        ],
+        "role": "connector-output",
+        "selector": {
+          "exact": "model.vision_projection.weight"
+        }
+      },
+      {
+        "id": "text.lm-head-binding",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "tensor.lmHead"
+        ],
+        "role": "language-model-head",
+        "selector": {
+          "exact": "lm_head.weight"
+        }
+      }
+    ],
+    "entryPoints": [
+      {
+        "id": "text.generate",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "text.modelType",
+          "text.layerTypes",
+          "text.vocabSize",
+          "text.bosTokenId",
+          "text.eosTokenId",
+          "text.embeddingNormalization",
+          "text.logitOperationOrder",
+          "generation.bosTokenId",
+          "generation.stopTokenIds",
+          "generation.padTokenId",
+          "generation.maxLength",
+          "generation.doSample",
+          "generation.temperature",
+          "generation.topP",
+          "generation.topK"
+        ],
+        "kind": "generate",
+        "status": "lowered",
+        "phases": [
+          "prefill",
+          "decode"
+        ],
+        "sourceDefaults": {
+          "bosTokenId": 200000,
+          "stopTokenIds": [
+            200001,
+            200008
+          ],
+          "padTokenId": 200018,
+          "maxLength": 131072,
+          "sampling": {
+            "doSample": true,
+            "temperature": 1,
+            "topP": 0.95,
+            "topK": 64
+          }
+        }
+      },
+      {
+        "id": "vision.encode",
+        "componentId": "vision-encoder",
+        "factRefs": [
+          "vision.modelType",
+          "vision.layerTypes"
+        ],
+        "kind": "encode",
+        "status": "unlowered",
+        "reason": "No qualified vision lowering is present.",
+        "phases": []
+      }
+    ],
+    "outputHeads": [
+      {
+        "id": "text.lm-head",
+        "componentId": "text-decoder",
+        "factRefs": [
+          "text.vocabSize",
+          "text.tieWordEmbeddings",
+          "text.outputMultiplier",
+          "text.preSoftcapMultiplier",
+          "text.finalSoftcap",
+          "text.logitOperationOrder",
+          "tensor.lmHead"
+        ],
+        "kind": "causal-lm",
+        "properties": {
+          "vocabSize": 202048,
+          "tieWordEmbeddings": false,
+          "preSoftcapMultiplier": 0.19611613513818404,
+          "finalLogitSoftcap": 20,
+          "operationOrder": [
+            "language-model-head",
+            "multiply",
+            "divide-by-softcap",
+            "tanh",
+            "multiply-by-softcap"
+          ]
+        }
+      }
+    ],
+    "supportScope": {
+      "sourceTopology": "complete",
+      "loweredEntryPoints": [
+        "text.generate"
+      ],
+      "qualifiedEntryPoints": [],
+      "unloweredEntryPoints": [
+        "vision.encode"
+      ]
+    }
+  },
+  "author": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "heterogeneous-text-semantic-lowering-v4"
+  },
+  "template": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+  "generatedCandidates": 8,
+  "rejectedCandidates": [
+    {
+      "candidateId": "flat-homogeneous-decoder",
+      "reason": "Rejected because it discards the heterogeneous local/full block schedule and per-block positional contract."
+    },
+    {
+      "candidateId": "vocabulary-only-lowering",
+      "reason": "Rejected because declaring vocabulary compatibility without materializing and validating the runtime manifest would leave a semantic truth gap."
+    },
+    {
+      "candidateId": "all-entrypoints",
+      "reason": "Rejected because vision.encode has complete source representation but no generic lowering or qualification."
+    },
+    {
+      "candidateId": "template-head256-prefill",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "heterogeneous-text-semantic-lowering-v1"
+      },
+      "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-1-rejection.json",
+      "reason": "Rejected by physical Node WebGPU validation because the inherited head256 prefill specialization cannot execute the source-proven 128-wide attention geometry."
+    },
+    {
+      "candidateId": "template-bos-unaware-tokenizer",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "heterogeneous-text-semantic-lowering-v2"
+      },
+      "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-2-rejection.json",
+      "reason": "Rejected by exact physical parity because the generic bundled tokenizer failed to recognize the source TemplateProcessing begin_of_text boundary as BOS."
+    },
+    {
+      "candidateId": "centered-offset-unit-qk-norm",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "heterogeneous-text-semantic-lowering-v3"
+      },
+      "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-3-rejection.json",
+      "reason": "Rejected at the first semantic boundary because a source-declared weightless Q/K RMSNorm was executed with the centered learned-weight offset and doubled both normalized projections."
+    },
+    {
+      "candidateId": "weightless-unit-qk-norm-f32kv",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "glimmer-f32-kv-candidate-v1"
+      },
+      "evidence": "reports/model-ir-v2/glimmer-30b.node-candidate-10-rejection.json",
+      "reason": "Rejected because widening persistent KV state to f32 preserved the same seven-token prefix and the same token-7 divergence as the f16-KV candidate."
+    }
+  ],
+  "acceptedCandidateId": "weightless-unit-qk-norm-f16kv",
+  "dispositions": [
+    {
+      "kind": "semantic-fact-closure",
+      "entryPointId": "text.generate",
+      "disposition": "accepted",
+      "factRefs": [
+        "generation.bosTokenId",
+        "generation.doSample",
+        "generation.maxLength",
+        "generation.padTokenId",
+        "generation.stopTokenIds",
+        "generation.temperature",
+        "generation.topK",
+        "generation.topP",
+        "tensor.attentionGate",
+        "tensor.lmHead",
+        "tensor.postAttentionNorm",
+        "tensor.postFfnNorm",
+        "text.activation",
+        "text.attentionBias",
+        "text.attentionScale",
+        "text.bosTokenId",
+        "text.causalAttention",
+        "text.embeddingNormalization",
+        "text.eosTokenId",
+        "text.feedForwardGated",
+        "text.feedForwardOperation",
+        "text.feedForwardType",
+        "text.finalNormalization",
+        "text.finalSoftcap",
+        "text.fullRopeTheta",
+        "text.headDim",
+        "text.hiddenSize",
+        "text.intermediateSize",
+        "text.layerTypes",
+        "text.logitOperationOrder",
+        "text.maxPositionEmbeddings",
+        "text.modelType",
+        "text.nonzeroThetaSemantics",
+        "text.normType",
+        "text.normWeightOffset",
+        "text.numHeads",
+        "text.numKvHeads",
+        "text.numLayers",
+        "text.outputGateEnabled",
+        "text.outputGatePosition",
+        "text.outputGateType",
+        "text.outputMultiplier",
+        "text.postNormEps",
+        "text.postNormPosition",
+        "text.postNormWeightOffset",
+        "text.preSoftcapMultiplier",
+        "text.queryKeyNorm",
+        "text.queryScaleApplication",
+        "text.rmsNormEps",
+        "text.ropeType",
+        "text.slidingRopeTheta",
+        "text.slidingWindow",
+        "text.tieWordEmbeddings",
+        "text.useCache",
+        "text.vocabSize",
+        "text.zeroThetaSemantics"
+      ],
+      "evidence": [
+        {
+          "factId": "generation.bosTokenId",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/bos_token_id"
+            }
+          ],
+          "validationReceipt": "sha256:3d79c73022346e7018451e9999e01e7c03aaafaa421df8f48c198964b796f1a6"
+        },
+        {
+          "factId": "generation.doSample",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/do_sample"
+            }
+          ],
+          "validationReceipt": "sha256:434fc52762b46dff0268b0637dce0587f61c080008323acccce9143510840387"
+        },
+        {
+          "factId": "generation.maxLength",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/max_length"
+            }
+          ],
+          "validationReceipt": "sha256:87fd27b3575f0ed2117387fdecea95afd4882409861b2b3377befbd23248457a"
+        },
+        {
+          "factId": "generation.padTokenId",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/pad_token_id"
+            }
+          ],
+          "validationReceipt": "sha256:a50a3256ff3ca6ff3614c09ba2978288b2d896946bd2c3e732a40052176e1dfc"
+        },
+        {
+          "factId": "generation.stopTokenIds",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/eos_token_id"
+            }
+          ],
+          "validationReceipt": "sha256:ef22195f3839f0e73ce51005cef55840158615e797a5a3693fdb4cc77fb6e36f"
+        },
+        {
+          "factId": "generation.temperature",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/temperature"
+            }
+          ],
+          "validationReceipt": "sha256:30d73ba38d46ccaac9b5c14bc383ebf7d43e83ffdbdf5f73e4b6425a5a95c16c"
+        },
+        {
+          "factId": "generation.topK",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/top_k"
+            }
+          ],
+          "validationReceipt": "sha256:1911d76748554781b053efade776aff27a6ff99e432236b30c67ade0305fc288"
+        },
+        {
+          "factId": "generation.topP",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "generation",
+              "file": "generation_config.json",
+              "pointer": "/top_p"
+            }
+          ],
+          "validationReceipt": "sha256:44b16650104b6e5fbc34823d62b7aa2be8220ffc48a579c9f40ba781960aa7e9"
+        },
+        {
+          "factId": "tensor.attentionGate",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00002.safetensors",
+              "tensorName": "model.language_model.layers.0.self_attn.gate_proj.weight",
+              "dtype": "BF16",
+              "shape": [
+                4096,
+                6656
+              ]
+            }
+          ],
+          "validationReceipt": "sha256:2265b4d42124f07ac4346115b19a9ffd4b9716d3d336f7522887aeed51de8107"
+        },
+        {
+          "factId": "tensor.lmHead",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00002-of-00002.safetensors",
+              "tensorName": "lm_head.weight",
+              "dtype": "BF16",
+              "shape": [
+                202048,
+                6656
+              ]
+            }
+          ],
+          "validationReceipt": "sha256:70ce77f648127d8e0593ca6aef6cb8f0ad17cdcf904ce2721499edb306719335"
+        },
+        {
+          "factId": "tensor.postAttentionNorm",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00002.safetensors",
+              "tensorName": "model.language_model.layers.0.post_attention_layernorm.weight",
+              "dtype": "BF16",
+              "shape": [
+                6656
+              ]
+            }
+          ],
+          "validationReceipt": "sha256:5efe182ab5e70bd727cfdea2150b8e770004725ddca64d32d97eb9969e498ca2"
+        },
+        {
+          "factId": "tensor.postFfnNorm",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model-00001-of-00002.safetensors",
+              "tensorName": "model.language_model.layers.0.post_feedforward_layernorm.weight",
+              "dtype": "BF16",
+              "shape": [
+                6656
+              ]
+            }
+          ],
+          "validationReceipt": "sha256:4944166a0b7fa028e11557ac3669737cc60a0b180e98c632b4dd5176d85952ae"
+        },
+        {
+          "factId": "text.activation",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/hidden_activation"
+            }
+          ],
+          "validationReceipt": "sha256:99742a189a29866cc484582e8f05eef83cfe2a67893f8e4ca8f9e683019e542c"
+        },
+        {
+          "factId": "text.attentionBias",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/attention_bias"
+            }
+          ],
+          "validationReceipt": "sha256:b6fba4f4638bdc75071bc78c5172903dabb194406dd76e723e113400b7b36252"
+        },
+        {
+          "factId": "text.attentionScale",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/attentionScale"
+            }
+          ],
+          "validationReceipt": "sha256:74d9ed35a4ef9924b468f869bb51656c4e364c0e7f11dc09f227c50ff82aefb3"
+        },
+        {
+          "factId": "text.bosTokenId",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/bos_token_id"
+            }
+          ],
+          "validationReceipt": "sha256:a42a59df5877700165f685a424371e6e292dea913dae8a4fdfe6da4e4027c7d4"
+        },
+        {
+          "factId": "text.causalAttention",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/causal"
+            }
+          ],
+          "validationReceipt": "sha256:a01929d141f662304a4ccae626af645c7013da909cfabf876ee766e862af4ec0"
+        },
+        {
+          "factId": "text.embeddingNormalization",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textEmbedding/value/normalization"
+            }
+          ],
+          "validationReceipt": "sha256:691fbfbb615fd009af0f06f52d54bce1e51eec76abebf2841339fa13677b7c0a"
+        },
+        {
+          "factId": "text.eosTokenId",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/eos_token_id"
+            }
+          ],
+          "validationReceipt": "sha256:53dd365263ff81c3ab8b5b38631e8ffbf77a9281d364480494e222a29dc8dd88"
+        },
+        {
+          "factId": "text.feedForwardGated",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textFeedForward/value/gated"
+            }
+          ],
+          "validationReceipt": "sha256:dc74376abd8acab758535fab72fe9393ca0c19e0b22d1c95a2a0bdaa13b16255"
+        },
+        {
+          "factId": "text.feedForwardOperation",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textFeedForward/value/operation"
+            }
+          ],
+          "validationReceipt": "sha256:1137f4f9e430b197afba5fa3ac8567d432d4087c680bce6b0386a51b86341ada"
+        },
+        {
+          "factId": "text.feedForwardType",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textFeedForward/value/type"
+            }
+          ],
+          "validationReceipt": "sha256:5b667152f4924d5f63117c166be88b460ac6310cf64c63dff3710dc88acf1d84"
+        },
+        {
+          "factId": "text.finalNormalization",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textEmbedding/value/finalNormalization"
+            }
+          ],
+          "validationReceipt": "sha256:f6c7c62e47959c5a52edb4deadc855a561f74a4448d01de0d98465a0947b7119"
+        },
+        {
+          "factId": "text.finalSoftcap",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/final_logit_softcapping"
+            }
+          ],
+          "validationReceipt": "sha256:f2a80a9a2c8e3f1bb425a6afc02dad7a0cbbf0462a6ac16cc85d2e97a34cefce"
+        },
+        {
+          "factId": "text.fullRopeTheta",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/layer_rope_theta/3"
+            }
+          ],
+          "validationReceipt": "sha256:a3ea8a6c920ab9eb298032b9f4aaf5d8f259c9dae1de7b8af196511c53469e4a"
+        },
+        {
+          "factId": "text.headDim",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/head_dim"
+            }
+          ],
+          "validationReceipt": "sha256:6a684f633dba6a2fe93443e656078431b61a1be5942c3aab3934135938b9191f"
+        },
+        {
+          "factId": "text.hiddenSize",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/hidden_size"
+            }
+          ],
+          "validationReceipt": "sha256:ce414da5e8d8012d29cf791e4654231a6eb10a67d76e73f5d3680be99e726d00"
+        },
+        {
+          "factId": "text.intermediateSize",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/intermediate_size"
+            }
+          ],
+          "validationReceipt": "sha256:7b24a3d2365f54123b05e037411e8f9e85c553d7da8983af7abf79c3858c29bd"
+        },
+        {
+          "factId": "text.layerTypes",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/layer_types"
+            }
+          ],
+          "validationReceipt": "sha256:ec5955852c14d20122eb9a8c76647fc65fede491f5d3438a4cc622920bdbd95c"
+        },
+        {
+          "factId": "text.logitOperationOrder",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textLogits/value/operationOrder"
+            }
+          ],
+          "validationReceipt": "sha256:1ac0f820c0e84a860e4bca626f827ede758b4ac43746efb3b7faf9f7836ff156"
+        },
+        {
+          "factId": "text.maxPositionEmbeddings",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/max_position_embeddings"
+            }
+          ],
+          "validationReceipt": "sha256:fe5ff8e9cfef77b8db0b49bd43b7cb2226f8771ba922313a3a2a72f8f67eaad0"
+        },
+        {
+          "factId": "text.modelType",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/model_type"
+            }
+          ],
+          "validationReceipt": "sha256:26ffa9d382ab324c6eed6d6baea28c95f009195b6935a3b80ceff90e28ed82d9"
+        },
+        {
+          "factId": "text.nonzeroThetaSemantics",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textPositional/value/nonzeroTheta"
+            }
+          ],
+          "validationReceipt": "sha256:4b6ec7772b41ffbf597a2498a70583f844459ce925b8afb26693bbd8e0a1d1cd"
+        },
+        {
+          "factId": "text.normType",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textNormalization/value/type"
+            }
+          ],
+          "validationReceipt": "sha256:ab59391127977ebc6a1ec9b73fd9bb45e6204ee18fdd48171958125839be2d88"
+        },
+        {
+          "factId": "text.normWeightOffset",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textNormalization/value/weightOffset"
+            }
+          ],
+          "validationReceipt": "sha256:e3c6c1380453e61bbd7e08144d5cdbbbc67a8d7884684e822f5d781a02f589ff"
+        },
+        {
+          "factId": "text.numHeads",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/num_attention_heads"
+            }
+          ],
+          "validationReceipt": "sha256:a4572cd00948b5540d9417c6579f5f654a220818cee341a1645d5c611dd55736"
+        },
+        {
+          "factId": "text.numKvHeads",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/num_key_value_heads"
+            }
+          ],
+          "validationReceipt": "sha256:c19da168fd6a4421339cc9cadb76ea40ec753bdc1a87b1de8f6595112c77788a"
+        },
+        {
+          "factId": "text.numLayers",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/num_hidden_layers"
+            }
+          ],
+          "validationReceipt": "sha256:511192646d8941bad0c3be5000d2c5521e46b0dc67e47cf01250ded9ff5d4a1d"
+        },
+        {
+          "factId": "text.outputGateEnabled",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/outputGate/enabled"
+            }
+          ],
+          "validationReceipt": "sha256:de529594ac06f3203f896329861402ba2eb69a0d6992e41f532744260e10bbf5"
+        },
+        {
+          "factId": "text.outputGatePosition",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/outputGate/position"
+            }
+          ],
+          "validationReceipt": "sha256:6d604d2656a8f450785f8347540fa7a270669cc57de50a2c59834e9cd8709a68"
+        },
+        {
+          "factId": "text.outputGateType",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/outputGate/activation"
+            }
+          ],
+          "validationReceipt": "sha256:ec8f3a0191f9659e3bb0e1568118896332a3f6df62fbb5f7eff5ffadfa3306a5"
+        },
+        {
+          "factId": "text.outputMultiplier",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/output_multiplier"
+            }
+          ],
+          "validationReceipt": "sha256:5686940cc655c86f8cf91675cf9a74e68ab45ec998a65fec4450d86d5833c659"
+        },
+        {
+          "factId": "text.postNormEps",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/post_norm_eps"
+            }
+          ],
+          "validationReceipt": "sha256:c828482fe82851e9b8832896ade4e04a960bb903f5b6f96d46ea7b2f4f5fe423"
+        },
+        {
+          "factId": "text.postNormPosition",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textNormalization/value/postNormPosition"
+            }
+          ],
+          "validationReceipt": "sha256:a5f3a00875a526b58f46e697fe10179d9f1e581d405ecef425526ce540468e07"
+        },
+        {
+          "factId": "text.postNormWeightOffset",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textNormalization/value/postNormWeightOffset"
+            }
+          ],
+          "validationReceipt": "sha256:44867669d50505da67f37334ef8e01e6011eca80f3d90f8b0111aa9828c94c73"
+        },
+        {
+          "factId": "text.preSoftcapMultiplier",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textLogits/value/preSoftcapMultiplier"
+            }
+          ],
+          "validationReceipt": "sha256:0cecff27ee757e0d8f5a1d0e0e04ced52f07a5a5c2de205c776253e0729423cc"
+        },
+        {
+          "factId": "text.queryKeyNorm",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/queryKeyNormalization"
+            }
+          ],
+          "validationReceipt": "sha256:1c902ea27420a39b218fe1bec2c442f7917fe090a244076f3ba0e3e0c9529893"
+        },
+        {
+          "factId": "text.queryScaleApplication",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textAttention/value/queryScale"
+            }
+          ],
+          "validationReceipt": "sha256:1c3dbf219cc504c4a55e023dbc61c42ba92c8d86a57c4bf1f5f959064c984e93"
+        },
+        {
+          "factId": "text.rmsNormEps",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/rms_norm_eps"
+            }
+          ],
+          "validationReceipt": "sha256:21714fc365f4801a65315ce128ec105679fce1ee7881d99b0edbf5eb7797c975"
+        },
+        {
+          "factId": "text.ropeType",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/rope_parameters/rope_type"
+            }
+          ],
+          "validationReceipt": "sha256:0dcee1637c4481571098c784b9f3903cde1a344b265c9be261a8d5db6ece6206"
+        },
+        {
+          "factId": "text.slidingRopeTheta",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/layer_rope_theta/0"
+            }
+          ],
+          "validationReceipt": "sha256:3197e95f44bd958deb9dfbc6251166d081e1b6bf28391b651e372c280f6182b4"
+        },
+        {
+          "factId": "text.slidingWindow",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/sliding_window"
+            }
+          ],
+          "validationReceipt": "sha256:2eba3334298fedd5bf0773da05b1f966938b0fbb067c4a428b4d3ff0e6f4afd9"
+        },
+        {
+          "factId": "text.tieWordEmbeddings",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/tie_word_embeddings"
+            }
+          ],
+          "validationReceipt": "sha256:e34c6ca378d6186d11348b98ef72651726219486eab9497832692eb43f9295c4"
+        },
+        {
+          "factId": "text.useCache",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/use_cache"
+            }
+          ],
+          "validationReceipt": "sha256:feefc01d881857efb21f55d704ae611220956e19898c562dd9edea96b6d3d031"
+        },
+        {
+          "factId": "text.vocabSize",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/text_config/vocab_size"
+            }
+          ],
+          "validationReceipt": "sha256:940e81cc329ecb512a1932a5a8a3c30d16fa5eb26e7a785e192242d623d64bb1"
+        },
+        {
+          "factId": "text.zeroThetaSemantics",
+          "confidence": "direct",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "reference",
+              "file": "modeling_muse_glimmer.py",
+              "pointer": "/facts/textPositional/value/zeroTheta"
+            }
+          ],
+          "validationReceipt": "sha256:4fa03f9803a59a1ba768e53939c5a33887b5e524d1e977e5588d5af25cc55dad"
+        }
+      ]
+    },
+    {
+      "kind": "mechanism-template-policy",
+      "template": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+      "templateDigest": "sha256:a82a527328d2131f2b6ad1f94fcf7e85cbe1f02c25cb83d8404257258f6f6eeb",
+      "disposition": "accepted",
+      "author": {
+        "kind": "ai",
+        "actor": "openai-codex",
+        "proposalId": "heterogeneous-text-semantic-lowering-v4"
+      },
+      "rationale": "Reuse only the generic full-f16 transformer mechanism policy. Every model semantic field is reconstructed from accepted ModelIR facts, and the unproven chat path remains disabled."
+    },
+    {
+      "kind": "capsule-support-scope",
+      "sourceTopology": "complete",
+      "loweredEntryPoints": [
+        "text.generate"
+      ],
+      "unloweredEntryPoints": [
+        "vision.encode"
+      ],
+      "disposition": "accepted"
+    },
+    {
+      "kind": "reproducible-conversion-identity",
+      "conversion": {
+        "convertedAt": "2026-08-23T08:59:59.000Z",
+        "tool": "doppler.semantic-manifest-lowering/v1"
+      },
+      "disposition": "accepted",
+      "rationale": "Forge freezes conversion identity before execution so rebuilds do not inherit wall-clock manifest drift."
+    },
+    {
+      "kind": "source-generation-defaults",
+      "sourceDefaults": {
+        "bosTokenId": 200000,
+        "stopTokenIds": [
+          200001,
+          200008
+        ],
+        "padTokenId": 200018,
+        "maxLength": 131072,
+        "sampling": {
+          "doSample": true,
+          "temperature": 1,
+          "topP": 0.95,
+          "topK": 64
+        }
+      },
+      "qualifiedSampling": "greedy-argmax",
+      "disposition": "preserved-with-qualified-override",
+      "rationale": "The source sampling defaults remain represented while deterministic qualification selects greedy argmax."
+    },
+    {
+      "kind": "conservative-session-policy",
+      "speculation": "none",
+      "disabledFusions": [
+        "usePostAttnNormFusedGateUp",
+        "usePostFfnNextInputRMSNormPairFusion",
+        "useSandwichRMSNormPairFusion"
+      ],
+      "disposition": "accepted",
+      "rationale": "No speculative drafter or post-normalization fusion has qualification evidence for this entry point."
+    },
+    {
+      "kind": "prefill-attention-mechanism-binding",
+      "headDim": 128,
+      "templateKernelId": "attn_head256",
+      "kernelId": "attn_stream",
+      "kernel": "attention_streaming_f16kv.wgsl",
+      "changed": true,
+      "disposition": "accepted",
+      "rationale": "Forge binds the prefill mechanism from declared head geometry; the head256 specialization is valid only for 256-wide attention heads."
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "gather_f16.wgsl#main",
+      "templateDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+      "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+      "changed": false,
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "rmsnorm.wgsl#main",
+      "templateDigest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+      "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+      "changed": false,
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "matmul_gemv_subgroup.wgsl#main_vec4",
+      "templateDigest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+      "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+      "changed": false,
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "rope.wgsl#main",
+      "templateDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+      "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+      "changed": false,
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "attention_decode_online_f16kv.wgsl#main",
+      "templateDigest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+      "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+      "changed": false,
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "residual.wgsl#main",
+      "templateDigest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+      "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+      "changed": false,
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "silu.wgsl#main",
+      "templateDigest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
+      "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+      "changed": true,
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "matmul_f16w_f32a.wgsl#main",
+      "templateDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+      "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+      "changed": false,
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "attention_streaming_f16kv.wgsl#main",
+      "templateDigest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+      "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+      "changed": false,
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "attention_head256_f16kv.wgsl#main",
+      "templateDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+      "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+      "changed": false,
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "matmul_gemv_subgroup.wgsl#main_multicol",
+      "templateDigest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+      "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+      "changed": false,
+      "disposition": "accepted"
+    },
+    {
+      "kind": "kernel-digest-binding",
+      "kernelRef": "sample.wgsl#sample_single_pass",
+      "templateDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
+      "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
+      "changed": false,
+      "disposition": "accepted"
+    }
+  ],
+  "unresolvedFacts": [],
+  "conversionConfigDigest": "sha256:e2273b70e9c43c02c90b6443499ac22bdfaa5928a4b64cec98eebc00c96604b7",
+  "conversionConfig": {
+    "modelType": "transformer",
+    "quantization": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "lmHead": "f16",
+      "computePrecision": "f32"
+    },
+    "largeWeights": {
+      "gpuResidentOverrides": null
+    },
+    "session": {
+      "compute": {
+        "defaults": {
+          "activationDtype": "f32",
+          "mathDtype": "f32",
+          "accumDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "kvcache": {
+        "kvDtype": "f16",
+        "layout": "contiguous",
+        "maxSeqLen": 131072,
+        "pageSize": 256,
+        "tiering": {
+          "mode": "off",
+          "hotWindow": 1024,
+          "coldPageSize": 256,
+          "coldDtype": "f16",
+          "compression": {
+            "mode": "none",
+            "blockSize": 1,
+            "bitWidth": 4,
+            "prodMode": false
+          },
+          "gating": {
+            "mode": "auto",
+            "minAluBwRatio": 0
+          }
+        },
+        "quantization": {
+          "mode": "none",
+          "bitWidth": 4,
+          "prodMode": false
+        }
+      },
+      "decodeLoop": {
+        "batchSize": 12,
+        "stopCheckMode": "batch",
+        "readbackInterval": 32,
+        "readbackMode": "sequential",
+        "submitLatencyThresholdMs": null,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1,
+        "disableCommandBatching": true
+      },
+      "perLayerInputs": {
+        "materialization": "auto",
+        "rowCache": {
+          "mode": "lru",
+          "maxRows": 256,
+          "maxBytes": 134217728,
+          "decodedDtype": "f32"
+        },
+        "prefetch": {
+          "mode": "next_token",
+          "rowsAhead": 1
+        },
+        "gpuUpload": {
+          "mode": "per_step_slices",
+          "stagingRows": 2
+        },
+        "hotCache": {
+          "mode": "prepared_tokens",
+          "maxTokens": 1024,
+          "maxBytes": 134217728,
+          "outputDtype": "f32"
+        }
+      },
+      "speculation": {
+        "mode": "none",
+        "tokens": 1,
+        "verify": "greedy",
+        "threshold": null,
+        "rollbackOnReject": true
+      },
+      "prefillChunkSubmitMode": "async",
+      "useFlashPrefillAttention": false,
+      "useWideTileQ4KPrefill": false,
+      "retainQ4KMaterialization": false,
+      "useSandwichRMSNormPairFusion": false,
+      "usePostFfnNextInputRMSNormPairFusion": false,
+      "usePostAttnNormFusedGateUp": false
+    },
+    "execution": {
+      "inlineKernelPath": true,
+      "kernels": {
+        "embed": {
+          "kernel": "gather_f16.wgsl",
+          "entry": "main",
+          "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
+        },
+        "rmsnorm": {
+          "kernel": "rmsnorm.wgsl",
+          "entry": "main",
+          "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+        },
+        "gemv": {
+          "kernel": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_vec4",
+          "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
+        },
+        "rope": {
+          "kernel": "rope.wgsl",
+          "entry": "main",
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+        },
+        "attn_decode": {
+          "kernel": "attention_decode_online_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+          "precision": {
+            "kvDtype": "f16"
+          }
+        },
+        "residual": {
+          "kernel": "residual.wgsl",
+          "entry": "main",
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+        },
+        "silu": {
+          "kernel": "silu.wgsl",
+          "entry": "main",
+          "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+          "constants": {
+            "HAS_GATE": true
+          }
+        },
+        "tiled": {
+          "kernel": "matmul_f16w_f32a.wgsl",
+          "entry": "main",
+          "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+        },
+        "attn_stream": {
+          "kernel": "attention_streaming_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+          "precision": {
+            "kvDtype": "f16"
+          }
+        },
+        "attn_head256": {
+          "kernel": "attention_head256_f16kv.wgsl",
+          "entry": "main",
+          "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "precision": {
+            "kvDtype": "f16"
+          }
+        },
+        "lm_head_gemv": {
+          "kernel": "matmul_gemv_subgroup.wgsl",
+          "entry": "main_multicol",
+          "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+          "constants": {
+            "MULTICOL_COLS_PER_WG": 64,
+            "MULTICOL_THREADS_PER_COL": 4
+          }
+        },
+        "sample": {
+          "kernel": "sample.wgsl",
+          "entry": "sample_single_pass",
+          "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+        }
+      },
+      "preLayer": [
+        [
+          "embed",
+          "embed",
+          "embed_tokens"
+        ]
+      ],
+      "decode": [
+        [
+          "input_norm",
+          "rmsnorm"
+        ],
+        [
+          "q_proj",
+          "gemv",
+          "layer.{L}.self_attn.q_proj"
+        ],
+        [
+          "k_proj",
+          "gemv",
+          "layer.{L}.self_attn.k_proj"
+        ],
+        [
+          "v_proj",
+          "gemv",
+          "layer.{L}.self_attn.v_proj"
+        ],
+        [
+          "rope_q",
+          "rope"
+        ],
+        [
+          "rope_k",
+          "rope"
+        ],
+        [
+          "attention",
+          "attn_decode"
+        ],
+        [
+          "o_proj",
+          "gemv",
+          "layer.{L}.self_attn.o_proj"
+        ],
+        [
+          "attn_residual",
+          "residual"
+        ],
+        [
+          "post_attn_norm",
+          "rmsnorm"
+        ],
+        [
+          "gate_proj",
+          "gemv",
+          "layer.{L}.mlp.gate_proj"
+        ],
+        [
+          "up_proj",
+          "gemv",
+          "layer.{L}.mlp.up_proj"
+        ],
+        [
+          "activation",
+          "silu"
+        ],
+        [
+          "down_proj",
+          "gemv",
+          "layer.{L}.mlp.down_proj"
+        ],
+        [
+          "ffn_residual",
+          "residual"
+        ]
+      ],
+      "prefill": [
+        [
+          "input_norm",
+          "rmsnorm"
+        ],
+        [
+          "q_proj",
+          "tiled",
+          "layer.{L}.self_attn.q_proj"
+        ],
+        [
+          "k_proj",
+          "tiled",
+          "layer.{L}.self_attn.k_proj"
+        ],
+        [
+          "v_proj",
+          "tiled",
+          "layer.{L}.self_attn.v_proj"
+        ],
+        [
+          "rope_q",
+          "rope"
+        ],
+        [
+          "rope_k",
+          "rope"
+        ],
+        [
+          "attention",
+          "attn_stream"
+        ],
+        [
+          "o_proj",
+          "tiled",
+          "layer.{L}.self_attn.o_proj"
+        ],
+        [
+          "attn_residual",
+          "residual"
+        ],
+        [
+          "post_attn_norm",
+          "rmsnorm"
+        ],
+        [
+          "gate_proj",
+          "tiled",
+          "layer.{L}.mlp.gate_proj"
+        ],
+        [
+          "up_proj",
+          "tiled",
+          "layer.{L}.mlp.up_proj"
+        ],
+        [
+          "activation",
+          "silu"
+        ],
+        [
+          "down_proj",
+          "tiled",
+          "layer.{L}.mlp.down_proj"
+        ],
+        [
+          "ffn_residual",
+          "residual"
+        ]
+      ],
+      "postLayer": [
+        [
+          "final_norm",
+          "rmsnorm"
+        ],
+        [
+          "lm_head",
+          "lm_head_gemv",
+          "lm_head"
+        ],
+        [
+          "lm_head_prefill",
+          "tiled",
+          "lm_head"
+        ],
+        [
+          "sample",
+          "sample"
+        ]
+      ],
+      "policies": {
+        "unsupportedPrecision": "error",
+        "dtypeTransition": "require_cast_step",
+        "unresolvedKernel": "error"
+      }
+    },
+    "manifest": {
+      "hashAlgorithm": "sha256",
+      "artifactIdentity": {
+        "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
+        "sourceRepo": "meta-models/Muse-Glimmer-30B",
+        "sourceRevision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+        "artifactCompleteness": "complete"
+      },
+      "conversion": {
+        "convertedAt": "2026-08-23T08:59:59.000Z",
+        "tool": "doppler.semantic-manifest-lowering/v1"
+      },
+      "eosTokenId": [
+        200001,
+        200008
+      ]
+    },
+    "inference": {
+      "attention": {
+        "queryPreAttnScalar": 128,
+        "queryScale": 3.87,
+        "attnLogitSoftcapping": null,
+        "slidingWindow": 2048,
+        "queryKeyNorm": true,
+        "queryKeyNormType": "rmsnorm",
+        "queryKeyNormAxis": "head",
+        "queryKeyNormLayers": null,
+        "queryKeyNormWeightLayers": [],
+        "valueNorm": false,
+        "causal": true,
+        "attentionBias": false,
+        "attentionOutputGate": true,
+        "outputGateType": "sigmoid"
+      },
+      "normalization": {
+        "type": "rmsnorm",
+        "rmsNormEps": 0.00001,
+        "rmsNormWeightOffset": true,
+        "postNormEps": 1e-8,
+        "postNormWeightOffset": true,
+        "postAttentionNorm": true,
+        "preFeedforwardNorm": true,
+        "postFeedforwardNorm": true,
+        "finalNormBiasTensor": null
+      },
+      "ffn": {
+        "activation": "silu",
+        "gatedActivation": true,
+        "branchMode": "dense",
+        "useDoubleWideMlp": false,
+        "swigluLimit": null
+      },
+      "rope": {
+        "ropeTheta": 500000,
+        "ropeLocalTheta": null,
+        "disabledLayers": [
+          3,
+          7,
+          11,
+          15,
+          19,
+          23,
+          27,
+          31,
+          35,
+          39,
+          43,
+          47,
+          51
+        ],
+        "ropeInterleaved": false,
+        "mropeInterleaved": false,
+        "mropeSection": null,
+        "partialRotaryFactor": null,
+        "ropeLocalPartialRotaryFactor": null,
+        "ropeFrequencyBaseDim": null,
+        "ropeLocalFrequencyBaseDim": null,
+        "ropeScalingType": null,
+        "ropeScalingFactor": 1,
+        "ropeLocalScalingType": null,
+        "ropeLocalScalingFactor": 1,
+        "yarnBetaFast": null,
+        "yarnBetaSlow": null,
+        "yarnOriginalMaxPos": null,
+        "ropeLocalYarnBetaFast": null,
+        "ropeLocalYarnBetaSlow": null,
+        "ropeLocalYarnOriginalMaxPos": null,
+        "longropeShortFactor": null,
+        "longropeLongFactor": null,
+        "longropeOriginalMaxPos": null
+      },
+      "output": {
+        "finalLogitSoftcapping": 20,
+        "tieWordEmbeddings": false,
+        "scaleEmbeddings": false,
+        "embeddingScale": 1,
+        "embeddingNormalization": {
+          "type": "rmsnorm",
+          "withScale": false,
+          "eps": 0.00001,
+          "position": "after-scale"
+        },
+        "logitInputScale": 1,
+        "logitOutputScale": 0.19611613513818404,
+        "embeddingTranspose": false,
+        "embeddingVocabSize": null,
+        "embeddingPostprocessor": null,
+        "lmHeadBiasTensor": null
+      },
+      "layerPattern": {
+        "type": "custom",
+        "globalPattern": null,
+        "period": null,
+        "offset": null,
+        "layerTypes": [
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "sliding_attention",
+          "full_attention"
+        ],
+        "residualBranchScale": 1
+      },
+      "chatTemplate": {
+        "type": null,
+        "enabled": false
+      }
+    },
+    "output": {
+      "baseDir": "models/local",
+      "modelBaseId": "muse-glimmer-30b-text-f16-af32",
+      "textOnly": true,
+      "fast": false
+    }
+  }
+}

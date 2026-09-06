@@ -186,7 +186,7 @@
       "sourceRevision": "81b29e5786726d891dbf929404ef20adca5b36f1",
       "sourceFormat": "safetensors",
       "conversionConfigPath": "src/config/conversion/nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32.json",
-      "weightPackId": "nucleotide-transformer-v2-50m-f32-af32-wp-v1",
+      "weightCapsuleId": "nucleotide-transformer-v2-50m-f32-af32-wp-v1",
       "manifestVariantId": "nucleotide-transformer-v2-50m-f32-af32-mv-exec-v1",
       "modalitySet": ["dna_sequence"],
       "materializationProfile": "f32-weights-f32-activations",

@@ -14,15 +14,15 @@
         "tools/policies/model-release-platform.json"
       ],
       "blockers": [
-        "esm2-network-pack-execution-missing",
+        "esm2-network-capsule-execution-missing",
         "origin-independent-network-recovery-missing",
         "admitted-history-scheduler-benefit-missing",
         "independent-network-repeat-use-missing"
       ],
       "rows": [
         {
-          "id": "esm2-public-pack-execution",
-          "label": "Real signed ESM-2 Pack executes locally and through explicit complete-job delegation",
+          "id": "esm2-public-capsule-execution",
+          "label": "Real signed ESM-2 Capsule executes locally and through explicit complete-job delegation",
           "tier": "experimental",
           "status": "blocked",
           "claimAllowed": false,
@@ -35,12 +35,12 @@
             "tools/policies/model-release-platform.json"
           ],
           "blockers": [
-            "esm2-network-pack-execution-missing"
+            "esm2-network-capsule-execution-missing"
           ]
         },
         {
           "id": "origin-independent-peer-recovery",
-          "label": "Independent machines reconstruct the exact Pack without origins and recover participant loss",
+          "label": "Independent machines reconstruct the exact Capsule without origins and recover participant loss",
           "tier": "experimental",
           "status": "blocked",
           "claimAllowed": false,
@@ -172,8 +172,8 @@
           "blockers": []
         },
         {
-          "id": "pack-first-electron-reranking",
-          "label": "Pack-authoritative Electron reranking",
+          "id": "capsule-first-electron-reranking",
+          "label": "Capsule-authoritative Electron reranking",
           "tier": "tier1",
           "status": "covered",
           "claimAllowed": true,
@@ -184,11 +184,11 @@
           "evidencePaths": [
             "docs/model-release-platform.md",
             "docs/api/root.md",
-            "src/pack-runtime.js",
-            "src/client/runtime/pack-rerank.js",
-            "src/client/runtime/pack-program-adapter.js",
+            "src/capsule-runtime.js",
+            "src/client/runtime/capsule-rerank.js",
+            "src/client/runtime/capsule-program-adapter.js",
             "src/client/electron/renderer-runtime.js",
-            "tests/runtime/pack-rerank.test.js",
+            "tests/runtime/capsule-rerank.test.js",
             "tests/client/electron-release-adapter.test.js"
           ],
           "blockers": []
@@ -352,7 +352,7 @@
         "docs/rdrr-format.md"
       ],
       "blockers": [
-        "pack-first-surface-migration-incomplete",
+        "capsule-first-surface-migration-incomplete",
         "provider-conformance-receipts-missing",
         "runtime-ownership-decisions-missing"
       ],
@@ -630,32 +630,32 @@
           "blockers": []
         },
         {
-          "id": "complete-pack-release-closure",
-          "label": "Complete supported-release Pack closure",
+          "id": "complete-capsule-release-closure",
+          "label": "Complete supported-release Capsule closure",
           "tier": "tier1",
           "status": "covered",
           "claimAllowed": true,
           "supportSubsystemId": null,
           "packageBin": null,
           "packageExport": null,
-          "smokeCommand": "npm run pack-v2:check",
+          "smokeCommand": "npm run capsule-v2:check",
           "evidencePaths": [
             "docs/model-release-platform.md",
             "docs/architecture.md",
             "tools/policies/model-release-platform.json",
             "src/config/schema/model-release-platform.schema.json",
-            "src/config/pack-v2.js",
-            "src/config/pack-release-contract.js",
-            "src/config/schema/pack-v2.schema.json",
+            "src/config/capsule-v2.js",
+            "src/config/capsule-release-contract.js",
+            "src/config/schema/capsule-v2.schema.json",
             "tools/check-model-release-platform.js",
             "tests/config/model-release-platform.test.js",
-            "tests/pack/pack-v2.test.js"
+            "tests/capsule/capsule-v2.test.js"
           ],
           "blockers": []
         },
         {
-          "id": "pack-first-compatibility-migration",
-          "label": "Deferred Pack-first compatibility-surface migration",
+          "id": "capsule-first-compatibility-migration",
+          "label": "Deferred Capsule-first compatibility-surface migration",
           "tier": "tier1",
           "status": "partial",
           "claimAllowed": false,
@@ -667,7 +667,7 @@
             "docs/model-release-platform.md",
             "docs/api/compat.md",
             "tools/policies/model-release-platform.json",
-            "src/pack-runtime.js",
+            "src/capsule-runtime.js",
             "src/cli/doppler-serve.js",
             "src/inference/pipelines/text.js",
             "src/client/runtime/model-session.js",
@@ -675,7 +675,7 @@
             "tests/config/model-release-platform.test.js"
           ],
           "blockers": [
-            "pack-first-surface-migration-incomplete"
+            "capsule-first-surface-migration-incomplete"
           ]
         }
       ],
@@ -1028,13 +1028,13 @@
   ],
   "blockers": [
     {
-      "code": "esm2-network-pack-execution-missing",
+      "code": "esm2-network-capsule-execution-missing",
       "priority": 5,
       "owner": "doppler-poolday",
       "completionClass": "hardware",
       "statusCommand": "npm run model-release:check",
-      "description": "Real signed ESM-2 Pack executes locally and through explicit complete-job delegation",
-      "exitCriteria": "Retain actual signed ESM-2 Pack, weights, public openPack/encodeSequence, frozen sequence corpus and oracle-valid assignment-bound outputs on declared physical browsers. Private inputs remain local; redistribution and delegation are separately authorized.",
+      "description": "Real signed ESM-2 Capsule executes locally and through explicit complete-job delegation",
+      "exitCriteria": "Retain actual signed ESM-2 Capsule, weights, public openCapsule/encodeSequence, frozen sequence corpus and oracle-valid assignment-bound outputs on declared physical browsers. Private inputs remain local; redistribution and delegation are separately authorized.",
       "evidencePaths": [
         "docs/goals.md",
         "tools/policies/model-release-platform.json"
@@ -1046,8 +1046,8 @@
       "owner": "doppler-poolday",
       "completionClass": "hardware",
       "statusCommand": "npm run model-release:check",
-      "description": "Independent machines reconstruct the exact Pack without origins and recover participant loss",
-      "exitCriteria": "A fresh receiver reconstructs the complete Pack from authorized peers on independent machines with origin and mirrors disabled; reject corruption, recover supplier loss, retain controller provenance and all transfer costs.",
+      "description": "Independent machines reconstruct the exact Capsule without origins and recover participant loss",
+      "exitCriteria": "A fresh receiver reconstructs the complete Capsule from authorized peers on independent machines with origin and mirrors disabled; reject corruption, recover supplier loss, retain controller provenance and all transfer costs.",
       "evidencePaths": [
         "docs/goals.md",
         "tools/policies/model-release-platform.json"
@@ -1060,7 +1060,7 @@
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
       "description": "Admitted history improves held-out assignments against frozen scheduling controls",
-      "exitCriteria": "Within the same Pack and assignment lineage, history predates held-out jobs and beats both no-history and competent reliability schedulers on a predeclared meaningful outcome with uncertainty, identical oracle and resource budget, unchanged correctness, all-attempt costs, and revocation/staleness/duplicate/insufficient-history negatives.",
+      "exitCriteria": "Within the same Capsule and assignment lineage, history predates held-out jobs and beats both no-history and competent reliability schedulers on a predeclared meaningful outcome with uncertainty, identical oracle and resource budget, unchanged correctness, all-attempt costs, and revocation/staleness/duplicate/insufficient-history negatives.",
       "evidencePaths": [
         "docs/goals.md",
         "tools/policies/model-release-platform.json"
@@ -1073,7 +1073,7 @@
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
       "description": "Independent participants voluntarily repeat useful execution; free adoption counts",
-      "exitCriteria": "Independent requesters and operators voluntarily return for oracle-valid useful results through forkable protocols and exportable evidence. Record operator control and consent. No payment, Electron customer, Doe improvement, or agent-proposed Pack improvement is required.",
+      "exitCriteria": "Independent requesters and operators voluntarily return for oracle-valid useful results through forkable protocols and exportable evidence. Record operator control and consent. No payment, Electron customer, Doe improvement, or agent-proposed Capsule improvement is required.",
       "evidencePaths": [
         "docs/goals.md",
         "tools/policies/model-release-platform.json"
@@ -1190,20 +1190,20 @@
       ]
     },
     {
-      "code": "pack-first-surface-migration-incomplete",
+      "code": "capsule-first-surface-migration-incomplete",
       "priority": 14,
       "owner": "doppler-runtime",
       "completionClass": "repository",
       "statusCommand": "npm run model-release:check",
-      "description": "The root openPack surface and the declared Electron reranking workload are Pack-authoritative; the generic OpenAI-compatible server, generation, and embedding compatibility paths remain outside that production route.",
-      "exitCriteria": "Keep the declared Electron production workload on Pack validation, qualified TargetPlan selection, execution, and evidence. Migrate another compatibility surface only when an external production release requires it, with parity and fail-closed regression tests.",
+      "description": "The root openCapsule surface and the declared Electron reranking workload are Capsule-authoritative; the generic OpenAI-compatible server, generation, and embedding compatibility paths remain outside that production route.",
+      "exitCriteria": "Keep the declared Electron production workload on Capsule validation, qualified TargetPlan selection, execution, and evidence. Migrate another compatibility surface only when an external production release requires it, with parity and fail-closed regression tests.",
       "evidencePaths": [
         "docs/model-release-platform.md",
         "docs/api/root.md",
         "docs/api/compat.md",
         "tools/policies/model-release-platform.json",
-        "src/pack-runtime.js",
-        "src/client/runtime/pack-rerank.js",
+        "src/capsule-runtime.js",
+        "src/client/runtime/capsule-rerank.js",
         "src/cli/doppler-serve.js",
         "src/inference/pipelines/text.js",
         "tools/check-model-release-platform.js",
@@ -1217,7 +1217,7 @@
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
       "description": "No external customer activation system has relied on a Doppler eligible-or-blocked decision for a production Electron release and its subsequent upgrade.",
-      "exitCriteria": "Retain an authorized paid external agreement, pinned Electron application and model intake, signed Pack, declared Windows and macOS fleet receipts, known exclusions, a retained rejected candidate, customer-controlled activation and rollback evidence, and proof that the subsequent upgrade also relied on Doppler eligibility; then promote the commercial assessment through human review.",
+      "exitCriteria": "Retain an authorized paid external agreement, pinned Electron application and model intake, signed Capsule, declared Windows and macOS fleet receipts, known exclusions, a retained rejected candidate, customer-controlled activation and rollback evidence, and proof that the subsequent upgrade also relied on Doppler eligibility; then promote the commercial assessment through human review.",
       "evidencePaths": [
         "docs/model-release-platform.md",
         "docs/goals.md",
@@ -1235,7 +1235,7 @@
       "completionClass": "hardware",
       "statusCommand": "npm run model-release:check",
       "description": "The qualification agent and receipt contract are implemented, but no customer-operated Windows and macOS agents have retained exact production device receipts for the pinned Electron release.",
-      "exitCriteria": "Retain signed receipts from every declared Windows and macOS target that bind the exact application revision, Pack semantic root, workload, oracle, Electron version, GPU, driver, acceptance observations, and customer-operated signer authority.",
+      "exitCriteria": "Retain signed receipts from every declared Windows and macOS target that bind the exact application revision, Capsule semantic root, workload, oracle, Electron version, GPU, driver, acceptance observations, and customer-operated signer authority.",
       "evidencePaths": [
         "docs/model-release-platform.md",
         "src/config/production-release.js",
@@ -1253,7 +1253,7 @@
       "completionClass": "application",
       "statusCommand": "npm run model-release:check",
       "description": "The atomic Electron release-state coordinator is implemented, but no external customer has exercised rejection, activation, revocation failure, and customer-authorized rollback against its durable application state.",
-      "exitCriteria": "Retain an external application receipt proving candidate rejection preserves the active Pack, activation requires the customer authorization, expired or matching revocation fails closed, and customer-authorized rollback restores the previous working Pack after restart.",
+      "exitCriteria": "Retain an external application receipt proving candidate rejection preserves the active Capsule, activation requires the customer authorization, expired or matching revocation fails closed, and customer-authorized rollback restores the previous working Capsule after restart.",
       "evidencePaths": [
         "docs/revocation.md",
         "src/client/electron/release-state.js",

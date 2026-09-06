@@ -5,7 +5,7 @@
     {
       "id": "artifact-construction",
       "runtimeTensorCompute": false,
-      "description": "Deterministic Forge or converter construction before Pack signing."
+      "description": "Deterministic Forge or converter construction before Capsule signing."
     },
     {
       "id": "artifact-codec-materialization",
@@ -40,7 +40,7 @@
     {
       "id": "quarantined-experimental",
       "runtimeTensorCompute": false,
-      "description": "Numerical prototype isolated from every production owner and excluded from Pack Runtime support claims."
+      "description": "Numerical prototype isolated from every production owner and excluded from Capsule Runtime support claims."
     },
     {
       "id": "non-tensor-data",
@@ -60,7 +60,7 @@
       "reason": "Forge emits constant uniform bytes, exact source offsets, memory slots and WGSL dispatches before signing; no runtime model arithmetic executes here."
     },
     {
-      "id": "src/client/runtime/pack-forecast-program.js#createForecastProgram",
+      "id": "src/client/runtime/capsule-forecast-program.js#createForecastProgram",
       "category": "host-input-preprocessing",
       "reason": "The only host element writes encode caller observations as F32 with the manifest-declared left absence mask before GPU execution. Model normalization, patching, attention and output transforms remain declared WGSL dispatches; output readback is unmodified."
     },
@@ -77,12 +77,12 @@
     {
       "id": "src/client/runtime/session-controller.js#applyRepetitionPenalty",
       "category": "scalar-control",
-      "reason": "Pack sampling is an explicitly contracted scalar control-plane operation performed after declared logit readback."
+      "reason": "Capsule sampling is an explicitly contracted scalar control-plane operation performed after declared logit readback."
     },
     {
-      "id": "src/client/runtime/session-controller.js#samplePackLogits",
+      "id": "src/client/runtime/session-controller.js#sampleCapsuleLogits",
       "category": "scalar-control",
-      "reason": "Pack sampling is an explicitly contracted scalar control-plane operation performed after declared logit readback."
+      "reason": "Capsule sampling is an explicitly contracted scalar control-plane operation performed after declared logit readback."
     },
     {
       "id": "src/client/wrap-pipeline-handle.js#normalizeDreamLayerMap",
@@ -92,62 +92,62 @@
     {
       "id": "src/converter/core.js#buildTensorMap",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/converter/core.js#convertModel",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/converter/core.js#appendTensorBytes",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/converter/quantizer.js#quantizeToQ4KMRowWise",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/converter/quantizer.js#dequantizeQ4KMRowWise",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/converter/safetensors-header-evidence.js#parseSafetensorsHeaderEvidence",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/converter/safetensors-header-evidence.js#validateSafetensorsIndexEvidence",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/converter/safetensors-header-evidence.js#materializeSafetensorsHeaderEvidence",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/converter/shard-packer.js#ShardPacker.#buildGroups",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/converter/tensor-transform.js#toFloat32ForQ4K",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/converter/tensor-transform.js#toFloat32FromTensor",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/converter/tensor-transform.js#transformTensorBytes",
       "category": "artifact-construction",
-      "reason": "Forge constructs deterministic converted tensor artifacts before Pack signing; this symbol is not callable by Pack Runtime execution."
+      "reason": "Forge constructs deterministic converted tensor artifacts before Capsule signing; this symbol is not callable by Capsule Runtime execution."
     },
     {
       "id": "src/debug/tensor.js#inspect",
@@ -162,217 +162,217 @@
     {
       "id": "src/experimental/adapters/adapter-manager.js#AdapterManager.#mergeByWeightedSum",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/adapters/adapter-manager.js#AdapterManager.#applyWeight",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/adapters/lora-loader.js#loadLoRAWeights",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/adapters/lora-loader.js#loadLoRAFromManifest",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/adapters/lora-loader.js#loadLoRAFromSafetensors",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/browser/gguf-importer.js#streamToShards",
       "category": "artifact-construction",
-      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+      "reason": "The quarantined browser intake path converts source artifact bytes before Capsule/runtime model execution."
     },
     {
       "id": "src/experimental/browser/gguf-importer.js#buildTensorLocations",
       "category": "artifact-construction",
-      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+      "reason": "The quarantined browser intake path converts source artifact bytes before Capsule/runtime model execution."
     },
     {
       "id": "src/experimental/browser/quantization.js#decodeFloat32Chunks",
       "category": "artifact-construction",
-      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+      "reason": "The quarantined browser intake path converts source artifact bytes before Capsule/runtime model execution."
     },
     {
       "id": "src/experimental/browser/quantization.js#createQ4KChunkStream",
       "category": "artifact-construction",
-      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+      "reason": "The quarantined browser intake path converts source artifact bytes before Capsule/runtime model execution."
     },
     {
       "id": "src/experimental/browser/quantization.js#createF16ChunkStream",
       "category": "artifact-construction",
-      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+      "reason": "The quarantined browser intake path converts source artifact bytes before Capsule/runtime model execution."
     },
     {
       "id": "src/experimental/browser/safetensors-parser-browser.js#parseSafetensorsSharded",
       "category": "artifact-construction",
-      "reason": "The quarantined browser intake path converts source artifact bytes before Pack/runtime model execution."
+      "reason": "The quarantined browser intake path converts source artifact bytes before Capsule/runtime model execution."
     },
     {
       "id": "src/experimental/training/attention-backward.js#computeAttentionBackwardData",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/autograd.js#computeSiluGatedBackwardValues",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/autograd.js#AutogradTape.runBackward",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/autograd.js#AutogradTape.runSiluRowsplitBackwardCpu",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/clip.js#clipGradients",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/datasets/token-batch.js#flattenTokenBatch",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/distillation/student-fixture/model.js#buildStudentEmbeddingInput",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/export.js#serializeLoRASafetensors",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/lora/recovery.js#assertCausalLmTensorCoverage",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/lora-pipeline.js#batches",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/objectives/distill_kd.js#softmax",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/objectives/distill_kd.js#normalizeProbRow",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/objectives/distill_kd.js#gatherStudentLogitsRow",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/objectives/distill_kd.js#computeLoss",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/objectives/distill_triplet.js#computeLoss",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/qwen-gated-delta-reference.js#gatedDeltaRecurrentCheckpointedBackward",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/qwen-linear-attention-reference.js#causalConvSiluForward",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/qwen-linear-attention-reference.js#causalConvSiluBackward",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/qwen-linear-attention-reference.js#gatedRmsNormForward",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/qwen-linear-attention-reference.js#gatedRmsNormBackward",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/qwen-linear-attention-reference.js#l2NormalizeBackward",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/runner/lifecycle.js#selectTrainableParamGroups",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/runner.js#collectObjectiveMetrics",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/runner.js#createTrainingCheckpointPayload",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/suite/plan.js#selectTopKIndices",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/suite/plan.js#gatherLogitsByIndices",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/suite/plan.js#softmax",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/suite/plan.js#batches",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/suite/plan.js#loadDistillDatasetFromJsonl",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/trainer.js#selectTrainableParamGroups",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/trainer.js#trainStep",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/experimental/training/ul_dataset.js#buildNoisyLatentsFromInputTensor",
       "category": "quarantined-experimental",
-      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Pack Runtime or product support claims."
+      "reason": "This numerical prototype is isolated under src/experimental; production owners cannot import it and it cannot satisfy Capsule Runtime or product support claims."
     },
     {
       "id": "src/formats/gguf/types.js#detectQuantization",
@@ -412,22 +412,22 @@
     {
       "id": "src/gpu/kernels/logit-merge.js#LogitMergeKernel.init",
       "category": "gpu-orchestration",
-      "reason": "The wrapper packs caller-declared GPU input bindings into staging metadata; the registered WGSL program performs logit arithmetic."
+      "reason": "The wrapper capsules caller-declared GPU input bindings into staging metadata; the registered WGSL program performs logit arithmetic."
     },
     {
       "id": "src/experimental/turboquant/codebook.js#computeMaxLloydCodebook",
       "category": "quarantined-experimental",
-      "reason": "TurboQuant codebook construction is isolated under src/experimental and excluded from Pack Runtime support claims."
+      "reason": "TurboQuant codebook construction is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },
     {
       "id": "src/experimental/turboquant/codebook.js#generateRotationMatrix",
       "category": "quarantined-experimental",
-      "reason": "TurboQuant rotation construction is isolated under src/experimental and excluded from Pack Runtime support claims."
+      "reason": "TurboQuant rotation construction is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },
     {
       "id": "src/experimental/turboquant/codebook.js#generateQJLMatrix",
       "category": "quarantined-experimental",
-      "reason": "TurboQuant QJL construction is isolated under src/experimental and excluded from Pack Runtime support claims."
+      "reason": "TurboQuant QJL construction is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },
     {
       "id": "src/inference/browser-harness/text-evidence.js#groupDecodeRecordOpLabels",
@@ -452,22 +452,22 @@
     {
       "id": "src/experimental/audio/gemma4.js#runConformerFFN",
       "category": "quarantined-experimental",
-      "reason": "The unqualified Gemma 4 audio prototype is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The unqualified Gemma 4 audio prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/experimental/audio/gemma4.js#runConformerAttention",
       "category": "quarantined-experimental",
-      "reason": "The unqualified Gemma 4 audio prototype is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The unqualified Gemma 4 audio prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/experimental/audio/gemma4.js#runConformerConvModule",
       "category": "quarantined-experimental",
-      "reason": "The unqualified Gemma 4 audio prototype is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The unqualified Gemma 4 audio prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/experimental/audio/gemma4.js#encodeGemma4Audio",
       "category": "quarantined-experimental",
-      "reason": "The unqualified Gemma 4 audio prototype is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The unqualified Gemma 4 audio prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/inference/pipelines/audio/mel.js#melFilterBank",
@@ -492,7 +492,7 @@
     {
       "id": "src/experimental/diffusion/pipeline.js#readTensorToFloat32",
       "category": "quarantined-experimental",
-      "reason": "The diffusion prototype is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The diffusion prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/experimental/diffusion/pipeline.js#DiffusionPipeline.ensureTextEncoderWeights",
@@ -502,27 +502,27 @@
     {
       "id": "src/experimental/diffusion/pipeline.js#DiffusionPipeline.generateGPU",
       "category": "quarantined-experimental",
-      "reason": "The diffusion prototype is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The diffusion prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/experimental/diffusion/scheduler.js#stepScmScheduler",
       "category": "quarantined-experimental",
-      "reason": "The diffusion scheduler reference is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The diffusion scheduler reference is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/experimental/diffusion/text-encoder-gpu.js#runClipTextEncoder",
       "category": "quarantined-experimental",
-      "reason": "The diffusion text-encoder prototype is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The diffusion text-encoder prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/experimental/diffusion/text-encoder-gpu.js#buildTimestepEmbedding",
       "category": "quarantined-experimental",
-      "reason": "The diffusion timestep prototype is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The diffusion timestep prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/experimental/diffusion/vae.js#decodeLatentsGPU",
       "category": "quarantined-experimental",
-      "reason": "The VAE diffusion prototype is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The VAE diffusion prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/inference/pipelines/diffusion-gemma/pipeline.js#DiffusionGemmaPipeline.generateTokenIds",
@@ -552,17 +552,17 @@
     {
       "id": "src/experimental/energy/quintel.js#computeQuintelEnergy",
       "category": "quarantined-experimental",
-      "reason": "The Quintel numerical reference is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The Quintel numerical reference is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/experimental/energy/quintel.js#runQuintelEnergyLoop",
       "category": "quarantined-experimental",
-      "reason": "The Quintel numerical reference is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The Quintel numerical reference is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/experimental/orchestration/energy-row-head-pipeline.js#scoreRowCpu",
       "category": "quarantined-experimental",
-      "reason": "The unqualified energy-row-head prototype is isolated under src/experimental, excluded from Pack Runtime closure, and cannot satisfy production support claims."
+      "reason": "The unqualified energy-row-head prototype is isolated under src/experimental, excluded from Capsule Runtime closure, and cannot satisfy production support claims."
     },
     {
       "id": "src/inference/pipelines/text/embed.js#decodeRangeChunkIntoOutput",
@@ -572,7 +572,7 @@
     {
       "id": "src/experimental/embeddings/sequence-pooling.js#poolSequenceTokenEmbeddings",
       "category": "quarantined-experimental",
-      "reason": "The CPU sequence-pooling reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "The CPU sequence-pooling reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/inference/pipelines/text/generator/decode.js#runDecodeLayers",
@@ -602,12 +602,12 @@
     {
       "id": "src/experimental/embeddings/cpu-extraction.js#extractTokenEmbeddingsFromHidden",
       "category": "quarantined-experimental",
-      "reason": "The CPU embedding reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "The CPU embedding reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/experimental/embeddings/cpu-extraction.js#extractEmbeddingFromHidden",
       "category": "quarantined-experimental",
-      "reason": "The CPU embedding reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "The CPU embedding reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/inference/pipelines/text/generator-steps.js#generateNTokensGPU",
@@ -632,27 +632,27 @@
     {
       "id": "src/experimental/logits/cpu-output.js#finalizeLogits",
       "category": "quarantined-experimental",
-      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/experimental/logits/cpu.js#rmsNormCPU",
       "category": "quarantined-experimental",
-      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/experimental/logits/cpu.js#layerNormCPU",
       "category": "quarantined-experimental",
-      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/experimental/logits/cpu.js#matmulCPU",
       "category": "quarantined-experimental",
-      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/experimental/logits/cpu.js#applySoftcapping",
       "category": "quarantined-experimental",
-      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/inference/pipelines/text/logits/plan.js#readTypedLmHeadChunk",
@@ -797,12 +797,12 @@
     {
       "id": "src/experimental/loader/functional-descriptor-loader.js#cropMatrix",
       "category": "quarantined-experimental",
-      "reason": "Functional-descriptor weight reconstruction is isolated under src/experimental and rejected by the production Pack loader."
+      "reason": "Functional-descriptor weight reconstruction is isolated under src/experimental and rejected by the production Capsule loader."
     },
     {
       "id": "src/experimental/loader/functional-descriptor-loader.js#loadFunctionalDescriptor",
       "category": "quarantined-experimental",
-      "reason": "Functional-descriptor weight reconstruction is isolated under src/experimental and rejected by the production Pack loader."
+      "reason": "Functional-descriptor weight reconstruction is isolated under src/experimental and rejected by the production Capsule loader."
     },
     {
       "id": "src/loader/tensors/source-transform.js#materializeTensorSourceTransform",
@@ -852,57 +852,57 @@
     {
       "id": "src/tooling/node-convert-worker-pool.js#NodeConvertWorkerPool.#dispatch",
       "category": "artifact-construction",
-      "reason": "Node conversion tooling transports and constructs deterministic artifact data before Pack signing."
+      "reason": "Node conversion tooling transports and constructs deterministic artifact data before Capsule signing."
     },
     {
       "id": "src/tooling/node-converter/input.js#tensorTransformer",
       "category": "artifact-construction",
-      "reason": "Node conversion tooling transports and constructs deterministic artifact data before Pack signing."
+      "reason": "Node conversion tooling transports and constructs deterministic artifact data before Capsule signing."
     },
     {
       "id": "src/tooling/precision-replay-math.js#tree64DotF32",
       "category": "reference",
-      "reason": "Precision replay is an offline deterministic evidence/reference calculation and is unavailable to Pack Runtime execution."
+      "reason": "Precision replay is an offline deterministic evidence/reference calculation and is unavailable to Capsule Runtime execution."
     },
     {
       "id": "src/tooling/precision-replay-math.js#buildModeScoreMaps",
       "category": "reference",
-      "reason": "Precision replay is an offline deterministic evidence/reference calculation and is unavailable to Pack Runtime execution."
+      "reason": "Precision replay is an offline deterministic evidence/reference calculation and is unavailable to Capsule Runtime execution."
     },
     {
       "id": "src/converter/quantizer.js#quantizeQ4KBlockWithValidLength",
       "category": "artifact-construction",
-      "reason": "Forge quantizes source weights before Pack signing; this symbol is unavailable to Pack Runtime execution."
+      "reason": "Forge quantizes source weights before Capsule signing; this symbol is unavailable to Capsule Runtime execution."
     },
     {
       "id": "src/converter/quantizer.js#dequantizeQ4KBlock",
       "category": "artifact-construction",
-      "reason": "Forge validates or reconstructs converted weights before Pack signing; this symbol is unavailable to Pack Runtime execution."
+      "reason": "Forge validates or reconstructs converted weights before Capsule signing; this symbol is unavailable to Capsule Runtime execution."
     },
     {
       "id": "src/converter/quantizer.js#quantizeToQ4KM",
       "category": "artifact-construction",
-      "reason": "Forge quantizes source weights before Pack signing; this symbol is unavailable to Pack Runtime execution."
+      "reason": "Forge quantizes source weights before Capsule signing; this symbol is unavailable to Capsule Runtime execution."
     },
     {
       "id": "src/converter/quantizer.js#quantizeToInt4PerRowSymmetric",
       "category": "artifact-construction",
-      "reason": "Forge quantizes source weights before Pack signing; this symbol is unavailable to Pack Runtime execution."
+      "reason": "Forge quantizes source weights before Capsule signing; this symbol is unavailable to Capsule Runtime execution."
     },
     {
       "id": "src/converter/quantizer.js#dequantizeInt4PerRowSymmetric",
       "category": "artifact-construction",
-      "reason": "Forge validates or reconstructs converted weights before Pack signing; this symbol is unavailable to Pack Runtime execution."
+      "reason": "Forge validates or reconstructs converted weights before Capsule signing; this symbol is unavailable to Capsule Runtime execution."
     },
     {
       "id": "src/converter/quantizer.js#dequantizeQ4KM",
       "category": "artifact-construction",
-      "reason": "Forge validates or reconstructs converted weights before Pack signing; this symbol is unavailable to Pack Runtime execution."
+      "reason": "Forge validates or reconstructs converted weights before Capsule signing; this symbol is unavailable to Capsule Runtime execution."
     },
     {
       "id": "src/converter/quantizer.js#quantizeF16ToQ4KM",
       "category": "artifact-construction",
-      "reason": "Forge quantizes source weights before Pack signing; this symbol is unavailable to Pack Runtime execution."
+      "reason": "Forge quantizes source weights before Capsule signing; this symbol is unavailable to Capsule Runtime execution."
     },
     {
       "id": "src/debug/tensor.js#decodeSnapshotData",
@@ -912,42 +912,42 @@
     {
       "id": "src/experimental/browser/quantization.js#decodeTensorToFloat32",
       "category": "artifact-construction",
-      "reason": "The quarantined browser intake path decodes source artifact weights before Pack/runtime model execution."
+      "reason": "The quarantined browser intake path decodes source artifact weights before Capsule/runtime model execution."
     },
     {
       "id": "src/experimental/diffusion/scheduler.js#buildScheduler",
       "category": "quarantined-experimental",
-      "reason": "The diffusion scheduler prototype is isolated under src/experimental and excluded from Pack Runtime support claims."
+      "reason": "The diffusion scheduler prototype is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },
     {
       "id": "src/experimental/bdpa/basis-decomposed-paged.js#BasisDecomposedPagedCache._initializeBDPAStorage",
       "category": "quarantined-experimental",
-      "reason": "The experimental BDPA cache prototype is isolated under src/experimental and excluded from Pack Runtime support claims."
+      "reason": "The experimental BDPA cache prototype is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },
     {
       "id": "src/experimental/bdpa/steamroller.js#generateBDPAData",
       "category": "quarantined-experimental",
-      "reason": "The experimental BDPA basis-construction prototype is isolated under src/experimental and excluded from Pack Runtime support claims."
+      "reason": "The experimental BDPA basis-construction prototype is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },
     {
       "id": "src/experimental/training/qwen-gated-delta-reference.js#gatedDeltaRecurrentForward",
       "category": "quarantined-experimental",
-      "reason": "This numerical reference is isolated under src/experimental and excluded from Pack Runtime support claims."
+      "reason": "This numerical reference is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },
     {
       "id": "src/experimental/training/qwen-gated-delta-reference.js#gatedDeltaRecurrentBackward",
       "category": "quarantined-experimental",
-      "reason": "This numerical reference is isolated under src/experimental and excluded from Pack Runtime support claims."
+      "reason": "This numerical reference is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },
     {
       "id": "src/experimental/training/qwen-gated-delta-reference.js#gatedDeltaRecurrentCheckpointedForward",
       "category": "quarantined-experimental",
-      "reason": "This numerical reference is isolated under src/experimental and excluded from Pack Runtime support claims."
+      "reason": "This numerical reference is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },
     {
       "id": "src/experimental/training/qwen-linear-attention-reference.js#l2NormalizeForward",
       "category": "quarantined-experimental",
-      "reason": "This numerical reference is isolated under src/experimental and excluded from Pack Runtime support claims."
+      "reason": "This numerical reference is isolated under src/experimental and excluded from Capsule Runtime support claims."
     },
     {
       "id": "src/inference/pipelines/text/debug-utils/readback-decoding.js#decodeReadback",
@@ -987,37 +987,37 @@
     {
       "id": "src/experimental/loader/functional-descriptor-loader.js#buildPRNG",
       "category": "quarantined-experimental",
-      "reason": "Functional-descriptor weight reconstruction is isolated under src/experimental and rejected by the production Pack loader."
+      "reason": "Functional-descriptor weight reconstruction is isolated under src/experimental and rejected by the production Capsule loader."
     },
     {
       "id": "src/experimental/logits/cpu-output.js#extractLastPositionLogits",
       "category": "quarantined-experimental",
-      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/experimental/logits/cpu-output.js#writeChunkLogits",
       "category": "quarantined-experimental",
-      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/experimental/logits/cpu.js#f16BufferToF32",
       "category": "quarantined-experimental",
-      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "The CPU logits reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/experimental/training/attention-backward.js#computeAttentionSoftmaxData",
       "category": "quarantined-experimental",
-      "reason": "This numerical training reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "This numerical training reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/experimental/training/loss-scaling.js#DynamicLossScaler.unscaleGradients",
       "category": "quarantined-experimental",
-      "reason": "This numerical training reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "This numerical training reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/experimental/training/trainer.js#filterGradientsForParams",
       "category": "quarantined-experimental",
-      "reason": "This numerical training reference is isolated under src/experimental and excluded from Pack Runtime execution."
+      "reason": "This numerical training reference is isolated under src/experimental and excluded from Capsule Runtime execution."
     },
     {
       "id": "src/inference/kv-cache/base.js#KVCache._initializeContiguousStorage",

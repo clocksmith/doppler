@@ -18,7 +18,7 @@ The same SFT/LoRA engine is available programmatically from the npm package:
 ```js
 import {
   getTrainingCapabilities,
-  loadTrainingWorkloadPack,
+  loadTrainingWorkloadCapsule,
   trainSftLoRA,
 } from 'doppler-gpu/training';
 ```
@@ -38,13 +38,13 @@ npm run training:report-ids:publish -- --out ./reports/training/report-ids/lates
 ### First-class operator commands
 
 ```bash
-node src/cli/doppler-cli.js distill --config '{"request":{"action":"subsets","workloadPath":"src/experimental/training/workload-packs/distill-translategemma-tiny.json"}}'
+node src/cli/doppler-cli.js distill --config '{"request":{"action":"subsets","workloadPath":"src/experimental/training/workload-capsules/distill-translategemma-tiny.json"}}'
 
-node src/cli/doppler-cli.js distill --config '{"request":{"action":"run","workloadPath":"src/experimental/training/workload-packs/distill-translategemma-tiny.json"}}'
+node src/cli/doppler-cli.js distill --config '{"request":{"action":"run","workloadPath":"src/experimental/training/workload-capsules/distill-translategemma-tiny.json"}}'
 
 node src/cli/doppler-cli.js distill --config '{"request":{"action":"watch","runRoot":"reports/training/distill/distill-translategemma-tiny/2026-03-07T00-00-00.000Z","stopWhenIdle":true}}'
 
-node src/cli/doppler-cli.js lora --config '{"request":{"action":"run","workloadPath":"src/experimental/training/workload-packs/lora-toy-tiny.json"}}'
+node src/cli/doppler-cli.js lora --config '{"request":{"action":"run","workloadPath":"src/experimental/training/workload-capsules/lora-toy-tiny.json"}}'
 
 node src/cli/doppler-cli.js lora --config '{"request":{"action":"export","runRoot":"reports/training/lora/lora-toy-tiny/2026-03-07T00-00-00.000Z"}}'
 ```
@@ -264,13 +264,13 @@ Legacy Distill Studio helpers are compatibility tooling only:
 
 New operator behavior must be documented under the `distill` surface, not under Distill Studio naming.
 
-## Workload Packs
+## Workload Capsules
 
-Canonical workload packs live under:
-- `src/experimental/training/workload-packs/lora-*.json`
-- `src/experimental/training/workload-packs/distill-*.json`
+Canonical workload capsules live under:
+- `src/experimental/training/workload-capsules/lora-*.json`
+- `src/experimental/training/workload-capsules/distill-*.json`
 
-Each pack is the source of truth for:
+Each capsule is the source of truth for:
 - `schemaVersion`, `kind`, `id`, `description`, `claimBoundary`, `seed`
 - `baseModelId`, `studentModelId`, `teacherModelId`
 - `datasetId`, `datasetPath`, `evalDatasets`
@@ -312,7 +312,7 @@ Distill-specific fields include:
 - `strictPairContract`
 - `subsetSpec`
 
-Rule: if it changes behavior, it belongs in the workload pack.
+Rule: if it changes behavior, it belongs in the workload capsule.
 
 ## Run Roots and Artifacts
 
@@ -359,11 +359,11 @@ A publishable claim must include:
 - `datasetHash`
 - `claimBoundary`
 
-Mapping is deterministic from workload-pack bytes and derived artifact payloads.
+Mapping is deterministic from workload-capsule bytes and derived artifact payloads.
 
 ## Governance Rules
 
-- workload packs are the source of truth for behavior-changing operator policy
+- workload capsules are the source of truth for behavior-changing operator policy
 - run-root artifacts must preserve workload, dataset, and surface traceability
 - browser surfaces must fail closed for unsupported training operator commands
 - claim publication requires deterministic traceability fields and reproducible artifacts
@@ -379,7 +379,7 @@ Required artifacts per release cycle:
 ## Publication Bundle
 
 Each claim publication must include:
-1. workload-pack ID, path, and hash
+1. workload-capsule ID, path, and hash
 2. report ID
 3. claim-boundary statement
 4. surface and runtime metadata
@@ -388,7 +388,7 @@ Each claim publication must include:
 ## Rejection Conditions
 
 - missing report ID or workload hash
-- workload pack not present in the workload registry
+- workload capsule not present in the workload registry
 - claimable LoRA or distill output without a corresponding quality-gate artifact
 - claimable checkpoint or export without matching eval artifacts
 - contract-gate failures in the release window
@@ -414,14 +414,14 @@ Operator surface readiness:
 - `lora` and `distill` are present in `src/tooling/command-api.js`
 - CLI and API docs describe the operator commands
 - browser surfaces fail closed for unsupported operator actions
-- workload packs are validated through the training-workload registry
+- workload capsules are validated through the training-workload registry
 - run roots write `run_contract.json` and `workload.lock.json`
 - finalized checkpoints write `checkpoint.complete.json`
 - eval, compare, scoreboard, and quality-gate artifacts are emitted for candidate runs
 
 Traceability readiness:
-- workload registry hashes match workload-pack files
-- baseline report IDs are present for all workload packs
+- workload registry hashes match workload-capsule files
+- baseline report IDs are present for all workload capsules
 - report-id publication artifacts are generated and stored
 - claimable artifacts carry workload and dataset traceability fields
 

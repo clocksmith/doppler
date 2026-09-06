@@ -1,3 +1,5 @@
+// Historical artifact identities are checked against their frozen conversion inputs.
+// Current Capsule configurations require new conversion/qualification, not relabeling.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -41,8 +43,8 @@ function catalogEntry(catalog, modelId) {
 
 const catalog = readJson('models/catalog.json');
 const releaseClaims = readJson('tools/policies/release-claim-policy.json');
-const af32Config = readJson(`src/config/conversion/gemma4/${AF32_MODEL_ID}.json`);
-const af16Config = readJson(`src/config/conversion/gemma4/${AF16_MODEL_ID}.json`);
+const af32Config = readJson(`tests/fixtures/pre-capsule/src/config/conversion/gemma4/${AF32_MODEL_ID}.json`);
+const af16Config = readJson(`tests/fixtures/pre-capsule/src/config/conversion/gemma4/${AF16_MODEL_ID}.json`);
 const af32ManifestPath = path.join('models', 'local', AF32_MODEL_ID, 'manifest.json');
 const af16ManifestPath = path.join('models', 'local', AF16_MODEL_ID, 'manifest.json');
 const af32ManifestText = fs.readFileSync(af32ManifestPath, 'utf8');
@@ -72,12 +74,12 @@ assert.equal(
 assert.equal(
   af16Manifest.artifactIdentity?.weightPackId,
   af32Manifest.artifactIdentity?.weightPackId,
-  'af16 manifest variant must share the af32 weight pack id'
+  'af16 manifest variant must share the af32 weight capsule id'
 );
 assert.equal(
   af16Manifest.artifactIdentity?.weightPackHash,
   af32Manifest.artifactIdentity?.weightPackHash,
-  'af16 manifest variant must share the af32 weight pack hash'
+  'af16 manifest variant must share the af32 weight capsule hash'
 );
 assert.equal(
   af16Manifest.artifactIdentity?.shardSetHash,
@@ -94,7 +96,7 @@ assert.equal(
   af16Manifest.artifactIdentity?.manifestVariantId,
   'af16 catalog entry must point at the f16 manifest variant id'
 );
-assert.equal(af16Entry.weightPackId, af32Manifest.artifactIdentity?.weightPackId);
+assert.equal(af16Entry.weightCapsuleId, af32Manifest.artifactIdentity?.weightPackId);
 assert.equal(af16Entry.weightsRefAllowed, true);
 assert.equal(af16Entry.lifecycle?.availability?.hf, false);
 assert.equal(af16Entry.lifecycle?.status?.runtime, 'active');

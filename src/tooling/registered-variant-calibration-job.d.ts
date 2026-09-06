@@ -20,7 +20,7 @@ export interface RegisteredVariantCorrectnessEvidence {
     kernelDigest: RegisteredCalibrationDigest;
     [key: string]: unknown;
   }>;
-  boundaryPack: {
+  boundaryCapsule: {
     schema: 'doppler.boundary-comparison-receipt/v1';
     promotionGate: {
       boundaryCompatible: boolean;

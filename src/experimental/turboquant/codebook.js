@@ -459,8 +459,8 @@ export function retainTurboQuantSharedBuffers(device, options = {}) {
 // -- TurboQuant packing helpers -----------------------------------------------
 
 export function computePackedStride(headDim, bitWidth) {
-  const packFactor = Math.floor(32 / bitWidth);
-  return Math.ceil(headDim / packFactor);
+  const capsuleFactor = Math.floor(32 / bitWidth);
+  return Math.ceil(headDim / capsuleFactor);
 }
 
 // -- Default seeds ------------------------------------------------------------

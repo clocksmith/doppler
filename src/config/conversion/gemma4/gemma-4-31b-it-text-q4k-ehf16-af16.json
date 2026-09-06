@@ -61,13 +61,13 @@
       "sourceCheckpointId": "google/gemma-4-31B-it",
       "sourceRepo": "google/gemma-4-31B-it",
       "sourceRevision": "439edf5652646a0d1bd8b46bfdc1d3645761a445",
-      "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
       "artifactCompleteness": "weights-ref",
       "shardSetHash": "sha256:54933058e14fa0be4480912e641b897730db3e8ee7e871bdb2a92fd404ade146"
     },
     "weightsRef": {
-      "weightPackId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
       "artifactRoot": "../gemma-4-31b-it-text-q4k-ehf16-af32",
       "manifestDigest": "sha256:dafb0b812dd714c2b63d7a3796d463c60a0ba3b16f9e0933744e24b291bf202c",
       "shardSetHash": "sha256:54933058e14fa0be4480912e641b897730db3e8ee7e871bdb2a92fd404ade146"

@@ -1,6 +1,6 @@
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
-import { hashPackV2PublicKey } from './pack-v2.js';
+import { hashCapsuleV2PublicKey } from './capsule-v2.js';
 
 export const APPLICATION_GATE_RECEIPT_SCHEMA = 'doppler.application-gate-receipt/v1';
 export const ELECTRON_FLEET_RECEIPT_SCHEMA = 'doppler.electron-fleet-receipt/v1';
@@ -101,11 +101,11 @@ function validateReceiptReference(value, label, errors) {
 
 function validateReleaseTarget(value, label, requireAuthority, errors) {
   if (!requireObject(value, label, errors)) return;
-  const keys = new Set(['releaseId', 'packSemanticRoot']);
+  const keys = new Set(['releaseId', 'capsuleSemanticRoot']);
   if (requireAuthority) keys.add('authority');
   requireExactKeys(value, keys, label, errors);
   requireString(value.releaseId, `${label}.releaseId`, errors);
-  requireDigest(value.packSemanticRoot, `${label}.packSemanticRoot`, errors);
+  requireDigest(value.capsuleSemanticRoot, `${label}.capsuleSemanticRoot`, errors);
   if (requireAuthority && value.authority !== 'customer') {
     errors.push(`${label}.authority must be customer.`);
   }
@@ -167,7 +167,7 @@ export function validateApplicationGateReceipt(receipt) {
   if (!requireObject(receipt, 'application gate receipt', errors)) return { ok: false, errors };
   requireExactKeys(receipt, new Set([
     'schema', 'receiptId', 'releaseId', 'applicationRevisionDigest', 'workload', 'oracle',
-    'packSemanticRoot', 'targetPlanId', 'resolvedExecutionId', 'providerId',
+    'capsuleSemanticRoot', 'targetPlanId', 'resolvedExecutionId', 'providerId',
     'deviceTargetId', 'evaluator', 'status', 'observations', 'failedSamples',
     'createdAtUtc', 'digest',
   ]), 'application gate receipt', errors);
@@ -179,7 +179,7 @@ export function validateApplicationGateReceipt(receipt) {
   requireDigest(receipt.applicationRevisionDigest, 'application gate receipt.applicationRevisionDigest', errors);
   validateIdentity(receipt.workload, 'application gate receipt.workload', errors);
   validateIdentity(receipt.oracle, 'application gate receipt.oracle', errors);
-  requireDigest(receipt.packSemanticRoot, 'application gate receipt.packSemanticRoot', errors);
+  requireDigest(receipt.capsuleSemanticRoot, 'application gate receipt.capsuleSemanticRoot', errors);
   requireId(receipt.targetPlanId, 'application gate receipt.targetPlanId', errors);
   requireDigest(receipt.resolvedExecutionId, 'application gate receipt.resolvedExecutionId', errors);
   requireId(receipt.providerId, 'application gate receipt.providerId', errors);
@@ -260,7 +260,7 @@ export function validateElectronFleetReceipt(receipt) {
   const errors = [];
   if (!requireObject(receipt, 'fleet receipt', errors)) return { ok: false, errors };
   requireExactKeys(receipt, new Set([
-    'schema', 'receiptId', 'releaseId', 'targetId', 'packSemanticRoot',
+    'schema', 'receiptId', 'releaseId', 'targetId', 'capsuleSemanticRoot',
     'applicationRevisionDigest', 'workload', 'oracle', 'targetPlanId',
     'resolvedExecutionId', 'providerId', 'device', 'applicationGateDigest', 'status',
     'createdAtUtc', 'digest', 'signature',
@@ -271,7 +271,7 @@ export function validateElectronFleetReceipt(receipt) {
   requireId(receipt.receiptId, 'fleet receipt.receiptId', errors);
   requireString(receipt.releaseId, 'fleet receipt.releaseId', errors);
   requireId(receipt.targetId, 'fleet receipt.targetId', errors);
-  requireDigest(receipt.packSemanticRoot, 'fleet receipt.packSemanticRoot', errors);
+  requireDigest(receipt.capsuleSemanticRoot, 'fleet receipt.capsuleSemanticRoot', errors);
   requireDigest(receipt.applicationRevisionDigest, 'fleet receipt.applicationRevisionDigest', errors);
   validateIdentity(receipt.workload, 'fleet receipt.workload', errors);
   validateIdentity(receipt.oracle, 'fleet receipt.oracle', errors);
@@ -300,7 +300,7 @@ export function validateReleaseDecision(decision) {
   const errors = [];
   if (!requireObject(decision, 'release decision', errors)) return { ok: false, errors };
   requireExactKeys(decision, new Set([
-    'schema', 'releaseId', 'productionReleaseDigest', 'pack', 'eligibility', 'reasons',
+    'schema', 'releaseId', 'productionReleaseDigest', 'capsule', 'eligibility', 'reasons',
     'applicationGateReceipts', 'fleetReceipts', 'knownExclusions', 'previousRelease',
     'rollback', 'revocation', 'activationAuthority', 'selfPromotionAllowed', 'createdAtUtc',
     'digest', 'signature',
@@ -310,12 +310,12 @@ export function validateReleaseDecision(decision) {
   }
   requireString(decision.releaseId, 'release decision.releaseId', errors);
   requireDigest(decision.productionReleaseDigest, 'release decision.productionReleaseDigest', errors);
-  if (requireObject(decision.pack, 'release decision.pack', errors)) {
-    requireExactKeys(decision.pack, new Set(['packId', 'semanticRoot', 'envelopeDigest', 'path']), 'release decision.pack', errors);
-    requireString(decision.pack.packId, 'release decision.pack.packId', errors);
-    requireDigest(decision.pack.semanticRoot, 'release decision.pack.semanticRoot', errors);
-    requireDigest(decision.pack.envelopeDigest, 'release decision.pack.envelopeDigest', errors);
-    requireString(decision.pack.path, 'release decision.pack.path', errors);
+  if (requireObject(decision.capsule, 'release decision.capsule', errors)) {
+    requireExactKeys(decision.capsule, new Set(['capsuleId', 'semanticRoot', 'envelopeDigest', 'path']), 'release decision.capsule', errors);
+    requireString(decision.capsule.capsuleId, 'release decision.capsule.capsuleId', errors);
+    requireDigest(decision.capsule.semanticRoot, 'release decision.capsule.semanticRoot', errors);
+    requireDigest(decision.capsule.envelopeDigest, 'release decision.capsule.envelopeDigest', errors);
+    requireString(decision.capsule.path, 'release decision.capsule.path', errors);
   }
   if (!ELIGIBILITY_SET.has(decision.eligibility)) errors.push('release decision.eligibility must be eligible or blocked.');
   if (!Array.isArray(decision.reasons)) errors.push('release decision.reasons must be an array.');
@@ -341,7 +341,7 @@ export function validateReleaseDecision(decision) {
   validateRevocation(decision.revocation, 'release decision.revocation', errors);
   if (isObject(decision.previousRelease) && isObject(decision.rollback)
     && (decision.previousRelease.releaseId !== decision.rollback.releaseId
-      || decision.previousRelease.packSemanticRoot !== decision.rollback.packSemanticRoot)) {
+      || decision.previousRelease.capsuleSemanticRoot !== decision.rollback.capsuleSemanticRoot)) {
     errors.push('release decision.rollback must bind previousRelease.');
   }
   if (decision.eligibility === 'eligible' && Array.isArray(decision.reasons) && decision.reasons.length > 0) {
@@ -390,7 +390,7 @@ export async function signProductionReleaseEvidence(value, signer) {
     signature: {
       authority: signer.authority,
       algorithm: 'Ed25519',
-      publicKeyDigest: hashPackV2PublicKey(signer.publicKeyJwk),
+      publicKeyDigest: hashCapsuleV2PublicKey(signer.publicKeyJwk),
       signedDigest: digest,
       signatureHex: bytesToHex(signatureBytes),
     },
@@ -403,7 +403,7 @@ export async function verifyProductionReleaseEvidenceSignature(value, trustedSig
     ? trustedSigners.get(signature?.authority)
     : trustedSigners?.[signature?.authority];
   if (!publicKeyJwk) throw new Error(`Untrusted release evidence authority "${signature?.authority}".`);
-  if (hashPackV2PublicKey(publicKeyJwk) !== signature.publicKeyDigest) {
+  if (hashCapsuleV2PublicKey(publicKeyJwk) !== signature.publicKeyDigest) {
     throw new Error('Release evidence public key digest mismatch.');
   }
   if (hashProductionReleaseEvidence(value) !== value.digest || signature.signedDigest !== value.digest) {

@@ -52,15 +52,15 @@ const canonicalManifest = createRDRRManifestFixture();
     sourceFormat: 'safetensors',
     conversionConfigPath: 'src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json',
     conversionConfigDigest: 'sha256:conversion-config',
-    weightPackId: 'gemma3-1b-text-q4k-ehf16-v1',
-    weightPackHash: 'sha256:weight-pack',
+    weightCapsuleId: 'gemma3-1b-text-q4k-ehf16-v1',
+    weightCapsuleHash: 'sha256:weight-capsule',
     manifestVariantId: 'gemma3-1b-text-q4k-ehf16-af32-exec-v1',
     modalitySet: ['text'],
     materializationProfile: 'standard',
     artifactCompleteness: 'complete',
   };
   identityManifest.weightsRef = {
-    weightPackId: 'gemma3-1b-text-q4k-ehf16-v1',
+    weightCapsuleId: 'gemma3-1b-text-q4k-ehf16-v1',
     artifactRoot: 'models/local/gemma-3-1b-it-q4k-ehf16-af32',
     manifestDigest: 'sha256:manifest',
     shardSetHash: 'sha256:shard-set',
@@ -82,11 +82,11 @@ const canonicalManifest = createRDRRManifestFixture();
 {
   const invalidIdentityManifest = clone(canonicalManifest);
   invalidIdentityManifest.artifactIdentity = {
-    weightPackId: '',
+    weightCapsuleId: '',
   };
   assert.throws(
     () => parseManifest(JSON.stringify(invalidIdentityManifest)),
-    /Invalid artifactIdentity\.weightPackId/,
+    /Invalid artifactIdentity\.weightCapsuleId/,
     'artifact identity fields must be non-empty when present'
   );
 }
@@ -94,14 +94,14 @@ const canonicalManifest = createRDRRManifestFixture();
 {
   const invalidWeightsRefManifest = clone(canonicalManifest);
   invalidWeightsRefManifest.weightsRef = {
-    weightPackId: 'gemma3-1b-text-q4k-ehf16-v1',
+    weightCapsuleId: 'gemma3-1b-text-q4k-ehf16-v1',
     artifactRoot: 'models/local/gemma-3-1b-it-q4k-ehf16-af32',
     shardSetHash: 'sha256:shard-set',
   };
   assert.throws(
     () => parseManifest(JSON.stringify(invalidWeightsRefManifest)),
     /Missing or invalid weightsRef\.manifestDigest/,
-    'weightsRef must carry enough identity to resolve a shared weight pack explicitly'
+    'weightsRef must carry enough identity to resolve a shared weight capsule explicitly'
   );
 }
 

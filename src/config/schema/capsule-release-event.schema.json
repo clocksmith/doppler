@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:doppler:capsule-release-event-schema:v1",
+  "title": "Doppler signed release event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "capsule", "sequence", "previousEventDigest", "issuedAtUtc", "expiresAtUtc", "action", "release", "migratedFrom", "nextSigner", "digest", "signature"],
+  "properties": {
+    "schema": { "const": "doppler.capsule-release-event/v1" },
+    "capsule": { "$ref": "#/$defs/capsule" },
+    "sequence": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+    "previousEventDigest": { "oneOf": [{ "type": "null" }, { "$ref": "urn:doppler:capsule-schema:v2#/$defs/digest" }] },
+    "issuedAtUtc": { "type": "string", "format": "date-time" },
+    "expiresAtUtc": { "type": "string", "format": "date-time" },
+    "action": { "enum": ["eligible", "blocked", "promoted", "quarantined", "revoked", "superseded", "rollback-authorized"] },
+    "release": { "$ref": "urn:doppler:capsule-schema:v2#/$defs/release" },
+    "migratedFrom": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/capsule" }] },
+    "nextSigner": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "object", "additionalProperties": false, "required": ["kty", "crv", "x"], "properties": { "kty": { "const": "OKP" }, "crv": { "const": "Ed25519" }, "x": { "type": "string", "minLength": 1 } } }
+      ]
+    },
+    "digest": { "$ref": "urn:doppler:capsule-schema:v2#/$defs/digest" },
+    "signature": { "$ref": "urn:doppler:capsule-schema:v2#/properties/signature" }
+  },
+  "$defs": {
+    "capsule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "semanticRoot", "envelopeDigest"],
+      "properties": {
+        "schema": { "enum": ["doppler.capsule/v2", "doppler.capsule/v3"] },
+        "semanticRoot": { "$ref": "urn:doppler:capsule-schema:v2#/$defs/digest" },
+        "envelopeDigest": { "$ref": "urn:doppler:capsule-schema:v2#/$defs/digest" }
+      }
+    }
+  }
+}

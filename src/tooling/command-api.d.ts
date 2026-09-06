@@ -151,7 +151,7 @@ export interface ToolingCommandRequestInput {
   targetId?: string;
   deviceIdentityPath?: string;
   fleetReceiptPaths?: string[];
-  packTrustedSignersPath?: string;
+  capsuleTrustedSignersPath?: string;
   fleetTrustedSignersPath?: string;
   signingPrivateKeyPath?: string;
   signingPublicKeyPath?: string;
@@ -237,7 +237,7 @@ export interface ToolingCommandRequest {
   targetId?: string | null;
   deviceIdentityPath?: string | null;
   fleetReceiptPaths?: string[];
-  packTrustedSignersPath?: string | null;
+  capsuleTrustedSignersPath?: string | null;
   fleetTrustedSignersPath?: string | null;
   signingPrivateKeyPath?: string | null;
   signingPublicKeyPath?: string | null;

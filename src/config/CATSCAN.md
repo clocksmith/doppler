@@ -27,7 +27,7 @@ Resolve all runtime-visible policy from validated, traceable, single-source conf
 - Required values are never recreated as hidden runtime defaults.
 - Nullable disabled state remains distinct from missing state.
 - Runtime overlays cannot silently rewrite conversion-owned facts.
-- Pack v3 executable identity excludes release events; Pack v2 history remains readable.
+- Capsule v3 executable identity excludes release events; Capsule v2 and v3 use capsule-namespaced schemas. Pre-migration formats are rejected, never relabeled during opening.
 - Signed release history must satisfy explicit trust, time, and persisted-checkpoint policy.
 - Recipient-pinned local use may outlive managed eligibility only through an explicit acceptance record acknowledging unseen revocations. It cannot waive known denials or authorize delegation.
 

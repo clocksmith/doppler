@@ -412,7 +412,7 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
       logicalModelId: modelId,
       modelId: runtimeModel.modelId ?? modelId,
       sourceCheckpointId: runtimeModel.artifactIdentity?.sourceCheckpointId,
-      weightPackId: runtimeModel.artifactIdentity?.weightPackId,
+      weightCapsuleId: runtimeModel.artifactIdentity?.weightCapsuleId,
       manifestVariantId: runtimeModel.artifactIdentity?.manifestVariantId,
     });
     await assertBundledResolutionNotRevoked(revocationIdentity);

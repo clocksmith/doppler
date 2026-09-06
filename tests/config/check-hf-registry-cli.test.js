@@ -12,7 +12,7 @@ const tempDir = await mkdtemp(path.join(os.tmpdir(), 'doppler-hf-registry-check-
 
 const artifactIdentity = {
   sourceCheckpointId: 'unit/toy-model',
-  weightPackId: 'toy-model-wp-catalog-v1',
+  weightCapsuleId: 'toy-model-wp-catalog-v1',
   manifestVariantId: 'toy-model-mv-exec-v1',
 };
 const catalogIdentity = {
@@ -38,11 +38,11 @@ const manifest = {
   ],
 };
 const sharedWeightsManifest = {
-  modelId: 'toy-model-weight-pack',
+  modelId: 'toy-model-weight-capsule',
   artifactIdentity: {
     sourceCheckpointId: 'unit/toy-model',
-    weightPackId: 'toy-model-wp-catalog-v1',
-    manifestVariantId: 'toy-model-weight-pack-mv-exec-v1',
+    weightCapsuleId: 'toy-model-wp-catalog-v1',
+    manifestVariantId: 'toy-model-weight-capsule-mv-exec-v1',
     shardSetHash: 'sha256:toy-shards',
   },
   totalSize: 4,
@@ -56,12 +56,12 @@ const weightsRefManifest = {
   modelId: 'toy-model-variant',
   artifactIdentity: {
     sourceCheckpointId: 'unit/toy-model',
-    weightPackId: 'toy-model-wp-catalog-v1',
+    weightCapsuleId: 'toy-model-wp-catalog-v1',
     manifestVariantId: 'toy-model-variant-mv-exec-v1',
   },
   weightsRef: {
-    weightPackId: 'toy-model-wp-catalog-v1',
-    artifactRoot: '../toy-model-weight-pack',
+    weightCapsuleId: 'toy-model-wp-catalog-v1',
+    artifactRoot: '../toy-model-weight-capsule',
     manifestDigest: `sha256:${sharedWeightsManifestDigest}`,
     shardSetHash: 'sha256:toy-shards',
   },
@@ -156,12 +156,12 @@ const server = createServer((req, res) => {
     res.end(JSON.stringify(weightsRefManifest));
     return;
   }
-  if (url.pathname === '/models/toy-model-weight-pack/manifest.json') {
+  if (url.pathname === '/models/toy-model-weight-capsule/manifest.json') {
     res.setHeader('content-type', 'application/json');
     res.end(sharedWeightsManifestText);
     return;
   }
-  if (url.pathname === '/models/toy-model-weight-pack/shard_00000.bin') {
+  if (url.pathname === '/models/toy-model-weight-capsule/shard_00000.bin') {
     res.setHeader('content-type', 'application/octet-stream');
     res.end('abcd');
     return;
@@ -340,7 +340,7 @@ try {
       {
         modelId: 'toy-model-variant',
         sourceCheckpointId: 'unit/toy-model',
-        weightPackId: 'toy-model-wp-catalog-v1',
+        weightCapsuleId: 'toy-model-wp-catalog-v1',
         manifestVariantId: 'toy-model-variant-mv-exec-v1',
         artifactCompleteness: 'weights-ref',
         runtimePromotionState: 'manifest-owned',
@@ -367,7 +367,7 @@ try {
       {
         modelId: 'toy-model-variant',
         sourceCheckpointId: 'unit/toy-model',
-        weightPackId: 'toy-model-wp-catalog-v1',
+        weightCapsuleId: 'toy-model-wp-catalog-v1',
         manifestVariantId: 'toy-model-variant-mv-exec-v1',
         artifactCompleteness: 'weights-ref',
         runtimePromotionState: 'manifest-owned',

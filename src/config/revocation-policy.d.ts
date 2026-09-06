@@ -2,7 +2,7 @@ export interface DopplerRevocationTargets {
   logicalModelIds: readonly string[];
   modelIds: readonly string[];
   sourceCheckpointIds: readonly string[];
-  weightPackIds: readonly string[];
+  weightCapsuleIds: readonly string[];
   manifestVariantIds: readonly string[];
   artifactVariantIds: readonly `sha256:${string}`[];
   adapterIds: readonly string[];
@@ -35,7 +35,7 @@ export interface DopplerRevocationIdentity {
   logicalModelId?: string | null;
   modelId?: string | null;
   sourceCheckpointId?: string | null;
-  weightPackId?: string | null;
+  weightCapsuleId?: string | null;
   manifestVariantId?: string | null;
   artifactVariantId?: string | null;
   adapterId?: string | null;

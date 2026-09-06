@@ -166,9 +166,9 @@ This is a tree-shaking/capture contract, not a general JS compiler target.
 
 ## WGSL Closure
 
-The public Pack loader binds verified WGSL bytes to its pipeline. Shader and
+The public Capsule loader binds verified WGSL bytes to its pipeline. Shader and
 compute-pipeline cache keys include source identity; a warm runtime cache or
-consumer preseed cannot supply a module outside that Pack's closure. Public
+consumer preseed cannot supply a module outside that Capsule's closure. Public
 pipeline invocations lease their shader context through completion or iterator
 cleanup. Calls using different source sets are serialized within the runtime
 realm; direct low-level kernel calls are not a concurrent execution API.

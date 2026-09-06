@@ -34,9 +34,9 @@ assert.equal(
   'af16 repro must use the same source checkpoint as the fair af32 lane'
 );
 assert.equal(
-  af16Config.manifest?.artifactIdentity?.weightPackId,
-  af32Config.manifest?.artifactIdentity?.weightPackId,
-  'af16 repro must use the same Q4K weight-pack identity as the fair af32 lane'
+  af16Config.manifest?.artifactIdentity?.weightCapsuleId,
+  af32Config.manifest?.artifactIdentity?.weightCapsuleId,
+  'af16 repro must use the same Q4K weight-capsule identity as the fair af32 lane'
 );
 assert.notEqual(
   af16Config.manifest?.artifactIdentity?.manifestVariantId,

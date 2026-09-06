@@ -5,7 +5,7 @@ export interface DemoCatalogEntry {
   urls?: string[];
   files?: Record<string, string>;
   weightsRef?: {
-    weightPackId?: string;
+    weightCapsuleId?: string;
     primaryModelId?: string;
   } | null;
   [key: string]: unknown;

@@ -3,7 +3,7 @@ export const ELECTRON_RELEASE_IPC_CHANNEL = 'doppler:release:v1';
 const ACTION_FIELDS = Object.freeze({
   status: [],
   'resolve-current': [],
-  'install-candidate': ['pack', 'decisionDigest'],
+  'install-candidate': ['capsule', 'decisionDigest'],
   activate: ['decision', 'customerAuthorizationDigest'],
   reject: ['failureBundleDigest'],
   rollback: ['customerAuthorizationDigest'],
@@ -44,7 +44,7 @@ export function createElectronReleaseIpcHandler(coordinator, options) {
     if (request.action === 'status') return coordinator.load();
     if (request.action === 'resolve-current') return coordinator.resolveCurrent();
     if (request.action === 'install-candidate') {
-      return coordinator.installCandidate(request.pack, request.decisionDigest);
+      return coordinator.installCandidate(request.capsule, request.decisionDigest);
     }
     if (request.action === 'activate') {
       return coordinator.activateCandidate(request.decision, request.customerAuthorizationDigest);

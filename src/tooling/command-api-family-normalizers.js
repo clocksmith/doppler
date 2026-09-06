@@ -416,9 +416,9 @@ export function normalizeRelease(raw) {
   const action = asOptionalAction(raw.action, 'action', ['qualify', 'decide']);
   const manifestPath = asOptionalString(raw.manifestPath, 'manifestPath');
   const outputDirectory = asOptionalString(raw.outputDirectory, 'outputDirectory');
-  const packTrustedSignersPath = asOptionalString(
-    raw.packTrustedSignersPath,
-    'packTrustedSignersPath'
+  const capsuleTrustedSignersPath = asOptionalString(
+    raw.capsuleTrustedSignersPath,
+    'capsuleTrustedSignersPath'
   );
   const signingPrivateKeyPath = asOptionalString(
     raw.signingPrivateKeyPath,
@@ -426,11 +426,11 @@ export function normalizeRelease(raw) {
   );
   const signingPublicKeyPath = asOptionalString(raw.signingPublicKeyPath, 'signingPublicKeyPath');
   const signingAuthority = asOptionalString(raw.signingAuthority, 'signingAuthority');
-  if (!action || !manifestPath || !outputDirectory || !packTrustedSignersPath
+  if (!action || !manifestPath || !outputDirectory || !capsuleTrustedSignersPath
     || !signingPrivateKeyPath || !signingPublicKeyPath || !signingAuthority) {
     throw new Error(
       'tooling command: release requires action, manifestPath, outputDirectory, ' +
-      'packTrustedSignersPath, signingPrivateKeyPath, signingPublicKeyPath, and signingAuthority.'
+      'capsuleTrustedSignersPath, signingPrivateKeyPath, signingPublicKeyPath, and signingAuthority.'
     );
   }
   const targetId = asOptionalString(raw.targetId, 'targetId');
@@ -456,7 +456,7 @@ export function normalizeRelease(raw) {
     targetId,
     deviceIdentityPath,
     fleetReceiptPaths: fleetReceiptPaths ?? [],
-    packTrustedSignersPath,
+    capsuleTrustedSignersPath,
     fleetTrustedSignersPath,
     signingPrivateKeyPath,
     signingPublicKeyPath,

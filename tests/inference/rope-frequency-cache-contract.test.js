@@ -149,11 +149,11 @@ const ropeConfig = {
   assert.equal(second.localSin, first.localSin);
   assert.equal(device.createdBuffers.length, createdBuffersAfterFirst);
   assert.equal(device.writeBufferCount, writeBufferCountAfterFirst);
-  // Warm frequency buffers must not conceal a missing declared Pack kernel.
+  // Warm frequency buffers must not conceal a missing declared Capsule kernel.
   await assert.rejects(
     () => runWithShaderSourceScope(createShaderSourceScope(new Map()),
       () => initRoPEFrequencies(ropeConfig, true)),
-    /rope_precompute.wgsl is outside the verified Pack source closure/
+    /rope_precompute.wgsl is outside the verified Capsule source closure/
   );
   const restored = await initRoPEFrequencies(ropeConfig, true);
   assert.equal(restored.cos, first.cos);

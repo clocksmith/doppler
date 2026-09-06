@@ -86,7 +86,7 @@ const LANE_MAP = Object.freeze({
         'tests/config/distill-studio-diagnostics.test.js',
         'tests/config/distill-studio-mvp.test.js',
         'tests/config/distill-studio-quality-gate.test.js',
-        'tests/config/training-workload-packs.test.js',
+        'tests/config/training-workload-capsules.test.js',
         'tests/config/training-report-id-publication.test.js',
         'tests/training/agent-heldout-eval.test.js',
         'tests/training/host-teacher-qualification.test.js',
@@ -113,12 +113,12 @@ const LANE_MAP = Object.freeze({
       ],
     },
     {
-      label: 'verify deterministic training workload packs + report-id bindings',
+      label: 'verify deterministic training workload capsules + report-id bindings',
       cmd: 'node',
       args: [
-        'tools/verify-training-workload-packs.js',
+        'tools/verify-training-workload-capsules.js',
         '--registry',
-        'src/experimental/training/workload-packs/registry.json',
+        'src/experimental/training/workload-capsules/registry.json',
       ],
     },
     {
@@ -127,7 +127,7 @@ const LANE_MAP = Object.freeze({
       args: [
         'tools/publish-training-report-ids.js',
         '--registry',
-        'src/experimental/training/workload-packs/registry.json',
+        'src/experimental/training/workload-capsules/registry.json',
         '--out',
         '/tmp/doppler-training-report-ids.json',
       ],

@@ -6,7 +6,7 @@ This note tracks the experimental all-f16 compute target for
 `gemma-4-31b-it-text-q4k-ehf16-af16`.
 
 The lane keeps the existing
-`gemma-4-31b-it-text-q4k-ehf16-af32` Q4K weight pack and adds a sibling
+`gemma-4-31b-it-text-q4k-ehf16-af32` Q4K weight capsule and adds a sibling
 manifest variant for Doppler/WebGPU f16 activations. It does not mutate the
 af32 evidence lane, Qwen 3.6 receipts, or Doe/Cerebras claims.
 
@@ -16,7 +16,7 @@ af32 evidence lane, Qwen 3.6 receipts, or Doe/Cerebras claims.
   `src/config/runtime/profiles/gemma4-31b-f16-activations-probe.json`
 - Manifest variant:
   `models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json`
-- Weight pack source:
+- Weight capsule source:
   `models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json`
 - Capability rule:
   `src/rules/inference/capability-transforms.rules.json`
@@ -86,7 +86,7 @@ the af32 or Qwen 3.6 evidence namespaces.
 This branch makes the Doppler/WebGPU execution plan compile and route to f16
 kernels under an all-f16 session contract, with the probe profile capped to the
 passing decode batch geometry. The f16 manifest variant shares the af32 weight
-pack through `weightsRef`, but it owns a distinct `manifestVariantId` and
+capsule through `weightsRef`, but it owns a distinct `manifestVariantId` and
 evidence namespace.
 
 Doe/Cerebras stays pinned to

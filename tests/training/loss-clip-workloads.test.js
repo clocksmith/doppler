@@ -29,7 +29,7 @@ const {
 const { createTensor } = await import('../../src/gpu/tensor.js');
 const { AutogradTape } = await import('../../src/experimental/training/autograd.js');
 const { clipGradients } = await import('../../src/experimental/training/clip.js');
-const { normalizeTrainingWorkloadPack } = await import('../../src/experimental/training/workloads.js');
+const { normalizeTrainingWorkloadCapsule } = await import('../../src/experimental/training/workloads.js');
 
 class FakeBuffer {
   constructor({ size, usage, initialBytes = null }) {
@@ -230,7 +230,7 @@ try {
 
   {
     assert.throws(
-      () => normalizeTrainingWorkloadPack({
+      () => normalizeTrainingWorkloadCapsule({
         schemaVersion: 1,
         id: 'distill-smoke',
         description: 'missing explicit kind',
@@ -242,7 +242,7 @@ try {
     );
 
     assert.throws(
-      () => normalizeTrainingWorkloadPack({
+      () => normalizeTrainingWorkloadCapsule({
         schemaVersion: 1,
         kind: 'lora',
         id: 'lora-smoke',

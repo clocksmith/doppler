@@ -177,13 +177,13 @@ export function validateAdapterArtifactRecord(record) {
 
   const runtimeBase = record.runtimeBase || {};
   requireText(errors, runtimeBase.modelId, 'runtimeBase.modelId');
-  requireText(errors, runtimeBase.weightPackId, 'runtimeBase.weightPackId');
+  requireText(errors, runtimeBase.weightCapsuleId, 'runtimeBase.weightCapsuleId');
   requireText(errors, runtimeBase.manifestVariantId, 'runtimeBase.manifestVariantId');
   for (const field of [
     'modelSha256',
     'manifestSha256',
     'tokenizerSha256',
-    'weightPackSha256',
+    'weightCapsuleSha256',
     'conversionConfigSha256',
   ]) {
     requireSha256(errors, runtimeBase[field], `runtimeBase.${field}`);

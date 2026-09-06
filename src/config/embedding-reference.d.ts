@@ -1,9 +1,9 @@
-import type { PackEmbeddingContract } from './embedding-contract.js';
+import type { CapsuleEmbeddingContract } from './embedding-contract.js';
 
 export const EMBEDDING_REFERENCE_TRANSCRIPT_SCHEMA_ID: 'doppler.embedding-reference-transcript/v1';
 export interface EmbeddingObservation {
   input: { texts: string[] };
-  embeddingContract: PackEmbeddingContract;
+  embeddingContract: CapsuleEmbeddingContract;
   outputs: Array<{ text: string; tokenIds: number[]; embedding: number[] }>;
 }
 export interface EmbeddingReference extends EmbeddingObservation {
