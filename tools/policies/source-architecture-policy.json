@@ -127,7 +127,12 @@
       "config/pack-v2.js"
     ],
     "forge": [
-      "converter/forge-stages.js"
+      "converter/forge-stages.js",
+      "converter/execution-candidate-forge.js",
+      "converter/forge-candidate-evaluation.js"
+    ],
+    "host-evidence": [
+      "client/model-host/model-evidence.js"
     ],
     "runtime": [
       "client/runtime/composition-root.js",
@@ -149,6 +154,9 @@
         "client/runtime/fetch-pack-artifact-store.js"
       ],
       "forbiddenPathPrefixes": [
+        "client/model-host/",
+        "client/runtime/index.js",
+        "client/runtime/model-session.js",
         "converter/",
         "config/transforms/",
         "models/",
@@ -171,12 +179,18 @@
     },
     {
       "domain": "forge",
-      "entryPoints": ["converter/forge-stages.js"],
+      "entryPoints": ["converter/forge-stages.js", "converter/execution-candidate-forge.js", "converter/forge-candidate-evaluation.js"],
       "forbiddenPathPrefixes": [
+        "client/model-host/",
         "client/runtime/",
         "models/",
         "experimental/distribution/"
       ]
+    },
+    {
+      "domain": "host-evidence",
+      "entryPoints": ["client/model-host/model-evidence.js"],
+      "forbiddenPathPrefixes": ["gpu/", "loader/", "inference/", "converter/", "tooling/"]
     }
   ],
   "dependencyExceptions": [],
@@ -362,13 +376,6 @@
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
       "extractTo": [
         "cli/commands/bundle-components.js"
-      ]
-    },
-    "client/runtime/model-session.js": {
-      "reviewedLines": 873,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "client/runtime/model-session-components.js"
       ]
     },
     "client/runtime/source-runtime.js": {

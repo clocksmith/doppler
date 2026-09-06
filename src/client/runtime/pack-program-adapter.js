@@ -84,6 +84,15 @@ export function createPackProgramAdapter(modelHandle, pack, targetPlan) {
       }
     },
 
+    async embed(text, options) {
+      if (modelHandle.supportsEmbedding !== true || typeof modelHandle.embedWithEvidence !== 'function') {
+        throw new Error('Loaded Doppler Pack does not declare text embedding execution.');
+      }
+      try {
+        return await modelHandle.embedWithEvidence(text, options);
+      } finally { assertNoPlanMutation(); }
+    },
+
     async encodeSequence(sequence, options) {
       if (modelHandle.supportsSequence !== true || typeof modelHandle.encodeSequence !== 'function') {
         throw new Error('Loaded Doppler Pack does not declare sequence execution.');
@@ -91,12 +100,6 @@ export function createPackProgramAdapter(modelHandle, pack, targetPlan) {
       try {
         return await modelHandle.encodeSequence(sequence, options);
       } finally { assertNoPlanMutation(); }
-    },
-
-    async embed(text, options) {
-      if (typeof modelHandle.embed !== 'function') throw new Error('Loaded Doppler Pack does not expose text embeddings.');
-      try { return await modelHandle.embed(text, options); }
-      finally { assertNoPlanMutation(); }
     },
 
     async executePhase(phase, request) {

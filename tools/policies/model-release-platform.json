@@ -299,7 +299,7 @@
       "id": "embedding",
       "mode": "migration-required",
       "evidencePaths": [
-        "src/client/runtime/model-session.js",
+        "src/client/model-host/model-session.js",
         "docs/product-integration-qualification.md"
       ],
       "blockerCode": "pack-first-surface-migration-incomplete"
@@ -347,7 +347,7 @@
       "evidencePaths": [
         "docs/architecture.md",
         "src/config/pack-release-contract.js",
-        "src/client/runtime/model-session.js",
+        "src/client/model-host/model-session.js",
         "tests/pack/pack-v2.test.js"
       ],
       "blockerCode": null

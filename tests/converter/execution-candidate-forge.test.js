@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
+import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
+import { createForgeEvaluationFixture } from '../helpers/forge-evaluation-fixture.js';
 import {
   auditEntryPointLowerability,
   promoteExecutionCandidate,
@@ -72,7 +74,13 @@ const search = searchExecutionCandidates({
 });
 assert.equal(search.generatedCandidates, 3);
 assert.equal(search.acceptedProposalId, 'ai-portable');
-assert.equal(search.rejectedCandidates.length, 2);
+assert.equal(search.rejectedCandidates.length, 1);
+assert.equal(search.eligibleCandidates.length, 2);
+assert.equal(search.selectionPolicy, 'proposal-order-unmeasured');
+assert.equal(search.evaluationReceipt, null);
+assert.deepEqual(search.selectedCandidates, []);
+assert.throws(() => searchExecutionCandidates({ modelIR: qwenReceipt.modelIR,
+  entryPointId: 'text.generate', vocabulary, proposals: [proposals[0], proposals[0]] }), /unique/);
 assert.equal(search.acceptedCandidate.programBundle.schema, 'doppler.generated-program-bundle/v2');
 assert.equal(search.acceptedCandidate.executionGraph.schedule.length, 64);
 assert.ok(search.acceptedCandidate.kernelClosure.some((entry) => entry.moduleId === 'recurrent_update'));
@@ -111,6 +119,23 @@ assert.equal(qwenWithoutHeadContract.lowerable, false);
 assert.match(JSON.stringify(qwenWithoutHeadContract.outputHeads), /not declared/);
 
 const candidate = search.acceptedCandidate;
+const evaluation = createForgeEvaluationFixture(candidate.modelIRHash,
+  search.eligibleCandidates.map(computeCanonicalSha256));
+const evaluated = searchExecutionCandidates({ modelIR: qwenReceipt.modelIR,
+  entryPointId: 'text.generate', vocabulary, proposals, evaluation });
+assert.equal(evaluated.acceptedProposalId, 'human-portable', 'observed candidate beats the lower author score');
+assert.equal(evaluated.selectedCandidates.length, 1);
+assert.equal(evaluated.eligibleCandidates.length, 2, 'dominated but valid candidate remains in retained evidence');
+assert.equal(evaluated.evaluationReceipt.promotionAllowed, false);
+assert.throws(() => searchExecutionCandidates({ modelIR: qwenReceipt.modelIR,
+  entryPointId: 'text.generate', vocabulary, proposals: proposals.map(proposal => ({ ...proposal, score: proposal.score + 1 })),
+  evaluation }), /exactly the generated candidates/);
+const failedEvaluation = structuredClone(evaluation);
+for (const row of failedEvaluation.observations) row.output.tokens = [9];
+const failedSearch = searchExecutionCandidates({ modelIR: qwenReceipt.modelIR,
+  entryPointId: 'text.generate', vocabulary, proposals, evaluation: failedEvaluation });
+assert.equal(failedSearch.acceptedCandidate, null, 'oracle failure must not fall back to a proposal score');
+assert.deepEqual(failedSearch.selectedCandidates, []);
 const identity = createInitialExecutionIdentityV2({
   executionGraphHash: candidate.executionGraphHash,
   resolvedGraphHash: digest('8'),

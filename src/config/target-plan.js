@@ -202,7 +202,7 @@ export function validateTargetPlan(plan) {
         if (!Object.hasOwn(plan.phases ?? {}, 'forecast')
           || !Number.isInteger(record.forecastCases) || record.forecastCases < 1
           || record.generatedTokens !== undefined || record.encodedSequences !== undefined
-          || record.rerankedDocuments !== undefined
+          || record.rerankedDocuments !== undefined || record.embeddedTexts !== undefined
           || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
           errors.push(`qualification[${index}] requires a forecast phase, forecastCases and transcriptHash without other operation counts.`);
         }
@@ -211,22 +211,30 @@ export function validateTargetPlan(plan) {
       } else if (record.operation === 'rerank') {
         if (!Number.isInteger(record.rerankedDocuments) || record.rerankedDocuments < 1
           || record.generatedTokens !== undefined || record.encodedSequences !== undefined
-          || record.forecastCases !== undefined
+          || record.forecastCases !== undefined || record.embeddedTexts !== undefined
           || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
           errors.push(`qualification[${index}] requires rerankedDocuments and transcriptHash without other operation counts.`);
         }
       } else if (record.operation === 'encodeSequence') {
         if (!Number.isInteger(record.encodedSequences) || record.encodedSequences < 1
           || record.rerankedDocuments !== undefined || record.forecastCases !== undefined
+          || record.embeddedTexts !== undefined
           || record.generatedTokens !== undefined || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
           errors.push(`qualification[${index}] requires encodedSequences and transcriptHash without other operation counts.`);
+        }
+      } else if (record.operation === 'embed') {
+        if (!Number.isSafeInteger(record.embeddedTexts) || record.embeddedTexts < 1
+          || record.generatedTokens !== undefined || record.encodedSequences !== undefined
+          || record.rerankedDocuments !== undefined || record.forecastCases !== undefined
+          || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
+          errors.push(`qualification[${index}] requires embeddedTexts and transcriptHash without other operation counts.`);
         }
       } else if (record.operation !== undefined && record.operation !== 'generate') {
         errors.push(`qualification[${index}].operation is unsupported.`);
       } else if (!Number.isInteger(record.generatedTokens) || record.generatedTokens < 1) {
         errors.push(`qualification[${index}].generatedTokens must be a positive integer.`);
       } else if (record.encodedSequences !== undefined || record.rerankedDocuments !== undefined
-        || record.forecastCases !== undefined) {
+        || record.forecastCases !== undefined || record.embeddedTexts !== undefined) {
         errors.push(`qualification[${index}] requires generatedTokens without other operation counts.`);
       }
     }
@@ -287,6 +295,16 @@ export function selectQualifiedTargetPlan(targetPlans, deviceProfile) {
   throw new Error(
     `TargetSelector: Device does not satisfy capability predicates and surface qualification for any prequalified target plan in Pack. Available targets: [${available}]. (surface: ${deviceProfile.surface}, hasF16: ${Boolean(deviceProfile.hasF16)}, hasSubgroups: ${Boolean(deviceProfile.hasSubgroups)})`
   );
+}
+
+export function assertQualifiedTargetOperation(plan, surface, operation) {
+  const qualified = plan.qualification?.some((record) => (
+    record.status === 'passed' && record.surface === surface
+      && (record.operation ?? 'generate') === operation
+  ));
+  if (!qualified) {
+    throw new Error(`TargetPlan "${plan.targetId}" is not qualified for operation "${operation}" on surface "${surface}".`);
+  }
 }
 
 export function createTargetPlan(params) {

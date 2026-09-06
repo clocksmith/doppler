@@ -68,19 +68,24 @@ export function createElectronRendererRuntime(options) {
     if (!request || typeof request !== 'object' || Array.isArray(request) || !request.application) {
       throw new Error('Electron rerank requires a PackRerankRequest with an explicit application binding.');
     }
-    const session = await openCurrent(openOptions);
+    const signals = [openOptions.signal, request.options?.signal].filter(Boolean);
+    const signal = signals.length === 2 && signals[0] !== signals[1]
+      ? AbortSignal.any(signals) : signals[0];
+    const session = await openCurrent(signal ? { ...openOptions, signal } : openOptions);
     let failed = false;
     try {
       if (typeof session.rerank !== 'function') {
         throw new Error('Electron current Pack does not expose the qualified reranking workload.');
       }
-      const result = await session.rerank(request);
-      assertActive(openOptions.signal);
+      const result = await session.rerank(signal
+        ? { ...request, options: { ...request.options, signal } } : request);
+      assertActive(signal);
       assertSamePack(await options.releaseState.resolveCurrent(), session);
-      assertActive(openOptions.signal);
+      assertActive(signal);
       return result;
     } catch (error) {
       failed = true;
+      assertActive(signal);
       throw translateError(error);
     } finally {
       try {

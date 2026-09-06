@@ -6,7 +6,7 @@ import {
   createSignedPackFixture,
 } from '../helpers/pack-v2-fixture.js';
 
-const fixture = await createSignedPackFixture();
+const fixture = await createSignedPackFixture({ operation: 'rerank' });
 const digest = (character) => `sha256:${character.repeat(64)}`;
 const rerankCalls = [];
 const evidence = {
@@ -80,6 +80,14 @@ assert.deepEqual(rerankCalls, [{
 }]);
 assert.equal(events.at(-1).type, 'pack-rerank-complete');
 assert.equal(events.at(-1).receiptDigest, receipt.receiptDigest);
+
+await assert.rejects(session.generate({}).next(), /not qualified.*generate/);
+await assert.rejects(session.encodeSequence('MKT'), /not qualified.*encodeSequence/);
+const generationOnly = await createSignedPackFixture();
+const unqualified = await runtime.openPack(generationOnly.pack);
+await assert.rejects(unqualified.rerank({ ...request, application: generationOnly.pack.release.application }), /not qualified.*rerank/);
+assert.equal(rerankCalls.length, 1, 'another operation must not borrow generation qualification');
+await unqualified.close();
 
 const mismatched = structuredClone(request);
 mismatched.application.workload.digest = digest('f');

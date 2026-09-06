@@ -36,6 +36,7 @@ export function usage() {
     '  --runtime-config <path>       Runtime configuration',
     '  --model-ir-receipt <path>     Validated ModelIR receipt containing modelIR',
     '  --initial-identity <path>     Pre-dispatch observed execution identity or report',
+    '  --candidate-evaluation <path> Frozen evaluation contract, reference and raw observations',
     '  --release-manifest <path>     Required doppler.pack-release/v1 contract',
     '  --model-dir <path>            Model artifact directory',
     '  --out <path>                  Signed Pack v2 output path',
@@ -99,6 +100,7 @@ export async function buildForgeOptions(
     runtimeConfigPath: flags['runtime-config'] ?? null,
     modelIRReceiptPath: flags['model-ir-receipt'] ?? null,
     initialExecutionIdentityPath: flags['initial-identity'] ?? null,
+    candidateEvaluationPath: flags['candidate-evaluation'] ?? null,
     releaseManifestPath: flags['release-manifest'] ?? null,
     outputPath: flags.out ?? null,
     createdAtUtc: flags['created-at'] ?? null,
@@ -400,7 +402,9 @@ export async function forgeModelPack(options) {
       ?? identitySource.runtime?.initialExecutionIdentity
       ?? identitySource;
   }
-  const { pack, stages } = await runForgePipeline({
+  const candidateEvaluation = options.candidateEvaluationPath == null ? null
+    : await readJsonFile(options.candidateEvaluationPath, 'candidate evaluation');
+  const { pack, stages, searchReceipt } = await runForgePipeline({
     manifest: manifest.json,
     manifestRaw: manifest.raw,
     programBundle: source.bundle,
@@ -412,6 +416,7 @@ export async function forgeModelPack(options) {
     modelIR,
     modelIREvidence,
     initialExecutionIdentity,
+    ...(candidateEvaluation ? { candidateEvaluation: candidateEvaluation.json } : {}),
     release,
   }, signer);
   await materializePackArtifactClosure(
@@ -443,5 +448,11 @@ export async function forgeModelPack(options) {
     wgslModuleCount: pack.wgslModules.length,
     targetPlanDigests: pack.targetPlans.map((plan) => hashTargetPlan(plan)),
     stages,
+    searchReceipt,
+    candidateEvaluation: candidateEvaluation ? {
+      path: candidateEvaluation.path,
+      hash: `sha256:${createHash('sha256').update(candidateEvaluation.raw).digest('hex')}`,
+      sizeBytes: new TextEncoder().encode(candidateEvaluation.raw).byteLength,
+    } : null,
   };
 }

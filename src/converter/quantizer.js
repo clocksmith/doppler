@@ -75,6 +75,41 @@ function findMinMax(data, offset, length) {
   return { min, max };
 }
 
+function q4KSubblockError(data, offset, length, scale, minimum) {
+  let error = 0;
+  for (let i = 0; i < length; i++) {
+    const value = data[offset + i];
+    const code = scale > 0 ? Math.max(0, Math.min(15, Math.round((value + minimum) / scale))) : 0;
+    const delta = value - Math.fround(scale * code - minimum);
+    error += delta * delta;
+  }
+  return error;
+}
+
+function refineQ4KSubblock(data, offset, length, d, dmin, scaleBits, minBits) {
+  let error = q4KSubblockError(data, offset, length, d * scaleBits, dmin * minBits);
+  // Strict improvement over a finite six-bit grid terminates without a tuning
+  // budget. Ties retain the original encoding, including zero/padded blocks.
+  for (;;) {
+    let nextScale = scaleBits;
+    let nextMin = minBits;
+    for (let scale = Math.max(0, scaleBits - 1); scale <= Math.min(63, scaleBits + 1); scale++) {
+      for (let minimum = Math.max(0, minBits - 1); minimum <= Math.min(63, minBits + 1); minimum++) {
+        if (scale === scaleBits && minimum === minBits) continue;
+        const candidateError = q4KSubblockError(data, offset, length, d * scale, dmin * minimum);
+        if (candidateError < error) {
+          error = candidateError;
+          nextScale = scale;
+          nextMin = minimum;
+        }
+      }
+    }
+    if (nextScale === scaleBits && nextMin === minBits) return { scaleBits, minBits };
+    scaleBits = nextScale;
+    minBits = nextMin;
+  }
+}
+
 function quantizeQ4KBlockWithValidLength(data, offset, validLength = QK_K) {
   const block = new Uint8Array(QK4_K_BLOCK_SIZE);
   const blockView = new DataView(block.buffer);
@@ -94,19 +129,14 @@ function quantizeQ4KBlockWithValidLength(data, offset, validLength = QK_K) {
       continue;
     }
 
-    const { min, max } = findMinMax(data, sbOffset, validInSubblock);
+    const { min: observedMin, max } = findMinMax(data, sbOffset, validInSubblock);
+    // Q4_K stores a non-negative minimum to subtract, never a positive offset.
+    const min = Math.min(0, observedMin);
 
     minOffsets[sb] = -min;
     const range = max - min;
     scales[sb] = range > 0 ? range / 15 : 0;
 
-    const invScale = scales[sb] > 0 ? 1 / scales[sb] : 0;
-    for (let i = 0; i < validInSubblock; i++) {
-      const val = data[sbOffset + i];
-      let q = Math.round((val - min) * invScale);
-      q = Math.max(0, Math.min(15, q));
-      quantized[sb * 32 + i] = q;
-    }
   }
 
   let maxScale = 0;
@@ -114,7 +144,6 @@ function quantizeQ4KBlockWithValidLength(data, offset, validLength = QK_K) {
   for (let i = 0; i < 8; i++) {
     if (scales[i] > maxScale) maxScale = scales[i];
     if (minOffsets[i] > maxMinOffset) maxMinOffset = minOffsets[i];
-    if (minOffsets[i] < 0) minOffsets[i] = 0;
   }
 
   const d = maxScale / 63;
@@ -132,6 +161,26 @@ function quantizeQ4KBlockWithValidLength(data, offset, validLength = QK_K) {
   for (let i = 0; i < 8; i++) {
     scaleBits[i] = Math.min(63, Math.round(scales[i] * invD));
     minBits[i] = Math.min(63, Math.round(Math.max(0, minOffsets[i]) * invDmin));
+  }
+
+  // Select nearest codes on the grid the decoder will actually reconstruct,
+  // after both half-precision multipliers and six-bit parameters are sealed.
+  const storedD = float16ToFloat32(blockView.getUint16(0, true));
+  const storedDmin = float16ToFloat32(blockView.getUint16(2, true));
+  for (let sb = 0; sb < 8; sb++) {
+    const end = Math.min((sb + 1) * 32, clampedValidLength);
+    const length = Math.max(0, end - sb * 32);
+    if (length === 0) continue;
+    const refined = refineQ4KSubblock(data, offset + sb * 32, length,
+      storedD, storedDmin, scaleBits[sb], minBits[sb]);
+    scaleBits[sb] = refined.scaleBits;
+    minBits[sb] = refined.minBits;
+    const scale = storedD * scaleBits[sb];
+    const minimum = storedDmin * minBits[sb];
+    for (let i = sb * 32; i < end; i++) {
+      const code = scale > 0 ? Math.round((data[offset + i] + minimum) / scale) : 0;
+      quantized[i] = Math.max(0, Math.min(15, code));
+    }
   }
 
   for (let i = 0; i < 4; i++) {

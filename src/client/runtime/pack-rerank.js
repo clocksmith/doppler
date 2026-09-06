@@ -66,6 +66,7 @@ export async function executePackRerank({
   request,
 }) {
   assertApplicationBinding(request, pack);
+  request.options?.signal?.throwIfAborted();
   if (typeof program?.rerank !== 'function') {
     throw new Error('Selected Pack program does not implement its declared rerank workload.');
   }
@@ -74,6 +75,7 @@ export async function executePackRerank({
     documents: request.documents,
     options: request.options,
   });
+  request.options?.signal?.throwIfAborted();
   assertModelEvidence(evidence);
   const payload = {
     schema: PACK_RERANK_RECEIPT_SCHEMA,

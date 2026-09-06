@@ -19,7 +19,9 @@ import {
 } from '../config/pack-v2.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
-import { buildQualificationRecords } from './forge-qualification.js';
+import { buildQualificationRecords, promoteQualifiedModelIRV2 } from './forge-qualification.js';
+import { resolvePackEmbeddingContract } from '../config/embedding-contract.js';
+import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
 
 export const FORGE_PIPELINE_VERSION = '2.0.0';
 
@@ -123,40 +125,6 @@ function assertModelTopologyRepresentable(manifest) {
   }
 }
 
-function promoteQualifiedModelIRV2(modelIR, programBundle) {
-  const parity = programBundle.referenceTranscript?.sourceParity;
-  if (parity?.schema !== 'doppler.source-token-parity/v1' || parity.status !== 'passed'
-    || parity.prompt?.passed !== true || parity.generation?.passed !== true) {
-    throw new Error('Forge ModelIR v2 promotion requires exact passed source-token parity.');
-  }
-  if (parity.sourceRevision !== modelIR.sourceIdentity.revision
-    || ![modelIR.sourceIdentity.checkpointId, modelIR.sourceIdentity.repository].includes(parity.sourceModel)) {
-    throw new Error('Forge source-token parity identity does not match ModelIR source identity.');
-  }
-  const surface = programBundle.referenceTranscript?.surface;
-  if (typeof surface !== 'string' || !surface.endsWith('-webgpu') || surface.startsWith('unknown')) {
-    throw new Error('Forge ModelIR v2 promotion requires an explicit physical WebGPU surface.');
-  }
-  const entryPoints = modelIR.entryPoints.filter((entryPoint) => (
-    entryPoint.kind === 'generate'
-      && entryPoint.status === 'lowered'
-      && modelIR.supportScope.loweredEntryPoints.includes(entryPoint.id)
-  ));
-  if (entryPoints.length !== 1) {
-    throw new Error('Forge ModelIR v2 promotion requires exactly one lowered generate entry point.');
-  }
-  return {
-    ...structuredClone(modelIR),
-    supportScope: {
-      ...structuredClone(modelIR.supportScope),
-      qualifiedEntryPoints: [...new Set([
-        ...modelIR.supportScope.qualifiedEntryPoints,
-        entryPoints[0].id,
-      ])].sort(),
-    },
-  };
-}
-
 function normalizePackArtifact(artifact, input) {
   const sourcePath = resolveArtifactSourcePath(artifact, input);
   const packPath = resolveLogicalArtifactPath(artifact);
@@ -172,6 +140,9 @@ function normalizePackArtifact(artifact, input) {
 
 function normalizeQualificationEvidence(evidence) {
   requireObject(evidence, 'qualification evidence');
+  if (![undefined, 'generate', 'rerank', 'encodeSequence', 'embed'].includes(evidence.operation)) {
+    throw new Error(`Forge does not support qualification operation "${evidence.operation}".`);
+  }
   const surface = requireString(evidence.surface, 'qualificationEvidence.surface');
   const evidenceHash = requireString(evidence.evidenceHash, 'qualificationEvidence.evidenceHash');
   const sourcePath = path.resolve(requireString(evidence.sourcePath, 'qualificationEvidence.sourcePath'));
@@ -180,6 +151,8 @@ function normalizeQualificationEvidence(evidence) {
     ? { operation: 'rerank', rerankedDocuments: requirePositiveInteger(evidence.rerankedDocuments, 'qualificationEvidence.rerankedDocuments') }
     : evidence.operation === 'encodeSequence'
     ? { operation: 'encodeSequence', encodedSequences: requirePositiveInteger(evidence.encodedSequences, 'qualificationEvidence.encodedSequences') }
+    : evidence.operation === 'embed'
+    ? { operation: 'embed', embeddedTexts: requirePositiveInteger(evidence.embeddedTexts, 'qualificationEvidence.embeddedTexts') }
     : { generatedTokens: requirePositiveInteger(evidence.generatedTokens, 'qualificationEvidence.generatedTokens') };
   const transcriptHash = requireString(evidence.transcriptHash, 'qualificationEvidence.transcriptHash');
   if (evidence.status !== 'passed') throw new Error('Forge only packages passed qualification evidence.');
@@ -424,13 +397,17 @@ export function stageAnalyze(normalized) {
       intermediateSize: requirePositiveInteger(architecture.intermediateSize, 'manifest.architecture.intermediateSize'),
     },
     outputTopology: {
-      headType: inference.supportsSequence === true ? 'sequence-encoder' : 'causal-lm',
+      headType: manifest.modelType === 'embedding' ? 'text-embedding'
+        : inference.supportsSequence === true ? 'sequence-encoder' : 'causal-lm',
       tieWeights: output.tieWordEmbeddings === true,
       ...(inference.supportsRerank === true
         ? { rerank: structuredClone(requireObject(inference.rerank, 'manifest.inference.rerank')) }
         : {}),
       ...(inference.supportsSequence === true
         ? { sequence: structuredClone(requireObject(inference.sequence, 'manifest.inference.sequence')) }
+        : {}),
+      ...(manifest.modelType === 'embedding' || inference.supportsEmbedding === true
+        ? { embedding: resolvePackEmbeddingContract(manifest) }
         : {}),
     },
     phases: ['prefill', 'decode'],
@@ -446,7 +423,7 @@ function dtypeByteWidth(dtype, label) {
   throw new Error(`Forge cannot size state with unsupported dtype "${dtype}" at ${label}.`);
 }
 
-function resolveModelIRSpecialization(modelIR, manifest) {
+function resolveModelIRSpecialization(modelIR, operation) {
   if (modelIR.schema !== 'doppler.model-ir/v2') {
     return {
       hiddenSize: modelIR.hiddenSize,
@@ -460,18 +437,18 @@ function resolveModelIRSpecialization(modelIR, manifest) {
     };
   }
 
-  const loweredGenerate = modelIR.entryPoints.filter((entryPoint) => (
-    entryPoint.kind === 'generate'
+  const loweredEntries = modelIR.entryPoints.filter((entryPoint) => (
+    entryPoint.kind === operation
       && entryPoint.status === 'lowered'
       && entryPoint.phases.includes('prefill')
-      && entryPoint.phases.includes('decode')
+      && (['rerank', 'embed'].includes(operation) || entryPoint.phases.includes('decode'))
   ));
-  if (loweredGenerate.length !== 1) {
-    throw new Error('Forge requires exactly one lowered ModelIR v2 generate entry point with prefill and decode.');
+  if (loweredEntries.length !== 1) {
+    throw new Error(`Forge requires exactly one lowered ModelIR v2 ${operation} entry point with its execution phases.`);
   }
-  const entryPoint = loweredGenerate[0];
+  const entryPoint = loweredEntries[0];
   if (!modelIR.supportScope.loweredEntryPoints.includes(entryPoint.id)) {
-    throw new Error('Forge generate entry point is absent from ModelIR supportScope.loweredEntryPoints.');
+    throw new Error(`Forge ${operation} entry point is absent from ModelIR supportScope.loweredEntryPoints.`);
   }
   const component = modelIR.components.find((candidate) => candidate.id === entryPoint.componentId);
   const schedule = modelIR.blockSchedules.find((candidate) => candidate.componentId === entryPoint.componentId);
@@ -586,7 +563,8 @@ export function stageSpecialize(lowered) {
   const activationDtype = requireString(session.compute?.defaults?.activationDtype, 'manifest.inference.session.compute.defaults.activationDtype');
   const kvDtype = requireString(session.kvcache?.kvDtype, 'manifest.inference.session.kvcache.kvDtype');
   const weightDtype = requireString(manifest.quantizationInfo?.weights, 'manifest.quantizationInfo.weights');
-  const specialization = resolveModelIRSpecialization(modelIR, manifest);
+  const operation = normalized.programBundle.referenceTranscript?.operation ?? 'generate';
+  const specialization = resolveModelIRSpecialization(modelIR, operation);
   if (modelIR.schema === 'doppler.model-ir/v2'
     && (normalized.initialExecutionIdentity?.schema !== INITIAL_EXECUTION_IDENTITY_V2_SCHEMA_ID
       || normalized.initialExecutionIdentity?.programLoadPolicy?.schema
@@ -683,13 +661,32 @@ export function stageSpecialize(lowered) {
   };
 }
 
-export function stageSearch(specialized) {
+export function stageSearch(specialized, evaluation) {
+  let evaluationReceipt = null;
+  if (evaluation !== undefined) {
+    const hashes = specialized.targetPlans.map(hashTargetPlan).sort();
+    if (evaluation?.contract?.modelIRHash !== specialized.modelIRHash
+      || hashStable(hashes) !== hashStable([...(evaluation?.contract?.candidateHashes || [])].sort())
+      || hashStable(hashes) !== hashStable([...specialized.targetPlanHashes].sort())) {
+      throw new Error('Forge search evaluation must bind exactly the specialized TargetPlans and ModelIR.');
+    }
+    evaluationReceipt = evaluateForgeCandidates(evaluation);
+    if (evaluationReceipt.selectedCandidateHashes.length === 0) {
+      const error = new Error('Forge search rejected every evaluated TargetPlan; no Pack may be signed.');
+      error.evaluationReceipt = evaluationReceipt;
+      throw error;
+    }
+  }
+  const selectedHashes = evaluationReceipt?.selectedCandidateHashes ?? specialized.targetPlanHashes;
   return {
     ...specialized, stage: 'search', ok: true,
+    targetPlans: specialized.targetPlans.filter(plan => selectedHashes.includes(hashTargetPlan(plan))),
+    targetPlanHashes: [...selectedHashes],
     searchReceipt: {
       candidateTargetPlanHashes: [...specialized.targetPlanHashes],
-      selectedTargetPlanHashes: [...specialized.targetPlanHashes],
-      policy: 'closed-program-source-plan',
+      selectedTargetPlanHashes: [...selectedHashes],
+      policy: evaluationReceipt?.selection ?? 'closed-program-source-plan',
+      evaluationReceipt,
     },
   };
 }
@@ -783,13 +780,14 @@ export async function runForgePipeline(input, signer) {
   const analyzed = stageAnalyze(normalized);
   const lowered = stageLower(analyzed);
   const specialized = stageSpecialize(lowered);
-  const searched = stageSearch(specialized);
+  const searched = stageSearch(specialized, input.candidateEvaluation);
   const verified = stageVerify(searched);
   const qualified = stageQualify(verified);
   const packaged = stagePackage(qualified);
   const signed = await stageSign(packaged, signer);
   return {
     pack: signed.pack,
+    searchReceipt: searched.searchReceipt,
     stages: [inspected, normalized, analyzed, lowered, specialized, searched, verified, qualified, packaged, signed]
       .map((stage) => ({ stage: stage.stage, ok: stage.ok })),
   };

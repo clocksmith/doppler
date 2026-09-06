@@ -1,4 +1,4 @@
-import { hashTargetPlan } from '../../config/target-plan.js';
+import { hashTargetPlan, assertQualifiedTargetOperation } from '../../config/target-plan.js';
 import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import { freezePackV2 } from '../../config/pack-v2.js';
 import { validatePack, verifyPack, getPackIdentity } from '../../config/pack.js';
@@ -13,6 +13,9 @@ import { executePackRerank } from './pack-rerank.js';
 import { createPackOperationAdapters } from './pack-operation-adapters.js';
 import { createPackOperationExecutor } from './pack-operation-executor.js';
 import { executePackForecast } from './pack-forecast.js';
+import { executePackEmbedding } from './pack-embedding.js';
+
+export { createForecastProgramFactory } from './pack-forecast-program.js';
 
 export const RUNTIME_CORE_VERSION = '2.0.0';
 
@@ -149,6 +152,7 @@ export function createDopplerRuntime(ports) {
           async forecast(request) {
             if (closed) throw new Error('Pack runtime session is closed.');
             await assertPlanUnchanged();
+            assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'forecast');
             try {
               return await executePackForecast({ identity: verification.identity,
                 release: verification.lifecycle?.release ?? pack.release,
@@ -158,8 +162,23 @@ export function createDopplerRuntime(ports) {
             } finally { await assertPlanUnchanged(); }
           },
 
+          async embed(request) {
+            if (closed) throw new Error('Pack runtime session is closed.');
+            await assertPlanUnchanged();
+            assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'embed');
+            try {
+              return await executePackEmbedding({ identity: verification.identity,
+                release: verification.lifecycle?.release ?? pack.release,
+                manifest, manifestHash: manifestArtifact.hash,
+                targetPlan: selectedPlan, targetPlanDigest, program, request,
+                artifactReceipts: verification.artifactReceipts,
+                releaseEventDigest: verification.lifecycle?.event.digest ?? null });
+            } finally { await assertPlanUnchanged(); }
+          },
+
           async encodeSequence(sequence, sequenceOptions = {}) {
             if (closed) throw new Error('Pack runtime session is closed.');
+            assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'encodeSequence');
             if (typeof program.encodeSequence !== 'function') throw new Error('Selected Pack program does not implement sequence execution.');
             if (sequenceOptions.signal?.aborted) throw sequenceOptions.signal.reason ?? new Error('Sequence execution cancelled.');
             await assertPlanUnchanged();
@@ -195,6 +214,7 @@ export function createDopplerRuntime(ports) {
           async *generate(generationOptions = {}) {
             if (closed) throw new Error('Pack runtime session is closed.');
             await assertPlanUnchanged();
+            assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'generate');
             try {
               yield* sessionController.generateTokens(selectedPlan, { ...generationOptions, modules });
             } finally {
@@ -211,6 +231,7 @@ export function createDopplerRuntime(ports) {
           async rerank(request) {
             if (closed) throw new Error('Pack runtime session is closed.');
             await assertPlanUnchanged();
+            assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'rerank');
             try {
               const receipt = await executePackRerank({
                 pack: verification.lifecycle ? { ...pack, release: verification.lifecycle.release } : pack,
@@ -245,7 +266,9 @@ export function createDopplerRuntime(ports) {
           },
         };
         const adapters = createPackOperationAdapters({ program,
-          generate: (request) => session.generate(request), rerank: (request) => session.rerank(request) });
+          generate: (request) => session.generate(request), rerank: (request) => session.rerank(request),
+          embed: (request) => session.embed(request),
+          encodeSequence: (sequence, options) => session.encodeSequence(sequence, options) });
         return Object.assign(session, {
           executeOperation: createPackOperationExecutor({ adapters,
             identity: { pack: verification.identity, targetId: selectedPlan.targetId, targetPlanDigest,

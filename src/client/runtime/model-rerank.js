@@ -17,8 +17,9 @@ export async function collectModelRerankScores(pipeline, query, documents, optio
   const scoringConfig = resolveRerankScoringConfig(pipeline);
   const scores = [];
   for (let index = 0; index < normalizedDocuments.length; index += 1) {
+    options.signal?.throwIfAborted();
     const scored = await scoreRerankDocument(pipeline, normalizedQuery, normalizedDocuments[index],
-      scoringConfig, { benchmark: options.benchmark === true });
+      scoringConfig, { benchmark: options.benchmark === true, signal: options.signal });
     scores.push({ index, document: normalizedDocuments[index], score: scored.score,
       probability: scored.probability, trueLogit: scored.trueLogit, falseLogit: scored.falseLogit,
       tokenCount: scored.tokenCount, tokenIds: scored.tokenIds, scoringPath: scored.scoringPath });

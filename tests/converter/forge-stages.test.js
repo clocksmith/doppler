@@ -3,6 +3,11 @@ import fs from 'node:fs/promises';
 import { runForgePipeline, stageAnalyze } from '../../src/converter/forge-stages.js';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
 import { sha256Hex } from '../../src/utils/sha256.js';
+import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
+import { createRerankReferenceFixture } from '../helpers/rerank-reference-fixture.js';
+import { createEmbeddingReferenceFixture } from '../helpers/embedding-reference-fixture.js';
+import { createForgeEvaluationFixture } from '../helpers/forge-evaluation-fixture.js';
+import { hashTargetPlan } from '../../src/config/target-plan.js';
 import {
   TEST_PACK_AUTHORITY,
   TEST_PACK_PUBLIC_KEY,
@@ -101,6 +106,21 @@ assert.equal(result.pack.schema, 'doppler.pack/v2');
 assert.equal(result.pack.signature.authority, TEST_PACK_AUTHORITY);
 assert.equal(result.pack.modelIR.hiddenSize, 4);
 assert.equal(result.pack.targetPlans.length, 1, 'Forge must not invent unsupported target variants');
+const candidateEvaluation = createForgeEvaluationFixture(result.pack.targetPlans[0].modelIRHash,
+  result.pack.targetPlans.map(hashTargetPlan));
+const evaluatedPack = await runForgePipeline({ manifest, manifestRaw, programBundle, programBundleRaw,
+  programBundlePath: '/tmp/program-bundle.json', repoRoot: '/tmp', outputPath: '/tmp/model.pack.json', release, candidateEvaluation }, {
+  authority: TEST_PACK_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_PACK_PUBLIC_KEY,
+});
+assert.equal(evaluatedPack.searchReceipt.policy, 'observed-range-pareto');
+assert.equal(evaluatedPack.searchReceipt.evaluationReceipt.promotionAllowed, false);
+assert.equal(evaluatedPack.pack.semanticRoot, result.pack.semanticRoot, 'selection must not rewrite executable identity');
+const failedEvaluation = structuredClone(candidateEvaluation);
+failedEvaluation.observations[0].output.tokens = [9];
+await assert.rejects(runForgePipeline({ manifest, manifestRaw, programBundle, programBundleRaw,
+  programBundlePath: '/tmp/program-bundle.json', repoRoot: '/tmp', outputPath: '/tmp/model.pack.json', release,
+  candidateEvaluation: failedEvaluation }, { authority: TEST_PACK_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_PACK_PUBLIC_KEY }),
+error => /no Pack may be signed/.test(error.message) && error.evaluationReceipt.selectedCandidateHashes.length === 0);
 
 const qwenReceipt = JSON.parse(await fs.readFile(
   'reports/model-ir-v2/qwen3.8-27b.model-ir-receipt.json',
@@ -195,6 +215,95 @@ assert.equal(
 );
 assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'recurrent_state'));
 assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'convolutional_state'));
+
+// Actual Forge stages with synthetic source/output evidence, not hardware proof.
+const rerankIR = structuredClone(modelIRV2);
+rerankIR.sourceIdentity.revision = '1'.repeat(40);
+const rerankEntry = rerankIR.entryPoints.find((entry) => entry.kind === 'generate');
+rerankEntry.kind = 'rerank';
+rerankEntry.phases = ['prefill'];
+const rerankTranscript = createRerankReferenceFixture();
+Object.assign(rerankTranscript.reference.source, {
+  checkpointId: rerankIR.sourceIdentity.checkpointId,
+  repository: rerankIR.sourceIdentity.repository,
+});
+rerankTranscript.referenceDigest = computeCanonicalSha256(rerankTranscript.reference);
+const rerankManifest = structuredClone(v2Manifest);
+rerankManifest.artifactIdentity.sourceRevision = rerankIR.sourceIdentity.revision;
+rerankManifest.inference.supportsRerank = true;
+rerankManifest.inference.rerank = rerankTranscript.reference.scoringConfig;
+const rerankManifestRaw = `${JSON.stringify(rerankManifest)}\n`;
+Object.assign(rerankTranscript, {
+  modelId: rerankManifest.modelId, manifestHash: hash(rerankManifestRaw), executionGraphHash: graphHash,
+});
+const rerankBundle = structuredClone(v2ProgramBundle);
+rerankBundle.referenceTranscript = rerankTranscript;
+rerankBundle.sources.manifest.hash = hash(rerankManifestRaw);
+Object.assign(rerankBundle.artifacts.find((artifact) => artifact.role === 'manifest'), {
+  hash: hash(rerankManifestRaw), sizeBytes: rerankManifestRaw.length,
+});
+const rerankEvidenceRaw = JSON.stringify({ modelIR: rerankIR });
+const rerankInput = {
+  manifest: rerankManifest, manifestRaw: rerankManifestRaw, programBundle: rerankBundle,
+  programBundleRaw: JSON.stringify(rerankBundle), programBundlePath: '/tmp/rerank-bundle.json',
+  repoRoot: '/tmp', outputPath: '/tmp/rerank.pack.json', modelIR: rerankIR,
+  modelIREvidence: { sourcePath: '/tmp/rerank-ir.json', hash: hash(rerankEvidenceRaw), sizeBytes: rerankEvidenceRaw.length },
+  initialExecutionIdentity, release,
+};
+const signer = { authority: TEST_PACK_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_PACK_PUBLIC_KEY };
+const rerankResult = await runForgePipeline(rerankInput, signer);
+assert.equal(rerankResult.pack.modelIR.schema, 'doppler.model-ir/v2');
+assert.deepEqual(rerankResult.pack.modelIR.supportScope.qualifiedEntryPoints, [rerankEntry.id]);
+assert.equal(rerankResult.pack.targetPlans[0].qualification[0].operation, 'rerank');
+for (const [change, expected] of [
+  [(input) => { input.programBundle.referenceTranscript.observation.outputs[0].score += 10; }, /source comparison failed/],
+  [(input) => {
+    input.programBundle.referenceTranscript.reference.source.revision = '2'.repeat(40);
+    input.programBundle.referenceTranscript.referenceDigest = computeCanonicalSha256(input.programBundle.referenceTranscript.reference);
+  }, /source.*identity/i],
+  [(input) => { input.modelIR.entryPoints.find((entry) => entry.kind === 'rerank').kind = 'generate'; }, /lowered rerank/],
+  [(input) => { input.programBundle.referenceTranscript.surface = 'unknown-webgpu'; }, /explicit physical/],
+]) {
+  const invalid = structuredClone(rerankInput);
+  change(invalid);
+  await assert.rejects(() => runForgePipeline(invalid, signer), expected);
+}
+
+const embeddingInput = structuredClone(rerankInput);
+embeddingInput.modelIR.entryPoints.find(entry => entry.kind === 'rerank').kind = 'embed';
+embeddingInput.manifest.modelType = 'embedding';
+delete embeddingInput.manifest.inference.supportsRerank;
+delete embeddingInput.manifest.inference.rerank;
+const embeddingTranscript = createEmbeddingReferenceFixture();
+Object.assign(embeddingTranscript.reference.source, {
+  checkpointId: embeddingInput.modelIR.sourceIdentity.checkpointId,
+  repository: embeddingInput.modelIR.sourceIdentity.repository,
+});
+embeddingTranscript.referenceDigest = computeCanonicalSha256(embeddingTranscript.reference);
+embeddingInput.manifest.inference.output.embeddingPostprocessor = embeddingTranscript.reference.embeddingContract.postprocessor;
+embeddingInput.manifestRaw = JSON.stringify(embeddingInput.manifest);
+Object.assign(embeddingTranscript, { modelId: embeddingInput.manifest.modelId,
+  manifestHash: hash(embeddingInput.manifestRaw), executionGraphHash: graphHash });
+embeddingInput.programBundle.referenceTranscript = embeddingTranscript;
+embeddingInput.programBundle.sources.manifest.hash = embeddingTranscript.manifestHash;
+Object.assign(embeddingInput.programBundle.artifacts.find(artifact => artifact.role === 'manifest'), {
+  hash: embeddingTranscript.manifestHash, sizeBytes: embeddingInput.manifestRaw.length,
+});
+embeddingInput.programBundleRaw = JSON.stringify(embeddingInput.programBundle);
+const embeddingResult = await runForgePipeline(embeddingInput, signer);
+assert.equal(embeddingResult.pack.targetPlans[0].qualification[0].operation, 'embed');
+assert.equal(embeddingResult.pack.targetPlans[0].qualification[0].embeddedTexts, 2);
+assert.deepEqual(embeddingResult.pack.modelIR.supportScope.qualifiedEntryPoints, [rerankEntry.id]);
+for (const [change, expected] of [
+  [input => { input.programBundle.referenceTranscript.observation.outputs[0].embedding[3] = 1; }, /source comparison failed/],
+  [input => { input.modelIR.entryPoints.find(entry => entry.kind === 'embed').kind = 'generate'; }, /lowered embed/],
+  [input => { input.programBundle.referenceTranscript.surface = 'unknown-webgpu'; }, /explicit physical/],
+  [input => { input.programBundle.captureProfile.surfaces = ['different-webgpu']; }, /capture surface/],
+]) {
+  const invalid = structuredClone(embeddingInput);
+  change(invalid);
+  await assert.rejects(() => runForgePipeline(invalid, signer), expected);
+}
 
 const wrongKernelIdentity = createInitialExecutionIdentityV2({
   executionGraphHash: graphHash,

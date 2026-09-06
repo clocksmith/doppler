@@ -97,7 +97,7 @@ export function createPackReleaseFixture(options = {}) {
 
 export async function createSignedPackFixture(options = {}) {
   const artifactBytes = new Map([
-    ['manifest', bytes('{"modelId":"pack-test-model"}\n')],
+    ['manifest', bytes(options.manifest ? JSON.stringify(options.manifest) : '{"modelId":"pack-test-model"}\n')],
     ['tokenizer', bytes('{"type":"test"}\n')],
     ['weights', Uint8Array.from([1, 2, 3, 4])],
     ['wgsl', bytes('@compute @workgroup_size(1) fn main() {}\n')],
@@ -166,7 +166,13 @@ export async function createSignedPackFixture(options = {}) {
     qualification: [{
       surface: 'test-webgpu', status: 'passed', evidenceArtifactId: 'evidence',
       evidenceHash: artifacts.find((artifact) => artifact.artifactId === 'evidence').hash,
-      generatedTokens: 4,
+      ...(options.operation === 'rerank'
+        ? { operation: 'rerank', rerankedDocuments: 2, transcriptHash: wgslHash }
+        : options.operation === 'encodeSequence'
+          ? { operation: 'encodeSequence', encodedSequences: 1, transcriptHash: wgslHash }
+          : options.operation === 'embed'
+            ? { operation: 'embed', embeddedTexts: 1, transcriptHash: wgslHash }
+            : { generatedTokens: 4 }),
     }],
     ...(options.initialExecutionIdentity
       ? { initialExecutionIdentity: options.initialExecutionIdentity }

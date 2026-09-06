@@ -1,0 +1,238 @@
+{
+  "schema": "doppler.standalone-engineering-checkpoint/v1",
+  "generatedAtUtc": "2026-09-06 00:33:30 UTC",
+  "component": [
+    "doppler.runtime-source.client",
+    "doppler.runtime-source.client.model-host",
+    "doppler.runtime-source.converter",
+    "doppler.runtime-source.tooling",
+    "doppler.repository-tooling",
+    "doppler.tests",
+    "doppler.docs"
+  ],
+  "intent": "preserved",
+  "goalComplete": false,
+  "source": {
+    "baseCommit": "881880397793b319b49a36ca2bfc2453615b94c5",
+    "dirtyWorktree": true,
+    "pushed": false,
+    "patch": {
+      "path": "reports/electron-adoption/standalone-forge-host-source-20260905.patch",
+      "sizeBytes": 243344,
+      "sha256": "beb2c0a87a73b1a884bda24834ddf30ed35f23c6ec746df3d4e612e8d0f1fd7a"
+    },
+    "inventory": {
+      "path": "reports/electron-adoption/20260905-forge-host-handoff/source-files.json",
+      "sizeBytes": 21835,
+      "sha256": "482441329b70818edb0b52151c2bbb026d49cfa1f2f43ed3cdcc24c80baea8ce"
+    },
+    "reconstruction": {
+      "path": "reports/electron-adoption/20260905-forge-host-handoff/reconstruction.json",
+      "sizeBytes": 740,
+      "sha256": "7d6a20ed2e68afa29522ea9740fb7c002c1700ca8e8e9a0c321774d9f40df83e"
+    },
+    "instructions": "Use a separate checkout at the baseline plus the complete patch and added files. The snapshot includes earlier active work; do not stack it on earlier patches."
+  },
+  "changes": [
+    "Moved convenience model acquisition, cache and device coordination into src/client/model-host; the previous runtime index and model-session paths remain one-line compatibility facades.",
+    "Extracted model evidence construction into model-evidence.js, reducing the model handle from 834 to 592 lines without changing public methods or evidence behavior.",
+    "Enforced transitive import exclusions: Pack core cannot import model-host or its legacy facades; host evidence cannot import GPU, loading, inference, Forge, or command machinery.",
+    "Made converter-owned Forge and tooling-owned command/file orchestration explicit in charters and architecture documentation. Historical evidence paths remain unchanged.",
+    "Added frozen candidate-evaluation contracts, balanced attempt order, complete source-oracle checks, retained failure observations, cancellation, and per-case observed-range Pareto selection.",
+    "Semantic search retains every valid candidate and distinguishes unmeasured proposal order from evaluation. Supplied evaluation must bind exactly the generated candidates and ModelIR; all-rejected evaluation prevents signing.",
+    "Connected evaluation to the existing Forge pipeline and CLI via --candidate-evaluation. Qualification and application acceptance remain separate gates.",
+    "Updated canonical charter inventory assertions, current evidence pointers, generated package closure, and measured package budgets; no public entry point was removed."
+  ],
+  "tests": {
+    "evidenceClass": "repository-tests",
+    "command": "npm run ci:check",
+    "exitCode": 0,
+    "testFiles": 759,
+    "packFilesIncludedInThatCount": 35,
+    "log": {
+      "path": "reports/electron-adoption/standalone-ci-20260905-15.log",
+      "sizeBytes": 390796,
+      "sha256": "bb66543d6e3db6b15a7aedef4b575230ae971a3f425e8981e4dd840fa835760e"
+    },
+    "focused": {
+      "files": 12,
+      "log": {
+        "path": "reports/electron-adoption/standalone-forge-host-regressions-20260905-01.log",
+        "sizeBytes": 4415,
+        "sha256": "a173031c9818fede09955f13ab3b9e9cdf2f71a2a94b9e17b308eacc25546f82"
+      }
+    },
+    "architecture": {
+      "owners": 21,
+      "files": 2615,
+      "governedOversizeFiles": 0,
+      "reviewedSoftLimitFiles": 52
+    },
+    "charters": 30,
+    "style": {
+      "governedJavascriptModules": 976,
+      "reviewedNumericCandidates": 205
+    },
+    "runtimeClosure": {
+      "files": 45,
+      "bytes": 228257,
+      "unchanged": true
+    },
+    "explicitSkips": [
+      "two Apple Metal subgroup GPU regressions",
+      "local Gemma 3 NaN fixture absent",
+      "Apple-specific Gemma 4 regression on AMD",
+      "LiteRT source task absent",
+      "Qwen linear attention model directory not supplied",
+      "legacy TranslateGemma lane outside current release focus"
+    ],
+    "boundary": "File counts include synthetic contracts and explicit skips; they are not a count of physical qualifications."
+  },
+  "package": {
+    "evidenceClass": "installed-package-test",
+    "receipt": {
+      "path": "reports/electron-adoption/20260905-standalone-package-13/receipt.json",
+      "sizeBytes": 590,
+      "sha256": "ca020fa82bc1fe58ab7ecb0145afeddc796f1346c859f3938bd9689c31ba86ec"
+    },
+    "tarball": {
+      "path": "reports/electron-adoption/20260905-standalone-package-13/doppler-gpu-0.5.1.tgz",
+      "sizeBytes": 2081452,
+      "sha256": "3d96737cbac171d6b43ed36537f519ce1bc52a26ad1143bdda2d8b903127e512"
+    },
+    "entryCount": 1754,
+    "packedBytes": 2081452,
+    "unpackedBytes": 10760127,
+    "publicExports": 27,
+    "shippedFilesComparedWithCurrentSource": 1754,
+    "changedShippedFiles": [],
+    "checks": [
+      "public and browser-condition imports",
+      "public declarations",
+      "three CLI entry points",
+      "installed Electron Pack contract",
+      "installed embedding and operation authority"
+    ],
+    "physicalEmbedding": false,
+    "externalAdoption": false
+  },
+  "candidateEvaluation": {
+    "evidenceClass": "synthetic-contract-tests",
+    "implementation": "src/converter/forge-candidate-evaluation.js",
+    "selection": "observed-range-pareto",
+    "preservesNoiseOverlapAndTradeoffs": true,
+    "statisticalSignificanceClaim": false,
+    "physicalOptimizationComparison": false,
+    "claimAllowed": false,
+    "promotionAllowed": false,
+    "scope": "Synthetic adapter metrics validate evaluation and pipeline wiring. A real campaign still needs attributable physical attempts, controlled cache/timing scopes, retained oracle bytes, and independent qualification."
+  },
+  "physical": {
+    "evidenceClass": "retained-physical-Electron-observation",
+    "report": {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-07/qualification.json",
+      "sizeBytes": 371607,
+      "sha256": "85664150ddf079d195e798cb1131e8f04aba001a73a4b2c57ae98ddb121e18fc"
+    },
+    "config": {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-07-config.json",
+      "sizeBytes": 1781,
+      "sha256": "58ec95bb4f24ec052b841abc34a8e620e63ce7f97d15e6196ac3095fb05b3e6a"
+    },
+    "runtime": {
+      "surface": "browser-webgpu",
+      "host": "electron",
+      "electronVersion": "43.4.0",
+      "executionGraphHash": "sha256:d2cbdb9bbfa04bb0d4844a18565f64fcc5ac21bad80161b1f500a06757adfd96",
+      "sourceRevision": "881880397793b319b49a36ca2bfc2453615b94c5",
+      "adapterInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+      }
+    },
+    "boundary": {
+      "externalAdoption": false,
+      "sourceComparison": true,
+      "signedPackExecution": true,
+      "applicationAuthorization": "pinned-internal-evaluation-resolver",
+      "productionIpc": false
+    },
+    "checks": 16,
+    "passed": true,
+    "packIdentity": {
+      "schema": "doppler.pack/v2",
+      "packId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-pack-v2-16bcdeef41216f71",
+      "semanticRoot": "sha256:16bcdeef41216f71b1243e97a87bc882eaac7e5f988d7a9718e241233b88c3ba",
+      "envelopeDigest": "sha256:9f39167a1fd7c3d8036462ff52d469a993aeb4f37a454269aac09a972c029276",
+      "artifactClosureDigest": "sha256:09b520027fdd052680a221696a0a756fa959b4c3c70fbcdc52607371ba4fef4b"
+    },
+    "targetPlanDigest": "sha256:a01505932b80f92faf7800d1104249685282f6af8de0d736d02ade6da4bb4dbb",
+    "closed": true,
+    "queryCount": 1,
+    "documentCount": 3,
+    "performanceClaim": false,
+    "concurrentRepositoryChecks": true,
+    "trustBoundary": "Unchanged development-signed Pack 03 with explicitly chosen local evaluator pins; unchanged source reference and acceptance tolerances.",
+    "applicationBoundary": "Internal application resolver, not a production-IPC or external-maintainer episode. The adapter closed the session."
+  },
+  "adverse": [
+    {
+      "evidence": {
+        "path": "reports/electron-adoption/standalone-ci-20260905-12.log",
+        "sizeBytes": 16333,
+        "sha256": "5b875aadb1bea3fcdc71e697095cac01b6bc96dfa236c07fe9f3604bc4715c02"
+      },
+      "reason": "Revocation ordering assertion read the old implementation path after it became a facade.",
+      "resolution": "Point the same ordering assertion at the moved host implementation; enforcement unchanged."
+    },
+    {
+      "evidence": {
+        "path": "reports/electron-adoption/standalone-ci-20260905-13.log",
+        "sizeBytes": 20453,
+        "sha256": "0493580911401f6efb37a5f8ad20ea658c0d5f5cffa1ac2ff57e3d69b2cc602f"
+      },
+      "reason": "Audited npm unpacked-byte cap was 127 bytes below the new package.",
+      "resolution": "Record actual package sizes and update the explicit cap to 10761000."
+    },
+    {
+      "evidence": {
+        "path": "reports/electron-adoption/standalone-ci-20260905-14.log",
+        "sizeBytes": 391300,
+        "sha256": "6712d0254a93ea42eacae6f225b08846399c8d262c324e5bc9519708e52f7f5d"
+      },
+      "reason": "CATSCAN test hardcoded 29 records; the new host charter makes 30.",
+      "resolution": "Compare exact paths to the canonical policy inventory and assert the new component identity."
+    }
+  ],
+  "handoff": {
+    "archive": "reports/electron-adoption/20260905-forge-host-handoff.tar",
+    "inventory": "reports/electron-adoption/20260905-forge-host-handoff/files.json",
+    "receipt": "reports/electron-adoption/20260905-forge-host-handoff/receipt.json",
+    "retention": "local; not fetched by a repository clone",
+    "weightClosure": {
+      "archive": "reports/electron-adoption/20260905-closed-pack-handoff.tar",
+      "sha256": "1150f307a6755d266ae5a85555cb15f838d675895224a5ef7a7f312e574d6dbd",
+      "duplicatedInSupplement": false
+    }
+  },
+  "boundaries": {
+    "runtimePlanMutation": false,
+    "verificationBypass": false,
+    "applicationActivationAuthority": "unchanged",
+    "DoeRequired": false,
+    "PooldayRequired": false,
+    "ReploidRequired": false,
+    "externalAdoption": false,
+    "paidUse": false,
+    "recurringRevenue": false
+  },
+  "remaining": [
+    "Physically qualify a source-pinned text embedding Pack; the current embedding Pack API has synthetic contract evidence.",
+    "Run a controlled physical candidate campaign through the new evaluator; synthetic metrics do not show an optimization advantage.",
+    "Qualify installed Pack v3 release/update and explicit recipient-controlled retained-use policy.",
+    "Complete incumbent application controls and a separately evaluated second model release.",
+    "Independent maintainer use and retention require external decisions; internal fixtures and hardware runs cannot supply them."
+  ]
+}

@@ -18,6 +18,69 @@ import {
   shouldQuantize,
   transposeF32,
 } from '../../src/converter/quantizer.js';
+import { decodeQ4KBlockReference } from '../../tools/lib/q4k-projection-reference.js';
+
+// After coding values, neighboring representable scale/minimum pairs must not
+// lower squared reconstruction error. Includes partial subblocks, not padding.
+for (const length of [17, 256, 300]) {
+  const data = Float32Array.from({ length }, (_, i) => Math.sin(i * 1.73) * Math.cos(i * 0.37));
+  const { quantized } = quantizeToQ4KMRowWise(data, [1, length]);
+  for (let start = 0; start < length; start += QK_K) {
+    const decoded = decodeQ4KBlockReference(quantized, start / QK_K * QK4_K_BLOCK_SIZE);
+    for (let sb = 0; sb < 8 && start + sb * 32 < length; sb += 1) {
+      const end = Math.min(length, start + (sb + 1) * 32);
+      const errorFor = (scaleBits, minBits) => {
+        const scale = decoded.d * scaleBits;
+        const minimum = decoded.dmin * minBits;
+        let error = 0;
+        for (let i = start + sb * 32; i < end; i += 1) {
+          const code = scale > 0 ? Math.max(0, Math.min(15, Math.round((data[i] + minimum) / scale))) : 0;
+          const delta = data[i] - Math.fround(scale * code - minimum);
+          error += delta * delta;
+        }
+        return error;
+      };
+      const actual = errorFor(decoded.scaleBits[sb], decoded.minBits[sb]);
+      for (let ds = -1; ds <= 1; ds += 1) {
+        for (let dm = -1; dm <= 1; dm += 1) {
+          const scale = decoded.scaleBits[sb] + ds;
+          const minimum = decoded.minBits[sb] + dm;
+          if (scale < 0 || scale > 63 || minimum < 0 || minimum > 63) continue;
+          assert.ok(actual <= errorFor(scale, minimum) + 1e-12,
+            `length ${length}, subblock ${start / 32 + sb}: neighboring grid reduces error`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(quantizeToQ4KMRowWise(data, [1, length]).quantized, quantized);
+}
+
+// Q4_K minima are non-negative offsets subtracted during decoding. A positive
+// subblock must include zero in its representable range, not lose its offset.
+for (const value of [1, 0.5, -1, 0]) {
+  const decoded = decodeQ4KBlockReference(quantizeQ4KBlock(new Float32Array(QK_K).fill(value), 0));
+  assert.ok(decoded.values.every((actual) => Math.abs(actual - value) < 0.002),
+    `constant ${value} must survive Q4_K encoding`);
+}
+
+// Codes must minimize error against the scales actually stored in the bytes,
+// including six-bit subblock parameters and half-precision multipliers.
+for (const length of [32, 256, 300]) {
+  const data = Float32Array.from({ length }, (_, index) => Math.sin(index * 0.17) * (1 + index / 31));
+  const { quantized } = quantizeToQ4KMRowWise(data, [1, length]);
+  for (let blockStart = 0; blockStart < length; blockStart += QK_K) {
+    const decoded = decodeQ4KBlockReference(quantized, blockStart / QK_K * QK4_K_BLOCK_SIZE);
+    for (let i = 0; i < Math.min(QK_K, length - blockStart); i += 1) {
+      const subblock = Math.floor(i / 32);
+      const error = Math.abs(data[blockStart + i] - decoded.values[i]);
+      for (let code = 0; code < 16; code += 1) {
+        const candidate = Math.fround(decoded.scales[subblock] * code - decoded.minima[subblock]);
+        assert.ok(error <= Math.abs(data[blockStart + i] - candidate) + 1e-6,
+          `row length ${length}, element ${blockStart + i}: a stored code has lower error`);
+      }
+    }
+  }
+}
 
 {
   const input = [0, 1, -1, 0.5, -0.25, 12.25, -24.5];

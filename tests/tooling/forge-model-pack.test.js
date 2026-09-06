@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { createForgeEvaluationFixture } from '../helpers/forge-evaluation-fixture.js';
+import { hashTargetPlan } from '../../src/config/target-plan.js';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -242,6 +244,24 @@ const secondOutputPath = path.join(tmpRoot, 'second', 'compiled.pack.json');
 const second = await forgeModelPack({ ...options, outputPath: secondOutputPath });
 assert.equal(second.semanticRoot, receipt.semanticRoot);
 assert.equal(second.envelopeHash, receipt.envelopeHash);
+
+const evaluation = createForgeEvaluationFixture(writtenPack.targetPlans[0].modelIRHash, writtenPack.targetPlans.map(hashTargetPlan));
+const candidateEvaluationPath = path.join(tmpRoot, 'evaluation.json');
+const evaluationRaw = `${JSON.stringify(evaluation)}\n`;
+await fs.writeFile(candidateEvaluationPath, evaluationRaw);
+const evaluatedOptions = await buildForgeOptions(parseArgs(['--candidate-evaluation', candidateEvaluationPath]));
+assert.equal(evaluatedOptions.candidateEvaluationPath, candidateEvaluationPath);
+const evaluated = await forgeModelPack({ ...options, candidateEvaluationPath, outputPath: path.join(tmpRoot, 'evaluated', 'pack.json') });
+assert.equal(evaluated.semanticRoot, receipt.semanticRoot);
+assert.equal(evaluated.searchReceipt.policy, 'observed-range-pareto');
+assert.equal(evaluated.searchReceipt.evaluationReceipt.claimAllowed, false);
+assert.equal(evaluated.candidateEvaluation.path, candidateEvaluationPath);
+assert.equal(evaluated.candidateEvaluation.sizeBytes, Buffer.byteLength(evaluationRaw));
+evaluation.observations[0].output.tokens = [999];
+await fs.writeFile(candidateEvaluationPath, JSON.stringify(evaluation));
+const rejectedOutput = path.join(tmpRoot, 'rejected-evaluation', 'pack.json');
+await assert.rejects(forgeModelPack({ ...options, candidateEvaluationPath, outputPath: rejectedOutput }), /no Pack may be signed/);
+await assert.rejects(fs.access(rejectedOutput), /ENOENT/);
 
 const qualificationReportPath = path.join(reportDir, 'browser-qualification-report.json');
 const qualificationReport = JSON.parse(await fs.readFile(reportPath, 'utf8'));

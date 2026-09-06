@@ -52,7 +52,8 @@ export interface TargetPlanV1 {
     evidenceArtifactId: string;
     evidenceHash: `sha256:${string}`;
     transcriptHash?: `sha256:${string}`;
-    operation?: 'generate' | 'encodeSequence' | 'rerank' | 'forecast';
+    operation?: 'generate' | 'encodeSequence' | 'rerank' | 'forecast' | 'embed';
+    embeddedTexts?: number;
     rerankedDocuments?: number;
     forecastCases?: number;
     generatedTokens?: number;
@@ -83,6 +84,7 @@ export interface TargetPlanDeviceProfile {
 
 export declare function validateTargetPlan(plan: unknown): { ok: boolean; errors: string[] };
 export declare function hashTargetPlan(plan: unknown): `sha256:${string}`;
+export declare function assertQualifiedTargetOperation(plan: TargetPlan, surface: string, operation: string): void;
 export declare function matchesDeviceCapability(targetPlan: TargetPlan, deviceProfile: Record<string, unknown>): boolean;
 export declare function selectQualifiedTargetPlan(
   targetPlans: TargetPlan[],

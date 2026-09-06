@@ -1,0 +1,799 @@
+{
+  "schema": "doppler.reranker-engineering-checkpoint/v1",
+  "component": "doppler",
+  "intent": "preserved",
+  "generatedAt": "2026-09-05T20:33:20.762Z",
+  "baseCommit": "9737bcd341bf5dd6706a76bfd6527d70f1344e15",
+  "worktree": "uncommitted source changes; package bundle retains source state and diff",
+  "scope": "Standalone Doppler conversion, selected-token diagnostics, internal physical Electron reranking and package validation. Doe, Poolday and Reploid unchanged.",
+  "externalAdoption": false,
+  "paidUse": false,
+  "productionPromotion": false,
+  "goalComplete": false,
+  "implementation": {
+    "converter": "Q4_K includes zero when a subblock minimum is positive; value codes are selected using the actually stored half-precision multipliers and six-bit parameters. Constant positive blocks no longer collapse to zero. Existing artifacts are not rewritten.",
+    "runtime": "One prefill diagnostic lifecycle for embeddings, full logits, selected logits and selected logits from KV; retains plan ID and failure captures and clears stale state. No graph, kernel, precision or layout policy changed.",
+    "tooling": "Opt-in Electron selected-token capture resets state and requires exact equality with ordinary reranking. Independent projection oracle accepts bound reranker captures and rejects mismatched manifest bytes or perturbed diagnostics."
+  },
+  "validation": {
+    "unitFilesPassed": 747,
+    "package": {
+      "passed": true,
+      "filename": "doppler-gpu-0.5.1.tgz",
+      "integrity": "sha512-HxelEpHnZjkdFiBMXv3Ql6aZGCv/Nhw6Asgka4DLyw55YQL6lG5//Asd2i+j4MqAsNg3Bj9NMBoYf6CTZ37I4w==",
+      "sizeBytes": 2063574,
+      "sha256": "0d1a0835b50c2d8900650de2a0bbe0de7cbc2150b8a8b3f4f2150b28b84c0a0e",
+      "source": {
+        "commit": "9737bcd341bf5dd6706a76bfd6527d70f1344e15",
+        "status": " M src/converter/quantizer.js\n M src/inference/pipelines/text/generator/training.js\n M tests/converter/quantizer.test.js\n M tests/tooling/q4k-projection-reference.test.js\n M tests/tooling/reranker-evaluation-preflight.test.js\n M tools/q4k-projection-oracle.js\n M tools/qualify-reranker-electron.js\n?? tests/inference/selected-logits-diagnostics.test.js\n",
+        "runnerSha256": "e68bbc34c40a847af1b8f0891ffac49a37d44deb960b6368f23e99bdf2b6474a"
+      }
+    },
+    "passedCommands": [
+      "npm run test:unit",
+      "npm run source:style:check",
+      "npm run source:architecture:check",
+      "npm run inference:boundaries:check",
+      "npm run typecheck:source",
+      "npm run artifact:contract:check",
+      "npm run catscan:check",
+      "npm run api:docs:check",
+      "npm run routing:audit:check",
+      "npm run pack-v2:check"
+    ],
+    "fullCiPassed": false,
+    "fullCiBlocker": "Incoming 9737bcd3 forecast factory export violates the existing public-boundary rule. The incoming package also exceeds the pre-existing package count/size budgets. Gates have not been weakened.",
+    "generatedInventory": "API symbols synchronized. Routing registry and overall digests synchronized; integrity failures retained unchanged."
+  },
+  "physical": {
+    "path": "reports/electron-adoption/qwen-selected-logits-installed-pack-01/qualification.json",
+    "passed": true,
+    "referenceChecksPassed": 16,
+    "referenceChecksTotal": 16,
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "0x1586",
+      "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+    },
+    "electronVersion": "43.4.0",
+    "packIdentity": {
+      "schema": "doppler.pack/v2",
+      "packId": "qwen-3-reranker-0-6b-f16-true-logit-af32-pack-v2-a016a03ebb331ef1",
+      "semanticRoot": "sha256:a016a03ebb331ef1aba8c8c782c9be3de855623ef636d44ac80269adba5b1ec0",
+      "envelopeDigest": "sha256:8b5478e6c5b37ac029dc2c9bb204bdd7004cc5b8fefa02e24dcbd9bd9e975245",
+      "artifactClosureDigest": "sha256:32cf1f712ed02a16566dde5cb822bbec06a7f9874c73610def5bead3cbce9845"
+    },
+    "adapterClosedSession": true,
+    "externalOriginRequests": 0,
+    "sourceFactModelIRV2": false,
+    "boundary": "Existing manifest-derived ModelIR v1 / Pack v2 F16 path. One query, three public documents, internally operated AMD host. Not held-out relevance, fleet, incumbent superiority, adoption or second external release."
+  },
+  "adverse": {
+    "candidates": [
+      {
+        "path": "reports/electron-adoption/qwen-q4k-pinned-qualification-01/qualification.json",
+        "model": {
+          "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+          "manifestHash": "sha256:4b488aa1d05deeaa2da6369ae9805c6496ee939824097260087cad2b806de1c9",
+          "artifactIdentity": {
+            "artifactCompleteness": "complete",
+            "conversionConfigDigest": "sha256:21dc18c5611b2922f6a69147b29226fd73d99c713181dfb90b46d4a9bf115d39",
+            "conversionConfigPath": "reports/electron-adoption/qwen-q4k-pinned-conversion-01.json",
+            "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-source-pinned-01",
+            "materializationProfile": "auto",
+            "modalitySet": [
+              "text"
+            ],
+            "shardSetHash": "sha256:324a65c1b3aa0d41a9bb548148fdee1df4a4ba2cc7b013d98e1a9b7227c0d766",
+            "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+            "sourceFormat": "safetensors",
+            "sourceRepo": "Qwen/Qwen3-Reranker-0.6B",
+            "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+            "weightPackHash": "sha256:3ee648e2a8c5669b49b009689981fcbc6202ed191980cca00b71127007156556",
+            "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-source-pinned-01"
+          }
+        },
+        "passed": false,
+        "checksPassed": 12,
+        "checksTotal": 16,
+        "failedChecks": [
+          {
+            "id": "document.0.falseLogit",
+            "passed": false,
+            "expected": 13.806695938110352,
+            "actual": 15.212793350219727,
+            "absoluteError": 1.406097412109375,
+            "tolerance": 1
+          },
+          {
+            "id": "document.1.trueLogit",
+            "passed": false,
+            "expected": 4.002742290496826,
+            "actual": 2.7536046504974365,
+            "absoluteError": 1.2491376399993896,
+            "tolerance": 1
+          },
+          {
+            "id": "document.1.score",
+            "passed": false,
+            "expected": 4.002742290496826,
+            "actual": 2.7536046504974365,
+            "absoluteError": 1.2491376399993896,
+            "tolerance": 1
+          },
+          {
+            "id": "ranking.exact",
+            "passed": false,
+            "expected": [
+              0,
+              1,
+              2
+            ],
+            "actual": [
+              0,
+              2,
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-vf16-qualification-01/qualification.json",
+        "model": {
+          "modelId": "qwen-3-reranker-0-6b-q4k-vf16-ehf16-af32",
+          "manifestHash": "sha256:1b7aaa9210a6f16bd1739f6bff35df40ec4bbb320f0328402989ee6d1c888e93",
+          "artifactIdentity": {
+            "artifactCompleteness": "complete",
+            "conversionConfigDigest": "sha256:9f3b344ccb3fea740253318c41599d6f0b8ebb4e2e000598690d081266f9398d",
+            "conversionConfigPath": "reports/electron-adoption/qwen-q4k-vf16-conversion-01.json",
+            "manifestVariantId": "qwen-3-reranker-0-6b-q4k-vf16-ehf16-af32-mv-source-pinned-01",
+            "materializationProfile": "auto",
+            "modalitySet": [
+              "text"
+            ],
+            "shardSetHash": "sha256:5fc554c679a1467b77ea2a55745961a8a63ae811e701b54cef1263f7b1f1b798",
+            "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+            "sourceFormat": "safetensors",
+            "sourceRepo": "Qwen/Qwen3-Reranker-0.6B",
+            "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+            "weightPackHash": "sha256:d5750fd5f46503eded5aea9b5c633424d51db465a35f5d3b394c997dd8ef284c",
+            "weightPackId": "qwen-3-reranker-0-6b-q4k-vf16-ehf16-af32-wp-source-pinned-01"
+          }
+        },
+        "passed": false,
+        "checksPassed": 15,
+        "checksTotal": 16,
+        "failedChecks": [
+          {
+            "id": "document.0.falseLogit",
+            "passed": false,
+            "expected": 13.806695938110352,
+            "actual": 14.824294090270996,
+            "absoluteError": 1.0175981521606445,
+            "tolerance": 1
+          }
+        ]
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-stored-grid-qualification-01/qualification.json",
+        "model": {
+          "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+          "manifestHash": "sha256:1bb8c84e2d597d2cc876cedee2f5b3188da8cba6f533435fa76eb0b0f1b7482d",
+          "artifactIdentity": {
+            "artifactCompleteness": "complete",
+            "conversionConfigDigest": "sha256:b6e884c61da4d006891c1f29e888b0d5702b1264e1d29765b7d4dcd0f1a6244c",
+            "conversionConfigPath": "reports/electron-adoption/qwen-q4k-stored-grid-conversion-01.json",
+            "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-source-pinned-01-stored-grid",
+            "materializationProfile": "auto",
+            "modalitySet": [
+              "text"
+            ],
+            "shardSetHash": "sha256:1218c2040430f81ba85dd5693c05eceee5d5806bed2dc84cd326d127d02d9d37",
+            "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+            "sourceFormat": "safetensors",
+            "sourceRepo": "Qwen/Qwen3-Reranker-0.6B",
+            "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+            "weightPackHash": "sha256:ced009e04d8df8f89dac6e3705809106d8b17b26bec5e39a2f62e31c68ba6ddd",
+            "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-source-pinned-01-stored-grid"
+          }
+        },
+        "passed": false,
+        "checksPassed": 12,
+        "checksTotal": 16,
+        "failedChecks": [
+          {
+            "id": "document.0.falseLogit",
+            "passed": false,
+            "expected": 13.806695938110352,
+            "actual": 15.080888748168945,
+            "absoluteError": 1.2741928100585938,
+            "tolerance": 1
+          },
+          {
+            "id": "document.1.trueLogit",
+            "passed": false,
+            "expected": 4.002742290496826,
+            "actual": 2.741161346435547,
+            "absoluteError": 1.2615809440612793,
+            "tolerance": 1
+          },
+          {
+            "id": "document.1.score",
+            "passed": false,
+            "expected": 4.002742290496826,
+            "actual": 2.741161346435547,
+            "absoluteError": 1.2615809440612793,
+            "tolerance": 1
+          },
+          {
+            "id": "ranking.exact",
+            "passed": false,
+            "expected": [
+              0,
+              1,
+              2
+            ],
+            "actual": [
+              0,
+              2,
+              1
+            ]
+          }
+        ]
+      }
+    ],
+    "diagnosticSetup": "Initial captures failed exact equality because the probe did not reset state after ordinary reranking. Both failed receipts are retained. Corrected probes match tokens and logits exactly without changing the frozen model acceptance.",
+    "converterFixLimitation": "Stored-grid repair fixes reproduced quantization defects but does not close the full Qwen Q4K source-quality gap. The F16-value-projection candidate corrects ranking but also remains rejected.",
+    "publicBoundary": "Pull-introduced public export admission and package-budget discrepancy remains unresolved; passing unit/install tests do not substitute for this gate."
+  },
+  "projectionEvidence": {
+    "boundaryComparisons": {
+      "captures": [
+        "reports/electron-adoption/qwen-q4k-selected-capture-02/qualification.json",
+        "reports/electron-adoption/qwen-f16-selected-capture-02/qualification.json"
+      ],
+      "comparisons": [
+        {
+          "opId": "embed.out",
+          "shape": [
+            96,
+            1024
+          ],
+          "elementCount": 98304,
+          "maxAbsDiff": 0,
+          "maxRelDiff": 0,
+          "meanAbsDiff": 0,
+          "rmse": 0,
+          "worstIndex": -1,
+          "leftAtWorst": null,
+          "rightAtWorst": null,
+          "cosineSimilarity": 1
+        },
+        {
+          "opId": "layer.0.attn.post_input_norm",
+          "shape": [
+            96,
+            1024
+          ],
+          "elementCount": 98304,
+          "maxAbsDiff": 0,
+          "maxRelDiff": 0,
+          "meanAbsDiff": 0,
+          "rmse": 0,
+          "worstIndex": -1,
+          "leftAtWorst": null,
+          "rightAtWorst": null,
+          "cosineSimilarity": 1
+        },
+        {
+          "opId": "layer.0.attn.q_proj",
+          "shape": [
+            96,
+            2048
+          ],
+          "elementCount": 196608,
+          "maxAbsDiff": 0.5802106857299805,
+          "maxRelDiff": 1.9994231143134011,
+          "meanAbsDiff": 0.014209505909364121,
+          "rmse": 0.020466355107257004,
+          "worstIndex": 70744,
+          "leftAtWorst": -4.134153366088867,
+          "rightAtWorst": -4.714364051818848,
+          "cosineSimilarity": 0.9989249562317355
+        },
+        {
+          "opId": "layer.0.attn.k_proj",
+          "shape": [
+            96,
+            1024
+          ],
+          "elementCount": 98304,
+          "maxAbsDiff": 0.24637866020202637,
+          "maxRelDiff": 1.9997598255087023,
+          "meanAbsDiff": 0.01382462682241125,
+          "rmse": 0.01926830730065711,
+          "worstIndex": 94240,
+          "leftAtWorst": 3.840890645980835,
+          "rightAtWorst": 4.087269306182861,
+          "cosineSimilarity": 0.9992409293401768
+        },
+        {
+          "opId": "layer.0.attn.v_proj",
+          "shape": [
+            96,
+            1024
+          ],
+          "elementCount": 98304,
+          "maxAbsDiff": 0.17764323949813843,
+          "maxRelDiff": 1.9994371566411047,
+          "meanAbsDiff": 0.012020320090704792,
+          "rmse": 0.0158413103265582,
+          "worstIndex": 713,
+          "leftAtWorst": -0.42542654275894165,
+          "rightAtWorst": -0.24778330326080322,
+          "cosineSimilarity": 0.9945633845898194
+        }
+      ],
+      "scope": "One frozen document, complete layer-zero captured tensors; later layers and other inputs are not covered."
+    },
+    "oracles": [
+      {
+        "projection": "q",
+        "inputQ4VsF16": {
+          "elementCount": 1024,
+          "maxAbsDiff": 0,
+          "maxRelDiff": 0,
+          "meanAbsDiff": 0,
+          "rmse": 0,
+          "worstIndex": -1,
+          "leftAtWorst": null,
+          "rightAtWorst": null,
+          "cosineSimilarity": 1
+        },
+        "q4GpuVsScalarReference": {
+          "elementCount": 2048,
+          "maxAbsDiff": 0.000006198883056640625,
+          "maxRelDiff": 0.00011506720113180853,
+          "meanAbsDiff": 1.0765384672595246e-7,
+          "rmse": 2.655781700613257e-7,
+          "worstIndex": 856,
+          "leftAtWorst": 4.722016334533691,
+          "rightAtWorst": 4.722010135650635,
+          "cosineSimilarity": 0.9999999999998496
+        },
+        "f16GpuVsScalarOwnInput": {
+          "elementCount": 2048,
+          "maxAbsDiff": 0.0000057220458984375,
+          "maxRelDiff": 0.02127335391568626,
+          "meanAbsDiff": 1.0893150037549759e-7,
+          "rmse": 2.599892867262744e-7,
+          "worstIndex": 1376,
+          "leftAtWorst": 4.705320835113525,
+          "rightAtWorst": 4.705315113067627,
+          "cosineSimilarity": 0.9999999999998517
+        },
+        "q4ScalarVsF16ScalarSameQ4Input": {
+          "elementCount": 2048,
+          "maxAbsDiff": 0.09235119819641113,
+          "maxRelDiff": 1.972283551125639,
+          "meanAbsDiff": 0.011659437113989424,
+          "rmse": 0.015354461632525863,
+          "worstIndex": 1496,
+          "leftAtWorst": -3.8448352813720703,
+          "rightAtWorst": -3.9371864795684814,
+          "cosineSimilarity": 0.9994998119298772
+        },
+        "q4GpuVsF16Gpu": {
+          "elementCount": 2048,
+          "maxAbsDiff": 0.09235262870788574,
+          "maxRelDiff": 1.9722853541517116,
+          "meanAbsDiff": 0.011659445572028915,
+          "rmse": 0.015354475586159199,
+          "worstIndex": 1496,
+          "leftAtWorst": -3.844834566116333,
+          "rightAtWorst": -3.9371871948242188,
+          "cosineSimilarity": 0.9994998112184481
+        },
+        "f16ScalarOwnInputVsSameQ4Input": {
+          "elementCount": 2048,
+          "maxAbsDiff": 0,
+          "maxRelDiff": 0,
+          "meanAbsDiff": 0,
+          "rmse": 0,
+          "worstIndex": -1,
+          "leftAtWorst": null,
+          "rightAtWorst": null,
+          "cosineSimilarity": 1
+        }
+      },
+      {
+        "projection": "k",
+        "inputQ4VsF16": {
+          "elementCount": 1024,
+          "maxAbsDiff": 0,
+          "maxRelDiff": 0,
+          "meanAbsDiff": 0,
+          "rmse": 0,
+          "worstIndex": -1,
+          "leftAtWorst": null,
+          "rightAtWorst": null,
+          "cosineSimilarity": 1
+        },
+        "q4GpuVsScalarReference": {
+          "elementCount": 1024,
+          "maxAbsDiff": 0.0000021457672119140625,
+          "maxRelDiff": 0.00017477485085954606,
+          "meanAbsDiff": 1.2601216070606824e-7,
+          "rmse": 2.575295627712445e-7,
+          "worstIndex": 32,
+          "leftAtWorst": 2.6085307598114014,
+          "rightAtWorst": 2.6085286140441895,
+          "cosineSimilarity": 0.9999999999998792
+        },
+        "f16GpuVsScalarOwnInput": {
+          "elementCount": 1024,
+          "maxAbsDiff": 0.0000035762786865234375,
+          "maxRelDiff": 0.0007209649419897028,
+          "meanAbsDiff": 1.2593875453603687e-7,
+          "rmse": 2.7159584444221794e-7,
+          "worstIndex": 928,
+          "leftAtWorst": 2.614431142807007,
+          "rightAtWorst": 2.6144347190856934,
+          "cosineSimilarity": 0.9999999999998669
+        },
+        "q4ScalarVsF16ScalarSameQ4Input": {
+          "elementCount": 1024,
+          "maxAbsDiff": 0.05553102493286133,
+          "maxRelDiff": 1.943197657279063,
+          "meanAbsDiff": 0.011248915585802877,
+          "rmse": 0.014309753847713335,
+          "worstIndex": 267,
+          "leftAtWorst": 5.955165863037109,
+          "rightAtWorst": 5.899634838104248,
+          "cosineSimilarity": 0.9996340609492879
+        },
+        "q4GpuVsF16Gpu": {
+          "elementCount": 1024,
+          "maxAbsDiff": 0.055530548095703125,
+          "maxRelDiff": 1.943207746552395,
+          "meanAbsDiff": 0.01124890753258967,
+          "rmse": 0.014309756135628631,
+          "worstIndex": 267,
+          "leftAtWorst": 5.955164909362793,
+          "rightAtWorst": 5.89963436126709,
+          "cosineSimilarity": 0.9996340611037651
+        },
+        "f16ScalarOwnInputVsSameQ4Input": {
+          "elementCount": 1024,
+          "maxAbsDiff": 0,
+          "maxRelDiff": 0,
+          "meanAbsDiff": 0,
+          "rmse": 0,
+          "worstIndex": -1,
+          "leftAtWorst": null,
+          "rightAtWorst": null,
+          "cosineSimilarity": 1
+        }
+      },
+      {
+        "projection": "v",
+        "inputQ4VsF16": {
+          "elementCount": 1024,
+          "maxAbsDiff": 0,
+          "maxRelDiff": 0,
+          "meanAbsDiff": 0,
+          "rmse": 0,
+          "worstIndex": -1,
+          "leftAtWorst": null,
+          "rightAtWorst": null,
+          "cosineSimilarity": 1
+        },
+        "q4GpuVsScalarReference": {
+          "elementCount": 1024,
+          "maxAbsDiff": 7.152557373046875e-7,
+          "maxRelDiff": 0.00045970013796641174,
+          "meanAbsDiff": 4.5790869762640796e-8,
+          "rmse": 7.506631152803218e-8,
+          "worstIndex": 382,
+          "leftAtWorst": -0.6151304244995117,
+          "rightAtWorst": -0.6151297092437744,
+          "cosineSimilarity": 0.9999999999998186
+        },
+        "f16GpuVsScalarOwnInput": {
+          "elementCount": 1024,
+          "maxAbsDiff": 9.5367431640625e-7,
+          "maxRelDiff": 0.0003187649334955106,
+          "meanAbsDiff": 4.7097486799430044e-8,
+          "rmse": 8.432651070327209e-8,
+          "worstIndex": 798,
+          "leftAtWorst": -0.8176100254058838,
+          "rightAtWorst": -0.8176109790802002,
+          "cosineSimilarity": 0.9999999999997736
+        },
+        "q4ScalarVsF16ScalarSameQ4Input": {
+          "elementCount": 1024,
+          "maxAbsDiff": 0.03964469023048878,
+          "maxRelDiff": 1.9864541204257935,
+          "meanAbsDiff": 0.009794917037638129,
+          "rmse": 0.012408341162060904,
+          "worstIndex": 87,
+          "leftAtWorst": -0.05957223102450371,
+          "rightAtWorst": -0.01992754079401493,
+          "cosineSimilarity": 0.9950460579843879
+        },
+        "q4GpuVsF16Gpu": {
+          "elementCount": 1024,
+          "maxAbsDiff": 0.03964465670287609,
+          "maxRelDiff": 1.9864655047769462,
+          "meanAbsDiff": 0.009794918688413645,
+          "rmse": 0.012408346216320244,
+          "worstIndex": 87,
+          "leftAtWorst": -0.05957220867276192,
+          "rightAtWorst": -0.019927551969885826,
+          "cosineSimilarity": 0.9950460539731175
+        },
+        "f16ScalarOwnInputVsSameQ4Input": {
+          "elementCount": 1024,
+          "maxAbsDiff": 0,
+          "maxRelDiff": 0,
+          "meanAbsDiff": 0,
+          "rmse": 0,
+          "worstIndex": -1,
+          "leftAtWorst": null,
+          "rightAtWorst": null,
+          "cosineSimilarity": 1
+        }
+      }
+    ],
+    "scope": "Complete captured layer-zero embeddings and normalization agree exactly. Q/K/V scalar comparisons cover the last prompt row only. These observations do not exonerate later layers or establish whole-model equivalence."
+  },
+  "remaining": [
+    "Qualified Q4K reranker under unchanged source acceptance",
+    "Resolve admission of incoming forecast public export and associated package closure budget",
+    "Held-out application quality and competent incumbent comparison",
+    "Source-fact ModelIR v2 qualification for this capability",
+    "Independent maintainer use and retention through a subsequent model release"
+  ],
+  "custody": {
+    "availability": "Package, candidate bytes, source, raw captures and oracle outputs are retained locally under reports/electron-adoption; git clone does not contain those ignored artifacts. This index binds their observations, not a published release.",
+    "previousCheckpoint": "reports/pack-runtime/reranker-maintenance-20260905.json",
+    "bindings": [
+      {
+        "path": "src/converter/quantizer.js",
+        "sizeBytes": 16954,
+        "sha256": "84f76c24573004b3ff6846e92dbcc158318f4ac5c67fcd228642e6a4ccbf1558"
+      },
+      {
+        "path": "src/inference/pipelines/text/generator/training.js",
+        "sizeBytes": 29020,
+        "sha256": "fe0e38d772d634137f98e9e0f9ab7c45723795c80db7bb427818585714119d48"
+      },
+      {
+        "path": "tests/converter/quantizer.test.js",
+        "sizeBytes": 6564,
+        "sha256": "3664bc547601e01fc357390adc668e0a1b5585477268f7c5a33e0b9328358755"
+      },
+      {
+        "path": "tests/inference/selected-logits-diagnostics.test.js",
+        "sizeBytes": 4393,
+        "sha256": "491ab346f9762db579bc481cd2414716d59e0eed9aef2c2314e5b634689f0fcc"
+      },
+      {
+        "path": "tools/qualify-reranker-electron.js",
+        "sizeBytes": 16018,
+        "sha256": "0d932a3c700c9e8b926e463e9f71dda6099681caf1b8a0922704008867d407ed"
+      },
+      {
+        "path": "tools/q4k-projection-oracle.js",
+        "sizeBytes": 17164,
+        "sha256": "67a7331c74d062483475f7a294e193ef367ae0c1741e96b19a34272850386b33"
+      },
+      {
+        "path": "tests/tooling/q4k-projection-reference.test.js",
+        "sizeBytes": 3402,
+        "sha256": "cb2d512f78230a0b05d3e422b6081f6ae6353b85afa01bb80efd3af2ccb52cd3"
+      },
+      {
+        "path": "tests/tooling/reranker-evaluation-preflight.test.js",
+        "sizeBytes": 1759,
+        "sha256": "eb28fc2ffa33ffae5f17614f850225ff45b943e4aaf5708b867df93f8a4eb283"
+      },
+      {
+        "path": "docs/integration/reranker-evaluation.md",
+        "sizeBytes": 9499,
+        "sha256": "1cd21395afe5c5ac7467433da44b7d46719952f50372879de559ea611fea1b31"
+      },
+      {
+        "path": "reports/electron-adoption/20260905-selected-logits-package-02/receipt.json",
+        "sizeBytes": 590,
+        "sha256": "dda7e66f144f8981c77a9c4884c74cedbb58839a6facc13a4a22a41f7b69828a"
+      },
+      {
+        "path": "reports/electron-adoption/20260905-selected-logits-package-02/source-state.json",
+        "sizeBytes": 521,
+        "sha256": "265ef9641a3e84bb853e771e14aed10944f66b578fd8be58b9bd2bfddae1ea4a"
+      },
+      {
+        "path": "reports/electron-adoption/20260905-selected-logits-package-02/doppler-gpu-0.5.1.tgz",
+        "sizeBytes": 2063574,
+        "sha256": "0d1a0835b50c2d8900650de2a0bbe0de7cbc2150b8a8b3f4f2150b28b84c0a0e"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-original-recheck.log",
+        "sizeBytes": 651,
+        "sha256": "a1ffa9be8cdb8cf37b71af1f2f30ee23f9fc4259e48e31c6c652b0492e6a51fd"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-pinned-conversion-01.json",
+        "sizeBytes": 15478,
+        "sha256": "25b8465f12e0cf41ef6da18438487dd25e2e1c6eb990ab28c42a3d59f45791c9"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-pinned-candidate-01/manifest.json",
+        "sizeBytes": 135130,
+        "sha256": "4b488aa1d05deeaa2da6369ae9805c6496ee939824097260087cad2b806de1c9"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-pinned-integrity-01.json",
+        "sizeBytes": 3920,
+        "sha256": "797d8c946def14ed4e135b25f5c35d1571f2b4039694b7862010637d1f383ef3"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-vf16-conversion-01.json",
+        "sizeBytes": 16839,
+        "sha256": "9cd93dec8b2009c80bf2e56729b1412d391ab94f61c7841d99ff00b37cdce2bc"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-vf16-candidate-01/manifest.json",
+        "sizeBytes": 134771,
+        "sha256": "1b7aaa9210a6f16bd1739f6bff35df40ec4bbb320f0328402989ee6d1c888e93"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-stored-grid-conversion-01.json",
+        "sizeBytes": 15502,
+        "sha256": "6a41835adc6d909215c3013816cbf414af09133eccdd45c9f63548de6491c0bb"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-stored-grid-candidate-01/manifest.json",
+        "sizeBytes": 135159,
+        "sha256": "1bb8c84e2d597d2cc876cedee2f5b3188da8cba6f533435fa76eb0b0f1b7482d"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-stored-grid-integrity-01.json",
+        "sizeBytes": 3925,
+        "sha256": "88ca31a20c9dc4988b3f2baea1463a0e9228856f9ad7e43774f77eb72b32df3d"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-f16-selected-capture-01/qualification.json",
+        "sizeBytes": 22506956,
+        "sha256": "26a021f3731b9f1ffdebd1b99a5014bbcbfdcb72473802dc8a5d6591ef9e986c"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-selected-capture-01/qualification.json",
+        "sizeBytes": 22503952,
+        "sha256": "cf597779a0924bf76d0fa277a4ff79e4f7af398c1981a9021e20db218ade20c5"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-f16-selected-capture-02/qualification.json",
+        "sizeBytes": 22533796,
+        "sha256": "f0612af5f9877dd10c3dfbf7389c5582faa66839894eab9790c27cb6b8691ee9"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-selected-capture-02/qualification.json",
+        "sizeBytes": 22531203,
+        "sha256": "51e39a203a8e8b0db32dddbad25cb63d4571f18c9bb63527ad9426d46cb31a66"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-selected-boundary-comparison-01.json",
+        "sizeBytes": 2306,
+        "sha256": "95954ef2daf431f982875d5ac4df82d1399567be51ab6426e5468418dfb1c709"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-selected-q-oracle-01.json",
+        "sizeBytes": 52875,
+        "sha256": "dd94329294d4d7ee1fd2857b4a855349f45c02ff028e586bd0c412a2c7774a7c"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-selected-k-oracle-01.json",
+        "sizeBytes": 52874,
+        "sha256": "3674054ee74ece541e9ff560241145876d9973291b42f81af99c9d32b8811e4c"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-selected-v-oracle-01.json",
+        "sizeBytes": 52881,
+        "sha256": "279276cec44b307dcdc678c29098eb3268a7d7475024a4170b929741dc11a7bf"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-selected-logits-installed-pack-01/qualification.json",
+        "sizeBytes": 352349,
+        "sha256": "8c5f976080562a1ecfd3b1977a1d6633cc126b70c7cde3b83ba6a746e82b6e6a"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-source-reference-01.json",
+        "sizeBytes": 7051,
+        "sha256": "81df00d625d7e8114f82fc4d67f487dde4946b684a809e63376e046a0bc88c4a"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-pinned-qualification-01/qualification.json",
+        "sizeBytes": 322565,
+        "sha256": "64c8f25b2309a3fefc3dca7287bbe34bb4f573a241d78ecb231be56f9be774ec"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-vf16-qualification-01/qualification.json",
+        "sizeBytes": 323084,
+        "sha256": "36d413d7c1578320ee3de579c010f33418026198d7727dc71ca4bd7556862130"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-stored-grid-qualification-01/qualification.json",
+        "sizeBytes": 323607,
+        "sha256": "b19855d1098aeae550070838e75165d113b9e9d96bc3025e5a219de3b84107d0"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-selected-logits-installed-pack-01-config.json",
+        "sizeBytes": 1954,
+        "sha256": "24c3506820f365c193d7496680630741317fadae29807a2c20bbfc0675b75b47"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-stored-grid-qualification-01-config.json",
+        "sizeBytes": 532,
+        "sha256": "25ab74d03f96c74426f02c4a7bb947061c333a91270b39d68b1d549b380af2ff"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-selected-logits-installed-pack-01.log",
+        "sizeBytes": 66,
+        "sha256": "73aa481bb0fbf2b453490d8d5f135522963dd559f82b6f63df4885de6aeedc12"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-stored-grid-qualification-01.log",
+        "sizeBytes": 589,
+        "sha256": "9dacd6367631ac855ff06207b03d87347be24dfc4bf2a644a103066f2727e130"
+      },
+      {
+        "path": "reports/electron-adoption/qwen-selected-logits-diagnostics-before.log",
+        "sizeBytes": 688,
+        "sha256": "d4f3292cf86621169e63d10708846a48c286c316e4359c0b9778e7e6d1580a0d"
+      },
+      {
+        "path": "reports/electron-adoption/q4k-stored-parameter-before.log",
+        "sizeBytes": 222,
+        "sha256": "bb63c7838a4a5190e242f701e5ab6654d1d9704251db09053758609aa94582cd"
+      },
+      {
+        "path": "reports/electron-adoption/q4k-stored-parameter-intermediate.log",
+        "sizeBytes": 241,
+        "sha256": "0bdc008c8223dadb77b21c1b62bcb248b03969470939514e9327bc7d1902ac15"
+      },
+      {
+        "path": "reports/electron-adoption/q4k-stored-parameter-after.log",
+        "sizeBytes": 566,
+        "sha256": "f7df117ba88aa1514ec0682ddbddb3918cbc4b4ca376fb5859269be6f540eb30"
+      },
+      {
+        "path": "reports/electron-adoption/selected-logits-unit-final.log",
+        "sizeBytes": 139740,
+        "sha256": "bdf88872dbf508d2686165fce9a608f4fc004957ab2434f6692f2f031461ef84"
+      },
+      {
+        "path": "reports/electron-adoption/selected-logits-contracts-final.log",
+        "sizeBytes": 800,
+        "sha256": "e5fad54863ebbcbdc49f8b19004b4fae81646f2f66461b9e7b13ce588c4f2543"
+      },
+      {
+        "path": "reports/electron-adoption/selected-logits-final-contracts-02.log",
+        "sizeBytes": 3899,
+        "sha256": "fbf61378481bc5fd569dca95240481c230ef3cb7f8b0d128abd6b91e6391a993"
+      },
+      {
+        "path": "reports/electron-adoption/selected-logits-ci-01.log",
+        "sizeBytes": 11605,
+        "sha256": "270f1b573cc9b3103e3d2f3282e23e4aa22037971e6ca7d4212b199721b88141"
+      },
+      {
+        "path": "reports/electron-adoption/selected-logits-public-boundary-final.log",
+        "sizeBytes": 299,
+        "sha256": "192f40abf22856ef0b6273313ba5312898c8541c92eb2baa58b4b67e0e498147"
+      }
+    ]
+  }
+}

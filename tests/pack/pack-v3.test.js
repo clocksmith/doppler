@@ -7,7 +7,7 @@ import { createDopplerRuntime } from '../../src/pack-runtime.js';
 const keys = generateKeyPairSync('ed25519');
 const signer = { authority: 'release-test', privateKeyJwk: keys.privateKey.export({ format: 'jwk' }), publicKeyJwk: keys.publicKey.export({ format: 'jwk' }) };
 const trustedSigners = { [signer.authority]: signer.publicKeyJwk };
-const fixture = await createSignedPackFixture();
+const fixture = await createSignedPackFixture({ operation: 'encodeSequence' });
 const original = JSON.stringify(fixture.pack);
 const migrated = await migratePackV2(fixture.pack, { trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY }, signer });
 const pack = migrated.pack;

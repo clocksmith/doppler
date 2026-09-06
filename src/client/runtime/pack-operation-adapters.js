@@ -4,7 +4,7 @@ const text = (value) => typeof value === 'string' && value.trim().length > 0;
 const texts = (value) => Array.isArray(value) && value.length > 0 && value.every(text);
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
-export function createPackOperationAdapters({ program, generate, rerank }) {
+export function createPackOperationAdapters({ program, generate, rerank, embed, encodeSequence }) {
   return {
     generate: {
       validate({ input, options }) {
@@ -29,15 +29,13 @@ export function createPackOperationAdapters({ program, generate, rerank }) {
     embed: {
       validate({ input }) {
         requireValue(texts(input.texts), 'embed requires a non-empty texts array.');
-        requireValue(typeof program.embed === 'function', 'Selected Pack program does not implement text embeddings.');
+        requireValue(input.application && typeof input.application === 'object', 'embed requires its signed application binding.');
       },
       async *execute({ input, options }, signal) {
         const embeddings = [];
         for (const value of input.texts) {
           signal.throwIfAborted();
-          const result = await program.embed(value, { ...options, signal });
-          requireValue(Array.isArray(result?.embedding) || ArrayBuffer.isView(result?.embedding), 'Pack embed must return an embedding vector.');
-          requireValue(result.embedding.length > 0, 'Pack embed returned an empty vector.');
+          const result = await embed({ application: input.application, text: value, options: { ...options, signal } });
           embeddings.push(result);
           // A completed batch item is partial job output, never acceptance.
           yield { delta: { itemIndex: embeddings.length - 1 }, output: { embeddings: [...embeddings] } };
@@ -58,10 +56,9 @@ export function createPackOperationAdapters({ program, generate, rerank }) {
       validate({ input, options }) {
         requireValue(text(input.sequence), 'encodeSequence requires a sequence.');
         requireValue(typeof options.includeLogits === 'boolean' && typeof options.includeTokenEmbeddings === 'boolean', 'encodeSequence requires explicit output flags.');
-        requireValue(typeof program.encodeSequence === 'function', 'Selected Pack program does not implement sequence execution.');
       },
-      async *execute({ input, options }, signal) {
-        return await program.encodeSequence(input.sequence, { ...options, signal });
+      async *execute({ input, options, assignment }, signal) {
+        return await encodeSequence(input.sequence, { ...options, assignment, signal });
       },
     },
   };

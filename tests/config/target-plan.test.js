@@ -6,6 +6,7 @@ import {
   matchesDeviceCapability,
   selectQualifiedTargetPlan,
   validateTargetPlan,
+  assertQualifiedTargetOperation,
 } from '../../src/config/target-plan.js';
 import { createInitialExecutionIdentity } from '../../src/config/initial-execution-identity.js';
 
@@ -40,6 +41,14 @@ assert.throws(() => selectQualifiedTargetPlan([plan], {
   surface: 'other', hasF16: true, hasSubgroups: true, maxBufferSize: 128,
 }), /surface qualification/u);
 assert.throws(() => createTargetPlan({ ...plan, qualification: [] }), /qualification/);
+assert.doesNotThrow(() => assertQualifiedTargetOperation(plan, 'test', 'generate'));
+assert.throws(() => assertQualifiedTargetOperation(plan, 'other', 'generate'), /not qualified/);
+assert.throws(() => assertQualifiedTargetOperation(plan, 'test', 'rerank'), /not qualified/);
+const mixedSurface = structuredClone(plan);
+mixedSurface.qualification.push({ surface: 'other', status: 'passed', operation: 'rerank',
+  rerankedDocuments: 1, transcriptHash: digest, evidenceArtifactId: 'evidence', evidenceHash: digest });
+assert.doesNotThrow(() => assertQualifiedTargetOperation(mixedSurface, 'other', 'rerank'));
+assert.throws(() => assertQualifiedTargetOperation(mixedSurface, 'test', 'rerank'), /not qualified/);
 
 const initialExecutionIdentity = createInitialExecutionIdentity({
   executionGraphHash: digest,
@@ -65,7 +74,7 @@ assert.equal(validateTargetPlan(identityMismatch).ok, false);
 // Reranking and forecasting must coexist without borrowing another operation's evidence.
 const operationCounts = {
   generate: 'generatedTokens', encodeSequence: 'encodedSequences',
-  rerank: 'rerankedDocuments', forecast: 'forecastCases',
+  rerank: 'rerankedDocuments', forecast: 'forecastCases', embed: 'embeddedTexts',
 };
 for (const [operation, count] of Object.entries(operationCounts)) {
   const candidate = structuredClone(plan);

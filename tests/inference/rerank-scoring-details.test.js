@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { collectModelRerankScores } from '../../src/client/runtime/model-rerank.js';
 
 import {
   formatRerankPrompt,
@@ -299,5 +300,26 @@ assert.throws(
   }),
   /Unsupported rerank score policy "implicit_default"/
 );
+
+for (const selected of [false, true]) {
+  const controller = new AbortController();
+  const reason = new Error('application stopped ranking');
+  let calls = 0;
+  const cancelledPipeline = {
+    manifest: pipeline.manifest,
+    async [selected ? 'prefillWithTokenLogits' : 'prefillWithLogits'](...args) {
+      calls += 1;
+      assert.equal(args.at(-1).signal, controller.signal);
+      controller.abort(reason);
+      return { tokens: [1], logits: new Float32Array(4) };
+    },
+  };
+  await assert.rejects(collectModelRerankScores(cancelledPipeline, 'query', ['one', 'two'],
+    { signal: controller.signal }), error => error === reason);
+  assert.equal(calls, 1, 'cancellation must stop the document batch and discard its partial result');
+  await assert.rejects(scoreRerankDocument(cancelledPipeline, 'query', 'three', null,
+    { signal: controller.signal }), error => error === reason);
+  assert.equal(calls, 1, 'pre-cancelled work must not enter prefill');
+}
 
 console.log('rerank-scoring-details.test: ok');

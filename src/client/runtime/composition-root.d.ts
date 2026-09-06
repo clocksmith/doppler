@@ -9,6 +9,10 @@ import type { PackRerankReceipt, PackRerankRequest } from './pack-rerank.js';
 import type { PackOperationRequest } from '../../config/pack-operation.js';
 import type { PackOperationEvent } from './pack-operation-executor.js';
 import type { PackForecastRequest, PackForecastResult } from './pack-forecast.js';
+import type { PackEmbeddingRequest, PackEmbeddingResult } from './pack-embedding.js';
+export type { PackEmbeddingRequest, PackEmbeddingResult } from './pack-embedding.js';
+
+export { createForecastProgramFactory } from './pack-forecast-program.js';
 
 export const RUNTIME_CORE_VERSION: '2.0.0';
 
@@ -57,6 +61,7 @@ export interface DopplerRuntimeSession {
   generateText(options: GenerationRunOptions): Promise<{ text: string; tokenIds: number[] }>;
   rerank(request: PackRerankRequest): Promise<PackRerankReceipt>;
   forecast(request: PackForecastRequest): Promise<PackForecastResult>;
+  embed(request: PackEmbeddingRequest): Promise<PackEmbeddingResult>;
   encodeSequence(sequence: string, options?: Record<string, unknown> & { signal?: AbortSignal }): Promise<Record<string, unknown>>;
   executeOperation(request: PackOperationRequest, control?: { signal?: AbortSignal | null }): AsyncGenerator<PackOperationEvent, void, void>;
   resetGenerationState(): void;

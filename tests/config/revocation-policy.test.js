@@ -285,7 +285,7 @@ function registry() {
 }
 
 const sourceText = await fs.readFile(
-  new URL('../../src/client/runtime/index.js', import.meta.url),
+  new URL('../../src/client/model-host/index.js', import.meta.url),
   'utf8'
 );
 const revocationCheck = sourceText.indexOf('await assertBundledResolutionNotRevoked(revocationIdentity)');

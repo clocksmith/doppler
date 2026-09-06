@@ -1,4 +1,5 @@
 import type { DopplerPackV2 } from '../config/pack-v2.js';
+import type { ForgeEvaluationInput } from './forge-candidate-evaluation.js';
 
 export const FORGE_PIPELINE_VERSION: '2.0.0';
 
@@ -12,7 +13,7 @@ export declare function stageNormalize(input: Record<string, unknown>): ForgeSta
 export declare function stageAnalyze(input: Record<string, unknown>): ForgeStageResult;
 export declare function stageLower(input: Record<string, unknown>): ForgeStageResult;
 export declare function stageSpecialize(input: Record<string, unknown>): ForgeStageResult;
-export declare function stageSearch(input: Record<string, unknown>): ForgeStageResult;
+export declare function stageSearch(input: Record<string, unknown>, evaluation?: ForgeEvaluationInput): ForgeStageResult;
 export declare function stageVerify(input: Record<string, unknown>): ForgeStageResult;
 export declare function stageQualify(input: Record<string, unknown>): ForgeStageResult;
 export declare function stagePackage(input: Record<string, unknown>): ForgeStageResult & { pack: DopplerPackV2 };
@@ -25,4 +26,4 @@ export declare function runForgePipeline(input: Record<string, unknown>, signer:
   authority: string;
   privateKeyJwk: JsonWebKey;
   publicKeyJwk: JsonWebKey;
-}): Promise<{ pack: DopplerPackV2; stages: Array<{ stage: string; ok: true }> }>;
+}): Promise<{ pack: DopplerPackV2; searchReceipt: Record<string, unknown>; stages: Array<{ stage: string; ok: true }> }>;

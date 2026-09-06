@@ -12,8 +12,8 @@ export interface PackProgramAdapter {
   getTokenContract(): Record<string, unknown>;
   reset(): void;
   rerank(request: Omit<PackRerankRequest, 'application'>): ReturnType<DopplerModelHandle['rerankWithEvidence']>;
+  embed(text: string, options?: { signal?: AbortSignal }): ReturnType<DopplerModelHandle['embedWithEvidence']>;
   encodeSequence(sequence: string, options?: Record<string, unknown>): ReturnType<DopplerModelHandle['encodeSequence']>;
-  embed(text: string, options?: Record<string, unknown>): ReturnType<DopplerModelHandle['embed']>;
   executePhase(phase: string, request: Record<string, unknown>): Promise<unknown>;
   releaseStepResult(result: Record<string, unknown> | null): void;
   close(): Promise<void>;

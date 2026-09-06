@@ -21,9 +21,11 @@ client/doppler-api.browser.d.ts
 client/doppler-registry.d.ts
 client/failure-taxonomy.d.ts
 client/fault-injection.d.ts
+client/model-host/model-evidence.d.ts
 client/pack-host.browser.d.ts
 client/receipt.d.ts
 client/runtime/model-rerank.d.ts
+client/runtime/model-session.js
 client/runtime/node-quickstart-cache.d.ts
 client/runtime/pack-artifact-source.d.ts
 client/runtime/pack-program-adapter.d.ts
@@ -31,6 +33,8 @@ client/runtime/source-runtime.d.ts
 client/runtime/storage.d.ts
 client/runtime/verified-pack-artifact-store.d.ts
 config/dtype-transition-contract.d.ts
+config/embedding-contract.d.ts
+config/embedding-reference.d.ts
 config/evidence/token-cost-classifier-policy.json
 config/evidence/workflow-ownership-policy.json
 config/forecast-manifest.d.ts
@@ -84,6 +88,7 @@ config/schema/command-surface-contract.schema.json
 config/schema/demo-contract-receipt.schema.json
 config/schema/demo-hardware-receipt.schema.json
 config/schema/electron-design-partner-prospects.schema.json
+config/schema/forge-candidate-evaluation.schema.json
 config/schema/goal-completion-matrix.schema.json
 config/schema/host-teacher-output.schema.json
 config/schema/host-teacher-qualification-policy.schema.json
@@ -167,6 +172,7 @@ converter/chronos-bolt-graph.js
 converter/conversion-plan.d.ts
 converter/execution-candidate-forge.d.ts
 converter/execution-candidate-forge.js
+converter/forge-candidate-evaluation.d.ts
 converter/forge-qualification.d.ts
 converter/forge-stages.d.ts
 converter/index.d.ts
@@ -784,6 +790,7 @@ tooling/node-webgpu.d.ts
 tooling/pack.d.ts
 tooling/program-bundle-host.d.ts
 tooling/program-bundle-host.js
+tooling/program-bundle/embedding-reference.d.ts
 tooling/program-bundle/materialize.d.ts
 tooling/program-bundle/rerank-reference.d.ts
 tooling/program-bundle/sequence-reference.d.ts

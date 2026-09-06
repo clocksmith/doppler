@@ -41,6 +41,28 @@ experimental/internal in the subsystem support matrix.
 
 ## Overview
 
+### Implementation boundaries
+
+- `src/converter/`: source interpretation, lowering, candidate evaluation, and
+  immutable Pack construction. `src/tooling/model-pack-forge.js` owns file,
+  qualification-input, signing-key, and command orchestration around that engine.
+- `src/client/runtime/composition-root.js`: injected Pack execution core. It
+  verifies, selects, binds, executes, and observes declared plans; it does not
+  discover models, initialize the host GPU, or choose application trust.
+- `src/client/model-host/`: convenience model acquisition, caching, device setup,
+  input formatting, handles, and evidence construction. It may compose Pack
+  execution, but the Pack core cannot import it. `model-evidence.js` constructs
+  evidence from observations without invoking GPU or inference machinery.
+- `src/client/runtime/index.js` and `model-session.js`: compatibility forwarding
+  paths for the host service and model handle. Shared adapters still under
+  `runtime/` do not thereby become part of the injected core.
+
+These import directions are enforced by the subsystem graphs in
+`tools/policies/source-architecture-policy.json`, in addition to top-level owner
+rules. Forwarding modules such as `generation/index.js` preserve interfaces;
+they are not duplicate engines. Retained report paths describe their original
+source revision and are not rewritten after moves.
+
 ![Doppler architecture overview](architecture-overview.svg)
 
 ## Verification Sources

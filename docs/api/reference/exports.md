@@ -20,6 +20,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
   - `openPack`
+  - `PackEmbeddingRequest`
+  - `PackEmbeddingResult`
   - `PackRerankApplicationBinding`
   - `PackRerankReceipt`
   - `PackRerankRequest`
@@ -42,6 +44,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
   - `openPack`
+  - `PackEmbeddingRequest`
+  - `PackEmbeddingResult`
   - `PackRerankApplicationBinding`
   - `PackRerankReceipt`
   - `PackRerankRequest`

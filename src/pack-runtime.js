@@ -1,6 +1,5 @@
 export { DOPPLER_VERSION } from './version.js';
-export { createDopplerRuntime, RUNTIME_CORE_VERSION } from './client/runtime/composition-root.js';
-export { createForecastProgramFactory } from './client/runtime/pack-forecast-program.js';
+export { createDopplerRuntime, createForecastProgramFactory, RUNTIME_CORE_VERSION } from './client/runtime/composition-root.js';
 export { createFetchPackArtifactStore } from './client/runtime/fetch-pack-artifact-store.js';
 
 import { createDopplerRuntime } from './client/runtime/composition-root.js';

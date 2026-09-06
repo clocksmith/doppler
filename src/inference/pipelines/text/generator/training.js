@@ -68,6 +68,44 @@ import {
 } from '../generator-decode-policy.js';
 import { FINITENESS_RESET_WORDS, borrowLinearWeight, borrowNormWeight, canUseChunkedSoftEmbeddingLogits, getExperimentalIntentBundleModule, normalizeCanvasTokenIds, normalizeSelectedLogitTokenIds, normalizeSelfConditioningLogits, normalizeSelfConditioningLogitsState, normalizeSelfConditioningSoftEmbeddingState, recordPrefillRecorderStats, releaseBorrowedWeight, resolveDiffusionGemmaSoftEmbeddingChunkRows, resolvePrefillChunkSubmitMode, resolveSuppressedSamplingTokenIds, traceActivationHealth } from './text.js';
 
+function beginPrefillDiagnostics(state, options, executionPlan, tsirFixtureCfg = null) {
+  state.operatorDiagnostics = null;
+  state.stats.operatorDiagnostics = null;
+  const enabled = options?.diagnostics?.enabled === true
+    || state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
+  if (!enabled && !tsirFixtureCfg) return;
+  const captureConfig = {
+    ...createDefaultCaptureConfig(),
+    enabled: true,
+    defaultLevel: CAPTURE_LEVELS.SLICE,
+    ...(options?.diagnostics?.captureConfig ?? {}),
+  };
+  validateCaptureConfig(captureConfig);
+  state.operatorDiagnostics = {
+    enabled,
+    captureConfig,
+    emitter: enabled ? new OperatorEventEmitter({
+      modelHash: state.manifest?.modelId ?? null,
+      runtimeConfigHash: state.resolvedKernelPath?.id ?? null,
+      executionPlanHash: executionPlan?.planId ?? null,
+    }) : null,
+    tsirFixture: createTsirFixtureState(tsirFixtureCfg),
+  };
+}
+
+function closePrefillDiagnostics(pipeline, options) {
+  const state = pipeline._state;
+  try {
+    pipeline._closeFinitenessFallbackWindow(options);
+  } finally {
+    const emitter = state.operatorDiagnostics?.emitter;
+    state.stats.operatorDiagnostics = emitter
+      ? { enabled: true, timeline: emitter.getTimeline(), recordCount: emitter.length }
+      : null;
+    state.operatorDiagnostics = null;
+  }
+}
+
 export async function prefillKVOnly(prompt, options = {}) {
     if (!this._state.isLoaded) throw new Error('Model not loaded');
     if (this._state.isGenerating && options.__internalGenerate !== true) {
@@ -258,37 +296,16 @@ export async function prefillWithEmbedding(prompt, options = {}) {
     this._state.stats.gpuTimePrefillMs = undefined;
     this._state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillEmbeddingOptions(this._state, options);
-    const diagnosticsEnabled = options?.diagnostics?.enabled === true
-      || this._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
     const tsirFixtureCfg = this._state.runtimeConfig?.shared?.harness?.tsirFixture ?? null;
-    if (diagnosticsEnabled || tsirFixtureCfg) {
-      const captureConfig = {
-        ...createDefaultCaptureConfig(),
-        enabled: true,
-        defaultLevel: CAPTURE_LEVELS.SLICE,
-        ...(options?.diagnostics?.captureConfig ?? {}),
-      };
-      validateCaptureConfig(captureConfig);
-      this._state.operatorDiagnostics = {
-        enabled: diagnosticsEnabled === true,
-        captureConfig,
-        emitter: diagnosticsEnabled ? new OperatorEventEmitter({
-          modelHash: this._state.manifest?.modelId ?? null,
-          runtimeConfigHash: this._state.resolvedKernelPath?.id ?? null,
-          executionPlanHash: opts.executionPlan?.id ?? null,
-        }) : null,
-        tsirFixture: createTsirFixtureState(tsirFixtureCfg),
-      };
-    }
-    const prefillStartSeqLen = this._state.currentSeqLen;
-    const inputStart = performance.now();
-    const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, 'prefillWithEmbedding', opts.inputIds);
-    const inputMs = performance.now() - inputStart;
-    if (opts.debug) {
-      log.debug('Pipeline', `PrefillWithEmbedding: ${inputIds.length} tokens (mode=${opts.embeddingMode})`);
-    }
-
     try {
+      beginPrefillDiagnostics(this._state, options, opts.executionPlan, tsirFixtureCfg);
+      const prefillStartSeqLen = this._state.currentSeqLen;
+      const inputStart = performance.now();
+      const inputIds = this._resolvePromptOrInputIds(prompt, opts.useChatTemplate, 'prefillWithEmbedding', opts.inputIds);
+      const inputMs = performance.now() - inputStart;
+      if (opts.debug) {
+        log.debug('Pipeline', `PrefillWithEmbedding: ${inputIds.length} tokens (mode=${opts.embeddingMode})`);
+      }
       let prefillResult;
       const prefillStart = performance.now();
       try {
@@ -463,15 +480,7 @@ export async function prefillWithEmbedding(prompt, options = {}) {
         linearAttention: await cloneLinearAttentionRuntime(this._state.linearAttentionRuntime),
       };
     } finally {
-      this._closeFinitenessFallbackWindow(opts);
-      this._state.stats.operatorDiagnostics = this._state.operatorDiagnostics?.emitter
-        ? {
-          enabled: true,
-          timeline: this._state.operatorDiagnostics.emitter.getTimeline(),
-          recordCount: this._state.operatorDiagnostics.emitter.length,
-        }
-        : null;
-      this._state.operatorDiagnostics = null;
+      closePrefillDiagnostics(this, opts);
     }
   }
 
@@ -486,28 +495,8 @@ export async function prefillWithLogits(prompt, options = {}) {
     this._state.stats.gpuTimePrefillMs = undefined;
     this._state.stats.prefillProfileSteps = [];
     const opts = resolvePrefillOptions(this._state, options);
-    const diagnosticsEnabled = options?.diagnostics?.enabled === true
-      || this._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
-    if (diagnosticsEnabled) {
-      const captureConfig = {
-        ...createDefaultCaptureConfig(),
-        enabled: true,
-        defaultLevel: CAPTURE_LEVELS.SLICE,
-        ...(options?.diagnostics?.captureConfig ?? {}),
-      };
-      validateCaptureConfig(captureConfig);
-      this._state.operatorDiagnostics = {
-        enabled: true,
-        captureConfig,
-        emitter: new OperatorEventEmitter({
-          modelHash: this._state.manifest?.modelId ?? null,
-          runtimeConfigHash: this._state.resolvedKernelPath?.id ?? null,
-          executionPlanHash: opts.executionPlan?.id ?? null,
-        }),
-        tsirFixture: null,
-      };
-    }
     try {
+      beginPrefillDiagnostics(this._state, options, opts.executionPlan);
       const { inputIds, logits, phase: prefillPhase } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithLogits');
 
       const snapshot = this._state.kvCache?.clone();
@@ -527,15 +516,7 @@ export async function prefillWithLogits(prompt, options = {}) {
         linearAttention: await cloneLinearAttentionRuntime(this._state.linearAttentionRuntime),
       };
     } finally {
-      this._closeFinitenessFallbackWindow(opts);
-      this._state.stats.operatorDiagnostics = this._state.operatorDiagnostics?.emitter
-        ? {
-          enabled: true,
-          timeline: this._state.operatorDiagnostics.emitter.getTimeline(),
-          recordCount: this._state.operatorDiagnostics.emitter.length,
-        }
-        : null;
-      this._state.operatorDiagnostics = null;
+      closePrefillDiagnostics(this, opts);
     }
   }
 
@@ -557,6 +538,7 @@ export async function prefillWithTokenLogits(prompt, tokenIds, options = {}) {
     const opts = resolvePrefillOptions(this._state, options);
     opts._selectedLogitTokenIds = selectedTokenIds;
     try {
+      beginPrefillDiagnostics(this._state, options, opts.executionPlan);
       const { inputIds, logits, phase: prefillPhase } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithTokenLogits');
       const logitsByTokenId = {};
       for (let index = 0; index < selectedTokenIds.length; index += 1) {
@@ -575,7 +557,7 @@ export async function prefillWithTokenLogits(prompt, tokenIds, options = {}) {
         },
       };
     } finally {
-      this._closeFinitenessFallbackWindow(opts);
+      closePrefillDiagnostics(this, opts);
     }
   }
 
@@ -629,6 +611,7 @@ export async function prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, opt
     const opts = resolvePrefillOptions(this._state, options);
     opts._selectedLogitTokenIds = selectedTokenIds;
     try {
+      beginPrefillDiagnostics(this._state, options, opts.executionPlan);
       const { inputIds, logits, phase: prefillPhase } = await this._prefillPromptToLogits(prompt, opts, 'prefillWithTokenLogitsFromKV');
       const logitsByTokenId = {};
       for (let index = 0; index < selectedTokenIds.length; index += 1) {
@@ -649,7 +632,7 @@ export async function prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, opt
         },
       };
     } finally {
-      this._closeFinitenessFallbackWindow(opts);
+      closePrefillDiagnostics(this, opts);
     }
   }
 

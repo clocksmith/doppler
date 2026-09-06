@@ -29,6 +29,37 @@ numerical and exact-rank checks. Neither changing a `passed` bit nor borrowing
 generation evidence makes a rejected candidate eligible. Three documents are
 a bounded parity test, not held-out search quality or an incumbent comparison.
 
+## Locate a numerical divergence
+
+In model mode, the same qualifier accepts an optional `diagnosticCapture`:
+
+```json
+{
+  "diagnosticCapture": {
+    "documentIndex": 0,
+    "captureConfig": {
+      "defaultLevel": "none",
+      "targetLevel": "full",
+      "targetOpIds": ["layer.0.attn.post_input_norm", "layer.0.attn.q_proj"]
+    }
+  }
+}
+```
+
+The document comes from the frozen reference. The probe resets generation state,
+uses the public selected-token prefill method, and requires its tokens and logits
+to match ordinary reranking exactly. Captures and their separate elapsed time are
+retained under `raw.diagnostic`; they are not a performance sample or Pack proof.
+Failed diagnostic comparisons retain their raw observations. Capture configuration
+is rejected in Pack mode rather than bypassing the signed execution interface.
+
+`tools/q4k-projection-oracle.js --help` describes comparison of these receipts
+against independent scalar Q4K and F16 projection references. Reranker receipts
+must match ordinary execution and the supplied manifest bytes. A candidate can
+still fail source acceptance while its projection matches the quantized-weight
+oracle; those are different checks. Preserve both outcomes and change numerical
+implementations only through a new Forge candidate.
+
 ## Build and execute a signed evaluation Pack
 
 `node tools/build-reranker-evaluation-pack.js <build-config.json>` takes
@@ -36,11 +67,52 @@ a bounded parity test, not held-out search quality or an incumbent comparison.
 `outputDir`, `authorityId`, and an explicit `revocation` policy with
 `offlineExpirySeconds` and `failClosedAfterExpiry: true`.
 
-The tool creates a closed Program Bundle, manifest-derived ModelIR v1,
-rerank-qualified TargetPlan with observed initial execution identity, signed
-Pack, application contract, explicit public-key trust configuration, and build
-receipt. It verifies current WGSL hashes and refuses stale pins. It does not
-claim source-fact ModelIR v2 construction or arbitrary semantic lowering.
+The tool creates a closed Program Bundle, rerank-qualified TargetPlan with
+observed initial execution identity, signed Pack, application contract, explicit
+public-key trust configuration, and build receipt. It verifies current WGSL
+hashes and refuses stale pins. Without `modelIRReceiptPath`, it uses
+manifest-derived ModelIR v1. Supplying that field packages the source-fact
+ModelIR v2 receipt and qualifies only its lowered rerank entry point against
+the operation's source comparison. Generation parity cannot qualify reranking.
+
+For the Qwen source-fact path, use
+`reports/model-ir-v2/qwen3-reranker.spec.json` with
+`node tools/forge-source-truth-model-ir-v2.js --spec <spec.json> --out <new-receipt.json>`.
+The recipe pins original config bytes, SafeTensors header bytes, reviewed
+reference-implementation semantics, and the independent scoring reference.
+Acquire the named source snapshot before running it. JSON and SafeTensors-header
+source descriptors require explicit byte hashes; header reads are bounded and
+exclude weight payloads. Legacy string sources retain canonical-JSON hashing.
+The tool refuses to overwrite an existing receipt.
+
+This is a bounded, authored Qwen topology mapping with mechanically checked
+source facts, not automatic translation of arbitrary model code or proof of
+universal semantic equivalence. Generation remains unqualified. Tensor bytes
+and tokenizer identity are additionally bound by conversion and the Pack's
+artifact closure.
+
+The maintained candidate recipe is
+`src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json`.
+`reports/model-ir-v2/qwen3-reranker-q4k-local-grid.conversion.json` is a
+historical recipe retained with its original observations, not the current
+closed-runtime recipe.
+Before constructing a new candidate, use
+`node tools/sync-conversion-kernel-digests.js --check --file <candidate-recipe.json>`.
+If source kernels intentionally changed, synchronize that new recipe by omitting
+`--check`, then reconvert and requalify it. Do not synchronize a retained Pack
+or historical manifest in place. Quantizer changes likewise create new bytes;
+they cannot improve an already pinned artifact retroactively.
+
+Execution-step kernels alone are insufficient. The recipe's explicit
+`execution.mechanismKernels` also binds weight dequantization, RoPE preparation,
+vectorized gathering/residuals, Q/K normalization and rotation, KV writes, and
+selected-logit readback. Forge includes those source bytes in the Program Bundle
+and initial execution identity. Runtime rejects every model shader outside that
+verified scope, including during weight loading. Adding a missing mechanism
+therefore requires a new manifest, initial-identity observation, and signed Pack;
+the runtime must not fetch an undeclared shader from the package as a fallback.
+`tests/tooling/reranker-kernel-closure.test.js` exercises the maintained recipe's
+real WGSL source closure and retains the missing-dequantization rejection.
 
 Private evaluation keys are in `custody/` with restricted filesystem permissions,
 outside `distribution/`. Serve only `distribution/`; never serve the build root.
@@ -65,6 +137,13 @@ It blocks the original model route and external network origins. Its release
 resolver is a pinned evaluation fixture, not production IPC authorization.
 Application-controlled updates and revocation still require the application
 coordinator. Offline operation cannot discover unseen revocation events.
+Every session invocation requires qualification for that operation on the
+selected host surface. Merely implementing a method in the program adapter
+does not authorize it. Legacy generation records continue to qualify generation
+only; they cannot authorize reranking or sequence encoding.
+Electron propagates both opening and per-request abort signals to inference.
+Cancellation is observed before dispatch boundaries and between documents;
+it cannot preempt work already submitted to the GPU.
 
 For fault probes, use a new output directory and an explicit `fault` object.
 `artifact-corruption` and `artifact-interruption` require the `artifactId` of
@@ -107,10 +186,27 @@ archive for model artifacts and source references. Neither snapshot replaces the
 other or establishes external adoption. The follow-up index binds both archives
 and records the unchanged rejected Q4K candidate.
 
-The passing candidate is F16 with the declared `true_logit` scoring contract.
-The original Q4K comparison remains rejected; its missing immutable source pin
+The [quantization follow-up](../../reports/pack-runtime/reranker-quantization-20260905.json)
+binds the selected-token capture repair, independent projection comparisons,
+converter regressions and fixes, fresh source-pinned Q4K candidates, and another
+physical run of the F16 Pack. Rejected candidates and failed diagnostic setups
+remain retained; a converter improvement does not by itself establish model quality.
+
+In these checkpoints, the passing candidate is F16 with the declared `true_logit` scoring contract.
+The original historical Q4K comparison remains rejected; its missing immutable source pin
 also prevents attributing the difference solely to quantization. No acceptance
 tolerance was relaxed and no model catalog promotion was performed.
+
+The subsequent source-fact Q4K work uses a distinct candidate and the unchanged
+frozen reference. Its local-grid quantizer refines six-bit subblock scale/minimum
+codes against the actually stored half-precision multipliers before choosing
+four-bit value codes. This changes conversion bytes, not runtime policy. The
+checked-in source-fact recipe above records 310 tensor headers and a reviewed
+Qwen topology; only reranking is lowered and qualified by its Pack build.
+See the separate `reranker-source-pack-20260905.json` checkpoint under
+`reports/pack-runtime/` for the exact package, physical observations, and failed
+builds. These later results do not alter any preceding report or promote the
+model catalog. Source acceptance remains bounded to one query and three documents.
 
 To evaluate the retained archive without rebuilding Doppler, extract it into a
 separate directory, verify its hash and per-file manifest, and install its

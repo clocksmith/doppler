@@ -7,4 +7,6 @@ export function createPackOperationAdapters(ports: {
   program: Record<string, any>;
   generate(options: Record<string, unknown>): AsyncIterable<number>;
   rerank(request: Record<string, unknown>): Promise<unknown>;
+  embed(request: Record<string, unknown>): Promise<unknown>;
+  encodeSequence(sequence: string, options: Record<string, unknown>): Promise<unknown>;
 }): Record<string, PackOperationAdapter>;

@@ -11,11 +11,20 @@ import { assertRerankReference, evaluateRerankReference, assertRerankSourceIdent
 import { assertPhysicalAdapter } from './probe-electron-reranker.js';
 import { parseManifest } from '../src/formats/rdrr/parsing.js';
 import { hashStableJson } from '../src/tooling/program-bundle/materialize.js';
+import { validateCaptureConfig } from '../src/debug/capture-policy.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 
 export async function qualifyRerankerElectron(config) {
+  const diagnosticCapture = config?.diagnosticCapture ?? null;
+  if (diagnosticCapture) {
+    if (config.mode !== 'model' || !Number.isInteger(diagnosticCapture.documentIndex)
+      || diagnosticCapture.documentIndex < 0 || !diagnosticCapture.captureConfig) {
+      throw new Error('diagnosticCapture requires model mode, a non-negative documentIndex and captureConfig.');
+    }
+    validateCaptureConfig(diagnosticCapture.captureConfig);
+  }
   const faultKind = config?.fault?.kind ?? null;
   if (![null, 'artifact-corruption', 'artifact-interruption', 'device-loss'].includes(faultKind)
     || (faultKind && config.mode !== 'pack')) throw new Error('Unsupported qualification fault or mode.');
@@ -43,6 +52,9 @@ export async function qualifyRerankerElectron(config) {
   const policy = JSON.parse(await fs.readFile(config.policyPath, 'utf8'));
   if (require('electron/package.json').version !== policy.electronVersion) throw new Error('Pinned Electron required.');
   const reference = assertRerankReference(JSON.parse(await fs.readFile(config.referencePath, 'utf8')));
+  if (diagnosticCapture && diagnosticCapture.documentIndex >= reference.input.documents.length) {
+    throw new Error('diagnosticCapture.documentIndex exceeds the frozen reference documents.');
+  }
   const manifestBytes = await fs.readFile(path.join(config.modelDir, 'manifest.json'));
   const manifest = JSON.parse(manifestBytes);
   assertRerankSourceIdentity(manifest.artifactIdentity, reference);
@@ -122,6 +134,8 @@ export async function qualifyRerankerElectron(config) {
       let initialExecutionIdentity;
       try {
         let receipt;
+        let diagnostic = null;
+        let executed;
         if (config.mode === 'pack') {
           const { createElectronRendererRuntime } = await import('/src/client/electron/renderer-runtime.js');
           const renderer = createElectronRendererRuntime({
@@ -142,11 +156,31 @@ export async function qualifyRerankerElectron(config) {
             },
           });
           receipt = await renderer.rerank({ application: config.application, ...input, options: {} });
+          executed = performance.now();
         } else {
           session = await api.load({ url: `${location.origin}/model/` }, { runtimeConfig });
           loaded = performance.now();
           initialExecutionIdentity = observeInitialExecutionIdentity(session.advanced.getResolvedRuntimeSession());
           receipt = await session.rerankWithEvidence(input.query, input.documents);
+          executed = performance.now();
+          if (config.diagnosticCapture) {
+            const { formatRerankPrompt } = await import('/src/inference/rerank.js');
+            const { documentIndex, captureConfig } = config.diagnosticCapture;
+            const scoring = session.manifest.inference.rerank;
+            const prompt = formatRerankPrompt(input.query, input.documents[documentIndex], scoring);
+            session.resetGenerationState();
+            const output = await session.advanced.prefillWithTokenLogits(prompt,
+              [scoring.trueTokenId, scoring.falseTokenId], { useChatTemplate: false,
+                diagnostics: { enabled: true, captureConfig } });
+            const operatorDiagnostics = session.advanced.getStats().operatorDiagnostics;
+            if (!operatorDiagnostics?.recordCount) throw new Error('Requested operator captures were not retained.');
+            const ordinary = receipt.scores[documentIndex];
+            const matchesOrdinary = JSON.stringify(output.tokens) === JSON.stringify(ordinary.tokenIds)
+              && output.logitsByTokenId[scoring.trueTokenId] === ordinary.trueLogit
+              && output.logitsByTokenId[scoring.falseTokenId] === ordinary.falseLogit;
+            diagnostic = { documentIndex, prompt, tokens: output.tokens, logitsByTokenId: output.logitsByTokenId,
+              operatorDiagnostics, matchesOrdinary, elapsedMs: performance.now() - executed, performanceClaim: false };
+          }
           const after = observeInitialExecutionIdentity(session.advanced.getResolvedRuntimeSession());
           if (after.digest !== initialExecutionIdentity.digest) throw new Error('Model execution changed its initial execution identity.');
         }
@@ -154,7 +188,7 @@ export async function qualifyRerankerElectron(config) {
         return { evidence, receipt: config.mode === 'pack' ? receipt : null, initialExecutionIdentity,
           packIdentity: session.packIdentity ?? null, selectedTargetPlanDigest: session.selectedTargetPlanDigest ?? null,
           adapterClosedSession: config.mode === 'pack' ? session.closed : null,
-          manifest: session.manifest, loadMs: loaded - started, executionMs: performance.now() - loaded };
+          manifest: session.manifest, loadMs: loaded - started, executionMs: executed - loaded, diagnostic };
       } catch (error) {
         globalThis.__rerankQualificationFailure = { name: error.name, code: error.code ?? null,
           message: error.message, causeCode: error.cause?.code ?? null, sessionClosed: session?.closed ?? null };
@@ -163,6 +197,7 @@ export async function qualifyRerankerElectron(config) {
     }, { config: { ...config, packFilename: config.packPath ? path.basename(config.packPath) : null },
       input: reference.input, runtimeConfig: policy.runtimeConfig });
     report.raw = result;
+    if (result.diagnostic?.matchesOrdinary === false) throw new Error('Diagnostic execution differs from ordinary selected-token reranking.');
     if (config.mode === 'pack') {
       if (result.adapterClosedSession !== true) throw new Error('Electron adapter did not close its Pack session.');
       report.boundary.signedPackExecution = true;
