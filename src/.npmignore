@@ -28,12 +28,14 @@ client/receipt.d.ts
 client/runtime/capsule-artifact-source.d.ts
 client/runtime/capsule-program-adapter.d.ts
 client/runtime/capsule-release-authorization.d.ts
+client/runtime/capsule-session-execution.d.ts
 client/runtime/model-rerank.d.ts
 client/runtime/model-session.js
 client/runtime/node-quickstart-cache.d.ts
 client/runtime/source-runtime.d.ts
 client/runtime/storage.d.ts
 client/runtime/verified-capsule-artifact-store.d.ts
+config/capsule-adapter-policy.d.ts
 config/capsule-sequence-receipt.d.ts
 config/capsule-v0-trusted-signers.d.ts
 config/capsule-v0-trusted-signers.js

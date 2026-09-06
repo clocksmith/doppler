@@ -210,6 +210,7 @@ export interface DopplerModelHandle {
   }>;
   unloadLoRA(): Promise<void>;
   unload(): Promise<void>;
+  readonly activeLoRAIdentity: Readonly<Record<string, unknown>> | null;
   readonly activeLoRA: string | null;
   readonly loaded: boolean;
   readonly modelId: string;

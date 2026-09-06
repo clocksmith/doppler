@@ -1,3 +1,4 @@
+import type { CapsuleAdapterArtifactStore } from './capsule-adapter-execution.js';
 import type { CapsuleV2Artifact } from '../../config/capsule-v2.js';
 import type { DopplerCapsule, CapsuleIdentity, verifyCapsule } from '../../config/capsule.js';
 import type { CapsuleReleaseEvent, CapsuleReleasePolicy, ReleaseCheckpoint } from '../../config/capsule-release-events.js';
@@ -59,8 +60,8 @@ export interface DopplerRuntimeSession {
   forecast(request: CapsuleForecastRequest): Promise<CapsuleForecastResult>;
   embed(request: CapsuleEmbeddingRequest): Promise<CapsuleEmbeddingResult>;
   encodeSequence(sequence: string, options?: Record<string, unknown> & { signal?: AbortSignal }): Promise<Record<string, unknown>>;
-  executeOperation(request: CapsuleOperationRequest, control?: { signal?: AbortSignal | null }): AsyncGenerator<CapsuleOperationEvent, void, void>;
-  resetGenerationState(): void;
+  executeOperation(request: CapsuleOperationRequest, control?: { signal?: AbortSignal | null; adapterArtifactStore?: CapsuleAdapterArtifactStore | null }): AsyncGenerator<CapsuleOperationEvent, void, void>;
+  resetGenerationState(): void | Promise<void>;
   close(): Promise<void>;
 }
 

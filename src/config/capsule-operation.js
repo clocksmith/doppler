@@ -35,7 +35,7 @@ export function assertCapsuleOperationFields(value, fields, label) {
 
 export function snapshotCapsuleOperationRequest(value) {
   const request = normalizeCapsuleObservation(value);
-  assertCapsuleOperationFields(request, ['schema', 'operation', 'input', 'options', 'assignment', 'limits'], 'Capsule operation request');
+  assertCapsuleOperationFields(request, ['schema', 'operation', 'input', 'options', 'assignment', 'limits', 'adapterSet'], 'Capsule operation request');
   if (request.schema !== CAPSULE_OPERATION_REQUEST_SCHEMA) throw new Error('Unsupported Capsule operation request schema.');
   assertCapsuleOperationFields(request.operation, ['name', 'version'], 'Capsule operation');
   const definition = CAPSULE_OPERATIONS[request.operation.name];

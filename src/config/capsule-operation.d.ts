@@ -1,3 +1,4 @@
+import type { CapsuleExecutionAdapter } from './capsule-adapters.js';
 export const CAPSULE_OPERATION_REQUEST_SCHEMA: 'doppler.capsule-operation-request/v1';
 export const CAPSULE_OPERATION_RECEIPT_SCHEMA: 'doppler.capsule-operation-receipt/v1';
 export const CAPSULE_OPERATION_EVENT_SCHEMA: 'doppler.capsule-operation-event/v1';
@@ -7,6 +8,7 @@ export interface CapsuleOperationRequest {
   operation: { name: CapsuleOperationName; version: 1 };
   input: Record<string, unknown>;
   options: Record<string, unknown>;
+  adapterSet?: readonly CapsuleExecutionAdapter[];
   assignment: Record<string, unknown> | null;
   limits: { maxInputBytes: number; maxOutputBytes: number; deadlineAt: number };
 }

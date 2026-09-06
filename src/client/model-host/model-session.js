@@ -424,6 +424,7 @@ export function createModelHandle(pipeline, resolved) {
     async unload() {
       await pipeline.unload();
     },
+    get activeLoRAIdentity() { return getActiveLoRAIdentityForPipeline(pipeline); },
     get activeLoRA() {
       return getActiveLoRAForPipeline(pipeline);
     },
