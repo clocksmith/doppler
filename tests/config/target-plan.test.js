@@ -67,6 +67,22 @@ const planV2 = createTargetPlanV2({
 });
 assert.equal(planV2.schema, 'doppler.target-plan/v2');
 assert.equal(validateTargetPlan(planV2).ok, true);
+const adapterClosure = ['matmul_f16', 'scale', 'residual'].map((file) => ({ moduleId: file, file: `${file}.wgsl`, entry: 'main', digest }));
+const adapterDeclaration = { schema: 'doppler.capsule-adapter-execution/v1', maxAdapters: 1, combination: 'single',
+  formats: ['peft_safetensors'], operations: ['generate'], kernelModules: adapterClosure.map(row => row.moduleId) };
+const adapterPlan = createTargetPlanV2({ ...planV2,
+  kernelClosure: [...planV2.kernelClosure, ...adapterClosure.map(row => ({ moduleId: row.moduleId, digest: row.digest, sourceHash: digest }))],
+  qualification: planV2.qualification.map(row => ({ ...row, operation: 'generate' })),
+  initialExecutionIdentity: createInitialExecutionIdentity({ ...initialExecutionIdentity, kernelClosure: adapterClosure }),
+  adapterExecution: adapterDeclaration });
+assert.deepEqual(adapterPlan.adapterExecution, adapterDeclaration, 'construction preserves explicit adapter policy');
+assert.equal(validateTargetPlan({ ...adapterPlan, schema: 'doppler.target-plan/v1', schemaVersion: 1 }).ok, false);
+assert.notEqual(hashTargetPlan(adapterPlan), hashTargetPlan(planV2), 'adapter permission changes signed target identity');
+assert.throws(() => createTargetPlanV2({ ...adapterPlan,
+  adapterExecution: { ...adapterDeclaration, kernelModules: ['unbound'] } }), /outside signed execution closure/);
+assert.throws(() => createTargetPlanV2({ ...adapterPlan, kernelClosure: planV2.kernelClosure }), /packaged target closure/);
+assert.throws(() => createTargetPlanV2({ ...adapterPlan,
+  kernelClosure: adapterPlan.kernelClosure.map(row => ({ ...row, digest: `sha256:${'b'.repeat(64)}` })) }), /packaged target closure/);
 const identityMismatch = structuredClone(planV2);
 identityMismatch.executionGraphHash = `sha256:${'b'.repeat(64)}`;
 assert.equal(validateTargetPlan(identityMismatch).ok, false);

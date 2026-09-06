@@ -1,8 +1,8 @@
 {
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
-  "fileCount": 49,
-  "sourceBytes": 247362,
+  "fileCount": 57,
+  "sourceBytes": 573185,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -26,6 +26,11 @@
       "hash": "sha256:53dfec0be18db4194408cde3b52860d8571d121d53ae586b7bf4add0dc2e9699"
     },
     {
+      "path": "src/client/runtime/capsule-adapter-execution.js",
+      "sizeBytes": 3817,
+      "hash": "sha256:cd00739f3331ef8587634c44499e6076b3a34f3210554e9a440a66b0dc6d01d1"
+    },
+    {
       "path": "src/client/runtime/capsule-embedding.js",
       "sizeBytes": 4535,
       "hash": "sha256:075a9189eb6fc3b06a1265f2fb5d5d00d0d32d5ca675c881fb581df74876b3c0"
@@ -47,8 +52,8 @@
     },
     {
       "path": "src/client/runtime/capsule-operation-executor.js",
-      "sizeBytes": 4615,
-      "hash": "sha256:4a8e26d76e62d1357d0c0b0f4fa1863760c95101133bea2e6b8aa634c5b3ad93"
+      "sizeBytes": 5470,
+      "hash": "sha256:8a1514a5c35fccc2e61fbbc8882b8b5d35b086688d5bfbbc93689c8aaf0ef02b"
     },
     {
       "path": "src/client/runtime/capsule-release-authorization.js",
@@ -61,14 +66,19 @@
       "hash": "sha256:988196962078bd6f0e14a7f4c69a40cecb8ce86962b30fbe7059ac2133a741a7"
     },
     {
+      "path": "src/client/runtime/capsule-session-execution.js",
+      "sizeBytes": 3198,
+      "hash": "sha256:35d8315c56d458831431648ebc2528367e9557a24e05f3c1c8cdfc845ff4b7df"
+    },
+    {
       "path": "src/client/runtime/command-executor.js",
       "sizeBytes": 5303,
       "hash": "sha256:29ce64a8d64eb27b4a075183728d25f5bf9d4a9ec5a7b71fec0791b560923469"
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 17226,
-      "hash": "sha256:b1716f9bbf08d3af2a113bb24946a34fe6940ef9b5dcb498a5b423332abad1e4"
+      "sizeBytes": 19677,
+      "hash": "sha256:b56a5d00ab9552533175035e4d880e8d3edc41acb4310e1f0b68d9f0151e9ca3"
     },
     {
       "path": "src/client/runtime/fetch-capsule-artifact-store.js",
@@ -96,6 +106,21 @@
       "hash": "sha256:9ab343c0ba05e707294d473ac6af49ec471b5c9c1cf7a8a87c58a0a07d8e99d2"
     },
     {
+      "path": "src/config/capsule-adapter-policy.js",
+      "sizeBytes": 2420,
+      "hash": "sha256:234d879e345dd0d5d238fccaa232f03dfa9bde504777f26e270c01c4632d7cdb"
+    },
+    {
+      "path": "src/config/capsule-adapters.js",
+      "sizeBytes": 2801,
+      "hash": "sha256:19626ab9c66b1b938ab656884cf377b51504cff1d6039282cdc3c1aa4197b3d4"
+    },
+    {
+      "path": "src/config/capsule-adapters.json",
+      "sizeBytes": 273,
+      "hash": "sha256:fdc319264ebd39573a354d63246bf2c5d1a1a7897be566b5a7fd853615dea621"
+    },
+    {
       "path": "src/config/capsule-loading.js",
       "sizeBytes": 596,
       "hash": "sha256:aa6bdd57e3a57431d6c91fabe040d90cc8667fecc23acff3cedaff15b04db620"
@@ -107,8 +132,8 @@
     },
     {
       "path": "src/config/capsule-operation.js",
-      "sizeBytes": 3870,
-      "hash": "sha256:e0d4d8100592a5c16cddb6f828e3393e17eda0b1d784e02e0a3a4ab2f370f278"
+      "sizeBytes": 3884,
+      "hash": "sha256:01716d2c705e8d6d3fa02c611a837013c23103ad8c27418504e715a7f3ab8937"
     },
     {
       "path": "src/config/capsule-operations.json",
@@ -166,6 +191,11 @@
       "hash": "sha256:df1adc683da57e50488c7290c9918bebebc53d1ca000253b391e505f0ab19246"
     },
     {
+      "path": "src/config/kernels/registry.json",
+      "sizeBytes": 297736,
+      "hash": "sha256:a1d3b0605c3ab7f2db907f6dc869deb2f470ff6f12a9864a995deeda12e36f60"
+    },
+    {
       "path": "src/config/model-ir-v2.js",
       "sizeBytes": 11405,
       "hash": "sha256:fb31ca041f39dba1b017c33c21f1e9c6c344a400524a41e0c49614403c5c7f74"
@@ -176,14 +206,19 @@
       "hash": "sha256:f970113567f8dd296b28fc76d4711a7bc21d2c51185e1ed630d9e52ce6b23219"
     },
     {
+      "path": "src/config/revocation-policy.js",
+      "sizeBytes": 10773,
+      "hash": "sha256:0e2ee4c9a9f711da2e7a2d2b4a3963573d5478ff07cc45ef969e0d6e3cdf7d89"
+    },
+    {
       "path": "src/config/schema/debug.schema.js",
       "sizeBytes": 4207,
       "hash": "sha256:2e93df23cf8dbc54f3548cb38a5cba00bd1e96b3827de29ae409038f8992c59f"
     },
     {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 19910,
-      "hash": "sha256:519d2198ef83a725977a8ef6cb72fe1a7013769cea46d5d19e5c4767ec4f0470"
+      "sizeBytes": 20237,
+      "hash": "sha256:3d0cb6094ab694ed27297dfcb263ec5adc54f33e21ecfc5291fa8dc6170724cc"
     },
     {
       "path": "src/debug/capture-policy.js",
@@ -239,6 +274,11 @@
       "path": "src/formats/canonical-hash.js",
       "sizeBytes": 2489,
       "hash": "sha256:0034c8318465e897c78d01f2a15025ce86464e05799d4b1162327618251a9fda"
+    },
+    {
+      "path": "src/formats/load-json.js",
+      "sizeBytes": 1158,
+      "hash": "sha256:71761a83b6d7a0e89962592f6d3181f9524eb6784bafb1879dcd4316b936ed5f"
     },
     {
       "path": "src/formats/sha256.js",
