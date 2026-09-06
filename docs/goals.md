@@ -29,6 +29,12 @@ hosting. Contributors can improve, test, measure, and distribute Doppler without
 another repository authorizing their work. Independently chosen trust policy and
 publishers remain explicit; retaining artifacts does not grant redistribution rights.
 
+New-family engineering uses maintainer-approved scope with pinned source,
+conversion configs, reference tests, and licensing evidence. Read-only discovery
+is not publication; intake is not qualification. No customer, payment, network
+experiment, or completed adoption goal is required to investigate and implement
+a model. See [the onboarding playbook](developer-guides/model-onboarding-playbook.md).
+
 ## Optional experiment: Reproduce an open execution network
 
 ESM-2 35M, `esm2-t12-35m-ur50d-f32-af32`, remains the first network demonstration.

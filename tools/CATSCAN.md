@@ -27,6 +27,9 @@ Automate repository governance, generation, qualification, and operator workflow
 - Recurring drift classes gain check mode and a single policy source.
 - Generated files are reproducible and stale state fails clearly.
 - Tools do not silently mutate production behavior while checking it.
+- New model-family engineering requires maintainer-reviewed source, config,
+  reference-test, and licensing scope, not a customer or network dependency.
+  Intake cannot authorize publication or establish model support.
 
 ## Acceptance
 

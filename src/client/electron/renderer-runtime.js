@@ -1,4 +1,5 @@
 import { ERROR_CODES } from '../../errors/doppler-error.js';
+import { normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 
 function cancellationError() {
   const error = new Error('Electron renderer Pack operation was cancelled.');
@@ -71,7 +72,9 @@ export function createElectronRendererRuntime(options) {
     const signals = [openOptions.signal, request.options?.signal].filter(Boolean);
     const signal = signals.length === 2 && signals[0] !== signals[1]
       ? AbortSignal.any(signals) : signals[0];
-    const session = await openCurrent(signal ? { ...openOptions, signal } : openOptions);
+    const policy = normalizeTargetPlanSelectionPolicy({ requiredOperations: openOptions.requiredOperations });
+    const requiredOperations = [...new Set([...(policy.requiredOperations ?? []), 'rerank'])];
+    const session = await openCurrent({ ...openOptions, requiredOperations, ...(signal ? { signal } : {}) });
     let failed = false;
     try {
       if (typeof session.rerank !== 'function') {

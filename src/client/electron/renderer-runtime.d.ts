@@ -1,8 +1,8 @@
 import type { ElectronReleaseStateCoordinator } from './release-state.js';
-import type { DopplerRuntimeSession } from '../runtime/composition-root.js';
+import type { DopplerRuntimeSession, PackSessionOptions } from '../runtime/composition-root.js';
 import type { PackRerankRequest, PackRerankReceipt } from '../runtime/pack-rerank.js';
 
-export type ElectronPackOpenOptions = Record<string, unknown> & { signal?: AbortSignal };
+export type ElectronPackOpenOptions = PackSessionOptions & Record<string, unknown> & { signal?: AbortSignal };
 
 export interface ElectronRendererRuntime {
   /** Caller owns this session and must close it; authorization is checked at open. */

@@ -273,7 +273,36 @@ export function matchesDeviceCapability(targetPlan, deviceProfile) {
   return true;
 }
 
-export function selectQualifiedTargetPlan(targetPlans, deviceProfile) {
+export function normalizeTargetPlanSelectionPolicy(policy = {}) {
+  const fields = ['acceptedTargetPlanDigests', 'requiredOperations', 'preferredTargetPlanDigests'];
+  if (!isObject(policy) || Object.keys(policy).some((key) => !fields.includes(key))) {
+    throw new Error('TargetSelector: invalid selection policy fields.');
+  }
+  const resolved = {};
+  for (const field of fields) {
+    const values = policy[field];
+    if (values === undefined) continue;
+    const validValue = field === 'requiredOperations'
+      ? (value) => typeof value === 'string' && value.trim() === value && value.length > 0
+      : (value) => typeof value === 'string' && SHA256_PATTERN.test(value);
+    if (!Array.isArray(values) || Array.from(values).some((value) => !validValue(value))
+      || new Set(values).size !== values.length) {
+      throw new Error(`TargetSelector: ${field} must be an array of unique ${field === 'requiredOperations' ? 'operation names' : 'SHA-256 digests'}.`);
+    }
+    resolved[field] = Object.freeze([...values]);
+  }
+  return Object.freeze(resolved);
+}
+
+function isQualifiedTargetOperation(plan, surface, operation) {
+  return plan.qualification?.some((record) => (
+    record.status === 'passed' && record.surface === surface
+      && (record.operation ?? 'generate') === operation
+  )) === true;
+}
+
+export function selectQualifiedTargetPlan(targetPlans, deviceProfile, selectionPolicy = {}) {
+  const policy = normalizeTargetPlanSelectionPolicy(selectionPolicy);
   if (!Array.isArray(targetPlans) || targetPlans.length === 0) {
     throw new Error('TargetSelector: Pack contains no target plans.');
   }
@@ -284,25 +313,43 @@ export function selectQualifiedTargetPlan(targetPlans, deviceProfile) {
     throw new Error('TargetSelector: deviceProfile.surface is required for qualification selection.');
   }
 
+  let selected = null;
+  let selectedPreference = Infinity;
+  const rejected = [];
   for (const plan of targetPlans) {
     const qualifiedForSurface = plan.qualification?.some((record) => (
       record.status === 'passed' && record.surface === deviceProfile.surface
     ));
-    if (qualifiedForSurface && matchesDeviceCapability(plan, deviceProfile)) return plan;
+    if (!qualifiedForSurface || !matchesDeviceCapability(plan, deviceProfile)) continue;
+    const digest = policy.acceptedTargetPlanDigests || policy.preferredTargetPlanDigests
+      ? hashTargetPlan(plan) : null;
+    if (policy.acceptedTargetPlanDigests && !policy.acceptedTargetPlanDigests.includes(digest)) {
+      rejected.push(`${plan.targetId}: not accepted by the application policy`);
+      continue;
+    }
+    if (policy.requiredOperations?.some((operation) => !isQualifiedTargetOperation(plan, deviceProfile.surface, operation))) {
+      rejected.push(`${plan.targetId}: does not qualify required operations [${policy.requiredOperations.join(', ')}]`);
+      continue;
+    }
+    const preferredIndex = policy.preferredTargetPlanDigests?.indexOf(digest) ?? -1;
+    const preference = preferredIndex === -1 ? Infinity : preferredIndex;
+    // Application preference orders only eligible plans. Equal preferences keep
+    // signed Pack order; neither authority nor executable semantics change.
+    if (selected === null || preference < selectedPreference) {
+      selected = plan;
+      selectedPreference = preference;
+    }
   }
+  if (selected !== null) return selected;
 
   const available = targetPlans.map((plan) => plan.targetId || 'unknown').join(', ');
   throw new Error(
-    `TargetSelector: Device does not satisfy capability predicates and surface qualification for any prequalified target plan in Pack. Available targets: [${available}]. (surface: ${deviceProfile.surface}, hasF16: ${Boolean(deviceProfile.hasF16)}, hasSubgroups: ${Boolean(deviceProfile.hasSubgroups)})`
+    `TargetSelector: Device does not satisfy capability predicates and surface qualification with the application selection policy for any prequalified target plan in Pack. Available targets: [${available}]. (surface: ${deviceProfile.surface}, hasF16: ${Boolean(deviceProfile.hasF16)}, hasSubgroups: ${Boolean(deviceProfile.hasSubgroups)}) ${rejected.join('; ')}`
   );
 }
 
 export function assertQualifiedTargetOperation(plan, surface, operation) {
-  const qualified = plan.qualification?.some((record) => (
-    record.status === 'passed' && record.surface === surface
-      && (record.operation ?? 'generate') === operation
-  ));
-  if (!qualified) {
+  if (!isQualifiedTargetOperation(plan, surface, operation)) {
     throw new Error(`TargetPlan "${plan.targetId}" is not qualified for operation "${operation}" on surface "${surface}".`);
   }
 }

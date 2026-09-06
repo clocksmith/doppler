@@ -1,7 +1,7 @@
 import type { PackV2Artifact } from '../../config/pack-v2.js';
 import type { DopplerPack, PackIdentity, verifyPack } from '../../config/pack.js';
 import type { PackReleaseEvent, PackReleasePolicy, ReleaseCheckpoint } from '../../config/pack-release-events.js';
-import type { TargetPlan } from '../../config/target-plan.js';
+import type { TargetPlan, TargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import type { DeviceProfile } from './target-selector.js';
 import type { GenerationRunOptions } from './session-controller.js';
@@ -16,8 +16,7 @@ export { createForecastProgramFactory } from './pack-forecast-program.js';
 
 export const RUNTIME_CORE_VERSION: '2.0.0';
 
-export interface PackSessionOptions {
-  acceptedTargetPlanDigests?: string[];
+export interface PackSessionOptions extends TargetPlanSelectionPolicy {
   releaseEvents?: PackReleaseEvent[];
   releaseTrustedSigners?: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
   releasePolicy?: PackReleasePolicy;

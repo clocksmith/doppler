@@ -3,39 +3,23 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { validateProductionRelease } from '../src/config/production-release.js';
 import { listDirectoriesAtGitRef, resolvePolicyBaseRef } from './lib/policy-base.js';
-import { buildModelReleasePlatformReport } from './check-model-release-platform.js';
+import schema from './policies/model-family-authorization.schema.json' with { type: 'json' };
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const conversionRoot = path.join(repoRoot, 'src/config/conversion');
-const goalMatrixPath = path.join(repoRoot, 'src/config/goal-completion-matrix.json');
-const authorizationRoot = path.join(repoRoot, 'tools/policies/model-family-authorizations');
-const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/u;
-const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
-const AUTHORIZATION_KEYS = new Set([
-  'schema',
-  'family',
-  'authority',
-  'customerId',
-  'applicationId',
-  'releaseContractPath',
-  'authorizationDigest',
-]);
+const CONVERSION_ROOT = 'src/config/conversion';
+const AUTHORIZATION_ROOT = 'tools/policies/model-family-authorizations';
 
 function isObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
 }
 
 function isRepoRelativePath(value) {
-  return (
-    typeof value === 'string'
-    && value.length > 0
-    && !path.isAbsolute(value)
-    && !value.includes('\\')
-    && !value.split('/').includes('..')
-  );
+  return typeof value === 'string' && value.length > 0 && !path.isAbsolute(value)
+    && !value.includes('\\') && !value.includes('\0')
+    && value.split('/').every((part) => part && part !== '.' && part !== '..');
 }
 
 export function findNewModelFamilies(currentFamilies, baselineFamilies) {
@@ -43,143 +27,105 @@ export function findNewModelFamilies(currentFamilies, baselineFamilies) {
   return [...new Set(currentFamilies)].filter((family) => !baseline.has(family)).sort();
 }
 
-export function isSelectedNetworkIntake(configs, networkAcceptance) {
-  return networkAcceptance?.goalId === 'open-execution-network'
-    && typeof networkAcceptance.firstModelId === 'string'
-    && Array.isArray(configs) && configs.length === 1
-    && configs[0]?.output?.modelBaseId === networkAcceptance.firstModelId;
-}
-
-export function validateModelFamilyAuthorization(
-  authorization,
-  family,
-  release,
-  releaseValidation,
-  externalAuthorizationDigest = null
-) {
+export function validateModelFamilyAuthorization(authorization, family) {
   const errors = [];
   if (!isObject(authorization)) return ['authorization must be an object'];
   for (const key of Object.keys(authorization)) {
-    if (!AUTHORIZATION_KEYS.has(key)) errors.push(`authorization.${key} is not allowed`);
+    if (!Object.hasOwn(schema.properties, key)) errors.push(`authorization.${key} is not allowed`);
   }
-  if (authorization.schema !== 'doppler.model-family-authorization/v1') {
-    errors.push('authorization.schema must be "doppler.model-family-authorization/v1"');
+  for (const key of schema.required) {
+    const rule = schema.properties[key];
+    const value = authorization[key];
+    if (Object.hasOwn(rule, 'const') && value !== rule.const) {
+      errors.push(`authorization.${key} must equal ${JSON.stringify(rule.const)}`);
+    } else if (rule.type === 'string' && (typeof value !== 'string' || !value.trim()
+      || (rule.pattern && !new RegExp(rule.pattern).test(value)))) {
+      errors.push(`authorization.${key} must satisfy its declared string contract`);
+    }
   }
   if (authorization.family !== family) errors.push(`authorization.family must equal "${family}"`);
-  if (authorization.authority !== 'customer') errors.push('authorization.authority must be "customer"');
-  for (const key of ['customerId', 'applicationId']) {
-    if (!ID_PATTERN.test(authorization[key] ?? '')) {
-      errors.push(`authorization.${key} must be a kebab-case identifier`);
+  try {
+    const source = new URL(authorization.sourceRepository);
+    if (source.protocol !== 'https:' || source.username || source.password || source.hash || source.search) throw new Error();
+  } catch { errors.push('authorization.sourceRepository must be a credential-free HTTPS repository URL'); }
+
+  const configs = authorization.conversionConfigs;
+  if (!Array.isArray(configs) || configs.length === 0) errors.push('authorization.conversionConfigs must be a non-empty array');
+  const inputs = [...(Array.isArray(configs) ? configs : []), authorization.referenceTest, authorization.licenseEvidence];
+  const paths = new Set();
+  for (const input of inputs) {
+    if (!isObject(input) || Object.keys(input).some((key) => !Object.hasOwn(schema.$defs.input.properties, key))
+      || !isRepoRelativePath(input.path) || typeof input.digest !== 'string'
+      || !new RegExp(schema.$defs.input.properties.digest.pattern).test(input.digest)) {
+      errors.push('authorization inputs require repository-relative path and SHA-256 digest only');
+      continue;
+    }
+    if (paths.has(input.path)) errors.push(`authorization duplicates input ${input.path}`);
+    paths.add(input.path);
+  }
+  for (const config of Array.isArray(configs) ? configs : []) {
+    if (typeof config?.path !== 'string' || !config.path.startsWith(`${CONVERSION_ROOT}/${family}/`) || !config.path.endsWith('.json')) {
+      errors.push('authorization conversion config is outside the exact family');
     }
   }
-  if (!isRepoRelativePath(authorization.releaseContractPath)) {
-    errors.push('authorization.releaseContractPath must be a repository-relative path');
-  }
-  if (!SHA256_PATTERN.test(authorization.authorizationDigest ?? '')) {
-    errors.push('authorization.authorizationDigest must be a SHA-256 digest');
-  } else if (authorization.authorizationDigest !== externalAuthorizationDigest) {
-    errors.push(
-      'authorization.authorizationDigest must match DOPPLER_MODEL_FAMILY_AUTHORIZATION'
-    );
-  }
-  if (!releaseValidation?.ok) {
-    for (const error of releaseValidation?.errors ?? ['release contract is invalid']) {
-      errors.push(`release contract: ${error}`);
-    }
-  }
-  if (!isObject(release)) {
-    errors.push('release contract must be an object');
-  } else {
-    if (!['external-candidate', 'external-production'].includes(release.evidenceClass)) {
-      errors.push('release contract must declare external-candidate or external-production evidence');
-    }
-    if (release.claimBoundary?.externalCustomer !== true) {
-      errors.push('release contract must bind an external customer');
-    }
-    if (release.application?.applicationId !== authorization.applicationId) {
-      errors.push('release contract applicationId must match authorization.applicationId');
-    }
-    if (release.rollout?.activationAuthority !== 'customer') {
-      errors.push('release contract activation authority must remain customer-controlled');
-    }
+  if (typeof authorization.referenceTest?.path !== 'string'
+    || !authorization.referenceTest.path.startsWith('tests/') || !authorization.referenceTest.path.endsWith('.js')) {
+    errors.push('authorization.referenceTest must name a repository JavaScript test');
   }
   return errors;
 }
 
-async function readJson(filePath) {
-  return JSON.parse(await fs.readFile(filePath, 'utf8'));
+async function readContained(root, relativePath) {
+  if (!isRepoRelativePath(relativePath)) throw new Error('invalid repository-relative path');
+  const resolved = await fs.realpath(path.join(root, relativePath));
+  if (!resolved.startsWith(`${root}${path.sep}`)) throw new Error('input symlink escapes repository');
+  return fs.readFile(resolved);
 }
 
-async function main() {
-  const baseRef = resolvePolicyBaseRef(process.argv.slice(2));
-  const matrix = await readJson(goalMatrixPath);
-  const platform = await buildModelReleasePlatformReport();
-  if (!platform.ok) throw new Error(platform.errors.join('\n'));
-  const goal = matrix.goals?.find((entry) => entry.id === 'local-webgpu-product-surface');
-  if (!goal) throw new Error('Goal matrix is missing local-webgpu-product-surface.');
-  const currentFamilies = (await fs.readdir(conversionRoot, { withFileTypes: true }))
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
-  const baselineFamilies = listDirectoriesAtGitRef(
-    repoRoot,
-    baseRef,
-    'src/config/conversion'
-  );
-  const newFamilies = findNewModelFamilies(currentFamilies, baselineFamilies);
+async function listConfigPaths(root, relativePath) {
+  const paths = [];
+  for (const entry of await fs.readdir(path.join(root, relativePath), { withFileTypes: true })) {
+    const next = `${relativePath}/${entry.name}`;
+    if (entry.isSymbolicLink()) throw new Error(`conversion scope may not contain symlinks: ${next}`);
+    if (entry.isDirectory()) paths.push(...await listConfigPaths(root, next));
+    else if (entry.isFile() && entry.name.endsWith('.json')) paths.push(next);
+  }
+  return paths.sort();
+}
+
+export async function checkModelFamilyIntake(root, baseRef) {
+  root = await fs.realpath(root);
+  const currentFamilies = (await fs.readdir(path.join(root, CONVERSION_ROOT), { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory() || entry.isSymbolicLink()).map((entry) => entry.name).sort();
+  const newFamilies = findNewModelFamilies(currentFamilies, listDirectoriesAtGitRef(root, baseRef, CONVERSION_ROOT));
   const errors = [];
-
-  if (goal.status !== 'complete') {
-    for (const family of newFamilies) {
-      const familyPath = path.join(conversionRoot, family);
-      const files = (await fs.readdir(familyPath, { withFileTypes: true }));
-      const configs = await Promise.all(files.filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
-        .map((entry) => readJson(path.join(familyPath, entry.name))));
-      // The selected network workload has repository-authorized product intent.
-      // It does not need an Electron customer; additional configs do not inherit it.
-      if (!files.some((entry) => entry.isDirectory()) && isSelectedNetworkIntake(configs, platform.networkAcceptance)) continue;
-      const authorizationPath = path.join(authorizationRoot, `${family}.json`);
-      let authorization;
-      try {
-        authorization = await readJson(authorizationPath);
-      } catch (error) {
-        errors.push(`${family}: missing readable customer authorization at ${path.relative(repoRoot, authorizationPath)} (${error.message})`);
-        continue;
+  for (const family of newFamilies) {
+    try {
+      if ((await fs.lstat(path.join(root, CONVERSION_ROOT, family))).isSymbolicLink()) throw new Error('family directory may not be a symlink');
+      const authorization = JSON.parse(await readContained(root, `${AUTHORIZATION_ROOT}/${family}.json`));
+      const invalid = validateModelFamilyAuthorization(authorization, family);
+      if (invalid.length) throw new Error(invalid.join('; '));
+      const configs = await listConfigPaths(root, `${CONVERSION_ROOT}/${family}`);
+      if (JSON.stringify(configs) !== JSON.stringify(authorization.conversionConfigs.map((input) => input.path).sort())) {
+        throw new Error('conversion configs do not match the exact maintainer-approved scope');
       }
-      let release = null;
-      let releaseValidation = { ok: false, errors: ['release contract path is invalid'] };
-      if (isRepoRelativePath(authorization.releaseContractPath)) {
-        try {
-          release = await readJson(path.join(repoRoot, authorization.releaseContractPath));
-          releaseValidation = validateProductionRelease(release);
-        } catch (error) {
-          releaseValidation = { ok: false, errors: [error.message] };
-        }
+      for (const input of [...authorization.conversionConfigs, authorization.referenceTest, authorization.licenseEvidence]) {
+        const bytes = await readContained(root, input.path);
+        const digest = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
+        if (digest !== input.digest) throw new Error(`approved input changed: ${input.path}`);
+        if (bytes.length === 0) throw new Error(`approved input is empty: ${input.path}`);
       }
-      for (const error of validateModelFamilyAuthorization(
-        authorization,
-        family,
-        release,
-        releaseValidation,
-        process.env.DOPPLER_MODEL_FAMILY_AUTHORIZATION ?? null
-      )) {
-        errors.push(`${family}: ${error}`);
-      }
-    }
+    } catch (error) { errors.push(`${family}: ${error.message}`); }
   }
-
-  if (errors.length > 0) {
-    console.error('model family intake check failed:');
-    for (const error of errors) console.error(`- ${error}`);
-    process.exitCode = 1;
-    return;
-  }
-  console.log(
-    `model family intake check passed: goal=${goal.status}, base=${baseRef}, `
-    + `families=${currentFamilies.length}, newFamilies=${newFamilies.length}`
-  );
+  return { ok: errors.length === 0, baseRef, families: currentFamilies.length, newFamilies, errors };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  await main();
+  const report = await checkModelFamilyIntake(repoRoot, resolvePolicyBaseRef(process.argv.slice(2)));
+  if (!report.ok) {
+    console.error(`model family intake check failed:\n${report.errors.map((error) => `- ${error}`).join('\n')}`);
+    process.exitCode = 1;
+  } else {
+    console.log(`model family intake check passed: authority=maintainer, base=${report.baseRef}, families=${report.families}, newFamilies=${report.newFamilies.length}`);
+  }
 }
