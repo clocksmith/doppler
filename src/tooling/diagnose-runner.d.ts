@@ -24,5 +24,5 @@ export interface DiagnoseCommandResult {
 
 export declare function runDiagnoseCommand(
   request: ToolingCommandRequest,
-  options?: Record<string, unknown>
+  options?: Record<string, unknown> & { providerContractModule?: string }
 ): Promise<DiagnoseCommandResult>;
