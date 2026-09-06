@@ -182,7 +182,7 @@ export async function createSignedPackFixture(options = {}) {
     modelId: modelIR.modelId,
     createdAtUtc: '2026-08-22T00:00:00.000Z',
     modelIR,
-    targetPlans: [targetPlan],
+    targetPlans: options.targetPlans ?? [targetPlan],
     wgslModules: [{
       id: 'main', file: 'main.wgsl', entry: 'main', digest: wgslHash,
       sourceHash: wgslHash, sourceArtifactId: 'wgsl',
@@ -199,7 +199,7 @@ export async function createSignedPackFixture(options = {}) {
       execution: { steps: [{ id: 'prefill-step' }, { id: 'decode-step' }] },
       referenceTranscript: { tokens: { ids: [4, 5, 6, 7] } },
     },
-    release: options.release ?? createPackReleaseFixture({ targetIds: [targetPlan.targetId] }),
+    release: options.release ?? createPackReleaseFixture({ targetIds: (options.targetPlans ?? [targetPlan]).map((plan) => plan.targetId) }),
   });
   const pack = await signPackV2(unsignedPack, {
     authority: TEST_PACK_AUTHORITY,

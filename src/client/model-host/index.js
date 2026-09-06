@@ -33,6 +33,7 @@ import { createDopplerRuntime } from '../runtime/composition-root.js';
 import { createPackProgramAdapter } from '../runtime/pack-program-adapter.js';
 import { createPackArtifactSource } from '../runtime/pack-artifact-source.js';
 import { resolveProgramLoadRuntimeConfig } from '../../config/initial-execution-identity.js';
+import { normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
 import {
   configureSignedRevocationAuthority,
@@ -357,6 +358,11 @@ export function createDopplerRuntimeService({
     if (options.modelLoadOptions !== undefined) {
       throw new Error('doppler.openPack() prohibits modelLoadOptions because signed TargetPlan policy is authoritative.');
     }
+    options = { ...options, ...normalizeTargetPlanSelectionPolicy({
+      acceptedTargetPlanDigests: options.acceptedTargetPlanDigests,
+      requiredOperations: options.requiredOperations,
+      preferredTargetPlanDigests: options.preferredTargetPlanDigests,
+    }) };
     await ensureWebGPUAvailable();
     const resolvedPack = await resolvePackInput(packSource, options);
     if (!resolvedPack?.pack || !resolvedPack?.artifactStore) {

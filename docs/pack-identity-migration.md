@@ -126,8 +126,23 @@ This option requires v3; it is rejected on v2 rather than silently ignored.
 
 ## Execution evidence and limits
 
-`acceptedTargetPlanDigests` constrains selection; no accepted plan means no
-program loading. `encodeSequence` returns a `doppler.pack-execution-receipt/v1`
+Pack opening filters by device capability, host qualification, optional
+`acceptedTargetPlanDigests`, and every operation in optional `requiredOperations`
+before selecting a plan. An omitted digest allowlist accepts any otherwise
+qualified plan; an empty list accepts none. `preferredTargetPlanDigests` orders
+eligible plans only and never grants authorization. Signed Pack order breaks
+ties and remains the default when no preference is supplied. None of these
+options rewrites a plan or switches an already-open session.
+
+For example, `openPack(pack, { requiredOperations: ['rerank'],
+acceptedTargetPlanDigests: [approvedDigest] })` on the host API selects an
+approved reranking plan even when a generation-only plan appears first. The
+injected root API places the same policy under `options.session`. The Electron
+reranking adapter adds `rerank` without discarding caller-required operations.
+Selection policy is copied before asynchronous opening, and no eligible plan
+means no program loading. Per-operation qualification still applies at execution.
+
+`encodeSequence` returns a `doppler.pack-execution-receipt/v1`
 bound to the exact Pack, selected TargetPlan, full artifact receipts, release
 event, assignment, input options, and semantic output. Timings are observations,
 not semantic output identity. The operation supports cancellation and rejects

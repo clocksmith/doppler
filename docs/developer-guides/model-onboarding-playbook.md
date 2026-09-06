@@ -1,5 +1,48 @@
 # Model Onboarding Playbook
 
+## Repeatable source-to-candidate preparation
+
+The existing source-truth Forge entrypoint accepts a pinned onboarding config:
+
+```bash
+node tools/forge-source-truth-model-ir-v2.js \
+  --config src/config/forge/onboarding/qwen3.8-27b.json \
+  --out /tmp/doppler-qwen38-onboarding
+```
+
+This repository-local command composes existing Forge components. It verifies
+the input file hashes and source revision, revalidates source facts, constructs
+ModelIR, audits the requested entrypoints against the pinned lowering vocabulary,
+and materializes the declared lineage recipe when its requirements pass. The
+schema is `src/config/forge/model-onboarding.schema.json`. Source paths resolve
+against the repository root, not the configuration file's location.
+
+The example replays an existing model's authored specification and recipe; it
+does not discover or automatically implement an unfamiliar model. String-valued
+source references retain the legacy canonical-JSON identity check; descriptor
+references additionally verify exact JSON bytes or bounded SafeTensors headers.
+The original `--spec ... --out receipt.json` interface remains available.
+
+`support-assessment.json` retains rejected lowering reasons, source fact
+references, semantic requirements, and regression inputs for missing component,
+block, output, or persistent-state behavior. Compatibility is relative to the
+supplied vocabulary, not a claim that an operation is absent from every Doppler
+implementation. Unknown entrypoints and malformed evidence fail explicitly.
+
+Rerunning the same configuration rechecks source and input identities and reuses
+identical retained files without replacing them. A run interrupted between stages
+can continue. Changed, partial, or corrupted retained files are rejected: preserve
+that directory and start a new one. Failed stages retain a content-addressed
+failure record, including earlier completed outputs. Changed recipes or acceptance
+inputs require a separate directory; old failures are never overwritten.
+
+The result states `blocked`, `recipe-required`, or `candidate-materialized`.
+The last means a conversion configuration was produced, **not** that weights
+were converted or inference qualified. Conversion, independent source-reference
+comparison, physical candidate evaluation, complete Pack signing, and publication
+remain explicit subsequent operations. No runtime, catalog, application pin,
+reference tolerance, or hosted model is changed by this command.
+
 ## Goal
 
 Add a new model in a way that is reproducible, debuggable, and honest about what
@@ -9,17 +52,27 @@ This guide is the end-to-end planning document for model onboarding work. Use it
 before you touch conversion configs, runtime code, benchmark lanes, or catalog
 metadata.
 
-While `local-webgpu-product-surface` remains incomplete, a new directory under
-`src/config/conversion/` requires customer authority before implementation.
-Record it at `tools/policies/model-family-authorizations/<family>.json` with
-schema `doppler.model-family-authorization/v1`, the exact family, customer and
-application IDs, a repository-relative external-candidate or
-external-production release contract, and the customer authorization digest.
-`npm run model-family:intake:check` compares the change with the CI base
-revision and requires that digest to match the externally administered
-`DOPPLER_MODEL_FAMILY_AUTHORIZATION` CI variable. It rejects unaffiliated
-model-family work. Existing research families are not retroactively presented
-as customer-authorized.
+Read-only discovery and investigation require no customer or network approval.
+A new directory under `src/config/conversion/` requires a maintainer-reviewed
+engineering scope at `tools/policies/model-family-authorizations/<family>.json`.
+The [authorization schema](../../tools/policies/model-family-authorization.schema.json)
+uses `doppler.model-family-authorization/v2`: name the maintainer and purpose,
+pin the HTTPS source repository and Git revision, and bind the exact conversion
+configs, reference test, and licensing evidence by repository path and byte
+SHA-256 digest. `publicationAllowed` must be `false`.
+
+`npm run model-family:intake:check` compares with the CI base revision and
+checks the exact file set and retained bytes. It does not require a customer,
+application release contract, CI authorization secret, completed adoption goal,
+or special network exception. Existing families are not retroactively labeled
+approved. Historical v1 customer records remain history and do not authorize
+new engineering scope; replace them with a reviewed v2 record when needed.
+
+The record is reviewed source control, not proof of a human identity or a
+passing reference test. Run the frozen reference independently. Intake grants
+neither model support nor redistribution/publication rights: conversion,
+source parity, licensing, qualification, and explicit publication checks still
+apply. Discovery tools must never manufacture maintainer approval.
 
 ## When To Use This Guide
 

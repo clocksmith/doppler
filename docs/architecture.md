@@ -160,7 +160,7 @@ All graph-changing, kernel-changing, fusion-changing, layout-changing, and preci
 ### Runtime Generic Units (Plan–Bind–Execute)
 
 The Runtime core contains zero model-family conditionals and operates strictly on generic units:
-* **`TargetSelector`:** Selects the highest-performance prequalified `TargetPlan` compatible with the device.
+* **`TargetSelector`:** Filters prequalified `TargetPlan`s by device, host, application-approved hashes, and required operations, then applies the application's explicit preference order. Signed Pack order breaks ties; selection does not imply a measured performance winner and cannot change during a session.
 * **`ResourceBinder`:** Binds symbolic memory slots to GPU buffers and uniform structures.
 * **`CommandExecutor`:** Dispatches declared phase commands without interpreting model semantics.
 * **`SessionController`:** Controls KV cache lifecycle, step sequencing, and abort signals.

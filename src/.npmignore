@@ -45,6 +45,8 @@ config/forge/forecast/chronos-bolt-tiny.json
 config/forge/lineage/qwen3.8-27b.json
 config/forge/lowering-vocabularies/heterogeneous-text-v2.json
 config/forge/lowering-vocabularies/hybrid-text-v1.json
+config/forge/model-onboarding.schema.json
+config/forge/onboarding/qwen3.8-27b.json
 config/forge/reference/glimmer-30b-bf16-prefill-boundary-comparison.json
 config/forge/reference/glimmer-30b-decode-boundary-comparison.json
 config/forge/reference/glimmer-30b-text-f32-diagnostic.json
@@ -184,6 +186,8 @@ converter/manifest-conversion-postflight.d.ts
 converter/manifest-conversion-postflight.js
 converter/manifest-conversion-preflight.d.ts
 converter/manifest-conversion-preflight.js
+converter/model-support-assessment.d.ts
+converter/model-support-assessment.js
 converter/parsers/diffusion.d.ts
 converter/parsers/gguf.d.ts
 converter/parsers/index.d.ts
@@ -774,6 +778,8 @@ tooling/lean-execution-contract.d.ts
 tooling/lean-execution-contract.js
 tooling/litert-package-runtime.d.ts
 tooling/litert/package.d.ts
+tooling/model-onboarding.d.ts
+tooling/model-onboarding.js
 tooling/model-pack-forge.d.ts
 tooling/node-browser/static-server.d.ts
 tooling/node-command-execution.d.ts
@@ -808,6 +814,8 @@ tooling/source-runtime-materializer.js
 tooling/source-runtime/bundle-materialize.d.ts
 tooling/source-runtime/bundle-plan.d.ts
 tooling/source-runtime/node-loader.d.ts
+tooling/source-truth-inputs.d.ts
+tooling/source-truth-inputs.js
 tooling/trainer-artifact-handoff.d.ts
 tooling/trainer-artifact-handoff.js
 tooling/translation-artifact-competition.d.ts

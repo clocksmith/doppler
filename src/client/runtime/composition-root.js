@@ -1,4 +1,4 @@
-import { hashTargetPlan, assertQualifiedTargetOperation } from '../../config/target-plan.js';
+import { hashTargetPlan, assertQualifiedTargetOperation, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import { freezePackV2 } from '../../config/pack-v2.js';
 import { validatePack, verifyPack, getPackIdentity } from '../../config/pack.js';
@@ -50,6 +50,11 @@ export function createDopplerRuntime(ports) {
     ports: { device, packSource, artifactStore, cache, observer },
 
     async openPack(packOrId, options = {}) {
+      const selectionPolicy = normalizeTargetPlanSelectionPolicy({
+        acceptedTargetPlanDigests: options.acceptedTargetPlanDigests,
+        requiredOperations: options.requiredOperations,
+        preferredTargetPlanDigests: options.preferredTargetPlanDigests,
+      });
       const input = typeof packOrId === 'string'
         ? await packSource?.fetchPack?.(packOrId, options)
         : packOrId;
@@ -91,14 +96,8 @@ export function createDopplerRuntime(ports) {
               hasSubgroups: Boolean(device.hasSubgroups),
               maxBufferSize: Number(device.maxBufferSize || 0),
             };
-        const selectedPlan = selectTargetPlan(pack.targetPlans, deviceProfile);
+        const selectedPlan = selectTargetPlan(pack.targetPlans, deviceProfile, selectionPolicy);
         const targetPlanDigest = hashTargetPlan(selectedPlan);
-        if (options.acceptedTargetPlanDigests !== undefined
-          && (!Array.isArray(options.acceptedTargetPlanDigests)
-            || !options.acceptedTargetPlanDigests.includes(targetPlanDigest))) {
-          verifiedStore.close();
-          throw new Error('Selected TargetPlan is not accepted by the application policy.');
-        }
         emit(observer, { type: 'target-selected', packId: pack.packId, targetId: selectedPlan.targetId, targetPlanDigest });
         const modules = await loadModuleSources(pack, verifiedStore);
         const manifestArtifact = pack.artifacts.find((artifact) => artifact.artifactId === pack.program.manifestArtifactId);

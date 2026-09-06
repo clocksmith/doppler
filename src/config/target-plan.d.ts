@@ -82,13 +82,25 @@ export interface TargetPlanDeviceProfile {
   };
 }
 
+export interface TargetPlanSelectionPolicy {
+  /** Omitted accepts any qualified plan; an empty list accepts none. */
+  acceptedTargetPlanDigests?: readonly string[];
+  /** Every requested operation must be qualified on the selected host. */
+  requiredOperations?: readonly NonNullable<TargetPlanV1['qualification'][number]['operation']>[];
+  /** Preference among eligible plans only; signed Pack order breaks ties. */
+  preferredTargetPlanDigests?: readonly string[];
+}
+
+export declare function normalizeTargetPlanSelectionPolicy(policy?: TargetPlanSelectionPolicy): Readonly<TargetPlanSelectionPolicy>;
+
 export declare function validateTargetPlan(plan: unknown): { ok: boolean; errors: string[] };
 export declare function hashTargetPlan(plan: unknown): `sha256:${string}`;
 export declare function assertQualifiedTargetOperation(plan: TargetPlan, surface: string, operation: string): void;
 export declare function matchesDeviceCapability(targetPlan: TargetPlan, deviceProfile: Record<string, unknown>): boolean;
 export declare function selectQualifiedTargetPlan(
   targetPlans: TargetPlan[],
-  deviceProfile: TargetPlanDeviceProfile
+  deviceProfile: TargetPlanDeviceProfile,
+  selectionPolicy?: TargetPlanSelectionPolicy
 ): TargetPlan;
 export declare function createTargetPlan(params: Omit<TargetPlanV1, 'schema' | 'schemaVersion'>): TargetPlanV1;
 export declare function createTargetPlanV2(params: Omit<TargetPlanV2, 'schema' | 'schemaVersion'>): TargetPlanV2;
