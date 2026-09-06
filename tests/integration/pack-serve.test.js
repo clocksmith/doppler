@@ -91,7 +91,7 @@ async function serve(test, servingPolicy = policy) {
   return { handler, base, server,
     request: (body, options = {}) => fetch(`${base}${options.path ?? '/v1/operations'}`, {
       method: options.method ?? 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...options.headers },
-      ...((options.method ?? 'POST') === 'POST' ? { body: typeof body === 'string' ? body : JSON.stringify(body) } : {}),
+      ...((options.method ?? 'POST') === 'POST' ? { body: typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body) } : {}),
       signal: options.signal,
     }),
     async close() {
@@ -148,6 +148,7 @@ try {
   await rejection(request, 415, 'CONTENT_TYPE', { headers: { 'Content-Type': 'text/plain' } });
   await rejection(request, 404, 'NOT_FOUND', { path: '/v1/chat/completions' });
   await rejection('{', 400, 'INVALID_JSON');
+  await rejection(Buffer.concat([Buffer.from('{"query":"'), Buffer.from([255]), Buffer.from('"}')]), 400, 'INVALID_JSON');
   await rejection(' '.repeat(11000), 413, 'REQUEST_TOO_LARGE');
   await rejection({ ...request, operation: { name: 'customCode', version: 1 } }, 400, 'INVALID_OPERATION');
   await rejection({ ...request, assignment: { peer: 'someone' } }, 400, 'DELEGATION_UNSUPPORTED');

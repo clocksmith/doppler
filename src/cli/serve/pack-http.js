@@ -53,7 +53,7 @@ export function readPackRequest(req, maxBytes, signal) {
     };
     const end = () => {
       cleanup();
-      try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); }
+      try { resolve(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks)))); }
       catch { reject(new PackServeError('INVALID_JSON', 'Request must contain JSON.', 400)); }
     };
     req.on('data', data);
