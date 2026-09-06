@@ -29,6 +29,7 @@ client/runtime/model-session.js
 client/runtime/node-quickstart-cache.d.ts
 client/runtime/pack-artifact-source.d.ts
 client/runtime/pack-program-adapter.d.ts
+client/runtime/pack-release-authorization.d.ts
 client/runtime/source-runtime.d.ts
 client/runtime/storage.d.ts
 client/runtime/verified-pack-artifact-store.d.ts

@@ -1,5 +1,5 @@
 import type { PackV2Artifact } from '../../config/pack-v2.js';
-import type { DopplerPack, PackIdentity } from '../../config/pack.js';
+import type { DopplerPack, PackIdentity, verifyPack } from '../../config/pack.js';
 import type { PackReleaseEvent, PackReleasePolicy, ReleaseCheckpoint } from '../../config/pack-release-events.js';
 import type { TargetPlan } from '../../config/target-plan.js';
 import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
@@ -52,11 +52,7 @@ export interface DopplerRuntimeSession {
   selectedPlan: TargetPlan;
   observedInitialExecutionIdentity: InitialExecutionIdentity | null;
   deviceProfile: DeviceProfile;
-  verification: {
-    pack: DopplerPack;
-    identity: PackIdentity;
-    artifactReceipts: Array<Record<string, unknown>>;
-  };
+  verification: Awaited<ReturnType<typeof verifyPack>>;
   generate(options: GenerationRunOptions): AsyncGenerator<number, void, void>;
   generateText(options: GenerationRunOptions): Promise<{ text: string; tokenIds: number[] }>;
   rerank(request: PackRerankRequest): Promise<PackRerankReceipt>;

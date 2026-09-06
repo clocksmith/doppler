@@ -14,6 +14,8 @@ import { createPackOperationAdapters } from './pack-operation-adapters.js';
 import { createPackOperationExecutor } from './pack-operation-executor.js';
 import { executePackForecast } from './pack-forecast.js';
 import { executePackEmbedding } from './pack-embedding.js';
+import { PackReleaseStateError } from '../../config/pack-release-events.js';
+import { createPackReleaseAuthorization } from './pack-release-authorization.js';
 
 export { createForecastProgramFactory } from './pack-forecast-program.js';
 
@@ -65,8 +67,14 @@ export function createDopplerRuntime(ports) {
         }
       } catch (error) {
         verifiedStore.close();
+        if (error instanceof PackReleaseStateError && typeof options.persistReleaseCheckpoint === 'function') {
+          try { await options.persistReleaseCheckpoint(error.checkpoint); } catch (persistenceError) {
+            throw new AggregateError([error, persistenceError], 'Release rejected; its verified checkpoint could not be persisted.', { cause: error });
+          }
+        }
         throw error;
       }
+      const releaseAuthorization = createPackReleaseAuthorization(verification.lifecycle);
       let program;
       try {
         await cache?.set?.(pack.semanticRoot, {
@@ -151,14 +159,15 @@ export function createDopplerRuntime(ports) {
 
           async forecast(request) {
             if (closed) throw new Error('Pack runtime session is closed.');
+            releaseAuthorization.assertAssignment(request?.assignmentHash);
             await assertPlanUnchanged();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'forecast');
             try {
-              return await executePackForecast({ identity: verification.identity,
+              return releaseAuthorization.bindResult(await executePackForecast({ identity: verification.identity,
                 release: verification.lifecycle?.release ?? pack.release,
                 targetPlan: selectedPlan, targetPlanDigest, program, request,
                 artifactReceipts: verification.artifactReceipts,
-                releaseEventDigest: verification.lifecycle?.event.digest ?? null });
+                releaseEventDigest: verification.lifecycle?.event.digest ?? null }));
             } finally { await assertPlanUnchanged(); }
           },
 
@@ -167,17 +176,18 @@ export function createDopplerRuntime(ports) {
             await assertPlanUnchanged();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'embed');
             try {
-              return await executePackEmbedding({ identity: verification.identity,
+              return releaseAuthorization.bindResult(await executePackEmbedding({ identity: verification.identity,
                 release: verification.lifecycle?.release ?? pack.release,
                 manifest, manifestHash: manifestArtifact.hash,
                 targetPlan: selectedPlan, targetPlanDigest, program, request,
                 artifactReceipts: verification.artifactReceipts,
-                releaseEventDigest: verification.lifecycle?.event.digest ?? null });
+                releaseEventDigest: verification.lifecycle?.event.digest ?? null }));
             } finally { await assertPlanUnchanged(); }
           },
 
           async encodeSequence(sequence, sequenceOptions = {}) {
             if (closed) throw new Error('Pack runtime session is closed.');
+            releaseAuthorization.assertAssignment(sequenceOptions.assignment);
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'encodeSequence');
             if (typeof program.encodeSequence !== 'function') throw new Error('Selected Pack program does not implement sequence execution.');
             if (sequenceOptions.signal?.aborted) throw sequenceOptions.signal.reason ?? new Error('Sequence execution cancelled.');
@@ -201,7 +211,7 @@ export function createDopplerRuntime(ports) {
                 inputHash,
                 outputHash: hashPackSequenceOutput(result),
               };
-              return { ...result, receipt: freezePackV2({ ...payload, receiptDigest: computeCanonicalSha256(payload) }) };
+              return { ...result, receipt: releaseAuthorization.bindReceipt(freezePackV2({ ...payload, receiptDigest: computeCanonicalSha256(payload) })) };
             } finally { await assertPlanUnchanged(); }
           },
 
@@ -233,13 +243,13 @@ export function createDopplerRuntime(ports) {
             await assertPlanUnchanged();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'rerank');
             try {
-              const receipt = await executePackRerank({
+              const receipt = releaseAuthorization.bindReceipt(await executePackRerank({
                 pack: verification.lifecycle ? { ...pack, release: verification.lifecycle.release } : pack,
                 targetPlan: selectedPlan,
                 targetPlanDigest,
                 program,
                 request,
-              });
+              }));
               emit(observer, {
                 type: 'pack-rerank-complete',
                 packId: pack.packId,
@@ -272,9 +282,11 @@ export function createDopplerRuntime(ports) {
         return Object.assign(session, {
           executeOperation: createPackOperationExecutor({ adapters,
             identity: { pack: verification.identity, targetId: selectedPlan.targetId, targetPlanDigest,
-              artifactReceipts: verification.artifactReceipts, releaseEventDigest: verification.lifecycle?.event.digest ?? null },
-            async assertCurrent() {
+              artifactReceipts: verification.artifactReceipts, releaseEventDigest: verification.lifecycle?.event.digest ?? null,
+              ...releaseAuthorization.receiptFields },
+            async assertCurrent(request) {
               if (closed) throw new Error('Pack runtime session is closed.');
+              releaseAuthorization.assertAssignment(request.assignment);
               await assertPlanUnchanged();
             },
           }),

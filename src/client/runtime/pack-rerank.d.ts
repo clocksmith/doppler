@@ -1,6 +1,7 @@
 import type { DopplerPackV2 } from '../../config/pack-v2.js';
 import type { TargetPlan } from '../../config/target-plan.js';
 import type { DopplerRerankEvidence } from './model-session.js';
+import type { PackReleaseAuthorization } from '../../config/pack-release-events.js';
 
 export const PACK_RERANK_RECEIPT_SCHEMA: 'doppler.pack-rerank-receipt/v1';
 
@@ -35,6 +36,7 @@ export interface PackRerankReceipt {
     previousSemanticRoot: `sha256:${string}` | null;
   };
   revocation: DopplerPackV2['release']['revocation'];
+  releaseAuthorization?: PackReleaseAuthorization;
   evidence: DopplerRerankEvidence;
   receiptDigest: `sha256:${string}`;
 }

@@ -27,9 +27,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The standalone Node host adapter adds one shipped implementation module.
   // Installed-package probe: 1757 files, 2,086,799 packed / 10,791,041 unpacked
   // before the final lifecycle assertions; retain the cross-npm allowance.
-  maxEntryCount: 1757,
+  maxEntryCount: 1758,
   maxPackedSize: 2_090_000,
-  maxUnpackedSize: 10_792_000,
+  maxUnpackedSize: 10_799_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

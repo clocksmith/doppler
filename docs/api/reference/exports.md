@@ -82,8 +82,11 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `hashPackV3`
   - `migratePackV2`
   - `PackIdentity`
+  - `PackReleaseAuthorization`
   - `PackReleaseEvent`
   - `PackReleasePolicy`
+  - `PackReleaseStateError`
+  - `PackRetainedLocalUse`
   - `PackSigner`
   - `ReleaseCheckpoint`
   - `signPackReleaseEvent`

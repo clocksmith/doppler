@@ -24,7 +24,7 @@ export function createPackOperationExecutor({ adapters, identity, assertCurrent 
       const check = async () => {
         if (Date.now() >= request.limits.deadlineAt) deadline();
         controller.signal.throwIfAborted();
-        await assertCurrent();
+        await assertCurrent(request);
         if (Date.now() >= request.limits.deadlineAt) deadline();
         controller.signal.throwIfAborted();
       };

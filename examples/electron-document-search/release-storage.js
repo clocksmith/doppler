@@ -3,7 +3,7 @@ import { constants } from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { validateElectronReleaseState } from 'doppler-gpu/electron';
-import { verifyPackReleaseEvents } from 'doppler-gpu/pack';
+import { verifyPackReleaseEvents, PackReleaseStateError } from 'doppler-gpu/pack';
 
 function checkpoint(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)
@@ -112,7 +112,7 @@ export function createDocumentSearchCheckpointStore(filename) {
 // application's authorized release stream. Downloading a new event does not
 // activate a Pack. The caller still selects and authorizes the executable.
 export async function prepareDocumentSearchReleaseOptions({
-  pack, releaseEvents, releaseTrustedSigners, checkpointStore, minimumSequence, now,
+  pack, releaseEvents, releaseTrustedSigners, checkpointStore, minimumSequence, now, retainedLocalUse,
 }) {
   if (pack?.schema !== 'doppler.pack/v3') throw new Error('Release checkpoint preparation requires Pack v3.');
   if (typeof checkpointStore?.load !== 'function' || typeof checkpointStore?.compareAndSwap !== 'function') {
@@ -120,10 +120,11 @@ export async function prepareDocumentSearchReleaseOptions({
   }
   const events = structuredClone(releaseEvents);
   const signers = structuredClone(releaseTrustedSigners);
+  const decision = structuredClone(retainedLocalUse);
   const previous = checkpoint(await checkpointStore.load() ?? { sequence: 0, digest: null });
-  const policy = { now, minimumSequence, checkpoint: previous };
-  const verified = await verifyPackReleaseEvents(events, { pack, trustedSigners: signers, policy });
-  const expected = verified.checkpoint;
+  const policy = { now, minimumSequence, checkpoint: previous,
+    ...(decision === undefined ? {} : { retainedLocalUse: decision }) };
+  let expected;
 
   async function persistReleaseCheckpoint(value) {
     const next = checkpoint(value);
@@ -136,6 +137,18 @@ export async function prepareDocumentSearchReleaseOptions({
       || await checkpointStore.compareAndSwap(previous.sequence, next) !== true) {
       throw new Error('Release checkpoint changed concurrently; reverify before executing.');
     }
+  }
+
+  try {
+    expected = (await verifyPackReleaseEvents(events, { pack, trustedSigners: signers, policy })).checkpoint;
+  } catch (error) {
+    if (error instanceof PackReleaseStateError) {
+      expected = error.checkpoint;
+      try { await persistReleaseCheckpoint(expected); } catch (persistenceError) {
+        throw new AggregateError([error, persistenceError], 'Release rejected; its verified checkpoint could not be persisted.', { cause: error });
+      }
+    }
+    throw error;
   }
 
   return { releaseEvents: events, releaseTrustedSigners: signers,

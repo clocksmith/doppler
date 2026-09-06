@@ -15,6 +15,7 @@ export declare function prepareDocumentSearchReleaseOptions(options: {
   checkpointStore: DocumentSearchCheckpointStore;
   minimumSequence: number;
   now: string;
+  retainedLocalUse?: PackReleasePolicy['retainedLocalUse'];
 }): Promise<{
   releaseEvents: PackReleaseEvent[];
   releaseTrustedSigners: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
