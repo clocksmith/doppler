@@ -3,6 +3,9 @@ import type { InferencePipeline } from '../../inference/pipelines/text.js';
 import type { LoRAManifest } from './types.js';
 
 export interface LoRALoadOptions {
+  /** PEFT stores A as [rank,input] and B as [output,rank]. */
+  weightsLayout?: import('../../config/lora-layouts.js').LoRAWeightLayoutName;
+  skipVerify?: boolean;
   basePath?: string;
   resolvePath?: (path: string) => string;
   readFile?: (path: string) => Promise<ArrayBuffer | Uint8Array>;

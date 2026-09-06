@@ -46,13 +46,14 @@ export function createCapsuleProgramAdapter(modelHandle, capsule, targetPlan) {
 
     getActiveAdapterIdentity() { return modelHandle.activeLoRAIdentity; },
 
-    async loadAdapter(manifest, { bytes, signal }) {
+    async loadAdapter(manifest, { bytes, signal, weightsLayout }) {
       const read = async path => {
         signal.throwIfAborted();
         if (path !== manifest.weightsPath) throw new Error('Adapter loader requested an undeclared artifact.');
         return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
       };
-      await modelHandle.loadLoRA(manifest, { readFile: read, readOPFS: read, fetchUrl: read, skipVerify: false });
+      if (weightsLayout === undefined) throw new Error('Capsule adapter requires its resolved weight layout.');
+      await modelHandle.loadLoRA(manifest, { readFile: read, readOPFS: read, fetchUrl: read, skipVerify: false, weightsLayout });
     },
 
     async unloadAdapter() { await modelHandle.unloadLoRA(); },
