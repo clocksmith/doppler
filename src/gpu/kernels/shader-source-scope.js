@@ -36,7 +36,7 @@ export function getStorageShaderSourceScope(storage) {
 export function getScopedShaderSource(filename) {
   if (activeScope === null) return null;
   const entry = scopes.get(activeScope).get(filename);
-  if (!entry) throw new Error(`Shader ${filename} is outside the verified Pack source closure.`);
+  if (!entry) throw new Error(`Shader ${filename} is outside the verified Capsule source closure.`);
   return entry;
 }
 

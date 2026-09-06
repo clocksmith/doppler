@@ -194,7 +194,7 @@ export function createManifestConversionPreflightReceipt({
       weightBodiesPresent: true,
       conversionExecuted: false,
       qualificationStarted: false,
-      packEligible: false,
+      capsuleEligible: false,
     },
   };
   return Object.freeze({ ...core, receiptDigest: digest(core) });

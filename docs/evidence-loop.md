@@ -44,15 +44,15 @@ the post-conversion manifest and execution-contract check.
 ## 2. Compare Semantic Boundaries
 
 Source runtimes first emit `doppler.boundary-provider-capture/v1`. Bind that
-provider output into the sole source-pack contract:
+provider output into the sole source-capsule contract:
 
 ```bash
-doppler boundary source-pack \
+doppler boundary source-capsule \
   --provider-capture artifacts/provider-boundaries.json \
   --out artifacts/source-boundaries.json
 ```
 
-The resulting `doppler.source-boundary-pack/v1` includes:
+The resulting `doppler.source-boundary-capsule/v1` includes:
 
 - semantic boundary ID
 - shape and dtype
@@ -79,7 +79,7 @@ doppler boundary capture \
   --out artifacts/runtime-boundaries.json
 ```
 
-Compare it with the source pack:
+Compare it with the source capsule:
 
 ```bash
 doppler boundary token-evidence \
@@ -87,7 +87,7 @@ doppler boundary token-evidence \
   --out artifacts/greedy-128-token-evidence.json
 
 doppler boundary compare \
-  --source-pack artifacts/source-boundaries.json \
+  --source-capsule artifacts/source-boundaries.json \
   --runtime-capture artifacts/runtime-boundaries.json \
   --token-evidence artifacts/greedy-128-token-evidence.json \
   --out artifacts/boundary-comparison.json
@@ -184,7 +184,7 @@ running their real WGSL and wrappers are the only kernel-selection candidates.
 Registered calibration gates candidates in this order:
 
 1. operator/reference correctness for every mandatory shape
-2. semantic boundary-pack compatibility, including the source-precision control
+2. semantic boundary-capsule compatibility, including the source-precision control
 3. exact deterministic parity for at least 128 tokens
 4. end-to-end performance through the runtime optimization evaluator
 

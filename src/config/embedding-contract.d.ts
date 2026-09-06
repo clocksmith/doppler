@@ -1,7 +1,7 @@
 import type { ManifestEmbeddingPostprocessorSchema } from './schema/manifest.schema.js';
 
-export interface PackEmbeddingContract {
+export interface CapsuleEmbeddingContract {
   dimension: number;
   postprocessor: ManifestEmbeddingPostprocessorSchema;
 }
-export function resolvePackEmbeddingContract(manifest: Record<string, any>): PackEmbeddingContract;
+export function resolveCapsuleEmbeddingContract(manifest: Record<string, any>): CapsuleEmbeddingContract;

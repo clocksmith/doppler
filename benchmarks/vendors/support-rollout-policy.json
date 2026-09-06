@@ -36,7 +36,7 @@
     },
     {
       "id": "manifest-weights",
-      "label": "Manifest and weight identity are complete, or the manifest explicitly references a hosted weight pack."
+      "label": "Manifest and weight identity are complete, or the manifest explicitly references a hosted weight capsule."
     },
     {
       "id": "runtime-verify",

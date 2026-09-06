@@ -104,7 +104,7 @@ export function validateCommandFlags(parsed) {
   const allowedFlags = new Set(command === 'release'
     ? [
       'config', 'manifest', 'action', 'out', 'repo-root', 'forge-config', 'target',
-      'device-identity', 'fleet-receipts', 'pack-trusted-signers', 'fleet-trusted-signers',
+      'device-identity', 'fleet-receipts', 'capsule-trusted-signers', 'fleet-trusted-signers',
       'signing-private-key', 'signing-public-key', 'signing-authority',
       'surface', 'pretty', 'json', 'help', 'h',
     ]
@@ -152,17 +152,17 @@ export function validateBoundaryFlags(parsed) {
   const allowedByAction = {
     capture: new Set(['report', 'out', 'tolerance-policy', 'pretty', 'json', 'help', 'h']),
     compare: new Set([
-      'source-pack', 'runtime-capture', 'source-control', 'token-evidence',
+      'source-capsule', 'runtime-capture', 'source-control', 'token-evidence',
       'artifact-precision', 'out', 'pretty', 'json', 'help', 'h',
     ]),
     'token-evidence': new Set(['reference-transcript', 'out', 'pretty', 'json', 'help', 'h']),
-    'source-pack': new Set(['provider-capture', 'out', 'pretty', 'json', 'help', 'h']),
+    'source-capsule': new Set(['provider-capture', 'out', 'pretty', 'json', 'help', 'h']),
   };
   const allowedFlags = Object.hasOwn(allowedByAction, parsed.action)
     ? allowedByAction[parsed.action]
     : null;
   if (!allowedFlags) {
-    throw new Error('boundary: expected "capture", "source-pack", "token-evidence", or "compare".');
+    throw new Error('boundary: expected "capture", "source-capsule", "token-evidence", or "compare".');
   }
   assertAllowedFlags(parsed, allowedFlags, `boundary ${parsed.action}`);
   if (!asStringOrNull(parsed.flags.out)) {
@@ -171,14 +171,14 @@ export function validateBoundaryFlags(parsed) {
   if (parsed.action === 'capture' && !asStringOrNull(parsed.flags.report)) {
     throw new Error('boundary capture: --report <diagnose-report.json> is required.');
   }
-  if (parsed.action === 'source-pack' && !asStringOrNull(parsed.flags['provider-capture'])) {
-    throw new Error('boundary source-pack: --provider-capture <provider-capture.json> is required.');
+  if (parsed.action === 'source-capsule' && !asStringOrNull(parsed.flags['provider-capture'])) {
+    throw new Error('boundary source-capsule: --provider-capture <provider-capture.json> is required.');
   }
   if (parsed.action === 'token-evidence' && !asStringOrNull(parsed.flags['reference-transcript'])) {
     throw new Error('boundary token-evidence: --reference-transcript <reference-transcript.json> is required.');
   }
   if (parsed.action === 'compare') {
-    for (const key of ['source-pack', 'runtime-capture', 'token-evidence']) {
+    for (const key of ['source-capsule', 'runtime-capture', 'token-evidence']) {
       if (!asStringOrNull(parsed.flags[key])) {
         throw new Error(`boundary compare: --${key} <path> is required.`);
       }

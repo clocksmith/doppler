@@ -11,8 +11,8 @@ on:
         description: Doppler Production Release v1 manifest path.
         required: true
         type: string
-      pack-trusted-signers:
-        description: Trusted Pack signer map path.
+      capsule-trusted-signers:
+        description: Trusted Capsule signer map path.
         required: true
         type: string
       fleet-trusted-signers:
@@ -28,7 +28,7 @@ on:
         required: true
         type: string
       forge-config:
-        description: Optional Forge config path for candidate Pack construction.
+        description: Optional Forge config path for candidate Capsule construction.
         required: false
         type: string
     secrets:
@@ -106,7 +106,7 @@ jobs:
           action: decide
           manifest: ${{ inputs.manifest }}
           output: .doppler-release/evidence
-          pack-trusted-signers: ${{ inputs.pack-trusted-signers }}
+          capsule-trusted-signers: ${{ inputs.capsule-trusted-signers }}
           fleet-trusted-signers: ${{ inputs.fleet-trusted-signers }}
           fleet-receipts: ${{ steps.receipts.outputs.paths }}
           forge-config: ${{ inputs.forge-config }}

@@ -51,7 +51,7 @@ production-release, fleet-receipt, and product-integration contracts.
 ```text
 owner-authorized release input
   -> npx doppler release
-  -> immutable candidate Pack
+  -> immutable candidate Capsule
   -> application acceptance and provider controls
   -> customer-operated fleet qualification
   -> signed eligible-or-blocked recommendation
@@ -75,7 +75,7 @@ DoeProof is an optional, separately authorized physical qualification provider.
 It is not a mandatory stage and Doppler must remain sellable when Doe is absent
 or loses. DoeRuntime is eligible only after the identical application test
 shows a material win over the strongest incumbent. If an incumbent executes,
-the Pack and release decision bind that exact provider identity and grant no
+the Capsule and release decision bind that exact provider identity and grant no
 execution credit to Doe or Doppler.
 
 Raw customer content never moves to Doe or another portfolio product by

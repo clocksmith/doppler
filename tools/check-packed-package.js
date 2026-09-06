@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { createSignedPackFixture, TEST_PACK_AUTHORITY, TEST_PACK_PUBLIC_KEY } from '../tests/helpers/pack-v2-fixture.js';
+import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } from '../tests/helpers/capsule-v2-fixture.js';
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const commandLog = [];
@@ -40,10 +40,16 @@ async function writeImportSmoke(consumerDir, packageJson) {
     path.join(consumerDir, 'node_modules', packageJson.name, 'src/tooling-exports.browser.js')
   ).href;
   const source = [
+    "import assert from 'node:assert/strict';",
     `const specifiers = ${JSON.stringify(specifiers)};`,
     'for (const specifier of specifiers) {',
     '  await import(specifier);',
     '}',
+    `const runtime = await import('${packageJson.name}');`,
+    "assert.equal(typeof runtime.openCapsule, 'function');",
+    "assert.equal('openPack' in runtime, false);",
+    "assert.equal('createFetchPackArtifactStore' in runtime, false);",
+    `await assert.rejects(import('${packageJson.name}/pack'), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });`,
     `await import(${JSON.stringify(browserToolingPath)});`,
     `console.log(\`package import smoke passed (${specifiers.length} exports + browser condition)\`);`,
     '',
@@ -75,42 +81,42 @@ async function writeTypeSmoke(consumerDir, packageJson) {
     .map((specifier, index) => `type PackageExport${index} = typeof import(${JSON.stringify(specifier)});`)
     .join('\n') + `
 import { createDocumentSearchRenderer, createDocumentSearchHostRenderer } from './renderer.js';
-import { openPack } from '${packageJson.name}/host';
-import type { DopplerPackOpenOptions } from '${packageJson.name}/host';
-import type { PackRetainedLocalUse, PackReleasePolicy } from '${packageJson.name}/pack';
-declare const retainedDecision: PackRetainedLocalUse;
-declare const releasePolicy: PackReleasePolicy;
-const retainedHostSession = openPack('/retained/pack.json', {
+import { openCapsule } from '${packageJson.name}/host';
+import type { DopplerCapsuleOpenOptions } from '${packageJson.name}/host';
+import type { CapsuleRetainedLocalUse, CapsuleReleasePolicy } from '${packageJson.name}/capsule';
+declare const retainedDecision: CapsuleRetainedLocalUse;
+declare const releasePolicy: CapsuleReleasePolicy;
+const retainedHostSession = openCapsule('/retained/capsule.json', {
   ...trustOptions, releasePolicy: { ...releasePolicy, retainedLocalUse: retainedDecision },
 });
 retainedHostSession.then(value => value.verification.lifecycle?.authorization.mode);
 import { registerDocumentSearchReleaseMain } from './main.js';
 import { createDocumentSearchReleaseStore, createDocumentSearchCheckpointStore, prepareDocumentSearchReleaseOptions } from './release-storage.js';
-import type { RuntimePorts, PackRerankRequest, PackEmbeddingRequest, PackEmbeddingResult, DopplerRuntimeSession } from '${packageJson.name}';
+import type { RuntimePorts, CapsuleRerankRequest, CapsuleEmbeddingRequest, CapsuleEmbeddingResult, DopplerRuntimeSession } from '${packageJson.name}';
 import type { ElectronReleaseStateCoordinator } from '${packageJson.name}/electron';
-import { createPackServeHandler } from '${packageJson.name}/serve';
-import type { PackServePolicy } from '${packageJson.name}/serve';
-declare const servingPolicy: PackServePolicy;
+import { createCapsuleServeHandler } from '${packageJson.name}/serve';
+import type { CapsuleServePolicy } from '${packageJson.name}/serve';
+declare const servingPolicy: CapsuleServePolicy;
 declare const ports: RuntimePorts;
 declare const releaseState: ElectronReleaseStateCoordinator;
-declare const request: PackRerankRequest;
-declare const trustOptions: DopplerPackOpenOptions;
+declare const request: CapsuleRerankRequest;
+declare const trustOptions: DopplerCapsuleOpenOptions;
 const hostRenderer = createDocumentSearchHostRenderer(releaseState, trustOptions);
-hostRenderer.rerank(request).then(receipt => receipt.pack.semanticRoot);
-const hostSession: Promise<DopplerRuntimeSession> = openPack('https://application.example/pack.json', trustOptions);
+hostRenderer.rerank(request).then(receipt => receipt.capsule.semanticRoot);
+const hostSession: Promise<DopplerRuntimeSession> = openCapsule('https://application.example/capsule.json', trustOptions);
 const renderer = createDocumentSearchRenderer(releaseState, ports);
-renderer.rerank(request).then(receipt => receipt.pack.semanticRoot);
+renderer.rerank(request).then(receipt => receipt.capsule.semanticRoot);
 const session: Promise<DopplerRuntimeSession> = renderer.openCurrent();
 session.then(value => {
-  const handler = createPackServeHandler({ session: value, policy: servingPolicy, token: 'application-secret' });
+  const handler = createCapsuleServeHandler({ session: value, policy: servingPolicy, token: 'application-secret' });
   const drained: Promise<void> = handler.close();
   // @ts-expect-error Serving requires explicit authentication.
-  createPackServeHandler({ session: value, policy: servingPolicy });
+  createCapsuleServeHandler({ session: value, policy: servingPolicy });
 });
-declare const embeddingRequest: PackEmbeddingRequest;
-const embedding: Promise<PackEmbeddingResult> = session.then(value => value.embed(embeddingRequest));
+declare const embeddingRequest: CapsuleEmbeddingRequest;
+const embedding: Promise<CapsuleEmbeddingResult> = session.then(value => value.embed(embeddingRequest));
 session.then(value => {
-  // @ts-expect-error Pack embedding requires an application-bound request.
+  // @ts-expect-error Capsule embedding requires an application-bound request.
   value.embed('document');
   // @ts-expect-error Pooling overrides cannot change signed semantics.
   value.embed({ ...embeddingRequest, options: { embeddingMode: 'mean' } });
@@ -124,7 +130,7 @@ const stateStore: MainOptions['stateStore'] = createDocumentSearchReleaseStore('
 const checkpointStore = createDocumentSearchCheckpointStore('/private/application/checkpoint.json');
 declare const releaseOptions: Parameters<typeof prepareDocumentSearchReleaseOptions>[0];
 prepareDocumentSearchReleaseOptions({ ...releaseOptions, checkpointStore }).then(options => {
-  openPack('https://application.example/pack.json', { ...trustOptions, ...options });
+  openCapsule('https://application.example/capsule.json', { ...trustOptions, ...options });
 });
 `;
   await fs.writeFile(path.join(consumerDir, 'consumer.ts'), source, 'utf8');
@@ -149,7 +155,7 @@ prepareDocumentSearchReleaseOptions({ ...releaseOptions, checkpointStore }).then
   console.log(`package type smoke passed (${specifiers.length} public export declarations)`);
 }
 
-async function runElectronPackSmoke(consumerDir) {
+async function runElectronCapsuleSmoke(consumerDir) {
   const applicationFiles = {};
   for (const name of ['main', 'preload', 'renderer', 'release-storage']) {
     for (const extension of ['js', 'd.ts']) {
@@ -163,17 +169,17 @@ async function runElectronPackSmoke(consumerDir) {
     }
   }
   await fs.copyFile(
-    path.join(ROOT_DIR, 'tests/helpers/electron-pack-contract.js'),
-    path.join(consumerDir, 'electron-pack-contract.js'),
+    path.join(ROOT_DIR, 'tests/helpers/electron-capsule-contract.js'),
+    path.join(consumerDir, 'electron-capsule-contract.js'),
   );
   await fs.copyFile(
     path.join(ROOT_DIR, 'tests/fixtures/packed-electron-consumer.js'),
     path.join(consumerDir, 'electron-smoke.js'),
   );
-  const fixture = await createSignedPackFixture({ operation: 'rerank' });
-  await fs.writeFile(path.join(consumerDir, 'pack-fixture.json'), JSON.stringify({
-    pack: fixture.pack,
-    trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
+  const fixture = await createSignedCapsuleFixture({ operation: 'rerank' });
+  await fs.writeFile(path.join(consumerDir, 'capsule-fixture.json'), JSON.stringify({
+    capsule: fixture.capsule,
+    trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
     artifacts: [...fixture.artifactBytes].map(([id, bytes]) => [id, [...bytes]]),
   }));
   const output = run(process.execPath, ['electron-smoke.js'], { cwd: consumerDir });
@@ -202,17 +208,17 @@ async function assertInstalledFiles(consumerDir, packageJson) {
   }
 }
 
-async function runEmbeddingPackSmoke(consumerDir) {
+async function runEmbeddingCapsuleSmoke(consumerDir) {
   await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-embedding-consumer.js'),
     path.join(consumerDir, 'embedding-smoke.js'));
-  const fixture = await createSignedPackFixture({ operation: 'embed', manifest: {
-    modelId: 'pack-test-model', modelType: 'embedding', architecture: { hiddenSize: 4 },
+  const fixture = await createSignedCapsuleFixture({ operation: 'embed', manifest: {
+    modelId: 'capsule-test-model', modelType: 'embedding', architecture: { hiddenSize: 4 },
     inference: { output: { embeddingPostprocessor: {
       poolingMode: 'last', includePrompt: true, projections: [], normalize: 'l2',
     } } },
   } });
   await fs.writeFile(path.join(consumerDir, 'embedding-fixture.json'), JSON.stringify({
-    pack: fixture.pack, trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
+    capsule: fixture.capsule, trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
     artifacts: [...fixture.artifactBytes].map(([id, bytes]) => [id, [...bytes]]),
   }));
   process.stdout.write(run(process.execPath, ['embedding-smoke.js'], { cwd: consumerDir }));
@@ -260,7 +266,7 @@ async function main() {
       };
       await fs.writeFile(path.join(tempRoot, 'source-state.json'), JSON.stringify(source, null, 2));
     }
-    const packOutput = run(
+    const packageOutput = run(
       npmCommand,
       [
         'pack',
@@ -272,16 +278,16 @@ async function main() {
         path.join(tempRoot, 'npm-cache'),
       ]
     );
-    if (!packOutput.trim()) {
+    if (!packageOutput.trim()) {
       throw new Error('npm pack returned no JSON package metadata.');
     }
-    const packed = JSON.parse(packOutput)[0];
+    const packed = JSON.parse(packageOutput)[0];
     const tarballPath = path.join(tempRoot, packed.filename);
     receipt.package = {
       filename: packed.filename, integrity: packed.integrity, sizeBytes: packed.size,
       sha256: createHash('sha256').update(await fs.readFile(tarballPath)).digest('hex'),
     };
-    if (options.retain) await fs.writeFile(path.join(tempRoot, 'npm-pack.json'), packOutput);
+    if (options.retain) await fs.writeFile(path.join(tempRoot, 'npm-pack.json'), packageOutput);
     const consumerDir = path.join(tempRoot, 'consumer');
     await fs.mkdir(consumerDir, { recursive: true });
     await fs.writeFile(
@@ -312,8 +318,8 @@ async function main() {
     process.stdout.write(run(process.execPath, ['node-provider-smoke.js'], { cwd: consumerDir }));
     await runTrainingApiSmoke(consumerDir, packageJson);
     await runCliSmokes(consumerDir, packageJson);
-    receipt.applicationFiles = await runElectronPackSmoke(consumerDir);
-    await runEmbeddingPackSmoke(consumerDir);
+    receipt.applicationFiles = await runElectronCapsuleSmoke(consumerDir);
+    await runEmbeddingCapsuleSmoke(consumerDir);
     await writeTypeSmoke(consumerDir, packageJson);
     receipt.passed = true;
     console.log(

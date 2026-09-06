@@ -6,12 +6,12 @@ Parent: [Client API](../CATSCAN.md)
 
 ## Target
 
-Compose model acquisition and application handles above the injected Pack execution core.
+Compose model acquisition and application handles above the injected Capsule execution core.
 
 ## Authority
 
 - Owns convenience loading, device initialization coordination, model caching, input formatting, and model-handle evidence construction.
-- Does not own Pack semantics, qualification, application trust, or GPU computation.
+- Does not own Capsule semantics, qualification, application trust, or GPU computation.
 
 ## Scope
 
@@ -20,19 +20,19 @@ Compose model acquisition and application handles above the injected Pack execut
 
 ## Contracts
 
-- Input: [Pack core](../runtime/composition-root.js), declared source/loading contracts, application policy, and pipeline observations.
-- Output: [Public host interface](../pack-host.js), model handles, and attributable evidence.
+- Input: [Capsule core](../runtime/composition-root.js), declared source/loading contracts, application policy, and pipeline observations.
+- Output: [Public host interface](../capsule-host.js), model handles, and attributable evidence.
 
 ## Invariants
 
-- Host composition may depend on Pack execution; Pack execution cannot import this host layer.
+- Host composition may depend on Capsule execution; Capsule execution cannot import this host layer.
 - Evidence construction cannot acquire GPU resources or invoke a model pipeline.
-- Forwarding entry points preserve existing signatures and behavior.
+- Forwarding entry points expose the same Capsule contract without former product-name aliases.
 - Loading and cancellation failures preserve cleanup and the original failure.
 
 ## Acceptance
 
-- `npm run source:architecture:check` and connected client/Pack tests pass.
+- `npm run source:architecture:check` and connected client/Capsule tests pass.
 - Evidence: [host boundary regression](../../../tests/client/model-host-boundaries.test.js).
 
 ## Non-goals

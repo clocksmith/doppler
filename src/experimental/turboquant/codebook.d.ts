@@ -7,7 +7,7 @@ export function retainTurboQuantSharedBuffers(device: any, options?: {}): {
 };
 /**
  * Compute packed stride for a given headDim and bit-width.
- * packedStride = ceil(headDim / packFactor) where packFactor = floor(32 / bitWidth).
+ * packedStride = ceil(headDim / capsuleFactor) where capsuleFactor = floor(32 / bitWidth).
  *
  * @param {number} headDim
  * @param {number} bitWidth

@@ -441,7 +441,7 @@
   "manifest": {
     "artifactIdentity": {
       "sourceCheckpointId": "google/gemma-3-270m-it",
-      "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
+      "weightCapsuleId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
       "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af16-mv-f16-activations-v1",
       "artifactCompleteness": "complete"
     }

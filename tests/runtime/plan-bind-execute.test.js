@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import { createDopplerRuntime } from '../../src/client/runtime/composition-root.js';
 import { hashTargetPlan } from '../../src/config/target-plan.js';
 import {
-  TEST_PACK_AUTHORITY,
-  TEST_PACK_PUBLIC_KEY,
-  createSignedPackFixture,
-} from '../helpers/pack-v2-fixture.js';
+  TEST_CAPSULE_AUTHORITY,
+  TEST_CAPSULE_PUBLIC_KEY,
+  createSignedCapsuleFixture,
+} from '../helpers/capsule-v2-fixture.js';
 
-const fixture = await createSignedPackFixture();
+const fixture = await createSignedCapsuleFixture();
 const buffers = [];
 const writes = [];
 const events = [];
@@ -29,7 +29,7 @@ const gpuDevice = {
 };
 let activeDevice = gpuDevice;
 const program = {
-  executionGraphHash: fixture.pack.program.executionGraphHash,
+  executionGraphHash: fixture.capsule.program.executionGraphHash,
   tokenize() { return [1, 2, 3]; },
   decodeTokens(tokens) { return tokens.join(','); },
   getTokenContract() { return { padTokenId: null, eosTokenId: null, stopTokenIds: [] }; },
@@ -49,7 +49,7 @@ const runtime = createDopplerRuntime({
     getProfile: () => ({ surface: 'test-webgpu', hasF16: false, hasSubgroups: false, maxBufferSize: 1024 }),
   },
   artifactStore: fixture.artifactStore,
-  trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
+  trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
   observer: { observe(event) { events.push(event.type); } },
   async programFactory() { return program; },
 });
@@ -63,11 +63,11 @@ const untrustedRuntime = createDopplerRuntime({
   },
 });
 await assert.rejects(
-  untrustedRuntime.openPack(fixture.pack),
-  /Untrusted Doppler Pack signing authority/,
+  untrustedRuntime.openCapsule(fixture.capsule),
+  /Untrusted Doppler Capsule signing authority/,
 );
 
-const session = await runtime.openPack(fixture.pack);
+const session = await runtime.openCapsule(fixture.capsule);
 const before = hashTargetPlan(session.selectedPlan);
 const tokens = [];
 for await (const token of session.generate({
@@ -79,15 +79,15 @@ assert.deepEqual(tokens, [4, 5, 6, 7]);
 assert.equal(buffers.length, 1, 'ResourceBinder must allocate a physical GPU buffer');
 assert.equal(writes.length, 1, 'ResourceBinder must upload prompt token IDs');
 assert.equal(hashTargetPlan(session.selectedPlan), before);
-assert.deepEqual(events.slice(0, 3), ['pack-validation-started', 'pack-validation-complete', 'target-selected']);
+assert.deepEqual(events.slice(0, 4), ['capsule-validation-started', 'target-selected', 'capsule-validation-complete', 'capsule-load-complete']);
 await session.close();
 assert.equal(buffers[0].destroyed, true);
 assert.equal(hashTargetPlan(session.selectedPlan), before);
 
-const lostSession = await runtime.openPack(fixture.pack);
+const lostSession = await runtime.openCapsule(fixture.capsule);
 loseDevice({ reason: 'destroyed', message: 'test adapter removed' });
 await gpuDevice.lost;
-await assert.rejects(lostSession.rerank({ application: fixture.pack.release.application,
+await assert.rejects(lostSession.rerank({ application: fixture.capsule.release.application,
   query: 'query', documents: ['document'] }), { code: 'DOPPLER_GPU_DEVICE_LOST' });
 await assert.rejects(lostSession.generateText({}), { code: 'DOPPLER_GPU_DEVICE_LOST' });
 assert.throws(() => lostSession.resetGenerationState(), { code: 'DOPPLER_GPU_DEVICE_LOST' });
@@ -95,7 +95,7 @@ await lostSession.close();
 await lostSession.close();
 assert.equal(lostSession.closed, true, 'device loss must not prevent idempotent cleanup');
 activeDevice = { ...gpuDevice, lost: new Promise(() => {}) };
-const reopened = await runtime.openPack(fixture.pack);
+const reopened = await runtime.openCapsule(fixture.capsule);
 assert.doesNotThrow(() => reopened.resetGenerationState());
 await reopened.close();
 

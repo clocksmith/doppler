@@ -79,7 +79,7 @@
       "type": "object",
       "required": ["schema", "runtimeConfig"],
       "properties": {
-        "schema": { "const": "doppler.pack-program-load-policy/v1" },
+        "schema": { "const": "doppler.capsule-program-load-policy/v1" },
         "runtimeConfig": {
           "type": "object",
           "required": ["inference"],
@@ -103,7 +103,7 @@
       "type": "object",
       "required": ["schema", "runtimeConfig"],
       "properties": {
-        "schema": { "const": "doppler.pack-program-load-policy/v2" },
+        "schema": { "const": "doppler.capsule-program-load-policy/v2" },
         "runtimeConfig": {
           "type": "object",
           "required": ["inference"],

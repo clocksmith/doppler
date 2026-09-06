@@ -18,24 +18,29 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Package-19 inventory: 1755 entries, 2,082,234 packed and 10,765,058 unpacked bytes.
   // The F16 reranker recipe adds 1,560 bytes of pinned helper-kernel declarations.
   // Its generated registry references add 528 unpacked bytes (10,765,586 total).
-  // Identical file inventories pack to 2,082,249 bytes with Node 22.22.1/npm 9.2.0
+  // Identical file inventories compress to 2,082,249 bytes with Node 22.22.1/npm 9.2.0
   // and 2,083,864 with CI's Node 22.23.2/npm 10.9.8; payload budgets stay fixed.
   // The embedding F16 recipe, generated reachability, and nullable evidence timings
   // bring this inventory to 1756 files, 2,083,847 packed / 10,780,482 unpacked bytes
   // on Node 22.22.1/npm 9.2.0. Retain the observed cross-npm compression allowance.
-  // No repository tools or evaluation fixtures ship; Pack root remains isolated.
+  // No repository tools or evaluation fixtures ship; Capsule root remains isolated.
   // The standalone Node host adapter adds one shipped implementation module.
   // Installed-package probe: 1757 files, 2,086,799 packed / 10,791,041 unpacked
   // before the final lifecycle assertions; retain the cross-npm allowance.
   // Application-aware plan selection, including the host snapshot: unchanged
   // 1758-file closure, 2,089,629 packed / 10,802,391 unpacked bytes.
   // Repository onboarding modules stay excluded.
-  // Pack HTTP transport adds six reachable files, not another model engine:
+  // Capsule HTTP transport adds six reachable files, not another model engine:
   // 1764 entries, 2,093,537 packed / 10,815,644 unpacked on Node 22/npm 9.
   // Preserve the observed cross-npm compression allowance; core closure stays 46 files.
-  maxEntryCount: 1764,
-  maxPackedSize: 2_096_000,
-  maxUnpackedSize: 10_815_700,
+  // Staged Capsule loading adds five acquisition/policy files. Observed inventory:
+  // 1769 entries, 2,096,452 packed / 10,827,703 unpacked on Node 22/npm 9.
+  // Retain the cross-npm compression allowance; the isolated core has 49 files.
+  maxEntryCount: 1769,
+  maxPackedSize: 2_099_000,
+  // Capsule naming changes identifiers and declarations, not the shipped file count.
+  // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
+  maxUnpackedSize: 10_835_420,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -55,12 +60,12 @@ const FORBIDDEN_PACKAGE_SUFFIXES = Object.freeze(['.diff', '.py']);
 
 const FILE_RULES = [
   {
-    file: 'src/pack-runtime.js',
+    file: 'src/capsule-runtime.js',
     allowed: new Set([
       './version.js',
       './client/runtime/composition-root.js',
-      './client/runtime/fetch-pack-artifact-store.js',
-      './client/runtime/pack-forecast-program.js',
+      './client/runtime/fetch-capsule-artifact-store.js',
+      './client/runtime/capsule-forecast-program.js',
     ]),
     forbidden: [
       'export * from',
@@ -77,14 +82,14 @@ const FILE_RULES = [
     ],
   },
   {
-    file: 'src/pack-runtime.d.ts',
+    file: 'src/capsule-runtime.d.ts',
     allowed: new Set([
       './version.js',
-      './config/pack.js',
+      './config/capsule.js',
       './client/runtime/composition-root.js',
-      './client/runtime/fetch-pack-artifact-store.js',
-      './client/runtime/pack-forecast-program.js',
-      './client/runtime/pack-rerank.js',
+      './client/runtime/fetch-capsule-artifact-store.js',
+      './client/runtime/capsule-forecast-program.js',
+      './client/runtime/capsule-rerank.js',
     ]),
     forbidden: [
       'export * from',
@@ -378,7 +383,7 @@ function validatePackedClosure(packedPaths, closure) {
 }
 
 function inspectPackedPackage(packageJson, closure) {
-  const cacheDir = mkdtempSync(path.join(tmpdir(), 'doppler-npm-pack-cache-'));
+  const cacheDir = mkdtempSync(path.join(tmpdir(), 'doppler-npm-package-cache-'));
   try {
     const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
     const result = spawnSync(
@@ -455,14 +460,14 @@ async function validatePackageExports() {
 
   const rootExport = exportsField['.'];
   assert(
-    rootExport?.import === './src/pack-runtime.js' && rootExport?.types === './src/pack-runtime.d.ts',
-    'package.json root export must point to src/pack-runtime.js and src/pack-runtime.d.ts.'
+    rootExport?.import === './src/capsule-runtime.js' && rootExport?.types === './src/capsule-runtime.d.ts',
+    'package.json root export must point to src/capsule-runtime.js and src/capsule-runtime.d.ts.'
   );
 
   const runtimeExport = exportsField['./runtime'];
   assert(
     runtimeExport?.import === rootExport.import && runtimeExport?.types === rootExport.types,
-    'package.json ./runtime export must alias the Pack-native root export.'
+    'package.json ./runtime export must alias the Capsule-native root export.'
   );
 
   const compatExport = exportsField['./compat'];

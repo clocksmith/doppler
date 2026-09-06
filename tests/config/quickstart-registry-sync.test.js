@@ -31,7 +31,7 @@ assert.deepEqual(
       logicalModelIds: [],
       modelIds: [modelId],
       sourceCheckpointIds: [],
-      weightPackIds: [],
+      weightCapsuleIds: [],
       manifestVariantIds: [],
       artifactVariantIds: [],
       adapterIds: [],
@@ -41,7 +41,7 @@ assert.deepEqual(
       logicalModelIds: [],
       modelIds: [],
       sourceCheckpointIds: [],
-      weightPackIds: [],
+      weightCapsuleIds: [],
       manifestVariantIds: [],
       artifactVariantIds: [],
       adapterIds: [],
@@ -87,7 +87,7 @@ for (const entry of Array.isArray(quickstartRegistry?.models) ? quickstartRegist
   );
   for (const field of [
     'sourceCheckpointId',
-    'weightPackId',
+    'weightCapsuleId',
     'manifestVariantId',
     'artifactCompleteness',
     'runtimePromotionState',

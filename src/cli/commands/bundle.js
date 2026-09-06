@@ -254,7 +254,7 @@ export async function runBoundaryCommand(parsed, jsonOutput) {
   const {
     buildDeterministicTokenEvidenceFromReferenceTranscript,
     buildRuntimeBoundaryCapture,
-    buildSourceBoundaryPackFromProviderCapture,
+    buildSourceBoundaryCapsuleFromProviderCapture,
     compareBoundaryEvidence,
   } = await import('../../tooling/boundary-evidence.js');
   const policyPath = fileURLToPath(
@@ -273,12 +273,12 @@ export async function runBoundaryCommand(parsed, jsonOutput) {
       tolerancePolicyId: asStringOrNull(parsed.flags['tolerance-policy'])
         ?? 'doppler.boundary-tolerance/source-f16-v1',
     });
-  } else if (parsed.action === 'source-pack') {
+  } else if (parsed.action === 'source-capsule') {
     const providerCapture = await readJsonObjectFile(
       path.resolve(parsed.flags['provider-capture']),
       '--provider-capture'
     );
-    result = buildSourceBoundaryPackFromProviderCapture(providerCapture);
+    result = buildSourceBoundaryCapsuleFromProviderCapture(providerCapture);
   } else if (parsed.action === 'token-evidence') {
     const transcript = await readJsonObjectFile(
       path.resolve(parsed.flags['reference-transcript']),
@@ -286,8 +286,8 @@ export async function runBoundaryCommand(parsed, jsonOutput) {
     );
     result = buildDeterministicTokenEvidenceFromReferenceTranscript(transcript);
   } else {
-    const [sourcePack, runtimeCapture, tokenEvidence] = await Promise.all([
-      readJsonObjectFile(path.resolve(parsed.flags['source-pack']), '--source-pack'),
+    const [sourceCapsule, runtimeCapture, tokenEvidence] = await Promise.all([
+      readJsonObjectFile(path.resolve(parsed.flags['source-capsule']), '--source-capsule'),
       readJsonObjectFile(path.resolve(parsed.flags['runtime-capture']), '--runtime-capture'),
       readJsonObjectFile(path.resolve(parsed.flags['token-evidence']), '--token-evidence'),
     ]);
@@ -296,7 +296,7 @@ export async function runBoundaryCommand(parsed, jsonOutput) {
       ? await readJsonObjectFile(path.resolve(sourceControlPath), '--source-control')
       : null;
     result = compareBoundaryEvidence({
-      sourcePack,
+      sourceCapsule,
       runtimeCapture,
       policy,
       artifactPrecision: asStringOrNull(parsed.flags['artifact-precision']) ?? 'source',
@@ -311,8 +311,8 @@ export async function runBoundaryCommand(parsed, jsonOutput) {
     console.log(JSON.stringify({ ...result, outputPath: path.relative(process.cwd(), outputPath) }, null, 2));
   } else if (parsed.action === 'capture') {
     console.log(`[ok] captured ${result.boundaries.length} semantic boundaries`);
-  } else if (parsed.action === 'source-pack') {
-    console.log(`[ok] source pack contains ${result.boundaries.length} semantic boundaries`);
+  } else if (parsed.action === 'source-capsule') {
+    console.log(`[ok] source capsule contains ${result.boundaries.length} semantic boundaries`);
   } else if (parsed.action === 'token-evidence') {
     const status = result.exact ? 'ok' : 'fail';
     console.log(`[${status}] token evidence covers ${result.tokenCount} tokens`);

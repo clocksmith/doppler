@@ -3,7 +3,7 @@ import { stableSortObject } from '../formats/stable-sort-object.js';
 import { assertSequenceReferenceTranscript } from '../config/sequence-reference.js';
 import { assertRerankReferenceTranscript, assertRerankSourceIdentity } from '../config/rerank-reference.js';
 import { assertEmbeddingReferenceTranscript, assertEmbeddingSourceIdentity } from '../config/embedding-reference.js';
-import { resolvePackEmbeddingContract } from '../config/embedding-contract.js';
+import { resolveCapsuleEmbeddingContract } from '../config/embedding-contract.js';
 
 function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -68,7 +68,7 @@ export function buildQualificationRecords(lowered) {
   if (transcript?.operation === 'embed') {
     assertEmbeddingReferenceTranscript(transcript);
     assertEmbeddingSourceIdentity(normalized.manifest?.artifactIdentity, transcript.reference);
-    if (hashStable(resolvePackEmbeddingContract(normalized.manifest)) !== hashStable(transcript.reference.embeddingContract)
+    if (hashStable(resolveCapsuleEmbeddingContract(normalized.manifest)) !== hashStable(transcript.reference.embeddingContract)
       || transcript.manifestHash !== normalized.manifestHash || transcript.modelId !== lowered.modelIR.modelId
       || transcript.executionGraphHash !== normalized.programBundle.execution.graphHash) {
       throw new Error('Forge embedding qualification does not match its declared embedding contract and exact program.');

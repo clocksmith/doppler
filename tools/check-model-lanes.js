@@ -85,7 +85,7 @@ function validateCatalog(catalog) {
   errors.push(...validateCatalogClassifications(catalog));
 
   const byModelId = new Map();
-  const primaryByWeightPackId = new Map();
+  const primaryByWeightCapsuleId = new Map();
   for (const entry of catalog.models) {
     const modelId = normalizeText(entry?.modelId);
     if (!modelId) {
@@ -96,8 +96,8 @@ function validateCatalog(catalog) {
       errors.push(`${modelId}: duplicate modelId`);
     }
     byModelId.set(modelId, entry);
-    if (isPrimaryLane(entry) && normalizeText(entry.weightPackId)) {
-      primaryByWeightPackId.set(entry.weightPackId, entry);
+    if (isPrimaryLane(entry) && normalizeText(entry.weightCapsuleId)) {
+      primaryByWeightCapsuleId.set(entry.weightCapsuleId, entry);
     }
   }
 
@@ -127,7 +127,7 @@ function validateCatalog(catalog) {
     }
 
     if (entry?.runtimePromotionState === 'manifest-owned') {
-      for (const field of ['sourceCheckpointId', 'weightPackId', 'manifestVariantId', 'artifactCompleteness']) {
+      for (const field of ['sourceCheckpointId', 'weightCapsuleId', 'manifestVariantId', 'artifactCompleteness']) {
         if (!normalizeText(entry?.[field])) {
           errors.push(`${modelId}: runtimePromotionState=manifest-owned requires ${field}`);
         }
@@ -135,9 +135,9 @@ function validateCatalog(catalog) {
     }
 
     if (isWeightsRefLane(entry)) {
-      const primary = primaryByWeightPackId.get(entry.weightPackId);
+      const primary = primaryByWeightCapsuleId.get(entry.weightCapsuleId);
       if (!primary) {
-        errors.push(`${modelId}: weights-ref lane has no complete primary for weightPackId=${entry.weightPackId}`);
+        errors.push(`${modelId}: weights-ref lane has no complete primary for weightCapsuleId=${entry.weightCapsuleId}`);
       } else if (normalizeText(primary.sourceCheckpointId) !== normalizeText(entry.sourceCheckpointId)) {
         errors.push(`${modelId}: weights-ref sourceCheckpointId must match primary ${primary.modelId}`);
       }
@@ -155,8 +155,8 @@ function validateCatalog(catalog) {
         if (!isWeightsRefLane(preferred)) {
           errors.push(`${modelId}: demoPreferredVariantId target ${preferredId} must be artifactCompleteness=weights-ref and weightsRefAllowed=true`);
         }
-        if (normalizeText(preferred.weightPackId) !== normalizeText(entry.weightPackId)) {
-          errors.push(`${modelId}: demoPreferredVariantId target ${preferredId} must share weightPackId`);
+        if (normalizeText(preferred.weightCapsuleId) !== normalizeText(entry.weightCapsuleId)) {
+          errors.push(`${modelId}: demoPreferredVariantId target ${preferredId} must share weightCapsuleId`);
         }
         if (preferred?.runtimePromotionState !== 'manifest-owned') {
           errors.push(`${modelId}: demoPreferredVariantId target ${preferredId} must be runtimePromotionState=manifest-owned`);

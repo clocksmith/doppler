@@ -190,7 +190,7 @@ async function stableHashString(value) {
   assert.equal(converted.manifest.artifactIdentity.sourceFormat, 'safetensors');
   assert.equal(converted.manifest.artifactIdentity.conversionConfigPath, 'src/config/conversion/unit-test.json');
   assert.equal(converted.manifest.artifactIdentity.artifactCompleteness, 'complete');
-  assert.match(converted.manifest.artifactIdentity.weightPackId, /^manifest-time-test-wp-/);
+  assert.match(converted.manifest.artifactIdentity.weightCapsuleId, /^manifest-time-test-wp-/);
   assert.match(converted.manifest.artifactIdentity.shardSetHash, /^sha256:/);
   assert.match(converted.manifest.artifactIdentity.manifestVariantId, /^manifest-time-test-mv-/);
   assert.equal(converted.executionContractArtifact?.schemaVersion, 1);

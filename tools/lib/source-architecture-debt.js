@@ -48,6 +48,32 @@ function hasFreshPolicyAuthorization(currentPolicy, baselinePolicy, authorizatio
   );
 }
 
+function constitutionalRenameMaps(currentPolicy, baselinePolicy, errors) {
+  const domains = currentPolicy.constitutionalRenames?.domains ?? {};
+  const files = currentPolicy.constitutionalRenames?.files ?? {};
+  for (const [kind, map] of Object.entries({ domains, files })) {
+    const entries = Object.entries(map);
+    const targets = entries.map(([, target]) => target);
+    const malformed = entries.some(([source, target]) => (
+      typeof target !== 'string' || !target || source === target
+      || (kind === 'files' && source.slice(0, source.lastIndexOf('/')) !== target.slice(0, target.lastIndexOf('/')))
+    ));
+    if (malformed || new Set(targets).size !== targets.length) {
+      errors.push(`constitutional ${kind} renames must be one-to-one names within the same owner directory`);
+      return { domains: {}, files: {} };
+    }
+  }
+  const oldDomains = Object.keys(baselinePolicy.constitutionalDomains ?? {});
+  const renamedDomains = oldDomains.map(domain => domains[domain] ?? domain);
+  const oldFiles = [...new Set(Object.values(baselinePolicy.constitutionalDomains ?? {}).flat())];
+  const renamedFiles = oldFiles.map(file => files[file] ?? file);
+  if (new Set(renamedDomains).size !== oldDomains.length || new Set(renamedFiles).size !== oldFiles.length) {
+    errors.push('constitutional renames cannot merge existing owners or files');
+    return { domains: {}, files: {} };
+  }
+  return { domains, files };
+}
+
 export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy) {
   const relaxations = [];
   for (const key of ['softLineLimit', 'lineLimit']) {
@@ -106,8 +132,12 @@ export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy)
   }
 
   const currentDomains = currentPolicy?.constitutionalDomains ?? {};
+  // Normalize only names. Dependencies, entry points, and forbidden prefixes
+  // are still compared in full; a rename cannot authorize dropping a boundary.
+  const renames = constitutionalRenameMaps(currentPolicy, baselinePolicy, relaxations);
   for (const [domain, files] of Object.entries(baselinePolicy?.constitutionalDomains ?? {})) {
-    for (const relativePath of removedValues(currentDomains[domain], files)) {
+    const currentDomain = renames.domains[domain] ?? domain;
+    for (const relativePath of removedValues(currentDomains[currentDomain], files.map(file => renames.files[file] ?? file))) {
       relaxations.push(`constitutional ${domain} owner removed ${relativePath}`);
     }
   }
@@ -115,12 +145,12 @@ export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy)
     (currentPolicy?.constitutionalImportGraphs ?? []).map((rule) => [rule.domain, rule])
   );
   for (const baselineRule of baselinePolicy?.constitutionalImportGraphs ?? []) {
-    const currentRule = currentGraphs.get(baselineRule.domain);
+    const currentRule = currentGraphs.get(renames.domains[baselineRule.domain] ?? baselineRule.domain);
     if (!currentRule) {
       relaxations.push(`constitutional import graph removed ${baselineRule.domain}`);
       continue;
     }
-    for (const relativePath of removedValues(currentRule.entryPoints, baselineRule.entryPoints)) {
+    for (const relativePath of removedValues(currentRule.entryPoints, baselineRule.entryPoints.map(file => renames.files[file] ?? file))) {
       relaxations.push(`constitutional ${baselineRule.domain} entry point removed ${relativePath}`);
     }
     for (const prefix of removedValues(

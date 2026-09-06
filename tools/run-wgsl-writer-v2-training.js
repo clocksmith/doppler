@@ -6,7 +6,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { runLoraPipeline } from '../src/experimental/training/lora-pipeline.js';
-import { loadTrainingWorkloadPack } from '../src/experimental/training/workloads.js';
+import { loadTrainingWorkloadCapsule } from '../src/experimental/training/workloads.js';
 
 const DEFAULT_POLICY = 'tools/policies/wgsl-writer-v2-training-policy.json';
 
@@ -144,7 +144,7 @@ export async function runWgslWriterV2Training(args) {
     `writer seed ${args.seed} workload`
   );
   await assertRunRootUnused(workloadBinding.runRoot);
-  const loadedWorkload = await loadTrainingWorkloadPack(workloadBinding.path);
+  const loadedWorkload = await loadTrainingWorkloadCapsule(workloadBinding.path);
   if (loadedWorkload.workload.seed !== args.seed
     || loadedWorkload.workload.datasetPath !== policy.dataset.path
     || loadedWorkload.workloadSha256 !== workloadBinding.sha256) {

@@ -525,7 +525,7 @@ function normalizeLegacyUlPayload(payload, contextLabel) {
   };
 }
 
-export function normalizeTrainingWorkloadPack(payload, context = {}) {
+export function normalizeTrainingWorkloadCapsule(payload, context = {}) {
   const contextLabel = context.label || 'training workload';
   const kind = inferLegacyKind(payload, contextLabel);
   if (kind === 'ul') {
@@ -615,18 +615,18 @@ async function readRegistryEntryById(registryPath, workloadId) {
   return resolve(relativePath);
 }
 
-export async function loadTrainingWorkloadPack(input, options = {}) {
+export async function loadTrainingWorkloadCapsule(input, options = {}) {
   const normalizedInput = asNonEmptyString(input, 'workload input');
   const looksLikePath = normalizedInput.endsWith('.json') || normalizedInput.includes('/') || normalizedInput.includes('\\');
   const absolutePath = looksLikePath
     ? resolve(normalizedInput)
     : await readRegistryEntryById(
-      options.registryPath || 'src/experimental/training/workload-packs/registry.json',
+      options.registryPath || 'src/experimental/training/workload-capsules/registry.json',
       normalizedInput
     );
   const raw = await readFile(absolutePath, 'utf8');
   const parsed = JSON.parse(raw);
-  const normalized = normalizeTrainingWorkloadPack(parsed, {
+  const normalized = normalizeTrainingWorkloadCapsule(parsed, {
     label: absolutePath,
   });
   return {

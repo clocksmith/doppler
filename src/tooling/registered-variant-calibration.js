@@ -175,7 +175,7 @@ function gatePassed(result, mode, candidate = null) {
     return result?.passed === true
       && result?.kernelDigest === candidate?.reference?.kernelDigest;
   }
-  if (mode === 'boundary-pack') {
+  if (mode === 'boundary-capsule') {
     return result?.schema === 'doppler.boundary-comparison-receipt/v1'
       && result?.promotionGate?.boundaryCompatible === true
       && result?.promotionGate?.sourcePrecisionControlPassed === true;
@@ -202,15 +202,15 @@ async function evaluateCorrectnessGates(plan, candidate, runCorrectness) {
       };
     }
   }
-  const boundaryPack = await runCorrectness({
-    mode: 'boundary-pack',
+  const boundaryCapsule = await runCorrectness({
+    mode: 'boundary-capsule',
     identity: plan.identity,
     baseline: plan.baseline,
     candidate,
     shapeSuite: plan.shapeSuite,
   });
-  if (!gatePassed(boundaryPack, 'boundary-pack')) {
-    return { passed: false, failedGate: 'boundary-pack', operatorReference, boundaryPack };
+  if (!gatePassed(boundaryCapsule, 'boundary-capsule')) {
+    return { passed: false, failedGate: 'boundary-capsule', operatorReference, boundaryCapsule };
   }
   const tokenParity = await runCorrectness({
     mode: 'token-parity',
@@ -223,7 +223,7 @@ async function evaluateCorrectnessGates(plan, candidate, runCorrectness) {
     passed: gatePassed(tokenParity, 'token-parity'),
     failedGate: gatePassed(tokenParity, 'token-parity') ? null : 'token-parity',
     operatorReference,
-    boundaryPack,
+    boundaryCapsule,
     tokenParity,
   };
 }
@@ -324,7 +324,7 @@ export async function calibrateRegisteredVariants(planInput, options) {
       gates: [
         'compatible-hardware',
         'operator-reference',
-        'source-boundary-pack',
+        'source-boundary-capsule',
         'exact-128-token-parity',
         'positive-paired-performance',
         'neighboring-workload-guards',

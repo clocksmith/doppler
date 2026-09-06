@@ -77,6 +77,27 @@ assert.equal(validateArchitecturePolicyDelta({
   debtAuthorization: digest,
 }, { ...baselinePolicy, debtAuthorization: digest }, digest).length, 3);
 
+const renamedPolicy = {
+  ...baselinePolicy,
+  constitutionalRenames: { domains: { runtime: 'execution' }, files: { 'client/runtime.js': 'client/execution.js' } },
+  constitutionalDomains: { execution: ['client/execution.js'] },
+  constitutionalImportGraphs: [{ domain: 'execution', entryPoints: ['client/execution.js'], forbiddenPathPrefixes: ['converter/'] }],
+};
+assert.deepEqual(validateArchitecturePolicyDelta(renamedPolicy, baselinePolicy), []);
+assert.deepEqual(validateArchitecturePolicyDelta(renamedPolicy, renamedPolicy), []);
+const droppedBoundary = structuredClone(renamedPolicy);
+droppedBoundary.constitutionalImportGraphs[0].forbiddenPathPrefixes = [];
+assert.match(validateArchitecturePolicyDelta(droppedBoundary, baselinePolicy).join('; '), /forbidden prefix removed converter/);
+const droppedEntry = structuredClone(renamedPolicy);
+droppedEntry.constitutionalImportGraphs[0].entryPoints = [];
+assert.match(validateArchitecturePolicyDelta(droppedEntry, baselinePolicy).join('; '), /entry point removed client\/execution.js/);
+const movedOwner = structuredClone(renamedPolicy);
+movedOwner.constitutionalRenames.files['client/runtime.js'] = 'experimental/runtime.js';
+assert.match(validateArchitecturePolicyDelta(movedOwner, baselinePolicy).join('; '), /same owner directory/);
+const mergedFiles = structuredClone(renamedPolicy);
+mergedFiles.constitutionalRenames.files['client/another.js'] = 'client/execution.js';
+assert.match(validateArchitecturePolicyDelta(mergedFiles, baselinePolicy).join('; '), /one-to-one/);
+
 assert.equal(resolvePolicyBaseRef([], {}), 'HEAD');
 assert.equal(resolvePolicyBaseRef([], { DOPPLER_POLICY_BASE_REF: '' }), 'HEAD');
 assert.equal(resolvePolicyBaseRef([], { DOPPLER_POLICY_BASE_REF: '000000' }), 'HEAD');

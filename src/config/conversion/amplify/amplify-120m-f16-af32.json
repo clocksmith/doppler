@@ -116,7 +116,7 @@
       "sourceRevision": "d918a9e8c64dc43f6ec4996022c3deba14d66470",
       "sourceFormat": "safetensors",
       "conversionConfigPath": "src/config/conversion/amplify/amplify-120m-f16-af32.json",
-      "weightPackId": "amplify-120m-f16-af32-wp-v1",
+      "weightCapsuleId": "amplify-120m-f16-af32-wp-v1",
       "manifestVariantId": "amplify-120m-f16-af32-mv-exec-v1",
       "modalitySet": [
         "protein_sequence"

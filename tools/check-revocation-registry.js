@@ -39,7 +39,7 @@ function resolutionIdentity(value = {}) {
     logicalModelId: normalizeText(value.logicalModelId) || null,
     modelId: normalizeText(value.modelId) || null,
     sourceCheckpointId: normalizeText(value.sourceCheckpointId) || null,
-    weightPackId: normalizeText(value.weightPackId) || null,
+    weightCapsuleId: normalizeText(value.weightCapsuleId) || null,
     manifestVariantId: normalizeText(value.manifestVariantId) || null,
     artifactVariantId: artifactVariantId(value.artifactVariantId),
     adapterId: normalizeText(value.adapterId) || null,
@@ -73,7 +73,7 @@ function validateCatalog(catalog, registry, errors) {
       logicalModelId: modelId,
       modelId,
       sourceCheckpointId: entry?.sourceCheckpointId,
-      weightPackId: entry?.weightPackId,
+      weightCapsuleId: entry?.weightCapsuleId,
       manifestVariantId: entry?.manifestVariantId,
     }, entry?.aliases, registry);
     if (matches.length === 0) continue;
@@ -105,7 +105,7 @@ function validateQuickstart(quickstart, registry, errors) {
       logicalModelId: modelId,
       modelId,
       sourceCheckpointId: entry?.sourceCheckpointId,
-      weightPackId: entry?.weightPackId,
+      weightCapsuleId: entry?.weightCapsuleId,
       manifestVariantId: entry?.manifestVariantId,
     }, entry?.aliases, registry);
     addConflict(errors, `quickstart ${modelId}`, matches, 'revoked entries must not resolve');
@@ -117,7 +117,7 @@ function claimLaneIdentity(lane) {
     logicalModelId: lane?.model?.dopplerModelId,
     modelId: lane?.model?.dopplerModelId,
     sourceCheckpointId: lane?.model?.sourceCheckpointId,
-    weightPackId: lane?.artifact?.weightPackId,
+    weightCapsuleId: lane?.artifact?.weightCapsuleId,
     manifestVariantId: lane?.artifact?.manifestVariantId,
     artifactVariantId: lane?.artifact?.manifestSha256,
   };

@@ -6,7 +6,7 @@
   "predecessor": {
     "trainingPolicy": {
       "path": "tools/policies/wgsl-writer-v2-training-policy.json",
-      "sha256": "a8b58555edbcefa88f0b6e769a1a3c35bf2f55c943b4ef4208b64e1b3daff06e"
+      "sha256": "b8dca75a08fbc75242d16170a40f3a354df34f585f448376866b76c8fb976050"
     },
     "selectionReceiptPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/selection/selected-seed.json",
     "confirmationReceiptPath": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/evaluation/confirmation.json"

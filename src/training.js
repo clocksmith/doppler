@@ -11,8 +11,8 @@ import {
   watchLoraCheckpoints,
 } from './experimental/training/lora-pipeline.js';
 import {
-  loadTrainingWorkloadPack,
-  normalizeTrainingWorkloadPack,
+  loadTrainingWorkloadCapsule,
+  normalizeTrainingWorkloadCapsule,
   serializeTrainingWorkloadLock,
 } from './experimental/training/workloads.js';
 import { trainNativeQwenSftLoRA } from './experimental/training/native-qwen-lora.js';
@@ -45,8 +45,8 @@ export {
   evaluateLoraCheckpoint,
   exportLoraCheckpoint,
   getLoraRunnerCompatibility,
-  loadTrainingWorkloadPack,
-  normalizeTrainingWorkloadPack,
+  loadTrainingWorkloadCapsule,
+  normalizeTrainingWorkloadCapsule,
   qualityGateLoraRun,
   serializeTrainingWorkloadLock,
   watchLoraCheckpoints,

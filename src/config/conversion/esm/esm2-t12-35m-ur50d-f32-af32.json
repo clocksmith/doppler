@@ -183,7 +183,7 @@
       "sourceRevision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
       "sourceFormat": "safetensors",
       "conversionConfigPath": "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
-      "weightPackId": "esm2-t12-35m-ur50d-f32-af32-wp-v1",
+      "weightCapsuleId": "esm2-t12-35m-ur50d-f32-af32-wp-v1",
       "manifestVariantId": "esm2-t12-35m-ur50d-f32-af32-mv-exec-v1",
       "modalitySet": [
         "protein_sequence"

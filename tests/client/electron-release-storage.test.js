@@ -9,8 +9,8 @@ import {
   createDocumentSearchCheckpointStore, createDocumentSearchReleaseStore,
   prepareDocumentSearchReleaseOptions,
 } from '../../examples/electron-document-search/release-storage.js';
-import { createSignedPackFixture } from '../helpers/pack-v2-fixture.js';
-import { buildPackV3, signPackV3, getPackIdentity, signPackReleaseEvent } from 'doppler-gpu/pack';
+import { createSignedCapsuleFixture } from '../helpers/capsule-v2-fixture.js';
+import { buildCapsuleV3, signCapsuleV3, getCapsuleIdentity, signCapsuleReleaseEvent } from 'doppler-gpu/capsule';
 import { createElectronReleaseStateCoordinator } from 'doppler-gpu/electron';
 import { createDopplerRuntime } from 'doppler-gpu';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
@@ -19,19 +19,19 @@ const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-release-stora
 try {
   const filename = path.join(directory, 'checkpoint.json');
   const store = createDocumentSearchCheckpointStore(filename);
-  const fixture = await createSignedPackFixture({ operation: 'rerank' });
+  const fixture = await createSignedCapsuleFixture({ operation: 'rerank' });
   const keys = generateKeyPairSync('ed25519');
   const signer = { authority: 'release-storage-fixture',
     publicKeyJwk: keys.publicKey.export({ format: 'jwk' }), privateKeyJwk: keys.privateKey.export({ format: 'jwk' }) };
   const trustedSigners = { [signer.authority]: signer.publicKeyJwk };
-  const pack = await signPackV3(buildPackV3(fixture.pack), signer);
-  const { schema, semanticRoot, envelopeDigest } = getPackIdentity(pack);
-  const params = { pack: { schema, semanticRoot, envelopeDigest }, sequence: 1, previousEventDigest: null,
+  const capsule = await signCapsuleV3(buildCapsuleV3(fixture.capsule), signer);
+  const { schema, semanticRoot, envelopeDigest } = getCapsuleIdentity(capsule);
+  const params = { capsule: { schema, semanticRoot, envelopeDigest }, sequence: 1, previousEventDigest: null,
     issuedAtUtc: '2026-09-01T00:00:00.000Z', expiresAtUtc: '2026-10-01T00:00:00.000Z',
-    action: 'eligible', release: fixture.pack.release, migratedFrom: null, nextSigner: null };
-  const first = await signPackReleaseEvent(params, signer);
-  const second = await signPackReleaseEvent({ ...params, sequence: 2, previousEventDigest: first.digest, action: 'promoted' }, signer);
-  const base = { pack, releaseEvents: [first], releaseTrustedSigners: trustedSigners, checkpointStore: store,
+    action: 'eligible', release: fixture.capsule.release, migratedFrom: null, nextSigner: null };
+  const first = await signCapsuleReleaseEvent(params, signer);
+  const second = await signCapsuleReleaseEvent({ ...params, sequence: 2, previousEventDigest: first.digest, action: 'promoted' }, signer);
+  const base = { capsule, releaseEvents: [first], releaseTrustedSigners: trustedSigners, checkpointStore: store,
     minimumSequence: 1, now: '2026-09-06T00:00:00.000Z' };
   assert.equal(await store.load(), null);
   const context = await prepareDocumentSearchReleaseOptions(base);
@@ -46,7 +46,7 @@ try {
       created += 1;
       return { close: async () => {} };
     } });
-  const session = await runtime.openPack(pack, context);
+  const session = await runtime.openCapsule(capsule, context);
   await session.close();
   assert.equal(created, 1, 'checkpoint persistence precedes model creation');
   const moduleUrl = pathToFileURL(path.resolve('examples/electron-document-search/release-storage.js')).href;
@@ -62,7 +62,7 @@ try {
   await assert.rejects(prepareDocumentSearchReleaseOptions({ ...base, releaseEvents: [first, second], minimumSequence: 2,
     now: params.expiresAtUtc }), /expired/);
   assert.equal((await store.load()).sequence, 2);
-  const retainedLocalUse = { schema: 'doppler.pack-retained-local-use/v1', pack: params.pack,
+  const retainedLocalUse = { schema: 'doppler.capsule-retained-local-use/v1', capsule: params.capsule,
     releaseEventDigest: second.digest, applicationDigest: computeCanonicalSha256(params.release.application),
     acceptedAtUtc: base.now, acknowledgeUnseenRevocations: true };
   const retained = await prepareDocumentSearchReleaseOptions({ ...base, releaseEvents: [first, second],
@@ -73,7 +73,7 @@ try {
 
   const rejectedStore = { async load() { return null; }, async compareAndSwap() { return false; } };
   const rejected = await prepareDocumentSearchReleaseOptions({ ...base, checkpointStore: rejectedStore });
-  await assert.rejects(runtime.openPack(pack, rejected), /changed concurrently/);
+  await assert.rejects(runtime.openCapsule(capsule, rejected), /changed concurrently/);
   assert.equal(created, 1, 'a failed checkpoint write cannot start another model');
 
   const uncertainStore = createDocumentSearchCheckpointStore(path.join(directory, 'uncertain.json'));
@@ -124,13 +124,13 @@ try {
   const releaseStore = createDocumentSearchReleaseStore(path.join(directory, 'release.json'));
   const options = { stateStore: releaseStore, verifyReleaseDecision: () => false, verifyRevocationSnapshot: () => false };
   const main = createElectronReleaseStateCoordinator(options);
-  await main.installCandidate({ packId: pack.packId, semanticRoot: pack.semanticRoot, path: 'pack.json' }, first.digest);
+  await main.installCandidate({ capsuleId: capsule.capsuleId, semanticRoot: capsule.semanticRoot, path: 'capsule.json' }, first.digest);
   const restarted = createElectronReleaseStateCoordinator({ ...options,
     stateStore: createDocumentSearchReleaseStore(path.join(directory, 'release.json')) });
-  assert.equal((await restarted.load()).candidate.pack.semanticRoot, pack.semanticRoot);
-  await assert.rejects(restarted.resolveCurrent(), /no active Pack/);
+  assert.equal((await restarted.load()).candidate.capsule.semanticRoot, capsule.semanticRoot);
+  await assert.rejects(restarted.resolveCurrent(), /no active Capsule/);
   assert.deepEqual((await fs.readdir(directory)).filter(name => name.endsWith('.tmp') || name.endsWith('.lock')), []);
-  const revoked = await signPackReleaseEvent({ ...params, sequence: 3, previousEventDigest: second.digest, action: 'revoked' }, signer);
+  const revoked = await signCapsuleReleaseEvent({ ...params, sequence: 3, previousEventDigest: second.digest, action: 'revoked' }, signer);
   await assert.rejects(prepareDocumentSearchReleaseOptions({ ...base, minimumSequence: 2,
     releaseEvents: [first, second, { ...revoked, signature: first.signature }] }), /signature|digest/);
   assert.equal((await store.load()).sequence, 2, 'forged denial cannot poison the store');
@@ -143,4 +143,4 @@ try {
     releaseEvents: [first, second, revoked] }), error => error instanceof AggregateError
       && /blocked/.test(error.errors[0].message) && /concurrently/.test(error.errors[1].message));
 } finally { await fs.rm(directory, { recursive: true, force: true }); }
-console.log('electron-release-storage.test: ok (real filesystem; synthetic Pack execution, no adoption claim)');
+console.log('electron-release-storage.test: ok (real filesystem; synthetic Capsule execution, no adoption claim)');

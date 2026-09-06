@@ -1,0 +1,265 @@
+{
+  "schema": "doppler.capsule-runtime-closure/v1",
+  "entrypoint": "src/capsule-runtime.js",
+  "fileCount": 49,
+  "sourceBytes": 247359,
+  "forbiddenPatterns": [
+    "/src/converter/",
+    "/src/training/",
+    "/src/experimental/",
+    "/src/models/",
+    "/src/tooling/",
+    "/src/cli/",
+    "/src/client/provider.js",
+    "/src/config/conversion/"
+  ],
+  "forbiddenFiles": [],
+  "files": [
+    {
+      "path": "src/capsule-runtime.js",
+      "sizeBytes": 1110,
+      "hash": "sha256:0abb74d87a126abe144a0aa4b2c2e8ac1e07d35397b9f12931c91f549943ba5f"
+    },
+    {
+      "path": "src/client/runtime/capsule-acquisition.js",
+      "sizeBytes": 4680,
+      "hash": "sha256:53dfec0be18db4194408cde3b52860d8571d121d53ae586b7bf4add0dc2e9699"
+    },
+    {
+      "path": "src/client/runtime/capsule-embedding.js",
+      "sizeBytes": 4535,
+      "hash": "sha256:075a9189eb6fc3b06a1265f2fb5d5d00d0d32d5ca675c881fb581df74876b3c0"
+    },
+    {
+      "path": "src/client/runtime/capsule-forecast-program.js",
+      "sizeBytes": 5198,
+      "hash": "sha256:2cb73c456b3a6fed7e1e8ab75ef6e7a5fba4c2130efdff1f2a4d10b2aed40682"
+    },
+    {
+      "path": "src/client/runtime/capsule-forecast.js",
+      "sizeBytes": 2386,
+      "hash": "sha256:ff5740dbebc1ae55ea359d8955561f7a8032646c0748d04db2c300815f27a845"
+    },
+    {
+      "path": "src/client/runtime/capsule-operation-adapters.js",
+      "sizeBytes": 4145,
+      "hash": "sha256:7cb926c1d343f3131b8eb5a7e9f92502e3837a64855d0deccceec15030a3c393"
+    },
+    {
+      "path": "src/client/runtime/capsule-operation-executor.js",
+      "sizeBytes": 4615,
+      "hash": "sha256:4a8e26d76e62d1357d0c0b0f4fa1863760c95101133bea2e6b8aa634c5b3ad93"
+    },
+    {
+      "path": "src/client/runtime/capsule-release-authorization.js",
+      "sizeBytes": 1099,
+      "hash": "sha256:d20d0533206abeb65da83298e72015d4b08f7a928023c7b8d50c0c34f9c471fb"
+    },
+    {
+      "path": "src/client/runtime/capsule-rerank.js",
+      "sizeBytes": 3859,
+      "hash": "sha256:988196962078bd6f0e14a7f4c69a40cecb8ce86962b30fbe7059ac2133a741a7"
+    },
+    {
+      "path": "src/client/runtime/command-executor.js",
+      "sizeBytes": 5303,
+      "hash": "sha256:29ce64a8d64eb27b4a075183728d25f5bf9d4a9ec5a7b71fec0791b560923469"
+    },
+    {
+      "path": "src/client/runtime/composition-root.js",
+      "sizeBytes": 17226,
+      "hash": "sha256:b1716f9bbf08d3af2a113bb24946a34fe6940ef9b5dcb498a5b423332abad1e4"
+    },
+    {
+      "path": "src/client/runtime/fetch-capsule-artifact-store.js",
+      "sizeBytes": 1035,
+      "hash": "sha256:ee02b1cdd1e6367e6797328c047393ee5fdd6826a31a8629b3eedb3c672f8e9f"
+    },
+    {
+      "path": "src/client/runtime/resource-binder.js",
+      "sizeBytes": 5310,
+      "hash": "sha256:cc3efb557852436e22b7070b7f4a32d6cb25f95a49a07ce8dc606aca9c6e9803"
+    },
+    {
+      "path": "src/client/runtime/session-controller.js",
+      "sizeBytes": 7830,
+      "hash": "sha256:a6a628c0df0bea3d70958b5b23ea9ee724ab6a540ec28513b687fdb09fa132ff"
+    },
+    {
+      "path": "src/client/runtime/target-selector.js",
+      "sizeBytes": 94,
+      "hash": "sha256:7f9f1d5fca337d3bf4e355b76f59b7060a01ecea67d48a5c0c5b33f8352b118b"
+    },
+    {
+      "path": "src/client/runtime/verified-capsule-artifact-store.js",
+      "sizeBytes": 3820,
+      "hash": "sha256:9ab343c0ba05e707294d473ac6af49ec471b5c9c1cf7a8a87c58a0a07d8e99d2"
+    },
+    {
+      "path": "src/config/capsule-loading.js",
+      "sizeBytes": 596,
+      "hash": "sha256:aa6bdd57e3a57431d6c91fabe040d90cc8667fecc23acff3cedaff15b04db620"
+    },
+    {
+      "path": "src/config/capsule-loading.schema.json",
+      "sizeBytes": 446,
+      "hash": "sha256:8668d2ff9b1d1c941280ebf9af63d658db553c7b99735f4cb1e7818eaaff27b1"
+    },
+    {
+      "path": "src/config/capsule-operation.js",
+      "sizeBytes": 3870,
+      "hash": "sha256:e0d4d8100592a5c16cddb6f828e3393e17eda0b1d784e02e0a3a4ab2f370f278"
+    },
+    {
+      "path": "src/config/capsule-operations.json",
+      "sizeBytes": 742,
+      "hash": "sha256:5442aa6b95e636dad2388771b2399aa43a7205c0c2b4e9b72fe744420e6c85fa"
+    },
+    {
+      "path": "src/config/capsule-release-contract.js",
+      "sizeBytes": 10700,
+      "hash": "sha256:1111bb795b062f008c4aebfc2a54cee961b0ffabaf6f328de00013b57cbfef1a"
+    },
+    {
+      "path": "src/config/capsule-release-events.js",
+      "sizeBytes": 11230,
+      "hash": "sha256:75ca59b81b02639aa31f51e5c3ae53a0f5d103c6a39eed40530e5d04d724c0c7"
+    },
+    {
+      "path": "src/config/capsule-sequence-receipt.js",
+      "sizeBytes": 820,
+      "hash": "sha256:5b52d469257959959968a79b81f60d383d12440b9ea7392b30528bf3fbd026f3"
+    },
+    {
+      "path": "src/config/capsule-signature.js",
+      "sizeBytes": 2841,
+      "hash": "sha256:7468fbe5b96ab3f2275b9ca0c43a9849d90cb5ff22dfc0386aef6595d72f4057"
+    },
+    {
+      "path": "src/config/capsule-v2.js",
+      "sizeBytes": 19940,
+      "hash": "sha256:2d96838e538f2e576cb600272efa8dde15a734f5a2a608166076d6bfa3cdcc1f"
+    },
+    {
+      "path": "src/config/capsule-v3.js",
+      "sizeBytes": 3868,
+      "hash": "sha256:3514a2c71fa4ac621e223ac0aaf1a767498ad2fc120cd8a4589f78dfd072fd27"
+    },
+    {
+      "path": "src/config/capsule.js",
+      "sizeBytes": 2862,
+      "hash": "sha256:62fd94410eeb76488a99869bd408402a20df3259e21e94140d3d2c2437d312cb"
+    },
+    {
+      "path": "src/config/embedding-contract.js",
+      "sizeBytes": 1646,
+      "hash": "sha256:23c5dd9d7917d9df824410f3c0cab91d73a04f118c30daec8710b6dbe8a8ecf3"
+    },
+    {
+      "path": "src/config/forecast-manifest.js",
+      "sizeBytes": 3683,
+      "hash": "sha256:5d84c8d5bee920a36a3b5bb6d5bb7d5610611f1ee17a9e9bbb9ffe963c15156a"
+    },
+    {
+      "path": "src/config/initial-execution-identity.js",
+      "sizeBytes": 14517,
+      "hash": "sha256:df1adc683da57e50488c7290c9918bebebc53d1ca000253b391e505f0ab19246"
+    },
+    {
+      "path": "src/config/model-ir-v2.js",
+      "sizeBytes": 11405,
+      "hash": "sha256:fb31ca041f39dba1b017c33c21f1e9c6c344a400524a41e0c49614403c5c7f74"
+    },
+    {
+      "path": "src/config/model-ir.js",
+      "sizeBytes": 6644,
+      "hash": "sha256:f970113567f8dd296b28fc76d4711a7bc21d2c51185e1ed630d9e52ce6b23219"
+    },
+    {
+      "path": "src/config/schema/debug.schema.js",
+      "sizeBytes": 4207,
+      "hash": "sha256:2e93df23cf8dbc54f3548cb38a5cba00bd1e96b3827de29ae409038f8992c59f"
+    },
+    {
+      "path": "src/config/target-plan.js",
+      "sizeBytes": 19910,
+      "hash": "sha256:519d2198ef83a725977a8ef6cb72fe1a7013769cea46d5d19e5c4767ec4f0470"
+    },
+    {
+      "path": "src/debug/capture-policy.js",
+      "sizeBytes": 6411,
+      "hash": "sha256:eebe99b3bd281bd8b46d63f1ab952fc465a4225c4d9edb8d326ae849106b6025"
+    },
+    {
+      "path": "src/debug/config.js",
+      "sizeBytes": 8923,
+      "hash": "sha256:a0a763a5ecd9c90d479650e9dd31cd80721d36fedb139c2c12659b519d811d58"
+    },
+    {
+      "path": "src/debug/history.js",
+      "sizeBytes": 1966,
+      "hash": "sha256:357c5ffab86bc997474845710379603008f64a025572bebbff5212d7aba7422c"
+    },
+    {
+      "path": "src/debug/index.js",
+      "sizeBytes": 4238,
+      "hash": "sha256:b78b0ceab208e0edabfb08fa43d411ffefab258ecd268be3ede554d23c039136"
+    },
+    {
+      "path": "src/debug/log.js",
+      "sizeBytes": 3094,
+      "hash": "sha256:04cb62dfcbd14f06e6ea137bf3dfacf31df88d3b3d4b350cc437108309d84b87"
+    },
+    {
+      "path": "src/debug/signals.js",
+      "sizeBytes": 962,
+      "hash": "sha256:961bd8fbf9649b9cf1d1abfd5ea42fa8de5fd846c6fd8a195f4f8caa4815243e"
+    },
+    {
+      "path": "src/debug/stats.js",
+      "sizeBytes": 4162,
+      "hash": "sha256:9232b05830093f27b9ad129fccddc69db071ca1be6f2e2a9f2781ecf6276e7a5"
+    },
+    {
+      "path": "src/debug/tensor.js",
+      "sizeBytes": 9376,
+      "hash": "sha256:6c011dcf181139f7cc1fcd01026e7146b6d0eba2050339bf03906a432d3756e4"
+    },
+    {
+      "path": "src/debug/trace.js",
+      "sizeBytes": 4438,
+      "hash": "sha256:8eceacab851ed490b520533310f32e8d76aa4bf4fb2e7bf7bba375684758b9d3"
+    },
+    {
+      "path": "src/errors/doppler-error.js",
+      "sizeBytes": 3290,
+      "hash": "sha256:cd88f369dabcac61e4bd44d2276000215f4b544e7a7c240077162001ab5afeb6"
+    },
+    {
+      "path": "src/formats/canonical-hash.js",
+      "sizeBytes": 2489,
+      "hash": "sha256:0034c8318465e897c78d01f2a15025ce86464e05799d4b1162327618251a9fda"
+    },
+    {
+      "path": "src/formats/sha256.js",
+      "sizeBytes": 4405,
+      "hash": "sha256:a2a7147d0e116932a1a4124494c634f197aea86692a610fc5cabbc9707f1a61b"
+    },
+    {
+      "path": "src/formats/stable-sort-object.js",
+      "sizeBytes": 342,
+      "hash": "sha256:2318fb1b8fd8930544459f330827ac71e14c06b14bc47c16dce7a7f9c14fd8d9"
+    },
+    {
+      "path": "src/gpu/readback-buffer.js",
+      "sizeBytes": 994,
+      "hash": "sha256:64973d225fa84ca361c4b262a336b966d958f80ce59bbfca93afe8544ebeed04"
+    },
+    {
+      "path": "src/version.js",
+      "sizeBytes": 97,
+      "hash": "sha256:790007dd7aefec0f2230d662e95847f6f42df83dc23609097d527bdb50cca85f"
+    }
+  ],
+  "passed": true
+}

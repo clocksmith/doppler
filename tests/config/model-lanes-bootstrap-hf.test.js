@@ -12,7 +12,7 @@ const bootstrapEntry = {
     outputs: ['text'],
   },
   sourceCheckpointId: 'org/unit',
-  weightPackId: 'unit-bootstrap-wp-v1',
+  weightCapsuleId: 'unit-bootstrap-wp-v1',
   manifestVariantId: 'unit-bootstrap-mv-v1',
   artifactCompleteness: 'complete',
   runtimePromotionState: 'manifest-owned',

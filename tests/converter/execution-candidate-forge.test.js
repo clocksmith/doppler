@@ -145,7 +145,7 @@ const identity = createInitialExecutionIdentityV2({
   memoryPolicy: { kvcache: { layout: 'heterogeneous-contiguous' } },
   executionPlanDigest: digest('9'), runtimeEngine: { schema: 'test' },
   programLoadPolicy: {
-    schema: 'doppler.pack-program-load-policy/v2',
+    schema: 'doppler.capsule-program-load-policy/v2',
     runtimeConfig: {
       inference: {
         session: {}, compute: {}, generation: { disableMultiTokenDecode: false },
@@ -165,7 +165,7 @@ assert.equal(plan.executionGraphHash, candidate.executionGraphHash);
 const legacyPolicyIdentity = createInitialExecutionIdentityV2({
   ...identity,
   programLoadPolicy: {
-    schema: 'doppler.pack-program-load-policy/v1',
+    schema: 'doppler.capsule-program-load-policy/v1',
     runtimeConfig: { inference: { session: {}, compute: {} } },
   },
 });

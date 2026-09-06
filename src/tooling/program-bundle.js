@@ -102,17 +102,17 @@ function assertWeightsRefMatchesStorageManifest(manifest, storageManifest, stora
     }
   }
 
-  const expectedWeightPackId = typeof weightsRef.weightPackId === 'string'
-    ? weightsRef.weightPackId.trim()
+  const expectedWeightCapsuleId = typeof weightsRef.weightCapsuleId === 'string'
+    ? weightsRef.weightCapsuleId.trim()
     : '';
-  if (expectedWeightPackId) {
-    const actualWeightPackId = typeof storageManifest?.artifactIdentity?.weightPackId === 'string'
-      ? storageManifest.artifactIdentity.weightPackId.trim()
+  if (expectedWeightCapsuleId) {
+    const actualWeightCapsuleId = typeof storageManifest?.artifactIdentity?.weightCapsuleId === 'string'
+      ? storageManifest.artifactIdentity.weightCapsuleId.trim()
       : '';
-    if (actualWeightPackId !== expectedWeightPackId) {
+    if (actualWeightCapsuleId !== expectedWeightCapsuleId) {
       throw new Error(
-        `program bundle export: ${modelId} weightsRef.weightPackId "${expectedWeightPackId}" ` +
-        `does not match target artifactIdentity.weightPackId "${actualWeightPackId}".`
+        `program bundle export: ${modelId} weightsRef.weightCapsuleId "${expectedWeightCapsuleId}" ` +
+        `does not match target artifactIdentity.weightCapsuleId "${actualWeightCapsuleId}".`
       );
     }
   }
@@ -120,7 +120,7 @@ function assertWeightsRefMatchesStorageManifest(manifest, storageManifest, stora
   const expectedShardSetHash = normalizeOptionalDigest(weightsRef.shardSetHash);
   if (expectedShardSetHash) {
     const actualShardSetHash = normalizeOptionalDigest(storageManifest?.artifactIdentity?.shardSetHash)
-      || normalizeOptionalDigest(storageManifest?.artifactIdentity?.weightPackHash);
+      || normalizeOptionalDigest(storageManifest?.artifactIdentity?.weightCapsuleHash);
     if (actualShardSetHash !== expectedShardSetHash) {
       throw new Error(
         `program bundle export: ${modelId} weightsRef.shardSetHash ${expectedShardSetHash} ` +

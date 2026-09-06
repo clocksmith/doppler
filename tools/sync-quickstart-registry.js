@@ -132,11 +132,11 @@ function toQuickstartEntry(entry) {
   }
   assertQuickstartLifecycle(entry, modelId);
   const sourceCheckpointId = normalizeText(entry?.sourceCheckpointId);
-  const weightPackId = normalizeText(entry?.weightPackId);
+  const weightCapsuleId = normalizeText(entry?.weightCapsuleId);
   const manifestVariantId = normalizeText(entry?.manifestVariantId);
-  if (!sourceCheckpointId || !weightPackId || !manifestVariantId) {
+  if (!sourceCheckpointId || !weightCapsuleId || !manifestVariantId) {
     throw new Error(
-      `${modelId}: quickstart catalog entries require sourceCheckpointId, weightPackId, and manifestVariantId`
+      `${modelId}: quickstart catalog entries require sourceCheckpointId, weightCapsuleId, and manifestVariantId`
     );
   }
   if (entry?.artifactCompleteness !== 'complete') {
@@ -173,7 +173,7 @@ function toQuickstartEntry(entry) {
   return {
     modelId,
     sourceCheckpointId,
-    weightPackId,
+    weightCapsuleId,
     manifestVariantId,
     artifactCompleteness: entry.artifactCompleteness,
     runtimePromotionState: entry.runtimePromotionState,
@@ -206,7 +206,7 @@ export function buildQuickstartRegistryPayload(catalog, revocationRegistry) {
       logicalModelId: entry.modelId,
       modelId: entry.modelId,
       sourceCheckpointId: entry.sourceCheckpointId,
-      weightPackId: entry.weightPackId,
+      weightCapsuleId: entry.weightCapsuleId,
       manifestVariantId: entry.manifestVariantId,
     }, revocations))
     .sort(compareCatalogEntries)

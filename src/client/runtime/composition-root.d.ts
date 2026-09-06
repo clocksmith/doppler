@@ -1,34 +1,35 @@
-import type { PackV2Artifact } from '../../config/pack-v2.js';
-import type { DopplerPack, PackIdentity, verifyPack } from '../../config/pack.js';
-import type { PackReleaseEvent, PackReleasePolicy, ReleaseCheckpoint } from '../../config/pack-release-events.js';
+import type { CapsuleV2Artifact } from '../../config/capsule-v2.js';
+import type { DopplerCapsule, CapsuleIdentity, verifyCapsule } from '../../config/capsule.js';
+import type { CapsuleReleaseEvent, CapsuleReleasePolicy, ReleaseCheckpoint } from '../../config/capsule-release-events.js';
 import type { TargetPlan, TargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import type { DeviceProfile } from './target-selector.js';
 import type { GenerationRunOptions } from './session-controller.js';
-import type { PackRerankReceipt, PackRerankRequest } from './pack-rerank.js';
-import type { PackOperationRequest } from '../../config/pack-operation.js';
-import type { PackOperationEvent } from './pack-operation-executor.js';
-import type { PackForecastRequest, PackForecastResult } from './pack-forecast.js';
-import type { PackEmbeddingRequest, PackEmbeddingResult } from './pack-embedding.js';
-export type { PackEmbeddingRequest, PackEmbeddingResult } from './pack-embedding.js';
+import type { CapsuleRerankReceipt, CapsuleRerankRequest } from './capsule-rerank.js';
+import type { CapsuleOperationRequest } from '../../config/capsule-operation.js';
+import type { CapsuleOperationEvent } from './capsule-operation-executor.js';
+import type { CapsuleForecastRequest, CapsuleForecastResult } from './capsule-forecast.js';
+import type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-embedding.js';
+import type { CapsuleAcquisitionOptions } from './capsule-acquisition.js';
+export type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-embedding.js';
 
-export { createForecastProgramFactory } from './pack-forecast-program.js';
+export { createForecastProgramFactory } from './capsule-forecast-program.js';
 
 export const RUNTIME_CORE_VERSION: '2.0.0';
 
-export interface PackSessionOptions extends TargetPlanSelectionPolicy {
-  releaseEvents?: PackReleaseEvent[];
+export interface CapsuleSessionOptions extends TargetPlanSelectionPolicy, CapsuleAcquisitionOptions {
+  releaseEvents?: CapsuleReleaseEvent[];
   releaseTrustedSigners?: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
-  releasePolicy?: PackReleasePolicy;
+  releasePolicy?: CapsuleReleasePolicy;
   persistReleaseCheckpoint?: (checkpoint: ReleaseCheckpoint) => Promise<void> | void;
 }
 
 export interface RuntimePorts {
   device: object;
-  packSource?: { fetchPack(id: string, options?: object): Promise<DopplerPack> };
+  capsuleSource?: { fetchCapsule(id: string, options?: object): Promise<DopplerCapsule> };
   artifactStore: {
-    hashArtifact?(artifact: PackV2Artifact): Promise<{ hash: string; sizeBytes: number }>;
-    readArtifact(artifact: PackV2Artifact): Promise<Uint8Array>;
+    hashArtifact?(artifact: CapsuleV2Artifact): Promise<{ hash: string; sizeBytes: number }>;
+    readArtifact(artifact: CapsuleV2Artifact, options?: CapsuleAcquisitionOptions): Promise<Uint8Array | ArrayBuffer>;
   };
   trustedSigners: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
   programFactory(args: Record<string, unknown>): Promise<object>;
@@ -37,28 +38,28 @@ export interface RuntimePorts {
 }
 
 export interface DopplerRuntimeSession {
-  schema: 'doppler.pack-session/v1';
+  schema: 'doppler.capsule-session/v1';
   readonly loaded: boolean;
   readonly closed: boolean;
-  packIdentity: PackIdentity;
+  capsuleIdentity: CapsuleIdentity;
   readonly manifest: Readonly<Record<string, unknown>>;
   readonly manifestHash: string;
   modelId: string;
-  packId: string;
+  capsuleId: string;
   semanticRoot: string;
   selectedTargetId: string;
   selectedTargetPlanDigest: string;
   selectedPlan: TargetPlan;
   observedInitialExecutionIdentity: InitialExecutionIdentity | null;
   deviceProfile: DeviceProfile;
-  verification: Awaited<ReturnType<typeof verifyPack>>;
+  verification: Awaited<ReturnType<typeof verifyCapsule>>;
   generate(options: GenerationRunOptions): AsyncGenerator<number, void, void>;
   generateText(options: GenerationRunOptions): Promise<{ text: string; tokenIds: number[] }>;
-  rerank(request: PackRerankRequest): Promise<PackRerankReceipt>;
-  forecast(request: PackForecastRequest): Promise<PackForecastResult>;
-  embed(request: PackEmbeddingRequest): Promise<PackEmbeddingResult>;
+  rerank(request: CapsuleRerankRequest): Promise<CapsuleRerankReceipt>;
+  forecast(request: CapsuleForecastRequest): Promise<CapsuleForecastResult>;
+  embed(request: CapsuleEmbeddingRequest): Promise<CapsuleEmbeddingResult>;
   encodeSequence(sequence: string, options?: Record<string, unknown> & { signal?: AbortSignal }): Promise<Record<string, unknown>>;
-  executeOperation(request: PackOperationRequest, control?: { signal?: AbortSignal | null }): AsyncGenerator<PackOperationEvent, void, void>;
+  executeOperation(request: CapsuleOperationRequest, control?: { signal?: AbortSignal | null }): AsyncGenerator<CapsuleOperationEvent, void, void>;
   resetGenerationState(): void;
   close(): Promise<void>;
 }
@@ -66,7 +67,7 @@ export interface DopplerRuntimeSession {
 export interface DopplerRuntime {
   version: string;
   ports: RuntimePorts;
-  openPack(packOrId: string | DopplerPack, options?: PackSessionOptions): Promise<DopplerRuntimeSession>;
+  openCapsule(capsuleOrId: string | DopplerCapsule, options?: CapsuleSessionOptions): Promise<DopplerRuntimeSession>;
 }
 
 export declare function createDopplerRuntime(ports: RuntimePorts): DopplerRuntime;

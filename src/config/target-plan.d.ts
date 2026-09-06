@@ -87,7 +87,7 @@ export interface TargetPlanSelectionPolicy {
   acceptedTargetPlanDigests?: readonly string[];
   /** Every requested operation must be qualified on the selected host. */
   requiredOperations?: readonly NonNullable<TargetPlanV1['qualification'][number]['operation']>[];
-  /** Preference among eligible plans only; signed Pack order breaks ties. */
+  /** Preference among eligible plans only; signed Capsule order breaks ties. */
   preferredTargetPlanDigests?: readonly string[];
 }
 

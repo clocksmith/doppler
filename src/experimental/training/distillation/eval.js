@@ -102,7 +102,7 @@ async function greedyDecodeFixture(model, tokenizer, prompt, decodePolicy = {}) 
     ? decodePolicy.maxTokens
     : null;
   if (!maxTokens) {
-    throw new Error('Translation eval requires evalDatasets[].decodePolicy.maxTokens in the workload pack.');
+    throw new Error('Translation eval requires evalDatasets[].decodePolicy.maxTokens in the workload capsule.');
   }
   const stopOnEos = decodePolicy?.stopOnEos !== false;
   const eosToken = tokenizer?.getSpecialTokens?.()?.eos ?? null;

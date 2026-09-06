@@ -233,7 +233,7 @@ Commands are rejected when:
 - `keepPipeline=true` is rejected on browser relay because pipeline objects are not serializable across process boundaries.
 - `convert` execution tuning belongs in `request.convertPayload.execution` and must not change command semantics.
 - `refresh-integrity` rebuilds manifest integrity metadata from local artifact bytes and must not consume runtime config inputs.
-- `release` consumes only production-release, trust, signing, Pack, application,
+- `release` consumes only production-release, trust, signing, Capsule, application,
   and fleet-evidence inputs; it must not consume runtime config or activate a release.
 
 ---

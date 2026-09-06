@@ -4,7 +4,7 @@
   "modelIRReceipt": "reports/model-ir-v2/glimmer-30b.model-ir-receipt.json",
   "template": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
   "output": "src/config/conversion/muse-glimmer/muse-glimmer-30b-text-f16-af32.json",
-  "receiptOutput": "reports/model-ir-v2/glimmer-30b.semantic-lowering-receipt.json",
+  "receiptOutput": "reports/capsule-migration/glimmer-30b.semantic-lowering-receipt.json",
   "entryPointId": "text.generate",
   "runtimeModelType": "transformer",
   "outputBaseDir": "models/local",

@@ -77,12 +77,12 @@ function requireExactTupleValue(value, allowed, label, errors) {
 
 function validateCandidate(candidate, errors) {
   if (!requireObject(candidate, 'candidate', errors)) return;
-  requireExactKeys(candidate, new Set(['logicalModelId', 'sourceRevision', 'sourceRevisionDigest', 'packPath', 'packSemanticRoot']), 'candidate', errors);
+  requireExactKeys(candidate, new Set(['logicalModelId', 'sourceRevision', 'sourceRevisionDigest', 'capsulePath', 'capsuleSemanticRoot']), 'candidate', errors);
   requireString(candidate.logicalModelId, 'candidate.logicalModelId', errors);
   requireString(candidate.sourceRevision, 'candidate.sourceRevision', errors);
   requireDigest(candidate.sourceRevisionDigest, 'candidate.sourceRevisionDigest', errors);
-  requireRepoPath(candidate.packPath, 'candidate.packPath', errors);
-  requireDigest(candidate.packSemanticRoot, 'candidate.packSemanticRoot', errors);
+  requireRepoPath(candidate.capsulePath, 'candidate.capsulePath', errors);
+  requireDigest(candidate.capsuleSemanticRoot, 'candidate.capsuleSemanticRoot', errors);
 }
 
 function validateApplication(application, errors) {
@@ -198,11 +198,11 @@ function validateSupportedDevices(supportedDevices, errors) {
 
 function validateReleaseTarget(target, label, requireAuthority, errors) {
   if (!requireObject(target, label, errors)) return;
-  const allowed = new Set(['releaseId', 'packSemanticRoot']);
+  const allowed = new Set(['releaseId', 'capsuleSemanticRoot']);
   if (requireAuthority) allowed.add('authority');
   requireExactKeys(target, allowed, label, errors);
   requireString(target.releaseId, `${label}.releaseId`, errors);
-  requireDigest(target.packSemanticRoot, `${label}.packSemanticRoot`, errors);
+  requireDigest(target.capsuleSemanticRoot, `${label}.capsuleSemanticRoot`, errors);
   if (requireAuthority && target.authority !== 'customer') errors.push(`${label}.authority must be "customer".`);
 }
 
@@ -295,7 +295,7 @@ export function validateProductionRelease(release) {
   validateReleaseTarget(release.rollback, 'rollback', true, errors);
   if (isObject(release.previousRelease) && isObject(release.rollback)
     && (release.previousRelease.releaseId !== release.rollback.releaseId
-      || release.previousRelease.packSemanticRoot !== release.rollback.packSemanticRoot)) {
+      || release.previousRelease.capsuleSemanticRoot !== release.rollback.capsuleSemanticRoot)) {
     errors.push('rollback must bind the pinned previousRelease.');
   }
   validateRevocation(release.revocation, errors);

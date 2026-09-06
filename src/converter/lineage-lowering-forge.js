@@ -162,7 +162,7 @@ export function materializeLineageConversionCandidate({ modelIR, template, recip
 
   for (const override of recipe.policyOverrides || []) {
     requireAuthor(override.author ?? recipe.author, `Policy override "${override.targetPointer}"`);
-    if (!['forge', 'pack-scope', 'qualification'].includes(override.lifecycle)
+    if (!['forge', 'capsule-scope', 'qualification'].includes(override.lifecycle)
       || typeof override.rationale !== 'string' || !override.rationale.trim()) {
       throw new Error(`Policy override "${override.targetPointer}" requires lifecycle and rationale.`);
     }
@@ -198,10 +198,10 @@ export function materializeLineageConversionCandidate({ modelIR, template, recip
     sourceRevision: modelIR.sourceIdentity.revision,
     artifactCompleteness: 'complete',
   };
-  const packModelIR = { ...clone(modelIR), modelId: artifactModelId };
-  const packModelIRValidation = validateModelIR(packModelIR);
-  if (!packModelIRValidation.ok) {
-    throw new Error(`Lineage lowering produced invalid Pack-bound ModelIR: ${packModelIRValidation.errors.join('; ')}`);
+  const capsuleModelIR = { ...clone(modelIR), modelId: artifactModelId };
+  const capsuleModelIRValidation = validateModelIR(capsuleModelIR);
+  if (!capsuleModelIRValidation.ok) {
+    throw new Error(`Lineage lowering produced invalid Capsule-bound ModelIR: ${capsuleModelIRValidation.errors.join('; ')}`);
   }
   const configDigest = digest(config);
   return Object.freeze({
@@ -209,8 +209,8 @@ export function materializeLineageConversionCandidate({ modelIR, template, recip
     modelId: artifactModelId,
     requestedModelId: recipe.modelId,
     sourceModelIRHash: digest(modelIR),
-    modelIRHash: digest(packModelIR),
-    modelIR: packModelIR,
+    modelIRHash: digest(capsuleModelIR),
+    modelIR: capsuleModelIR,
     template: recipe.template,
     author: recipe.author,
     generatedCandidates: Number(recipe.candidateAudit?.generated || 1),

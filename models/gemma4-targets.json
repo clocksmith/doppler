@@ -19,12 +19,12 @@
       "currentLanes": [
         {
           "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
-          "role": "complete-q4k-text-vision-weight-pack",
+          "role": "complete-q4k-text-vision-weight-capsule",
           "claimStatus": "verified"
         },
         {
           "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-          "role": "int4-ple-q4k-text-vision-weight-pack",
+          "role": "int4-ple-q4k-text-vision-weight-capsule",
           "claimStatus": "verified"
         },
         {
@@ -132,7 +132,7 @@
           "code": "multimodal-browser-receipt-incomplete",
           "surface": "browser",
           "state": "incomplete",
-          "reason": "Browser evidence covers current text/vision weight-pack lanes, but no complete multimodal receipt is listed."
+          "reason": "Browser evidence covers current text/vision weight-capsule lanes, but no complete multimodal receipt is listed."
         }
       ],
       "officialMtp": true,
@@ -249,7 +249,7 @@
       "currentLanes": [
         {
           "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
-          "role": "complete-q4k-text-weight-pack",
+          "role": "complete-q4k-text-weight-capsule",
           "claimStatus": "verified"
         },
         {
@@ -259,7 +259,7 @@
         },
         {
           "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
-          "role": "w4a16-qat-text-weight-pack",
+          "role": "w4a16-qat-text-weight-capsule",
           "claimStatus": "verified"
         }
       ],
@@ -344,7 +344,7 @@
       "currentLanes": [
         {
           "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
-          "role": "complete-q4k-text-weight-pack",
+          "role": "complete-q4k-text-weight-capsule",
           "claimStatus": "verified"
         },
         {

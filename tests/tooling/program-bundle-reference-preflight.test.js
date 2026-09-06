@@ -44,7 +44,7 @@ try {
       },
     ],
     artifactIdentity: {
-      weightPackId: 'toy-wp',
+      weightCapsuleId: 'toy-wp',
       shardSetHash: `sha256:${'a'.repeat(64)}`,
     },
   };
@@ -52,7 +52,7 @@ try {
     version: 1,
     modelId: 'variant',
     weightsRef: {
-      weightPackId: 'toy-wp',
+      weightCapsuleId: 'toy-wp',
       artifactRoot: '../weights',
       shardSetHash: `sha256:${'a'.repeat(64)}`,
     },

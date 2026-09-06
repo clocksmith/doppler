@@ -36,7 +36,7 @@ assert.equal(q4HeadConfig.inference?.output?.tieWordEmbeddings, true);
 assert.equal(q4HeadConfig.manifest?.artifactIdentity?.sourceCheckpointId, 'google/gemma-4-12B-it');
 assert.equal(q4HeadConfig.manifest?.artifactIdentity?.sourceRevision, '5926caa4ec0cac5cbfadaf4077420520de1d5205');
 assert.equal(
-  q4HeadConfig.manifest?.artifactIdentity?.weightPackId,
+  q4HeadConfig.manifest?.artifactIdentity?.weightCapsuleId,
   `${Q4_HEAD_MODEL_ID}-wp-catalog-v1`
 );
 assert.equal(
@@ -48,9 +48,9 @@ assert.equal(q4HeadConfig.manifest?.artifactIdentity?.shardSetHash, undefined);
 assert.equal(q4HeadConfig.manifest?.weightsRef, undefined);
 
 assert.notEqual(
-  q4HeadConfig.manifest?.artifactIdentity?.weightPackId,
-  baseConfig.manifest?.artifactIdentity?.weightPackId,
-  'Q4-head lane must produce a new weight pack because conversion appends synthetic tied lm_head bytes'
+  q4HeadConfig.manifest?.artifactIdentity?.weightCapsuleId,
+  baseConfig.manifest?.artifactIdentity?.weightCapsuleId,
+  'Q4-head lane must produce a new weight capsule because conversion appends synthetic tied lm_head bytes'
 );
 assert.equal(baseConfig.quantization?.lmHead, 'f16');
 assert.equal(postLayerStep(baseConfig.execution, 'lm_head')?.[1], 'lm_head_gemv_stable');
@@ -263,7 +263,7 @@ assert.equal(
   'dcfe12254e8fb98c743f21efa05ff64937926c64'
 );
 assert.equal(
-  w4a16QatConfig.manifest?.artifactIdentity?.weightPackId,
+  w4a16QatConfig.manifest?.artifactIdentity?.weightCapsuleId,
   `${W4A16_QAT_MODEL_ID}-wp-catalog-v1`
 );
 assert.equal(

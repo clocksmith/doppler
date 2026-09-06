@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { selectTargetPlan } from '../../src/client/runtime/target-selector.js';
-import { createSignedPackFixture } from '../helpers/pack-v2-fixture.js';
+import { createSignedCapsuleFixture } from '../helpers/capsule-v2-fixture.js';
 import { hashTargetPlan } from '../../src/config/target-plan.js';
 
-const { targetPlan } = await createSignedPackFixture();
+const { targetPlan } = await createSignedCapsuleFixture();
 assert.equal(
   selectTargetPlan([targetPlan], { surface: 'test-webgpu', hasF16: false, hasSubgroups: false, maxBufferSize: 1024 }).targetId,
   targetPlan.targetId
@@ -27,7 +27,7 @@ const accepted = hashTargetPlan(alternative);
 assert.equal(selectTargetPlan(plans, profile, { acceptedTargetPlanDigests: [accepted] }), alternative);
 assert.throws(() => selectTargetPlan(plans, profile, { acceptedTargetPlanDigests: [] }), /not accepted/);
 
-const rerank = (await createSignedPackFixture({ operation: 'rerank' })).targetPlan;
+const rerank = (await createSignedCapsuleFixture({ operation: 'rerank' })).targetPlan;
 assert.equal(selectTargetPlan([targetPlan, rerank], profile, { requiredOperations: ['rerank'] }), rerank);
 assert.equal(selectTargetPlan([rerank, targetPlan], profile, { requiredOperations: ['generate'] }), targetPlan,
   'legacy qualification records without operation still mean generation');
@@ -48,7 +48,7 @@ assert.equal(selectTargetPlan([incompatible, targetPlan], profile, {
 assert.equal(selectTargetPlan([targetPlan, rerank], profile, {
   preferredTargetPlanDigests: [hashTargetPlan(targetPlan)], requiredOperations: ['rerank'],
 }), rerank, 'preference cannot waive required operation qualification');
-assert.equal(selectTargetPlan(plans, profile), targetPlan, 'signed Pack order remains the default tie-break');
+assert.equal(selectTargetPlan(plans, profile), targetPlan, 'signed Capsule order remains the default tie-break');
 assert.equal(selectTargetPlan([alternative, targetPlan], profile), alternative);
 assert.deepEqual(plans, [targetPlan, alternative], 'selection cannot mutate signed plan order');
 

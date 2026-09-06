@@ -4,8 +4,8 @@ import path from 'node:path';
 import { snapshotFromArray } from '../../src/debug/tensor.js';
 import {
   buildRuntimeBoundaryCapture,
-  buildSourceBoundaryPack,
-  buildSourceBoundaryPackFromProviderCapture,
+  buildSourceBoundaryCapsule,
+  buildSourceBoundaryCapsuleFromProviderCapture,
   buildDeterministicTokenEvidenceFromReferenceTranscript,
   compareBoundaryEvidence,
 } from '../../src/tooling/boundary-evidence.js';
@@ -53,7 +53,7 @@ assert.deepEqual(
 assert.ok(runtimeCapture.boundaries.every((boundary) => boundary.fullTensorDigest));
 assert.deepEqual(runtimeCapture.boundaries[0].samples[0].coordinate, [0, 0]);
 
-const sourcePack = buildSourceBoundaryPack({
+const sourceCapsule = buildSourceBoundaryCapsule({
   identity: {
     sourceRevision: 'test',
     dtype: 'f32',
@@ -72,7 +72,7 @@ const deterministicTokenEvidence = {
   tokenCount: 128,
 };
 const passed = compareBoundaryEvidence({
-  sourcePack,
+  sourceCapsule,
   runtimeCapture,
   policy,
   deterministicTokenEvidence,
@@ -87,7 +87,7 @@ divergentCapture.boundaries[1].samples[0].value += 1;
   divergentCapture.digest = computeCanonicalSha256(core);
 }
 const failed = compareBoundaryEvidence({
-  sourcePack,
+  sourceCapsule,
   runtimeCapture: divergentCapture,
   policy,
   deterministicTokenEvidence,
@@ -96,7 +96,7 @@ assert.equal(failed.promotionGate.passed, false);
 assert.equal(failed.firstDivergence.boundaryId, 'layer.0.attention.q.post_rope');
 
 const quantizedWithoutControl = compareBoundaryEvidence({
-  sourcePack,
+  sourceCapsule,
   runtimeCapture,
   policy,
   artifactPrecision: 'quantized',
@@ -118,7 +118,7 @@ assert.equal(tokenEvidence.schema, 'doppler.deterministic-token-evidence/v1');
 assert.equal(tokenEvidence.exact, true);
 assert.equal(tokenEvidence.tokenCount, 128);
 
-const providerSourcePack = buildSourceBoundaryPackFromProviderCapture({
+const providerSourceCapsule = buildSourceBoundaryCapsuleFromProviderCapture({
   schema: 'doppler.boundary-provider-capture/v1',
   provider: 'transformers',
   identity: {
@@ -129,9 +129,9 @@ const providerSourcePack = buildSourceBoundaryPackFromProviderCapture({
     referenceScriptDigest: 'sha256:' + '8'.repeat(64),
   },
   runtime: { transformers: 'test' },
-  boundaries: sourcePack.boundaries,
+  boundaries: sourceCapsule.boundaries,
 });
-assert.equal(providerSourcePack.schema, 'doppler.source-boundary-pack/v1');
-assert.equal(providerSourcePack.identity.provider, 'transformers');
+assert.equal(providerSourceCapsule.schema, 'doppler.source-boundary-capsule/v1');
+assert.equal(providerSourceCapsule.identity.provider, 'transformers');
 
 console.log('boundary-evidence.test: ok');

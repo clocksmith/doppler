@@ -12,6 +12,8 @@ function readJson(filePath) {
 }
 
 function sha256File(filePath) {
+  // Frozen experiment receipts bind the pre-migration conversion configuration.
+  if (filePath.startsWith('src/config/conversion/')) filePath = `tests/fixtures/pre-capsule/${filePath}`;
   return createHash('sha256').update(readFileSync(filePath)).digest('hex');
 }
 

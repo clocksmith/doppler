@@ -72,7 +72,7 @@ export interface ResolvedRegisteredVariantCalibrationPlan
 }
 
 export interface RegisteredCalibrationCorrectnessInput {
-  mode: 'operator-reference' | 'boundary-pack' | 'token-parity';
+  mode: 'operator-reference' | 'boundary-capsule' | 'token-parity';
   identity: RegisteredVariantCalibrationIdentity;
   baseline: ResolvedRegisteredVariant;
   candidate: ResolvedRegisteredVariant;

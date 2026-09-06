@@ -660,14 +660,14 @@ export async function convertModel(files, options = {}) {
     // Prepare tensors for packing
     const packerTensors = tensorPlans;
 
-    // Pack tensors into shards
+    // Capsule tensors into shards
     reportProgress({
       stage: ConvertStage.WRITING,
       message: 'Packing tensors...',
     });
 
-    const packTimer = createStageTimer('Pack shards');
-    const packResult = await packer.pack(packerTensors, {
+    const capsuleTimer = createStageTimer('Capsule shards');
+    const capsuleResult = await packer.capsule(packerTensors, {
       onProgress: (current, total, tensorName) => {
         reportProgress({
           stage: ConvertStage.WRITING,
@@ -679,18 +679,18 @@ export async function convertModel(files, options = {}) {
       },
       signal,
     });
-    packTimer.stop(
-      `${packResult.shards.length} shards, ${formatBytes(packResult.totalSize)}`
+    capsuleTimer.stop(
+      `${capsuleResult.shards.length} shards, ${formatBytes(capsuleResult.totalSize)}`
     );
 
-    // Convert pack result to expected format
+    // Convert capsule result to expected format
     const result = {
-      totalSize: packResult.totalSize,
-      tensorLocations: packResult.tensors,
+      totalSize: capsuleResult.totalSize,
+      tensorLocations: capsuleResult.tensors,
     };
 
     // Copy shard infos
-    for (const shard of packResult.shards) {
+    for (const shard of capsuleResult.shards) {
       shardInfos.push(shard);
     }
 
@@ -748,8 +748,8 @@ export async function convertModel(files, options = {}) {
       }
     );
 
-    manifest.groups = packResult.groups;
-    manifest.tensorCount = packResult.tensorCount;
+    manifest.groups = capsuleResult.groups;
+    manifest.tensorCount = capsuleResult.tensorCount;
     if (manifest.tokenizer) {
       if (manifest.tokenizer.type === 'bundled' || manifest.tokenizer.type === 'huggingface') {
         manifest.tokenizer.file = manifest.tokenizer.file ?? 'tokenizer.json';

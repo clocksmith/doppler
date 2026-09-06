@@ -13,8 +13,8 @@ export interface ProductionReleaseV1 {
     logicalModelId: string;
     sourceRevision: string;
     sourceRevisionDigest: `sha256:${string}`;
-    packPath: string;
-    packSemanticRoot: `sha256:${string}`;
+    capsulePath: string;
+    capsuleSemanticRoot: `sha256:${string}`;
   };
   application: Record<string, unknown> & {
     applicationId: string;

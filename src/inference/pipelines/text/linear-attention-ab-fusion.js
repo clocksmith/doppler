@@ -84,7 +84,7 @@ export function resolveLinearAttentionABProjection(layerWeights, options) {
     size: bytesPerWeight * 2,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
-  const encoder = device.createCommandEncoder({ label: `L${layerIdx}.linear_ab_proj_weight_pack` });
+  const encoder = device.createCommandEncoder({ label: `L${layerIdx}.linear_ab_proj_weight_capsule` });
   encoder.copyBufferToBuffer(aWeight.buffer, 0, buffer, 0, bytesPerWeight);
   encoder.copyBufferToBuffer(bWeight.buffer, 0, buffer, bytesPerWeight, bytesPerWeight);
   device.queue.submit([encoder.finish()]);
@@ -189,7 +189,7 @@ export function resolveLinearAttentionQKVZProjection(layerWeights, options) {
     size: qkvBytes + zBytes,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
-  const encoder = device.createCommandEncoder({ label: `L${layerIdx}.linear_qkvz_proj_weight_pack` });
+  const encoder = device.createCommandEncoder({ label: `L${layerIdx}.linear_qkvz_proj_weight_capsule` });
   encoder.copyBufferToBuffer(qkvWeight.buffer, 0, buffer, 0, qkvBytes);
   encoder.copyBufferToBuffer(zWeight.buffer, 0, buffer, qkvBytes, zBytes);
   device.queue.submit([encoder.finish()]);

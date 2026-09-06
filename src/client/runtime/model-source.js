@@ -111,28 +111,28 @@ function resolveWeightsRefBaseUrl(baseUrl, artifactRoot) {
 
 function assertWeightsRefIdentity(variantManifest, weightsManifest, weightsRef, storageBaseUrl) {
   const modelId = variantManifest?.modelId ?? 'unknown';
-  const expectedWeightPackId = normalizeText(weightsRef?.weightPackId);
-  if (!expectedWeightPackId) {
-    throw new Error(`${modelId}: weightsRef.weightPackId is required.`);
+  const expectedWeightCapsuleId = normalizeText(weightsRef?.weightCapsuleId);
+  if (!expectedWeightCapsuleId) {
+    throw new Error(`${modelId}: weightsRef.weightCapsuleId is required.`);
   }
-  const variantWeightPackId = normalizeText(variantManifest?.artifactIdentity?.weightPackId);
-  if (variantWeightPackId && variantWeightPackId !== expectedWeightPackId) {
+  const variantWeightCapsuleId = normalizeText(variantManifest?.artifactIdentity?.weightCapsuleId);
+  if (variantWeightCapsuleId && variantWeightCapsuleId !== expectedWeightCapsuleId) {
     throw new Error(
-      `${modelId}: weightsRef.weightPackId "${expectedWeightPackId}" does not match ` +
-      `manifest artifactIdentity.weightPackId "${variantWeightPackId}".`
+      `${modelId}: weightsRef.weightCapsuleId "${expectedWeightCapsuleId}" does not match ` +
+      `manifest artifactIdentity.weightCapsuleId "${variantWeightCapsuleId}".`
     );
   }
-  const storageWeightPackId = normalizeText(weightsManifest?.artifactIdentity?.weightPackId);
-  if (storageWeightPackId !== expectedWeightPackId) {
+  const storageWeightCapsuleId = normalizeText(weightsManifest?.artifactIdentity?.weightCapsuleId);
+  if (storageWeightCapsuleId !== expectedWeightCapsuleId) {
     throw new Error(
-      `${modelId}: weightsRef target ${storageBaseUrl} has artifactIdentity.weightPackId ` +
-      `"${storageWeightPackId}", expected "${expectedWeightPackId}".`
+      `${modelId}: weightsRef target ${storageBaseUrl} has artifactIdentity.weightCapsuleId ` +
+      `"${storageWeightCapsuleId}", expected "${expectedWeightCapsuleId}".`
     );
   }
   const expectedShardSetHash = normalizeText(weightsRef?.shardSetHash);
   if (expectedShardSetHash) {
     const actualShardSetHash = normalizeText(weightsManifest?.artifactIdentity?.shardSetHash)
-      || normalizeText(weightsManifest?.artifactIdentity?.weightPackHash);
+      || normalizeText(weightsManifest?.artifactIdentity?.weightCapsuleHash);
     if (actualShardSetHash !== expectedShardSetHash) {
       throw new Error(
         `${modelId}: weightsRef.shardSetHash "${expectedShardSetHash}" does not match ` +
@@ -204,7 +204,7 @@ export async function resolveModelSource(model) {
         logicalModelId,
         modelId: entry.modelId,
         sourceCheckpointId: entry.sourceCheckpointId,
-        weightPackId: entry.weightPackId,
+        weightCapsuleId: entry.weightCapsuleId,
         manifestVariantId: entry.manifestVariantId,
       });
       trace.push({ source: 'quickstart-registry', id: registryId, outcome: 'resolved' });
@@ -280,7 +280,7 @@ export async function resolveModelSource(model) {
       logicalModelId,
       modelId,
       sourceCheckpointId: manifest.artifactIdentity?.sourceCheckpointId,
-      weightPackId: manifest.artifactIdentity?.weightPackId,
+      weightCapsuleId: manifest.artifactIdentity?.weightCapsuleId,
       manifestVariantId: manifest.artifactIdentity?.manifestVariantId,
       artifactVariantId: actualManifestHash,
     });

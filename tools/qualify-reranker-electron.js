@@ -73,35 +73,35 @@ export function compileElectronReleasePreload(source, channel) {
   return `const { contextBridge, ipcRenderer } = require('electron');\n${compiled.outputText}\nexposeDocumentSearchReleaseBridge(contextBridge, ipcRenderer);\n`;
 }
 
-export async function resolveRerankerPackDistribution(packPath, distributionRoot) {
-  const root = await fs.realpath(distributionRoot ?? path.dirname(packPath));
-  const manifestPath = await fs.realpath(packPath);
+export async function resolveRerankerCapsuleDistribution(capsulePath, distributionRoot) {
+  const root = await fs.realpath(distributionRoot ?? path.dirname(capsulePath));
+  const manifestPath = await fs.realpath(capsulePath);
   const relative = path.relative(root, manifestPath);
   if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
-    throw new Error('Qualification Pack must reside inside its declared distribution root.');
+    throw new Error('Qualification Capsule must reside inside its declared distribution root.');
   }
-  return { root, manifestPath, urlPath: `/pack/${relative.split(path.sep).map(encodeURIComponent).join('/')}` };
+  return { root, manifestPath, urlPath: `/capsule/${relative.split(path.sep).map(encodeURIComponent).join('/')}` };
 }
 
 export async function qualifyRerankerElectron(config) {
-  if (config?.packDistributionRoot !== undefined && (config.mode !== 'pack'
-    || typeof config.packDistributionRoot !== 'string' || !path.isAbsolute(config.packDistributionRoot))) {
-    throw new Error('Pack distribution root requires Pack mode and an absolute directory.');
+  if (config?.capsuleDistributionRoot !== undefined && (config.mode !== 'capsule'
+    || typeof config.capsuleDistributionRoot !== 'string' || !path.isAbsolute(config.capsuleDistributionRoot))) {
+    throw new Error('Capsule distribution root requires Capsule mode and an absolute directory.');
   }
-  if (config?.releaseCoordinator !== undefined && (config.mode !== 'pack'
+  if (config?.releaseCoordinator !== undefined && (config.mode !== 'capsule'
     || typeof config.releaseCoordinator?.statePath !== 'string' || !path.isAbsolute(config.releaseCoordinator.statePath)
     || !config.releaseCoordinator.trustedSigners || !Array.isArray(config.releaseCoordinator.actions)
     || !Array.isArray(config.releaseCoordinator.allowedRendererActions)
     || config.releaseCoordinator.allowedRendererActions.some(action => !['status', 'resolve-current'].includes(action))
     || typeof config.releaseCoordinator.now !== 'string')) {
-    throw new Error('Release coordinator qualification requires Pack mode, durable state, trust, explicit actions, clock and read-only renderer permissions.');
+    throw new Error('Release coordinator qualification requires Capsule mode, durable state, trust, explicit actions, clock and read-only renderer permissions.');
   }
-  if (config?.releaseCheckpointPath !== undefined && (config.mode !== 'pack'
+  if (config?.releaseCheckpointPath !== undefined && (config.mode !== 'capsule'
     || typeof config.releaseCheckpointPath !== 'string' || !path.isAbsolute(config.releaseCheckpointPath)
     || !config.openOptions?.releaseEvents || !config.openOptions?.releaseTrustedSigners
     || !config.openOptions?.releasePolicy
     || Object.keys(config.openOptions.releasePolicy).some(key => !['now', 'minimumSequence'].includes(key)))) {
-    throw new Error('Durable release qualification requires Pack mode, an absolute releaseCheckpointPath, signed history and policy without an injected checkpoint.');
+    throw new Error('Durable release qualification requires Capsule mode, an absolute releaseCheckpointPath, signed history and policy without an injected checkpoint.');
   }
   const diagnosticCapture = config?.diagnosticCapture ?? null;
   if (diagnosticCapture) {
@@ -113,15 +113,15 @@ export async function qualifyRerankerElectron(config) {
   }
   const faultKind = config?.fault?.kind ?? null;
   if (![null, 'artifact-corruption', 'artifact-interruption', 'device-loss'].includes(faultKind)
-    || (faultKind && config.mode !== 'pack')) throw new Error('Unsupported qualification fault or mode.');
+    || (faultKind && config.mode !== 'capsule')) throw new Error('Unsupported qualification fault or mode.');
   for (const field of ['policyPath', 'referencePath', 'modelDir', 'packageRoot', 'outputDir']) {
     if (typeof config?.[field] !== 'string' || !config[field].trim()) throw new Error(`Qualification requires ${field}.`);
   }
-  if (!['model', 'pack'].includes(config.mode)) throw new Error('Qualification mode must be model or pack.');
-  if (config.mode === 'pack' && (!config.packPath || !config.openOptions?.trustedSigners
+  if (!['model', 'capsule'].includes(config.mode)) throw new Error('Qualification mode must be model or capsule.');
+  if (config.mode === 'capsule' && (!config.capsulePath || !config.openOptions?.trustedSigners
     || !config.openOptions?.acceptedTargetPlanDigests?.length || !config.application
-    || !config.authorizedPack?.packId || !config.authorizedPack?.semanticRoot || !config.packageBundlePath)) {
-    throw new Error('Pack mode requires a retained packageBundlePath, packPath, application, authorizedPack, trustedSigners and acceptedTargetPlanDigests.');
+    || !config.authorizedCapsule?.capsuleId || !config.authorizedCapsule?.semanticRoot || !config.packageBundlePath)) {
+    throw new Error('Capsule mode requires a retained packageBundlePath, capsulePath, application, authorizedCapsule, trustedSigners and acceptedTargetPlanDigests.');
   }
   let installedPackage = null;
   let applicationFiles = null;
@@ -149,23 +149,23 @@ export async function qualifyRerankerElectron(config) {
   if (manifest.modelId !== policy.modelId || manifest.artifactIdentity?.sourceCheckpointId !== reference.source.checkpointId) {
     throw new Error('Frozen source and model identity differ.');
   }
-  const packDistribution = config.packPath
-    ? await resolveRerankerPackDistribution(config.packPath, config.packDistributionRoot) : null;
+  const capsuleDistribution = config.capsulePath
+    ? await resolveRerankerCapsuleDistribution(config.capsulePath, config.capsuleDistributionRoot) : null;
   let faultArtifact = null;
   let faultArtifactPath = null;
   if (faultKind === 'artifact-corruption' || faultKind === 'artifact-interruption') {
-    const pack = JSON.parse(await fs.readFile(config.packPath, 'utf8'));
-    faultArtifact = pack.artifacts.find((artifact) => artifact.artifactId === config.fault.artifactId);
+    const capsule = JSON.parse(await fs.readFile(config.capsulePath, 'utf8'));
+    faultArtifact = capsule.artifacts.find((artifact) => artifact.artifactId === config.fault.artifactId);
     if (!faultArtifact || faultArtifact.role !== 'weight-shard') throw new Error('Artifact fault requires a declared weight-shard artifactId.');
-    const root = await fs.realpath(path.dirname(config.packPath));
+    const root = await fs.realpath(path.dirname(config.capsulePath));
     faultArtifactPath = await fs.realpath(path.resolve(root, faultArtifact.path));
     const relative = path.relative(root, faultArtifactPath);
-    if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('Fault artifact escapes Pack distribution directory.');
+    if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('Fault artifact escapes Capsule distribution directory.');
   }
   await fs.mkdir(path.dirname(config.outputDir), { recursive: true });
   await fs.mkdir(config.outputDir);
   const report = {
-    schema: config.mode === 'model' ? 'doppler.rerankModelQualification.v1' : 'doppler.rerankPackQualification.v1',
+    schema: config.mode === 'model' ? 'doppler.rerankModelQualification.v1' : 'doppler.rerankCapsuleQualification.v1',
     passed: false, generatedAt: new Date().toISOString(), config, policy, installedPackage,
     model: { modelId: manifest.modelId, manifestHash: hashBytesSha256(manifestBytes), artifactIdentity: manifest.artifactIdentity },
     reference, referenceDigest: computeCanonicalSha256(reference),
@@ -174,7 +174,7 @@ export async function qualifyRerankerElectron(config) {
       executionGraphHash: hashStableJson(manifest.inference.execution),
       sourceRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim() },
     sourceStatus: execFileSync('git', ['status', '--porcelain=v1'], { cwd: ROOT, encoding: 'utf8' }),
-    boundary: { externalAdoption: false, sourceComparison: true, signedPackExecution: false,
+    boundary: { externalAdoption: false, sourceComparison: true, signedCapsuleExecution: false,
       applicationAuthorization: 'pinned-internal-evaluation-resolver', productionIpc: false },
     logs: [], requests: [], faultInjected: false, stage: 'launch',
   };
@@ -188,7 +188,7 @@ export async function qualifyRerankerElectron(config) {
     if (config.releaseCheckpointPath) {
       report.stage = 'release-history-verification';
       const stateDirectory = await fs.realpath(path.dirname(config.releaseCheckpointPath));
-      for (const servedRoot of [config.packageRoot, config.modelDir, packDistribution.root]) {
+      for (const servedRoot of [config.packageRoot, config.modelDir, capsuleDistribution.root]) {
         const relative = path.relative(await fs.realpath(servedRoot), stateDirectory);
         if (relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative))) {
           throw new Error('Release checkpoint must remain outside every served root.');
@@ -204,7 +204,7 @@ export async function qualifyRerankerElectron(config) {
       report.releaseHistory = { helperDigest, before: await checkpointStore.load(), persistence: [],
         verificationTime: config.openOptions.releasePolicy.now, clockAuthority: 'explicit-evaluation-policy' };
       releaseOptions = await helper.prepareDocumentSearchReleaseOptions({
-        pack: JSON.parse(await fs.readFile(config.packPath, 'utf8')),
+        capsule: JSON.parse(await fs.readFile(config.capsulePath, 'utf8')),
         releaseEvents: config.openOptions.releaseEvents, releaseTrustedSigners: config.openOptions.releaseTrustedSigners,
         checkpointStore, now: config.openOptions.releasePolicy.now,
         minimumSequence: config.openOptions.releasePolicy.minimumSequence,
@@ -213,11 +213,11 @@ export async function qualifyRerankerElectron(config) {
     report.stage = 'launch';
     server = await createStaticFileServer({ rootDir: path.resolve(config.packageRoot), host: '127.0.0.1',
       staticMounts: [{ urlPrefix: '/model', rootDir: path.resolve(config.modelDir) },
-        ...(packDistribution ? [{ urlPrefix: '/pack', rootDir: packDistribution.root }] : [])] });
+        ...(capsuleDistribution ? [{ urlPrefix: '/capsule', rootDir: capsuleDistribution.root }] : [])] });
     let mainConfigPath;
     if (config.releaseCoordinator) {
       const stateDirectory = await fs.realpath(path.dirname(config.releaseCoordinator.statePath));
-      for (const root of [config.packageRoot, config.modelDir, packDistribution.root]) {
+      for (const root of [config.packageRoot, config.modelDir, capsuleDistribution.root]) {
         const relative = path.relative(await fs.realpath(root), stateDirectory);
         if (!relative || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative))) {
           throw new Error('Coordinator state must remain outside every served root.');
@@ -263,9 +263,9 @@ export async function qualifyRerankerElectron(config) {
     await page.route('**/*', async (route) => {
       const url = new URL(route.request().url());
       report.requests.push(url.href);
-      if (url.origin !== server.baseUrl || (config.mode === 'pack' && url.pathname.startsWith('/model/'))) return route.abort();
+      if (url.origin !== server.baseUrl || (config.mode === 'capsule' && url.pathname.startsWith('/model/'))) return route.abort();
       if (url.pathname === '/qualification') return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Reranker qualification</title>' });
-      if (faultArtifact && url.pathname === `${path.posix.dirname(packDistribution.urlPath)}/${faultArtifact.path}`) {
+      if (faultArtifact && url.pathname === `${path.posix.dirname(capsuleDistribution.urlPath)}/${faultArtifact.path}`) {
         report.faultInjected = true;
         if (faultKind === 'artifact-interruption') return route.abort('connectionreset');
         const bytes = await fs.readFile(faultArtifactPath);
@@ -289,9 +289,9 @@ export async function qualifyRerankerElectron(config) {
         device: adapter.info.device, description: adapter.info.description, isFallbackAdapter: adapter.isFallbackAdapter };
     });
     assertPhysicalAdapter(report.runtime.adapterInfo, policy.requiredVendor);
-    report.stage = config.mode === 'pack' ? 'pack-execution' : 'model-execution';
+    report.stage = config.mode === 'capsule' ? 'capsule-execution' : 'model-execution';
     const result = await page.evaluate(async ({ config, input, runtimeConfig }) => {
-      const api = config.mode === 'pack' ? await import('/src/client/pack-host.browser.js')
+      const api = config.mode === 'capsule' ? await import('/src/client/capsule-host.browser.js')
         : await import('/src/client/doppler-api.browser.js');
       const { observeInitialExecutionIdentity } = await import('/src/config/initial-execution-identity.js');
       const started = performance.now();
@@ -302,13 +302,13 @@ export async function qualifyRerankerElectron(config) {
         let receipt;
         let diagnostic = null;
         let executed;
-        if (config.mode === 'pack') {
+        if (config.mode === 'capsule') {
           const { createElectronRendererRuntime } = await import('/src/client/electron/renderer-runtime.js');
           const renderer = createElectronRendererRuntime({
-            releaseState: config.releaseCoordinator ? globalThis.dopplerRelease : { resolveCurrent: async () => ({ ...config.authorizedPack,
-              path: `${location.origin}${config.packUrlPath}` }) },
-            openPack: async (packPath, options) => {
-              session = await api.openPack(packPath, { ...config.openOptions, ...options,
+            releaseState: config.releaseCoordinator ? globalThis.dopplerRelease : { resolveCurrent: async () => ({ ...config.authorizedCapsule,
+              path: `${location.origin}${config.capsuleUrlPath}` }) },
+            openCapsule: async (capsulePath, options) => {
+              session = await api.openCapsule(capsulePath, { ...config.openOptions, ...options,
                 ...(config.releaseCheckpointPath ? { persistReleaseCheckpoint: globalThis.__persistRerankerReleaseCheckpoint } : {}) });
               loaded = performance.now();
               initialExecutionIdentity = session.observedInitialExecutionIdentity;
@@ -351,25 +351,25 @@ export async function qualifyRerankerElectron(config) {
           const after = observeInitialExecutionIdentity(session.advanced.getResolvedRuntimeSession());
           if (after.digest !== initialExecutionIdentity.digest) throw new Error('Model execution changed its initial execution identity.');
         }
-        const evidence = config.mode === 'pack' ? receipt.evidence : receipt;
-        return { evidence, receipt: config.mode === 'pack' ? receipt : null, initialExecutionIdentity,
-          packIdentity: session.packIdentity ?? null, selectedTargetPlanDigest: session.selectedTargetPlanDigest ?? null,
-          adapterClosedSession: config.mode === 'pack' ? session.closed : null,
+        const evidence = config.mode === 'capsule' ? receipt.evidence : receipt;
+        return { evidence, receipt: config.mode === 'capsule' ? receipt : null, initialExecutionIdentity,
+          capsuleIdentity: session.capsuleIdentity ?? null, selectedTargetPlanDigest: session.selectedTargetPlanDigest ?? null,
+          adapterClosedSession: config.mode === 'capsule' ? session.closed : null,
           manifest: session.manifest, loadMs: loaded - started, executionMs: executed - loaded, diagnostic };
       } catch (error) {
         globalThis.__rerankQualificationFailure = { name: error.name, code: error.code ?? null,
           message: error.message, causeCode: error.cause?.code ?? null, sessionClosed: session?.closed ?? null };
         throw error;
-      } finally { if (config.mode === 'pack') await session?.close(); else await session?.unload(); }
+      } finally { if (config.mode === 'capsule') await session?.close(); else await session?.unload(); }
     }, { config: { ...config,
       openOptions: releaseOptions ? { ...config.openOptions, releasePolicy: releaseOptions.releasePolicy } : config.openOptions,
-      packUrlPath: packDistribution?.urlPath ?? null },
+      capsuleUrlPath: capsuleDistribution?.urlPath ?? null },
       input: reference.input, runtimeConfig: policy.runtimeConfig });
     report.raw = result;
     if (result.diagnostic?.matchesOrdinary === false) throw new Error('Diagnostic execution differs from ordinary selected-token reranking.');
-    if (config.mode === 'pack') {
-      if (result.adapterClosedSession !== true) throw new Error('Electron adapter did not close its Pack session.');
-      report.boundary.signedPackExecution = true;
+    if (config.mode === 'capsule') {
+      if (result.adapterClosedSession !== true) throw new Error('Electron adapter did not close its Capsule session.');
+      report.boundary.signedCapsuleExecution = true;
     }
     if (computeCanonicalSha256(parseManifest(JSON.stringify(result.manifest))) !== computeCanonicalSha256(parseManifest(JSON.stringify(manifest)))) throw new Error('Loaded manifest differs.');
     report.observation = { input: { query: result.evidence.query, documents: result.evidence.documents },

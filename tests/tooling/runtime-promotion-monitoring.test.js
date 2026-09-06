@@ -30,7 +30,7 @@ function emptyTargets() {
     logicalModelIds: [],
     modelIds: [],
     sourceCheckpointIds: [],
-    weightPackIds: [],
+    weightCapsuleIds: [],
     manifestVariantIds: [],
     artifactVariantIds: [],
     adapterIds: [],

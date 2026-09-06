@@ -18,7 +18,7 @@ export async function createDistillationRunArtifacts(options) {
   const loadedWorkload = options.loadedWorkload;
   const workload = loadedWorkload?.workload;
   if (!workload || workload.kind !== 'distill') {
-    throw new Error('createDistillationRunArtifacts requires a distill workload pack.');
+    throw new Error('createDistillationRunArtifacts requires a distill workload capsule.');
   }
   const layout = options.runRoot
     ? {

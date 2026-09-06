@@ -112,8 +112,8 @@ function buildServeReceiptBase({
   const generation = buildGenerationOptionsReceipt(generationOptions);
   const resolvedIdentity = normalizeResolutionIdentity(resolution);
   return {
-    receiptVersion: 'doppler_serve_receipt_v1',
-    schemaVersion: 1,
+    receiptVersion: 'doppler_serve_receipt_v2',
+    schemaVersion: 2,
     surface: 'serve',
     endpoint: '/v1/chat/completions',
     runtime: 'doppler-gpu',
@@ -132,7 +132,7 @@ function buildServeReceiptBase({
       format: 'rdrr',
       source: 'quickstart-registry',
       sourceCheckpointId: registryEntry.sourceCheckpointId,
-      weightPackId: registryEntry.weightPackId,
+      weightCapsuleId: registryEntry.weightCapsuleId,
       manifestVariantId: registryEntry.manifestVariantId,
       artifactCompleteness: registryEntry.artifactCompleteness,
       runtimePromotionState: registryEntry.runtimePromotionState,

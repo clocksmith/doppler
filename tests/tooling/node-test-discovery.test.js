@@ -9,7 +9,7 @@ import { runNodeTestScripts } from '../../tools/lib/node-test-command-chain.js';
 
 const root = await mkdtemp(join(tmpdir(), 'doppler-test-discovery-'));
 try {
-  for (const directory of ['tooling', 'runtime', 'pack', 'production-release', 'kernels']) {
+  for (const directory of ['tooling', 'runtime', 'capsule', 'production-release', 'kernels']) {
     await mkdir(join(root, 'tests', directory), { recursive: true });
     await writeFile(join(root, 'tests', directory, 'sample.test.js'), '');
   }

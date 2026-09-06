@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import http from 'node:http';
 import { once } from 'node:events';
 import { createDopplerRuntime } from 'doppler-gpu';
-import { createPackServeHandler } from 'doppler-gpu/serve';
+import { createCapsuleServeHandler } from 'doppler-gpu/serve';
 import { computeCanonicalSha256 } from './node_modules/doppler-gpu/src/formats/canonical-hash.js';
 
 // Installed public API contract, with synthetic device and execution components.
@@ -11,7 +11,7 @@ const fixture = JSON.parse(await fs.readFile(new URL('./embedding-fixture.json',
 const bytes = new Map(fixture.artifacts.map(([id, values]) => [id, new Uint8Array(values)]));
 let executions = 0;
 let closes = 0;
-const manifestHash = fixture.pack.artifacts.find(artifact => artifact.artifactId === 'manifest').hash;
+const manifestHash = fixture.capsule.artifacts.find(artifact => artifact.artifactId === 'manifest').hash;
 const runtime = createDopplerRuntime({
   device: { getDevice: () => ({ createBuffer() {}, createCommandEncoder() {} }),
     getProfile: () => ({ surface: 'test-webgpu', maxBufferSize: 1024, hasF16: false, hasSubgroups: false }) },
@@ -31,12 +31,12 @@ const runtime = createDopplerRuntime({
     }, async close() { closes += 1; } };
   },
 });
-const session = await runtime.openPack(fixture.pack);
+const session = await runtime.openCapsule(fixture.capsule);
 try {
-  const request = { application: fixture.pack.release.application, text: 'Installed text embedding.' };
+  const request = { application: fixture.capsule.release.application, text: 'Installed text embedding.' };
   const result = await session.embed(request);
   assert.equal(result.receipt.operation, 'embed');
-  assert.equal(result.receipt.pack.packId, fixture.pack.packId);
+  assert.equal(result.receipt.capsule.capsuleId, fixture.capsule.capsuleId);
   assert.equal(result.receipt.inputHash, computeCanonicalSha256(request));
   assert.equal(Object.isFrozen(result.embedding), true);
   await assert.rejects(session.embed({ ...request, options: { embeddingMode: 'mean' } }), /only signal/);
@@ -45,7 +45,7 @@ try {
   controller.abort(new Error('installed cancellation'));
   await assert.rejects(session.embed({ ...request, options: { signal: controller.signal } }), /installed cancellation/);
   assert.equal(executions, 1);
-  const job = { schema: 'doppler.pack-operation-request/v1', operation: { name: 'embed', version: 1 },
+  const job = { schema: 'doppler.capsule-operation-request/v1', operation: { name: 'embed', version: 1 },
     input: { texts: ['Installed batch item.'], application: request.application }, options: {},
     assignment: { jobId: 'installed-embedding', attempt: 1 },
     limits: { maxInputBytes: 10000, maxOutputBytes: 100000, deadlineAt: Date.now() + 60000 } };
@@ -64,8 +64,8 @@ try {
   const localJob = { ...job, assignment: null };
   const direct = [];
   for await (const event of session.executeOperation(localJob)) direct.push(event);
-  const handler = createPackServeHandler({ session, token: 'installed-contract-test-token', policy: {
-    schema: 'doppler.pack-serve/v1', maxRequestBytes: 10000, maxOutputBytes: 100000,
+  const handler = createCapsuleServeHandler({ session, token: 'installed-contract-test-token', policy: {
+    schema: 'doppler.capsule-serve/v1', maxRequestBytes: 10000, maxOutputBytes: 100000,
     maxResponseBytes: 200000, maxDurationMs: 120000, allowedOrigins: [],
   } });
   const server = http.createServer(handler);
@@ -78,14 +78,14 @@ try {
     });
     assert.equal(response.status, 200);
     const served = (await response.text()).trim().split('\n').map(line => JSON.parse(line));
-    assert.deepEqual(served, direct, 'installed HTTP and direct Pack execution retain identical events');
+    assert.deepEqual(served, direct, 'installed HTTP and direct Capsule execution retain identical events');
     assert.equal(executions, 4);
   } finally {
     await handler.close();
     await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }
   assert.equal(session.closed, false);
-  console.log('Installed Pack HTTP/direct parity passed (synthetic).');
+  console.log('Installed Capsule HTTP/direct parity passed (synthetic).');
 } finally { await session.close(); }
 assert.equal(closes, 1);
-console.log('Installed Pack embedding smoke passed (synthetic; no physical qualification).');
+console.log('Installed Capsule embedding smoke passed (synthetic; no physical qualification).');

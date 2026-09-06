@@ -30,8 +30,8 @@
     "bootstrap": "client",
     "index-browser": "client",
     "index": "client",
-    "pack-runtime": "client",
-    "pack": "config",
+    "capsule-runtime": "client",
+    "capsule": "config",
     "sw": "storage",
     "tooling-experimental-exports.browser": "experimental",
     "tooling-experimental-exports": "experimental",
@@ -120,12 +120,23 @@
       }
     }
   },
+  "constitutionalRenames": {
+    "domains": { "pack": "capsule", "pack-http": "capsule-http" },
+    "files": {
+      "config/pack-v2.js": "config/capsule-v2.js",
+      "cli/serve/pack-handler.js": "cli/serve/capsule-handler.js",
+      "cli/serve/pack-http.js": "cli/serve/capsule-http.js",
+      "client/runtime/pack-rerank.js": "client/runtime/capsule-rerank.js",
+      "client/runtime/pack-program-adapter.js": "client/runtime/capsule-program-adapter.js",
+      "client/runtime/fetch-pack-artifact-store.js": "client/runtime/fetch-capsule-artifact-store.js"
+    }
+  },
   "constitutionalDomains": {
-    "pack-http": ["cli/serve/pack-handler.js", "cli/serve/pack-http.js"],
-    "pack": [
+    "capsule-http": ["cli/serve/capsule-handler.js", "cli/serve/capsule-http.js"],
+    "capsule": [
       "config/model-ir.js",
       "config/target-plan.js",
-      "config/pack-v2.js"
+      "config/capsule-v2.js"
     ],
     "forge": [
       "converter/forge-stages.js",
@@ -141,15 +152,15 @@
       "client/runtime/command-executor.js",
       "client/runtime/session-controller.js",
       "client/runtime/target-selector.js",
-      "client/runtime/pack-rerank.js",
-      "client/runtime/pack-program-adapter.js",
-      "client/runtime/fetch-pack-artifact-store.js"
+      "client/runtime/capsule-rerank.js",
+      "client/runtime/capsule-program-adapter.js",
+      "client/runtime/fetch-capsule-artifact-store.js"
     ]
   },
   "constitutionalImportGraphs": [
     {
-      "domain": "pack-http",
-      "entryPoints": ["cli/serve/pack-handler.js"],
+      "domain": "capsule-http",
+      "entryPoints": ["cli/serve/capsule-handler.js"],
       "forbiddenPathPrefixes": [
         "client/", "converter/", "gpu/", "inference/", "loader/", "memory/",
         "storage/", "tooling/", "experimental/", "models/",
@@ -160,8 +171,8 @@
       "domain": "runtime",
       "entryPoints": [
         "client/runtime/composition-root.js",
-        "client/runtime/pack-program-adapter.js",
-        "client/runtime/fetch-pack-artifact-store.js"
+        "client/runtime/capsule-program-adapter.js",
+        "client/runtime/fetch-capsule-artifact-store.js"
       ],
       "forbiddenPathPrefixes": [
         "client/model-host/",
@@ -174,11 +185,11 @@
       ]
     },
     {
-      "domain": "pack",
+      "domain": "capsule",
       "entryPoints": [
         "config/model-ir.js",
         "config/target-plan.js",
-        "config/pack-v2.js"
+        "config/capsule-v2.js"
       ],
       "forbiddenPathPrefixes": [
         "converter/",

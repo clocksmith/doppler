@@ -896,7 +896,7 @@ export function useGemma431BTextF16Activations(graph, ctx) {
 /*
  * Promote the Gemma 4 E2B INT4-PLE Q4K graph onto the all-f16 lane via the
  * weights-ref sibling manifest gemma-4-e2b-it-q4k-ehf16-af16-int4ple. Mirrors
- * useGemma4TextF16Activations: same Q4 weight pack, kernels narrowed to f16
+ * useGemma4TextF16Activations: same Q4 weight capsule, kernels narrowed to f16
  * activations, prefill projections promoted from widetile to widetile_f16a,
  * decode projections to multicol_f16a, lm_head/sample/final_norm to their f16
  * counterparts. Apple Metal stays disabled at the capability layer because the

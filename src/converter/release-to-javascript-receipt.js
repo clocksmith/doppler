@@ -69,11 +69,11 @@ export function validateReleaseToJavaScriptReceipt(receipt) {
     errors.push('elapsed must be an object.');
   } else if (startedAt != null && completedAt != null) {
     if (publicationTimestampDisposition === 'observed' && publishedAt != null
-      && receipt.elapsed.publicationToSignedPackMs !== completedAt - publishedAt) {
-      errors.push('elapsed.publicationToSignedPackMs does not match source publication and completion timestamps.');
+      && receipt.elapsed.publicationToSignedCapsuleMs !== completedAt - publishedAt) {
+      errors.push('elapsed.publicationToSignedCapsuleMs does not match source publication and completion timestamps.');
     } else if (publicationTimestampDisposition === 'unresolved'
-      && receipt.elapsed.publicationToSignedPackMs !== null) {
-      errors.push('elapsed.publicationToSignedPackMs must be null when source publication is unresolved.');
+      && receipt.elapsed.publicationToSignedCapsuleMs !== null) {
+      errors.push('elapsed.publicationToSignedCapsuleMs must be null when source publication is unresolved.');
     }
     if (!Number.isFinite(receipt.elapsed.forgeCampaignMs)
       || receipt.elapsed.forgeCampaignMs !== completedAt - startedAt) {
@@ -166,9 +166,9 @@ export function validateReleaseToJavaScriptReceipt(receipt) {
   if (!isObject(receipt.qualification) || receipt.qualification.status !== 'passed') {
     errors.push('qualification.status must be "passed".');
   } else {
-    requireString(receipt.qualification.packId, 'qualification.packId', errors);
-    if (!DIGEST_PATTERN.test(receipt.qualification.packDigest || '')) {
-      errors.push('qualification.packDigest must be a SHA-256 digest.');
+    requireString(receipt.qualification.capsuleId, 'qualification.capsuleId', errors);
+    if (!DIGEST_PATTERN.test(receipt.qualification.capsuleDigest || '')) {
+      errors.push('qualification.capsuleDigest must be a SHA-256 digest.');
     }
   }
   if (!Array.isArray(receipt.evidence) || receipt.evidence.length < 1) {
@@ -202,7 +202,7 @@ export function createReleaseToJavaScriptReceipt(fields) {
     startedAt: fields?.startedAt,
     completedAt: fields?.completedAt,
     elapsed: {
-      publicationToSignedPackMs: publishedAt == null ? null : completedAt - publishedAt,
+      publicationToSignedCapsuleMs: publishedAt == null ? null : completedAt - publishedAt,
       forgeCampaignMs: completedAt - startedAt,
     },
     humanInterventions,

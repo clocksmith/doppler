@@ -13,7 +13,7 @@ export interface ReleaseToJavaScriptReceipt {
   };
   startedAt: string;
   completedAt: string;
-  elapsed: { publicationToSignedPackMs: number | null; forgeCampaignMs: number };
+  elapsed: { publicationToSignedCapsuleMs: number | null; forgeCampaignMs: number };
   humanInterventions: Array<{ id: string; kind: string; actor: string; disposition: string }>;
   humanAuthoredSemanticDecisions: number;
   unresolvedFacts: unknown[];
@@ -23,7 +23,7 @@ export interface ReleaseToJavaScriptReceipt {
     files: Array<{ path: string; digest: `sha256:${string}` }>;
     digest: `sha256:${string}`;
   };
-  qualification: { status: 'passed'; packId: string; packDigest: `sha256:${string}` };
+  qualification: { status: 'passed'; capsuleId: string; capsuleDigest: `sha256:${string}` };
   evidence: Array<{ kind: string; path: string; digest: `sha256:${string}` }>;
   receiptDigest: `sha256:${string}`;
 }

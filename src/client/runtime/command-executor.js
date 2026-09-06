@@ -31,11 +31,11 @@ export function createCommandExecutor(devicePort, resourceBinder, program = null
     });
     if (!pipelineTasks.has(key)) {
       const shaderModule = device.createShaderModule({
-        label: `doppler-pack:${module.id}`,
+        label: `doppler-capsule:${module.id}`,
         code: module.source,
       });
       const descriptor = {
-        label: `doppler-pack:${command.id ?? module.id}`,
+        label: `doppler-capsule:${command.id ?? module.id}`,
         layout: 'auto',
         compute: {
           module: shaderModule,
@@ -71,12 +71,12 @@ export function createCommandExecutor(devicePort, resourceBinder, program = null
       };
     });
     const bindGroup = device.createBindGroup({
-      label: `doppler-pack:${command.id ?? command.moduleId}:bindings`,
+      label: `doppler-capsule:${command.id ?? command.moduleId}:bindings`,
       layout: pipeline.getBindGroupLayout(command.group ?? 0),
       entries,
     });
-    const encoder = device.createCommandEncoder({ label: `doppler-pack:${command.id ?? command.moduleId}` });
-    const pass = encoder.beginComputePass({ label: `doppler-pack:${command.id ?? command.moduleId}:compute` });
+    const encoder = device.createCommandEncoder({ label: `doppler-capsule:${command.id ?? command.moduleId}` });
+    const pass = encoder.beginComputePass({ label: `doppler-capsule:${command.id ?? command.moduleId}:compute` });
     pass.setPipeline(pipeline);
     pass.setBindGroup(command.group ?? 0, bindGroup);
     const [x, y, z] = normalizeWorkgroups(command.workgroups);

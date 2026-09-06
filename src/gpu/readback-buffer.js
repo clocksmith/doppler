@@ -1,4 +1,4 @@
-// A device-injected readback for Pack runtimes. The global BufferPool is bound
+// A device-injected readback for Capsule runtimes. The global BufferPool is bound
 // to legacy device initialization and cannot own an independently injected port.
 export async function readbackBuffer(device, buffer, sizeBytes) {
   if (!Number.isSafeInteger(sizeBytes) || sizeBytes < 4 || sizeBytes % 4 !== 0 || sizeBytes > buffer.size) {

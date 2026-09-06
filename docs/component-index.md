@@ -7,7 +7,7 @@ Components: 30
 
 | Component | Target | Charter | Parent |
 | --- | --- | --- | --- |
-| `doppler` | Make intelligence executable as portable JavaScript model programs: source-traceable compilation, immutable Packs, and dependable local inference that independent applications voluntarily retain. | [CATSCAN.md](../CATSCAN.md) | none |
+| `doppler` | Make intelligence executable as portable JavaScript model programs: source-traceable compilation, immutable Capsules, and dependable local inference that independent applications voluntarily retain. | [CATSCAN.md](../CATSCAN.md) | none |
 | `doppler.benchmarks` | Produce reproducible measurements whose workload, identity, timing scope, and claim status are explicit. | [benchmarks/CATSCAN.md](../benchmarks/CATSCAN.md) | `doppler` |
 | `doppler.demo` | Give users one dependable browser surface for verified local model execution and inspectable evidence. | [demo/CATSCAN.md](../demo/CATSCAN.md) | `doppler` |
 | `doppler.docs` | Preserve navigable human contracts without competing with machine-readable status or implementation evidence. | [docs/CATSCAN.md](../docs/CATSCAN.md) | `doppler` |
@@ -19,7 +19,7 @@ Components: 30
 | `doppler.runtime-source.cli` | Present the shared Doppler command contract as a clear, scriptable Node command-line interface. | [src/cli/CATSCAN.md](../src/cli/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.client` | Make qualified local model workloads easy to invoke while preserving exact resolved execution identity. | [src/client/CATSCAN.md](../src/client/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.config` | Resolve all runtime-visible policy from validated, traceable, single-source configuration contracts. | [src/config/CATSCAN.md](../src/config/CATSCAN.md) | `doppler.runtime-source` |
-| `doppler.runtime-source.converter` | Compile source facts into ModelIR, qualified TargetPlans, and immutable Packs; materialize reproducible artifacts without inventing runtime policy later. | [src/converter/CATSCAN.md](../src/converter/CATSCAN.md) | `doppler.runtime-source` |
+| `doppler.runtime-source.converter` | Compile source facts into ModelIR, qualified TargetPlans, and immutable Capsules; materialize reproducible artifacts without inventing runtime policy later. | [src/converter/CATSCAN.md](../src/converter/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.debug` | Expose structured runtime observation without silently changing execution or evidence meaning. | [src/debug/CATSCAN.md](../src/debug/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.experimental` | Contain non-core capabilities so they can evolve without being mistaken for product-supported runtime behavior. | [src/experimental/CATSCAN.md](../src/experimental/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.formats` | Parse and validate external and native artifact formats into explicit data contracts without executing models. | [src/formats/CATSCAN.md](../src/formats/CATSCAN.md) | `doppler.runtime-source` |
@@ -31,8 +31,8 @@ Components: 30
 | `doppler.runtime-source.rules` | Resolve explicit data-only rule maps deterministically and fail when no permitted selection exists. | [src/rules/CATSCAN.md](../src/rules/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.storage` | Persist, retrieve, verify, and transport artifact bytes through explicit storage contexts and integrity contracts. | [src/storage/CATSCAN.md](../src/storage/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.tooling` | Give browser, Node, and CLI adapters one normalized command contract and one evidence-aware execution vocabulary. | [src/tooling/CATSCAN.md](../src/tooling/CATSCAN.md) | `doppler.runtime-source` |
-| `doppler.runtime-source.client.electron` | Bind an Electron renderer to an eligible immutable Pack while keeping durable update state and customer activation authority in the main process. | [src/client/electron/CATSCAN.md](../src/client/electron/CATSCAN.md) | `doppler.runtime-source.client` |
-| `doppler.runtime-source.client.model-host` | Compose model acquisition and application handles above the injected Pack execution core. | [src/client/model-host/CATSCAN.md](../src/client/model-host/CATSCAN.md) | `doppler.runtime-source.client` |
+| `doppler.runtime-source.client.electron` | Bind an Electron renderer to an eligible immutable Capsule while keeping durable update state and customer activation authority in the main process. | [src/client/electron/CATSCAN.md](../src/client/electron/CATSCAN.md) | `doppler.runtime-source.client` |
+| `doppler.runtime-source.client.model-host` | Compose model acquisition and application handles above the injected Capsule execution core. | [src/client/model-host/CATSCAN.md](../src/client/model-host/CATSCAN.md) | `doppler.runtime-source.client` |
 | `doppler.runtime-source.formats.rdrr` | Define and validate Doppler's canonical manifest-first runtime artifact contract. | [src/formats/rdrr/CATSCAN.md](../src/formats/rdrr/CATSCAN.md) | `doppler.runtime-source.formats` |
 | `doppler.runtime-source.gpu.kernels` | Implement registered deterministic tensor operations whose numeric behavior and dispatch identity can be verified. | [src/gpu/kernels/CATSCAN.md](../src/gpu/kernels/CATSCAN.md) | `doppler.runtime-source.gpu` |
 | `doppler.runtime-source.inference.pipelines` | Bind declared model types to pipeline implementations without changing normalized command or session semantics. | [src/inference/pipelines/CATSCAN.md](../src/inference/pipelines/CATSCAN.md) | `doppler.runtime-source.inference` |

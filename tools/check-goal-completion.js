@@ -33,7 +33,7 @@ const REQUIRED_GOAL_LABELS = new Map([
   ['correctness-performance-claims', 'Make correctness and performance evidence-backed'],
 ]);
 const NETWORK_BLOCKERS = new Map([
-  ['esm2-public-pack-execution', 'esm2-network-pack-execution-missing'],
+  ['esm2-public-capsule-execution', 'esm2-network-capsule-execution-missing'],
   ['origin-independent-peer-recovery', 'origin-independent-network-recovery-missing'],
   ['admitted-history-scheduler-benefit', 'admitted-history-scheduler-benefit-missing'],
   ['independent-free-adoption', 'independent-network-repeat-use-missing'],
@@ -41,7 +41,7 @@ const NETWORK_BLOCKERS = new Map([
 
 const REQUIRED_GOAL_ROWS = new Map([
   ['open-execution-network', [
-    'esm2-public-pack-execution', 'origin-independent-peer-recovery',
+    'esm2-public-capsule-execution', 'origin-independent-peer-recovery',
     'admitted-history-scheduler-benefit', 'independent-free-adoption',
   ]],
   [
@@ -50,7 +50,7 @@ const REQUIRED_GOAL_ROWS = new Map([
       'external-executable-model-adoption',
       'canonical-production-release-contract',
       'electron-reference-release',
-      'pack-first-electron-reranking',
+      'capsule-first-electron-reranking',
       'production-release-toolchain',
       'maintained-application-integrations',
       'electron-fleet-qualification',
@@ -75,8 +75,8 @@ const REQUIRED_GOAL_ROWS = new Map([
       'dtype-session-policy',
       'model-support-matrix',
       'deliberate-model-portfolio',
-      'complete-pack-release-closure',
-      'pack-first-compatibility-migration',
+      'complete-capsule-release-closure',
+      'capsule-first-compatibility-migration',
     ],
   ],
   [

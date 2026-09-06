@@ -1,0 +1,137 @@
+{
+  "schema": "doppler.pack-loading-checkpoint/v1",
+  "recordedAtUtc": "2026-09-06T19:32:39Z",
+  "goalComplete": false,
+  "source": {
+    "baseCommit": "e7f4f9b463f9c5664c219727b01163b117169860",
+    "worktree": "Uncommitted implementation; exact tested package and 34-file source overlay retained locally.",
+    "committed": false,
+    "pushed": false
+  },
+  "componentIntent": {
+    "components": ["doppler.runtime-source.client", "doppler.runtime-source.config", "doppler.runtime-source.tooling", "doppler.docs"],
+    "intent": "preserved",
+    "boundaryEffects": "Opening authenticates metadata and persists authenticated release checkpoints before device selection and acquisition. Cancellation and progress propagate through existing host/file/HTTP adapters. Owned verified range reads and counters stay in Pack loading. Model semantics, application authority, manifest hash checks, providers and publication policy are unchanged."
+  },
+  "implemented": [
+    "Shared metadata verification preserves Pack v2/v3 signature and release-policy rules; public full verification still hashes actual external bytes.",
+    "Incompatible devices and disallowed plans perform no artifact reads; authenticated revocations persist without device initialization or downloading weights.",
+    "AbortSignal, JSON-owned timeout and metadata limits, and progress flow through metadata, HTTP streams, Node files and the verified artifact store.",
+    "Cancellation closes built-in HTTP streams, prevents model creation after cancelled reads, checks monotonic deadlines at loading boundaries and closes programs returned after cancellation.",
+    "Original and cleanup failures are both retained; opening listeners detach and successful sessions do not inherit later opening cancellation.",
+    "The internal store owns admitted bytes, hashes each unique artifact once and copies only requested ranges. External hash claims remain untrusted.",
+    "Observer counters expose source, hashed, copied, retained, peak-retained and returned bytes. Process memory is measured separately."
+  ],
+  "acceptance": {
+    "command": "npm run check:green",
+    "exitCode": 0,
+    "testFiles": 770,
+    "packFilesIncluded": 36,
+    "fullLog": {
+      "path": "reports/electron-adoption/loading-handoff-v2jgxS/doppler-loading-green-20260906-03.log",
+      "bytes": 392181,
+      "sha256": "3e6fe71efb05ba133b45361c1d81b8d08f2870f30d07f33b401fe1c53953a9dc"
+    },
+    "skipBoundary": "The existing Gemma NaN regression explicitly skips an absent local model. Passing unit files are not universal physical qualification.",
+    "architecture": { "owners": 21, "sourceFiles": 2639, "governedOversizeFiles": 0 },
+    "runtimeClosure": { "files": 49, "sourceBytes": 244884, "forbiddenFiles": [] },
+    "focusedCommands": [
+      "node tests/runtime/pack-loading.test.js",
+      "node tests/runtime/pack-loading-http.test.js",
+      "node tests/runtime/pack-artifact-source.test.js",
+      "node tests/pack/pack-v3.test.js",
+      "node tests/runtime/plan-bind-execute.test.js",
+      "node tests/client/model-host-boundaries.test.js",
+      "git diff --check"
+    ],
+    "networkRegression": "Actual loopback HTTP, signed fixture Packs, synthetic GPU/programs. Metadata/weight cancellation and deadlines observe server disconnect and create no model. Corruption, oversize and progress boundaries are exercised.",
+    "rangeRegression": "After owning a 1 MiB Buffer, 100 four-byte reads copy 400 returned bytes, not 100 whole files. Source/output mutation, invalid ranges, closure admission and closed storage are tested."
+  },
+  "installedPackage": {
+    "command": "node tools/check-packed-package.js --retain /tmp/doppler-loading-package-20260906-02",
+    "passed": true,
+    "path": "reports/electron-adoption/loading-handoff-v2jgxS/doppler-gpu-0.5.1.tgz",
+    "sha256": "0d9b2c0c74f2d66019c7667d8dec9066acca2448a2532ac83ecd9349fdb16a0f",
+    "files": 1769,
+    "packedBytes": 2096452,
+    "unpackedBytes": 10827703,
+    "publicExportsAndDeclarations": 28,
+    "nodeVersion": "v22.22.1",
+    "npmVersion": "9.2.0",
+    "receipt": "reports/electron-adoption/loading-handoff-v2jgxS/receipt.json",
+    "boundary": "Isolated consumer; Electron, embedding and HTTP contract tests use synthetic execution. The separate physical report uses this exact package. No publication or external adoption."
+  },
+  "physical": {
+    "passed": true,
+    "evidenceClass": "internal-physical-installed-package",
+    "report": {
+      "path": "reports/electron-adoption/loading-handoff-v2jgxS/loading-20260906-physical-02.json",
+      "bytes": 183923,
+      "sha256": "8677862b212e6d9b93a5bb123ebbc897b440f9186eaa70e17400cb9e8b3954e3"
+    },
+    "config": "reports/electron-adoption/loading-handoff-v2jgxS/loading-20260906-config-02.json",
+    "probe": "tests/fixtures/physical-pack-http-consumer.js",
+    "command": "node /tmp/doppler-loading-package-20260906-02/consumer/loading-observation.js /home/x/deco/doppler/reports/electron-adoption/loading-20260906-config-02.json /home/x/deco/doppler/reports/electron-adoption/loading-20260906-physical-02.json",
+    "hardware": "AMD Radeon 8060S, RDNA3, RADV Mesa 26.0.3-1ubuntu1",
+    "host": "Node 22.22.1; webgpu 0.4.0 / Dawn Vulkan; no Doe; physical adapter",
+    "model": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "packSchema": "doppler.pack/v2",
+    "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+    "targetPlanDigest": "sha256:cf53f16d8dd167accd67ed142bd0896a5d8941f086325efaa9d43535f962e3dd",
+    "queryCount": 1,
+    "documentCount": 3,
+    "directRuns": 1,
+    "httpRuns": 1,
+    "passedSourceChecksPerRun": 16,
+    "scoreAndRankingParity": "Exact between direct and HTTP; unchanged declared tolerances against the source reference.",
+    "artifactFetchAttempts": 0,
+    "cleanupPassed": true,
+    "loadMs": 40380.610358,
+    "directMs": 1014.1361099999995,
+    "httpMs": 856.8750010000003,
+    "processRssBeforeLoadBytes": 194502656,
+    "processRssAfterLoadBytes": 1278947328,
+    "processMaxRssThroughLoadKiB": 1367004,
+    "verifiedStoreAtLoadCompletion": {
+      "sourceBytes": 944670801,
+      "hashedBytes": 944670801,
+      "copiedBytes": 2838025694,
+      "retainedBytes": 944670801,
+      "peakRetainedBytes": 944670801,
+      "returnedBytes": 1893354893
+    },
+    "measurementBoundary": "Diagnostic only: fresh process and retained files, not controlled cold OS/driver caches. Other workspace CPU work and repository checks overlapped. No incumbent comparison or statistical speed/memory improvement claim. Counters exclude manifest hashing, transport internals and GPU upload; process RSS is not dedicated GPU residency.",
+    "qualificationBoundary": "One internal AMD/Node reranker tuple, not a browser/Electron rerun, embedding qualification, offline browser restart, held-out search evaluation or second model release."
+  },
+  "retainedAdverseEvidence": [
+    {
+      "path": "reports/electron-adoption/loading-handoff-v2jgxS/doppler-loading-green-20260906-01.log",
+      "finding": "Package budget rejected five added acquisition/policy files. The shipped closure was audited and ceilings updated to observed contents, not bypassed."
+    },
+    {
+      "path": "reports/electron-adoption/loading-handoff-v2jgxS/doppler-loading-green-20260906-02.log",
+      "finding": "One of 770 files failed because its assertion encoded artifact verification before selection. The assertion now tests the intended order; the complete chain was rerun."
+    },
+    {
+      "path": "reports/electron-adoption/loading-handoff-v2jgxS/loading-20260906-physical-01.json",
+      "finding": "Passing intermediate observation used an earlier package before the monotonic deadline guard. Kept separate from final-package evidence."
+    }
+  ],
+  "custody": {
+    "directory": "reports/electron-adoption/loading-handoff-v2jgxS",
+    "instructions": "reports/electron-adoption/loading-handoff-v2jgxS/README.md",
+    "sourceOverlay": "reports/electron-adoption/loading-handoff-v2jgxS/source-delta.tar",
+    "sourceOverlaySha256": "0b0576bf24e89162d355830e3dec0c27541a0f859026453487a71febcc6a91bb",
+    "sourceOverlayCompared": true,
+    "unchangedModelAndReferenceBundle": "reports/electron-adoption/20260906-node-standalone-handoff",
+    "availability": "Local retained files; no public upload. Provider tarballs retained, model bytes reused from existing bundle, no private keys copied."
+  },
+  "remaining": [
+    "Qualify a provenance-backed embedding model through the installed package; existing local Qwen embedding files do not establish their source revision.",
+    "Build shared text/Markdown chunking, indexing, retrieval and reranking logic with embedding identity/invalidation and unseen-query acceptance.",
+    "Connect persistent browser Pack storage and retained application files; verify restart offline, interruption, damaged storage, exhaustion and network privacy.",
+    "Measure controlled cold/warm loading, GPU upload and total memory against the pinned incumbent before claiming an improvement.",
+    "Extend existing onboarding through conversion, physical evaluation, qualification and explicit publication; generate and evaluate actual alternatives.",
+    "Obtain voluntary external use and retention across another model release."
+  ]
+}

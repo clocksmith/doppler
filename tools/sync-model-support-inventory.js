@@ -300,7 +300,7 @@ function conversionKeys(record) {
     record.modelBaseId,
     path.basename(record.path, '.json'),
     identity?.sourceCheckpointId,
-    identity?.weightPackId,
+    identity?.weightCapsuleId,
     identity?.manifestVariantId,
   ].map(normalizeKey).filter(Boolean);
 }
@@ -362,7 +362,7 @@ function catalogLookupKeys(model) {
   return [
     model?.modelId,
     model?.sourceCheckpointId,
-    model?.weightPackId,
+    model?.weightCapsuleId,
     model?.manifestVariantId,
     ...(Array.isArray(model?.aliases) ? model.aliases : []),
   ].map(normalizeKey).filter(Boolean);
@@ -662,7 +662,7 @@ async function buildVariant(model, context) {
   const missing = [];
 
   if (!conversion) missing.push('conversion-config');
-  if (!manifestWeightsOk || !hasText(model?.weightPackId) || !hasText(model?.manifestVariantId)) {
+  if (!manifestWeightsOk || !hasText(model?.weightCapsuleId) || !hasText(model?.manifestVariantId)) {
     missing.push('manifest-weights');
   }
   if (tested !== 'verified' || !hasText(runtimeReport)) {
@@ -716,7 +716,7 @@ async function buildVariant(model, context) {
     sizeLabel: describeBytes(model.sizeBytes),
     tier: resolveTier(model.sizeBytes, context.supportRollout.sizeTiers),
     sourceCheckpointId: normalizeText(model.sourceCheckpointId) || null,
-    weightPackId: normalizeText(model.weightPackId) || null,
+    weightCapsuleId: normalizeText(model.weightCapsuleId) || null,
     manifestVariantId: normalizeText(model.manifestVariantId) || null,
     artifactCompleteness: artifactCompleteness || null,
     runtimePromotionState: normalizeText(model.runtimePromotionState) || null,

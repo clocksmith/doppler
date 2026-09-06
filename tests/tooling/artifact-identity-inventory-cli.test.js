@@ -51,7 +51,7 @@ try {
           },
         },
         sourceCheckpointId: 'unit/source',
-        weightPackId: 'known-incomplete-wp',
+        weightCapsuleId: 'known-incomplete-wp',
         manifestVariantId: 'known-incomplete-mv',
         artifactCompleteness: 'incomplete',
         runtimePromotionState: 'unpromoted',

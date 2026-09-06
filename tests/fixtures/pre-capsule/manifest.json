@@ -1,0 +1,14 @@
+{
+  "baseCommit": "e7f4f9b463f9c5664c219727b01163b117169860",
+  "files": [
+    { "source": "benchmarks/vendors/compare-engines.config.json", "sha256": "7d2caf1fc30b7a64af5982577b8de17f00ae2eb972ecaa27bde66514cbe43eb0" },
+    { "source": "src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json", "sha256": "d52522bc7785cfaa9b560c5306fbc16c4fd0673b36300ddcac7ae5618ee65512" },
+    { "source": "src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json", "sha256": "00d1cf4c3aa809a29796edfed624c368ee888fc43ba780af8bc9fb928ceea1cf" },
+    { "source": "src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af16.json", "sha256": "a8e946ab631afbf07928ad340e0cf7b059a9577b9fa9ecd9dc53cd67f8bf6464" },
+    { "source": "src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json", "sha256": "b1b68cea75b81654e28e862f2e15bb2d62b5d36f7532a00a6dc0c6b3c7852fc5" },
+    { "source": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json", "sha256": "631cc5c6a40527a0ccb6c03da89a0f83c0b2f466d50cbd679edf95894aa0a35c" },
+    { "source": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json", "sha256": "b2f3bb3f182b9b1829406f9febf0d38f309c2e79f35f5ee52704f6830642371a" },
+    { "source": "src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json", "sha256": "5b80d7130cb8e77c5be222063133de6378de94e6b1e4958d15e8a9780218c00e" },
+    { "source": "src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json", "sha256": "502ac07124e3bb5d6a38ec1c07cb8613897819825acb4f9961b8f1a2b5f4b9c4" }
+  ]
+}

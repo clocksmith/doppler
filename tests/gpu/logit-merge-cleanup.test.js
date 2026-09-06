@@ -170,7 +170,7 @@ async function flushMicrotasks() {
   assert.equal(device.compiledSources.length, 3);
   await assert.rejects(
     () => runWithShaderSourceScope(createShaderSourceScope(new Map()), () => kernel.init()),
-    /logit_merge_weighted.wgsl is outside the verified Pack source closure/
+    /logit_merge_weighted.wgsl is outside the verified Capsule source closure/
   );
   const sources = new Map(['weighted', 'max', 'geometric'].map((strategy) =>
     [`logit_merge_${strategy}.wgsl`, `// scoped fixture ${strategy}`]));
@@ -185,7 +185,7 @@ async function flushMicrotasks() {
   // after clearing its pipelines. Exercise actual use, not just init's return.
   await assert.rejects(
     () => runWithShaderSourceScope(createShaderSourceScope(new Map()), () => kernel.init()),
-    /outside the verified Pack source closure/
+    /outside the verified Capsule source closure/
   );
   const a = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
   const b = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });

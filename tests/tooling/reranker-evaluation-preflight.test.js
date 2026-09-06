@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
-import { qualifyRerankerElectron, compileElectronReleasePreload, resolveRerankerPackDistribution, resolvePinnedElectronHost } from '../../tools/qualify-reranker-electron.js';
+import { qualifyRerankerElectron, compileElectronReleasePreload, resolveRerankerCapsuleDistribution, resolvePinnedElectronHost } from '../../tools/qualify-reranker-electron.js';
 import fs from 'node:fs/promises';
 import vm from 'node:vm';
 import os from 'node:os';
 import path from 'node:path';
 import { ELECTRON_RELEASE_IPC_CHANNEL } from '../../src/client/electron/ipc-contract.js';
-import { buildRerankerEvaluationPack } from '../../tools/build-reranker-evaluation-pack.js';
+import { buildRerankerEvaluationCapsule } from '../../tools/build-reranker-evaluation-capsule.js';
 import { createRerankReferenceFixture } from '../helpers/rerank-reference-fixture.js';
 
 let bridge;
@@ -26,7 +26,7 @@ assert.equal(requests[1].customerAuthorizationDigest, 'application-reference');
 assert.throws(() => compileElectronReleasePreload(preloadSource.replace('doppler-gpu/electron', 'unknown-module'), ELECTRON_RELEASE_IPC_CHANNEL), /Unsupported installed/);
 assert.throws(() => compileElectronReleasePreload('export function other() {}', ELECTRON_RELEASE_IPC_CHANNEL), /installed channel/);
 assert.throws(() => compileElectronReleasePreload(preloadSource, undefined), /installed channel/);
-const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-pack-distribution-'));
+const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-capsule-distribution-'));
 try {
   const hostRoot = path.join(directory, 'host');
   const childRoot = path.join(hostRoot, 'child');
@@ -51,45 +51,45 @@ try {
   await assert.rejects(resolvePinnedElectronHost(hostRoot, '43.4.0'), /external binary overrides/);
   await fs.mkdir(path.join(directory, 'distribution'));
   await fs.mkdir(path.join(directory, 'distribution/version one'));
-  const manifest = path.join(directory, 'distribution/version one/pack.json');
+  const manifest = path.join(directory, 'distribution/version one/capsule.json');
   await fs.writeFile(manifest, '{}');
-  const distribution = await resolveRerankerPackDistribution(manifest, path.join(directory, 'distribution'));
-  assert.equal(distribution.urlPath, '/pack/version%20one/pack.json');
-  assert.equal((await resolveRerankerPackDistribution(manifest)).urlPath, '/pack/pack.json');
+  const distribution = await resolveRerankerCapsuleDistribution(manifest, path.join(directory, 'distribution'));
+  assert.equal(distribution.urlPath, '/capsule/version%20one/capsule.json');
+  assert.equal((await resolveRerankerCapsuleDistribution(manifest)).urlPath, '/capsule/capsule.json');
   const outside = path.join(directory, 'outside.json');
   await fs.writeFile(outside, '{}');
-  await assert.rejects(resolveRerankerPackDistribution(outside, distribution.root), /inside.*distribution root/);
+  await assert.rejects(resolveRerankerCapsuleDistribution(outside, distribution.root), /inside.*distribution root/);
   await fs.symlink(outside, path.join(distribution.root, 'escaped.json'));
-  await assert.rejects(resolveRerankerPackDistribution(path.join(distribution.root, 'escaped.json'), distribution.root), /inside.*distribution root/);
+  await assert.rejects(resolveRerankerCapsuleDistribution(path.join(distribution.root, 'escaped.json'), distribution.root), /inside.*distribution root/);
 } finally { await fs.rm(directory, { recursive: true, force: true }); }
-await assert.rejects(qualifyRerankerElectron({ mode: 'model', packDistributionRoot: '/tmp/distribution' }), /Pack distribution root/);
-await assert.rejects(qualifyRerankerElectron({ mode: 'pack', packDistributionRoot: 'relative' }), /Pack distribution root/);
-await assert.rejects(qualifyRerankerElectron({ mode: 'pack', releaseCoordinator: {} }), /Release coordinator qualification/);
-await assert.rejects(qualifyRerankerElectron({ mode: 'pack', releaseCoordinator: {
+await assert.rejects(qualifyRerankerElectron({ mode: 'model', capsuleDistributionRoot: '/tmp/distribution' }), /Capsule distribution root/);
+await assert.rejects(qualifyRerankerElectron({ mode: 'capsule', capsuleDistributionRoot: 'relative' }), /Capsule distribution root/);
+await assert.rejects(qualifyRerankerElectron({ mode: 'capsule', releaseCoordinator: {} }), /Release coordinator qualification/);
+await assert.rejects(qualifyRerankerElectron({ mode: 'capsule', releaseCoordinator: {
   statePath: '/private/release.json', trustedSigners: {}, now: '2026-09-06T00:00:00.000Z', actions: [], allowedRendererActions: ['activate'],
 } }), /read-only renderer permissions/);
 for (const config of [
   { mode: 'model', releaseCheckpointPath: '/private/checkpoint.json' },
-  { mode: 'pack', releaseCheckpointPath: 'relative.json' },
-  { mode: 'pack', releaseCheckpointPath: '/private/checkpoint.json' },
-  { mode: 'pack', releaseCheckpointPath: '/private/checkpoint.json', openOptions: {
+  { mode: 'capsule', releaseCheckpointPath: 'relative.json' },
+  { mode: 'capsule', releaseCheckpointPath: '/private/checkpoint.json' },
+  { mode: 'capsule', releaseCheckpointPath: '/private/checkpoint.json', openOptions: {
     releaseEvents: [], releaseTrustedSigners: {}, releasePolicy: { checkpoint: { sequence: 0, digest: null } },
   } },
 ]) await assert.rejects(qualifyRerankerElectron(config), /Durable release qualification/);
-await assert.rejects(qualifyRerankerElectron({ mode: 'pack', fault: { kind: 'unknown' } }), /Unsupported qualification fault/);
+await assert.rejects(qualifyRerankerElectron({ mode: 'capsule', fault: { kind: 'unknown' } }), /Unsupported qualification fault/);
 await assert.rejects(qualifyRerankerElectron({ mode: 'model', fault: { kind: 'device-loss' } }), /Unsupported qualification fault/);
 await assert.rejects(qualifyRerankerElectron({ mode: 'model' }), /requires policyPath/);
-await assert.rejects(qualifyRerankerElectron({ mode: 'pack', diagnosticCapture: {
+await assert.rejects(qualifyRerankerElectron({ mode: 'capsule', diagnosticCapture: {
   documentIndex: 0, captureConfig: {} } }), /diagnosticCapture requires model mode/);
 await assert.rejects(qualifyRerankerElectron({ mode: 'model', diagnosticCapture: {
   documentIndex: -1, captureConfig: {} } }), /non-negative documentIndex/);
 await assert.rejects(qualifyRerankerElectron({ mode: 'model', diagnosticCapture: {
   documentIndex: 0, captureConfig: { defaultLevel: 'invalid' } } }), /CapturePolicy/);
-const config = { mode: 'pack', policyPath: 'missing-policy', referencePath: 'missing-reference',
+const config = { mode: 'capsule', policyPath: 'missing-policy', referencePath: 'missing-reference',
   modelDir: 'missing-model', packageRoot: 'missing-package', outputDir: 'must-not-be-created' };
 await assert.rejects(qualifyRerankerElectron(config), /retained packageBundlePath/);
-await assert.rejects(buildRerankerEvaluationPack({}), /requires qualificationPath/);
-await assert.rejects(buildRerankerEvaluationPack({ qualificationPath: 'missing', conversionConfigPath: 'missing',
+await assert.rejects(buildRerankerEvaluationCapsule({}), /requires qualificationPath/);
+await assert.rejects(buildRerankerEvaluationCapsule({ qualificationPath: 'missing', conversionConfigPath: 'missing',
   licensePath: 'missing', applicationPath: 'missing', outputDir: 'must-not-be-created', authorityId: 'test' }), /explicit fail-closed/);
 const qualificationDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-evaluation-surface-'));
 try {
@@ -99,7 +99,7 @@ try {
   for (const surface of [undefined, 'cpu', 'webgpu-unspecified']) {
     await fs.writeFile(qualificationPath, JSON.stringify({ schema: 'doppler.rerankModelQualification.v1', passed: true,
       reference: transcript.reference, observation: transcript.observation, runtime: { surface } }));
-    await assert.rejects(buildRerankerEvaluationPack({ qualificationPath, outputDir,
+    await assert.rejects(buildRerankerEvaluationCapsule({ qualificationPath, outputDir,
       conversionConfigPath: 'unused', licensePath: 'unused', applicationPath: 'unused', authorityId: 'test',
       revocation: { offlineExpirySeconds: 60, failClosedAfterExpiry: true } }), /explicitly observed WebGPU surface/);
     await assert.rejects(fs.access(outputDir), error => error.code === 'ENOENT', 'reject before creating signing custody');

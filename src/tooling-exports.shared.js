@@ -92,14 +92,14 @@ export {
   buildRuntimeOptimizationResultsIndex,
 } from './tooling/runtime-optimization-index.js';
 export {
-  SOURCE_BOUNDARY_PACK_SCHEMA,
+  SOURCE_BOUNDARY_CAPSULE_SCHEMA,
   RUNTIME_BOUNDARY_CAPTURE_SCHEMA,
   BOUNDARY_COMPARISON_RECEIPT_SCHEMA,
   DETERMINISTIC_TOKEN_EVIDENCE_SCHEMA,
   BOUNDARY_PROVIDER_CAPTURE_SCHEMA,
   buildRuntimeBoundaryCapture,
-  buildSourceBoundaryPack,
-  buildSourceBoundaryPackFromProviderCapture,
+  buildSourceBoundaryCapsule,
+  buildSourceBoundaryCapsuleFromProviderCapture,
   buildDeterministicTokenEvidenceFromReferenceTranscript,
   compareBoundaryEvidence,
 } from './tooling/boundary-evidence.js';

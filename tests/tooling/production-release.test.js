@@ -10,7 +10,7 @@ import {
   verifyProductionReleaseEvidenceSignature,
 } from '../../src/config/production-release-evidence.js';
 import { hashProductionRelease } from '../../src/config/production-release.js';
-import { createPackReleaseFixture, createSignedPackFixture, TEST_PACK_AUTHORITY, TEST_PACK_PUBLIC_KEY } from '../helpers/pack-v2-fixture.js';
+import { createCapsuleReleaseFixture, createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } from '../helpers/capsule-v2-fixture.js';
 import { runProductionRelease } from '../../src/tooling/production-release.js';
 
 const sha = (character) => `sha256:${character.repeat(64)}`;
@@ -22,10 +22,10 @@ const signingPrivate = {
 };
 const signingPublic = { crv: signingPrivate.crv, x: signingPrivate.x, kty: signingPrivate.kty };
 const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-production-release-'));
-const packPath = path.join(tmpRoot, 'candidate.pack.json');
-const releaseContract = createPackReleaseFixture({ targetIds: ['webgpu-f32-portable'] });
-const { pack } = await createSignedPackFixture({ release: releaseContract });
-await fs.writeFile(packPath, `${JSON.stringify(pack)}\n`, 'utf8');
+const capsulePath = path.join(tmpRoot, 'candidate.capsule.json');
+const releaseContract = createCapsuleReleaseFixture({ targetIds: ['webgpu-f32-portable'] });
+const { capsule } = await createSignedCapsuleFixture({ release: releaseContract });
+await fs.writeFile(capsulePath, `${JSON.stringify(capsule)}\n`, 'utf8');
 
 const release = {
   schema: 'doppler.production-release/v1',
@@ -34,11 +34,11 @@ const release = {
   createdAtUtc: '2026-08-24T00:00:00.000Z',
   evidenceClass: 'reference-fixture',
   candidate: {
-    logicalModelId: pack.modelId,
+    logicalModelId: capsule.modelId,
     sourceRevision: releaseContract.source.revision,
     sourceRevisionDigest: releaseContract.source.revisionDigest,
-    packPath: 'candidate.pack.json',
-    packSemanticRoot: pack.semanticRoot,
+    capsulePath: 'candidate.capsule.json',
+    capsuleSemanticRoot: capsule.semanticRoot,
   },
   application: {
     applicationId: releaseContract.application.applicationId,
@@ -92,14 +92,14 @@ const release = {
       },
     ],
   },
-  previousRelease: { releaseId: 'fixture-previous', packSemanticRoot: sha('9') },
+  previousRelease: { releaseId: 'fixture-previous', capsuleSemanticRoot: sha('9') },
   rollout: {
     rulesDigest: sha('a'),
     activationAuthority: 'customer',
     selfPromotionAllowed: false,
     stages: [{ id: 'customer-activation', eligibleFleetPercent: 100, requiredObservationDigest: sha('b') }],
   },
-  rollback: { releaseId: 'fixture-previous', packSemanticRoot: sha('9'), authority: 'customer' },
+  rollback: { releaseId: 'fixture-previous', capsuleSemanticRoot: sha('9'), authority: 'customer' },
   revocation: releaseContract.revocation,
   dataCustody: {
     policyDigest: sha('d'),
@@ -120,8 +120,8 @@ const applicationReceipt = {
   applicationRevisionDigest: release.application.revisionDigest,
   workload: release.acceptance.workload,
   oracle: release.acceptance.oracle,
-  packSemanticRoot: pack.semanticRoot,
-  targetPlanId: pack.targetPlans[0].targetId,
+  capsuleSemanticRoot: capsule.semanticRoot,
+  targetPlanId: capsule.targetPlans[0].targetId,
   resolvedExecutionId: sha('f'),
   providerId: 'doppler-webgpu',
   deviceTargetId: release.supportedDevices.targets[0].id,
@@ -144,18 +144,18 @@ applicationReceipt.digest = hashProductionReleaseEvidence(applicationReceipt);
 
 const privatePath = path.join(tmpRoot, 'release.private.json');
 const publicPath = path.join(tmpRoot, 'release.public.json');
-const packTrustPath = path.join(tmpRoot, 'pack-trust.json');
+const capsuleTrustPath = path.join(tmpRoot, 'capsule-trust.json');
 const fleetTrustPath = path.join(tmpRoot, 'fleet-trust.json');
 await Promise.all([
   fs.writeFile(privatePath, JSON.stringify(signingPrivate), 'utf8'),
   fs.writeFile(publicPath, JSON.stringify(signingPublic), 'utf8'),
-  fs.writeFile(packTrustPath, JSON.stringify({ [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY }), 'utf8'),
+  fs.writeFile(capsuleTrustPath, JSON.stringify({ [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY }), 'utf8'),
   fs.writeFile(fleetTrustPath, JSON.stringify({ 'fixture-fleet-authority': signingPublic }), 'utf8'),
 ]);
 const common = {
   manifestPath,
   repoRoot: tmpRoot,
-  packTrustedSignersPath: packTrustPath,
+  capsuleTrustedSignersPath: capsuleTrustPath,
   signingPrivateKeyPath: privatePath,
   signingPublicKeyPath: publicPath,
   signingAuthority: 'fixture-fleet-authority',
@@ -195,7 +195,7 @@ for (const target of release.supportedDevices.targets) {
   });
   assert.equal(result.status, 'passed');
   assert.equal(result.activationPerformed, false);
-  assert.equal(JSON.parse(await fs.readFile(result.candidatePackPath, 'utf8')).semanticRoot, pack.semanticRoot);
+  assert.equal(JSON.parse(await fs.readFile(result.candidateCapsulePath, 'utf8')).semanticRoot, capsule.semanticRoot);
   receiptPaths.push(result.receiptPath);
 }
 
@@ -235,7 +235,7 @@ const decided = await runProductionRelease({
 });
 assert.equal(decided.eligibility, 'eligible');
 assert.equal(decided.activationPerformed, false);
-assert.equal(JSON.parse(await fs.readFile(decided.candidatePackPath, 'utf8')).semanticRoot, pack.semanticRoot);
+assert.equal(JSON.parse(await fs.readFile(decided.candidateCapsulePath, 'utf8')).semanticRoot, capsule.semanticRoot);
 const decision = JSON.parse(await fs.readFile(decided.decisionPath, 'utf8'));
 assert.equal(decision.selfPromotionAllowed, false);
 assert.equal(decision.activationAuthority, 'customer');
@@ -254,7 +254,7 @@ assert.equal(blocked.eligibility, 'blocked');
 assert.ok(blocked.failureBundlePath);
 const failureBundle = JSON.parse(await fs.readFile(blocked.failureBundlePath, 'utf8'));
 assert.equal(failureBundle.retained, true);
-assert.equal(failureBundle.previousRelease.packSemanticRoot, release.previousRelease.packSemanticRoot);
+assert.equal(failureBundle.previousRelease.capsuleSemanticRoot, release.previousRelease.capsuleSemanticRoot);
 
 const extraReceiptValue = JSON.parse(await fs.readFile(receiptPaths[0], 'utf8'));
 const extraReceipt = await signProductionReleaseEvidence({

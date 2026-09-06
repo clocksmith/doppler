@@ -14,7 +14,7 @@ import { installNodeFileFetchShim } from '../src/tooling/node-file-fetch.js';
 import { bootstrapNodeWebGPU } from '../src/tooling/node-webgpu.js';
 import { runLoraPipeline } from '../src/experimental/training/lora-pipeline.js';
 import { loadDistillModelHandle } from '../src/experimental/training/suite.js';
-import { loadTrainingWorkloadPack } from '../src/experimental/training/workloads.js';
+import { loadTrainingWorkloadCapsule } from '../src/experimental/training/workloads.js';
 import {
   buildOuroborosFailureSignals,
   buildStudentLoraWorkload,
@@ -344,7 +344,7 @@ async function prepareTraining(contracts, runRoot, teacherRunRoot) {
       dataset.materializedRowCount
     );
     await writeJsonArtifact(workloadPath, workload);
-    await loadTrainingWorkloadPack(workloadPath);
+    await loadTrainingWorkloadCapsule(workloadPath);
     index.adapters[adapterId] = {
       datasetPath: resolve(datasetPath),
       workloadPath: resolve(workloadPath),
@@ -463,7 +463,7 @@ async function trainAdapters(
     if (!entry) {
       throw new Error(`training index is missing adapter ${adapterId}.`);
     }
-    const loadedWorkload = await loadTrainingWorkloadPack(entry.workloadPath);
+    const loadedWorkload = await loadTrainingWorkloadCapsule(entry.workloadPath);
     const startedAt = performance.now();
     console.error(
       `[student-train] adapter=${adapterId} rows=${entry.materializedRowCount} start`

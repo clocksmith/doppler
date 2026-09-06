@@ -215,8 +215,8 @@ function validateArtifactIdentityContract(manifest, errors) {
         'sourceFormat',
         'conversionConfigPath',
         'conversionConfigDigest',
-        'weightPackId',
-        'weightPackHash',
+        'weightCapsuleId',
+        'weightCapsuleHash',
         'shardSetHash',
         'manifestVariantId',
         'materializationProfile',
@@ -239,7 +239,7 @@ function validateArtifactIdentityContract(manifest, errors) {
     if (!isPlainObject(weightsRef)) {
       errors.push('Invalid weightsRef field');
     } else {
-      for (const field of ['weightPackId', 'artifactRoot', 'manifestDigest', 'shardSetHash']) {
+      for (const field of ['weightCapsuleId', 'artifactRoot', 'manifestDigest', 'shardSetHash']) {
         validateRequiredNonEmptyString(errors, weightsRef, field, 'weightsRef');
       }
     }

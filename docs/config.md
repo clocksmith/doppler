@@ -165,7 +165,7 @@ node src/cli/doppler-cli.js debug \
 
 This profile is an investigation lane. It requests f16 activation, math,
 accumulation, output, and KV cache dtypes through the Doppler-only af16 manifest
-variant, which shares the af32 Q4K weight pack through `weightsRef`.
+variant, which shares the af32 Q4K weight capsule through `weightsRef`.
 
 Override runtime policy explicitly:
 

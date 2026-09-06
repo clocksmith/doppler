@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 import { createStaticFileServer } from '../src/tooling/node-browser-command-runner.js';
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 import { assertEmbeddingReference, assertEmbeddingSourceIdentity, evaluateEmbeddingReference } from '../src/config/embedding-reference.js';
-import { resolvePackEmbeddingContract } from '../src/config/embedding-contract.js';
+import { resolveCapsuleEmbeddingContract } from '../src/config/embedding-contract.js';
 import { hashStableJson } from '../src/tooling/program-bundle/materialize.js';
 import { parseManifest } from '../src/formats/rdrr/parsing.js';
 
@@ -18,9 +18,9 @@ export async function qualifyEmbeddingBrowser(config) {
   if (!Number.isSafeInteger(config.timeoutMs) || config.timeoutMs <= 0
     || !Number.isSafeInteger(config.repeatRuns) || config.repeatRuns < 1
     || !Array.isArray(config.launchArgs) || typeof config.requiredVendor !== 'string'
-    || !config.runtimeConfig || !['model', 'pack'].includes(config.mode)) throw new Error('Explicit browser execution policy required.');
-  if (config.mode === 'pack' && (!config.packPath || !config.application || !config.openOptions?.trustedSigners)) {
-    throw new Error('Pack qualification requires a Pack path, application and explicit trust.');
+    || !config.runtimeConfig || !['model', 'capsule'].includes(config.mode)) throw new Error('Explicit browser execution policy required.');
+  if (config.mode === 'capsule' && (!config.capsulePath || !config.application || !config.openOptions?.trustedSigners)) {
+    throw new Error('Capsule qualification requires a Capsule path, application and explicit trust.');
   }
   const bundle = config.packageBundlePath;
   const installed = JSON.parse(await fs.readFile(path.join(bundle, 'receipt.json'), 'utf8'));
@@ -32,16 +32,16 @@ export async function qualifyEmbeddingBrowser(config) {
   const manifestBytes = await fs.readFile(path.join(config.modelDir, 'manifest.json'));
   const manifest = JSON.parse(manifestBytes);
   assertEmbeddingSourceIdentity(manifest.artifactIdentity, reference);
-  if (computeCanonicalSha256(resolvePackEmbeddingContract(manifest)) !== computeCanonicalSha256(reference.embeddingContract)) {
+  if (computeCanonicalSha256(resolveCapsuleEmbeddingContract(manifest)) !== computeCanonicalSha256(reference.embeddingContract)) {
     throw new Error('Frozen source and manifest embedding semantics differ.');
   }
   await fs.mkdir(config.outputDir, { recursive: false });
-  const report = { schema: config.mode === 'pack' ? 'doppler.embeddingPackQualification.v1' : 'doppler.embeddingModelQualification.v1',
+  const report = { schema: config.mode === 'capsule' ? 'doppler.embeddingCapsuleQualification.v1' : 'doppler.embeddingModelQualification.v1',
     passed: false, generatedAt: new Date().toISOString(), config, installedPackage: installed.package,
     model: { modelId: manifest.modelId, manifestHash: hashBytesSha256(manifestBytes), artifactIdentity: manifest.artifactIdentity },
     reference, referenceDigest: computeCanonicalSha256(reference),
     runtime: { surface: 'browser-webgpu', host: 'chromium', executionGraphHash: hashStableJson(manifest.inference.execution) },
-    boundary: { operatorCount: 1, sourceComparison: true, signedPackExecution: false,
+    boundary: { operatorCount: 1, sourceComparison: true, signedCapsuleExecution: false,
       externalAdoption: false, coldOperatingSystemCache: false, independentMachineEvidence: false },
     requests: [], logs: [], stage: 'launch' };
   let server;
@@ -50,7 +50,7 @@ export async function qualifyEmbeddingBrowser(config) {
   try {
     server = await createStaticFileServer({ rootDir: packageRoot, host: '127.0.0.1', port: 0,
       staticMounts: [{ urlPrefix: '/model', rootDir: config.modelDir },
-        ...(config.mode === 'pack' ? [{ urlPrefix: '/pack', rootDir: path.dirname(config.packPath) }] : [])] });
+        ...(config.mode === 'capsule' ? [{ urlPrefix: '/capsule', rootDir: path.dirname(config.capsulePath) }] : [])] });
     browser = await chromium.launch({ headless: true, args: config.launchArgs, timeout: config.timeoutMs });
     report.runtime.browserVersion = browser.version();
     timer = setTimeout(() => { browser.close().catch(() => {}); }, config.timeoutMs);
@@ -60,7 +60,7 @@ export async function qualifyEmbeddingBrowser(config) {
     await page.route('**/*', route => {
       const url = new URL(route.request().url());
       report.requests.push(url.href);
-      if (url.origin !== server.baseUrl || (config.mode === 'pack' && url.pathname.startsWith('/model/'))) return route.abort();
+      if (url.origin !== server.baseUrl || (config.mode === 'capsule' && url.pathname.startsWith('/model/'))) return route.abort();
       if (url.pathname === '/qualification') return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Embedding qualification</title>' });
       return route.continue();
     });
@@ -88,21 +88,21 @@ export async function qualifyEmbeddingBrowser(config) {
         totalJSHeapSize: performance.memory.totalJSHeapSize, jsHeapSizeLimit: performance.memory.jsHeapSizeLimit } : null;
       const before = memory();
       try {
-        session = config.mode === 'pack'
-          ? await api.openPack(`${location.origin}/pack/${encodeURIComponent(config.packFilename)}`, config.openOptions)
+        session = config.mode === 'capsule'
+          ? await api.openCapsule(`${location.origin}/capsule/${encodeURIComponent(config.capsuleFilename)}`, config.openOptions)
           : await api.load({ url: `${location.origin}/model/` }, { runtimeConfig: config.runtimeConfig });
         const loaded = performance.now();
         const afterLoad = memory();
         const buffersAfterLoad = getBufferPool().getStats();
-        const identity = config.mode === 'pack' ? session.observedInitialExecutionIdentity
+        const identity = config.mode === 'capsule' ? session.observedInitialExecutionIdentity
           : observeInitialExecutionIdentity(session.advanced.getResolvedRuntimeSession());
         for (let repeat = 0; repeat <= config.repeatRuns; repeat++) {
           for (const [index, text] of texts.entries()) {
             const began = performance.now();
             let evidence;
-            if (config.mode === 'pack') {
+            if (config.mode === 'capsule') {
               let completed;
-              const request = { schema: 'doppler.pack-operation-request/v1', operation: { name: 'embed', version: 1 },
+              const request = { schema: 'doppler.capsule-operation-request/v1', operation: { name: 'embed', version: 1 },
                 input: { texts: [text], application: config.application }, options: {}, assignment: null,
                 limits: { maxInputBytes: 1048576, maxOutputBytes: 1048576, deadlineAt: Date.now() + config.timeoutMs } };
               for await (const event of session.executeOperation(request)) if (event.status === 'completed') completed = event;
@@ -120,16 +120,16 @@ export async function qualifyEmbeddingBrowser(config) {
           memory: { before, afterLoad, afterExecution: memory(), gpuBytes: null,
             buffersAfterLoad, buffersAfterExecution: getBufferPool().getStats(),
             scope: 'browser-reported-JS-heap-and-Doppler-buffer-pool; excludes-untracked-GPU-and-process-overhead' },
-          packIdentity: session.packIdentity ?? null, selectedTargetPlanDigest: session.selectedTargetPlanDigest ?? null };
-      } finally { if (config.mode === 'pack') await session?.close(); else await session?.unload(); }
-    }, { config: { ...config, packFilename: config.packPath ? path.basename(config.packPath) : null }, texts: reference.input.texts });
+          capsuleIdentity: session.capsuleIdentity ?? null, selectedTargetPlanDigest: session.selectedTargetPlanDigest ?? null };
+      } finally { if (config.mode === 'capsule') await session?.close(); else await session?.unload(); }
+    }, { config: { ...config, capsuleFilename: config.capsulePath ? path.basename(config.capsulePath) : null }, texts: reference.input.texts });
     if (computeCanonicalSha256(parseManifest(JSON.stringify(report.raw.manifest))) !== computeCanonicalSha256(parseManifest(JSON.stringify(manifest)))) {
       throw new Error('Loaded manifest differs from frozen candidate.');
     }
     report.observation = { input: reference.input, embeddingContract: reference.embeddingContract, outputs: report.raw.outputs };
     report.result = evaluateEmbeddingReference(reference, report.observation);
     report.initialExecutionIdentity = report.raw.initialExecutionIdentity;
-    report.boundary.signedPackExecution = config.mode === 'pack' && report.raw.receipts.length === reference.input.texts.length * (config.repeatRuns + 1);
+    report.boundary.signedCapsuleExecution = config.mode === 'capsule' && report.raw.receipts.length === reference.input.texts.length * (config.repeatRuns + 1);
     report.passed = report.result.passed;
     report.stage = 'complete';
   } catch (error) { report.error = { name: error.name, message: error.message, stack: error.stack }; }

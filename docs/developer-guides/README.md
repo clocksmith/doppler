@@ -66,7 +66,7 @@ Every guide in this directory should answer the same four questions:
 | [03-model-family-config.md](03-model-family-config.md) | atomic | migration note |
 | [04-conversion-config.md](04-conversion-config.md) | atomic | JSON only |
 | [05-promote-model-artifact.md](05-promote-model-artifact.md) | atomic | metadata + publication workflow |
-| [artifact-identity-migration-plan.md](artifact-identity-migration-plan.md) | migration | source checkpoint + weight pack + manifest variant identity |
+| [artifact-identity-migration-plan.md](artifact-identity-migration-plan.md) | migration | source checkpoint + weight capsule + manifest variant identity |
 | [06-kernel-path-config.md](06-kernel-path-config.md) | atomic | execution graph + transforms |
 | [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | atomic | schema + merge + parser + tests |
 | [08-chat-template-formatter.md](08-chat-template-formatter.md) | atomic | JS + type declarations + tests |

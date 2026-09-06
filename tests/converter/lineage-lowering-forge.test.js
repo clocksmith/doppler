@@ -22,7 +22,7 @@ const recipe = {
     { factId: 'text.layerTypes', targetPointer: '/inference/layerPattern/layerTypes' },
   ],
   policyOverrides: [{
-    targetPointer: '/output/textOnly', value: true, lifecycle: 'pack-scope',
+    targetPointer: '/output/textOnly', value: true, lifecycle: 'capsule-scope',
     rationale: 'Qualify only the lowered text entry point.',
   }],
   removePointers: ['/manifest/artifactIdentity/shardSetHash'],

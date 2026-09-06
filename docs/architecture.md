@@ -4,15 +4,15 @@
 
 **Doppler** (Deterministic On-device Processing for Prefill, Learning, and
 Execution Runtime) is an AI-native Model Release Foundry for JavaScript and
-WebGPU. It converts pinned source truth into signed immutable Packs containing
+WebGPU. It converts pinned source truth into signed immutable Capsules containing
 ModelIR-derived, qualified TargetPlans, then executes those plans through an
 evidence-backed browser and Node runtime.
 
-The product unit is a supported model release: source lineage, immutable Pack,
+The product unit is a supported model release: source lineage, immutable Capsule,
 qualified target plans, application and hardware acceptance, and explicit
 promotion, requalification, rollback, and revocation state. The Runtime is not
 a second compiler. It validates, selects, binds, executes, and observes without
-changing Pack semantics.
+changing Capsule semantics.
 
 The repo also contains experimental and internal-only subsystem surfaces for
 training, distribution, hotswap, diffusion, energy, bridge integration, and
@@ -29,7 +29,7 @@ The mainline product/technical goals are defined in [goals.md](goals.md):
 2. own the model artifact and runtime contract; and
 3. make correctness, performance, and support evidence-backed.
 
-Source-truth Forge automation and an uncreative Pack Runtime are the
+Source-truth Forge automation and an uncreative Capsule Runtime are the
 architecture used to deliver those goals, not a separate portfolio objective.
 
 The ESM-2/Poolday network remains a separately qualified optional experiment.
@@ -44,14 +44,14 @@ experimental/internal in the subsystem support matrix.
 ### Implementation boundaries
 
 - `src/converter/`: source interpretation, lowering, candidate evaluation, and
-  immutable Pack construction. `src/tooling/model-pack-forge.js` owns file,
+  immutable Capsule construction. `src/tooling/model-capsule-forge.js` owns file,
   qualification-input, signing-key, and command orchestration around that engine.
-- `src/client/runtime/composition-root.js`: injected Pack execution core. It
+- `src/client/runtime/composition-root.js`: injected Capsule execution core. It
   verifies, selects, binds, executes, and observes declared plans; it does not
   discover models, initialize the host GPU, or choose application trust.
 - `src/client/model-host/`: convenience model acquisition, caching, device setup,
-  input formatting, handles, and evidence construction. It may compose Pack
-  execution, but the Pack core cannot import it. `model-evidence.js` constructs
+  input formatting, handles, and evidence construction. It may compose Capsule
+  execution, but the Capsule core cannot import it. `model-evidence.js` constructs
   evidence from observations without invoking GPU or inference machinery.
 - `src/client/runtime/index.js` and `model-session.js`: compatibility forwarding
   paths for the host service and model handle. Shared adapters still under
@@ -97,9 +97,9 @@ Doppler can integrate with [Reploid](https://github.com/clocksmith/reploid) via 
 SharedArrayBuffer for coordination plus VFS file exchange for inference plans and
 results. Integration notes are maintained in private wrapper docs.
 
-## Design Philosophy: Dual-Hexagon Compiler Pipeline & Immutable Pack Spine
+## Design Philosophy: Dual-Hexagon Compiler Pipeline & Immutable Capsule Spine
 
-See also: [ADR-0001: Dual-Hexagon Compiler Pipeline with an Immutable Pack Spine](adr/0001-dual-hexagon-pack-spine.md).
+See also: [ADR-0001: Dual-Hexagon Compiler Pipeline with an Immutable Capsule Spine](adr/0001-dual-hexagon-capsule-spine.md).
 The heterogeneous semantic and provenance contract is specified in
 [Heterogeneous ModelIR v2 and Source-Truth Forge](model-ir-v2-source-truth-forge.md).
 
@@ -114,7 +114,7 @@ Source Model Checkpoint
 │  → Verify → Qualify → Package → Sign                         │
 └──────────────────────────────┬───────────────────────────────┘
                                │
-                    Immutable Doppler Pack
+                    Immutable Doppler Capsule
                                │
 ┌──────────────────────────────▼───────────────────────────────┐
 │                    DOPPLER RUNTIME                           │
@@ -128,7 +128,7 @@ Source Model Checkpoint
 ### The Doppler Invariant Law
 
 > **Core Architectural Law:**  
-> *After a Doppler Pack has been qualified and signed, no Runtime code may change its semantic graph, kernel closure, dtype lane, fusion strategy, or memory model.*
+> *After a Doppler Capsule has been qualified and signed, no Runtime code may change its semantic graph, kernel closure, dtype lane, fusion strategy, or memory model.*
 
 All graph-changing, kernel-changing, fusion-changing, layout-changing, and precision-changing work lives ahead-of-time in **Doppler Forge**. The **Doppler Runtime** is strictly an uncreative plan–bind–execute machine that selects among pre-qualified target plans.
 
@@ -141,7 +141,7 @@ All graph-changing, kernel-changing, fusion-changing, layout-changing, and preci
    * Complete implementation for a discrete hardware target class (e.g. `webgpu-f16-subgroups`, `webgpu-f16`, `webgpu-f32-safe`).
    * Selected fusions, storage/compute dtypes, tensor layouts, memory slots, kernel IDs with cryptographic content digests (`sha256:...`), bindings, dispatch formulas, and capability predicates.
 3. **`SessionPlan` (Runtime Instance):**
-   * Instance of a `TargetPlan` bound to runtime parameters: actual prompt length, max generation length, sampling parameters, and concrete GPU buffer allocations within the Pack's preflighted envelope.
+   * Instance of a `TargetPlan` bound to runtime parameters: actual prompt length, max generation length, sampling parameters, and concrete GPU buffer allocations within the Capsule's preflighted envelope.
    * Never alters the target graph or substitutes unqualified kernels.
 
 ### Forge Compiler Stages
@@ -154,13 +154,13 @@ All graph-changing, kernel-changing, fusion-changing, layout-changing, and preci
 6. **Search:** variants $\to$ ranked candidates.
 7. **Verify:** candidates $\to$ operator, boundary, token, safety results.
 8. **Qualify:** verified candidates $\to$ target support envelopes.
-9. **Package:** model + targets + WGSL + artifacts $\to$ unsigned Pack.
-10. **Sign/Publish:** unsigned Pack + promotion receipt $\to$ immutable signed Pack.
+9. **Package:** model + targets + WGSL + artifacts $\to$ unsigned Capsule.
+10. **Sign/Publish:** unsigned Capsule + promotion receipt $\to$ immutable signed Capsule.
 
 ### Runtime Generic Units (Plan–Bind–Execute)
 
 The Runtime core contains zero model-family conditionals and operates strictly on generic units:
-* **`TargetSelector`:** Filters prequalified `TargetPlan`s by device, host, application-approved hashes, and required operations, then applies the application's explicit preference order. Signed Pack order breaks ties; selection does not imply a measured performance winner and cannot change during a session.
+* **`TargetSelector`:** Filters prequalified `TargetPlan`s by device, host, application-approved hashes, and required operations, then applies the application's explicit preference order. Signed Capsule order breaks ties; selection does not imply a measured performance winner and cannot change during a session.
 * **`ResourceBinder`:** Binds symbolic memory slots to GPU buffers and uniform structures.
 * **`CommandExecutor`:** Dispatches declared phase commands without interpreting model semantics.
 * **`SessionController`:** Controls KV cache lifecycle, step sequencing, and abort signals.
@@ -176,18 +176,18 @@ rollback target, revocation policy, and data-custody policy.
 
 The Node-only `doppler release` command has two explicit phases:
 
-1. `qualify` verifies the immutable Pack and exact device identity, executes the
+1. `qualify` verifies the immutable Capsule and exact device identity, executes the
    application-owned gates, and signs one fleet receipt on a customer-operated
    agent.
-2. `decide` optionally invokes Forge, verifies the Pack and all declared fleet
+2. `decide` optionally invokes Forge, verifies the Capsule and all declared fleet
    receipts, and signs an `eligible` or `blocked` decision with exclusions,
    rollback, revocation, and retained failure evidence.
 
 The command and reusable GitHub workflow are evidence producers, not deployment
-systems. They cannot activate a Pack. The Electron main-process adapter owns
+systems. They cannot activate a Capsule. The Electron main-process adapter owns
 atomic current/previous/candidate state and requires a verified eligible
 decision plus explicit customer authorization before activation. The renderer
-opens only the current Pack after fail-closed revocation freshness checks and
+opens only the current Capsule after fail-closed revocation freshness checks and
 owns WebGPU execution. Hosted CI may aggregate receipts but cannot impersonate
 the supported Windows/macOS fleet.
 
@@ -195,7 +195,7 @@ the supported Windows/macOS fleet.
 
 | Principle | Implementation | Why |
 |-----------|----------------|-----|
-| **Ahead-of-Time Specialization** | Closed Doppler Packs with reachable WGSL closures | Eliminates generic ONNX interpreter bloat and runtime graph rediscovery |
+| **Ahead-of-Time Specialization** | Closed Doppler Capsules with reachable WGSL closures | Eliminates generic ONNX interpreter bloat and runtime graph rediscovery |
 | **Code/Data Separation** | Pinned WGSL kernels + weight shards | Enables shard verification, OPFS streaming, and runtime adapter/component swaps |
 | **GPU Fusion** | Hot-path tensor ops stay on GPU | Keeps JS orchestration overhead secondary when GPU compute dominates |
 | **Progressive Fusion** | Swap atomic kernels for fused kernels via Forge TargetPlans | High debuggability during development, peak throughput in production |

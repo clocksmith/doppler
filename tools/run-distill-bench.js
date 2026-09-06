@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { loadTrainingWorkloadPack } from '../src/experimental/training/workloads.js';
+import { loadTrainingWorkloadCapsule } from '../src/experimental/training/workloads.js';
 
 function parsePositiveInteger(value, label) {
   const parsed = Number(value);
@@ -264,8 +264,8 @@ export async function loadWorkloadConfig(workloadArg) {
     medium: 'distill-translategemma-medium',
   };
   const candidate = workloadAliases[workloadArg] || workloadArg;
-  const loaded = await loadTrainingWorkloadPack(candidate, {
-    registryPath: 'src/experimental/training/workload-packs/registry.json',
+  const loaded = await loadTrainingWorkloadCapsule(candidate, {
+    registryPath: 'src/experimental/training/workload-capsules/registry.json',
   });
   if (loaded.workload.kind !== 'distill') {
     throw new Error(`Expected distill workload, got "${loaded.workload.kind}" from ${loaded.path}`);

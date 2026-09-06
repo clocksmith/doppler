@@ -3,7 +3,7 @@ import { constants } from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { validateElectronReleaseState } from 'doppler-gpu/electron';
-import { verifyPackReleaseEvents, PackReleaseStateError } from 'doppler-gpu/pack';
+import { verifyCapsuleReleaseEvents, CapsuleReleaseStateError } from 'doppler-gpu/capsule';
 
 function checkpoint(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)
@@ -110,11 +110,11 @@ export function createDocumentSearchCheckpointStore(filename) {
 
 // Prepare this context again for each open, using a store dedicated to the
 // application's authorized release stream. Downloading a new event does not
-// activate a Pack. The caller still selects and authorizes the executable.
+// activate a Capsule. The caller still selects and authorizes the executable.
 export async function prepareDocumentSearchReleaseOptions({
-  pack, releaseEvents, releaseTrustedSigners, checkpointStore, minimumSequence, now, retainedLocalUse,
+  capsule, releaseEvents, releaseTrustedSigners, checkpointStore, minimumSequence, now, retainedLocalUse,
 }) {
-  if (pack?.schema !== 'doppler.pack/v3') throw new Error('Release checkpoint preparation requires Pack v3.');
+  if (capsule?.schema !== 'doppler.capsule/v3') throw new Error('Release checkpoint preparation requires Capsule v3.');
   if (typeof checkpointStore?.load !== 'function' || typeof checkpointStore?.compareAndSwap !== 'function') {
     throw new Error('Release checkpoint preparation requires a durable compare-and-swap store.');
   }
@@ -140,9 +140,9 @@ export async function prepareDocumentSearchReleaseOptions({
   }
 
   try {
-    expected = (await verifyPackReleaseEvents(events, { pack, trustedSigners: signers, policy })).checkpoint;
+    expected = (await verifyCapsuleReleaseEvents(events, { capsule, trustedSigners: signers, policy })).checkpoint;
   } catch (error) {
-    if (error instanceof PackReleaseStateError) {
+    if (error instanceof CapsuleReleaseStateError) {
       expected = error.checkpoint;
       try { await persistReleaseCheckpoint(expected); } catch (persistenceError) {
         throw new AggregateError([error, persistenceError], 'Release rejected; its verified checkpoint could not be persisted.', { cause: error });

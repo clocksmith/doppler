@@ -345,25 +345,25 @@ function bindKernelDigests(value, dispositions) {
   Object.values(value).forEach((entry) => bindKernelDigests(entry, dispositions));
 }
 
-function bindPackModelIR(modelIR, entryPointId, modelId) {
-  const packModelIR = clone(modelIR);
-  packModelIR.modelId = modelId;
-  const entryPoint = requireNode(packModelIR.entryPoints, (candidate) => candidate.id === entryPointId, `entry point "${entryPointId}"`);
+function bindCapsuleModelIR(modelIR, entryPointId, modelId) {
+  const capsuleModelIR = clone(modelIR);
+  capsuleModelIR.modelId = modelId;
+  const entryPoint = requireNode(capsuleModelIR.entryPoints, (candidate) => candidate.id === entryPointId, `entry point "${entryPointId}"`);
   entryPoint.status = 'lowered';
   entryPoint.phases = [...TEXT_PHASES];
   delete entryPoint.reason;
-  packModelIR.supportScope.loweredEntryPoints = [...new Set([
-    ...packModelIR.supportScope.loweredEntryPoints,
+  capsuleModelIR.supportScope.loweredEntryPoints = [...new Set([
+    ...capsuleModelIR.supportScope.loweredEntryPoints,
     entryPointId,
   ])].sort();
-  packModelIR.supportScope.unloweredEntryPoints = packModelIR.supportScope.unloweredEntryPoints
+  capsuleModelIR.supportScope.unloweredEntryPoints = capsuleModelIR.supportScope.unloweredEntryPoints
     .filter((id) => id !== entryPointId)
     .sort();
-  const validation = validateModelIR(packModelIR);
+  const validation = validateModelIR(capsuleModelIR);
   if (!validation.ok) {
-    throw new Error(`Semantic lowering produced invalid Pack-bound ModelIR: ${validation.errors.join('; ')}`);
+    throw new Error(`Semantic lowering produced invalid Capsule-bound ModelIR: ${validation.errors.join('; ')}`);
   }
-  return packModelIR;
+  return capsuleModelIR;
 }
 
 function validateMechanismTemplate(template) {
@@ -454,7 +454,7 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
   if (recipe.runtimeModelType !== 'transformer') {
     throw new Error('Semantic text lowering currently requires runtimeModelType="transformer".');
   }
-  requireEqual(recipe.supportScope, { loweredEntryPoint: recipe.entryPointId }, 'Pack support scope');
+  requireEqual(recipe.supportScope, { loweredEntryPoint: recipe.entryPointId }, 'Capsule support scope');
   requireExactKeys(recipe.chatTemplate, ['type', 'enabled'], 'chat-template policy');
   if (recipe.chatTemplate.enabled !== false || recipe.chatTemplate.type !== null) {
     throw new Error('Unproven chat templates must remain explicitly disabled during semantic lowering.');
@@ -576,7 +576,7 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
     author: clone(recipe.author),
     rationale: recipe.templateRationale,
   }, {
-    kind: 'pack-support-scope',
+    kind: 'capsule-support-scope',
     sourceTopology: modelIR.supportScope.sourceTopology,
     loweredEntryPoints: [recipe.entryPointId],
     unloweredEntryPoints: modelIR.entryPoints
@@ -634,9 +634,9 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
   bindKernelDigests(config.execution, dispositions);
   expandExecutionV1(config.execution);
 
-  const packModelIR = bindPackModelIR(modelIR, recipe.entryPointId, modelId);
+  const capsuleModelIR = bindCapsuleModelIR(modelIR, recipe.entryPointId, modelId);
   const sourceModelIRHash = digest(modelIR);
-  const modelIRHash = digest(packModelIR);
+  const modelIRHash = digest(capsuleModelIR);
   const conversionConfigDigest = digest(config);
   return Object.freeze({
     schema: 'doppler.semantic-manifest-lowering-receipt/v1',
@@ -645,7 +645,7 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
     entryPointId: recipe.entryPointId,
     sourceModelIRHash,
     modelIRHash,
-    modelIR: packModelIR,
+    modelIR: capsuleModelIR,
     author: clone(recipe.author),
     template: recipe.template,
     generatedCandidates: Number(recipe.candidateAudit?.generated || 1),

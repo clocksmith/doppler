@@ -2,21 +2,21 @@
 export function requireGenerationOptions(options) {
   const requiredNumbers = ['maxTokens', 'temperature', 'topP', 'topK', 'repetitionPenalty', 'repetitionPenaltyWindow'];
   for (const field of requiredNumbers) {
-    if (!Number.isFinite(options[field])) throw new Error(`Pack generation requires explicit ${field}.`);
+    if (!Number.isFinite(options[field])) throw new Error(`Capsule generation requires explicit ${field}.`);
   }
-  if (!Number.isInteger(options.maxTokens) || options.maxTokens < 1) throw new Error('Pack generation maxTokens must be a positive integer.');
-  if (!Number.isInteger(options.topK) || options.topK < 0) throw new Error('Pack generation topK must be a non-negative integer.');
+  if (!Number.isInteger(options.maxTokens) || options.maxTokens < 1) throw new Error('Capsule generation maxTokens must be a positive integer.');
+  if (!Number.isInteger(options.topK) || options.topK < 0) throw new Error('Capsule generation topK must be a non-negative integer.');
   if (!Number.isInteger(options.repetitionPenaltyWindow) || options.repetitionPenaltyWindow < 1) {
-    throw new Error('Pack generation repetitionPenaltyWindow must be a positive integer.');
+    throw new Error('Capsule generation repetitionPenaltyWindow must be a positive integer.');
   }
   if (options.temperature < 0 || options.topP <= 0 || options.topP > 1 || options.repetitionPenalty <= 0) {
-    throw new Error('Pack generation sampling values are outside their valid ranges.');
+    throw new Error('Capsule generation sampling values are outside their valid ranges.');
   }
   if (options.temperature > 0 && !Number.isFinite(options.seed)) {
-    throw new Error('Pack stochastic generation requires an explicit numeric seed.');
+    throw new Error('Capsule stochastic generation requires an explicit numeric seed.');
   }
   if (typeof options.useChatTemplate !== 'boolean') {
-    throw new Error('Pack generation requires explicit useChatTemplate.');
+    throw new Error('Capsule generation requires explicit useChatTemplate.');
   }
 }
 
@@ -32,9 +32,9 @@ function seededRandom(seed) {
   return value - Math.floor(value);
 }
 
-export function samplePackLogits(sourceLogits, contextTokens, options, tokenContract = {}) {
+export function sampleCapsuleLogits(sourceLogits, contextTokens, options, tokenContract = {}) {
   const logits = Float32Array.from(sourceLogits || []);
-  if (logits.length === 0) throw new Error('Pack execution returned empty logits.');
+  if (logits.length === 0) throw new Error('Capsule execution returned empty logits.');
   applyRepetitionPenalty(logits, contextTokens, options.repetitionPenalty, options.repetitionPenaltyWindow);
   const suppressed = new Set(options.suppressTokenIds || []);
   if (Number.isInteger(tokenContract.padTokenId)) suppressed.add(tokenContract.padTokenId);
@@ -59,7 +59,7 @@ export function samplePackLogits(sourceLogits, contextTokens, options, tokenCont
   }
   if (candidates.length === 0) {
     throw new Error(
-      'Pack execution returned no finite sampling candidates '
+      'Capsule execution returned no finite sampling candidates '
       + `(logits=${logits.length}, nan=${nanCount}, +inf=${positiveInfinityCount}, -inf=${negativeInfinityCount}).`
     );
   }
@@ -108,20 +108,20 @@ export function createSessionController(commandExecutor, resourceBinder, program
 
   return {
     async *generateTokens(targetPlan, options = {}) {
-      if (closed) throw new Error('Pack runtime session is closed.');
+      if (closed) throw new Error('Capsule runtime session is closed.');
       requireGenerationOptions(options);
       if (options.signal?.aborted) throw new Error('Generation aborted before prefill.');
       const promptTokens = Array.isArray(options.promptTokens)
         ? [...options.promptTokens]
         : program.tokenize(options.prompt, { useChatTemplate: options.useChatTemplate });
-      if (promptTokens.length === 0) throw new Error('Pack generation prompt must produce at least one token.');
+      if (promptTokens.length === 0) throw new Error('Capsule generation prompt must produce at least one token.');
       const dimensions = {
         seqLen: promptTokens.length,
         maxSeqLen: options.maxSeqLen,
         batchSize: 1,
       };
       if (!Number.isInteger(dimensions.maxSeqLen) || dimensions.maxSeqLen < promptTokens.length + options.maxTokens) {
-        throw new Error('Pack generation requires maxSeqLen large enough for prompt and generated tokens.');
+        throw new Error('Capsule generation requires maxSeqLen large enough for prompt and generated tokens.');
       }
       program.reset();
       resourceBinder.bindSlots(targetPlan.memoryLayout, dimensions);
@@ -139,7 +139,7 @@ export function createSessionController(commandExecutor, resourceBinder, program
         stepResult = prefill.results.at(-1);
         for (let step = 0; step < options.maxTokens; step += 1) {
           if (options.signal?.aborted) throw new Error('Generation aborted during decode.');
-          const tokenId = samplePackLogits(stepResult?.logits, contextTokens, options, tokenContract);
+          const tokenId = sampleCapsuleLogits(stepResult?.logits, contextTokens, options, tokenContract);
           program.releaseStepResult(stepResult);
           stepResult = null;
           generatedTokens.push(tokenId);

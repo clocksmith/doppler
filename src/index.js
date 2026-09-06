@@ -5,6 +5,6 @@ export {
   generate,
   load,
   open,
-  openPack,
+  openCapsule,
 } from './client/doppler-api.js';
 export { createDopplerProvider } from './client/provider.js';

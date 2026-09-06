@@ -29,7 +29,8 @@ function sha256File(filePath) {
 }
 
 const compareConfig = readJson(COMPARE_CONFIG_PATH);
-const compareConfigSha256 = sha256File(COMPARE_CONFIG_PATH);
+// These observations bind the frozen input, not the renamed current configuration.
+const compareConfigSha256 = sha256File('tests/fixtures/pre-capsule/benchmarks/vendors/compare-engines.config.json');
 const qwenProfiles = (Array.isArray(compareConfig.modelProfiles) ? compareConfig.modelProfiles : [])
   .filter((entry) => String(entry?.dopplerModelId ?? '').startsWith('qwen-3-5-'));
 

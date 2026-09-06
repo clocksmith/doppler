@@ -6,10 +6,10 @@ import { createHash } from 'node:crypto';
 import { createDocumentSearchRenderer } from './renderer.js';
 import { exposeDocumentSearchReleaseBridge } from './preload.js';
 import { registerDocumentSearchReleaseMain } from './main.js';
-import { runElectronPackContract } from './electron-pack-contract.js';
+import { runElectronCapsuleContract } from './electron-capsule-contract.js';
 import { createDocumentSearchReleaseStore, createDocumentSearchCheckpointStore } from './release-storage.js';
 
-const fixture = JSON.parse(await fs.readFile(new URL('./pack-fixture.json', import.meta.url), 'utf8'));
+const fixture = JSON.parse(await fs.readFile(new URL('./capsule-fixture.json', import.meta.url), 'utf8'));
 const bytes = new Map(fixture.artifacts.map(([id, values]) => [id, Uint8Array.from(values)]));
 const artifactStore = {
   async hashArtifact(artifact) {
@@ -18,8 +18,8 @@ const artifactStore = {
   },
   async readArtifact(artifact) { return bytes.get(artifact.artifactId).slice(); },
 };
-await runElectronPackContract({
-  fixture: { pack: fixture.pack, artifactStore },
+await runElectronCapsuleContract({
+  fixture: { capsule: fixture.capsule, artifactStore },
   trustedSigners: fixture.trustedSigners,
   createRenderer: createDocumentSearchRenderer,
 });
@@ -38,7 +38,7 @@ exposeDocumentSearchReleaseBridge(
   { invoke(_channel, request) { return handler({}, request); } },
 );
 assert.equal((await bridge.status()).current, null);
-await assert.rejects(bridge.resolveCurrent(), /active Pack/);
+await assert.rejects(bridge.resolveCurrent(), /active Capsule/);
 const privateDirectory = await fs.mkdtemp(path.join(tmpdir(), 'doppler-installed-release-'));
 try {
   const filename = path.join(privateDirectory, 'checkpoint.json');
@@ -54,4 +54,4 @@ try {
 } finally {
   await fs.rm(privateDirectory, { recursive: true, force: true });
 }
-console.log('installed Electron Pack contract passed (synthetic device/program, no repository imports)');
+console.log('installed Electron Capsule contract passed (synthetic device/program, no repository imports)');

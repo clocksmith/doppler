@@ -2,7 +2,7 @@
 
 `src/config/revocation-registry.json` is the shipped authority for model,
 artifact, and adapter revocation. It can target exact logical model IDs,
-resolved model IDs, source checkpoints, weight packs, manifest variants,
+resolved model IDs, source checkpoints, weight capsules, manifest variants,
 manifest-byte SHA-256 identities, adapter IDs, and adapter SHA-256 identities.
 An adapter digest may identify verified source weights or the canonical loaded
 tensor-layout execution identity; records should include the adapter ID and
@@ -18,7 +18,7 @@ The root API rejects matching quickstart, explicit-URL, inline-manifest, cached,
 and weights-ref loads. Known identity is checked during source resolution, then
 the complete manifest identity is checked before device initialization and
 weight loading. The exported legacy model manager checks the requested model
-before loading and the manifest-owned source, weight-pack, and variant IDs
+before loading and the manifest-owned source, weight-capsule, and variant IDs
 before pipeline construction.
 
 The LoRA loader checks a manifest ID and declared source checksum before it
@@ -89,15 +89,15 @@ The Electron release adapter adds a separate application update-state boundary.
 Its main-process coordinator uses an application-supplied atomic
 `compareAndSwap()` store for current, previous, candidate, retained failure, and
 verified revocation-snapshot state. Candidate installation never activates a
-Pack. Activation requires a cryptographically verified eligible decision plus
+Capsule. Activation requires a cryptographically verified eligible decision plus
 an explicit customer authorization digest; rollback also requires an explicit
 customer authorization digest. A revocation snapshot carries its policy digest,
-issuance and expiry instants, monotonic sequence, revoked Pack semantic roots,
+issuance and expiry instants, monotonic sequence, revoked Capsule semantic roots,
 content digest, and signature. The coordinator calls an application-owned
 cryptographic verifier before committing it; a caller-authored boolean is not
 verification. Renderer execution fails closed when the signed snapshot is
 missing, expired, exceeds the activated release's offline-expiry window, binds
-a different authority or policy, or denies the current Pack. This is a
+a different authority or policy, or denies the current Capsule. This is a
 repository contract and reference implementation, not evidence that a customer
 has deployed an atomic store or exercised production rollback.
 

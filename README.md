@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/clocksmith/doppler/blob/main/LICENSE)
 
 Doppler is a model compiler, release foundry, and WebGPU runtime for JavaScript.
-Forge turns supported model sources into signed immutable Packs with
+Forge turns supported model sources into signed immutable Capsules with
 ModelIR-derived, qualified TargetPlans. Runtime verifies, selects, binds, and
 executes the declared JavaScript/WGSL program. Browser and Node paths are
 qualified separately; Bun remains experimental.
@@ -21,8 +21,10 @@ application dependencies. Success means an independent application voluntarily
 retains Doppler for a measured improvement and ships a second revision with less
 release effort. Free adoption counts; benchmarks alone do not prove it.
 
-Applications control trust and updates. Pack v2 remains readable;
-[Pack v3](docs/pack-identity-migration.md) separates executable identity from
+Applications control trust and updates. This checkout introduces the breaking
+[Capsule naming migration](docs/capsule-naming-migration.md); former Pack APIs
+and schemas are not accepted. Capsule v2 and v3 are supported;
+[Capsule v3](docs/capsule-identity-migration.md) separates executable identity from
 release events. Doe, Poolday, and Reploid are optional, not prerequisites.
 
 Build local generation, embeddings, or reranking, or contribute improvements to
@@ -41,7 +43,7 @@ npx doppler-gpu --list-models
 
 The live browser demo is at [d4da.com/doppler](https://d4da.com/doppler).
 The first documentation path is [getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md),
-followed by the [Pack Runtime API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
+followed by the [Capsule Runtime API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
 For the release-foundry path, the installed command is `doppler release`; from
 npm use `npx --package doppler-gpu doppler release`. It consumes a pinned
@@ -50,13 +52,13 @@ npm use `npx --package doppler-gpu doppler release`. It consumes a pinned
 deploys the customer application. See the [release platform contract](docs/model-release-platform.md)
 and [CLI reference](docs/cli.md).
 
-### Pack Runtime API
+### Capsule Runtime API
 
 ```js
-import { openPack } from 'doppler-gpu/host';
+import { openCapsule } from 'doppler-gpu/host';
 import { reviewedRelease } from './reviewed-release.js';
 
-const session = await openPack(reviewedRelease.packUrl, {
+const session = await openCapsule(reviewedRelease.capsuleUrl, {
   trustedSigners: reviewedRelease.trustedSigners,
   acceptedTargetPlanDigests: reviewedRelease.acceptedTargetPlanDigests,
 });
@@ -74,14 +76,14 @@ try {
 ```
 
 `reviewedRelease` is application-owned configuration, not metadata trusted merely
-because it was downloaded. It identifies a reranker Pack, accepted plans, trusted
+because it was downloaded. It identifies a reranker Capsule, accepted plans, trusted
 publishers, and the application/workload/oracle contract. The host entry composes
 the existing device, artifact-store, and program ports; trust and upgrades remain
 explicit. See the [Electron integration](examples/electron-document-search/README.md)
 and [retained evaluation](docs/integration/reranker-evaluation.md).
 
 Advanced applications can still inject every port through `doppler-gpu` or
-`doppler-gpu/runtime`. Both routes verify the same Pack and initial execution
+`doppler-gpu/runtime`. Both routes verify the same Capsule and initial execution
 identity. The host facade does not add model operations or broaden qualification.
 
 Discover repository commands with `npm run` or `npm pkg get scripts` (JSON).
@@ -165,7 +167,7 @@ defines the gates.
 flowchart TB
   S[Pinned source checkpoint] --> F[Forge: inspect, normalize, lower]
   F --> V[Verify and qualify TargetPlans]
-  V --> P[Package and sign immutable Pack]
+  V --> P[Package and sign immutable Capsule]
   P --> A{Application acceptance}
   A -- fail --> N[Reject with finding]
   A -- pass --> K[Promote supported release]
@@ -174,8 +176,8 @@ flowchart TB
 ```
 
 Candidates begin as pinned source truth. Forge owns graph-changing work and
-emits an immutable Pack only after verification and qualification. Application
-acceptance authorizes promotion. Runtime never repairs or specializes the Pack;
+emits an immutable Capsule only after verification and qualification. Application
+acceptance authorizes promotion. Runtime never repairs or specializes the Capsule;
 it selects a qualified TargetPlan, binds resources, executes declared commands,
 and emits evidence for continuing qualification and recovery decisions.
 

@@ -14,7 +14,7 @@ Primary documentation index.
 
 - [Architecture](architecture.md) - system model and boundaries.
 - [Model Release Platform](model-release-platform.md) - standalone product,
-  Pack-first convergence, qualification offer, explicit gaps, and GTM gate.
+  Capsule-first convergence, qualification offer, explicit gaps, and GTM gate.
 - [Executable-model Adoption Plan](executable-model-adoption-plan.md) -
   standalone Doppler proof sequence from an external adopter contract through
   retained application adoption, with no Poolday, Reploid, or Doe dependency.
@@ -58,7 +58,7 @@ Primary documentation index.
 ## Public API Docs
 
 - [API Docs Index](api/index.md) - canonical public API navigation.
-- [Pack Runtime API](api/root.md) - signed-Pack application facade.
+- [Capsule Runtime API](api/root.md) - signed-Capsule application facade.
 - [Compatibility API](api/compat.md) - explicit legacy manifest-loading facade.
 - [Advanced Root Exports](api/advanced-root-exports.md) - root-level loaders, adapters, and advanced exports.
 - [Loaders API](api/loaders.md) - explicit loader and manifest/bootstrap helpers.

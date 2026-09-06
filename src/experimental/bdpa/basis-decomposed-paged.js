@@ -250,8 +250,8 @@ export class BasisDecomposedPagedCache extends KVCache {
         }
         const basisKF16 = f32ToF16Array(generated.tBasisK);
         const basisVF16 = f32ToF16Array(generated.tBasisV);
-        const packedDeltaK = this._packInt8ToInt32(generated.pDeltaK);
-        const packedDeltaV = this._packInt8ToInt32(generated.pDeltaV);
+        const packedDeltaK = this._capsuleInt8ToInt32(generated.pDeltaK);
+        const packedDeltaV = this._capsuleInt8ToInt32(generated.pDeltaV);
 
         device.queue.writeBuffer(layer.basisGPU.k, 0, basisKF16);
         device.queue.writeBuffer(layer.basisGPU.v, 0, basisVF16);
@@ -262,7 +262,7 @@ export class BasisDecomposedPagedCache extends KVCache {
         layer.numBasisVectors = generated.numBasisVectors;
     }
 
-    _packInt8ToInt32(values) {
+    _capsuleInt8ToInt32(values) {
         const packedLen = Math.ceil(values.length / 4);
         const packed = new Int32Array(packedLen);
         for (let i = 0; i < values.length; i++) {

@@ -10,7 +10,7 @@ import {
   buildTrainingPolicyUpdate,
 } from '../src/experimental/training/policy-artifacts.js';
 import { hashVerifierGuidedArtifact } from '../src/experimental/training/wgsl-repair.js';
-import { loadTrainingWorkloadPack } from '../src/experimental/training/workloads.js';
+import { loadTrainingWorkloadCapsule } from '../src/experimental/training/workloads.js';
 import { sha256BytesHex, sha256Hex } from '../src/utils/sha256.js';
 import {
   deriveWgslTrainingRows,
@@ -23,7 +23,7 @@ import { runGammaWgslRequest } from './trainers/gamma-wgsl-trainer.js';
 
 const PROTOCOL = 'gamma_wgsl_trainer_json_v1';
 const DEFAULT_POLICY = 'tools/policies/wgsl-repair-v9-policy.json';
-const DEFAULT_WORKLOAD = 'src/experimental/training/workload-packs/lora-doppler-wgsl-qwen35-9b-v9.json';
+const DEFAULT_WORKLOAD = 'src/experimental/training/workload-capsules/lora-doppler-wgsl-qwen35-9b-v9.json';
 const DEFAULT_CORPUS_ROOT = 'reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1';
 const DEFAULT_RUN_ROOT = 'reports/training/wgsl-repair/doppler-wgsl-repair-v9/experiment';
 
@@ -177,7 +177,7 @@ async function runPreflight(context) {
 }
 
 async function runSft(context) {
-  const loadedWorkload = await loadTrainingWorkloadPack(context.workloadPath);
+  const loadedWorkload = await loadTrainingWorkloadCapsule(context.workloadPath);
   const result = await runLoraPipeline({
     loadedWorkload,
     runRoot: join(context.runRoot, 'sft'),

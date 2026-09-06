@@ -1,9 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { bootstrapNodeWebGPU } from '../src/tooling/node-webgpu.js';
-import { createForecastProgramFactory } from '../src/pack-runtime.js';
+import { createForecastProgramFactory } from '../src/capsule-runtime.js';
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
-import { openPack } from '../src/pack-runtime.js';
+import { openCapsule } from '../src/capsule-runtime.js';
 
 const root = path.resolve(process.argv[2] ?? '');
 const sealed = process.argv.includes('--sealed');
@@ -23,7 +23,7 @@ let bootstrap;
 let adapterInfo;
 let profile;
 let checkpoint = { sequence: 0, digest: null };
-let pack;
+let capsule;
 try {
   bootstrap = await bootstrapNodeWebGPU();
   if (!bootstrap.ok) throw new Error(bootstrap.detail);
@@ -32,10 +32,10 @@ try {
   adapterInfo = Object.fromEntries(['vendor', 'architecture', 'device', 'description'].map(k => [k, adapter.info[k] ?? null]));
   device = await adapter.requestDevice();
   if (sealed) {
-    pack = JSON.parse(await fs.readFile(path.join(root, 'pack.json'), 'utf8'));
+    capsule = JSON.parse(await fs.readFile(path.join(root, 'capsule.json'), 'utf8'));
     profile = JSON.parse(await fs.readFile(path.join(root, 'trust-profile.json'), 'utf8'));
     const releaseEvents = JSON.parse(await fs.readFile(path.join(root, 'release-events.json'), 'utf8'));
-    program = await openPack(pack, { artifactStore, trustedSigners: profile.trustedSigners,
+    program = await openCapsule(capsule, { artifactStore, trustedSigners: profile.trustedSigners,
       device: { getDevice: () => device, getProfile: () => ({ surface: 'node-webgpu', hasF16: device.features.has('shader-f16'),
         hasSubgroups: device.features.has('subgroups'), maxBufferSize: device.limits.maxBufferSize }) },
       programFactory: createForecastProgramFactory(device), session: { releaseEvents,
@@ -44,7 +44,7 @@ try {
         persistReleaseCheckpoint: async value => {
           await fs.writeFile(path.join(root, 'node-release-checkpoint.json'), JSON.stringify(value)); checkpoint = value;
         } } });
-  } else program = await createForecastProgramFactory(device)({ pack: candidate, targetPlan: candidate.targetPlan, artifactStore });
+  } else program = await createForecastProgramFactory(device)({ capsule: candidate, targetPlan: candidate.targetPlan, artifactStore });
   for (const testCase of reference.cases) {
     const start = performance.now();
     const request = { context: testCase.context, horizon: testCase.horizon };
@@ -69,7 +69,7 @@ try {
 } finally {
   try { await program?.close(); } finally { device?.destroy(); await bootstrap?.session?.close(); }
   const report = { schema: 'doppler.forecast-qualification/v1', startedAt: started, completedAt: new Date().toISOString(),
-    boundary: sealed ? 'signed-pack-session' : 'candidate-program', packIdentity: program?.packIdentity ?? null, checkpoint,
+    boundary: sealed ? 'signed-capsule-session' : 'candidate-program', capsuleIdentity: program?.capsuleIdentity ?? null, checkpoint,
     status: failure ? 'failed' : 'passed', surface: 'node-webgpu', adapter: adapterInfo ?? null,
     provider: bootstrap?.provider ?? null, node: process.version,
     candidateHash: computeCanonicalSha256(candidate), executionGraphHash: candidate.program.executionGraphHash,

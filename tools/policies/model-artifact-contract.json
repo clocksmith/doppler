@@ -19,7 +19,7 @@
   "mirroredFields": [
     "modelId",
     "sourceCheckpointId",
-    "weightPackId",
+    "weightCapsuleId",
     "manifestVariantId",
     "artifactCompleteness",
     "runtimePromotionState",

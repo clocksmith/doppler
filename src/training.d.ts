@@ -4,7 +4,7 @@ import type {
 } from './experimental/training/lora-pipeline.js';
 import type {
   LoadedTrainingWorkload,
-  TrainingWorkloadPack,
+  TrainingWorkloadCapsule,
 } from './experimental/training/workloads.js';
 
 export { AutogradTape, OpType } from './experimental/training/autograd.js';
@@ -44,8 +44,8 @@ export {
   watchLoraCheckpoints,
 } from './experimental/training/lora-pipeline.js';
 export {
-  loadTrainingWorkloadPack,
-  normalizeTrainingWorkloadPack,
+  loadTrainingWorkloadCapsule,
+  normalizeTrainingWorkloadCapsule,
   serializeTrainingWorkloadLock,
 } from './experimental/training/workloads.js';
 export type {
@@ -57,7 +57,7 @@ export type {
 export type {
   LoadedTrainingWorkload,
   LoRAWorkloadPipelineConfig,
-  TrainingWorkloadPack,
+  TrainingWorkloadCapsule,
 } from './experimental/training/workloads.js';
 
 export type TrainingBackend = 'webgpu_native' | 'external';
@@ -124,11 +124,11 @@ export declare function releaseNativeTrainingHost(): Promise<{
 }>;
 
 export declare function getTrainingCapabilities(
-  workload: TrainingWorkloadPack | Record<string, unknown>
+  workload: TrainingWorkloadCapsule | Record<string, unknown>
 ): TrainingCapabilities;
 
 export declare function assertTrainingBackend(
-  workload: TrainingWorkloadPack | Record<string, unknown>,
+  workload: TrainingWorkloadCapsule | Record<string, unknown>,
   backend: TrainingBackend
 ): TrainingCapabilities;
 

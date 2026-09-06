@@ -128,7 +128,7 @@
         "throughput": "profiles/throughput"
       },
       "compareLane": "performance_comparable",
-      "compareLaneReason": "Doppler uses the local AF16 INT4-PLE weights-ref sibling over the Gemma 4 E2B INT4 PLE weight pack; TJS uses standard ONNX q4f16. This lane is local compute-throughput evidence, not hosted-release evidence.",
+      "compareLaneReason": "Doppler uses the local AF16 INT4-PLE weights-ref sibling over the Gemma 4 E2B INT4 PLE weight capsule; TJS uses standard ONNX q4f16. This lane is local compute-throughput evidence, not hosted-release evidence.",
       "outputParityPolicy": {
         "schemaVersion": 1,
         "requireMatch": false,

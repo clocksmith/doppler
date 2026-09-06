@@ -1,23 +1,24 @@
 import { hashTargetPlan, assertQualifiedTargetOperation, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
-import { freezePackV2 } from '../../config/pack-v2.js';
-import { validatePack, verifyPack, getPackIdentity } from '../../config/pack.js';
+import { freezeCapsuleV2, verifyCapsuleV2Artifacts } from '../../config/capsule-v2.js';
+import { verifyCapsuleMetadata, getCapsuleIdentity } from '../../config/capsule.js';
 import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
-import { hashPackSequenceInput, hashPackSequenceOutput } from '../../config/pack-sequence-receipt.js';
-import { createVerifiedPackArtifactStore } from './verified-pack-artifact-store.js';
+import { hashCapsuleSequenceInput, hashCapsuleSequenceOutput } from '../../config/capsule-sequence-receipt.js';
+import { createVerifiedCapsuleArtifactStore } from './verified-capsule-artifact-store.js';
 import { createResourceBinder } from './resource-binder.js';
 import { createCommandExecutor } from './command-executor.js';
 import { createSessionController } from './session-controller.js';
 import { selectTargetPlan } from './target-selector.js';
-import { executePackRerank } from './pack-rerank.js';
-import { createPackOperationAdapters } from './pack-operation-adapters.js';
-import { createPackOperationExecutor } from './pack-operation-executor.js';
-import { executePackForecast } from './pack-forecast.js';
-import { executePackEmbedding } from './pack-embedding.js';
-import { PackReleaseStateError } from '../../config/pack-release-events.js';
-import { createPackReleaseAuthorization } from './pack-release-authorization.js';
+import { executeCapsuleRerank } from './capsule-rerank.js';
+import { createCapsuleOperationAdapters } from './capsule-operation-adapters.js';
+import { createCapsuleOperationExecutor } from './capsule-operation-executor.js';
+import { executeCapsuleForecast } from './capsule-forecast.js';
+import { executeCapsuleEmbedding } from './capsule-embedding.js';
+import { CapsuleReleaseStateError } from '../../config/capsule-release-events.js';
+import { createCapsuleReleaseAuthorization } from './capsule-release-authorization.js';
+import { createCapsuleLoadScope, assertCapsuleLoadActive } from './capsule-acquisition.js';
 
-export { createForecastProgramFactory } from './pack-forecast-program.js';
+export { createForecastProgramFactory } from './capsule-forecast-program.js';
 
 export const RUNTIME_CORE_VERSION = '2.0.0';
 
@@ -25,11 +26,11 @@ function emit(observer, event) {
   observer?.observe?.(Object.freeze({ ...event }));
 }
 
-async function loadModuleSources(pack, artifactStore) {
+async function loadModuleSources(capsule, artifactStore) {
   if (typeof artifactStore?.readArtifact !== 'function') return new Map();
-  const artifactById = new Map(pack.artifacts.map((artifact) => [artifact.artifactId, artifact]));
+  const artifactById = new Map(capsule.artifacts.map((artifact) => [artifact.artifactId, artifact]));
   const modules = new Map();
-  for (const module of pack.wgslModules) {
+  for (const module of capsule.wgslModules) {
     const artifact = artifactById.get(module.sourceArtifactId);
     const bytes = await artifactStore.readArtifact(artifact);
     modules.set(module.id, { ...module, source: new TextDecoder().decode(bytes) });
@@ -43,52 +44,46 @@ export function createDopplerRuntime(ports) {
   if (!ports.artifactStore) throw new Error('createDopplerRuntime requires an artifactStore port.');
   if (!ports.trustedSigners) throw new Error('createDopplerRuntime requires trustedSigners.');
   if (typeof ports.programFactory !== 'function') throw new Error('createDopplerRuntime requires programFactory.');
-  const { device, packSource = null, artifactStore, cache = null, observer = null, trustedSigners, programFactory } = ports;
+  const { device, capsuleSource = null, artifactStore, cache = null, observer = null, trustedSigners, programFactory } = ports;
 
   return {
     version: RUNTIME_CORE_VERSION,
-    ports: { device, packSource, artifactStore, cache, observer },
+    ports: { device, capsuleSource, artifactStore, cache, observer },
 
-    async openPack(packOrId, options = {}) {
+    async openCapsule(capsuleOrId, options = {}) {
       const selectionPolicy = normalizeTargetPlanSelectionPolicy({
         acceptedTargetPlanDigests: options.acceptedTargetPlanDigests,
         requiredOperations: options.requiredOperations,
         preferredTargetPlanDigests: options.preferredTargetPlanDigests,
       });
-      const input = typeof packOrId === 'string'
-        ? await packSource?.fetchPack?.(packOrId, options)
-        : packOrId;
-      const pack = freezePackV2(structuredClone(input));
-      const structural = validatePack(pack);
-      if (!structural.ok) throw new Error(`Invalid Doppler Pack: ${structural.errors.join('; ')}`);
-      const verifiedStore = createVerifiedPackArtifactStore(pack, artifactStore);
-      emit(observer, { type: 'pack-validation-started', packId: pack.packId });
-      let verification;
-      try {
-        verification = await verifyPack(pack, { ...options, trustedSigners, artifactStore: verifiedStore });
-        if (verification.lifecycle) {
-          if (typeof options.persistReleaseCheckpoint !== 'function') throw new Error('Pack v3 requires persistReleaseCheckpoint before execution.');
-          await options.persistReleaseCheckpoint(verification.lifecycle.checkpoint);
-        }
-      } catch (error) {
-        verifiedStore.close();
-        if (error instanceof PackReleaseStateError && typeof options.persistReleaseCheckpoint === 'function') {
-          try { await options.persistReleaseCheckpoint(error.checkpoint); } catch (persistenceError) {
-            throw new AggregateError([error, persistenceError], 'Release rejected; its verified checkpoint could not be persisted.', { cause: error });
-          }
-        }
-        throw error;
-      }
-      const releaseAuthorization = createPackReleaseAuthorization(verification.lifecycle);
+      const acquisition = createCapsuleLoadScope(options);
+      options = acquisition.options;
+      let verifiedStore;
       let program;
       try {
-        await cache?.set?.(pack.semanticRoot, {
-          schema: 'doppler.pack-verification-cache/v1',
-          semanticRoot: pack.semanticRoot,
-          artifactReceipts: verification.artifactReceipts,
-        });
-        emit(observer, { type: 'pack-validation-complete', packId: pack.packId, semanticRoot: pack.semanticRoot });
-
+        const input = typeof capsuleOrId === 'string'
+          ? await capsuleSource?.fetchCapsule?.(capsuleOrId, options)
+          : capsuleOrId;
+        assertCapsuleLoadActive(options.signal);
+        const capsule = freezeCapsuleV2(structuredClone(input));
+        emit(observer, { type: 'capsule-validation-started', capsuleId: capsule.capsuleId });
+        let verification;
+        try {
+          verification = await verifyCapsuleMetadata(capsule, { ...options, trustedSigners });
+          if (verification.lifecycle) {
+            if (typeof options.persistReleaseCheckpoint !== 'function') throw new Error('Capsule v3 requires persistReleaseCheckpoint before execution.');
+            await options.persistReleaseCheckpoint(verification.lifecycle.checkpoint);
+          }
+        } catch (error) {
+          if (error instanceof CapsuleReleaseStateError && typeof options.persistReleaseCheckpoint === 'function') {
+            try { await options.persistReleaseCheckpoint(error.checkpoint); } catch (persistenceError) {
+              throw new AggregateError([error, persistenceError], 'Release rejected; its verified checkpoint could not be persisted.', { cause: error });
+            }
+          }
+          throw error;
+        }
+        assertCapsuleLoadActive(options.signal);
+        const releaseAuthorization = createCapsuleReleaseAuthorization(verification.lifecycle);
         const deviceProfile = typeof device.getProfile === 'function'
           ? await device.getProfile()
           : {
@@ -96,15 +91,26 @@ export function createDopplerRuntime(ports) {
               hasSubgroups: Boolean(device.hasSubgroups),
               maxBufferSize: Number(device.maxBufferSize || 0),
             };
-        const selectedPlan = selectTargetPlan(pack.targetPlans, deviceProfile, selectionPolicy);
+        assertCapsuleLoadActive(options.signal);
+        const selectedPlan = selectTargetPlan(capsule.targetPlans, deviceProfile, selectionPolicy);
         const targetPlanDigest = hashTargetPlan(selectedPlan);
-        emit(observer, { type: 'target-selected', packId: pack.packId, targetId: selectedPlan.targetId, targetPlanDigest });
-        const modules = await loadModuleSources(pack, verifiedStore);
-        const manifestArtifact = pack.artifacts.find((artifact) => artifact.artifactId === pack.program.manifestArtifactId);
-        const manifest = freezePackV2(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await verifiedStore.readArtifact(manifestArtifact))));
-        if (manifest.modelId !== pack.modelId) throw new Error('Signed manifest model identity mismatch.');
+        emit(observer, { type: 'target-selected', capsuleId: capsule.capsuleId, targetId: selectedPlan.targetId, targetPlanDigest });
+        verifiedStore = createVerifiedCapsuleArtifactStore(capsule, artifactStore, options);
+        const artifactReceipts = await verifyCapsuleV2Artifacts(capsule, verifiedStore);
+        verification = freezeCapsuleV2({ ...verification, artifactReceipts });
+        await cache?.set?.(capsule.semanticRoot, {
+          schema: 'doppler.capsule-verification-cache/v1', semanticRoot: capsule.semanticRoot, artifactReceipts,
+        });
+        assertCapsuleLoadActive(options.signal);
+        emit(observer, { type: 'capsule-validation-complete', capsuleId: capsule.capsuleId, semanticRoot: capsule.semanticRoot,
+          artifactMetrics: verifiedStore.getMetrics() });
+        const modules = await loadModuleSources(capsule, verifiedStore);
+        const manifestArtifact = capsule.artifacts.find((artifact) => artifact.artifactId === capsule.program.manifestArtifactId);
+        const manifest = freezeCapsuleV2(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await verifiedStore.readArtifact(manifestArtifact))));
+        if (manifest.modelId !== capsule.modelId) throw new Error('Signed manifest model identity mismatch.');
         let observedInitialExecutionIdentity = null;
-        program = await programFactory({ pack, targetPlan: selectedPlan, artifactStore: verifiedStore, deviceProfile, options });
+        program = await programFactory({ capsule, targetPlan: selectedPlan, artifactStore: verifiedStore, deviceProfile, options });
+        assertCapsuleLoadActive(options.signal);
         if (selectedPlan.schema === 'doppler.target-plan/v2') {
           if (typeof program?.getInitialExecutionIdentity !== 'function') {
             throw new Error('TargetPlan v2 requires the loaded program to report initial execution identity.');
@@ -116,7 +122,7 @@ export function createDopplerRuntime(ports) {
           );
           emit(observer, {
             type: 'initial-execution-identity-bound',
-            packId: pack.packId,
+            capsuleId: capsule.capsuleId,
             targetId: selectedPlan.targetId,
             identityDigest: observedInitialExecutionIdentity.digest,
           });
@@ -130,20 +136,20 @@ export function createDopplerRuntime(ports) {
           if (observeProgram) resourceBinder.assertDeviceAvailable();
           const observed = hashTargetPlan(selectedPlan);
           if (observed !== targetPlanDigest) {
-            throw new Error(`Pack Runtime mutated TargetPlan "${selectedPlan.targetId}" during execution.`);
+            throw new Error(`Capsule Runtime mutated TargetPlan "${selectedPlan.targetId}" during execution.`);
           }
-          if (getPackIdentity(pack).envelopeDigest !== verification.identity.envelopeDigest) throw new Error('Pack Runtime mutated its executable closure.');
+          if (getCapsuleIdentity(capsule).envelopeDigest !== verification.identity.envelopeDigest) throw new Error('Capsule Runtime mutated its executable closure.');
           if (observeProgram && selectedPlan.schema === 'doppler.target-plan/v2') {
             assertInitialExecutionIdentity(selectedPlan.initialExecutionIdentity, await program.getInitialExecutionIdentity());
           }
         }
 
         const session = {
-          modelId: pack.modelId,
-          packId: pack.packId,
-          semanticRoot: pack.semanticRoot,
-          schema: 'doppler.pack-session/v1',
-          packIdentity: verification.identity,
+          modelId: capsule.modelId,
+          capsuleId: capsule.capsuleId,
+          semanticRoot: capsule.semanticRoot,
+          schema: 'doppler.capsule-session/v1',
+          capsuleIdentity: verification.identity,
           manifest,
           manifestHash: manifestArtifact.hash,
           get loaded() { return !closed; },
@@ -157,13 +163,13 @@ export function createDopplerRuntime(ports) {
           units: { resourceBinder, commandExecutor, sessionController },
 
           async forecast(request) {
-            if (closed) throw new Error('Pack runtime session is closed.');
+            if (closed) throw new Error('Capsule runtime session is closed.');
             releaseAuthorization.assertAssignment(request?.assignmentHash);
             await assertPlanUnchanged();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'forecast');
             try {
-              return releaseAuthorization.bindResult(await executePackForecast({ identity: verification.identity,
-                release: verification.lifecycle?.release ?? pack.release,
+              return releaseAuthorization.bindResult(await executeCapsuleForecast({ identity: verification.identity,
+                release: verification.lifecycle?.release ?? capsule.release,
                 targetPlan: selectedPlan, targetPlanDigest, program, request,
                 artifactReceipts: verification.artifactReceipts,
                 releaseEventDigest: verification.lifecycle?.event.digest ?? null }));
@@ -171,12 +177,12 @@ export function createDopplerRuntime(ports) {
           },
 
           async embed(request) {
-            if (closed) throw new Error('Pack runtime session is closed.');
+            if (closed) throw new Error('Capsule runtime session is closed.');
             await assertPlanUnchanged();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'embed');
             try {
-              return releaseAuthorization.bindResult(await executePackEmbedding({ identity: verification.identity,
-                release: verification.lifecycle?.release ?? pack.release,
+              return releaseAuthorization.bindResult(await executeCapsuleEmbedding({ identity: verification.identity,
+                release: verification.lifecycle?.release ?? capsule.release,
                 manifest, manifestHash: manifestArtifact.hash,
                 targetPlan: selectedPlan, targetPlanDigest, program, request,
                 artifactReceipts: verification.artifactReceipts,
@@ -185,43 +191,43 @@ export function createDopplerRuntime(ports) {
           },
 
           async encodeSequence(sequence, sequenceOptions = {}) {
-            if (closed) throw new Error('Pack runtime session is closed.');
+            if (closed) throw new Error('Capsule runtime session is closed.');
             releaseAuthorization.assertAssignment(sequenceOptions.assignment);
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'encodeSequence');
-            if (typeof program.encodeSequence !== 'function') throw new Error('Selected Pack program does not implement sequence execution.');
+            if (typeof program.encodeSequence !== 'function') throw new Error('Selected Capsule program does not implement sequence execution.');
             if (sequenceOptions.signal?.aborted) throw sequenceOptions.signal.reason ?? new Error('Sequence execution cancelled.');
             await assertPlanUnchanged();
             const { signal, ...requestOptions } = sequenceOptions;
-            const executionOptions = { ...freezePackV2(structuredClone(requestOptions)), signal };
-            const inputHash = hashPackSequenceInput(sequence, executionOptions);
+            const executionOptions = { ...freezeCapsuleV2(structuredClone(requestOptions)), signal };
+            const inputHash = hashCapsuleSequenceInput(sequence, executionOptions);
             const assignmentHash = executionOptions.assignment ? computeCanonicalSha256(executionOptions.assignment) : null;
             try {
               const result = await program.encodeSequence(sequence, executionOptions);
               if (sequenceOptions.signal?.aborted) throw sequenceOptions.signal.reason ?? new Error('Sequence execution cancelled.');
               const payload = {
-                schema: 'doppler.pack-execution-receipt/v1',
+                schema: 'doppler.capsule-execution-receipt/v1',
                 operation: 'encodeSequence',
-                pack: verification.identity,
+                capsule: verification.identity,
                 targetId: selectedPlan.targetId,
                 targetPlanDigest,
                 artifactReceipts: verification.artifactReceipts,
                 releaseEventDigest: verification.lifecycle?.event.digest ?? null,
                 assignmentHash,
                 inputHash,
-                outputHash: hashPackSequenceOutput(result),
+                outputHash: hashCapsuleSequenceOutput(result),
               };
-              return { ...result, receipt: releaseAuthorization.bindReceipt(freezePackV2({ ...payload, receiptDigest: computeCanonicalSha256(payload) })) };
+              return { ...result, receipt: releaseAuthorization.bindReceipt(freezeCapsuleV2({ ...payload, receiptDigest: computeCanonicalSha256(payload) })) };
             } finally { await assertPlanUnchanged(); }
           },
 
           resetGenerationState() {
-            if (closed) throw new Error('Pack runtime session is closed.');
+            if (closed) throw new Error('Capsule runtime session is closed.');
             resourceBinder.assertDeviceAvailable();
             return program.reset?.();
           },
 
           async *generate(generationOptions = {}) {
-            if (closed) throw new Error('Pack runtime session is closed.');
+            if (closed) throw new Error('Capsule runtime session is closed.');
             await assertPlanUnchanged();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'generate');
             try {
@@ -238,20 +244,20 @@ export function createDopplerRuntime(ports) {
           },
 
           async rerank(request) {
-            if (closed) throw new Error('Pack runtime session is closed.');
+            if (closed) throw new Error('Capsule runtime session is closed.');
             await assertPlanUnchanged();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'rerank');
             try {
-              const receipt = releaseAuthorization.bindReceipt(await executePackRerank({
-                pack: verification.lifecycle ? { ...pack, release: verification.lifecycle.release } : pack,
+              const receipt = releaseAuthorization.bindReceipt(await executeCapsuleRerank({
+                capsule: verification.lifecycle ? { ...capsule, release: verification.lifecycle.release } : capsule,
                 targetPlan: selectedPlan,
                 targetPlanDigest,
                 program,
                 request,
               }));
               emit(observer, {
-                type: 'pack-rerank-complete',
-                packId: pack.packId,
+                type: 'capsule-rerank-complete',
+                capsuleId: capsule.capsuleId,
                 targetId: selectedPlan.targetId,
                 receiptDigest: receipt.receiptDigest,
               });
@@ -271,29 +277,34 @@ export function createDopplerRuntime(ports) {
               verifiedStore.close();
               await assertPlanUnchanged(false);
             }
-            emit(observer, { type: 'pack-session-closed', packId: pack.packId, targetPlanDigest });
+            emit(observer, { type: 'capsule-session-closed', capsuleId: capsule.capsuleId, targetPlanDigest });
           },
         };
-        const adapters = createPackOperationAdapters({ program,
+        const adapters = createCapsuleOperationAdapters({ program,
           generate: (request) => session.generate(request), rerank: (request) => session.rerank(request),
           embed: (request) => session.embed(request),
           encodeSequence: (sequence, options) => session.encodeSequence(sequence, options) });
+        assertCapsuleLoadActive(options.signal);
+        emit(observer, { type: 'capsule-load-complete', capsuleId: capsule.capsuleId, artifactMetrics: verifiedStore.getMetrics() });
         return Object.assign(session, {
-          executeOperation: createPackOperationExecutor({ adapters,
-            identity: { pack: verification.identity, targetId: selectedPlan.targetId, targetPlanDigest,
+          executeOperation: createCapsuleOperationExecutor({ adapters,
+            identity: { capsule: verification.identity, targetId: selectedPlan.targetId, targetPlanDigest,
               artifactReceipts: verification.artifactReceipts, releaseEventDigest: verification.lifecycle?.event.digest ?? null,
               ...releaseAuthorization.receiptFields },
             async assertCurrent(request) {
-              if (closed) throw new Error('Pack runtime session is closed.');
+              if (closed) throw new Error('Capsule runtime session is closed.');
               releaseAuthorization.assertAssignment(request.assignment);
               await assertPlanUnchanged();
             },
           }),
         });
       } catch (error) {
-        try { await program?.close?.(); } finally { verifiedStore.close(); }
+        acquisition.abort(error);
+        try { await program?.close?.(); } catch (cleanupError) {
+          throw new AggregateError([error, cleanupError], 'Capsule loading failed and program cleanup failed.', { cause: error });
+        }
         throw error;
-      }
+      } finally { acquisition.close(); if (acquisition.options.signal.aborted) verifiedStore?.close(); }
     },
   };
 }

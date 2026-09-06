@@ -16,7 +16,7 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const DEFAULT_MODEL_DIR = 'models/local/gemma-4-e2b-it-q4k-ehf16-af32';
 const DEFAULT_MODEL_ID = 'gemma-4-e2b-it-q4k-ehf16-af32';
 const DEFAULT_TJS_MODEL_ID = 'onnx-community/gemma-4-E2B-it-ONNX';
-const DEFAULT_PROMPT_PACK = path.join('tools', 'data', 'gemma4-e2b-blog-prompts-512.json');
+const DEFAULT_PROMPT_CAPSULE = path.join('tools', 'data', 'gemma4-e2b-blog-prompts-512.json');
 const DEFAULT_RUNTIME_PROFILE = 'profiles/production';
 const DEFAULT_MAX_TOKENS = 1;
 const DEFAULT_TIMEOUT_MS = 600_000;
@@ -64,15 +64,15 @@ function parsePositiveInteger(value, label, fallback = null) {
   return parsed;
 }
 
-function normalizePromptPackEntry(entry, index) {
+function normalizePromptCapsuleEntry(entry, index) {
   if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-    throw new Error(`promptPack[${index}] must be an object.`);
+    throw new Error(`promptCapsule[${index}] must be an object.`);
   }
   const id = typeof entry.id === 'string' && entry.id.trim() !== ''
     ? entry.id.trim()
     : `prompt-${index + 1}`;
   if (typeof entry.text !== 'string' || entry.text.length === 0) {
-    throw new Error(`promptPack[${index}] must include non-empty text.`);
+    throw new Error(`promptCapsule[${index}] must include non-empty text.`);
   }
   return {
     id,
@@ -85,7 +85,7 @@ function parseArgs(argv) {
     modelDir: DEFAULT_MODEL_DIR,
     modelId: DEFAULT_MODEL_ID,
     tjsModelId: DEFAULT_TJS_MODEL_ID,
-    promptPack: DEFAULT_PROMPT_PACK,
+    promptCapsule: DEFAULT_PROMPT_CAPSULE,
     runtimeProfile: DEFAULT_RUNTIME_PROFILE,
     maxTokens: DEFAULT_MAX_TOKENS,
     timeoutMs: DEFAULT_TIMEOUT_MS,
@@ -124,10 +124,10 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
-    if (arg === '--prompt-pack') {
+    if (arg === '--prompt-capsule') {
       const value = argv[i + 1];
-      if (!value) throw new Error('--prompt-pack requires a path.');
-      parsed.promptPack = value;
+      if (!value) throw new Error('--prompt-capsule requires a path.');
+      parsed.promptCapsule = value;
       i += 1;
       continue;
     }
@@ -193,7 +193,7 @@ function printHelp() {
       `  --model-dir <path>         Doppler local artifact directory (default: ${DEFAULT_MODEL_DIR})`,
       `  --model-id <id>            Doppler model id label (default: ${DEFAULT_MODEL_ID})`,
       `  --tjs-model-id <id>        Transformers.js model id (default: ${DEFAULT_TJS_MODEL_ID})`,
-      `  --prompt-pack <path>       Prompt pack JSON path (default: ${DEFAULT_PROMPT_PACK})`,
+      `  --prompt-capsule <path>       Prompt capsule JSON path (default: ${DEFAULT_PROMPT_CAPSULE})`,
       `  --runtime-profile <id>     Doppler runtime profile (default: ${DEFAULT_RUNTIME_PROFILE})`,
       `  --max-tokens <n>           Greedy decode length per prompt (default: ${DEFAULT_MAX_TOKENS})`,
       `  --timeout-ms <n>           Browser/page timeout (default: ${DEFAULT_TIMEOUT_MS})`,
@@ -215,15 +215,15 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
-function loadPromptPack(promptPackPath, maxPrompts = null) {
-  const raw = JSON.parse(fs.readFileSync(promptPackPath, 'utf8'));
+function loadPromptCapsule(promptCapsulePath, maxPrompts = null) {
+  const raw = JSON.parse(fs.readFileSync(promptCapsulePath, 'utf8'));
   const prompts = Array.isArray(raw)
     ? raw
     : (Array.isArray(raw?.promptCandidates) ? raw.promptCandidates : null);
   if (!Array.isArray(prompts) || prompts.length < 1) {
-    throw new Error(`Prompt pack "${promptPackPath}" must contain a non-empty array.`);
+    throw new Error(`Prompt capsule "${promptCapsulePath}" must contain a non-empty array.`);
   }
-  const normalized = prompts.map(normalizePromptPackEntry);
+  const normalized = prompts.map(normalizePromptCapsuleEntry);
   if (maxPrompts == null) {
     return normalized;
   }
@@ -280,7 +280,7 @@ function loadRuntimeProfileConfig(profileId, stack = []) {
   return mergedRuntime == null ? runtime : mergeRuntimeValues(mergedRuntime, runtime);
 }
 
-async function runDopplerPromptPack(args, promptPack) {
+async function runDopplerPromptCapsule(args, promptCapsule) {
   installNodeFileFetchShim();
   const bootstrap = await bootstrapNodeWebGPU();
   if (!bootstrap?.ok) {
@@ -298,7 +298,7 @@ async function runDopplerPromptPack(args, promptPack) {
 
   try {
     const results = [];
-    for (const prompt of promptPack) {
+    for (const prompt of promptCapsule) {
       pipeline.reset();
       const generated = await pipeline.generateTokenIds(prompt.text, {
         useChatTemplate: args.useChatTemplate,
@@ -413,7 +413,7 @@ function closeStaticServer(server) {
   } catch { /* ignore */ }
 }
 
-async function runTjsPromptPack(args, promptPack) {
+async function runTjsPromptCapsule(args, promptCapsule) {
   const { chromium } = await import('playwright');
   const staticServer = await createStaticServer(REPO_ROOT);
   const browser = await chromium.launch({
@@ -431,10 +431,10 @@ async function runTjsPromptPack(args, promptPack) {
     await page.goto(runnerUrl.toString(), { timeout: args.timeoutMs });
     await page.waitForFunction(() => window.__tfjsReady === true, { timeout: args.timeoutMs });
     return await page.evaluate(
-      async (config) => window.__runGreedyPromptPack(config),
+      async (config) => window.__runGreedyPromptCapsule(config),
       {
         modelId: args.tjsModelId,
-        promptPack,
+        promptCapsule,
         maxNewTokens: args.maxTokens,
         useChatTemplate: args.useChatTemplate,
         sampling: {
@@ -480,7 +480,7 @@ function buildMarkdownSummary(report) {
   const lines = [];
   lines.push('# gemma4 greedy prompt compare');
   lines.push('');
-  lines.push(`- prompt pack: \`${report.promptPackPath}\``);
+  lines.push(`- prompt capsule: \`${report.promptCapsulePath}\``);
   lines.push(`- prompt count: ${report.aggregate.promptCount}`);
   lines.push(`- max tokens: ${report.maxTokens}`);
   lines.push(`- chat template: ${report.useChatTemplate}`);
@@ -520,10 +520,10 @@ async function main() {
       setRuntimeConfig(mergeRuntimeValues(getRuntimeConfig(), profileRuntime));
     }
 
-    const promptPackPath = path.resolve(args.promptPack);
-    const promptPack = loadPromptPack(promptPackPath, args.maxPrompts);
-    const doppler = await runDopplerPromptPack(args, promptPack);
-    const tjs = await runTjsPromptPack(args, promptPack);
+    const promptCapsulePath = path.resolve(args.promptCapsule);
+    const promptCapsule = loadPromptCapsule(promptCapsulePath, args.maxPrompts);
+    const doppler = await runDopplerPromptCapsule(args, promptCapsule);
+    const tjs = await runTjsPromptCapsule(args, promptCapsule);
     const tjsResultsById = new Map((tjs.results ?? []).map((entry) => [entry.id, entry]));
 
     const comparedPrompts = doppler.results.map((dopplerEntry) => {
@@ -554,8 +554,8 @@ async function main() {
     const report = {
       schemaVersion: 1,
       source: 'gemma4-greedy-prompt-compare',
-      promptPackPath,
-      promptPack,
+      promptCapsulePath,
+      promptCapsule,
       maxTokens: args.maxTokens,
       useChatTemplate: args.useChatTemplate,
       doppler: {

@@ -34,8 +34,8 @@
         "modelSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
         "manifestSha256": "sha256:2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
         "tokenizerSha256": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
-        "weightPackId": "qwen-3-5-9b-f16-af32-wp-catalog-v1",
-        "weightPackSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+        "weightCapsuleId": "qwen-3-5-9b-f16-af32-wp-catalog-v1",
+        "weightCapsuleSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
         "manifestVariantId": "qwen-3-5-9b-f16-af32-mv-exec-v1",
         "conversionConfigSha256": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9"
       },
@@ -98,8 +98,8 @@
         "modelSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
         "manifestSha256": "sha256:2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
         "tokenizerSha256": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
-        "weightPackId": "qwen-3-5-9b-f16-af32-wp-catalog-v1",
-        "weightPackSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+        "weightCapsuleId": "qwen-3-5-9b-f16-af32-wp-catalog-v1",
+        "weightCapsuleSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
         "manifestVariantId": "qwen-3-5-9b-f16-af32-mv-exec-v1",
         "conversionConfigSha256": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9"
       },
@@ -167,8 +167,8 @@
         "modelSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
         "manifestSha256": "sha256:2ff1f1eec0345bd379614b8b0bafd66957bbec1c22072132661a6e35300ad398",
         "tokenizerSha256": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
-        "weightPackId": "qwen-3-5-9b-f16-af32-wp-catalog-v1",
-        "weightPackSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
+        "weightCapsuleId": "qwen-3-5-9b-f16-af32-wp-catalog-v1",
+        "weightCapsuleSha256": "sha256:d337596cd6ae6cb360b60bca56d95b2e24f5253113953455b6565ffcd055ee46",
         "manifestVariantId": "qwen-3-5-9b-f16-af32-mv-exec-v1",
         "conversionConfigSha256": "sha256:a590ecaf5bad3e8bb9f3ca7d375a2990efc49e0fd698295e1cdff0e6ceb268b9"
       },

@@ -28,7 +28,7 @@
         "exactTokenParity": true,
         "generatedTokenIdsHash": "sha256:7b7793f27503b446550a0ecd78342bc81b7a739431aaf93d6c9b06494d0cde37",
         "generatedTextHash": "sha256:254445dfbcda5dd4c12d72c26073fa2fb8ac721c390ef408780ed18025b3ce9d",
-        "sourceBoundaryPackPassed": false,
+        "sourceBoundaryCapsulePassed": false,
         "promotionEligible": false,
         "qualification": "deterministic-screen-only"
       },

@@ -89,7 +89,7 @@ node tools/run-program-bundle-reference.js \
   --tsir-fixture-layers 3
 ```
 
-The f16 lane is a manifest-only `weightsRef` sibling. Browser reference runs serve repo-local manifests through the repo static root so the sibling and its shared weight pack resolve under the same `/models/local/...` tree; Node fixture runs resolve the same `weightsRef` target before loading tokenizer and shards.
+The f16 lane is a manifest-only `weightsRef` sibling. Browser reference runs serve repo-local manifests through the repo static root so the sibling and its shared weight capsule resolve under the same `/models/local/...` tree; Node fixture runs resolve the same `weightsRef` target before loading tokenizer and shards.
 
 ## Stage→TSIR boundary mapping
 

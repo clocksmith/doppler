@@ -7,7 +7,7 @@ export interface ProductionReleaseCommandRequest {
   targetId?: string | null;
   deviceIdentityPath?: string | null;
   fleetReceiptPaths?: string[];
-  packTrustedSignersPath: string;
+  capsuleTrustedSignersPath: string;
   fleetTrustedSignersPath?: string | null;
   signingPrivateKeyPath: string;
   signingPublicKeyPath: string;

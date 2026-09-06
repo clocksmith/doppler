@@ -103,7 +103,7 @@
       "sourceCheckpointId": "google/gemma-4-12B-it-qat-w4a16-ct",
       "sourceRepo": "google/gemma-4-12B-it-qat-w4a16-ct",
       "sourceRevision": "dcfe12254e8fb98c743f21efa05ff64937926c64",
-      "weightPackId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-wp-catalog-v1",
+      "weightCapsuleId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-wp-catalog-v1",
       "manifestVariantId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-mv-w4a16-ct-reference-f16-dequant-v1",
       "artifactCompleteness": "complete"
     }

@@ -21,9 +21,9 @@
       "requiredDecision": "reference_corpus_qualified"
     },
     "workloadRegistry": {
-      "path": "src/experimental/training/workload-packs/registry.json",
-      "sha256": "c27e6dc5ba1ea7fd61504f12a3eccc638c7c5c1d40bfd1eb8b71c95ef554e65f",
-      "registryHash": "64b71f8f431f54af559669ef8b2c61ec4b86ad738ad0eee488e9cd622e2372a6"
+      "path": "src/experimental/training/workload-capsules/registry.json",
+      "sha256": "0d3c19ab60767a711d362fb7b3e9a9fb9ad9bd2647afdd059177d063a1e0d5a2",
+      "registryHash": "353c0dc460739da0dc070c882ddc3890e4c0065ff48645f36d1e10251fd127e1"
     }
   },
   "dataset": {
@@ -43,19 +43,19 @@
   "workloads": [
     {
       "seed": 11,
-      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed11.json",
+      "path": "src/experimental/training/workload-capsules/lora-doppler-wgsl-writer-qwen35-9b-v2-seed11.json",
       "sha256": "7a3d52076053369a1347f32b9b0ecaf863c21faebf68456ecd5832fbe8cf3da8",
       "runRoot": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed11"
     },
     {
       "seed": 29,
-      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed29.json",
+      "path": "src/experimental/training/workload-capsules/lora-doppler-wgsl-writer-qwen35-9b-v2-seed29.json",
       "sha256": "77b82009e21834fea3dc1974ea8a26b87e3495c207a9f10a3b915dfdcf794fdd",
       "runRoot": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed29"
     },
     {
       "seed": 47,
-      "path": "src/experimental/training/workload-packs/lora-doppler-wgsl-writer-qwen35-9b-v2-seed47.json",
+      "path": "src/experimental/training/workload-capsules/lora-doppler-wgsl-writer-qwen35-9b-v2-seed47.json",
       "sha256": "5f8b05fa9bfc23b6bf48a028f19dd1113dccca02ac3d7d3284b2ef28084689e3",
       "runRoot": "reports/training/wgsl-writer/doppler-wgsl-writer-v2/seed47"
     }

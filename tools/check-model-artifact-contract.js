@@ -132,7 +132,7 @@ function validateCatalog(catalog, errors) {
     if (normalizeText(model?.artifact?.format) !== 'rdrr') {
       errors.push(`${modelId}: artifact.format must be rdrr`);
     }
-    for (const field of ['sourceCheckpointId', 'weightPackId', 'manifestVariantId', 'artifactCompleteness', 'runtimePromotionState']) {
+    for (const field of ['sourceCheckpointId', 'weightCapsuleId', 'manifestVariantId', 'artifactCompleteness', 'runtimePromotionState']) {
       if (!normalizeText(model?.[field])) {
         errors.push(`${modelId}: ${field} is required`);
       }

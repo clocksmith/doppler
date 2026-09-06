@@ -1,15 +1,15 @@
 {
   "schema": "doppler.production-release/v1",
   "schemaVersion": 1,
-  "releaseId": "electron-document-search-qwen-3-reranker-0-6b-q4k-ehf16-af32-release-ab12ccdae6ac3367",
+  "releaseId": "electron-document-search-qwen-3-reranker-0-6b-q4k-ehf16-af32-release-4b67afb00f306460",
   "createdAtUtc": "2026-08-23T00:00:00.000Z",
   "evidenceClass": "reference-fixture",
   "candidate": {
     "logicalModelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
     "sourceRevision": "clocksmith/rdrr@f86fe245b9bbc275cd69af46b1d45d47ea685a55",
     "sourceRevisionDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-    "packPath": "tests/fixtures/production-release/candidate.pack.json",
-    "packSemanticRoot": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    "capsulePath": "tests/fixtures/production-release/candidate.capsule.json",
+    "capsuleSemanticRoot": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
   },
   "application": {
     "applicationId": "electron-document-search",
@@ -107,7 +107,7 @@
   },
   "previousRelease": {
     "releaseId": "electron-document-search-working-v0",
-    "packSemanticRoot": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+    "capsuleSemanticRoot": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
   },
   "rollout": {
     "rulesDigest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
@@ -128,7 +128,7 @@
   },
   "rollback": {
     "releaseId": "electron-document-search-working-v0",
-    "packSemanticRoot": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+    "capsuleSemanticRoot": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
     "authority": "customer"
   },
   "revocation": {

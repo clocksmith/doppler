@@ -22,7 +22,7 @@ const EMPTY_TARGETS = {
   logicalModelIds: [],
   modelIds: [],
   sourceCheckpointIds: [],
-  weightPackIds: [],
+  weightCapsuleIds: [],
   manifestVariantIds: [],
   artifactVariantIds: [],
   adapterIds: [],

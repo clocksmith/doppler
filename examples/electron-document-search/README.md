@@ -1,4 +1,4 @@
-# Electron Pack integration
+# Electron Capsule integration
 
 This example composes the shipped `doppler-gpu/host` and `doppler-gpu/electron`
 exports. It is integration code, not a customer application, model-quality
@@ -24,7 +24,7 @@ any retained authorization record. Only explicit `true` admits a request. Do not
 use an unconditional callback in a real application. The public Electron export
 `verifyProductionReleaseEvidenceSignature` can verify decisions and snapshots
 against keys chosen by the application. Restored snapshots are checked again
-under current trust; newer snapshots cannot remove already revoked Pack roots.
+under current trust; newer snapshots cannot remove already revoked Capsule roots.
 
 ### Durable local state
 
@@ -34,7 +34,7 @@ that the durability barrier succeeded. Synchronization failures remain errors,
 and cleanup preserves the original failure.
 
 `release-storage.js` supplies main-process example stores for release state and
-Pack v3 checkpoints. Give each an absolute filename in an existing private
+Capsule v3 checkpoints. Give each an absolute filename in an existing private
 application directory. They use exclusive writer locks, compare-and-swap,
 synced temporary files, atomic rename, and directory fsync. The observed lane is
 a local Linux filesystem; this is not a network-filesystem or Windows durability
@@ -51,7 +51,7 @@ against the persisted checkpoint and the application's explicit trust, time,
 and minimum sequence. It returns the existing runtime options and a bound
 `persistReleaseCheckpoint()` callback. Runtime must successfully persist the
 verified head before model creation. Preparing or downloading history does not
-activate a release; the application must still authorize its Pack and plans.
+activate a release; the application must still authorize its Capsule and plans.
 Prepare again for every open. Concurrent updates require re-verification, not
 an implicit retry with weakened policy.
 
@@ -70,8 +70,8 @@ snapshot; deployments needing that threat model require an external monotonic
 anchor. Unseen revocations remain unknowable offline, and expired managed v3
 eligibility still fails closed. The preparation helper also accepts an explicit
 `retainedLocalUse` decision for the separately scoped
-[recipient-controlled local-use policy](../../docs/pack-identity-migration.md#recipient-controlled-retained-local-use).
-The application must retain and choose that decision; downloading a Pack does
+[recipient-controlled local-use policy](../../docs/capsule-identity-migration.md#recipient-controlled-retained-local-use).
+The application must retain and choose that decision; downloading a Capsule does
 not create it. It does not bypass the managed Electron release coordinator's
 activation or revocation-snapshot requirements, and does not authorize delegation.
 
@@ -98,7 +98,7 @@ and Doppler program adapter. It does not choose trusted publishers or accepted
 TargetPlans for the application. Browser bundles select the browser export;
 Node selects the native JavaScript host export. Bun remains experimental.
 URL artifacts use HTTP by default; an explicit `artifactStore` also works with
-a URL or a supplied Pack object. No Doe, Poolday, registry, or signing service is
+a URL or a supplied Capsule object. No Doe, Poolday, registry, or signing service is
 required. Model data still has to be acquired, and the host must supply WebGPU.
 
 For custom host composition, the existing
@@ -106,11 +106,11 @@ For custom host composition, the existing
 Its ports are explicit:
 
 - `device` exposes the chosen WebGPU device and its observed profile.
-- `packSource.fetchPack(path)` resolves the authorized immutable Pack reference.
-- `artifactStore` supplies the Pack's exact artifact bytes and hash/size checks.
+- `capsuleSource.fetchCapsule(path)` resolves the authorized immutable Capsule reference.
+- `artifactStore` supplies the Capsule's exact artifact bytes and hash/size checks.
 - `trustedSigners` pins the signing authorities the application accepts.
 - `programFactory` instantiates the selected, qualified TargetPlan. It must not
-  infer another plan or load a different model. Pack Runtime validates the
+  infer another plan or load a different model. Capsule Runtime validates the
   signed artifact closure and, for TargetPlan v2, the initial execution identity.
 
 Keep these ports in the renderer or its explicitly configured worker. Do not
@@ -120,12 +120,12 @@ The main process remains responsible for release state, not model execution.
 `applicationBinding` comes from the application's own pinned revision, workload,
 and oracle contract. It contains `applicationId`, `applicationRevision`,
 `applicationRevisionDigest`, `workload: { id, digest }`, and
-`oracle: { id, digest }`. Do not copy the binding out of an untrusted Pack to
+`oracle: { id, digest }`. Do not copy the binding out of an untrusted Capsule to
 make a mismatch pass. Positional `rerank(query, documents)` is not supported.
 
 `renderer.rerank(request, openOptions)` owns its session and closes it on success
 and failure. It rechecks current-release authorization after loading and before
-returning the result, rejects an opened Pack with a different identity, and
+returning the result, rejects an opened Capsule with a different identity, and
 preserves the primary error if cleanup also fails. Cancellation prevents a
 cancelled result from being returned and closes any completed load; it does not
 promise preemption of an already-submitted GPU command or a non-cooperative
@@ -149,7 +149,7 @@ The release check includes one connected, signed-fixture episode: install,
 explicit activation, rerank, rejected candidate, second release, restart,
 revocation, and customer-requested rollback. It uses a synthetic program/device
 and simulated IPC. The package smoke installs a tarball into an isolated
-consumer, copies this example, executes the signed-Pack contract, and compiles
+consumer, copies this example, executes the signed-Capsule contract, and compiles
 consumer types using only public package imports. Neither command proves
 physical Electron inference, Qwen quality, external operation, or revenue.
 
@@ -158,7 +158,7 @@ source commit and dirty-state declaration, command outputs, and terminal receipt
 on success or failure. The destination must not exist. Verify the tarball's
 SHA-256 against `receipt.json`; rerun `node electron-smoke.js` from the retained
 `consumer/` directory without rebuilding Doppler. The consumer contains only a
-signed synthetic Pack, not the Qwen model. Its type check records the repository's
+signed synthetic Capsule, not the Qwen model. Its type check records the repository's
 TypeScript invocation separately from the runtime installation. Dirty source is
 declared, not represented as reproducible from the commit alone.
 
@@ -186,20 +186,20 @@ tarball. The recorded launch arguments expose any host sandbox switches.
 The verify and benchmark commands each load the model. Warm samples describe
 inference after the benchmark's own load, not a warm application restart.
 Loopback HTTP does not establish internet installation performance or a cold OS
-cache. A passing component probe is not signed-Pack execution or an incumbent
-comparison. The synthetic Pack smoke and this physical component observation
+cache. A passing component probe is not signed-Capsule execution or an incumbent
+comparison. The synthetic Capsule smoke and this physical component observation
 must not be combined into an unobserved end-to-end claim. That proof still needs
-the qualified Qwen Pack and a connected physical application episode.
+the qualified Qwen Capsule and a connected physical application episode.
 
-## Source-qualified Pack evaluation
+## Source-qualified Capsule evaluation
 
 The repository tools `capture-reranker-source-reference.py`,
-`qualify-reranker-electron.js`, and `build-reranker-evaluation-pack.js` retain
-separate source-reference, model-qualification, build, and Pack-execution
+`qualify-reranker-electron.js`, and `build-reranker-evaluation-capsule.js` retain
+separate source-reference, model-qualification, build, and Capsule-execution
 artifacts. See [the evaluation workflow](../../docs/integration/reranker-evaluation.md).
 The Python reference is build/evaluation tooling, not a runtime dependency.
 
 Rerank qualification binds the actual input tokens, yes/no logits, scoring
 policy, numerical tolerances, and exact ranking. A generation transcript or a
-passing top-document check alone cannot qualify it. An evaluation Pack is not a
+passing top-document check alone cannot qualify it. An evaluation Capsule is not a
 catalog promotion or evidence of external adoption.

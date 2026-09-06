@@ -35,12 +35,12 @@ const fields = {
     files: acceptedFiles,
     digest: hashValue({ revision: 'deadbeef', files: acceptedFiles }),
   },
-  qualification: { status: 'passed', packId: 'test.pack', packDigest: digest('b') },
+  qualification: { status: 'passed', capsuleId: 'test.capsule', capsuleDigest: digest('b') },
   evidence: [{ kind: 'parity', path: 'reports/parity.json', digest: digest('c') }],
 };
 
 const receipt = createReleaseToJavaScriptReceipt(fields);
-assert.equal(receipt.elapsed.publicationToSignedPackMs, 172800000);
+assert.equal(receipt.elapsed.publicationToSignedCapsuleMs, 172800000);
 assert.equal(receipt.elapsed.forgeCampaignMs, 86400000);
 assert.equal(receipt.humanAuthoredSemanticDecisions, 1);
 assert.equal(validateReleaseToJavaScriptReceipt(receipt).ok, true);
@@ -78,7 +78,7 @@ const unresolvedPublication = createReleaseToJavaScriptReceipt({
     evidence: 'Pinned source snapshot contains no authoritative publication timestamp.',
   }],
 });
-assert.equal(unresolvedPublication.elapsed.publicationToSignedPackMs, null);
+assert.equal(unresolvedPublication.elapsed.publicationToSignedCapsuleMs, null);
 assert.equal(unresolvedPublication.elapsed.forgeCampaignMs, 86400000);
 assert.equal(validateReleaseToJavaScriptReceipt(unresolvedPublication).ok, true);
 
@@ -98,7 +98,8 @@ const qwenRelease = JSON.parse(await fs.readFile(
   'reports/model-ir-v2/qwen3.8-27b.release-to-javascript-receipt.json',
   'utf8'
 ));
-assert.equal(validateReleaseToJavaScriptReceipt(qwenRelease).ok, true);
+// The original signed release remains historical; it is not a Capsule release.
+assert.equal(validateReleaseToJavaScriptReceipt(qwenRelease).ok, false);
 assert.deepEqual(
   {
     generated: qwenRelease.candidates.generated,

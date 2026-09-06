@@ -469,7 +469,7 @@ async function handleListModels(res, dependencies) {
       owned_by: 'doppler',
       doppler: {
         sourceCheckpointId: entry.sourceCheckpointId,
-        weightPackId: entry.weightPackId,
+        weightCapsuleId: entry.weightCapsuleId,
         manifestVariantId: entry.manifestVariantId,
         artifactCompleteness: entry.artifactCompleteness,
         runtimePromotionState: entry.runtimePromotionState,

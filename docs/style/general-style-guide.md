@@ -68,7 +68,7 @@ Determinism requirement:
 - JS may not introduce behavior not represented in resolved config.
 - WGSL may not contain runtime policy branching for selection behavior.
 - Legacy compatibility is allowed only through explicit JSON rule/registry entries and must be visible in config.
-- During Pack/Runtime model execution, JS must not implement tensor arithmetic
+- During Capsule/Runtime model execution, JS must not implement tensor arithmetic
   or tensor-layout transforms as CPU loops, typed-array math, or
   readback/compute/upload round trips.
 - Required semantic geometry must be present in the resolved contract before
@@ -77,7 +77,7 @@ Determinism requirement:
 The following JavaScript numeric boundaries are permitted only when their role
 is explicit and inventoried by `npm run source:style:check`:
 
-- Forge/converter artifact construction before a Pack is signed;
+- Forge/converter artifact construction before a Capsule is signed;
 - descriptor-bound artifact decoding and materialization before execution;
 - application-input preprocessing before a runtime tensor is created;
 - scalar sampling and other declared control-plane decisions after readback;
@@ -85,7 +85,7 @@ is explicit and inventoried by `npm run source:style:check`:
 - deterministic CPU references in tests or quarantined reference modules; and
 - numerical prototypes under `src/experimental/` while the architecture gate
   proves that no production owner imports them and support policy keeps them
-  outside Pack Runtime claims.
+  outside Capsule Runtime claims.
 
 An allowed boundary may not select runtime policy, infer semantic geometry, or
 serve as a fallback for a declared WGSL operation. A readback/compute/upload

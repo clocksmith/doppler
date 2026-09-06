@@ -43,7 +43,7 @@ const inputF16 = f32ToF16Array(inputF32);
 const wF32 = new Float32Array(N * K);
 for (let i = 0; i < wF32.length; i++) wF32[i] = (rng() - 0.5) * 0.1;
 
-function packRows(weights, numRows, kPerRow) {
+function capsuleRows(weights, numRows, kPerRow) {
   const numBlocks = Math.ceil(kPerRow / 256);
   const packed = new Uint8Array(numRows * numBlocks * blockBytes);
   for (let row = 0; row < numRows; row++) {
@@ -54,7 +54,7 @@ function packRows(weights, numRows, kPerRow) {
   return packed;
 }
 
-const Wq = packRows(wF32, N, K);
+const Wq = capsuleRows(wF32, N, K);
 
 const wDeq = dequantQ4KRowsRef(Wq, N, K);
 const expectedF32 = new Float32Array(M * N);

@@ -34,13 +34,13 @@ const stateStore = {
   },
 };
 
-async function decision(pack, marker) {
+async function decision(capsule, marker) {
   return signProductionReleaseEvidence({
     schema: RELEASE_DECISION_SCHEMA,
     releaseId: `electron-fixture-release-${marker.repeat(16)}`,
     productionReleaseDigest: sha('1'),
-    pack: {
-      ...pack,
+    capsule: {
+      ...capsule,
       envelopeDigest: sha('2'),
     },
     eligibility: 'eligible',
@@ -48,8 +48,8 @@ async function decision(pack, marker) {
     applicationGateReceipts: [],
     fleetReceipts: [],
     knownExclusions: [],
-    previousRelease: { releaseId: 'previous', packSemanticRoot: sha('3') },
-    rollback: { releaseId: 'previous', packSemanticRoot: sha('3'), authority: 'customer' },
+    previousRelease: { releaseId: 'previous', capsuleSemanticRoot: sha('3') },
+    rollback: { releaseId: 'previous', capsuleSemanticRoot: sha('3'), authority: 'customer' },
     revocation: {
       authorityId: 'fixture-authority',
       policyDigest: sha('4'),
@@ -77,8 +77,8 @@ const coordinator = createElectronReleaseStateCoordinator({
   ),
   now: () => now,
 });
-const packA = { packId: 'pack-a', semanticRoot: sha('a'), path: 'packs/a.json' };
-const decisionA = await decision(packA, 'a');
+const capsuleA = { capsuleId: 'capsule-a', semanticRoot: sha('a'), path: 'capsules/a.json' };
+const decisionA = await decision(capsuleA, 'a');
 assert.equal(validateReleaseDecision(decisionA).ok, true);
 const malformedDecision = structuredClone(decisionA);
 malformedDecision.eligibility = 'blocked';
@@ -91,7 +91,7 @@ malformedDecision.reasons = [{
 assert.ok(validateReleaseDecision(malformedDecision).errors.includes(
   'release decision.reasons[0].code is unsupported.'
 ));
-await coordinator.installCandidate(packA, decisionA.digest);
+await coordinator.installCandidate(capsuleA, decisionA.digest);
 await coordinator.activateCandidate(decisionA, sha('5'));
 await assert.rejects(coordinator.applyRevocationSnapshot({
   schema: ELECTRON_REVOCATION_SNAPSHOT_SCHEMA,
@@ -119,7 +119,7 @@ const revocationSnapshot = await signProductionReleaseEvidence({
 });
 await coordinator.applyRevocationSnapshot(revocationSnapshot);
 assert.equal((await coordinator.applyRevocationSnapshot(revocationSnapshot)).sequence, 3);
-assert.deepEqual(await coordinator.resolveCurrent(), packA);
+assert.deepEqual(await coordinator.resolveCurrent(), capsuleA);
 
 const restarted = createElectronReleaseStateCoordinator({
   stateStore,
@@ -130,23 +130,23 @@ const restarted = createElectronReleaseStateCoordinator({
   ),
   now: () => now,
 });
-assert.deepEqual(await restarted.resolveCurrent(), packA);
+assert.deepEqual(await restarted.resolveCurrent(), capsuleA);
 
-const rejectedPack = { packId: 'pack-rejected', semanticRoot: sha('b'), path: 'packs/rejected.json' };
-await restarted.installCandidate(rejectedPack, sha('7'));
+const rejectedCapsule = { capsuleId: 'capsule-rejected', semanticRoot: sha('b'), path: 'capsules/rejected.json' };
+await restarted.installCandidate(rejectedCapsule, sha('7'));
 await restarted.rejectCandidate(sha('8'));
 const rejectedState = await restarted.load();
-assert.equal(rejectedState.current.pack.semanticRoot, packA.semanticRoot);
-assert.equal(rejectedState.failures.at(-1).candidateSemanticRoot, rejectedPack.semanticRoot);
+assert.equal(rejectedState.current.capsule.semanticRoot, capsuleA.semanticRoot);
+assert.equal(rejectedState.failures.at(-1).candidateSemanticRoot, rejectedCapsule.semanticRoot);
 
 now = '2026-08-24T01:00:00.000Z';
-const packB = { packId: 'pack-b', semanticRoot: sha('c'), path: 'packs/b.json' };
-const decisionB = await decision(packB, 'b');
-await restarted.installCandidate(packB, decisionB.digest);
+const capsuleB = { capsuleId: 'capsule-b', semanticRoot: sha('c'), path: 'capsules/b.json' };
+const decisionB = await decision(capsuleB, 'b');
+await restarted.installCandidate(capsuleB, decisionB.digest);
 await restarted.activateCandidate(decisionB, sha('9'));
-assert.equal((await restarted.load()).previous.pack.semanticRoot, packA.semanticRoot);
+assert.equal((await restarted.load()).previous.capsule.semanticRoot, capsuleA.semanticRoot);
 await restarted.rollback(sha('d'));
-assert.equal((await restarted.resolveCurrent()).semanticRoot, packA.semanticRoot);
+assert.equal((await restarted.resolveCurrent()).semanticRoot, capsuleA.semanticRoot);
 
 const controller = new AbortController();
 controller.abort();
@@ -154,7 +154,7 @@ const request = { application: {}, query: 'query', documents: ['document'] };
 let opened = false;
 const cancelledRuntime = createElectronRendererRuntime({
   releaseState: restarted,
-  openPack: async () => {
+  openCapsule: async () => {
     opened = true;
     return {};
   },
@@ -168,8 +168,8 @@ assert.equal(opened, false);
 let closed = false;
 const deviceLossRuntime = createElectronRendererRuntime({
   releaseState: restarted,
-  openPack: async () => ({
-    ...packA,
+  openCapsule: async () => ({
+    ...capsuleA,
     async rerank() {
       const error = new Error('adapter removed');
       error.code = 'GPU_DEVICE_LOST';

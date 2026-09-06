@@ -39,7 +39,7 @@ inputs require a separate directory; old failures are never overwritten.
 The result states `blocked`, `recipe-required`, or `candidate-materialized`.
 The last means a conversion configuration was produced, **not** that weights
 were converted or inference qualified. Conversion, independent source-reference
-comparison, physical candidate evaluation, complete Pack signing, and publication
+comparison, physical candidate evaluation, complete Capsule signing, and publication
 remain explicit subsequent operations. No runtime, catalog, application pin,
 reference tolerance, or hosted model is changed by this command.
 

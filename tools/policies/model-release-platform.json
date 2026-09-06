@@ -16,9 +16,9 @@
   "architecture": {
     "authorityPaths": [
       "docs/architecture.md",
-      "docs/adr/0001-dual-hexagon-pack-spine.md"
+      "docs/adr/0001-dual-hexagon-capsule-spine.md"
     ],
-    "invariant": "After a Pack is qualified and signed, Runtime may not change its semantic graph, kernel closure, dtype lane, fusion strategy, quantization policy, or memory model.",
+    "invariant": "After a Capsule is qualified and signed, Runtime may not change its semantic graph, kernel closure, dtype lane, fusion strategy, quantization policy, or memory model.",
     "forgeStages": [
       "inspect",
       "normalize",
@@ -67,14 +67,14 @@
       "source-provenance"
     ]
   },
-  "pack": {
+  "capsule": {
     "authorityPaths": [
-      "src/config/pack-v2.js",
-      "src/config/schema/pack-v2.schema.json",
+      "src/config/capsule-v2.js",
+      "src/config/schema/capsule-v2.schema.json",
       "docs/api/root.md",
-      "src/config/pack-v3.js",
-      "src/config/pack-release-events.js",
-      "docs/pack-identity-migration.md"
+      "src/config/capsule-v3.js",
+      "src/config/capsule-release-events.js",
+      "docs/capsule-identity-migration.md"
     ],
     "authoritativeFor": [
       "distribution",
@@ -90,9 +90,9 @@
         "implementationState": "implemented",
         "evidencePaths": [
           "docs/model-ir-v2-source-truth-forge.md",
-          "src/config/pack-release-contract.js",
-          "src/config/pack-v2.js",
-          "tests/pack/pack-v2.test.js"
+          "src/config/capsule-release-contract.js",
+          "src/config/capsule-v2.js",
+          "tests/capsule/capsule-v2.test.js"
         ],
         "blockerCode": null
       },
@@ -100,7 +100,7 @@
         "id": "tokenizer-preprocessing-assets",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/pack-v2.js",
+          "src/config/capsule-v2.js",
           "src/tooling/program-bundle.js"
         ],
         "blockerCode": null
@@ -109,7 +109,7 @@
         "id": "weights-shards-tensor-hashes",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/pack-v2.js",
+          "src/config/capsule-v2.js",
           "src/storage/shard-manager.js"
         ],
         "blockerCode": null
@@ -119,7 +119,7 @@
         "implementationState": "implemented",
         "evidencePaths": [
           "src/config/model-ir-v2.js",
-          "src/config/pack-v2.js"
+          "src/config/capsule-v2.js"
         ],
         "blockerCode": null
       },
@@ -128,7 +128,7 @@
         "implementationState": "implemented",
         "evidencePaths": [
           "src/config/target-plan.js",
-          "src/config/pack-v2.js"
+          "src/config/capsule-v2.js"
         ],
         "blockerCode": null
       },
@@ -136,7 +136,7 @@
         "id": "reachable-wgsl-host-closure",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/pack-v2.js",
+          "src/config/capsule-v2.js",
           "src/tooling/program-bundle.js"
         ],
         "blockerCode": null
@@ -164,9 +164,9 @@
         "implementationState": "implemented",
         "evidencePaths": [
           "tools/policies/product-integration-qualification.json",
-          "src/config/pack-release-contract.js",
-          "src/config/pack-v2.js",
-          "tests/pack/pack-v2.test.js"
+          "src/config/capsule-release-contract.js",
+          "src/config/capsule-v2.js",
+          "tests/capsule/capsule-v2.test.js"
         ],
         "blockerCode": null
       },
@@ -175,9 +175,9 @@
         "implementationState": "implemented",
         "evidencePaths": [
           "docs/model-support-matrix.md",
-          "src/config/pack-release-contract.js",
-          "src/config/pack-v2.js",
-          "tests/pack/pack-v2.test.js"
+          "src/config/capsule-release-contract.js",
+          "src/config/capsule-v2.js",
+          "tests/capsule/capsule-v2.test.js"
         ],
         "blockerCode": null
       },
@@ -185,10 +185,10 @@
         "id": "version-supersession-migration",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/pack-release-contract.js",
-          "src/config/pack-v2.js",
+          "src/config/capsule-release-contract.js",
+          "src/config/capsule-v2.js",
           "docs/revocation.md",
-          "tests/pack/pack-v2.test.js"
+          "tests/capsule/capsule-v2.test.js"
         ],
         "blockerCode": null
       },
@@ -196,8 +196,8 @@
         "id": "signing-and-verification",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/pack-v2.js",
-          "tests/pack/pack-v2.test.js"
+          "src/config/capsule-v2.js",
+          "tests/capsule/capsule-v2.test.js"
         ],
         "blockerCode": null
       },
@@ -205,10 +205,10 @@
         "id": "revocation-policy",
         "implementationState": "implemented",
         "evidencePaths": [
-          "src/config/pack-release-contract.js",
-          "src/config/pack-v2.js",
+          "src/config/capsule-release-contract.js",
+          "src/config/capsule-v2.js",
           "src/config/revocation-registry.json",
-          "tests/pack/pack-v2.test.js"
+          "tests/capsule/capsule-v2.test.js"
         ],
         "blockerCode": null
       }
@@ -258,11 +258,11 @@
   },
   "apiConvergence": [
     {
-      "id": "open-pack",
-      "mode": "pack-authoritative",
+      "id": "open-capsule",
+      "mode": "capsule-authoritative",
       "evidencePaths": [
-        "src/pack-runtime.js",
-        "src/pack-runtime.d.ts",
+        "src/capsule-runtime.js",
+        "src/capsule-runtime.d.ts",
         "docs/api/root.md"
       ],
       "blockerCode": null
@@ -284,7 +284,7 @@
         "src/cli/doppler-serve.js",
         "docs/cli.md"
       ],
-      "blockerCode": "pack-first-surface-migration-incomplete"
+      "blockerCode": "capsule-first-surface-migration-incomplete"
     },
     {
       "id": "generation",
@@ -293,7 +293,7 @@
         "src/inference/pipelines/text.js",
         "docs/api/generation.md"
       ],
-      "blockerCode": "pack-first-surface-migration-incomplete"
+      "blockerCode": "capsule-first-surface-migration-incomplete"
     },
     {
       "id": "embedding",
@@ -302,17 +302,17 @@
         "src/client/model-host/model-session.js",
         "docs/product-integration-qualification.md"
       ],
-      "blockerCode": "pack-first-surface-migration-incomplete"
+      "blockerCode": "capsule-first-surface-migration-incomplete"
     },
     {
       "id": "electron-reranking",
-      "mode": "pack-authoritative",
+      "mode": "capsule-authoritative",
       "evidencePaths": [
         "src/client/runtime/composition-root.js",
-        "src/client/runtime/pack-rerank.js",
-        "src/client/runtime/pack-program-adapter.js",
+        "src/client/runtime/capsule-rerank.js",
+        "src/client/runtime/capsule-program-adapter.js",
         "src/client/electron/renderer-runtime.js",
-        "tests/runtime/pack-rerank.test.js",
+        "tests/runtime/capsule-rerank.test.js",
         "tests/client/electron-release-adapter.test.js"
       ],
       "blockerCode": null
@@ -329,14 +329,14 @@
       "blockerCode": null
     },
     {
-      "id": "failed-upgrade-preserves-previous-pack",
+      "id": "failed-upgrade-preserves-previous-capsule",
       "implementationState": "implemented",
       "evidencePaths": [
         "docs/revocation.md",
-        "src/config/pack-release-contract.js",
-        "src/config/pack-v2.js",
+        "src/config/capsule-release-contract.js",
+        "src/config/capsule-v2.js",
         "src/client/electron/release-state.js",
-        "tests/pack/pack-v2.test.js",
+        "tests/capsule/capsule-v2.test.js",
         "tests/client/electron-release-adapter.test.js"
       ],
       "blockerCode": null
@@ -346,9 +346,9 @@
       "implementationState": "implemented",
       "evidencePaths": [
         "docs/architecture.md",
-        "src/config/pack-release-contract.js",
+        "src/config/capsule-release-contract.js",
         "src/client/model-host/model-session.js",
-        "tests/pack/pack-v2.test.js"
+        "tests/capsule/capsule-v2.test.js"
       ],
       "blockerCode": null
     }
@@ -357,7 +357,7 @@
     "id": "doppler-production-release",
     "name": "Doppler Production Release",
     "recurringProduct": "Doppler Release Operations",
-    "promise": "Qualify one pinned model revision for one pinned Electron application revision and return a signed eligible-or-blocked recommendation, immutable Pack, qualification evidence, exclusions, and customer-controlled rollback target.",
+    "promise": "Qualify one pinned model revision for one pinned Electron application revision and return a signed eligible-or-blocked recommendation, immutable Capsule, qualification evidence, exclusions, and customer-controlled rollback target.",
     "applicationClasses": [
       "electron-reranking"
     ],
@@ -371,15 +371,15 @@
     ],
     "deliverables": [
       "source-derived ModelIR and retained conversion provenance",
-      "signed immutable Pack with qualified TargetPlans",
+      "signed immutable Capsule with qualified TargetPlans",
       "Windows and macOS Electron fleet qualification receipts for declared tuples",
       "application-owned correctness, lifecycle, reliability, memory, and performance evidence",
       "signed eligible-or-blocked promotion recommendation that never activates the application",
       "known exclusions and typed rejection reasons",
-      "failure bundle, previous working Pack, rollback target, and revocation configuration"
+      "failure bundle, previous working Capsule, rollback target, and revocation configuration"
     ],
     "paidSurfaces": [
-      "private Packs",
+      "private Capsules",
       "Doppler Release Operations",
       "supported hardware matrices",
       "private registries",
@@ -442,24 +442,24 @@
     },
     {
       "order": 3,
-      "id": "pack-release-closure",
-      "gate": "All seven Pack release requirements are immutable, validated, typed, hash-bound, and rejection-tested.",
+      "id": "capsule-release-closure",
+      "gate": "All seven Capsule release requirements are immutable, validated, typed, hash-bound, and rejection-tested.",
       "completionState": "implemented",
       "evidencePaths": [
-        "src/config/pack-release-contract.js",
-        "src/config/pack-v2.js",
-        "tests/pack/pack-v2.test.js"
+        "src/config/capsule-release-contract.js",
+        "src/config/capsule-v2.js",
+        "tests/capsule/capsule-v2.test.js"
       ],
       "blockerCode": null
     },
     {
       "order": 4,
-      "id": "pack-first-electron-reranking",
-      "gate": "The reference reranking workload executes only through Pack validation, qualified TargetPlan selection, execution, and evidence.",
+      "id": "capsule-first-electron-reranking",
+      "gate": "The reference reranking workload executes only through Capsule validation, qualified TargetPlan selection, execution, and evidence.",
       "completionState": "implemented",
       "evidencePaths": [
-        "src/client/runtime/pack-rerank.js",
-        "tests/runtime/pack-rerank.test.js"
+        "src/client/runtime/capsule-rerank.js",
+        "tests/runtime/capsule-rerank.test.js"
       ],
       "blockerCode": null
     },
@@ -542,7 +542,7 @@
   "compatibilityGraph": [
     "model-source",
     "model-ir",
-    "pack",
+    "capsule",
     "target-plan",
     "runtime-provider",
     "browser-hardware",
@@ -555,7 +555,7 @@
     "revocation"
   ],
   "dataCustody": {
-    "defaultRule": "Private inputs remain local by default. Artifact redistribution and complete-job delegation require separate explicit authority; downloading a Pack grants neither.",
+    "defaultRule": "Private inputs remain local by default. Artifact redistribution and complete-job delegation require separate explicit authority; downloading a Capsule grants neither.",
     "shareableClasses": [
       "sanitized failure signatures",
       "minimized synthetic reproductions",
@@ -579,12 +579,12 @@
   "claimBoundary": {
     "goalStateAuthority": "src/config/goal-completion-matrix.json",
     "forbiddenInferences": [
-      "A valid Pack does not establish application support.",
-      "A runtime proof does not establish complete Pack-first surface convergence.",
+      "A valid Capsule does not establish application support.",
+      "A runtime proof does not establish complete Capsule-first surface convergence.",
       "One internal model conversion does not establish a commercial release platform.",
       "Provider availability does not authorize runtime invention or fallback.",
       "Valera consumption or Doe execution does not define Doppler's standalone survival.",
-      "Paid release eligibility, internal Packs, benchmarks, and peer delivery do not substitute for executable-model adoption."
+      "Paid release eligibility, internal Capsules, benchmarks, and peer delivery do not substitute for executable-model adoption."
     ]
   },
   "adoptionGate": {
@@ -607,8 +607,8 @@
     "firstModelId": "esm2-t12-35m-ur50d-f32-af32",
     "operation": "encodeSequence",
     "requiredEvidence": [
-      "actual-signed-esm2-pack-and-weights",
-      "public-open-pack-encode-sequence",
+      "actual-signed-esm2-capsule-and-weights",
+      "public-open-capsule-encode-sequence",
       "local-execution-without-delegation",
       "explicit-complete-job-delegation",
       "authorized-optional-redistribution",
@@ -618,7 +618,7 @@
       "corruption-rejection-and-participant-loss-recovery",
       "frozen-public-sequence-corpus-and-correctness-oracle",
       "assignment-bound-accepted-useful-results",
-      "connected-pack-assignment-receipt-lineage",
+      "connected-capsule-assignment-receipt-lineage",
       "admitted-history-before-held-out-jobs",
       "no-history-and-competent-frozen-scheduler-controls",
       "predeclared-benefit-with-uncertainty-and-unchanged-correctness",
@@ -630,7 +630,7 @@
     ],
     "paymentRequired": false,
     "doeRequired": false,
-    "agentPackImprovementRequired": false,
+    "agentCapsuleImprovementRequired": false,
     "electronCustomerRequired": false,
     "privateInputDefault": "local-only",
     "redistribution": "explicit-opt-in",

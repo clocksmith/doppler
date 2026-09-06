@@ -103,7 +103,7 @@ function resetDevice(device = null) {
   await assert.rejects(
     () => runWithShaderSourceScope(createShaderSourceScope(new Map()),
       () => router._getBiasAddPipeline('f32', 'f32', device)),
-    /outside the verified Pack source closure/
+    /outside the verified Capsule source closure/
   );
   assert.equal(await router._getBiasAddPipeline('f32', 'f32', device), first);
   router.destroy();

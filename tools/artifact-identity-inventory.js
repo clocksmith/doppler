@@ -219,10 +219,10 @@ function resolveSourceCheckpointId(manifest, origin) {
   return null;
 }
 
-function resolveWeightPackId(manifest) {
+function resolveWeightCapsuleId(manifest) {
   const identity = manifest?.artifactIdentity;
-  if (typeof identity?.weightPackId === 'string' && identity.weightPackId.length > 0) {
-    return identity.weightPackId;
+  if (typeof identity?.weightCapsuleId === 'string' && identity.weightCapsuleId.length > 0) {
+    return identity.weightCapsuleId;
   }
   return null;
 }
@@ -295,12 +295,12 @@ async function inspectWeightsRef(weightsRef, manifestDir, repoRoot) {
   }
   try {
     const targetManifest = await readJson(targetManifestPath);
-    const expectedWeightPackId = normalizeRelativePath(weightsRef.weightPackId);
-    const targetWeightPackId = resolveWeightPackId(targetManifest);
-    if (expectedWeightPackId && targetWeightPackId && expectedWeightPackId !== targetWeightPackId) {
+    const expectedWeightCapsuleId = normalizeRelativePath(weightsRef.weightCapsuleId);
+    const targetWeightCapsuleId = resolveWeightCapsuleId(targetManifest);
+    if (expectedWeightCapsuleId && targetWeightCapsuleId && expectedWeightCapsuleId !== targetWeightCapsuleId) {
       return {
         hasWeightsRef: true,
-        weightsRefStatus: 'weight-pack-mismatch',
+        weightsRefStatus: 'weight-capsule-mismatch',
         weightsRefArtifactRoot,
       };
     }
@@ -350,7 +350,7 @@ async function inspectManifest(filePath, root, repoRoot) {
       manifestFile,
       modelId: manifest?.modelId ?? path.basename(manifestDir),
       sourceCheckpointId: resolveSourceCheckpointId(manifest, origin),
-      weightPackId: resolveWeightPackId(manifest),
+      weightCapsuleId: resolveWeightCapsuleId(manifest),
       manifestVariantId: resolveManifestVariantId(manifest),
       declaredShardCount,
       presentShardCount,
@@ -377,7 +377,7 @@ async function inspectManifest(filePath, root, repoRoot) {
       manifestFile,
       modelId: path.basename(manifestDir),
       sourceCheckpointId: null,
-      weightPackId: null,
+      weightCapsuleId: null,
       manifestVariantId: null,
       declaredShardCount: 0,
       presentShardCount: 0,
@@ -415,7 +415,7 @@ async function loadCatalog(catalogPath, repoRoot) {
         modelId: entry?.modelId ?? null,
         quickstart: entry?.quickstart ?? null,
         sourceCheckpointId: entry?.sourceCheckpointId ?? null,
-        weightPackId: entry?.weightPackId ?? null,
+        weightCapsuleId: entry?.weightCapsuleId ?? null,
         manifestVariantId: entry?.manifestVariantId ?? null,
         artifactCompleteness: entry?.artifactCompleteness ?? null,
         runtimePromotionState: entry?.runtimePromotionState ?? null,
@@ -560,7 +560,7 @@ function buildFindings(artifacts, catalog) {
     }
     if (
       entry.sourceCheckpointId == null
-      || entry.weightPackId == null
+      || entry.weightCapsuleId == null
       || entry.manifestVariantId == null
       || entry.artifactCompleteness == null
       || entry.runtimePromotionState == null
@@ -647,7 +647,7 @@ async function buildReport(options) {
   const findings = buildFindings(artifacts, catalog);
   const duplicateGroups = {
     sourceCheckpoint: groupBy(artifacts, 'sourceCheckpointId'),
-    weightPack: groupBy(artifacts, 'weightPackId'),
+    weightCapsule: groupBy(artifacts, 'weightCapsuleId'),
     shardLayout: groupBy(artifacts, 'shardLayoutKey'),
   };
 

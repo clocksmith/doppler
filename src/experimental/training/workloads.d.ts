@@ -151,7 +151,7 @@ export interface DistillWorkloadPipelineConfig {
   sftLora: LoRAWorkloadPipelineConfig | null;
 }
 
-export interface TrainingWorkloadPack {
+export interface TrainingWorkloadCapsule {
   schemaVersion: number;
   kind: TrainingWorkloadKind;
   id: string;
@@ -179,7 +179,7 @@ export interface LoadedTrainingWorkload {
   path: string;
   raw: string;
   workloadSha256: string;
-  workload: TrainingWorkloadPack;
+  workload: TrainingWorkloadCapsule;
 }
 
 export declare const TRAINING_WORKLOAD_SCHEMA_VERSION: number;
@@ -190,12 +190,12 @@ export declare const TRAINING_ROW_ORDERS: readonly TrainingRowOrder[];
 export declare const TRAINING_EVAL_KINDS: readonly TrainingEvalKind[];
 export declare const TRAINING_AGENT_EVAL_CATEGORIES: readonly TrainingAgentEvalCategory[];
 
-export declare function normalizeTrainingWorkloadPack(
+export declare function normalizeTrainingWorkloadCapsule(
   payload: Record<string, unknown>,
   context?: { label?: string }
-): TrainingWorkloadPack;
+): TrainingWorkloadCapsule;
 
-export declare function loadTrainingWorkloadPack(
+export declare function loadTrainingWorkloadCapsule(
   input: string,
   options?: { registryPath?: string | null }
 ): Promise<LoadedTrainingWorkload>;

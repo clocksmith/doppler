@@ -8,7 +8,7 @@ const handler = createServeHandler();
 const mockTextModel = {
   modelId: 'gemma-3-270m-it-q4k-ehf16-af32',
   sourceCheckpointId: 'google/gemma-3-270m-it',
-  weightPackId: 'gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1',
+  weightCapsuleId: 'gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1',
   manifestVariantId: 'gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1',
   artifactCompleteness: 'complete',
   runtimePromotionState: 'manifest-owned',
@@ -24,7 +24,7 @@ const mockTextModel = {
 const mockEmbeddingModel = {
   modelId: 'google-embeddinggemma-300m-q4k-ehf16-af32',
   sourceCheckpointId: 'google/embeddinggemma-300m',
-  weightPackId: 'google-embeddinggemma-300m-q4k-ehf16-af32-wp-catalog-v1',
+  weightCapsuleId: 'google-embeddinggemma-300m-q4k-ehf16-af32-wp-catalog-v1',
   manifestVariantId: 'google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1',
   artifactCompleteness: 'complete',
   runtimePromotionState: 'manifest-owned',
@@ -271,7 +271,7 @@ function createLoadFailure() {
     assert.equal(entry.doppler.runtimePromotionState, 'manifest-owned');
     assert.equal(entry.doppler.weightsRefAllowed, false);
     assert.ok(entry.doppler.sourceCheckpointId);
-    assert.ok(entry.doppler.weightPackId);
+    assert.ok(entry.doppler.weightCapsuleId);
     assert.ok(entry.doppler.manifestVariantId);
     assert.ok(entry.doppler.modes.includes('text'));
   }
@@ -453,8 +453,8 @@ function createLoadFailure() {
   assert.equal(body.model, mockTextModel.modelId);
   assert.equal(body.choices[0].message.content, 'Hello from Doppler.');
   assert.equal(body.usage.total_tokens, 7);
-  assert.equal(body.doppler_receipt.receiptVersion, 'doppler_serve_receipt_v1');
-  assert.equal(body.doppler_receipt.schemaVersion, 1);
+  assert.equal(body.doppler_receipt.receiptVersion, 'doppler_serve_receipt_v2');
+  assert.equal(body.doppler_receipt.schemaVersion, 2);
   assert.equal(body.doppler_receipt.surface, 'serve');
   assert.equal(body.doppler_receipt.endpoint, '/v1/chat/completions');
   assert.equal(body.doppler_receipt.status, 'pass');
@@ -470,7 +470,7 @@ function createLoadFailure() {
   assert.equal(body.doppler_receipt.resolutionStatus, 'resolved');
   assert.deepEqual(body.doppler_receipt.resolution, mockResolution);
   assert.equal(body.doppler_receipt.resolutionUnavailableReason, null);
-  assert.equal(body.doppler_receipt.artifact.weightPackId, mockTextModel.weightPackId);
+  assert.equal(body.doppler_receipt.artifact.weightCapsuleId, mockTextModel.weightCapsuleId);
   assert.equal(body.doppler_receipt.artifact.hf.repoId, 'clocksmith/rdrr');
   assert.equal(body.doppler_receipt.request.messages.count, 1);
   assert.equal(body.doppler_receipt.request.messages.digest.algorithm, 'sha256');
@@ -511,7 +511,7 @@ function createLoadFailure() {
   assert.equal(res.state.statusCode, 500);
   const body = parseBody(res);
   assert.ok(body.error.message.includes('loadWeights'));
-  assert.equal(body.doppler_receipt.receiptVersion, 'doppler_serve_receipt_v1');
+  assert.equal(body.doppler_receipt.receiptVersion, 'doppler_serve_receipt_v2');
   assert.equal(body.doppler_receipt.surface, 'serve');
   assert.equal(body.doppler_receipt.status, 'diagnostic');
   assert.equal(body.doppler_receipt.resolutionStatus, 'unavailable');

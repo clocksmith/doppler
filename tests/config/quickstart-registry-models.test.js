@@ -26,7 +26,7 @@ for (const modelId of expectedModelIds) {
 
 for (const entry of models) {
   assert.ok(entry.sourceCheckpointId, `${entry.modelId}: sourceCheckpointId missing`);
-  assert.ok(entry.weightPackId, `${entry.modelId}: weightPackId missing`);
+  assert.ok(entry.weightCapsuleId, `${entry.modelId}: weightCapsuleId missing`);
   assert.ok(entry.manifestVariantId, `${entry.modelId}: manifestVariantId missing`);
   assert.equal(entry.artifactCompleteness, 'complete');
   assert.equal(entry.runtimePromotionState, 'manifest-owned');

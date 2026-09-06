@@ -4,7 +4,7 @@ import path from 'node:path';
 import { EXECUTION_V1_SCHEMA_ID } from '../../src/config/schema/index.js';
 
 // Kernels that read weight buffers as raw array<f16> — NOT compatible with Q4K
-// block-quantized weights. Q4K packs 4-bit quantized values + scale factors in
+// block-quantized weights. Q4K capsules 4-bit quantized values + scale factors in
 // a binary block format; reading those bytes as f16 values produces garbage projections.
 const F16_ONLY_WEIGHT_KERNELS = new Set([
   'matmul.f16w.f32a.main',

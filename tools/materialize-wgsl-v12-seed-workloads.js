@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const WORKLOAD_ROOT = 'src/experimental/training/workload-packs';
+const WORKLOAD_ROOT = 'src/experimental/training/workload-capsules';
 const LANES = Object.freeze(['anchor', 'external20', 'random20']);
 const REPLICATION_SEEDS = Object.freeze([29, 47]);
 

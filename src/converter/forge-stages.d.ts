@@ -1,4 +1,4 @@
-import type { DopplerPackV2 } from '../config/pack-v2.js';
+import type { DopplerCapsuleV2 } from '../config/capsule-v2.js';
 import type { ForgeEvaluationInput } from './forge-candidate-evaluation.js';
 
 export const FORGE_PIPELINE_VERSION: '2.0.0';
@@ -16,14 +16,14 @@ export declare function stageSpecialize(input: Record<string, unknown>): ForgeSt
 export declare function stageSearch(input: Record<string, unknown>, evaluation?: ForgeEvaluationInput): ForgeStageResult;
 export declare function stageVerify(input: Record<string, unknown>): ForgeStageResult;
 export declare function stageQualify(input: Record<string, unknown>): ForgeStageResult;
-export declare function stagePackage(input: Record<string, unknown>): ForgeStageResult & { pack: DopplerPackV2 };
-export declare function stageSign(input: ForgeStageResult & { pack: DopplerPackV2 }, signer: {
+export declare function stagePackage(input: Record<string, unknown>): ForgeStageResult & { capsule: DopplerCapsuleV2 };
+export declare function stageSign(input: ForgeStageResult & { capsule: DopplerCapsuleV2 }, signer: {
   authority: string;
   privateKeyJwk: JsonWebKey;
   publicKeyJwk: JsonWebKey;
-}): Promise<ForgeStageResult & { pack: DopplerPackV2 }>;
+}): Promise<ForgeStageResult & { capsule: DopplerCapsuleV2 }>;
 export declare function runForgePipeline(input: Record<string, unknown>, signer: {
   authority: string;
   privateKeyJwk: JsonWebKey;
   publicKeyJwk: JsonWebKey;
-}): Promise<{ pack: DopplerPackV2; searchReceipt: Record<string, unknown>; stages: Array<{ stage: string; ok: true }> }>;
+}): Promise<{ capsule: DopplerCapsuleV2; searchReceipt: Record<string, unknown>; stages: Array<{ stage: string; ok: true }> }>;

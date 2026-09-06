@@ -23,12 +23,12 @@ assert.deepEqual(receipt, checkedInReceipt, 'semantic lowering receipt must be d
 assert.deepEqual(receipt.conversionConfig, checkedInConfig, 'semantic lowering config must be deterministic');
 
 const sourceText = sourceReceipt.modelIR.entryPoints.find((entryPoint) => entryPoint.id === 'text.generate');
-const packText = receipt.modelIR.entryPoints.find((entryPoint) => entryPoint.id === 'text.generate');
-const packVision = receipt.modelIR.entryPoints.find((entryPoint) => entryPoint.id === 'vision.encode');
+const capsuleText = receipt.modelIR.entryPoints.find((entryPoint) => entryPoint.id === 'text.generate');
+const capsuleVision = receipt.modelIR.entryPoints.find((entryPoint) => entryPoint.id === 'vision.encode');
 assert.equal(sourceText.status, 'unlowered', 'source truth must not be rewritten by lowering');
-assert.equal(packText.status, 'lowered');
-assert.deepEqual(packText.phases, ['prefill', 'decode']);
-assert.equal(packVision.status, 'unlowered');
+assert.equal(capsuleText.status, 'lowered');
+assert.deepEqual(capsuleText.phases, ['prefill', 'decode']);
+assert.equal(capsuleVision.status, 'unlowered');
 assert.equal(receipt.modelIR.supportScope.sourceTopology, 'complete');
 assert.deepEqual(receipt.modelIR.supportScope.loweredEntryPoints, ['text.generate']);
 assert.deepEqual(receipt.modelIR.supportScope.qualifiedEntryPoints, []);

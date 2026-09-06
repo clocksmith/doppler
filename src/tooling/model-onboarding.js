@@ -96,7 +96,7 @@ export async function runModelOnboarding(config, { sourceRoot, outputDir }) {
       manualRequirements: assessment.tasks.length ? assessment.tasks : [
         ...(config.lineage === null ? [{ kind: 'lineage-recipe', reason: 'Declare an attributable recipe and pinned template for the compatible operations.' }] : []),
         { kind: 'physical-reference-comparison', reason: 'Convert and run the candidate against unchanged source references.' },
-        { kind: 'pack-qualification', reason: 'Qualify device plans and sign the complete executable closure before publication.' },
+        { kind: 'capsule-qualification', reason: 'Qualify device plans and sign the complete executable closure before publication.' },
       ],
       qualified: false, published: false,
     };

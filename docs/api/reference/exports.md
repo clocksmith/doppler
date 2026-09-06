@@ -8,23 +8,23 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Audience: app authors
 - Stability: preferred public (tier1)
 - Manual guide: [docs/api/root.md](../root.md)
-- Types: [src/pack-runtime.d.ts](../../../src/pack-runtime.d.ts)
-- Implementation: [src/pack-runtime.js](../../../src/pack-runtime.js)
-- Notes: Primary Pack-native surface. Pack identity, trust, and execution ports are explicit.
+- Types: [src/capsule-runtime.d.ts](../../../src/capsule-runtime.d.ts)
+- Implementation: [src/capsule-runtime.js](../../../src/capsule-runtime.js)
+- Notes: Primary Capsule-native surface. Capsule identity, trust, and execution ports are explicit.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.root-facade)
 - Exported symbols:
+  - `CapsuleEmbeddingRequest`
+  - `CapsuleEmbeddingResult`
+  - `CapsuleRerankApplicationBinding`
+  - `CapsuleRerankReceipt`
+  - `CapsuleRerankRequest`
   - `createDopplerRuntime`
-  - `createFetchPackArtifactStore`
+  - `createFetchCapsuleArtifactStore`
   - `createForecastProgramFactory`
   - `DOPPLER_VERSION`
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
-  - `openPack`
-  - `PackEmbeddingRequest`
-  - `PackEmbeddingResult`
-  - `PackRerankApplicationBinding`
-  - `PackRerankReceipt`
-  - `PackRerankRequest`
+  - `openCapsule`
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
 
@@ -33,22 +33,22 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Audience: app authors
 - Stability: preferred public
 - Manual guide: [docs/api/root.md](../root.md)
-- Types: [src/pack-runtime.d.ts](../../../src/pack-runtime.d.ts)
-- Implementation: [src/pack-runtime.js](../../../src/pack-runtime.js)
-- Notes: Stable alias of the Pack-native root surface.
+- Types: [src/capsule-runtime.d.ts](../../../src/capsule-runtime.d.ts)
+- Implementation: [src/capsule-runtime.js](../../../src/capsule-runtime.js)
+- Notes: Stable alias of the Capsule-native root surface.
 - Exported symbols:
+  - `CapsuleEmbeddingRequest`
+  - `CapsuleEmbeddingResult`
+  - `CapsuleRerankApplicationBinding`
+  - `CapsuleRerankReceipt`
+  - `CapsuleRerankRequest`
   - `createDopplerRuntime`
-  - `createFetchPackArtifactStore`
+  - `createFetchCapsuleArtifactStore`
   - `createForecastProgramFactory`
   - `DOPPLER_VERSION`
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
-  - `openPack`
-  - `PackEmbeddingRequest`
-  - `PackEmbeddingResult`
-  - `PackRerankApplicationBinding`
-  - `PackRerankReceipt`
-  - `PackRerankRequest`
+  - `openCapsule`
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
 
@@ -56,64 +56,64 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 
 - Audience: unspecified
 - Stability: unspecified
-- Types: [src/client/pack-host.d.ts](../../../src/client/pack-host.d.ts)
-- Implementation: [src/client/pack-host.js](../../../src/client/pack-host.js)
+- Types: [src/client/capsule-host.d.ts](../../../src/client/capsule-host.d.ts)
+- Implementation: [src/client/capsule-host.js](../../../src/client/capsule-host.js)
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
-  - `DopplerPackOpenOptions`
+  - `DopplerCapsuleOpenOptions`
   - `DopplerRuntimeSession`
-  - `openPack`
+  - `openCapsule`
 
 ## `doppler-gpu/serve`
 
 - Audience: Node application authors
 - Stability: experimental export
 - Manual guide: [docs/api/serve.md](../serve.md)
-- Types: [src/cli/serve/pack-handler.d.ts](../../../src/cli/serve/pack-handler.d.ts)
-- Implementation: [src/cli/serve/pack-handler.js](../../../src/cli/serve/pack-handler.js)
-- Notes: Optional bounded HTTP adapter over an already-open Pack session. No model loading or release selection.
-- Support tier source: `src/config/support-tiers/subsystems.json` (api.pack-http-adapter)
+- Types: [src/cli/serve/capsule-handler.d.ts](../../../src/cli/serve/capsule-handler.d.ts)
+- Implementation: [src/cli/serve/capsule-handler.js](../../../src/cli/serve/capsule-handler.js)
+- Notes: Optional bounded HTTP adapter over an already-open Capsule session. No model loading or release selection.
+- Support tier source: `src/config/support-tiers/subsystems.json` (api.capsule-http-adapter)
 - Exported symbols:
-  - `PackHttpEvents`
-  - `PackHttpRequest`
-  - `PackHttpResponse`
-  - `PackServeHandler`
-  - `PackServePolicy`
+  - `CapsuleHttpEvents`
+  - `CapsuleHttpRequest`
+  - `CapsuleHttpResponse`
+  - `CapsuleServeHandler`
+  - `CapsuleServePolicy`
 
-## `doppler-gpu/pack`
+## `doppler-gpu/capsule`
 
 - Audience: unspecified
 - Stability: unspecified
-- Types: [src/pack.d.ts](../../../src/pack.d.ts)
-- Implementation: [src/pack.js](../../../src/pack.js)
+- Types: [src/capsule.d.ts](../../../src/capsule.d.ts)
+- Implementation: [src/capsule.js](../../../src/capsule.js)
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
-  - `buildPackV2`
-  - `buildPackV3`
-  - `DopplerPack`
-  - `DopplerPackV3`
-  - `getPackIdentity`
-  - `hashPackReleaseEvent`
-  - `hashPackV2`
-  - `hashPackV3`
-  - `migratePackV2`
-  - `PackIdentity`
-  - `PackReleaseAuthorization`
-  - `PackReleaseEvent`
-  - `PackReleasePolicy`
-  - `PackReleaseStateError`
-  - `PackRetainedLocalUse`
-  - `PackSigner`
+  - `buildCapsuleV2`
+  - `buildCapsuleV3`
+  - `CapsuleIdentity`
+  - `CapsuleReleaseAuthorization`
+  - `CapsuleReleaseEvent`
+  - `CapsuleReleasePolicy`
+  - `CapsuleReleaseStateError`
+  - `CapsuleRetainedLocalUse`
+  - `CapsuleSigner`
+  - `DopplerCapsule`
+  - `DopplerCapsuleV3`
+  - `getCapsuleIdentity`
+  - `hashCapsuleReleaseEvent`
+  - `hashCapsuleV2`
+  - `hashCapsuleV3`
+  - `migrateCapsuleV2`
   - `ReleaseCheckpoint`
-  - `signPackReleaseEvent`
-  - `signPackV2`
-  - `signPackV3`
-  - `validatePack`
-  - `validatePackReleaseEvent`
-  - `validatePackV2`
-  - `validatePackV3`
-  - `verifyPack`
-  - `verifyPackReleaseEvents`
+  - `signCapsuleReleaseEvent`
+  - `signCapsuleV2`
+  - `signCapsuleV3`
+  - `validateCapsule`
+  - `validateCapsuleReleaseEvent`
+  - `validateCapsuleV2`
+  - `validateCapsuleV3`
+  - `verifyCapsule`
+  - `verifyCapsuleReleaseEvents`
 
 ## `doppler-gpu/compat`
 
@@ -122,14 +122,14 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Manual guide: [docs/api/compat.md](../compat.md)
 - Types: [src/index.d.ts](../../../src/index.d.ts)
 - Implementation: [src/index.js](../../../src/index.js)
-- Notes: Explicit legacy manifest-loading facade; new production integrations should use signed Packs.
+- Notes: Explicit legacy manifest-loading facade; new production integrations should use signed Capsules.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.compat-facade)
 - Exported symbols:
   - `createDopplerProvider`
   - `doppler`
   - `DOPPLER_VERSION`
+  - `DopplerCapsuleOpenOptions`
   - `DopplerGenerationResult`
-  - `DopplerPackOpenOptions`
   - `DopplerPromptInput`
   - `DopplerResolutionPolicy`
   - `DopplerRevocationPublicKey`
@@ -143,7 +143,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `generate`
   - `load`
   - `open`
-  - `openPack`
+  - `openCapsule`
   - `SequenceEncodeOptions`
   - `SequenceEncodeResult`
 
@@ -321,8 +321,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `buildDeterministicTokenEvidenceFromReferenceTranscript`
   - `buildModeScoreMaps`
   - `buildRuntimeBoundaryCapture`
-  - `buildSourceBoundaryPack`
-  - `buildSourceBoundaryPackFromProviderCapture`
+  - `buildSourceBoundaryCapsule`
+  - `buildSourceBoundaryCapsuleFromProviderCapture`
   - `buildTokenCostLedger`
   - `calibrateRegisteredVariants`
   - `classifyTokenCostLedger`
@@ -340,7 +340,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `runRegisteredVariantCalibrationJob`
   - `RUNTIME_BOUNDARY_CAPTURE_SCHEMA`
   - `sortTokenIdsByScore`
-  - `SOURCE_BOUNDARY_PACK_SCHEMA`
+  - `SOURCE_BOUNDARY_CAPSULE_SCHEMA`
   - `TOKEN_COST_LEDGER_SCHEMA`
   - `validateDemoContractReceipt`
   - `validateDemoHardwareReceipt`
@@ -566,7 +566,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `loadCheckpoint`
   - `LoadedTrainingWorkload`
   - `loadNativeQwenTrainingPipeline`
-  - `loadTrainingWorkloadPack`
+  - `loadTrainingWorkloadCapsule`
   - `LORA_RUNNER_BASE_MODEL_REGISTRY`
   - `LORA_RUNNER_DATASET_FORMAT_REGISTRY`
   - `LORA_RUNNER_SUPPORT_CONTRACT`
@@ -577,7 +577,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `NativeQwenLoRATrainer`
   - `NativeQwenLoRATrainerOptions`
   - `NativeQwenSftLoRAOptions`
-  - `normalizeTrainingWorkloadPack`
+  - `normalizeTrainingWorkloadCapsule`
   - `OpType`
   - `qualityGateLoraRun`
   - `recordAttentionForward`
@@ -591,7 +591,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `TrainingBackendCapability`
   - `TrainingCapabilities`
   - `TrainingRunner`
-  - `TrainingWorkloadPack`
+  - `TrainingWorkloadCapsule`
   - `trainNativeQwenSftLoRA`
   - `trainSftLoRA`
   - `TrainSftLoRAOptions`

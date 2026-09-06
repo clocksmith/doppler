@@ -23,7 +23,7 @@ export interface SourceIntakeFact {
   proposal: unknown;
   confidence: 'direct' | 'derived' | 'family-inferred' | 'ambiguous' | 'unsupported';
   status: 'accepted' | 'unresolved';
-  verification: { kind: 'boundary-pack' | 'contract-test'; boundary: string | null };
+  verification: { kind: 'boundary-capsule' | 'contract-test'; boundary: string | null };
   note?: string;
 }
 

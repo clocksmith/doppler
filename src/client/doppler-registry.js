@@ -20,7 +20,7 @@ function normalizeEntry(entry) {
     return null;
   }
   const sourceCheckpointId = typeof entry.sourceCheckpointId === 'string' ? entry.sourceCheckpointId.trim() : '';
-  const weightPackId = typeof entry.weightPackId === 'string' ? entry.weightPackId.trim() : '';
+  const weightCapsuleId = typeof entry.weightCapsuleId === 'string' ? entry.weightCapsuleId.trim() : '';
   const manifestVariantId = typeof entry.manifestVariantId === 'string' ? entry.manifestVariantId.trim() : '';
   const artifactCompleteness = typeof entry.artifactCompleteness === 'string' ? entry.artifactCompleteness.trim() : '';
   const runtimePromotionState = typeof entry.runtimePromotionState === 'string' ? entry.runtimePromotionState.trim() : '';
@@ -30,7 +30,7 @@ function normalizeEntry(entry) {
   const typeCluster = cloneOptionalObject(entry.typeCluster);
   if (
     !sourceCheckpointId
-    || !weightPackId
+    || !weightCapsuleId
     || !manifestVariantId
     || artifactCompleteness !== 'complete'
     || runtimePromotionState !== 'manifest-owned'
@@ -41,7 +41,7 @@ function normalizeEntry(entry) {
   return {
     modelId,
     sourceCheckpointId,
-    weightPackId,
+    weightCapsuleId,
     manifestVariantId,
     artifactCompleteness,
     runtimePromotionState,
@@ -89,7 +89,7 @@ export async function listQuickstartModels() {
   return registry.models.map((entry) => ({
     modelId: entry.modelId,
     sourceCheckpointId: entry.sourceCheckpointId,
-    weightPackId: entry.weightPackId,
+    weightCapsuleId: entry.weightCapsuleId,
     manifestVariantId: entry.manifestVariantId,
     artifactCompleteness: entry.artifactCompleteness,
     runtimePromotionState: entry.runtimePromotionState,
@@ -118,7 +118,7 @@ export async function resolveQuickstartModel(model) {
       logicalModelId: requested,
       modelId: resolved.modelId,
       sourceCheckpointId: resolved.sourceCheckpointId,
-      weightPackId: resolved.weightPackId,
+      weightCapsuleId: resolved.weightCapsuleId,
       manifestVariantId: resolved.manifestVariantId,
     });
     return resolved;

@@ -373,7 +373,7 @@
     },
     {
       "name": "training:workloads:verify",
-      "command": "node tools/verify-training-workload-packs.js --registry src/experimental/training/workload-packs/registry.json",
+      "command": "node tools/verify-training-workload-capsules.js --registry src/experimental/training/workload-capsules/registry.json",
       "bucket": "core-referenced",
       "references": {
         "ci": false,
@@ -384,7 +384,7 @@
     },
     {
       "name": "training:report-ids:publish",
-      "command": "node tools/publish-training-report-ids.js --registry src/experimental/training/workload-packs/registry.json",
+      "command": "node tools/publish-training-report-ids.js --registry src/experimental/training/workload-capsules/registry.json",
       "bucket": "core-referenced",
       "references": {
         "ci": false,

@@ -9,13 +9,13 @@ import { createEmbeddingReferenceFixture } from '../helpers/embedding-reference-
 import { createForgeEvaluationFixture } from '../helpers/forge-evaluation-fixture.js';
 import { hashTargetPlan } from '../../src/config/target-plan.js';
 import {
-  TEST_PACK_AUTHORITY,
-  TEST_PACK_PUBLIC_KEY,
-  createPackReleaseFixture,
-} from '../helpers/pack-v2-fixture.js';
+  TEST_CAPSULE_AUTHORITY,
+  TEST_CAPSULE_PUBLIC_KEY,
+  createCapsuleReleaseFixture,
+} from '../helpers/capsule-v2-fixture.js';
 
 const privateKeyJwk = {
-  ...TEST_PACK_PUBLIC_KEY,
+  ...TEST_CAPSULE_PUBLIC_KEY,
   d: 'WQi2FHRfw0jZxl_IXiMp5TAuehMfssojWd2Oj3WaUKU',
 };
 const manifest = {
@@ -87,40 +87,40 @@ const programBundle = {
   },
 };
 const programBundleRaw = `${JSON.stringify(programBundle)}\n`;
-const release = createPackReleaseFixture({ targetIds: ['webgpu-f32-f32-portable'] });
+const release = createCapsuleReleaseFixture({ targetIds: ['webgpu-f32-f32-portable'] });
 
 const result = await runForgePipeline({
   manifest, manifestRaw, programBundle, programBundleRaw,
-  programBundlePath: '/tmp/program-bundle.json', repoRoot: '/tmp', outputPath: '/tmp/model.pack.json',
+  programBundlePath: '/tmp/program-bundle.json', repoRoot: '/tmp', outputPath: '/tmp/model.capsule.json',
   release,
 }, {
-  authority: TEST_PACK_AUTHORITY,
+  authority: TEST_CAPSULE_AUTHORITY,
   privateKeyJwk,
-  publicKeyJwk: TEST_PACK_PUBLIC_KEY,
+  publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY,
 });
 assert.deepEqual(result.stages.map((stage) => stage.stage), [
   'inspect', 'normalize', 'analyze', 'lower', 'specialize',
   'search', 'verify', 'qualify', 'package', 'sign',
 ]);
-assert.equal(result.pack.schema, 'doppler.pack/v2');
-assert.equal(result.pack.signature.authority, TEST_PACK_AUTHORITY);
-assert.equal(result.pack.modelIR.hiddenSize, 4);
-assert.equal(result.pack.targetPlans.length, 1, 'Forge must not invent unsupported target variants');
-const candidateEvaluation = createForgeEvaluationFixture(result.pack.targetPlans[0].modelIRHash,
-  result.pack.targetPlans.map(hashTargetPlan));
-const evaluatedPack = await runForgePipeline({ manifest, manifestRaw, programBundle, programBundleRaw,
-  programBundlePath: '/tmp/program-bundle.json', repoRoot: '/tmp', outputPath: '/tmp/model.pack.json', release, candidateEvaluation }, {
-  authority: TEST_PACK_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_PACK_PUBLIC_KEY,
+assert.equal(result.capsule.schema, 'doppler.capsule/v2');
+assert.equal(result.capsule.signature.authority, TEST_CAPSULE_AUTHORITY);
+assert.equal(result.capsule.modelIR.hiddenSize, 4);
+assert.equal(result.capsule.targetPlans.length, 1, 'Forge must not invent unsupported target variants');
+const candidateEvaluation = createForgeEvaluationFixture(result.capsule.targetPlans[0].modelIRHash,
+  result.capsule.targetPlans.map(hashTargetPlan));
+const evaluatedCapsule = await runForgePipeline({ manifest, manifestRaw, programBundle, programBundleRaw,
+  programBundlePath: '/tmp/program-bundle.json', repoRoot: '/tmp', outputPath: '/tmp/model.capsule.json', release, candidateEvaluation }, {
+  authority: TEST_CAPSULE_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY,
 });
-assert.equal(evaluatedPack.searchReceipt.policy, 'observed-range-pareto');
-assert.equal(evaluatedPack.searchReceipt.evaluationReceipt.promotionAllowed, false);
-assert.equal(evaluatedPack.pack.semanticRoot, result.pack.semanticRoot, 'selection must not rewrite executable identity');
+assert.equal(evaluatedCapsule.searchReceipt.policy, 'observed-range-pareto');
+assert.equal(evaluatedCapsule.searchReceipt.evaluationReceipt.promotionAllowed, false);
+assert.equal(evaluatedCapsule.capsule.semanticRoot, result.capsule.semanticRoot, 'selection must not rewrite executable identity');
 const failedEvaluation = structuredClone(candidateEvaluation);
 failedEvaluation.observations[0].output.tokens = [9];
 await assert.rejects(runForgePipeline({ manifest, manifestRaw, programBundle, programBundleRaw,
-  programBundlePath: '/tmp/program-bundle.json', repoRoot: '/tmp', outputPath: '/tmp/model.pack.json', release,
-  candidateEvaluation: failedEvaluation }, { authority: TEST_PACK_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_PACK_PUBLIC_KEY }),
-error => /no Pack may be signed/.test(error.message) && error.evaluationReceipt.selectedCandidateHashes.length === 0);
+  programBundlePath: '/tmp/program-bundle.json', repoRoot: '/tmp', outputPath: '/tmp/model.capsule.json', release,
+  candidateEvaluation: failedEvaluation }, { authority: TEST_CAPSULE_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY }),
+error => /no Capsule may be signed/.test(error.message) && error.evaluationReceipt.selectedCandidateHashes.length === 0);
 
 const qwenReceipt = JSON.parse(await fs.readFile(
   'reports/model-ir-v2/qwen3.8-27b.model-ir-receipt.json',
@@ -178,7 +178,7 @@ const initialExecutionIdentity = createInitialExecutionIdentityV2({
   executionPlanDigest: `sha256:${'7'.repeat(64)}`,
   runtimeEngine: { schema: 'fixture' },
   programLoadPolicy: {
-    schema: 'doppler.pack-program-load-policy/v2',
+    schema: 'doppler.capsule-program-load-policy/v2',
     runtimeConfig: {
       inference: {
         session: {}, compute: {}, generation: { disableMultiTokenDecode: false },
@@ -193,28 +193,28 @@ const v2Result = await runForgePipeline({
   programBundleRaw: `${JSON.stringify(v2ProgramBundle)}\n`,
   programBundlePath: '/tmp/program-bundle-v2.json',
   repoRoot: '/tmp',
-  outputPath: '/tmp/model-v2.pack.json',
+  outputPath: '/tmp/model-v2.capsule.json',
   modelIR: modelIRV2,
   modelIREvidence,
   initialExecutionIdentity,
   release,
 }, {
-  authority: TEST_PACK_AUTHORITY,
+  authority: TEST_CAPSULE_AUTHORITY,
   privateKeyJwk,
-  publicKeyJwk: TEST_PACK_PUBLIC_KEY,
+  publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY,
 });
-assert.equal(v2Result.pack.modelIR.schema, 'doppler.model-ir/v2');
-assert.deepEqual(v2Result.pack.modelIR.supportScope.qualifiedEntryPoints, ['text.generate']);
-assert.equal(v2Result.pack.targetPlans[0].schema, 'doppler.target-plan/v2');
-assert.equal(v2Result.pack.targetPlans[0].initialExecutionIdentity.digest, initialExecutionIdentity.digest);
+assert.equal(v2Result.capsule.modelIR.schema, 'doppler.model-ir/v2');
+assert.deepEqual(v2Result.capsule.modelIR.supportScope.qualifiedEntryPoints, ['text.generate']);
+assert.equal(v2Result.capsule.targetPlans[0].schema, 'doppler.target-plan/v2');
+assert.equal(v2Result.capsule.targetPlans[0].initialExecutionIdentity.digest, initialExecutionIdentity.digest);
 assert.equal(
-  v2Result.pack.artifacts.find((artifact) => (
-    artifact.artifactId === v2Result.pack.program.modelIREvidenceArtifactId
+  v2Result.capsule.artifacts.find((artifact) => (
+    artifact.artifactId === v2Result.capsule.program.modelIREvidenceArtifactId
   ))?.role,
   'source-truth-evidence'
 );
-assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'recurrent_state'));
-assert.ok(v2Result.pack.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'convolutional_state'));
+assert.ok(v2Result.capsule.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'recurrent_state'));
+assert.ok(v2Result.capsule.targetPlans[0].memoryLayout.bufferSlots.some((slot) => slot.slotId === 'convolutional_state'));
 
 // Actual Forge stages with synthetic source/output evidence, not hardware proof.
 const rerankIR = structuredClone(modelIRV2);
@@ -246,15 +246,15 @@ const rerankEvidenceRaw = JSON.stringify({ modelIR: rerankIR });
 const rerankInput = {
   manifest: rerankManifest, manifestRaw: rerankManifestRaw, programBundle: rerankBundle,
   programBundleRaw: JSON.stringify(rerankBundle), programBundlePath: '/tmp/rerank-bundle.json',
-  repoRoot: '/tmp', outputPath: '/tmp/rerank.pack.json', modelIR: rerankIR,
+  repoRoot: '/tmp', outputPath: '/tmp/rerank.capsule.json', modelIR: rerankIR,
   modelIREvidence: { sourcePath: '/tmp/rerank-ir.json', hash: hash(rerankEvidenceRaw), sizeBytes: rerankEvidenceRaw.length },
   initialExecutionIdentity, release,
 };
-const signer = { authority: TEST_PACK_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_PACK_PUBLIC_KEY };
+const signer = { authority: TEST_CAPSULE_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY };
 const rerankResult = await runForgePipeline(rerankInput, signer);
-assert.equal(rerankResult.pack.modelIR.schema, 'doppler.model-ir/v2');
-assert.deepEqual(rerankResult.pack.modelIR.supportScope.qualifiedEntryPoints, [rerankEntry.id]);
-assert.equal(rerankResult.pack.targetPlans[0].qualification[0].operation, 'rerank');
+assert.equal(rerankResult.capsule.modelIR.schema, 'doppler.model-ir/v2');
+assert.deepEqual(rerankResult.capsule.modelIR.supportScope.qualifiedEntryPoints, [rerankEntry.id]);
+assert.equal(rerankResult.capsule.targetPlans[0].qualification[0].operation, 'rerank');
 for (const [change, expected] of [
   [(input) => { input.programBundle.referenceTranscript.observation.outputs[0].score += 10; }, /source comparison failed/],
   [(input) => {
@@ -291,9 +291,9 @@ Object.assign(embeddingInput.programBundle.artifacts.find(artifact => artifact.r
 });
 embeddingInput.programBundleRaw = JSON.stringify(embeddingInput.programBundle);
 const embeddingResult = await runForgePipeline(embeddingInput, signer);
-assert.equal(embeddingResult.pack.targetPlans[0].qualification[0].operation, 'embed');
-assert.equal(embeddingResult.pack.targetPlans[0].qualification[0].embeddedTexts, 2);
-assert.deepEqual(embeddingResult.pack.modelIR.supportScope.qualifiedEntryPoints, [rerankEntry.id]);
+assert.equal(embeddingResult.capsule.targetPlans[0].qualification[0].operation, 'embed');
+assert.equal(embeddingResult.capsule.targetPlans[0].qualification[0].embeddedTexts, 2);
+assert.deepEqual(embeddingResult.capsule.modelIR.supportScope.qualifiedEntryPoints, [rerankEntry.id]);
 for (const [change, expected] of [
   [input => { input.programBundle.referenceTranscript.observation.outputs[0].embedding[3] = 1; }, /source comparison failed/],
   [input => { input.modelIR.entryPoints.find(entry => entry.kind === 'embed').kind = 'generate'; }, /lowered embed/],
@@ -316,7 +316,7 @@ const wrongKernelIdentity = createInitialExecutionIdentityV2({
   executionPlanDigest: `sha256:${'7'.repeat(64)}`,
   runtimeEngine: { schema: 'fixture' },
   programLoadPolicy: {
-    schema: 'doppler.pack-program-load-policy/v2',
+    schema: 'doppler.capsule-program-load-policy/v2',
     runtimeConfig: {
       inference: {
         session: {}, compute: {}, generation: { disableMultiTokenDecode: false },
@@ -332,15 +332,15 @@ await assert.rejects(
     programBundleRaw: `${JSON.stringify(v2ProgramBundle)}\n`,
     programBundlePath: '/tmp/program-bundle-v2.json',
     repoRoot: '/tmp',
-    outputPath: '/tmp/model-v2.pack.json',
+    outputPath: '/tmp/model-v2.capsule.json',
     modelIR: modelIRV2,
     modelIREvidence,
     initialExecutionIdentity: wrongKernelIdentity,
     release,
   }, {
-    authority: TEST_PACK_AUTHORITY,
+    authority: TEST_CAPSULE_AUTHORITY,
     privateKeyJwk,
-    publicKeyJwk: TEST_PACK_PUBLIC_KEY,
+    publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY,
   }),
   /kernel closure different from the observed initial execution/
 );

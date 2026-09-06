@@ -409,7 +409,7 @@
   "manifest": {
     "artifactIdentity": {
       "sourceCheckpointId": "google/gemma-3-270m-it",
-      "weightPackId": "gemma-3-270m-it-f16-af32-wp-control-v1",
+      "weightCapsuleId": "gemma-3-270m-it-f16-af32-wp-control-v1",
       "manifestVariantId": "gemma-3-270m-it-f16-af32-mv-control-v1",
       "artifactCompleteness": "complete"
     }

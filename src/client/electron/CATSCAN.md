@@ -6,30 +6,30 @@ Parent: [Client API](../CATSCAN.md)
 
 ## Target
 
-Bind an Electron renderer to an eligible immutable Pack while keeping durable update state and customer activation authority in the main process.
+Bind an Electron renderer to an eligible immutable Capsule while keeping durable update state and customer activation authority in the main process.
 
 ## Authority
 
-- Owns the typed IPC contract, atomic release-state transitions, and renderer Pack-session coordination.
+- Owns the typed IPC contract, atomic release-state transitions, and renderer Capsule-session coordination.
 - Does not own hardware qualification, eligibility signing, customer activation authority, or tensor mathematics.
 
 ## Scope
 
-- Electron main-process release state, renderer Pack sessions, and their typed IPC boundary.
+- Electron main-process release state, renderer Capsule sessions, and their typed IPC boundary.
 
 ## Contracts
 
-- Input: verified release decisions, verified revocation snapshots, application-owned IPC authorization, customer activation digests, and Pack references.
-- Output: durable current/previous/candidate state and renderer sessions opened only from a current usable Pack.
+- Input: verified release decisions, verified revocation snapshots, application-owned IPC authorization, customer activation digests, and Capsule references.
+- Output: durable current/previous/candidate state and renderer sessions opened only from a current usable Capsule.
 
 ## Invariants
 
-- Candidate installation never changes the active Pack.
+- Candidate installation never changes the active Capsule.
 - Eligibility and explicit customer authorization are both required for activation.
-- Rejected upgrades preserve the current and previous Packs.
-- Expired or missing signed revocation state fails closed before a Pack is opened.
+- Rejected upgrades preserve the current and previous Capsules.
+- Expired or missing signed revocation state fails closed before a Capsule is opened.
 - IPC requires application authorization of the actual sender and detached request; an authorization digest alone grants no access.
-- Persisted revocation signatures are reverified under current trust; signed updates retain previously denied Pack roots.
+- Persisted revocation signatures are reverified under current trust; signed updates retain previously denied Capsule roots.
 
 ## Acceptance
 

@@ -12,7 +12,7 @@
       "canonicalOwner": "src/tooling/boundary-evidence.js",
       "canonicalCommand": "doppler boundary compare",
       "adapters": [
-        "doppler boundary source-pack",
+        "doppler boundary source-capsule",
         "doppler boundary token-evidence"
       ]
     },

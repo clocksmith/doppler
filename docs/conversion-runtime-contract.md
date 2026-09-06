@@ -29,9 +29,9 @@ re-conversion or can be changed per-run.
 | `quantization.embeddings` | Conversion | Yes | No | Yes |
 | `quantization.lmHead` | Conversion | Yes | No | Yes |
 | `artifactIdentity.sourceCheckpointId` | Conversion/catalog migration | Yes | No | No, if correcting metadata only |
-| `artifactIdentity.weightPackId` | Conversion/catalog migration | Yes | No | Yes, when converted tensor bytes change |
-| `artifactIdentity.manifestVariantId` | Conversion/catalog migration | Yes | No | No, if only manifest/runtime policy changes over the same weight pack |
-| `weightsRef` | Manifest variant migration | Yes | No | No, if redirecting a manifest variant to an existing weight pack |
+| `artifactIdentity.weightCapsuleId` | Conversion/catalog migration | Yes | No | Yes, when converted tensor bytes change |
+| `artifactIdentity.manifestVariantId` | Conversion/catalog migration | Yes | No | No, if only manifest/runtime policy changes over the same weight capsule |
+| `weightsRef` | Manifest variant migration | Yes | No | No, if redirecting a manifest variant to an existing weight capsule |
 | `output.textOnly` | Conversion | Indirect (tensor set emitted) | No | Yes |
 | `manifest.hashAlgorithm` | Conversion | Yes (`hashAlgorithm`, shard hashes) | No | Yes |
 | `quantization.computePrecision` | Conversion-authored runtime default | Yes (`quantizationInfo.compute`) | Yes (through runtime/session policy) | No (for runtime behavior) |

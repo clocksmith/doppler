@@ -785,8 +785,10 @@ function validateGemma4ServeReceiptPayload(targetId, receipt, payload) {
   if (payloadModelId !== receiptModelId) {
     errors.push(`${targetId}: serve receipt ${receiptPath} modelId mismatch (${payloadModelId} != ${receiptModelId})`);
   }
-  if (payload?.receiptVersion !== 'doppler_serve_receipt_v1' || payload?.schemaVersion !== 1) {
-    errors.push(`${targetId}: serve receipt ${receiptPath} requires doppler_serve_receipt_v1 schema`);
+  const historical = payload?.receiptVersion === 'doppler_serve_receipt_v1' && payload?.schemaVersion === 1;
+  const current = payload?.receiptVersion === 'doppler_serve_receipt_v2' && payload?.schemaVersion === 2;
+  if (!historical && !current) {
+    errors.push(`${targetId}: serve receipt ${receiptPath} requires a versioned Doppler serve receipt schema`);
   }
   if (normalizeText(payload?.surface) !== 'serve' || normalizeText(payload?.status) !== normalizeText(receipt?.status)) {
     errors.push(`${targetId}: serve receipt ${receiptPath} requires matching surface=serve and status`);
@@ -796,7 +798,9 @@ function validateGemma4ServeReceiptPayload(targetId, receipt, payload) {
   }
   if (!isObject(payload?.artifact)
     || !hasText(payload.artifact?.sourceCheckpointId)
-    || !hasText(payload.artifact?.weightPackId)
+    // This legacy receipt schema describes the retained chatText experiment,
+    // not a Capsule session or its current publication authority.
+    || !hasText(historical ? payload.artifact?.weightPackId : payload.artifact?.weightCapsuleId)
     || !hasText(payload.artifact?.manifestVariantId)) {
     errors.push(`${targetId}: serve receipt ${receiptPath} requires artifact identity evidence`);
   }

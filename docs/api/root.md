@@ -1,25 +1,25 @@
-# Pack Runtime API
+# Capsule Runtime API
 
 ## Purpose
 
 Start with `doppler-gpu/host` when using Doppler's existing browser or Node host
-composition. It accepts a Pack URL/path, explicit trusted signers and accepted
+composition. It accepts a Capsule URL/path, explicit trusted signers and accepted
 TargetPlan digests, and supplies the existing device, artifact-store, and program
-ports. For Pack objects, supply an artifact store. It does not choose trust or
-accept upgrades. See the [application example](../../README.md#pack-runtime-api)
+ports. For Capsule objects, supply an artifact store. It does not choose trust or
+accept upgrades. See the [application example](../../README.md#capsule-runtime-api)
 and [Electron renderer](../../examples/electron-document-search/README.md).
 An exported host path is not proof that every model works on that host.
 
-`doppler-gpu` is the Pack-native production entrypoint. It validates a signed
-Doppler Pack, verifies every artifact and reachable WGSL module, selects one
-already-qualified TargetPlan for the observed device, binds resources, and
+`doppler-gpu` is the Capsule-native production entrypoint. It validates a signed
+Doppler Capsule, selects one already-qualified TargetPlan for the observed device,
+then verifies every artifact and reachable WGSL module, binds resources, and
 executes the declared commands. It does not load unsigned manifests, infer a
 model family, choose kernels, or supply a development signing key.
 
 `doppler-gpu/runtime` is an exact alias of the same entrypoint.
 
-Pack v2 remains readable. The new `doppler-gpu/pack` facade supplies v3 migration,
-identity, and signed release-event APIs. See [Pack identity migration](../pack-identity-migration.md)
+Capsule v2 remains readable. The new `doppler-gpu/capsule` facade supplies v3 migration,
+identity, and signed release-event APIs. See [Capsule identity migration](../capsule-identity-migration.md)
 for explicit trust/checkpoint policy, artifact-source ownership, and sequence
 execution receipts. New source APIs do not imply a published or qualified release.
 
@@ -30,8 +30,8 @@ import {
   DOPPLER_VERSION,
   RUNTIME_CORE_VERSION,
   createDopplerRuntime,
-  createFetchPackArtifactStore,
-  openPack,
+  createFetchCapsuleArtifactStore,
+  openCapsule,
 } from 'doppler-gpu';
 ```
 
@@ -40,24 +40,24 @@ import {
 When using `doppler-gpu` or `doppler-gpu/runtime`, the application injects:
 
 - `device`: the concrete WebGPU resource and capability adapter.
-- `artifactStore`: reads and hashes Pack artifacts.
+- `artifactStore`: reads and hashes Capsule artifacts.
 - `trustedSigners`: the explicit signer-ID to public-JWK trust map.
 - `programFactory`: loads generic execution mechanisms for the selected plan.
 
-No port has a behavior-changing default. Missing ports fail before Pack
+No port has a behavior-changing default. Missing ports fail before Capsule
 validation. The compatibility facade's `modelLoadOptions` are prohibited on
-Pack execution because they could rewrite signed execution policy.
+Capsule execution because they could rewrite signed execution policy.
 
 ## Minimal example
 
 ```js
-import { createFetchPackArtifactStore, openPack } from 'doppler-gpu';
+import { createFetchCapsuleArtifactStore, openCapsule } from 'doppler-gpu';
 
-const packUrl = new URL('./model.pack.json', import.meta.url).href;
-const pack = await (await fetch(packUrl)).json();
-const artifactStore = createFetchPackArtifactStore(packUrl);
+const capsuleUrl = new URL('./model.capsule.json', import.meta.url).href;
+const capsule = await (await fetch(capsuleUrl)).json();
+const artifactStore = createFetchCapsuleArtifactStore(capsuleUrl);
 
-const session = await openPack(pack, {
+const session = await openCapsule(capsule, {
   device,
   artifactStore,
   trustedSigners: new Map([[signerId, signerPublicKey]]),
@@ -69,14 +69,71 @@ console.log(text, tokenIds, session.selectedTargetPlanDigest);
 await session.close();
 ```
 
-`generationOptions` contains only SessionPlan values admitted by the Pack,
+## Acquisition, cancellation, and verified reads
+
+Opening authenticates signed metadata and release permissions before selecting
+an application-approved, operation-qualified device plan. An incompatible plan
+causes no artifact reads. Authenticated release denials still advance the
+application's durable checkpoint; cancellation and device incompatibility cannot
+erase them. Metadata-only verification is not permission to execute: the full
+artifact closure must pass byte verification before constructing a program.
+
+Session opening accepts `signal`, `loadTimeoutMs`, `maxMetadataBytes`, and
+`onLoadProgress`. Pass these directly to `doppler-gpu/host` or
+`runtime.openCapsule()`, and under `options.session` for the explicit-port root
+`openCapsule()` facade. The JSON loading policy
+defaults the deadline to `null` (no deadline) and HTTP metadata to a 16 MiB byte
+limit. Set a positive `loadTimeoutMs` to bound acquisition; the deadline includes
+metadata and artifact downloads. Progress events contain `phase` (`metadata` or
+`artifact`), `artifactId` (null for metadata), `loadedBytes`, and `totalBytes`
+(null until metadata size is known). They contain no document inputs.
+
+```js
+const controller = new AbortController();
+const session = await openCapsule(capsule, {
+  device, artifactStore, trustedSigners, programFactory,
+  session: {
+    signal: controller.signal,
+    loadTimeoutMs: 120000,
+    onLoadProgress: event => console.log(event),
+  },
+});
+```
+
+The HTTP adapter cancels response streams and checks signed artifact sizes during
+download. Node file reads also receive the signal. Custom sources receive
+`readArtifact(artifact, { signal, onLoadProgress, ... })` and must honor the signal
+to stop their own I/O. A cancelled read is never admitted, even if a custom source
+ignores cancellation. Cancellation prevents further loading reads and closes a
+program that finishes construction after cancellation; it does not preempt
+submitted GPU work or an uncooperative resource constructor. Opening signals and
+deadline listeners are detached when opening finishes. Execution has its own
+per-operation cancellation control. Electron translates opening cancellation to
+its existing `DOPPLER_ELECTRON_CANCELLED` error.
+
+The internal verified store owns a detached copy of every admitted artifact.
+`hashArtifact()` reports that internally computed verification without copying or
+rehashing the file. `readArtifactRange()` returns only an owned requested slice;
+neither callers nor source buffers can mutate retained bytes. Externally supplied
+hash claims are never trusted by Capsule opening. Manifest-level shard checks remain
+separate because they bind another identity.
+
+Observer events `capsule-validation-complete` and `capsule-load-complete` include
+`artifactMetrics`: source bytes read, bytes hashed by the verified store, bytes
+copied there, retained and peak-retained bytes, and bytes returned to consumers.
+These counters exclude HTTP internals, manifest hashing, GPU upload, driver
+allocation, and total process memory. They establish copy/verification work, not
+a measured latency or peak-memory improvement. Capsule acquisition does not provide
+persistent browser storage or offline application-shell installation by itself.
+
+`generationOptions` contains only SessionPlan values admitted by the Capsule,
 including prompt tokens, output limit, sampling tuple, stop policy, and abort
 signal. It cannot change graph topology, precision, fusion, kernel selection,
 KV layout, or memory strategy.
 
 ## Text embeddings
 
-`session.embed()` is a Pack-backed text operation, distinct from protein
+`session.embed()` is a Capsule-backed text operation, distinct from protein
 `encodeSequence()`. It requires a passed `embed` qualification on the selected
 TargetPlan and current host surface. Generation, reranking, or sequence evidence
 cannot authorize it. A qualification record identifies `embeddedTexts` and its
@@ -98,11 +155,11 @@ console.log(result.embedding, result.receipt.targetPlanDigest);
 ```
 
 The application identity must match the verified release (the selected release
-event for Pack v3). The signed manifest must explicitly declare embedding
+event for Capsule v3). The signed manifest must explicitly declare embedding
 support, hidden size, pooling, projection geometry, prompt inclusion, and
 normalization through `output.embeddingPostprocessor`. Currently prompt
 exclusion and call-time semantic overrides are rejected. The existing WGSL
-pipeline performs pooling, projection, and normalization; the Pack boundary
+pipeline performs pooling, projection, and normalization; the Capsule boundary
 does not calculate or modify vectors on the CPU.
 
 The returned embedding and token arrays are immutable snapshots. The execution
@@ -137,23 +194,23 @@ Newly forged ModelIR v2 targets require
 only the fully resolved runtime `session`, `compute`, and
 `generation.disableMultiTokenDecode` JSON required to create the declared
 execution plan. Public `modelLoadOptions` remain prohibited. Runtime applies
-this Pack-owned policy before loading the mature execution mechanism, then
+this Capsule-owned policy before loading the mature execution mechanism, then
 independently observes and compares the complete identity before prefill.
 Program-load policy v1 remains readable for rejected or previously frozen
 evidence, but Forge promotes only reconstructive policy v2. Initial execution
-identity v1 remains accepted only for compatibility with already frozen Pack v0
+identity v1 remains accepted only for compatibility with already frozen Capsule v0
 targets.
 
 ## Architecture boundary
 
 JSON declares semantic and execution policy. JavaScript validates, binds, and
 orchestrates. WGSL computes only declared tensor operations. Every reachable
-shader is content-addressed; changing shader bytes changes TargetPlan and Pack
+shader is content-addressed; changing shader bytes changes TargetPlan and Capsule
 identity.
 
 ## Code pointers
 
-- [Pack runtime entrypoint](../../src/pack-runtime.js)
+- [Capsule runtime entrypoint](../../src/capsule-runtime.js)
 - [Runtime composition root](../../src/client/runtime/composition-root.js)
 - [Initial execution identity](../../src/config/initial-execution-identity.js)
 - [Compatibility API](compat.md)

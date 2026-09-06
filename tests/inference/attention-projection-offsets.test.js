@@ -19,7 +19,7 @@ function makeWeight(dtype, layout = 'row', shape = [2048, 1024]) {
 {
   const q4kWeight = makeWeight('q4k', 'row', [4096, 1024]);
   const offset = resolveProjectionSliceOffsetBytes(q4kWeight, 2048, 1024);
-  // Q4K packs 256 logical elements into 144 bytes.
+  // Q4K capsules 256 logical elements into 144 bytes.
   const expected = 2048 * Math.ceil(1024 / 256) * 144;
   assert.equal(offset, expected);
 }

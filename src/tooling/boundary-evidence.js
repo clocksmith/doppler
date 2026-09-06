@@ -1,6 +1,6 @@
 import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 
-export const SOURCE_BOUNDARY_PACK_SCHEMA = 'doppler.source-boundary-pack/v1';
+export const SOURCE_BOUNDARY_CAPSULE_SCHEMA = 'doppler.source-boundary-capsule/v1';
 export const RUNTIME_BOUNDARY_CAPTURE_SCHEMA = 'doppler.runtime-boundary-capture/v1';
 export const BOUNDARY_COMPARISON_RECEIPT_SCHEMA =
   'doppler.boundary-comparison-receipt/v1';
@@ -30,15 +30,15 @@ function assertArtifactDigest(artifact, label) {
 }
 
 function validateSourceIdentity(identity) {
-  if (!isObject(identity)) throw new Error('boundary evidence: source-pack identity is required');
+  if (!isObject(identity)) throw new Error('boundary evidence: source-capsule identity is required');
   for (const field of ['sourceRevision', 'dtype']) {
     if (typeof identity[field] !== 'string' || !identity[field]) {
-      throw new Error(`boundary evidence: source-pack identity.${field} is required`);
+      throw new Error(`boundary evidence: source-capsule identity.${field} is required`);
     }
   }
   for (const field of ['promptDigest', 'modelConfigDigest', 'referenceScriptDigest']) {
     if (!/^sha256:[0-9a-f]{64}$/.test(identity[field] ?? '')) {
-      throw new Error(`boundary evidence: source-pack identity.${field} is required`);
+      throw new Error(`boundary evidence: source-capsule identity.${field} is required`);
     }
   }
 }
@@ -204,26 +204,26 @@ export function buildRuntimeBoundaryCapture({
   return { ...core, digest: computeCanonicalSha256(core) };
 }
 
-export function buildSourceBoundaryPack({
+export function buildSourceBoundaryCapsule({
   identity,
   boundaries,
 }) {
   validateSourceIdentity(identity);
   if (!Array.isArray(boundaries) || boundaries.length === 0) {
-    throw new Error('boundary evidence: source pack requires boundaries');
+    throw new Error('boundary evidence: source capsule requires boundaries');
   }
   for (const boundary of boundaries) {
-    validateBoundary(boundary, 'source pack');
+    validateBoundary(boundary, 'source capsule');
   }
   const core = {
-    schema: SOURCE_BOUNDARY_PACK_SCHEMA,
+    schema: SOURCE_BOUNDARY_CAPSULE_SCHEMA,
     identity,
     boundaries,
   };
   return { ...core, digest: computeCanonicalSha256(core) };
 }
 
-export function buildSourceBoundaryPackFromProviderCapture(capture) {
+export function buildSourceBoundaryCapsuleFromProviderCapture(capture) {
   if (capture?.schema !== BOUNDARY_PROVIDER_CAPTURE_SCHEMA) {
     throw new Error(
       `boundary evidence: expected ${BOUNDARY_PROVIDER_CAPTURE_SCHEMA}`
@@ -232,7 +232,7 @@ export function buildSourceBoundaryPackFromProviderCapture(capture) {
   if (typeof capture.provider !== 'string' || !capture.provider) {
     throw new Error('boundary evidence: provider capture requires provider');
   }
-  return buildSourceBoundaryPack({
+  return buildSourceBoundaryCapsule({
     identity: {
       ...capture.identity,
       provider: capture.provider,
@@ -332,7 +332,7 @@ function compareBoundary(expected, actual, tolerance) {
 }
 
 export function compareBoundaryEvidence({
-  sourcePack,
+  sourceCapsule,
   runtimeCapture,
   policy,
   artifactPrecision = 'source',
@@ -343,21 +343,21 @@ export function compareBoundaryEvidence({
   if (artifactPrecision !== 'source' && artifactPrecision !== 'quantized') {
     throw new Error('boundary evidence: artifactPrecision must be source or quantized');
   }
-  if (sourcePack?.schema !== SOURCE_BOUNDARY_PACK_SCHEMA) {
-    throw new Error(`boundary evidence: expected ${SOURCE_BOUNDARY_PACK_SCHEMA}`);
+  if (sourceCapsule?.schema !== SOURCE_BOUNDARY_CAPSULE_SCHEMA) {
+    throw new Error(`boundary evidence: expected ${SOURCE_BOUNDARY_CAPSULE_SCHEMA}`);
   }
   if (runtimeCapture?.schema !== RUNTIME_BOUNDARY_CAPTURE_SCHEMA) {
     throw new Error(`boundary evidence: expected ${RUNTIME_BOUNDARY_CAPTURE_SCHEMA}`);
   }
-  validateSourceIdentity(sourcePack.identity);
-  assertArtifactDigest(sourcePack, 'sourcePack');
+  validateSourceIdentity(sourceCapsule.identity);
+  assertArtifactDigest(sourceCapsule, 'sourceCapsule');
   assertArtifactDigest(runtimeCapture, 'runtimeCapture');
   const actualByKey = new Map(
     runtimeCapture.boundaries.map((boundary) => [boundaryKey(boundary), boundary])
   );
   const comparisons = [];
-  for (const expected of sourcePack.boundaries) {
-    validateBoundary(expected, 'source pack');
+  for (const expected of sourceCapsule.boundaries) {
+    validateBoundary(expected, 'source capsule');
     const actual = actualByKey.get(boundaryKey(expected));
     if (!actual) {
       comparisons.push({
@@ -379,7 +379,7 @@ export function compareBoundaryEvidence({
     comparisons.push(comparison);
     if (!comparison.passed) break;
   }
-  const boundaryCompatible = comparisons.length === sourcePack.boundaries.length
+  const boundaryCompatible = comparisons.length === sourceCapsule.boundaries.length
     && comparisons.every((comparison) => comparison.passed);
   const sourceControlPassed = artifactPrecision !== 'quantized'
     || (
@@ -397,7 +397,7 @@ export function compareBoundaryEvidence({
   };
   const core = {
     schema: BOUNDARY_COMPARISON_RECEIPT_SCHEMA,
-    sourcePackDigest: sourcePack.digest ?? computeCanonicalSha256(sourcePack),
+    sourceCapsuleDigest: sourceCapsule.digest ?? computeCanonicalSha256(sourceCapsule),
     runtimeCaptureDigest: runtimeCapture.digest ?? computeCanonicalSha256(runtimeCapture),
     artifactPrecision,
     comparisons,

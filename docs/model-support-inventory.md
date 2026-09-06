@@ -9,7 +9,7 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 ## Gate Order
 
 1. conversion-config: Checked-in conversion config exists.
-2. manifest-weights: Manifest and weight identity are complete, or the manifest explicitly references a hosted weight pack.
+2. manifest-weights: Manifest and weight identity are complete, or the manifest explicitly references a hosted weight capsule.
 3. runtime-verify: A deterministic runtime verification receipt is committed.
 4. hf-publish: Public support has a Hugging Face repo, revision, and artifact path.
 5. compare-profile: A cross-engine compare profile exists.

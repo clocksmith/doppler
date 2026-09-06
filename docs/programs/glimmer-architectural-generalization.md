@@ -33,7 +33,7 @@ It pins `meta-models/Muse-Glimmer-30B` revision
 The source receipt remains architecture evidence and records both
 `text.generate` and `vision.encode` as `unlowered`. The later lowerability and
 semantic-lowering receipts are separate artifacts: they now admit and bind a
-Pack-scoped `text.generate` execution candidate while preserving the source
+Capsule-scoped `text.generate` execution candidate while preserving the source
 topology. `vision.encode` remains unlowered.
 
 The deterministic
@@ -66,7 +66,7 @@ one generic `text.kv-state`; it does not yet encode 39 local ring-buffer states
 and 13 global states. Split-KV memory estimates are design inputs, not measured
 allocation evidence.
 
-## Product and Pack boundary
+## Product and Capsule boundary
 
 The product identity is `muse-glimmer-30b`. The intended capability profiles are:
 
@@ -76,12 +76,12 @@ The product identity is `muse-glimmer-30b`. The intended capability profiles are
 | `text-dflash` | Text generation with an independently admitted speculative drafter | DFlash not represented |
 | `multimodal` | Text plus perception encoder and projector | Vision entry point unlowered |
 
-Pack v2 currently defines a self-contained program and does not define Pack
+Capsule v2 currently defines a self-contained program and does not define Capsule
 dependencies or extension composition. Each promoted capability profile must
-therefore produce a complete, independently signed and qualified Pack. No profile
-may load undeclared artifacts from another Pack.
+therefore produce a complete, independently signed and qualified Capsule. No profile
+may load undeclared artifacts from another Capsule.
 
-Each Pack may contain multiple pre-qualified TargetPlans. Initial target order is
+Each Capsule may contain multiple pre-qualified TargetPlans. Initial target order is
 Node WebGPU, Electron WebGPU, browser WebGPU, and then explicit Doe-native targets.
 Runtime selection must fail closed when the requested target is absent. Doe is an
 optional native executor, never a browser requirement or hidden fallback.
@@ -93,8 +93,8 @@ optional native executor, never a browser requirement or hidden fallback.
 - Lower `text.generate` from the pinned ModelIR without a Glimmer-named Runtime branch.
 - Bind tokenizer, chat template, weights, output head, sampling policy, and source revision.
 - Pass deterministic greedy logit and token parity against a pinned reference executor.
-- Qualify one self-contained `text-core` Pack on Node WebGPU before making application claims.
-- Embed the exact Pack in one Node or Electron application and retain task-level outcomes.
+- Qualify one self-contained `text-core` Capsule on Node WebGPU before making application claims.
+- Embed the exact Capsule in one Node or Electron application and retain task-level outcomes.
 
 ### 2. Architecture specialization
 
@@ -107,7 +107,7 @@ optional native executor, never a browser requirement or hidden fallback.
 ### 3. DFlash speculative execution
 
 - Admit the exact DFlash source repository, revision, license, weights, and reference behavior separately.
-- Represent the drafter, hidden-state taps, verification graph, and acceptance policy in ModelIR and the Pack.
+- Represent the drafter, hidden-state taps, verification graph, and acceptance policy in ModelIR and the Capsule.
 - Treat a block size of 16 as including its anchor, allowing up to 15 proposed tokens.
 - Keep target features, proposals, verification, and acceptance on the GPU unless a qualified contract requires otherwise.
 - Freeze any promotion threshold, including a proposed `1.3x` end-to-end gain, before candidate measurement.
@@ -126,7 +126,7 @@ optional native executor, never a browser requirement or hidden fallback.
 
 The campaign earns product evidence only when all claims cite immutable artifacts
 for the exact capability profile and target. Required evidence includes source and
-license identity, ModelIR and TargetPlan hashes, Pack semantic root, reference
+license identity, ModelIR and TargetPlan hashes, Capsule semantic root, reference
 parity, physical hardware identity, cold and warm load, memory, prefill, ordinary
 decode, speculative decode where applicable, failures, recovery, and complete
 application-task outcomes.
@@ -141,5 +141,5 @@ alone cannot satisfy that gate.
 - Creating another Ouroboros strategy, company, or commercial product vector.
 - Claiming that model-artifact licensing covers every runtime dependency.
 - Treating Meta's quality or speed reports as Doppler results.
-- Advertising three-Pack composition before a dependency contract exists.
+- Advertising three-Capsule composition before a dependency contract exists.
 - Promoting Bun, browser, multimodal, DFlash, or Doe support from source intake alone.

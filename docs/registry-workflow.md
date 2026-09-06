@@ -71,7 +71,7 @@ npm run registry:hf:probe
 Validation guarantees:
 - every approved hosted entry has `hf.repoId`, `hf.revision`, and `hf.path`
 - every approved hosted entry carries artifact identity metadata:
-  `sourceCheckpointId`, `weightPackId`, `manifestVariantId`,
+  `sourceCheckpointId`, `weightCapsuleId`, `manifestVariantId`,
   `artifactCompleteness`, `runtimePromotionState`, and `weightsRefAllowed`
 - the remote registry does not contain extra models outside the approved canonical hosted set
 - remote registry metadata matches the approved canonical hosted set
@@ -121,7 +121,7 @@ Always pass `--local-dir` and `--shard-dir` explicitly if the manifest or shard 
 
 ## Lane variants and weights-ref siblings
 
-A single Q4K weight pack can back multiple manifest variants — for example,
+A single Q4K weight capsule can back multiple manifest variants — for example,
 the f32-activation lane and a sibling f16-activation lane that reuses the
 same shards. Two shapes are valid:
 
@@ -138,7 +138,7 @@ publish tool:
 - Manifest-only siblings publish `manifest.json` (and `origin.json` if
   present) only. Their `weightsRef` block points at a primary lane that
   must already be published in the same payload (matched by
-  `weightPackId`). Without the primary, the sibling is rejected at
+  `weightCapsuleId`). Without the primary, the sibling is rejected at
   validation time and at publish time.
 - The shapes are exclusive: `artifactCompleteness=complete` requires
   `weightsRefAllowed=false`, and `artifactCompleteness=weights-ref`
@@ -154,7 +154,7 @@ npm run registry:publish:hf -- \
 
 The demo surface follows the same rule: a weights-ref sibling is shown
 only when its primary lane is itself demo-eligible in the same catalog
-view (matched by `weightPackId`). Removing the manifest-only sibling
+view (matched by `weightCapsuleId`). Removing the manifest-only sibling
 from OPFS does not remove the shared weights — the demo copy reflects
 this.
 

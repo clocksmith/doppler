@@ -17,7 +17,7 @@ export function usage() {
     'Usage:',
     '  node tools/create-release-to-javascript-receipt.js --spec <path> --out <path>',
     '',
-    'The spec declares acceptedCode.files as workspace-relative paths, qualification.packPath,',
+    'The spec declares acceptedCode.files as workspace-relative paths, qualification.capsulePath,',
     'and evidence entries as { kind, path }. The tool hashes every referenced byte itself.',
   ].join('\n');
 }
@@ -104,7 +104,7 @@ export async function materializeReleaseToJavaScriptReceipt(spec, options = {}) 
   acceptedCode.digest = canonicalDigest(acceptedCode);
 
   const qualificationSpec = requireObject(spec.qualification, 'qualification');
-  const packFile = workspaceFile(repoRoot, qualificationSpec.packPath, 'qualification.packPath');
+  const capsuleFile = workspaceFile(repoRoot, qualificationSpec.capsulePath, 'qualification.capsulePath');
   const evidenceSpec = spec.evidence;
   if (!Array.isArray(evidenceSpec) || evidenceSpec.length < 1) {
     throw new Error('evidence must be a non-empty array.');
@@ -123,8 +123,8 @@ export async function materializeReleaseToJavaScriptReceipt(spec, options = {}) 
     acceptedCode,
     qualification: {
       status: qualificationSpec.status,
-      packId: qualificationSpec.packId,
-      packDigest: await sha256File(packFile.absolutePath),
+      capsuleId: qualificationSpec.capsuleId,
+      capsuleDigest: await sha256File(capsuleFile.absolutePath),
     },
     evidence,
   });

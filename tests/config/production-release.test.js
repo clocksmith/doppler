@@ -53,7 +53,7 @@ function clone(value) {
 
 {
   const broken = clone(fixture);
-  broken.rollback.packSemanticRoot = `sha256:${'0'.repeat(64)}`;
+  broken.rollback.capsuleSemanticRoot = `sha256:${'0'.repeat(64)}`;
   const validation = validateProductionRelease(broken);
   assert.ok(validation.errors.includes('rollback must bind the pinned previousRelease.'));
 }

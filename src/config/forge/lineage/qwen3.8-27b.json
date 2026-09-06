@@ -49,7 +49,7 @@
     {
       "targetPointer": "/output/textOnly",
       "value": true,
-      "lifecycle": "pack-scope",
+      "lifecycle": "capsule-scope",
       "rationale": "The complete multimodal source topology remains in ModelIR while this candidate lowers only text.generate."
     },
     {
@@ -62,7 +62,7 @@
       "targetPointer": "/manifest/hashAlgorithm",
       "value": "sha256",
       "lifecycle": "forge",
-      "rationale": "Signed Pack artifact closure requires SHA-256 weight-shard identities and must reject rather than relabel a BLAKE3 source manifest."
+      "rationale": "Signed Capsule artifact closure requires SHA-256 weight-shard identities and must reject rather than relabel a BLAKE3 source manifest."
     },
     {
       "targetPointer": "/session/kvcache/maxSeqLen",
@@ -73,7 +73,7 @@
     {
       "targetPointer": "/session/speculation/mode",
       "value": "none",
-      "lifecycle": "pack-scope",
+      "lifecycle": "capsule-scope",
       "rationale": "The source MTP drafter is represented but remains unlowered and cannot affect text.generate qualification."
     },
     {
@@ -257,7 +257,7 @@
   ],
   "removePointers": [
     "/manifest/artifactIdentity/shardSetHash",
-    "/manifest/artifactIdentity/weightPackId",
+    "/manifest/artifactIdentity/weightCapsuleId",
     "/manifest/artifactIdentity/manifestVariantId"
   ],
   "candidateAudit": {
@@ -298,7 +298,7 @@
       },
       {
         "candidateId": "f16-recurrent-blake3-closure",
-        "reason": "Rejected during Pack closure preflight because the inherited BLAKE3 shard hashes cannot enter the SHA-256 Pack artifact contract. Conversion was canceled before completion and no qualification claim was produced."
+        "reason": "Rejected during Capsule closure preflight because the inherited BLAKE3 shard hashes cannot enter the SHA-256 Capsule artifact contract. Conversion was canceled before completion and no qualification claim was produced."
       },
       {
         "candidateId": "f16-recurrent-q4-body-sha256",

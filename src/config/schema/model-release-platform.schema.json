@@ -12,7 +12,7 @@
     "positioning",
     "architecture",
     "modelIR",
-    "pack",
+    "capsule",
     "providers",
     "apiConvergence",
     "recovery",
@@ -138,7 +138,7 @@
         }
       }
     },
-    "pack": {
+    "capsule": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -496,7 +496,7 @@
         "requiredEvidence",
         "paymentRequired",
         "doeRequired",
-        "agentPackImprovementRequired",
+        "agentCapsuleImprovementRequired",
         "electronCustomerRequired",
         "privateInputDefault",
         "redistribution",
@@ -515,8 +515,8 @@
         },
         "requiredEvidence": {
           "const": [
-            "actual-signed-esm2-pack-and-weights",
-            "public-open-pack-encode-sequence",
+            "actual-signed-esm2-capsule-and-weights",
+            "public-open-capsule-encode-sequence",
             "local-execution-without-delegation",
             "explicit-complete-job-delegation",
             "authorized-optional-redistribution",
@@ -526,7 +526,7 @@
             "corruption-rejection-and-participant-loss-recovery",
             "frozen-public-sequence-corpus-and-correctness-oracle",
             "assignment-bound-accepted-useful-results",
-            "connected-pack-assignment-receipt-lineage",
+            "connected-capsule-assignment-receipt-lineage",
             "admitted-history-before-held-out-jobs",
             "no-history-and-competent-frozen-scheduler-controls",
             "predeclared-benefit-with-uncertainty-and-unchanged-correctness",
@@ -543,7 +543,7 @@
         "doeRequired": {
           "const": false
         },
-        "agentPackImprovementRequired": {
+        "agentCapsuleImprovementRequired": {
           "const": false
         },
         "electronCustomerRequired": {
@@ -710,7 +710,7 @@
         "mode": {
           "type": "string",
           "enum": [
-            "pack-authoritative",
+            "capsule-authoritative",
             "compatibility-intake",
             "migration-required"
           ]
