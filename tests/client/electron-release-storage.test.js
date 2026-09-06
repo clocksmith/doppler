@@ -67,6 +67,30 @@ try {
   await assert.rejects(runtime.openPack(pack, rejected), /changed concurrently/);
   assert.equal(created, 1, 'a failed checkpoint write cannot start another model');
 
+  const uncertainStore = createDocumentSearchCheckpointStore(path.join(directory, 'uncertain.json'));
+  const uncertain = await prepareDocumentSearchReleaseOptions({ ...base, checkpointStore: uncertainStore });
+  const originalOpen = fs.open;
+  const syncFailure = new Error('injected directory synchronization failure');
+  let closeAlsoFails = false;
+  fs.open = async (...args) => {
+    const handle = await originalOpen(...args);
+    if (args[0] !== directory) return handle;
+    return { async sync() { throw syncFailure; }, async close() {
+      await handle.close();
+      if (closeAlsoFails) throw new Error('secondary directory close failure');
+    } };
+  };
+  try {
+    await assert.rejects(uncertain.persistReleaseCheckpoint(reopened), error => error === syncFailure);
+    await assert.rejects(uncertain.persistReleaseCheckpoint(reopened), error => error === syncFailure,
+      'an identical visible record cannot bypass a failed durability barrier');
+    closeAlsoFails = true;
+    await assert.rejects(uncertain.persistReleaseCheckpoint(reopened), error => error === syncFailure,
+      'cleanup must preserve the original synchronization failure');
+  } finally { fs.open = originalOpen; }
+  await uncertain.persistReleaseCheckpoint(reopened);
+  assert.deepEqual(await uncertainStore.load(), reopened);
+
   const raceFile = path.join(directory, 'race.json');
   const attempts = await Promise.all([0, 1].map(() => createDocumentSearchCheckpointStore(raceFile)
     .compareAndSwap(0, { sequence: 1, digest: first.digest })));

@@ -356,6 +356,13 @@ export function createElectronReleaseStateCoordinator(options) {
     if (current.revocation && normalized.sequence <= current.revocation.sequence) {
       throw new Error('Electron revocation snapshot must advance monotonically.');
     }
+    if (current.revocation && current.revocation.revokedSemanticRoots.some(root => !normalized.revokedSemanticRoots.includes(root))) {
+      throw new Error('Electron revocation snapshot must retain all previously revoked Pack roots.');
+    }
+    const verificationTime = new Date(instant(now(), 'revocation verification time')).getTime();
+    if (new Date(normalized.issuedAtUtc).getTime() > verificationTime) {
+      throw new Error('Electron revocation snapshot issuance is in the future.');
+    }
     const activePolicy = current.current?.revocationPolicy;
     if (activePolicy) {
       if (normalized.authorityId !== activePolicy.authorityId
@@ -368,7 +375,7 @@ export function createElectronReleaseStateCoordinator(options) {
         throw new Error('Electron revocation snapshot exceeds the active release offline-expiry policy.');
       }
     }
-    if (new Date(normalized.expiresAtUtc).getTime() <= new Date(now()).getTime()) {
+    if (new Date(normalized.expiresAtUtc).getTime() <= verificationTime) {
       throw new Error('Electron revocation snapshot is already expired.');
     }
     return commit(current, { ...current, revocation: normalized });
@@ -378,6 +385,13 @@ export function createElectronReleaseStateCoordinator(options) {
     const current = await load();
     if (!current.current) throw new Error('Electron release state has no active Pack.');
     if (!current.revocation) throw new Error('Electron release state has no verified revocation snapshot.');
+    if (await options.verifyRevocationSnapshot(structuredClone(current.revocation)) !== true) {
+      throw new Error('Electron release state requires a currently verified revocation snapshot signature.');
+    }
+    const verificationTime = new Date(instant(now(), 'release verification time')).getTime();
+    if (new Date(current.revocation.issuedAtUtc).getTime() > verificationTime) {
+      throw new Error('Electron release revocation state issuance is in the future.');
+    }
     if (!current.current.revocationPolicy) {
       throw new Error('Electron release state current Pack lacks a bound revocation policy.');
     }
@@ -390,7 +404,7 @@ export function createElectronReleaseStateCoordinator(options) {
     if (lifetimeMs > current.current.revocationPolicy.offlineExpirySeconds * 1000) {
       throw new Error('Electron release revocation state exceeds the current offline-expiry policy.');
     }
-    if (new Date(current.revocation.expiresAtUtc).getTime() <= new Date(now()).getTime()) {
+    if (new Date(current.revocation.expiresAtUtc).getTime() <= verificationTime) {
       throw new Error('Electron release revocation state is expired; execution fails closed.');
     }
     if (current.revocation.revokedSemanticRoots.includes(current.current.pack.semanticRoot)) {

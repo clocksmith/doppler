@@ -259,6 +259,41 @@
         "kernel": "matmul_gemv_subgroup.wgsl",
         "entry": "main_vec4",
         "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
+      },
+      "rope_precompute": {
+        "kernel": "rope_precompute.wgsl",
+        "entry": "main",
+        "digest": "sha256:0ccd038aa7e69bf064d599e86f93100735cc32fba20a942cb1deed5da5a692e8"
+      },
+      "gather_vec4": {
+        "kernel": "gather_f16_vec4.wgsl",
+        "entry": "gather_vec4",
+        "digest": "sha256:dc87e5e03cdbff74347ef8e42774570b1807d239ad64501a7e90ec8f600e912c"
+      },
+      "rmsnorm_qk": {
+        "kernel": "rmsnorm_qk.wgsl",
+        "entry": "main",
+        "digest": "sha256:6347c59ffd5c2a766c68a482d3019677676c14c6462de42f79d4d8d9846bf105"
+      },
+      "rope_qk": {
+        "kernel": "rope_qk.wgsl",
+        "entry": "main",
+        "digest": "sha256:379186c35451a1bf08f3d157db52e48f4865c92caee230656fd55b7fa500351c"
+      },
+      "kv_write_f32_f16": {
+        "kernel": "kv_cache_write_f32_to_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:d2e5459501320a767a33b12c6c088dda8527895e978338694463f2a4f286df8e"
+      },
+      "residual_vec4": {
+        "kernel": "residual_vec4.wgsl",
+        "entry": "add_vec4",
+        "digest": "sha256:99e8217beb9ebc661ae8da6dde06196c0746e884421fe803b1a8bcea22e753b1"
+      },
+      "lm_head_select_logits": {
+        "kernel": "lm_head_select_logits.wgsl",
+        "entry": "main",
+        "digest": "sha256:41ed8ecef1bb439dc852591278a78680bd4166e8e3d3af39484784722ccb3561"
       }
     },
     "preLayer": [
@@ -426,6 +461,15 @@
         "sample"
       ]
     ],
-    "sampling": null
+    "sampling": null,
+    "mechanismKernels": [
+      "rope_precompute",
+      "gather_vec4",
+      "rmsnorm_qk",
+      "rope_qk",
+      "kv_write_f32_f16",
+      "residual_vec4",
+      "lm_head_select_logits"
+    ]
   }
 }

@@ -101,6 +101,22 @@ a different authority or policy, or denies the current Pack. This is a
 repository contract and reference implementation, not evidence that a customer
 has deployed an atomic store or exercised production rollback.
 
+Electron IPC handlers require `createElectronReleaseIpcHandler(coordinator,
+{ authorizeRequest })`. The application checks the actual Electron sender/frame,
+origin, requested action, and any authorization reference; only an explicit
+`true` admits the detached request. Omitting the callback fails during setup.
+The document-search example forwards this required callback. A valid-shaped
+authorization digest by itself is not consent. Existing callers must supply their
+application policy rather than a blanket acceptance callback.
+
+The Electron package exports `verifyProductionReleaseEvidenceSignature` for
+application-selected Ed25519 trust without internal-path imports. Restored
+revocation snapshots are reverified under current trust on every resolution.
+Updates must retain all previously revoked roots, and future issuance or an
+invalid application clock fails closed. A higher sequence cannot silently clear
+a known denial. The supplied store remains responsible for atomic durability;
+these checks cannot detect wholesale rollback of that trusted store.
+
 Installing a new live policy increments the process policy revision. Already
 loaded model identity is checked again at every transformer layer boundary, and
 an active adapter is re-authorized against the new revision before layer work.

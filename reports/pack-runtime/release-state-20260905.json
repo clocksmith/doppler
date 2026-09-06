@@ -1,0 +1,230 @@
+{
+  "schema": "doppler.standalone-engineering-checkpoint/v1",
+  "generatedAtUtc": "2026-09-06T01:09:39.834Z",
+  "component": [
+    "doppler.runtime-source.client",
+    "doppler.repository-tooling",
+    "doppler.tests",
+    "doppler.docs"
+  ],
+  "intent": "preserved",
+  "goalComplete": false,
+  "source": {
+    "baseline": "7a169c5f41725cf15b05f4cb80bc923e71ecd70a",
+    "patch": {
+      "path": "reports/electron-adoption/standalone-release-state-source-20260905.patch",
+      "sizeBytes": 23943,
+      "sha256": "6d3c36faf2730619a81ad56e5118bee052aaee9eae267f56034b4dcc744e3f04"
+    },
+    "files": [
+      {
+        "path": "docs/integration/reranker-evaluation.md",
+        "sizeBytes": 14965,
+        "sha256": "29e6e03618afccb0cee11f3943f9e85805692a9bb919564eef8a74f5c83c12a6"
+      },
+      {
+        "path": "examples/electron-document-search/README.md",
+        "sizeBytes": 10226,
+        "sha256": "4475cb2f4bef5776fe50ca04b2f278d1948320131689047651c4fd8de71c6665"
+      },
+      {
+        "path": "examples/electron-document-search/release-storage.js",
+        "sizeBytes": 6528,
+        "sha256": "6d646e4347636451ee6a0f5cff8dc03dbab8477b8403a875180f06a0ff00e7fc"
+      },
+      {
+        "path": "reports/pack-runtime/runtime-closure.json",
+        "sizeBytes": 8215,
+        "sha256": "c6686ac6f4a27c100aedd4cb4043930dd11c9f1a2d031d1cc9f4fc7de1d3cae3"
+      },
+      {
+        "path": "tests/client/electron-release-storage.test.js",
+        "sizeBytes": 8418,
+        "sha256": "099caccf4cf9c5014506d1f1036242de3dd0573c88ad944aaff157641bf2107a"
+      },
+      {
+        "path": "tests/fixtures/packed-electron-consumer.js",
+        "sizeBytes": 2841,
+        "sha256": "cc7b0d1e711866580094f1f6642aed68b6f7e47990cfe218bebdaa4401091215"
+      },
+      {
+        "path": "tests/tooling/reranker-evaluation-preflight.test.js",
+        "sizeBytes": 2279,
+        "sha256": "504989f80a242ba7aa25c07d6c9a173730902f2a983928fb8bcd6bf8a6935438"
+      },
+      {
+        "path": "tools/check-packed-package.js",
+        "sizeBytes": 14367,
+        "sha256": "7918e3a86a06aca64e661a606b8b6ebc88116c0c770fecaf9ee610a3e5b27cd2"
+      },
+      {
+        "path": "tools/qualify-reranker-electron.js",
+        "sizeBytes": 19485,
+        "sha256": "8eb094b833c64b441366df5a86808baa9ec25b92b4c1b1032b0b7f2d992254b4"
+      }
+    ],
+    "shippedFilesCompared": 1754,
+    "mismatches": [],
+    "pushedBaseline": true,
+    "changesAfterBaselinePushed": false
+  },
+  "changes": [
+    "Reconciled upstream embedding regressions without bypassing application-bound evidence.",
+    "Retained and type-checked the application-owned filesystem stores in clean installed consumers.",
+    "Reproduced and fixed retry acceptance after a failed directory synchronization barrier.",
+    "Added installed-helper hash checks and durable checkpoint callbacks to the existing physical qualifier."
+  ],
+  "tests": {
+    "command": "npm run check:green; npm run test:ci; npm run kernels:check",
+    "exitCode": 0,
+    "uniqueTestFiles": 761,
+    "log": {
+      "path": "reports/electron-adoption/standalone-ci-20260905-16.log",
+      "sizeBytes": 386698,
+      "sha256": "6c13001f7832f76da33947b8d5ef897907365c75247610c3775be4f8159223d8"
+    },
+    "prerequisites": {
+      "path": "reports/electron-adoption/release-state-ci-prerequisites-20260905-01.log",
+      "sizeBytes": 4905,
+      "sha256": "be052e898e42938046a8286d36977995d7d0ab9eb39337d79638ef35d20df1c9"
+    },
+    "explicitSkips": [
+      "# browser opfs smoke capability skip contract ok",
+      "[node-tests] ok: tests/config/browser-opfs-smoke-capability-skip.test.js",
+      "# fused-ffn-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)",
+      "# fused-matmul-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)",
+      "# [NaN Regression] skipped: local fixture missing at /home/x/deco/doppler/models/local/gemma-3-1b-it-f16-af32/manifest.json",
+      "# gemma4-e2b-q4k-apple-retain-regression.test: skipped (vendor=amd not apple)",
+      "# litert-gemma4-task-ple-scale.test: skipped (source artifact not available at /home/x/deco/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)",
+      "# qwen-linear-attention-regression.test: skipped (set DOPPLER_QWEN35_LINEAR_MODEL_DIR)",
+      "# translategemma-q4k-regression.test: skipped (legacy TranslateGemma Q4K is outside the current Gemma 4/Qwen 3.5 release focus)"
+    ]
+  },
+  "package": {
+    "receipt": {
+      "path": "reports/electron-adoption/20260905-standalone-package-16/receipt.json",
+      "sizeBytes": 1712,
+      "sha256": "a691f07a83e5393daa4df45d3a83b5f18b99cbf227d2bb860a16b01cbfb4cfb3"
+    },
+    "tarball": {
+      "path": "reports/electron-adoption/20260905-standalone-package-16/doppler-gpu-0.5.1.tgz",
+      "sizeBytes": 2081558,
+      "sha256": "ad2d7e9f548743c9cce14fdb5cbcbc0b54fa5b19162301399656f8888be0f997"
+    },
+    "shippedFilesCompared": 1754,
+    "mismatches": []
+  },
+  "physical": {
+    "evidenceClass": "internal-installed-pack-release-lifecycle",
+    "episode": {
+      "path": "reports/electron-adoption/qwen-q4k-v3-release-01/episode.json",
+      "sizeBytes": 2580,
+      "sha256": "c1693bc4e6274147f36fd6ed747cc787e414e2c2e8d7dc66d77e6f374d95329a"
+    },
+    "initial": {
+      "path": "reports/electron-adoption/qwen-q4k-v3-release-01/first/qualification.json",
+      "sizeBytes": 369251,
+      "sha256": "082858f9fc152fedb29e61f912499b41b03a01f407706364c550ec6c20eecab0"
+    },
+    "observations": [
+      {
+        "name": "restart",
+        "reportPath": "/home/x/deco/doppler/reports/electron-adoption/qwen-q4k-v3-release-01/restart-package16/qualification.json",
+        "passed": true,
+        "sequence": 1,
+        "stage": "complete",
+        "sourceChecks": 16
+      },
+      {
+        "name": "promoted",
+        "reportPath": "/home/x/deco/doppler/reports/electron-adoption/qwen-q4k-v3-release-01/promoted-package16/qualification.json",
+        "passed": true,
+        "sequence": 2,
+        "stage": "complete",
+        "sourceChecks": 16
+      },
+      {
+        "name": "replay",
+        "reportPath": "/home/x/deco/doppler/reports/electron-adoption/qwen-q4k-v3-release-01/replay-package16/qualification.json",
+        "passed": false,
+        "sequence": 2,
+        "stage": "release-history-verification",
+        "sourceChecks": 0
+      },
+      {
+        "name": "expired",
+        "reportPath": "/home/x/deco/doppler/reports/electron-adoption/qwen-q4k-v3-release-01/expired-package16/qualification.json",
+        "passed": false,
+        "sequence": 2,
+        "stage": "release-history-verification",
+        "sourceChecks": 0
+      },
+      {
+        "name": "revoked",
+        "reportPath": "/home/x/deco/doppler/reports/electron-adoption/qwen-q4k-v3-release-01/revoked-package16/qualification.json",
+        "passed": false,
+        "sequence": 2,
+        "stage": "release-history-verification",
+        "sourceChecks": 0
+      }
+    ],
+    "frozenSourceChecksPerSuccessfulRun": 16,
+    "queryCount": 1,
+    "documentCount": 3,
+    "modelSemanticsChanged": false,
+    "newModelRelease": false,
+    "performanceClaim": false,
+    "productionIpc": false
+  },
+  "adverse": {
+    "reproducedDurabilityFailure": {
+      "path": "reports/electron-adoption/release-storage-durability-rejection-20260905-01.log",
+      "sizeBytes": 1091,
+      "sha256": "096fc335e24fb75855a42f3f2617bcb09f1b8827902601c8cf7e20038016ff8a"
+    },
+    "expectedRejectedHistory": [
+      "replay",
+      "expired",
+      "revoked"
+    ]
+  },
+  "handoff": {
+    "archive": {
+      "path": "reports/electron-adoption/20260905-release-state-handoff.tar",
+      "sizeBytes": 10434560,
+      "sha256": "c700ef089a3cf31859c98038211cafad95a46ee8e2b058306d10dca4578f0973"
+    },
+    "payloadFilesVerified": 134,
+    "extractionVerified": true,
+    "extracted": "/tmp/doppler-release-state-check-oj5ldb",
+    "exclusions": [
+      "private signing keys",
+      "browser profiles",
+      "installed dependency trees",
+      "npm caches",
+      "unchanged model weights"
+    ],
+    "receiptPath": "reports/electron-adoption/20260905-release-state-handoff/receipt.json",
+    "inventory": "reports/electron-adoption/20260905-release-state-handoff/files.json",
+    "retention": "local; not downloaded by clone",
+    "weightArchive": {
+      "path": "reports/electron-adoption/20260905-closed-pack-handoff.tar",
+      "sha256": "1150f307a6755d266ae5a85555cb15f838d675895224a5ef7a7f312e574d6dbd"
+    }
+  },
+  "boundaries": {
+    "externalAdoption": false,
+    "paidUse": false,
+    "recurringRevenue": false,
+    "DoeRequired": false,
+    "PooldayRequired": false,
+    "ReploidRequired": false
+  },
+  "remaining": [
+    "Connect durable knowledge of rejected revocations to the production application coordinator and physical probe.",
+    "Exercise a genuine second model/executable release and incumbent application controls without weakening acceptance.",
+    "Physically qualify the source-pinned text-embedding Pack and run the actual controlled candidate-evaluation campaign.",
+    "Resolve explicit recipient-controlled retained-use policy; current expiry remains fail-closed.",
+    "Independent maintainer retention remains external evidence, not fixture or internal GPU evidence."
+  ]
+}

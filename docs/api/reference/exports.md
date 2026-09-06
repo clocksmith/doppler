@@ -365,6 +365,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
   - `*`
+  - `verifyProductionReleaseEvidenceSignature`
 
 ## `doppler-gpu/models/qwen3`
 

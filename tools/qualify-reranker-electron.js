@@ -2,7 +2,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { _electron as electron } from 'playwright';
 import { createStaticFileServer } from '../src/tooling/node-browser-command-runner.js';
@@ -12,11 +12,69 @@ import { assertPhysicalAdapter } from './probe-electron-reranker.js';
 import { parseManifest } from '../src/formats/rdrr/parsing.js';
 import { hashStableJson } from '../src/tooling/program-bundle/materialize.js';
 import { validateCaptureConfig } from '../src/debug/capture-policy.js';
+import ts from 'typescript';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 
+export function compileElectronReleasePreload(source, channel) {
+  if (typeof channel !== 'string' || !channel) throw new Error('Electron preload requires its installed channel import.');
+  let imports = 0;
+  const parsed = ts.createSourceFile('preload.js', source, ts.ScriptTarget.ES2022, true, ts.ScriptKind.JS);
+  const transformed = ts.transform(parsed, [context => node => ts.visitEachChild(node, function visit(child) {
+      if (!ts.isImportDeclaration(child)) return ts.visitEachChild(child, visit, context);
+      const bindings = child.importClause?.namedBindings;
+      if (child.moduleSpecifier.text !== 'doppler-gpu/electron' || !bindings || !ts.isNamedImports(bindings)
+        || bindings.elements.length !== 1 || bindings.elements[0].name.text !== 'ELECTRON_RELEASE_IPC_CHANNEL'
+        || bindings.elements[0].propertyName || child.importClause.name) {
+        throw new Error('Unsupported installed Electron preload import; update the explicit compilation boundary.');
+      }
+      imports += 1;
+      return ts.factory.createVariableStatement(undefined, ts.factory.createVariableDeclarationList([
+        ts.factory.createVariableDeclaration('ELECTRON_RELEASE_IPC_CHANNEL', undefined, undefined, ts.factory.createStringLiteral(channel)),
+      ], ts.NodeFlags.Const));
+    }, context)]);
+  let detachedSource;
+  try { detachedSource = ts.createPrinter().printFile(transformed.transformed[0]); }
+  finally { transformed.dispose(); }
+  if (imports !== 1) throw new Error('Electron preload requires its installed channel import.');
+  // Rebind the printed source: CommonJS emission must not retain the old import's symbol.
+  const compiled = ts.transpileModule(detachedSource, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  });
+  return `const { contextBridge, ipcRenderer } = require('electron');\n${compiled.outputText}\nexposeDocumentSearchReleaseBridge(contextBridge, ipcRenderer);\n`;
+}
+
+export async function resolveRerankerPackDistribution(packPath, distributionRoot) {
+  const root = await fs.realpath(distributionRoot ?? path.dirname(packPath));
+  const manifestPath = await fs.realpath(packPath);
+  const relative = path.relative(root, manifestPath);
+  if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error('Qualification Pack must reside inside its declared distribution root.');
+  }
+  return { root, manifestPath, urlPath: `/pack/${relative.split(path.sep).map(encodeURIComponent).join('/')}` };
+}
+
 export async function qualifyRerankerElectron(config) {
+  if (config?.packDistributionRoot !== undefined && (config.mode !== 'pack'
+    || typeof config.packDistributionRoot !== 'string' || !path.isAbsolute(config.packDistributionRoot))) {
+    throw new Error('Pack distribution root requires Pack mode and an absolute directory.');
+  }
+  if (config?.releaseCoordinator !== undefined && (config.mode !== 'pack'
+    || typeof config.releaseCoordinator?.statePath !== 'string' || !path.isAbsolute(config.releaseCoordinator.statePath)
+    || !config.releaseCoordinator.trustedSigners || !Array.isArray(config.releaseCoordinator.actions)
+    || !Array.isArray(config.releaseCoordinator.allowedRendererActions)
+    || config.releaseCoordinator.allowedRendererActions.some(action => !['status', 'resolve-current'].includes(action))
+    || typeof config.releaseCoordinator.now !== 'string')) {
+    throw new Error('Release coordinator qualification requires Pack mode, durable state, trust, explicit actions, clock and read-only renderer permissions.');
+  }
+  if (config?.releaseCheckpointPath !== undefined && (config.mode !== 'pack'
+    || typeof config.releaseCheckpointPath !== 'string' || !path.isAbsolute(config.releaseCheckpointPath)
+    || !config.openOptions?.releaseEvents || !config.openOptions?.releaseTrustedSigners
+    || !config.openOptions?.releasePolicy
+    || Object.keys(config.openOptions.releasePolicy).some(key => !['now', 'minimumSequence'].includes(key)))) {
+    throw new Error('Durable release qualification requires Pack mode, an absolute releaseCheckpointPath, signed history and policy without an injected checkpoint.');
+  }
   const diagnosticCapture = config?.diagnosticCapture ?? null;
   if (diagnosticCapture) {
     if (config.mode !== 'model' || !Number.isInteger(diagnosticCapture.documentIndex)
@@ -38,6 +96,7 @@ export async function qualifyRerankerElectron(config) {
     throw new Error('Pack mode requires a retained packageBundlePath, packPath, application, authorizedPack, trustedSigners and acceptedTargetPlanDigests.');
   }
   let installedPackage = null;
+  let applicationFiles = null;
   if (config.packageBundlePath) {
     const bundle = path.resolve(config.packageBundlePath);
     const receipt = JSON.parse(await fs.readFile(path.join(bundle, 'receipt.json'), 'utf8'));
@@ -48,6 +107,7 @@ export async function qualifyRerankerElectron(config) {
     }
     installedPackage = { ...receipt.package,
       source: JSON.parse(await fs.readFile(path.join(bundle, 'source-state.json'), 'utf8')) };
+    applicationFiles = receipt.applicationFiles;
   }
   const policy = JSON.parse(await fs.readFile(config.policyPath, 'utf8'));
   if (require('electron/package.json').version !== policy.electronVersion) throw new Error('Pinned Electron required.');
@@ -61,6 +121,8 @@ export async function qualifyRerankerElectron(config) {
   if (manifest.modelId !== policy.modelId || manifest.artifactIdentity?.sourceCheckpointId !== reference.source.checkpointId) {
     throw new Error('Frozen source and model identity differ.');
   }
+  const packDistribution = config.packPath
+    ? await resolveRerankerPackDistribution(config.packPath, config.packDistributionRoot) : null;
   let faultArtifact = null;
   let faultArtifactPath = null;
   if (faultKind === 'artifact-corruption' || faultKind === 'artifact-interruption') {
@@ -90,15 +152,83 @@ export async function qualifyRerankerElectron(config) {
   let server;
   let application;
   let timer;
+  let checkpointStore;
+  let releaseOptions;
+  let coordinatorReceiptPath;
   try {
+    if (config.releaseCheckpointPath) {
+      report.stage = 'release-history-verification';
+      const stateDirectory = await fs.realpath(path.dirname(config.releaseCheckpointPath));
+      for (const servedRoot of [config.packageRoot, config.modelDir, packDistribution.root]) {
+        const relative = path.relative(await fs.realpath(servedRoot), stateDirectory);
+        if (relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative))) {
+          throw new Error('Release checkpoint must remain outside every served root.');
+        }
+      }
+      const helperPath = path.resolve(config.packageBundlePath, 'consumer/release-storage.js');
+      const helperDigest = hashBytesSha256(await fs.readFile(helperPath));
+      if (helperDigest !== `sha256:${applicationFiles?.['release-storage.js']?.sha256}`) {
+        throw new Error('Release storage helper does not match the retained installed-package test.');
+      }
+      const helper = await import(pathToFileURL(helperPath).href);
+      checkpointStore = helper.createDocumentSearchCheckpointStore(config.releaseCheckpointPath);
+      report.releaseHistory = { helperDigest, before: await checkpointStore.load(), persistence: [],
+        verificationTime: config.openOptions.releasePolicy.now, clockAuthority: 'explicit-evaluation-policy' };
+      releaseOptions = await helper.prepareDocumentSearchReleaseOptions({
+        pack: JSON.parse(await fs.readFile(config.packPath, 'utf8')),
+        releaseEvents: config.openOptions.releaseEvents, releaseTrustedSigners: config.openOptions.releaseTrustedSigners,
+        checkpointStore, now: config.openOptions.releasePolicy.now,
+        minimumSequence: config.openOptions.releasePolicy.minimumSequence,
+      });
+    }
+    report.stage = 'launch';
     server = await createStaticFileServer({ rootDir: path.resolve(config.packageRoot), host: '127.0.0.1',
       staticMounts: [{ urlPrefix: '/model', rootDir: path.resolve(config.modelDir) },
-        ...(config.packPath ? [{ urlPrefix: '/pack', rootDir: path.dirname(path.resolve(config.packPath)) }] : [])] });
+        ...(packDistribution ? [{ urlPrefix: '/pack', rootDir: packDistribution.root }] : [])] });
+    let mainConfigPath;
+    if (config.releaseCoordinator) {
+      const stateDirectory = await fs.realpath(path.dirname(config.releaseCoordinator.statePath));
+      for (const root of [config.packageRoot, config.modelDir, packDistribution.root]) {
+        const relative = path.relative(await fs.realpath(root), stateDirectory);
+        if (!relative || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative))) {
+          throw new Error('Coordinator state must remain outside every served root.');
+        }
+      }
+      const consumerDir = path.resolve(config.packageBundlePath, 'consumer');
+      for (const file of ['main.js', 'preload.js', 'release-storage.js']) {
+        if (hashBytesSha256(await fs.readFile(path.join(consumerDir, file))) !== `sha256:${applicationFiles?.[file]?.sha256}`) {
+          throw new Error(`Installed application helper differs from retained package: ${file}.`);
+        }
+      }
+      const packageJson = JSON.parse(await fs.readFile(path.join(config.packageRoot, 'package.json'), 'utf8'));
+      const electronEntry = path.resolve(config.packageRoot, packageJson.exports['./electron'].import);
+      const exported = await import(pathToFileURL(electronEntry).href);
+      const preload = compileElectronReleasePreload(await fs.readFile(path.join(consumerDir, 'preload.js'), 'utf8'), exported.ELECTRON_RELEASE_IPC_CHANNEL);
+      const preloadPath = path.resolve(config.outputDir, 'preload.js');
+      await fs.writeFile(preloadPath, preload, { flag: 'wx' });
+      coordinatorReceiptPath = path.resolve(config.outputDir, 'coordinator.json');
+      mainConfigPath = path.resolve(config.outputDir, 'coordinator-config.json');
+      await fs.writeFile(mainConfigPath, JSON.stringify({ ...config.releaseCoordinator, consumerDir, electronEntry,
+        preloadPath, receiptPath: coordinatorReceiptPath, allowedOrigin: server.baseUrl }), { flag: 'wx' });
+      report.coordinatorPreload = { sha256: hashBytesSha256(new TextEncoder().encode(preload)), transpilerVersion: ts.version,
+        sourceDigest: applicationFiles['preload.js'].sha256, format: 'generated-sandbox-commonjs' };
+      report.boundary.applicationAuthorization = 'installed-main-coordinator-with-frame-and-action-policy';
+      report.boundary.referenceIpc = true;
+    }
     application = await electron.launch({ executablePath: require('electron'), timeout: policy.timeoutMs,
       args: [...policy.launchArgs, `--doppler-probe-user-data=${path.resolve(config.outputDir, 'user-data')}`,
+        ...(mainConfigPath ? [`--doppler-release-main=${mainConfigPath}`] : []),
         path.join(ROOT, 'tools/fixtures/electron-webgpu-main.js')] });
     timer = setTimeout(() => { application.close().catch(() => {}); }, policy.timeoutMs);
     const page = await application.firstWindow();
+    if (releaseOptions) await page.exposeFunction('__persistRerankerReleaseCheckpoint', async (value) => {
+      const observation = { checkpoint: structuredClone(value), persisted: false };
+      report.releaseHistory.persistence.push(observation);
+      try {
+        await releaseOptions.persistReleaseCheckpoint(value);
+        observation.persisted = true;
+      } catch (error) { observation.error = error.message; throw error; }
+    });
     page.on('console', (message) => report.logs.push({ type: message.type(), text: message.text() }));
     page.on('pageerror', (error) => report.logs.push({ type: 'pageerror', text: error.message }));
     await page.route('**/*', async (route) => {
@@ -106,7 +236,7 @@ export async function qualifyRerankerElectron(config) {
       report.requests.push(url.href);
       if (url.origin !== server.baseUrl || (config.mode === 'pack' && url.pathname.startsWith('/model/'))) return route.abort();
       if (url.pathname === '/qualification') return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Reranker qualification</title>' });
-      if (faultArtifact && url.pathname === `/pack/${faultArtifact.path}`) {
+      if (faultArtifact && url.pathname === `${path.posix.dirname(packDistribution.urlPath)}/${faultArtifact.path}`) {
         report.faultInjected = true;
         if (faultKind === 'artifact-interruption') return route.abort('connectionreset');
         const bytes = await fs.readFile(faultArtifactPath);
@@ -116,6 +246,13 @@ export async function qualifyRerankerElectron(config) {
       return route.continue();
     });
     await page.goto(`${server.baseUrl}/qualification`);
+    if (config.releaseCoordinator) {
+      report.deniedRendererMutation = await page.evaluate(async () => {
+        try { await globalThis.dopplerRelease.rollback(`sha256:${'0'.repeat(64)}`); return { denied: false }; }
+        catch (error) { return { denied: /not authorized/.test(error.message), message: error.message }; }
+      });
+      if (report.deniedRendererMutation.denied !== true) throw new Error('Renderer mutation was not rejected by the application policy.');
+    }
     report.runtime.adapterInfo = await page.evaluate(async () => {
       const adapter = await navigator.gpu?.requestAdapter();
       if (!adapter) throw new Error('No WebGPU adapter.');
@@ -139,10 +276,11 @@ export async function qualifyRerankerElectron(config) {
         if (config.mode === 'pack') {
           const { createElectronRendererRuntime } = await import('/src/client/electron/renderer-runtime.js');
           const renderer = createElectronRendererRuntime({
-            releaseState: { resolveCurrent: async () => ({ ...config.authorizedPack,
-              path: `${location.origin}/pack/${config.packFilename}` }) },
+            releaseState: config.releaseCoordinator ? globalThis.dopplerRelease : { resolveCurrent: async () => ({ ...config.authorizedPack,
+              path: `${location.origin}${config.packUrlPath}` }) },
             openPack: async (packPath, options) => {
-              session = await api.openPack(packPath, { ...config.openOptions, ...options });
+              session = await api.openPack(packPath, { ...config.openOptions, ...options,
+                ...(config.releaseCheckpointPath ? { persistReleaseCheckpoint: globalThis.__persistRerankerReleaseCheckpoint } : {}) });
               loaded = performance.now();
               initialExecutionIdentity = session.observedInitialExecutionIdentity;
               if (config.fault?.kind === 'device-loss') {
@@ -194,7 +332,9 @@ export async function qualifyRerankerElectron(config) {
           message: error.message, causeCode: error.cause?.code ?? null, sessionClosed: session?.closed ?? null };
         throw error;
       } finally { if (config.mode === 'pack') await session?.close(); else await session?.unload(); }
-    }, { config: { ...config, packFilename: config.packPath ? path.basename(config.packPath) : null },
+    }, { config: { ...config,
+      openOptions: releaseOptions ? { ...config.openOptions, releasePolicy: releaseOptions.releasePolicy } : config.openOptions,
+      packUrlPath: packDistribution?.urlPath ?? null },
       input: reference.input, runtimeConfig: policy.runtimeConfig });
     report.raw = result;
     if (result.diagnostic?.matchesOrdinary === false) throw new Error('Diagnostic execution differs from ordinary selected-token reranking.');
@@ -222,10 +362,18 @@ export async function qualifyRerankerElectron(config) {
   }
   finally {
     clearTimeout(timer);
+    if (checkpointStore) {
+      try { (report.releaseHistory ??= {}).after = await checkpointStore.load(); }
+      catch (error) { report.passed = false; report.checkpointReadError = error.message; }
+    }
     const output = path.join(config.outputDir, 'qualification.json');
     await fs.writeFile(output, `${JSON.stringify(report, null, 2)}\n`);
     for (const resource of [application, server]) {
       try { await resource?.close(); } catch (error) { report.passed = false; (report.cleanupErrors ??= []).push(error.message); }
+    }
+    if (coordinatorReceiptPath) {
+      try { report.coordinator = JSON.parse(await fs.readFile(coordinatorReceiptPath, 'utf8')); }
+      catch (error) { report.passed = false; report.coordinatorReceiptError = error.message; }
     }
     await fs.writeFile(output, `${JSON.stringify(report, null, 2)}\n`);
   }

@@ -1,4 +1,8 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import { createDocumentSearchReleaseStore } from '../../examples/electron-document-search/release-storage.js';
 import { registerDocumentSearchReleaseMain } from '../../examples/electron-document-search/main.js';
 import { exposeDocumentSearchReleaseBridge } from '../../examples/electron-document-search/preload.js';
 import { createDocumentSearchRenderer } from '../../examples/electron-document-search/renderer.js';
@@ -8,6 +12,8 @@ import {
 } from '../../src/config/production-release-evidence.js';
 import { ELECTRON_REVOCATION_SNAPSHOT_SCHEMA } from 'doppler-gpu/electron';
 
+const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-durable-episode-'));
+try {
 const sha = (character) => `sha256:${character.repeat(64)}`;
 const signer = {
   authority: 'electron-episode-fixture',
@@ -26,20 +32,13 @@ const fixtures = [first, second];
 const references = fixtures.map(({ pack }, index) => ({
   packId: pack.packId, semanticRoot: pack.semanticRoot, path: `packs/revision-${index}.json`,
 }));
-let stored = null;
 let handler;
 let bridge;
 let now = '2026-09-04T00:00:00.000Z';
-const stateStore = {
-  async load() { return structuredClone(stored); },
-  async compareAndSwap(sequence, state) {
-    if ((stored?.sequence ?? 0) !== sequence) return false;
-    stored = structuredClone(state);
-    return true;
-  },
-};
+const stateStore = createDocumentSearchReleaseStore(path.join(directory, 'release.json'));
 const mainOptions = {
   stateStore,
+  authorizeRequest: () => true, // Synthetic trusted application event; sender denial has its own regression.
   now: () => now,
   verifyReleaseDecision: (record) => verifyProductionReleaseEvidenceSignature(record, { [signer.authority]: signer.publicKeyJwk }),
   verifyRevocationSnapshot: (record) => verifyProductionReleaseEvidenceSignature(record, { [signer.authority]: signer.publicKeyJwk }),
@@ -63,11 +62,12 @@ async function decision(index) {
     createdAtUtc: now, digest: '', signature: null,
   }, signer);
 }
-async function snapshot(sequence, revokedSemanticRoots) {
+async function snapshot(sequence, revokedSemanticRoots, fields = {}) {
   return signProductionReleaseEvidence({
     schema: ELECTRON_REVOCATION_SNAPSHOT_SCHEMA, authorityId: signer.authority,
     policyDigest: revocation.policyDigest, sequence, revokedSemanticRoots,
     issuedAtUtc: '2026-09-04T00:00:00.000Z', expiresAtUtc: '2026-09-05T00:00:00.000Z',
+    ...fields,
     digest: '', signature: null,
   }, signer);
 }
@@ -101,6 +101,18 @@ await bridge.activate(firstDecision, sha('d'));
 await assert.rejects(renderer.rerank(request), /no verified revocation snapshot/);
 await coordinator.applyRevocationSnapshot(await snapshot(1, []));
 assert.equal((await renderer.rerank(request)).pack.semanticRoot, first.pack.semanticRoot);
+const untrustedRestart = registerDocumentSearchReleaseMain({ ...mainOptions,
+  stateStore: createDocumentSearchReleaseStore(path.join(directory, 'release.json')),
+  verifyRevocationSnapshot: () => false,
+  ipcMain: { handle() {} },
+});
+await assert.rejects(untrustedRestart.resolveCurrent(), /verified.*signature/,
+  'restoring a file must not bypass current signature trust');
+await assert.rejects(coordinator.applyRevocationSnapshot(await snapshot(2, [], {
+  issuedAtUtc: '2026-09-04T01:00:00.000Z', expiresAtUtc: '2026-09-05T01:00:00.000Z',
+})), /future/);
+const invalidClock = registerDocumentSearchReleaseMain({ ...mainOptions, now: () => 'invalid', ipcMain: { handle() {} } });
+await assert.rejects(invalidClock.resolveCurrent(), /ISO instant/);
 
 const secondDecision = await decision(1);
 await coordinator.installCandidate(references[1], secondDecision.digest);
@@ -117,6 +129,12 @@ await coordinator.applyRevocationSnapshot(await snapshot(2, [second.pack.semanti
 const beforeRevoked = executions;
 await assert.rejects(renderer.rerank(request), /current Pack is revoked/);
 assert.equal(executions, beforeRevoked);
+coordinator = registerDocumentSearchReleaseMain({ ...mainOptions,
+  stateStore: createDocumentSearchReleaseStore(path.join(directory, 'release.json')) });
+await assert.rejects(renderer.rerank(request), /current Pack is revoked/, 'revocation survives reopening the durable store');
+await assert.rejects(coordinator.applyRevocationSnapshot(await snapshot(1, [])), /monotonically/);
+await assert.rejects(coordinator.applyRevocationSnapshot(await snapshot(3, [])), /retain all previously revoked/);
+assert.equal(executions, beforeRevoked);
 await bridge.rollback(sha('d'));
 assert.equal((await renderer.rerank(request)).pack.semanticRoot, first.pack.semanticRoot);
 assert.equal((await bridge.status()).failures.length, 1, 'rejected evidence survives rollback');
@@ -124,4 +142,5 @@ now = '2026-09-06T00:00:00.000Z';
 await assert.rejects(renderer.rerank(request), /revocation state is expired/);
 await assert.rejects(handler({}, { action: 'resolve-current', path: references[0].path }), /unsupported/);
 assert.equal(closed, executions);
-console.log('electron-release-episode.test: ok (signed fixture releases; synthetic execution and IPC)');
+console.log('electron-release-episode.test: ok (durable local files and signatures; synthetic execution and IPC)');
+} finally { await fs.rm(directory, { recursive: true, force: true }); }

@@ -15,6 +15,14 @@ assert.equal(recipe.manifest.artifactIdentity.sourceRevision, 'e61197ed45024b0ed
 const required = ['dequant_f16_out_vec4.wgsl', 'rope_precompute.wgsl', 'gather_f16_vec4.wgsl',
   'rmsnorm_qk.wgsl', 'rope_qk.wgsl', 'kv_cache_write_f32_to_f16.wgsl',
   'residual_vec4.wgsl', 'lm_head_select_logits.wgsl'];
+const f16Recipe = JSON.parse(await fs.readFile(path.join(repoRoot,
+  'src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json')));
+assert.deepEqual(f16Recipe.inference.rerank, recipe.inference.rerank, 'precision variants preserve the scoring contract');
+const f16Closure = await buildWgslClosure(f16Recipe.execution, [], { repoRoot });
+for (const file of required.slice(1)) {
+  assert(f16Closure.modules.some(module => module.file === file), `F16 Pack must seal ${file}`);
+}
+assert(!f16Closure.modules.some(module => module.file === required[0]), 'F16 closure must not borrow Q4K dequantization');
 const closure = await buildWgslClosure(recipe.execution, [], { repoRoot });
 const sources = new Map(closure.modules.map(module => [module.file,
   closure.packageFiles.find(file => file.path === module.sourcePath).contents]));

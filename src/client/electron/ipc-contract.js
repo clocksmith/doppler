@@ -27,12 +27,20 @@ export function validateElectronReleaseIpcRequest(value) {
   return structuredClone(value);
 }
 
-export function createElectronReleaseIpcHandler(coordinator) {
+export function createElectronReleaseIpcHandler(coordinator, options) {
   if (!coordinator || typeof coordinator.load !== 'function') {
     throw new Error('Electron release IPC handler requires a release-state coordinator.');
   }
-  return async (_event, input) => {
+  if (typeof options?.authorizeRequest !== 'function') {
+    throw new Error('Electron release IPC handler requires application-owned authorizeRequest().');
+  }
+  return async (event, input) => {
     const request = validateElectronReleaseIpcRequest(input);
+    if (await options.authorizeRequest(event, structuredClone(request)) !== true) {
+      const error = new Error('Electron release IPC request is not authorized by the application.');
+      error.code = 'DOPPLER_ELECTRON_UNAUTHORIZED';
+      throw error;
+    }
     if (request.action === 'status') return coordinator.load();
     if (request.action === 'resolve-current') return coordinator.resolveCurrent();
     if (request.action === 'install-candidate') {
