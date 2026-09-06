@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import test from 'node:test';
 
 import {
   buildWgslRolloutSampling,
@@ -45,44 +49,68 @@ assert.deepEqual(
   buildWgslRolloutSampling(v10),
   'Task routing must not change the frozen sampling contract.'
 );
-assert.equal(
-  await validateWgslRolloutTaskContract(corpusRoot, v11.methods.rollout),
-  `${corpusRoot}/diagnostic.jsonl`
-);
-await assert.rejects(
-  validateWgslRolloutTaskContract(corpusRoot, {
-    ...v11.methods.rollout,
-    taskSetSha256: '0'.repeat(64),
-  }),
-  /task-set hash mismatch/
-);
-assert.throws(
-  () => resolveWgslRolloutTaskPath(corpusRoot, { taskSet: 'train' }),
-  /must be diagnostic or public-test/
-);
+test('retained V11 corpus has frozen hashes and disjoint families', {
+  skip: existsSync(`${corpusRoot}/diagnostic.jsonl`)
+    ? false : `Local evidence unavailable: ${corpusRoot}`,
+}, async () => {
+  assert.equal(
+    await validateWgslRolloutTaskContract(corpusRoot, v11.methods.rollout),
+    `${corpusRoot}/diagnostic.jsonl`
+  );
+  await assert.rejects(
+    validateWgslRolloutTaskContract(corpusRoot, {
+      ...v11.methods.rollout,
+      taskSetSha256: '0'.repeat(64),
+    }),
+    /task-set hash mismatch/
+  );
+  assert.throws(
+    () => resolveWgslRolloutTaskPath(corpusRoot, { taskSet: 'train' }),
+    /must be diagnostic or public-test/
+  );
 
-const [train, diagnostic, publicTest] = await Promise.all([
-  readFile(`${corpusRoot}/train.jsonl`, 'utf8').then(parseJsonl),
-  readFile(`${corpusRoot}/diagnostic.jsonl`, 'utf8').then(parseJsonl),
-  readFile(`${corpusRoot}/public-test.jsonl`, 'utf8').then(parseJsonl),
-]);
-const [diagnosticBytes, publicTestBytes] = await Promise.all([
-  readFile(`${corpusRoot}/diagnostic.jsonl`),
-  readFile(`${corpusRoot}/public-test.jsonl`),
-]);
-assert.equal(
-  await sha256BytesHex(new Uint8Array(diagnosticBytes)),
-  v11.methods.rollout.taskSetSha256
-);
-assert.equal(
-  await sha256BytesHex(new Uint8Array(publicTestBytes)),
-  v11.methods.rollout.evaluationTaskSetSha256
-);
-assert.equal(diagnostic.length, 285);
-assert.equal(publicTest.length, 299);
-assert.deepEqual(overlap(familyIds(train), familyIds(diagnostic)), []);
-assert.deepEqual(overlap(familyIds(train), familyIds(publicTest)), []);
-assert.deepEqual(overlap(familyIds(diagnostic), familyIds(publicTest)), []);
+  const [train, diagnostic, publicTest] = await Promise.all([
+    readFile(`${corpusRoot}/train.jsonl`, 'utf8').then(parseJsonl),
+    readFile(`${corpusRoot}/diagnostic.jsonl`, 'utf8').then(parseJsonl),
+    readFile(`${corpusRoot}/public-test.jsonl`, 'utf8').then(parseJsonl),
+  ]);
+  const [diagnosticBytes, publicTestBytes] = await Promise.all([
+    readFile(`${corpusRoot}/diagnostic.jsonl`),
+    readFile(`${corpusRoot}/public-test.jsonl`),
+  ]);
+  assert.equal(
+    await sha256BytesHex(new Uint8Array(diagnosticBytes)),
+    v11.methods.rollout.taskSetSha256
+  );
+  assert.equal(
+    await sha256BytesHex(new Uint8Array(publicTestBytes)),
+    v11.methods.rollout.evaluationTaskSetSha256
+  );
+  assert.equal(diagnostic.length, 285);
+  assert.equal(publicTest.length, 299);
+  assert.deepEqual(overlap(familyIds(train), familyIds(diagnostic)), []);
+  assert.deepEqual(overlap(familyIds(train), familyIds(publicTest)), []);
+  assert.deepEqual(overlap(familyIds(diagnostic), familyIds(publicTest)), []);
+});
+
+test('rollout task custody rejects changed bytes, row counts and undeclared task sets', async () => {
+  const fixtureRoot = await mkdtemp(join(tmpdir(), 'doppler-rollout-fixture-'));
+  const bytes = Buffer.from('{"kernelFamilyId":"synthetic-a"}\n{"kernelFamilyId":"synthetic-b"}\n');
+  const method = { taskSet: 'diagnostic', taskSetRows: 2, taskSetSha256: await sha256BytesHex(bytes) };
+  try {
+    await writeFile(join(fixtureRoot, 'diagnostic.jsonl'), bytes);
+    assert.equal(await validateWgslRolloutTaskContract(fixtureRoot, method), join(fixtureRoot, 'diagnostic.jsonl'));
+    await assert.rejects(validateWgslRolloutTaskContract(fixtureRoot, { ...method, taskSetSha256: '0'.repeat(64) }), /hash mismatch/);
+    await assert.rejects(validateWgslRolloutTaskContract(fixtureRoot, { ...method, taskSetRows: 3 }), /row mismatch/);
+    await assert.rejects(validateWgslRolloutTaskContract(fixtureRoot, { ...method, taskSetRows: 0 }), /integer >= 1/);
+    await assert.rejects(validateWgslRolloutTaskContract(fixtureRoot, { ...method, taskSetSha256: 'invalid' }), /SHA-256 digest/);
+    assert.throws(() => resolveWgslRolloutTaskPath(fixtureRoot, { taskSet: 'train' }), /must be diagnostic or public-test/);
+    await rm(join(fixtureRoot, 'diagnostic.jsonl'));
+    await assert.rejects(validateWgslRolloutTaskContract(fixtureRoot, method), { code: 'ENOENT' });
+  } finally {
+    await rm(fixtureRoot, { recursive: true, force: true });
+  }
+});
 
 const comparableV10 = structuredClone(v10);
 const comparableV11 = structuredClone(v11);

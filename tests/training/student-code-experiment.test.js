@@ -1,4 +1,9 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import test from 'node:test';
 
 import {
   buildGoldStudentCandidate,
@@ -33,18 +38,62 @@ for (const harnessFile of [
     `student experiment must pin ${harnessFile}`
   );
 }
-const trainingDatasets = await buildStudentTrainingDatasets({
-  contracts,
-  teacherRunRoot: 'reports/training/teacher-qualification/doppler-js-wgsl-2026-07-11-v4',
+function assertTrainingDatasets(trainingDatasets) {
+  assert.deepEqual(trainingDatasets.eligibleAcceptedLaneCounts, { javascript: 6, wgsl: 4 });
+  assert.equal(trainingDatasets.acceptedLabelCount, 10);
+  assert.equal(trainingDatasets.datasets.javascript.sourceRowCount, 6);
+  assert.equal(trainingDatasets.datasets.javascript.materializedRowCount, 12);
+  assert.equal(trainingDatasets.datasets.wgsl.sourceRowCount, 4);
+  assert.equal(trainingDatasets.datasets.wgsl.materializedRowCount, 8);
+  assert.deepEqual(trainingDatasets.datasets.mixed.laneCounts, { javascript: 4, wgsl: 4 });
+  assert.equal(trainingDatasets.datasets.mixed.materializedRowCount, 16);
+}
+
+const teacherRunRoot = 'reports/training/teacher-qualification/doppler-js-wgsl-2026-07-11-v4';
+test('retained teacher labels reproduce the historical training dataset', {
+  skip: existsSync(join(teacherRunRoot, 'run-contract.json'))
+    ? false : `Local evidence unavailable: ${teacherRunRoot}`,
+}, async () => {
+  assertTrainingDatasets(await buildStudentTrainingDatasets({ contracts, teacherRunRoot }));
 });
-assert.deepEqual(trainingDatasets.eligibleAcceptedLaneCounts, { javascript: 6, wgsl: 4 });
-assert.equal(trainingDatasets.acceptedLabelCount, 10);
-assert.equal(trainingDatasets.datasets.javascript.sourceRowCount, 6);
-assert.equal(trainingDatasets.datasets.javascript.materializedRowCount, 12);
-assert.equal(trainingDatasets.datasets.wgsl.sourceRowCount, 4);
-assert.equal(trainingDatasets.datasets.wgsl.materializedRowCount, 8);
-assert.deepEqual(trainingDatasets.datasets.mixed.laneCounts, { javascript: 4, wgsl: 4 });
-assert.equal(trainingDatasets.datasets.mixed.materializedRowCount, 16);
+
+test('synthetic teacher receipts enforce admission, balancing and provenance', async () => {
+  const fixtureRoot = await mkdtemp(join(tmpdir(), 'doppler-student-label-fixture-'));
+  const fixtureContract = {
+    taskBankHash: contracts.host.taskBankArtifact.hash,
+    policyHash: contracts.host.policyArtifact.hash,
+  };
+  const counts = { javascript: 0, wgsl: 0 };
+  const receipts = contracts.host.taskBank.tasks.filter((entry) => entry.split === 'label')
+    .map((entry) => ({
+      passed: ++counts[entry.lane] <= (entry.lane === 'javascript' ? 6 : 4),
+      task: { id: entry.id, lane: entry.lane, split: entry.split },
+      sessionId: `synthetic-${entry.id}`,
+      teacherModelId: 'synthetic-test-only',
+      provider: 'synthetic-test-only',
+      ...fixtureContract,
+      policyViolationCount: 0,
+      checks: { exactSourceRecovery: true, validationCommandsPassed: true, changedPathsAllowed: true },
+    }));
+  try {
+    const contractPath = join(fixtureRoot, 'run-contract.json');
+    await writeFile(contractPath, JSON.stringify(fixtureContract));
+    await writeFile(join(fixtureRoot, 'receipts.json'), JSON.stringify(receipts));
+    assertTrainingDatasets(await buildStudentTrainingDatasets({ contracts, teacherRunRoot: fixtureRoot }));
+    await writeFile(contractPath, JSON.stringify({ ...fixtureContract, taskBankHash: 'wrong' }));
+    await assert.rejects(buildStudentTrainingDatasets({ contracts, teacherRunRoot: fixtureRoot }), /task bank hash/);
+    await writeFile(contractPath, JSON.stringify({ ...fixtureContract, policyHash: 'wrong' }));
+    await assert.rejects(buildStudentTrainingDatasets({ contracts, teacherRunRoot: fixtureRoot }), /policy hash/);
+    await writeFile(contractPath, JSON.stringify(fixtureContract));
+    await writeFile(join(fixtureRoot, 'receipts.json'), JSON.stringify(
+      receipts.map((receipt) => ({ ...receipt, policyViolationCount: 1 }))
+    ));
+    await assert.rejects(buildStudentTrainingDatasets({ contracts, teacherRunRoot: fixtureRoot }), /accepted label in every lane/);
+  } finally {
+    await rm(fixtureRoot, { recursive: true, force: true });
+  }
+});
+
 const task = selectStudentHoldoutTasks(contracts, ['javascript'])[0];
 const prompt = await renderStudentTaskPrompt(contracts, task);
 for (const mutation of task.mutations) {
