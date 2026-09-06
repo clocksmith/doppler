@@ -294,6 +294,11 @@
         "kernel": "lm_head_select_logits.wgsl",
         "entry": "main",
         "digest": "sha256:41ed8ecef1bb439dc852591278a78680bd4166e8e3d3af39484784722ccb3561"
+      },
+      "split_qkv": {
+        "kernel": "split_qkv.wgsl",
+        "entry": "main",
+        "digest": "sha256:57d1e55354e019598c7c39b98b9a48c99269a59506cca3a376fd690b96e15d54"
       }
     },
     "preLayer": [
@@ -469,7 +474,8 @@
       "rope_qk",
       "kv_write_f32_f16",
       "residual_vec4",
-      "lm_head_select_logits"
+      "lm_head_select_logits",
+      "split_qkv"
     ]
   }
 }

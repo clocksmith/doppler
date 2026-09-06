@@ -8070,7 +8070,10 @@
      "requires": [],
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
+      "inlineConfigs": [
+       "esm/esm2-t12-35m-ur50d-f32-af32",
+       "qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32"
+      ],
       "ruleChains": ["split-qkv.rules.json#variant"],
       "wgslOnDisk": true
      }
