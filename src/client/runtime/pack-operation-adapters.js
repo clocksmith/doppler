@@ -36,6 +36,9 @@ export function createPackOperationAdapters({ program, generate, rerank, embed, 
         for (const value of input.texts) {
           signal.throwIfAborted();
           const result = await embed({ application: input.application, text: value, options: { ...options, signal } });
+          requireValue(Array.isArray(result?.embedding) || ArrayBuffer.isView(result?.embedding), 'Pack embed must return an embedding vector.');
+          requireValue(result.embedding.length > 0, 'Pack embed returned an empty vector.');
+          requireValue(!embeddings.length || result.embedding.length === embeddings[0].embedding.length, 'Pack embed returned inconsistent vector dimensions.');
           embeddings.push(result);
           // A completed batch item is partial job output, never acceptance.
           yield { delta: { itemIndex: embeddings.length - 1 }, output: { embeddings: [...embeddings] } };
