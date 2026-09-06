@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import test from 'node:test';
 
 const ROOT = path.resolve('.');
 const POLICY_PATH = path.join(ROOT, 'tools/policies/wgsl-writer-family-distillation-policy.json');
@@ -23,26 +24,30 @@ assert.ok(policy.students[1].blocker.includes('SafeTensors'));
 
 const transportBinding = policy.sourceAdapterSet.transportRequest;
 const transportRequestPath = path.join(ROOT, transportBinding.path);
-assert.equal(sha256(transportRequestPath), transportBinding.sha256);
-const transportRequest = readJson(transportRequestPath);
-assert.equal(transportRequest.action, 'transport');
-const sourceAdapterRequestPath = transportRequest.sourceAdapterSet?.requestPath
-  ? path.resolve(transportRequest.sourceAdapterSet.requestPath)
-  : transportRequestPath;
-if (transportRequest.sourceAdapterSet?.requestPath) {
-  assert.equal(sha256(sourceAdapterRequestPath), transportRequest.sourceAdapterSet.requestSha256);
-}
-const sourceAdapterRequest = readJson(sourceAdapterRequestPath);
-assert.equal(sourceAdapterRequest.sourceAdapters.length, policy.sourceAdapterSet.includedAdapters);
-assert.equal(
-  sourceAdapterRequest.sourceAdapters.reduce((sum, adapter) => sum + adapter.weight, 0),
-  1,
-);
-assert.ok(sourceAdapterRequest.sourceAdapters.every((adapter) => !adapter.id.includes('control')));
-for (const adapter of sourceAdapterRequest.sourceAdapters) {
-  assert.equal(sha256(path.join(adapter.path, 'adapter_config.json')), adapter.configSha256);
-  assert.equal(sha256(path.join(adapter.path, 'adapter_model.safetensors')), adapter.weightsSha256);
-}
+test('retained family-distillation transport and adapter byte custody', {
+  skip: fs.existsSync(transportRequestPath) ? false : `Local evidence unavailable: ${transportBinding.path}`,
+}, () => {
+  assert.equal(sha256(transportRequestPath), transportBinding.sha256);
+  const transportRequest = readJson(transportRequestPath);
+  assert.equal(transportRequest.action, 'transport');
+  const sourceAdapterRequestPath = transportRequest.sourceAdapterSet?.requestPath
+    ? path.resolve(transportRequest.sourceAdapterSet.requestPath)
+    : transportRequestPath;
+  if (transportRequest.sourceAdapterSet?.requestPath) {
+    assert.equal(sha256(sourceAdapterRequestPath), transportRequest.sourceAdapterSet.requestSha256);
+  }
+  const sourceAdapterRequest = readJson(sourceAdapterRequestPath);
+  assert.equal(sourceAdapterRequest.sourceAdapters.length, policy.sourceAdapterSet.includedAdapters);
+  assert.equal(
+    sourceAdapterRequest.sourceAdapters.reduce((sum, adapter) => sum + adapter.weight, 0),
+    1,
+  );
+  assert.ok(sourceAdapterRequest.sourceAdapters.every((adapter) => !adapter.id.includes('control')));
+  for (const adapter of sourceAdapterRequest.sourceAdapters) {
+    assert.equal(sha256(path.join(adapter.path, 'adapter_config.json')), adapter.configSha256);
+    assert.equal(sha256(path.join(adapter.path, 'adapter_model.safetensors')), adapter.weightsSha256);
+  }
+});
 
 assert.deepEqual(policy.arms.map((arm) => arm.id), [
   'lwsc-v2-sft',
