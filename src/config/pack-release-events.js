@@ -9,6 +9,52 @@ const EXECUTABLE_ACTIONS = new Set(['eligible', 'promoted', 'rollback-authorized
 const DIGEST = /^sha256:[0-9a-f]{64}$/;
 const FIELDS = ['schema', 'pack', 'sequence', 'previousEventDigest', 'issuedAtUtc', 'expiresAtUtc', 'action', 'release', 'migratedFrom', 'nextSigner', 'digest', 'signature'];
 
+// Only a fully authenticated, contiguous history may advance durable state on denial.
+export class PackReleaseStateError extends Error {
+  constructor(cause, checkpoint) {
+    super(cause.message, { cause });
+    this.name = 'PackReleaseStateError';
+    this.checkpoint = freezePackV2({ ...checkpoint });
+  }
+}
+
+function resolveReleaseAuthorization(policy, event, now) {
+  const expired = Date.parse(event.expiresAtUtc) <= now;
+  const decision = policy.retainedLocalUse;
+  if (decision === undefined) {
+    if (expired) throw new Error('Release eligibility has expired.');
+    return { mode: 'managed', verifiedAtUtc: policy.now, eventExpired: false, unseenRevocations: 'unknown', retainedLocalUse: null };
+  }
+  const fields = ['schema', 'pack', 'releaseEventDigest', 'applicationDigest', 'acceptedAtUtc', 'acknowledgeUnseenRevocations'];
+  if (!decision || typeof decision !== 'object' || Array.isArray(decision)
+    || Object.keys(decision).some(key => !fields.includes(key))
+    || fields.some(key => decision[key] === undefined)
+    || decision.schema !== 'doppler.pack-retained-local-use/v1') {
+    throw new Error('Invalid retainedLocalUse decision schema or fields.');
+  }
+  const errors = [];
+  validatePackReference(decision.pack, 'retainedLocalUse.pack', errors);
+  if (errors.length || computeCanonicalSha256(decision.pack) !== computeCanonicalSha256(event.pack)) {
+    throw new Error('Retained local use must bind this exact Pack envelope.');
+  }
+  if (decision.releaseEventDigest !== event.digest || policy.checkpoint.sequence < event.sequence) {
+    throw new Error('Retained local use requires the exact previously persisted release event.');
+  }
+  if (decision.applicationDigest !== computeCanonicalSha256(event.release.application)) {
+    throw new Error('Retained local use application identity differs from the accepted release.');
+  }
+  const acceptedAt = Date.parse(decision.acceptedAtUtc);
+  if (!Number.isFinite(acceptedAt) || new Date(acceptedAt).toISOString() !== decision.acceptedAtUtc
+    || acceptedAt < Date.parse(event.issuedAtUtc) || acceptedAt >= Date.parse(event.expiresAtUtc) || acceptedAt > now) {
+    throw new Error('Retained local use requires an application acceptance time within the release eligibility window.');
+  }
+  if (decision.acknowledgeUnseenRevocations !== true) {
+    throw new Error('Retained local use must acknowledge that unseen revocations are unknown.');
+  }
+  return { mode: 'retained-local', verifiedAtUtc: policy.now, eventExpired: expired,
+    unseenRevocations: 'unknown', retainedLocalUse: decision };
+}
+
 function eventPayload(event) {
   return Object.fromEntries(FIELDS.filter((key) => key !== 'digest' && key !== 'signature').map((key) => [key, event[key]]));
 }
@@ -68,8 +114,14 @@ export async function signPackReleaseEvent(params, signer) {
 
 export async function verifyPackReleaseEvents(events, { pack, trustedSigners, policy }) {
   if (!Array.isArray(events) || events.length === 0) throw new Error('Pack v3 execution requires its signed release event history.');
+  if (!policy || typeof policy !== 'object' || Array.isArray(policy)
+    || Object.keys(policy).some(key => !['now', 'minimumSequence', 'checkpoint', 'retainedLocalUse'].includes(key))) {
+    throw new Error('Invalid release policy or unknown policy field.');
+  }
+  policy = freezePackV2(structuredClone(policy));
   const checkpoint = policy?.checkpoint;
-  if (!checkpoint || !Number.isSafeInteger(checkpoint.sequence) || checkpoint.sequence < 0
+  if (!checkpoint || Object.keys(checkpoint).some(key => !['sequence', 'digest'].includes(key))
+    || !Number.isSafeInteger(checkpoint.sequence) || checkpoint.sequence < 0
     || (checkpoint.sequence === 0 ? checkpoint.digest !== null : !DIGEST.test(checkpoint.digest))) {
     throw new Error('Release policy requires an explicit persisted sequence/digest checkpoint.');
   }
@@ -96,17 +148,25 @@ export async function verifyPackReleaseEvents(events, { pack, trustedSigners, po
     issuedAt = Date.parse(event.issuedAtUtc);
   }
   const event = history.at(-1);
-  if (event.sequence < policy.minimumSequence || event.sequence < checkpoint.sequence) throw new Error('Release history rolled back below the required sequence.');
-  if (Date.parse(event.expiresAtUtc) <= now) throw new Error('Release eligibility has expired.');
-  if (event.pack.schema !== pack.schema || event.pack.semanticRoot !== pack.semanticRoot
-    || event.pack.envelopeDigest !== hashPackV2Envelope(pack)) throw new Error('Release event does not bind this exact Pack envelope.');
-  if (!EXECUTABLE_ACTIONS.has(event.action) || revokedRoots.has(pack.semanticRoot)) throw new Error(`Pack execution is blocked by release state: ${event.action}.`);
-  const releaseValidation = validatePackReleaseContract(event.release, { targetIds: pack.targetPlans.map((plan) => plan.targetId) });
-  if (!releaseValidation.ok) throw new Error(releaseValidation.errors.join('; '));
+  if (event.sequence < checkpoint.sequence) throw new Error('Release history rolled back below the required sequence.');
+  const verifiedCheckpoint = { sequence: event.sequence, digest: event.digest };
+  let authorization;
+  try {
+    if (event.sequence < policy.minimumSequence) throw new Error('Release history rolled back below the required sequence.');
+    if (event.pack.schema !== pack.schema || event.pack.semanticRoot !== pack.semanticRoot
+      || event.pack.envelopeDigest !== hashPackV2Envelope(pack)) throw new Error('Release event does not bind this exact Pack envelope.');
+    if (!EXECUTABLE_ACTIONS.has(event.action) || revokedRoots.has(pack.semanticRoot)) throw new Error(`Pack execution is blocked by release state: ${event.action}.`);
+    const releaseValidation = validatePackReleaseContract(event.release, { targetIds: pack.targetPlans.map((plan) => plan.targetId) });
+    if (!releaseValidation.ok) throw new Error(releaseValidation.errors.join('; '));
+    authorization = resolveReleaseAuthorization(policy, event, now);
+  } catch (error) {
+    throw new PackReleaseStateError(error, verifiedCheckpoint);
+  }
   return freezePackV2({
     release: event.release,
     event,
-    checkpoint: { sequence: event.sequence, digest: event.digest },
+    checkpoint: verifiedCheckpoint,
+    authorization,
     nextPublicKeyDigest: hashPackV2PublicKey(key),
   });
 }

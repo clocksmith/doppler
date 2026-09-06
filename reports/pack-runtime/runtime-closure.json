@@ -1,8 +1,8 @@
 {
   "schema": "doppler.pack-runtime-closure/v1",
   "entrypoint": "src/pack-runtime.js",
-  "fileCount": 45,
-  "sourceBytes": 228657,
+  "fileCount": 46,
+  "sourceBytes": 234202,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -22,8 +22,8 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 14892,
-      "hash": "sha256:7806c3bb0a085312b99b346e33a70407aebc95f9737c4e2532101aced964f560"
+      "sizeBytes": 15953,
+      "hash": "sha256:b0d902f253c2c80ac43f27589daa3a5b1ff1c3b8a77ddc8c1a489ba3663a31a1"
     },
     {
       "path": "src/client/runtime/fetch-pack-artifact-store.js",
@@ -52,8 +52,13 @@
     },
     {
       "path": "src/client/runtime/pack-operation-executor.js",
-      "sizeBytes": 4515,
-      "hash": "sha256:badc7c1076e49cec35b85dfb359a3f349807ad431253194fb277c7a6d4a8cc49"
+      "sizeBytes": 4522,
+      "hash": "sha256:364479356e23427b2f4c5a640ac9e6f22da9822cde19bb9f18c684e00238089a"
+    },
+    {
+      "path": "src/client/runtime/pack-release-authorization.js",
+      "sizeBytes": 1084,
+      "hash": "sha256:b0842b24feacf08b74f9d7f9f3f8176ee69dd3c5ef7e6ee580efcf92ee013a93"
     },
     {
       "path": "src/client/runtime/pack-rerank.js",
@@ -122,8 +127,8 @@
     },
     {
       "path": "src/config/pack-release-events.js",
-      "sizeBytes": 7809,
-      "hash": "sha256:6d3adca07228370a9f125f63c33c68c59e371f2e4197322af3a718ac4fb893d1"
+      "sizeBytes": 11026,
+      "hash": "sha256:a0a4d5a9219db275f22e91c083803c1a737e6e95d41dbfb292782065e84b5ed2"
     },
     {
       "path": "src/config/pack-sequence-receipt.js",
@@ -147,8 +152,8 @@
     },
     {
       "path": "src/config/pack.js",
-      "sizeBytes": 2337,
-      "hash": "sha256:0d674a9c690c211fc215fc88cf6732bd8b756c7f4d53a964f8d4221eb68e79bf"
+      "sizeBytes": 2513,
+      "hash": "sha256:3588d9ad54034c85bfc572fc2c1b456b7383b67689fbdb2a19e5328c7cf8d56d"
     },
     {
       "path": "src/config/schema/debug.schema.js",

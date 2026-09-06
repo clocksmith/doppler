@@ -77,6 +77,13 @@ async function writeTypeSmoke(consumerDir, packageJson) {
 import { createDocumentSearchRenderer, createDocumentSearchHostRenderer } from './renderer.js';
 import { openPack } from '${packageJson.name}/host';
 import type { DopplerPackOpenOptions } from '${packageJson.name}/host';
+import type { PackRetainedLocalUse, PackReleasePolicy } from '${packageJson.name}/pack';
+declare const retainedDecision: PackRetainedLocalUse;
+declare const releasePolicy: PackReleasePolicy;
+const retainedHostSession = openPack('/retained/pack.json', {
+  ...trustOptions, releasePolicy: { ...releasePolicy, retainedLocalUse: retainedDecision },
+});
+retainedHostSession.then(value => value.verification.lifecycle?.authorization.mode);
 import { registerDocumentSearchReleaseMain } from './main.js';
 import { createDocumentSearchReleaseStore, createDocumentSearchCheckpointStore, prepareDocumentSearchReleaseOptions } from './release-storage.js';
 import type { RuntimePorts, PackRerankRequest, PackEmbeddingRequest, PackEmbeddingResult, DopplerRuntimeSession } from '${packageJson.name}';

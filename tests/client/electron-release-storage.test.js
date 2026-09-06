@@ -13,6 +13,7 @@ import { createSignedPackFixture } from '../helpers/pack-v2-fixture.js';
 import { buildPackV3, signPackV3, getPackIdentity, signPackReleaseEvent } from 'doppler-gpu/pack';
 import { createElectronReleaseStateCoordinator } from 'doppler-gpu/electron';
 import { createDopplerRuntime } from 'doppler-gpu';
+import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 
 const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-release-storage-'));
 try {
@@ -61,6 +62,14 @@ try {
   await assert.rejects(prepareDocumentSearchReleaseOptions({ ...base, releaseEvents: [first, second], minimumSequence: 2,
     now: params.expiresAtUtc }), /expired/);
   assert.equal((await store.load()).sequence, 2);
+  const retainedLocalUse = { schema: 'doppler.pack-retained-local-use/v1', pack: params.pack,
+    releaseEventDigest: second.digest, applicationDigest: computeCanonicalSha256(params.release.application),
+    acceptedAtUtc: base.now, acknowledgeUnseenRevocations: true };
+  const retained = await prepareDocumentSearchReleaseOptions({ ...base, releaseEvents: [first, second],
+    minimumSequence: 2, now: params.expiresAtUtc, retainedLocalUse });
+  assert.deepEqual(retained.releasePolicy.retainedLocalUse, retainedLocalUse);
+  retainedLocalUse.acknowledgeUnseenRevocations = false;
+  assert.equal(retained.releasePolicy.retainedLocalUse.acknowledgeUnseenRevocations, true, 'decision is snapshotted');
 
   const rejectedStore = { async load() { return null; }, async compareAndSwap() { return false; } };
   const rejected = await prepareDocumentSearchReleaseOptions({ ...base, checkpointStore: rejectedStore });
@@ -121,5 +130,17 @@ try {
   assert.equal((await restarted.load()).candidate.pack.semanticRoot, pack.semanticRoot);
   await assert.rejects(restarted.resolveCurrent(), /no active Pack/);
   assert.deepEqual((await fs.readdir(directory)).filter(name => name.endsWith('.tmp') || name.endsWith('.lock')), []);
+  const revoked = await signPackReleaseEvent({ ...params, sequence: 3, previousEventDigest: second.digest, action: 'revoked' }, signer);
+  await assert.rejects(prepareDocumentSearchReleaseOptions({ ...base, minimumSequence: 2,
+    releaseEvents: [first, second, { ...revoked, signature: first.signature }] }), /signature|digest/);
+  assert.equal((await store.load()).sequence, 2, 'forged denial cannot poison the store');
+  await assert.rejects(prepareDocumentSearchReleaseOptions({ ...base, minimumSequence: 2,
+    releaseEvents: [first, second, revoked] }), /blocked/);
+  assert.deepEqual(await store.load(), { sequence: 3, digest: revoked.digest }, 'reviewed denial survives process restart');
+  await assert.rejects(prepareDocumentSearchReleaseOptions({ ...base, minimumSequence: 3,
+    releaseEvents: [first, second], retainedLocalUse: retained.releasePolicy.retainedLocalUse }), /rolled back/);
+  await assert.rejects(prepareDocumentSearchReleaseOptions({ ...base, checkpointStore: rejectedStore,
+    releaseEvents: [first, second, revoked] }), error => error instanceof AggregateError
+      && /blocked/.test(error.errors[0].message) && /concurrently/.test(error.errors[1].message));
 } finally { await fs.rm(directory, { recursive: true, force: true }); }
 console.log('electron-release-storage.test: ok (real filesystem; synthetic Pack execution, no adoption claim)');

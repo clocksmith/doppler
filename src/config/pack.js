@@ -25,6 +25,9 @@ export async function verifyPack(pack, options) {
   const snapshot = freezePackV2(structuredClone(pack));
   const validation = validatePack(snapshot);
   if (!validation.ok) throw new Error(`Invalid Pack: ${validation.errors.join('; ')}`);
+  if (snapshot.schema !== 'doppler.pack/v3' && options.releasePolicy?.retainedLocalUse !== undefined) {
+    throw new Error('Retained local use policy requires Pack v3.');
+  }
   const signatureVerifier = snapshot.schema === 'doppler.pack/v3' ? verifyPackV3Signature : verifyPackV2Signature;
   await signatureVerifier(snapshot, options.trustedSigners);
   const lifecycle = snapshot.schema === 'doppler.pack/v3'

@@ -4,7 +4,31 @@ import type { PackSigner, PackSignature } from './pack-signature.js';
 export const PACK_RELEASE_EVENT_SCHEMA: 'doppler.pack-release-event/v1';
 export interface PackReference { schema: 'doppler.pack/v2' | 'doppler.pack/v3'; semanticRoot: string; envelopeDigest: string }
 export interface ReleaseCheckpoint { sequence: number; digest: string | null }
-export interface PackReleasePolicy { now: string; minimumSequence: number; checkpoint: ReleaseCheckpoint }
+export interface PackRetainedLocalUse {
+  schema: 'doppler.pack-retained-local-use/v1';
+  pack: PackReference;
+  releaseEventDigest: string;
+  applicationDigest: string;
+  acceptedAtUtc: string;
+  acknowledgeUnseenRevocations: true;
+}
+export interface PackReleasePolicy {
+  now: string;
+  minimumSequence: number;
+  checkpoint: ReleaseCheckpoint;
+  retainedLocalUse?: PackRetainedLocalUse;
+}
+export interface PackReleaseAuthorization {
+  mode: 'managed' | 'retained-local';
+  verifiedAtUtc: string;
+  eventExpired: boolean;
+  unseenRevocations: 'unknown';
+  retainedLocalUse: PackRetainedLocalUse | null;
+}
+export declare class PackReleaseStateError extends Error {
+  readonly checkpoint: ReleaseCheckpoint;
+  constructor(cause: Error, checkpoint: ReleaseCheckpoint);
+}
 export interface PackReleaseEvent {
   schema: 'doppler.pack-release-event/v1';
   pack: PackReference;
@@ -26,4 +50,4 @@ export declare function verifyPackReleaseEvents(events: PackReleaseEvent[], opti
   pack: DopplerPackV2 | DopplerPackV3;
   trustedSigners: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
   policy: PackReleasePolicy;
-}): Promise<{ release: DopplerPackV2['release']; event: PackReleaseEvent; checkpoint: ReleaseCheckpoint; nextPublicKeyDigest: string }>;
+}): Promise<{ release: DopplerPackV2['release']; event: PackReleaseEvent; checkpoint: ReleaseCheckpoint; authorization: PackReleaseAuthorization; nextPublicKeyDigest: string }>;

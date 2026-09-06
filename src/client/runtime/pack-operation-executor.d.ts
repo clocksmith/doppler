@@ -16,5 +16,5 @@ export interface PackOperationEvent {
 export function createPackOperationExecutor(ports: {
   adapters: Record<string, PackOperationAdapter>;
   identity: Record<string, unknown>;
-  assertCurrent(): Promise<void>;
+  assertCurrent(request: PackOperationRequest): Promise<void>;
 }): (request: PackOperationRequest, control?: { signal?: AbortSignal | null }) => AsyncGenerator<PackOperationEvent, void, void>;

@@ -29,6 +29,7 @@ Make qualified local model workloads easy to invoke while preserving exact resol
 - Public facade behavior remains aligned across declared hosts.
 - Pack execution consumes verified artifact bytes, never an unverified refetch.
 - Pack-bound operations report selected-plan and artifact-closure evidence.
+- Pack v3 receipts distinguish managed eligibility from recipient-retained local use. Verified release denials advance durable checkpoints; unauthenticated histories do not.
 - The public `doppler-gpu/host` facade composes the existing host ports without
   choosing application trust, accepting upgrades, or bypassing Pack checks.
 

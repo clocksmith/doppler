@@ -55,11 +55,11 @@ activate a release; the application must still authorize its Pack and plans.
 Prepare again for every open. Concurrent updates require re-verification, not
 an implicit retry with weakened policy.
 
-This callback records successfully verified execution eligibility, not every
-observed rejection. Applications must separately retain revocation snapshots or
-blocked history and enforce that knowledge on later opens. Rejecting a supplied
-revocation once does not make an older eligible history safe to reuse later.
-The example is not a complete revocation synchronization service.
+Authenticated release-state denials also advance the checkpoint, including
+revocation, quarantine, expiry, and an event for another exact envelope.
+Malformed or unauthenticated history cannot advance it. Retain the corresponding
+history alongside the checkpoint: replaying an older eligible head is rejected.
+This mechanism is not a complete revocation synchronization service.
 
 A malformed record is an error, never an empty store. A retained crash lock
 blocks writes; an operator must establish that no writer survives before
@@ -67,8 +67,13 @@ recovering it. Do not remove locks based on age. State, lock, and storage errors
 must prevent execution. Keep these files outside renderer-controlled content.
 The stores do not protect against an operator restoring an old filesystem
 snapshot; deployments needing that threat model require an external monotonic
-anchor. Unseen revocations remain unknowable offline, and expired v3 eligibility
-still fails closed.
+anchor. Unseen revocations remain unknowable offline, and expired managed v3
+eligibility still fails closed. The preparation helper also accepts an explicit
+`retainedLocalUse` decision for the separately scoped
+[recipient-controlled local-use policy](../../docs/pack-identity-migration.md#recipient-controlled-retained-local-use).
+The application must retain and choose that decision; downloading a Pack does
+not create it. It does not bypass the managed Electron release coordinator's
+activation or revocation-snapshot requirements, and does not authorize delegation.
 
 ## Renderer
 

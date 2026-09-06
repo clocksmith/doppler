@@ -29,6 +29,7 @@ Resolve all runtime-visible policy from validated, traceable, single-source conf
 - Runtime overlays cannot silently rewrite conversion-owned facts.
 - Pack v3 executable identity excludes release events; Pack v2 history remains readable.
 - Signed release history must satisfy explicit trust, time, and persisted-checkpoint policy.
+- Recipient-pinned local use may outlive managed eligibility only through an explicit acceptance record acknowledging unseen revocations. It cannot waive known denials or authorize delegation.
 
 ## Acceptance
 
