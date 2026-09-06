@@ -94,7 +94,9 @@ export function createPackProgramAdapter(modelHandle, pack, targetPlan) {
     },
 
     async embed(text, options) {
-      if (typeof modelHandle.embed !== 'function') throw new Error('Loaded Doppler Pack does not expose text embeddings.');
+      if (modelHandle.supportsEmbedding !== true || typeof modelHandle.embed !== 'function') {
+        throw new Error('Loaded Doppler Pack does not declare embedding execution.');
+      }
       try { return await modelHandle.embed(text, options); }
       finally { assertNoPlanMutation(); }
     },
