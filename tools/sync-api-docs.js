@@ -13,6 +13,12 @@ const OUTPUT_PATH = path.join(REPO_ROOT, 'docs', 'api', 'reference', 'exports.md
 const SUPPORT_TIER_REGISTRY_PATH = path.join(REPO_ROOT, 'src', 'config', 'support-tiers', 'subsystems.json');
 
 const EXPORT_META = {
+  './serve': {
+    audience: 'Node application authors',
+    stability: 'experimental transport',
+    docPath: 'docs/api/serve.md',
+    notes: 'Optional bounded HTTP adapter over an already-open Pack session. No model loading or release selection.',
+  },
   '.': {
     audience: 'app authors',
     stability: 'preferred public',

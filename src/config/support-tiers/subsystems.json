@@ -4,6 +4,22 @@
   "updatedAtUtc": "2026-08-22T00:00:00.000Z",
   "subsystems": [
     {
+      "id": "api.pack-http-adapter",
+      "label": "Pack session HTTP adapter",
+      "scope": "api",
+      "tier": "experimental",
+      "owner": "tooling",
+      "userFacing": true,
+      "demoDefault": false,
+      "exported": true,
+      "claimVisibility": "secondary",
+      "packageExport": "./serve",
+      "command": null,
+      "docs": ["docs/api/serve.md"],
+      "entrypoints": ["src/cli/serve/pack-handler.js"],
+      "notes": "Optional Node HTTP transport over an application-owned Pack session; no separate inference engine or remote-delegation authority. Synthetic connected tests are not model or physical qualification."
+    },
+    {
       "id": "api.root-facade",
       "label": "Root app-facing facade",
       "scope": "api",

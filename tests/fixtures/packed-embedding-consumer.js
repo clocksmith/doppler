@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import http from 'node:http';
+import { once } from 'node:events';
 import { createDopplerRuntime } from 'doppler-gpu';
+import { createPackServeHandler } from 'doppler-gpu/serve';
 import { computeCanonicalSha256 } from './node_modules/doppler-gpu/src/formats/canonical-hash.js';
 
 // Installed public API contract, with synthetic device and execution components.
@@ -58,6 +61,31 @@ try {
     for await (const event of session.executeOperation(denied)) assert.fail(`Unauthorized event ${event.status}`);
   }, /application identity/);
   assert.equal(executions, 2);
+  const localJob = { ...job, assignment: null };
+  const direct = [];
+  for await (const event of session.executeOperation(localJob)) direct.push(event);
+  const handler = createPackServeHandler({ session, token: 'installed-contract-test-token', policy: {
+    schema: 'doppler.pack-serve/v1', maxRequestBytes: 10000, maxOutputBytes: 100000,
+    maxResponseBytes: 200000, maxDurationMs: 120000, allowedOrigins: [],
+  } });
+  const server = http.createServer(handler);
+  try {
+    server.listen(0, '127.0.0.1');
+    await once(server, 'listening');
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/v1/operations`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer installed-contract-test-token' },
+      body: JSON.stringify(localJob),
+    });
+    assert.equal(response.status, 200);
+    const served = (await response.text()).trim().split('\n').map(line => JSON.parse(line));
+    assert.deepEqual(served, direct, 'installed HTTP and direct Pack execution retain identical events');
+    assert.equal(executions, 4);
+  } finally {
+    await handler.close();
+    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  }
+  assert.equal(session.closed, false);
+  console.log('Installed Pack HTTP/direct parity passed (synthetic).');
 } finally { await session.close(); }
 assert.equal(closes, 1);
 console.log('Installed Pack embedding smoke passed (synthetic; no physical qualification).');

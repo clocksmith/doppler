@@ -224,6 +224,10 @@
       "browser": "./src/client/pack-host.browser.js",
       "import": "./src/client/pack-host.js"
     },
+    "./serve": {
+      "types": "./src/cli/serve/pack-handler.d.ts",
+      "import": "./src/cli/serve/pack-handler.js"
+    },
     "./pack": {
       "types": "./src/pack.d.ts",
       "import": "./src/pack.js"

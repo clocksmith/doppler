@@ -15,6 +15,7 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 
 ### Exported advanced surfaces
 
+- [Pack HTTP adapter](serve.md) - `doppler-gpu/serve`; optional Node transport over an application-owned session
 - [Advanced Export Map](advanced-root-exports.md) - migration map from the old broad root surface to dedicated advanced subpaths
 - [Loaders API](loaders.md) - `doppler-gpu/loaders`
 - [Orchestration API](orchestration.md) - `doppler-gpu/orchestration`
@@ -65,6 +66,7 @@ Generated reference pages provide:
 
 ### Exported but experimental
 
+- `doppler-gpu/serve`
 - `doppler-gpu/compat`
 - `doppler-gpu/orchestration`
 - `doppler-gpu/diffusion`
