@@ -218,7 +218,9 @@ export async function stageInspect(input) {
       qualificationEvidence: Array.isArray(input.qualificationEvidence) ? input.qualificationEvidence : [],
       modelIR: input.modelIR ?? null,
       modelIREvidence: input.modelIREvidence ?? null,
-      initialExecutionIdentity: input.initialExecutionIdentity ?? null, release: requireObject(input.release, 'Capsule release contract'),
+      initialExecutionIdentity: input.initialExecutionIdentity ?? null,
+      ...(input.adapterExecution !== undefined ? { adapterExecution: input.adapterExecution } : {}),
+      release: requireObject(input.release, 'Capsule release contract'),
     },
   };
 }
@@ -651,8 +653,10 @@ export function stageSpecialize(lowered) {
     targetPlan = createTargetPlanV2({
       ...targetPlanFields,
       initialExecutionIdentity: normalized.initialExecutionIdentity,
+      ...(normalized.adapterExecution !== undefined ? { adapterExecution: normalized.adapterExecution } : {}),
     });
   } else {
+    if (normalized.adapterExecution !== undefined) throw new Error('Adapter execution requires an exact initial execution identity.');
     targetPlan = createTargetPlan(targetPlanFields);
   }
   return {

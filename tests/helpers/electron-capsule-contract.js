@@ -64,7 +64,9 @@ export async function runElectronCapsuleContract({ fixture, trustedSigners, crea
   assert.equal(receipt.schema, 'doppler.capsule-rerank-receipt/v1');
   assert.equal(receipt.capsule.semanticRoot, capsule.semanticRoot);
   assert.deepEqual(receipt.application, request.application);
-  assert.deepEqual(calls[0], { query: request.query, documents: request.documents, options: request.options });
+  const { signal: sessionSignal, ...receivedOptions } = calls[0].options;
+  assert.equal(sessionSignal.aborted, false);
+  assert.deepEqual({ ...calls[0], options: receivedOptions }, { query: request.query, documents: request.documents, options: request.options });
   assert.equal(closed, 1);
 
   await assert.rejects(renderer.rerank('query', ['document']), /explicit application binding/);
@@ -119,8 +121,8 @@ export async function runElectronCapsuleContract({ fixture, trustedSigners, crea
   current = reference;
   const duringRun = new AbortController();
   onRun = (received) => {
-    assert.equal(received.options.signal, duringRun.signal, 'cancellation must reach the actual Capsule program');
     duringRun.abort();
+    assert.equal(received.options.signal.reason, duringRun.signal.reason, 'cancellation must reach the actual Capsule program');
   };
   await assert.rejects(renderer.rerank(request, { signal: duringRun.signal }), { code: 'DOPPLER_ELECTRON_CANCELLED' });
   for (const cancelSource of ['open', 'request']) {

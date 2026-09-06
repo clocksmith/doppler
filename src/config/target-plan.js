@@ -1,3 +1,4 @@
+import { validateCapsuleAdapterExecution } from './capsule-adapter-policy.js';
 
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
@@ -89,6 +90,9 @@ function validateCommand(command, phase, label, errors) {
 
 export function validateTargetPlan(plan) {
   const errors = [];
+  if (plan?.adapterExecution !== undefined) {
+    try { validateCapsuleAdapterExecution(plan); } catch (error) { errors.push(error.message); }
+  }
   if (!isObject(plan)) {
     return { ok: false, errors: ['TargetPlan must be a non-null object.'] };
   }
@@ -397,6 +401,7 @@ export function createTargetPlanV2(params) {
     phases: params.phases,
     qualification: params.qualification,
     initialExecutionIdentity: params.initialExecutionIdentity,
+    ...(params.adapterExecution !== undefined ? { adapterExecution: params.adapterExecution } : {}),
   };
   const validation = validateTargetPlan(plan);
   if (!validation.ok) {

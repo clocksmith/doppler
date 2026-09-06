@@ -1,3 +1,4 @@
+import type { CapsuleAdapterExecutionDeclaration } from './capsule-adapters.js';
 import type { InitialExecutionIdentity } from './initial-execution-identity.js';
 
 export const TARGET_PLAN_SCHEMA_ID: 'doppler.target-plan/v1';
@@ -65,6 +66,7 @@ export interface TargetPlanV2 extends Omit<TargetPlanV1, 'schema' | 'schemaVersi
   schema: 'doppler.target-plan/v2';
   schemaVersion: 2;
   initialExecutionIdentity: InitialExecutionIdentity;
+  adapterExecution?: CapsuleAdapterExecutionDeclaration;
 }
 
 export type TargetPlan = TargetPlanV1 | TargetPlanV2;

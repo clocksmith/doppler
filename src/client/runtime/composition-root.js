@@ -11,7 +11,9 @@ import { createSessionController } from './session-controller.js';
 import { selectTargetPlan } from './target-selector.js';
 import { executeCapsuleRerank } from './capsule-rerank.js';
 import { createCapsuleOperationAdapters } from './capsule-operation-adapters.js';
+import { createCapsuleAdapterExecution } from './capsule-adapter-execution.js';
 import { createCapsuleOperationExecutor } from './capsule-operation-executor.js';
+import { createCapsuleSessionExecution } from './capsule-session-execution.js';
 import { executeCapsuleForecast } from './capsule-forecast.js';
 import { executeCapsuleEmbedding } from './capsule-embedding.js';
 import { CapsuleReleaseStateError } from '../../config/capsule-release-events.js';
@@ -24,6 +26,15 @@ export const RUNTIME_CORE_VERSION = '2.0.0';
 
 function emit(observer, event) {
   observer?.observe?.(Object.freeze({ ...event }));
+}
+
+function withRequestSignal(request, signal) {
+  // Leave malformed requests intact for the operation owner's validation.
+  if (!request || typeof request !== 'object' || Array.isArray(request)) return request;
+  const options = request.options;
+  if (options !== undefined && (!options || typeof options !== 'object' || Array.isArray(options))) return request;
+  if (options?.signal === null) return request;
+  return { ...request, options: { ...options, signal } };
 }
 
 async function loadModuleSources(capsule, artifactStore) {
@@ -130,6 +141,7 @@ export function createDopplerRuntime(ports) {
         const resourceBinder = createResourceBinder(device, program);
         const commandExecutor = createCommandExecutor(device, resourceBinder, program);
         const sessionController = createSessionController(commandExecutor, resourceBinder, program);
+        const execution = createCapsuleSessionExecution();
         let closed = false;
 
         async function assertPlanUnchanged(observeProgram = true) {
@@ -267,27 +279,37 @@ export function createDopplerRuntime(ports) {
             }
           },
 
-          async close() {
-            if (closed) return;
+          close() {
             closed = true;
-            try {
-              await sessionController.close();
-            } finally {
-              commandExecutor.clearPipelineCache();
-              verifiedStore.close();
-              await assertPlanUnchanged(false);
-            }
-            emit(observer, { type: 'capsule-session-closed', capsuleId: capsule.capsuleId, targetPlanDigest });
+            return execution.close(async () => {
+              try {
+                await sessionController.close();
+              } finally {
+                commandExecutor.clearPipelineCache();
+                verifiedStore.close();
+                await assertPlanUnchanged(false);
+              }
+              emit(observer, { type: 'capsule-session-closed', capsuleId: capsule.capsuleId, targetPlanDigest });
+            });
           },
         };
+        // Internal adapters run under the caller's single execution lease.
+        const local = { ...session };
+        function requireBaseProgram() {
+          if (program.getActiveAdapterIdentity?.()) throw new Error('Capsule adapter remains active; close and reopen the session.');
+        }
+        const runLocal = (task, signal) => execution.run(currentSignal => {
+          requireBaseProgram();
+          return task(currentSignal);
+        }, signal);
         const adapters = createCapsuleOperationAdapters({ program,
-          generate: (request) => session.generate(request), rerank: (request) => session.rerank(request),
-          embed: (request) => session.embed(request),
-          encodeSequence: (sequence, options) => session.encodeSequence(sequence, options) });
+          generate: (request) => local.generate(request), rerank: (request) => local.rerank(request),
+          embed: (request) => local.embed(request),
+          encodeSequence: (sequence, options) => local.encodeSequence(sequence, options) });
         assertCapsuleLoadActive(options.signal);
         emit(observer, { type: 'capsule-load-complete', capsuleId: capsule.capsuleId, artifactMetrics: verifiedStore.getMetrics() });
-        return Object.assign(session, {
-          executeOperation: createCapsuleOperationExecutor({ adapters,
+        const executeOperation = createCapsuleOperationExecutor({ adapters,
+            prepareExecution: createCapsuleAdapterExecution({ program, capsule: { ...verification.identity, modelId: capsule.modelId }, targetPlan: selectedPlan }),
             identity: { capsule: verification.identity, targetId: selectedPlan.targetId, targetPlanDigest,
               artifactReceipts: verification.artifactReceipts, releaseEventDigest: verification.lifecycle?.event.digest ?? null,
               ...releaseAuthorization.receiptFields },
@@ -296,7 +318,19 @@ export function createDopplerRuntime(ports) {
               releaseAuthorization.assertAssignment(request.assignment);
               await assertPlanUnchanged();
             },
-          }),
+          });
+        return Object.assign(session, {
+          generate: (options = {}) => execution.stream(async function* (signal) {
+            requireBaseProgram();
+            yield* local.generate({ ...options, signal });
+          }, options.signal),
+          generateText: async (options = {}) => runLocal(signal => local.generateText({ ...options, signal }), options.signal),
+          forecast: async request => runLocal(signal => local.forecast({ ...request, signal }), request?.signal),
+          embed: async request => runLocal(signal => local.embed(withRequestSignal(request, signal)), request?.options?.signal),
+          rerank: async request => runLocal(signal => local.rerank(withRequestSignal(request, signal)), request?.options?.signal),
+          encodeSequence: async (sequence, options = {}) => runLocal(signal => local.encodeSequence(sequence, { ...options, signal }), options.signal),
+          resetGenerationState: () => runLocal(() => local.resetGenerationState()),
+          executeOperation: (request, control = {}) => execution.stream(signal => executeOperation(request, { ...control, signal }), control.signal),
         });
       } catch (error) {
         acquisition.abort(error);

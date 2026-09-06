@@ -180,6 +180,60 @@ passes the assignment into its sequence receipt. Neither adapter may borrow
 generation qualification. Partial events are not application acceptance;
 cancellation or invalid evidence prevents a completed operation receipt.
 
+## Request-bound adapters
+
+`session.executeOperation(request, { signal, adapterArtifactStore })` accepts an
+immutable `adapterSet` in the request. Each `doppler.capsule-adapter/v1` entry binds
+its application-approved identity, exact base model (`modelId`, `semanticRoot`,
+`envelopeDigest`, `artifactClosureDigest`), format, manifest, and weight artifact.
+See the [adapter declarations](../../src/config/capsule-adapters.d.ts) for the full
+request shape. The request hash and completion receipt bind the adapter set.
+
+The application owns publication admission, distribution permission and fetching.
+`adapterArtifactStore.readArtifact(artifact)` supplies the exact authorized bytes;
+Runtime checks their size and SHA-256 before the existing LoRA loader activates
+them. There is no adapter URL fallback or base-model duplication.
+
+Adapter execution requires a signed TargetPlan v2 `adapterExecution` declaration:
+
+```json
+{
+  "schema": "doppler.capsule-adapter-execution/v1",
+  "maxAdapters": 1,
+  "combination": "single",
+  "formats": ["peft_safetensors"],
+  "operations": ["generate"],
+  "kernelModules": ["exact-matmul-module", "exact-scale-module", "exact-residual-module"]
+}
+```
+
+Module IDs and digests must match both the initial execution identity and the
+packaged TargetPlan closure, and include the
+registered operations required by [adapter policy](../../src/config/capsule-adapters.json).
+Forge takes this declaration through its existing JSON `adapterExecution` input;
+it is preserved in the TargetPlan before hashing and signing. Example module IDs
+above are placeholders, not a runnable model configuration. Missing declarations,
+incompatible base identities, corrupted bytes and unsupported combinations fail
+before model execution. Existing requests without adapters retain their declared
+legacy empty set; they do not gain adapter permission.
+
+Runtime checks the active adapter identity and bundled revocation state around
+partial events and completion. Adapter receipts retain the supplied identity,
+descriptor hash, source-byte digest and loaded tensor identity. Cleanup unloads
+the adapter and resets generation state on completion, cancellation and failure.
+These bindings do not establish specialist quality; each base/adapter combination
+still needs its own retained physical and reference evidence.
+
+## Session execution ownership
+
+Direct generation, embedding, reranking, forecasting, sequence execution and
+`executeOperation()` share one exclusive session slot. Concurrent work or reset
+fails explicitly. Different session objects retain separate ownership.
+`close()` requests cancellation, closes a paused stream, and waits for active work
+and adapter cleanup before disposing the program and verified storage. It does
+not promise immediate GPU termination. Callers must exhaust or close iterators;
+partial output remains provisional until the completed record is validated.
+
 ## TargetPlan v2 initialization gate
 
 For a `doppler.target-plan/v2` target, `programFactory` must return a program

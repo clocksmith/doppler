@@ -75,11 +75,11 @@ assert.equal(receipt.target.targetId, session.selectedTargetId);
 assert.deepEqual(receipt.application, fixture.capsule.release.application);
 assert.equal(receipt.evidence, evidence);
 assert.match(receipt.receiptDigest, /^sha256:[0-9a-f]{64}$/);
-assert.deepEqual(rerankCalls, [{
+assert.deepEqual(rerankCalls.map(({ options, ...input }) => input), [{
   query: evidence.query,
   documents: evidence.documents,
-  options: undefined,
 }]);
+assert.equal(rerankCalls[0].options.signal.aborted, false);
 assert.equal(events.at(-1).type, 'capsule-rerank-complete');
 assert.equal(events.at(-1).receiptDigest, receipt.receiptDigest);
 
