@@ -64,7 +64,9 @@ export async function runElectronPackContract({ fixture, trustedSigners, createR
   assert.equal(receipt.schema, 'doppler.pack-rerank-receipt/v1');
   assert.equal(receipt.pack.semanticRoot, pack.semanticRoot);
   assert.deepEqual(receipt.application, request.application);
-  assert.deepEqual(calls[0], { query: request.query, documents: request.documents, options: request.options });
+  const { signal: sessionSignal, ...receivedOptions } = calls[0].options;
+  assert.equal(sessionSignal.aborted, false);
+  assert.deepEqual({ ...calls[0], options: receivedOptions }, { query: request.query, documents: request.documents, options: request.options });
   assert.equal(closed, 1);
 
   await assert.rejects(renderer.rerank('query', ['document']), /explicit application binding/);
@@ -117,8 +119,8 @@ export async function runElectronPackContract({ fixture, trustedSigners, createR
   current = reference;
   const duringRun = new AbortController();
   onRun = (received) => {
-    assert.equal(received.options.signal, duringRun.signal, 'cancellation must reach the actual Pack program');
     duringRun.abort();
+    assert.equal(received.options.signal.reason, duringRun.signal.reason, 'cancellation must reach the actual Pack program');
   };
   await assert.rejects(renderer.rerank(request, { signal: duringRun.signal }), { code: 'DOPPLER_ELECTRON_CANCELLED' });
   for (const cancelSource of ['open', 'request']) {

@@ -1,3 +1,4 @@
+import type { PackAdapterArtifactStore } from './pack-adapter-execution.js';
 import type { PackV2Artifact } from '../../config/pack-v2.js';
 import type { DopplerPack, PackIdentity } from '../../config/pack.js';
 import type { PackReleaseEvent, PackReleasePolicy, ReleaseCheckpoint } from '../../config/pack-release-events.js';
@@ -63,8 +64,8 @@ export interface DopplerRuntimeSession {
   forecast(request: PackForecastRequest): Promise<PackForecastResult>;
   embed(request: PackEmbeddingRequest): Promise<PackEmbeddingResult>;
   encodeSequence(sequence: string, options?: Record<string, unknown> & { signal?: AbortSignal }): Promise<Record<string, unknown>>;
-  executeOperation(request: PackOperationRequest, control?: { signal?: AbortSignal | null }): AsyncGenerator<PackOperationEvent, void, void>;
-  resetGenerationState(): void;
+  executeOperation(request: PackOperationRequest, control?: { signal?: AbortSignal | null; adapterArtifactStore?: PackAdapterArtifactStore | null }): AsyncGenerator<PackOperationEvent, void, void>;
+  resetGenerationState(): void | Promise<void>;
   close(): Promise<void>;
 }
 

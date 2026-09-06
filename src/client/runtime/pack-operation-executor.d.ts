@@ -1,3 +1,4 @@
+import type { PackAdapterArtifactStore, PreparedPackAdapterExecution } from './pack-adapter-execution.js';
 import type { PackOperationRequest } from '../../config/pack-operation.js';
 import type { PackOperationAdapter } from './pack-operation-adapters.js';
 export interface PackOperationEvent {
@@ -17,4 +18,8 @@ export function createPackOperationExecutor(ports: {
   adapters: Record<string, PackOperationAdapter>;
   identity: Record<string, unknown>;
   assertCurrent(): Promise<void>;
-}): (request: PackOperationRequest, control?: { signal?: AbortSignal | null }) => AsyncGenerator<PackOperationEvent, void, void>;
+  prepareExecution?: ((request: PackOperationRequest, control: {
+    signal: AbortSignal;
+    adapterArtifactStore: PackAdapterArtifactStore | null;
+  }) => Promise<PreparedPackAdapterExecution | null>) | null;
+}): (request: PackOperationRequest, control?: { signal?: AbortSignal | null; adapterArtifactStore?: PackAdapterArtifactStore | null }) => AsyncGenerator<PackOperationEvent, void, void>;
