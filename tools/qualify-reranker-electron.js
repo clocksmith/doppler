@@ -21,7 +21,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export async function resolvePinnedElectronHost(repoRoot, expectedVersion) {
   const root = await fs.realpath(repoRoot);
   const requireHost = createRequire(path.join(root, 'package.json'));
-  const installationHint = `Install the declared host here: npm install --no-save --package-lock=false electron@${expectedVersion}`;
+  const installationHint = `Install the declared host here: npm install --no-save electron@${expectedVersion}`;
   let packagePath;
   try {
     packagePath = await fs.realpath(requireHost.resolve('electron/package.json'));

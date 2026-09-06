@@ -29,13 +29,16 @@ qualification checkout, for example:
 
 ```sh
 npm ci
-npm install --no-save --package-lock=false electron@43.4.0
+npm install --no-save electron@43.4.0
 ```
 
 The qualifier rejects Electron resolved from a parent checkout, mismatched
 versions, and executable overrides outside that local package. Its report
 retains the resolved package, executable path, and binary SHA-256. A clean source
 revision alone does not establish an isolated host installation.
+Keep the existing lockfile enabled: disabling it can resolve different versions
+of unrelated harness dependencies. Retain the host-install log and dependency
+inventory separately from the runtime package.
 
 The qualification report compares all documents in input order and recomputes
 numerical and exact-rank checks. Neither changing a `passed` bit nor borrowing
