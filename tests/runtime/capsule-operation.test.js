@@ -17,6 +17,7 @@ const program = {
   tokenize() { return [1]; }, decodeTokens(tokens) { return tokens.join(','); },
   getTokenContract() { return { padTokenId: null, eosTokenId: null, stopTokenIds: [] }; },
   reset() {}, releaseStepResult() {}, async close() {},
+  getActiveAdapterIdentity() { return null; },
   async executePhase() { return { logits: new Float32Array([0, 10]) }; },
   async embed(text, options) { calls.push({ text, options }); return { embedding: new Float32Array([0.5, 1]), seqLen: 1 }; },
   async encodeSequence(sequence, options) {
@@ -152,6 +153,22 @@ const cleanupFailure = createCapsuleOperationExecutor({ identity: {}, assertCurr
     return: async () => { throw new Error('cleanup failed'); } }) },
 } });
 await assert.rejects(cleanupFailure(jobs[3]).next(), /cleanup failed/);
+// Direct and declared operations share mutable model state and one session lease.
+const direct = session.generate({ prompt: 'direct', ...generationOptions });
+assert.equal((await direct.next()).value, 1);
+await assert.rejects(session.executeOperation(jobs[0]).next(), /already active/);
+await assert.rejects(session.generateText({ prompt: 'overlap', ...generationOptions }), /already active/);
+assert.throws(() => session.resetGenerationState(), /already active/);
+await direct.return();
+program.getActiveAdapterIdentity = () => ({ digest: hashCapsuleObservation('failed unload') });
+await assert.rejects(session.generateText({ prompt: 'after failed unload', ...generationOptions }), /adapter remains active/);
+assert.throws(() => session.resetGenerationState(), /adapter remains active/);
+program.getActiveAdapterIdentity = () => null;
+const declared = session.executeOperation(jobs[0]);
+assert.equal((await declared.next()).value.status, 'partial');
+await assert.rejects(session.generate({ prompt: 'overlap', ...generationOptions }).next(), /already active/);
+await session.close(); // Drains a stream even when its caller is paused at a partial event.
+assert.equal((await declared.next()).done, true);
 for (const openSession of sessions) await openSession.close();
 await assert.rejects(collect(session.executeOperation(jobs[3])), /session is closed/);
 console.log('✔ capsule-operation.test.js passed (injected program; contract evidence only)');

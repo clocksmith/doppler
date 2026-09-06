@@ -44,6 +44,19 @@ export function createCapsuleProgramAdapter(modelHandle, capsule, targetPlan) {
   return {
     executionGraphHash: capsule.program.executionGraphHash,
 
+    getActiveAdapterIdentity() { return modelHandle.activeLoRAIdentity; },
+
+    async loadAdapter(manifest, { bytes, signal }) {
+      const read = async path => {
+        signal.throwIfAborted();
+        if (path !== manifest.weightsPath) throw new Error('Adapter loader requested an undeclared artifact.');
+        return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+      };
+      await modelHandle.loadLoRA(manifest, { readFile: read, readOPFS: read, fetchUrl: read, skipVerify: false });
+    },
+
+    async unloadAdapter() { await modelHandle.unloadLoRA(); },
+
     getInitialExecutionIdentity() {
       return observeInitialExecutionIdentity(modelHandle.advanced.getResolvedRuntimeSession());
     },

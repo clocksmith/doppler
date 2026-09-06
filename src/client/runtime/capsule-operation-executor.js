@@ -2,10 +2,10 @@ import { DOPPLER_VERSION } from '../../version.js';
 import { freezeCapsuleV2 } from '../../config/capsule-v2.js';
 import { CAPSULE_OPERATION_EVENT_SCHEMA, CAPSULE_OPERATION_RECEIPT_SCHEMA, hashCapsuleObservation, normalizeCapsuleObservation, snapshotCapsuleOperationRequest } from '../../config/capsule-operation.js';
 
-export function createCapsuleOperationExecutor({ adapters, identity, assertCurrent }) {
+export function createCapsuleOperationExecutor({ adapters, identity, assertCurrent, prepareExecution = null }) {
   const executionIdentity = freezeCapsuleV2(normalizeCapsuleObservation(identity));
   let active = false;
-  return (input, { signal: externalSignal = null } = {}) => {
+  return (input, { signal: externalSignal = null, adapterArtifactStore = null } = {}) => {
     const request = snapshotCapsuleOperationRequest(input);
     const adapter = adapters[request.operation.name];
     if (!adapter) throw new Error('Selected Capsule runtime has no adapter for this operation.');
@@ -21,10 +21,12 @@ export function createCapsuleOperationExecutor({ adapters, identity, assertCurre
       let timer;
       let iterator;
       let failure;
+      let prepared;
       const check = async () => {
         if (Date.now() >= request.limits.deadlineAt) deadline();
         controller.signal.throwIfAborted();
         await assertCurrent(request);
+        await prepared?.check();
         if (Date.now() >= request.limits.deadlineAt) deadline();
         controller.signal.throwIfAborted();
       };
@@ -48,6 +50,9 @@ export function createCapsuleOperationExecutor({ adapters, identity, assertCurre
         // Timer range is a host API limit, not an execution-policy fallback.
         if (remaining > 2147483647) throw new Error('Capsule operation deadline exceeds the host timer range.');
         timer = setTimeout(deadline, Math.max(0, remaining));
+        if (request.adapterSet?.length && !prepareExecution) throw new Error('Capsule operation has no adapter execution owner.');
+        prepared = await prepareExecution?.(request, { signal: controller.signal, adapterArtifactStore });
+        await check();
         iterator = adapter.execute(request, controller.signal);
         while (true) {
           await check();
@@ -59,7 +64,12 @@ export function createCapsuleOperationExecutor({ adapters, identity, assertCurre
             iterator = null;
             await finishedIterator.return?.();
             await check();
-            const payload = { schema: CAPSULE_OPERATION_RECEIPT_SCHEMA, ...executionIdentity, runtimeVersion: DOPPLER_VERSION,
+            const adapterReceiptFields = prepared?.receiptFields;
+            const finishedAdapter = prepared;
+            prepared = null;
+            await finishedAdapter?.close();
+            await check();
+            const payload = { schema: CAPSULE_OPERATION_RECEIPT_SCHEMA, ...executionIdentity, ...adapterReceiptFields, runtimeVersion: DOPPLER_VERSION,
               operation: request.operation, requestHash, assignmentHash,
               inputHash: hashCapsuleObservation({ input: request.input, options: request.options }), outputHash: hashCapsuleObservation(output) };
             const receipt = freezeCapsuleV2({ ...payload, receiptDigest: hashCapsuleObservation(payload) });
@@ -75,10 +85,15 @@ export function createCapsuleOperationExecutor({ adapters, identity, assertCurre
         controller.abort(new Error('Capsule operation iterator closed.'));
         clearTimeout(timer);
         externalSignal?.removeEventListener('abort', cancel);
-        try { await iterator?.return(); } catch (cleanupError) {
-          if (failure) throw new AggregateError([failure, cleanupError], failure.message, { cause: failure });
-          throw cleanupError;
-        } finally { active = false; }
+        const cleanupErrors = [];
+        try { await iterator?.return(); } catch (error) { cleanupErrors.push(error); }
+        try { await prepared?.close(); } catch (error) { cleanupErrors.push(error); }
+        active = false;
+        if (cleanupErrors.length) {
+          const errors = failure ? [failure, ...cleanupErrors] : cleanupErrors;
+          if (errors.length === 1) throw errors[0];
+          throw new AggregateError(errors, errors[0].message, { cause: errors[0] });
+        }
       }
     })();
   };
