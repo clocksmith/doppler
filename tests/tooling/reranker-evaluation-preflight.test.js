@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { ELECTRON_RELEASE_IPC_CHANNEL } from '../../src/client/electron/ipc-contract.js';
 import { buildRerankerEvaluationPack } from '../../tools/build-reranker-evaluation-pack.js';
+import { createRerankReferenceFixture } from '../helpers/rerank-reference-fixture.js';
 
 let bridge;
 const requests = [];
@@ -90,4 +91,18 @@ await assert.rejects(qualifyRerankerElectron(config), /retained packageBundlePat
 await assert.rejects(buildRerankerEvaluationPack({}), /requires qualificationPath/);
 await assert.rejects(buildRerankerEvaluationPack({ qualificationPath: 'missing', conversionConfigPath: 'missing',
   licensePath: 'missing', applicationPath: 'missing', outputDir: 'must-not-be-created', authorityId: 'test' }), /explicit fail-closed/);
+const qualificationDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-evaluation-surface-'));
+try {
+  const transcript = createRerankReferenceFixture();
+  const qualificationPath = path.join(qualificationDir, 'report.json');
+  const outputDir = path.join(qualificationDir, 'candidate');
+  for (const surface of [undefined, 'cpu', 'webgpu-unspecified']) {
+    await fs.writeFile(qualificationPath, JSON.stringify({ schema: 'doppler.rerankModelQualification.v1', passed: true,
+      reference: transcript.reference, observation: transcript.observation, runtime: { surface } }));
+    await assert.rejects(buildRerankerEvaluationPack({ qualificationPath, outputDir,
+      conversionConfigPath: 'unused', licensePath: 'unused', applicationPath: 'unused', authorityId: 'test',
+      revocation: { offlineExpirySeconds: 60, failClosedAfterExpiry: true } }), /explicitly observed WebGPU surface/);
+    await assert.rejects(fs.access(outputDir), error => error.code === 'ENOENT', 'reject before creating signing custody');
+  }
+} finally { await fs.rm(qualificationDir, { recursive: true, force: true }); }
 console.log('reranker-evaluation-preflight.test: ok (no hardware launched)');

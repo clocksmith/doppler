@@ -291,6 +291,9 @@ async function main() {
 
     await assertInstalledFiles(consumerDir, packageJson);
     await writeImportSmoke(consumerDir, packageJson);
+    await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-node-provider-consumer.js'),
+      path.join(consumerDir, 'node-provider-smoke.js'));
+    process.stdout.write(run(process.execPath, ['node-provider-smoke.js'], { cwd: consumerDir }));
     await runTrainingApiSmoke(consumerDir, packageJson);
     await runCliSmokes(consumerDir, packageJson);
     receipt.applicationFiles = await runElectronPackSmoke(consumerDir);

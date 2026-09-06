@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 
-const PROVIDER_CONTRACT_SPECIFIER = 'doe-gpu/node-webgpu';
+const PROVIDER_CONTRACT_SPECIFIER = './provider-v1-contract.js';
 const PROVIDER_CONTRACT_SCHEMA = 'doe.webgpu-provider/v1';
 const DEFAULT_PROVIDER_CONFIG_URL = new URL(
   './node-webgpu-provider.v1.json',
@@ -14,6 +14,8 @@ const WEBGPU_GLOBAL_BINDINGS = Object.freeze({
 });
 
 let ownedProviderSession = null;
+let providerTransitionPending = false;
+let openingProvider = null;
 
 function readDefaultProviderOptions() {
   const parsed = JSON.parse(readFileSync(DEFAULT_PROVIDER_CONFIG_URL, 'utf8'));
@@ -124,17 +126,37 @@ export class DopplerNodeWebGPUError extends Error {
 }
 
 export async function openNodeWebGPU(providerOptions, options = {}) {
-  if (ownedProviderSession !== null) {
+  if (ownedProviderSession !== null || providerTransitionPending) {
     throw new DopplerNodeWebGPUError(
       'DOPPLER_PROVIDER_ALREADY_ACTIVE',
       'a Doppler-owned Node WebGPU provider session is already active; release it before selecting another provider.',
       { stage: 'lifecycle' },
     );
   }
-  const contract = await loadProviderContract(options.providerContractModule);
-  const session = await contract.openNodeWebGPU(providerOptions);
-  ownedProviderSession = session;
-  return session;
+  providerTransitionPending = true;
+  try {
+    openingProvider = (async () => {
+      const contract = await loadProviderContract(options.providerContractModule);
+      const external = await contract.openNodeWebGPU(providerOptions);
+      let closing = null;
+      const session = {
+        get gpu() { return external.gpu; },
+        get adapter() { return external.adapter; },
+        get module() { return external.module; },
+        get receipt() { return external.receipt; },
+        close() {
+          if (closing) return closing;
+          closing = Promise.resolve().then(() => external.close()).then(() => {
+            if (ownedProviderSession === session) ownedProviderSession = null;
+          }, error => { closing = null; throw error; });
+          return closing;
+        },
+      };
+      ownedProviderSession = session;
+      return session;
+    })();
+    return await openingProvider;
+  } finally { providerTransitionPending = false; openingProvider = null; }
 }
 
 export async function bootstrapNodeWebGPUProvider(providerSpecifier, options = {}) {
@@ -175,8 +197,10 @@ export async function bootstrapNodeWebGPU(options = {}) {
 }
 
 export async function releaseNodeWebGPU() {
+  // A release requested during import/adapter creation must not leave a later
+  // successful open orphaned. Selection itself is not cancellable WebGPU work.
+  if (openingProvider) await openingProvider.catch(() => {});
   const session = ownedProviderSession;
-  ownedProviderSession = null;
   if (!session) {
     return { released: false, provider: null, reason: 'not-owned', receipt: null };
   }

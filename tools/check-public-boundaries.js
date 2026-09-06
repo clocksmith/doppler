@@ -24,9 +24,12 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // bring this inventory to 1756 files, 2,083,847 packed / 10,780,482 unpacked bytes
   // on Node 22.22.1/npm 9.2.0. Retain the observed cross-npm compression allowance.
   // No repository tools or evaluation fixtures ship; Pack root remains isolated.
-  maxEntryCount: 1756,
-  maxPackedSize: 2_086_000,
-  maxUnpackedSize: 10_781_000,
+  // The standalone Node host adapter adds one shipped implementation module.
+  // Installed-package probe: 1757 files, 2,086,799 packed / 10,791,041 unpacked
+  // before the final lifecycle assertions; retain the cross-npm allowance.
+  maxEntryCount: 1757,
+  maxPackedSize: 2_090_000,
+  maxUnpackedSize: 10_792_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

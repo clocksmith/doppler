@@ -52,6 +52,9 @@ async function buildOperationEvaluationPack(config, operation) {
     || !evaluate(report.reference, report.observation).passed) {
     throw new Error(`Evaluation Pack requires passing ${operation} source qualification.`);
   }
+  if (!['browser-webgpu', 'node-webgpu'].includes(report.runtime?.surface)) {
+    throw new Error('Evaluation Pack requires an explicitly observed WebGPU surface.');
+  }
   const outputDir = path.resolve(config.outputDir);
   await fs.mkdir(path.dirname(outputDir), { recursive: true });
   await fs.mkdir(outputDir);
@@ -86,7 +89,7 @@ async function buildOperationEvaluationPack(config, operation) {
         textDigest: hashBytesSha256(await fs.readFile(config.licensePath)) } },
     application,
     exclusions: { rejectionTypes: ['acceptance-failed', 'application-gate-failed', 'artifact-invalid', 'evidence-expired', 'migration-required', 'revoked', 'unsupported-device'],
-      known: [{ code: 'unsupported-device', scope: operation === 'embed' ? 'outside-the-observed-chromium-amd-tuple' : 'outside-the-observed-electron-amd-tuple',
+      known: [{ code: 'unsupported-device', scope: `outside-the-observed-${report.runtime.surface}-tuple`,
         reason: 'Internal physical evaluation only; other hosts, fleet support and adoption are unestablished.',
         evidenceDigest: hashBytesSha256(await fs.readFile(config.qualificationPath)) }] },
     lifecycle: { releaseVersion: '1.0.0', supersedes: null, migration: null,

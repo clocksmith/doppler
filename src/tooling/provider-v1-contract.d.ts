@@ -1,4 +1,5 @@
-/** Structural type mirror of the runtime-owned doe.webgpu-provider/v1 contract. */
+/** Doppler-owned host adapter, compatible with the existing provider-v1 wire contract. */
+export declare const NODE_WEBGPU_PROVIDER_SCHEMA: 'doe.webgpu-provider/v1';
 export type NodeWebGPUGlobalMode = 'none' | 'install-missing' | 'replace';
 
 export interface NodeWebGPUGlobalProvider {
@@ -46,12 +47,15 @@ export interface NodeWebGPUProviderReceipt {
   attempts: Array<Record<string, unknown>>;
   selectedProviderId: string | null;
   ok: boolean;
+  implementation?: 'doppler';
 }
 
 export interface NodeWebGPUProviderSession {
-  gpu: GPU;
-  adapter: GPUAdapter;
+  readonly gpu: GPU | null;
+  readonly adapter: GPUAdapter | null;
   module: unknown;
   receipt: NodeWebGPUProviderReceipt;
   close(): Promise<void>;
 }
+
+export declare function openNodeWebGPU(options: NodeWebGPUProviderOptions): Promise<NodeWebGPUProviderSession>;

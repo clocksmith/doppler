@@ -18,6 +18,20 @@ For hardware sizing and expected performance, see [performance-sizing.md](perfor
 - repo dependencies installed
 - WebGPU-capable runtime for `verify`, `debug`, and `bench`
 
+Node execution uses Doppler's own provider-selection adapter. Its checked-in
+`src/tooling/node-webgpu-provider.v1.json` declares pre-installed WebGPU followed
+by the optional `webgpu` package (Dawn). Doe is not required. If optional
+dependencies were omitted, install `webgpu` explicitly or supply an existing
+WebGPU environment. A selected provider failure is recorded; only the declared
+ordered providers may be tried, never an unrequested engine.
+
+The `doe.webgpu-provider/v1` wire name remains readable for compatibility, not
+as a claim that Doe executed the workload. Doppler-owned receipts identify
+`implementation: "doppler"` and the selected provider separately. An explicit
+`providerContractModule` can still select an external adapter. Release devices
+before closing the provider session; closing restores only owned globals and
+does not destroy a caller's pre-installed GPU.
+
 ## Fastest first run
 
 If you only want a local success moment, use the npm-facing quickstart bin:
