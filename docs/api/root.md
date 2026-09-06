@@ -74,6 +74,55 @@ including prompt tokens, output limit, sampling tuple, stop policy, and abort
 signal. It cannot change graph topology, precision, fusion, kernel selection,
 KV layout, or memory strategy.
 
+## Text embeddings
+
+`session.embed()` is a Pack-backed text operation, distinct from protein
+`encodeSequence()`. It requires a passed `embed` qualification on the selected
+TargetPlan and current host surface. Generation, reranking, or sequence evidence
+cannot authorize it. A qualification record identifies `embeddedTexts` and its
+reference transcript digest; adding this API does not qualify an embedding model.
+Forge materializes `doppler.embeddingModelQualification.v1` reports into
+operation-specific transcripts. Its source comparison rechecks exact input
+token IDs and every vector component against the reference's explicit absolute
+tolerance, binds the source revision and manifest postprocessor, and rejects
+failed observations even if a report labels itself passed. Source references,
+observed output vectors, and rejected comparisons must be retained separately.
+
+```js
+const result = await session.embed({
+  application: acceptedRelease.application,
+  text: 'A document to index locally.',
+  options: { signal: abortController.signal },
+});
+console.log(result.embedding, result.receipt.targetPlanDigest);
+```
+
+The application identity must match the verified release (the selected release
+event for Pack v3). The signed manifest must explicitly declare embedding
+support, hidden size, pooling, projection geometry, prompt inclusion, and
+normalization through `output.embeddingPostprocessor`. Currently prompt
+exclusion and call-time semantic overrides are rejected. The existing WGSL
+pipeline performs pooling, projection, and normalization; the Pack boundary
+does not calculate or modify vectors on the CPU.
+
+The returned embedding and token arrays are immutable snapshots. The execution
+receipt binds the input and application, output, manifest identity, selected
+TargetPlan, verified artifacts, backend observation, and release event where
+applicable. Hash consistency establishes record binding, not numerical accuracy
+or truthful remote execution. Independent references must qualify the output.
+Cancellation is checked before execution and after completion and forwarded to
+the pipeline; it does not promise to preempt already-submitted GPU commands.
+Device loss requires closing the session and explicitly reopening it.
+
+`executeOperation()` uses these same checked session methods, not raw program
+ports. Its `embed` input is `{ texts, application }`; omitting application
+authority fails before execution. Each completed item retains its embedding
+receipt, and the batch receipt binds all items to the operation request and
+assignment. `encodeSequence` likewise uses its qualified session method and
+passes the assignment into its sequence receipt. Neither adapter may borrow
+generation qualification. Partial events are not application acceptance;
+cancellation or invalid evidence prevents a completed operation receipt.
+
 ## TargetPlan v2 initialization gate
 
 For a `doppler.target-plan/v2` target, `programFactory` must return a program

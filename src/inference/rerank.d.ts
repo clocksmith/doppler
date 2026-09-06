@@ -27,7 +27,7 @@ export function buildRerankScoreRecord(query: any, document: any, prompt: any, t
     scoringPath: any;
     phase: any;
 };
-export function scoreRerankDocument(pipeline: any, query: any, document: any, scoringConfig?: null, options?: {}): Promise<{
+export function scoreRerankDocument(pipeline: any, query: any, document: any, scoringConfig?: null, options?: { benchmark?: boolean; signal?: AbortSignal }): Promise<{
     tokenIds: number[] | null;
     query: any;
     document: any;

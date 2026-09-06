@@ -6,6 +6,8 @@ import {
 } from '../config/initial-execution-identity.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
+import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
 
 export const EXECUTION_CANDIDATE_FORGE_SCHEMA_ID = 'doppler.execution-candidate-forge/v1';
 
@@ -305,7 +307,7 @@ function compileProposal(modelIR, entryPoint, schedule, vocabulary, proposal) {
   };
 }
 
-export function searchExecutionCandidates({ modelIR, entryPointId, vocabulary, proposals }) {
+export function searchExecutionCandidates({ modelIR, entryPointId, vocabulary, proposals, evaluation }) {
   const modelValidation = validateModelIR(modelIR);
   if (!modelValidation.ok || modelIR.schema !== 'doppler.model-ir/v2') {
     throw new Error(`Execution candidate search requires ModelIR v2: ${modelValidation.errors.join('; ')}`);
@@ -315,6 +317,11 @@ export function searchExecutionCandidates({ modelIR, entryPointId, vocabulary, p
   }
   if (!Array.isArray(proposals) || proposals.length === 0) {
     throw new Error('Execution candidate search requires proposals.');
+  }
+  const proposalIds = proposals.map(proposal => proposal?.id);
+  if (proposalIds.some(id => typeof id !== 'string' || !id.trim())
+    || new Set(proposalIds).size !== proposalIds.length) {
+    throw new Error('Execution candidate search requires unique, non-empty proposal IDs.');
   }
   const entryPoint = resolveEntryPoint(modelIR, entryPointId);
   const schedule = reachableSchedule(modelIR, entryPoint.componentId);
@@ -329,19 +336,33 @@ export function searchExecutionCandidates({ modelIR, entryPointId, vocabulary, p
   }
   if (valid.length === 0) throw new Error(`All execution candidates were rejected: ${rejected.map((entry) => entry.reason).join('; ')}`);
   valid.sort((left, right) => left.score - right.score || left.proposalId.localeCompare(right.proposalId));
-  const accepted = valid[0];
-  rejected.push(...valid.slice(1).map((candidate) => ({
-    proposalId: candidate.proposalId,
-    reason: `Deterministic score ${candidate.score} did not beat ${accepted.score}.`,
-  })));
+  let evaluationReceipt = null;
+  if (evaluation !== undefined) {
+    const candidateHashes = valid.map(computeCanonicalSha256).sort();
+    if (evaluation?.contract?.modelIRHash !== hashModelIR(modelIR)
+      || !valuesEqual(candidateHashes, [...(evaluation?.contract?.candidateHashes || [])].sort())) {
+      throw new Error('Execution candidate evaluation must bind exactly the generated candidates and ModelIR.');
+    }
+    evaluationReceipt = evaluateForgeCandidates(evaluation);
+  }
+  const selected = evaluationReceipt === null ? [] : valid.filter(candidate => (
+    evaluationReceipt.selectedCandidateHashes.includes(computeCanonicalSha256(candidate))
+  ));
+  // Compatibility preview only: proposal order is not qualification or a
+  // performance decision. All viable candidates survive semantic search.
+  const accepted = evaluationReceipt === null ? valid[0] : selected[0] ?? null;
   return {
-    schema: 'doppler.execution-candidate-search-receipt/v1',
+    schema: 'doppler.execution-candidate-search-receipt/v2',
     modelId: modelIR.modelId,
     entryPointId,
     generatedCandidates: proposals.length,
     rejectedCandidates: rejected,
+    eligibleCandidates: valid,
+    selectedCandidates: selected,
+    evaluationReceipt,
+    selectionPolicy: evaluationReceipt === null ? 'proposal-order-unmeasured' : evaluationReceipt.selection,
     acceptedCandidate: accepted,
-    acceptedProposalId: accepted.proposalId,
+    acceptedProposalId: accepted?.proposalId ?? null,
   };
 }
 

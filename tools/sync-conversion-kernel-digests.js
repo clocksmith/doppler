@@ -33,15 +33,28 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-const checkOnly = process.argv.includes('--check');
-const files = ROOTS.flatMap((root) => walk(root));
+let checkOnly = false;
+const selectedFiles = [];
+for (let index = 2; index < process.argv.length; index += 1) {
+  const argument = process.argv[index];
+  if (argument === '--check') checkOnly = true;
+  else if (argument === '--file' && process.argv[index + 1] && !process.argv[index + 1].startsWith('--')) {
+    selectedFiles.push(path.resolve(process.argv[++index]));
+  } else {
+    throw new Error('Usage: sync-conversion-kernel-digests.js [--check] [--file <candidate-recipe.json>]');
+  }
+}
+const files = selectedFiles.length > 0 ? [...new Set(selectedFiles)] : ROOTS.flatMap((root) => walk(root));
 
 let drifted = 0;
 const changedFiles = new Set();
 
 for (const file of files) {
   let data;
-  try { data = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { continue; }
+  try { data = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (error) {
+    if (selectedFiles.length > 0) throw error;
+    continue;
+  }
   let changed = false;
   (function walkNode(node) {
     if (!node || typeof node !== 'object') return;
@@ -49,6 +62,7 @@ for (const file of files) {
     if (typeof node.kernel === 'string' && typeof node.entry === 'string' && typeof node.digest === 'string') {
       const key = `${node.kernel}#${node.entry}`;
       const want = canonical.get(key);
+      if (!want && selectedFiles.length > 0) throw new Error(`Unknown kernel reference "${key}" in ${file}.`);
       const have = node.digest.replace(/^sha256:/, '');
       if (want && want !== have) {
         drifted++;

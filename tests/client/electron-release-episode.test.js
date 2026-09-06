@@ -14,13 +14,13 @@ const signer = {
   publicKeyJwk: TEST_PACK_PUBLIC_KEY,
   privateKeyJwk: { ...TEST_PACK_PUBLIC_KEY, d: 'WQi2FHRfw0jZxl_IXiMp5TAuehMfssojWd2Oj3WaUKU' },
 };
-const first = await createSignedPackFixture();
+const first = await createSignedPackFixture({ operation: 'rerank' });
 const nextRelease = structuredClone(first.pack.release);
 nextRelease.lifecycle.releaseVersion = '2.0.0';
 nextRelease.lifecycle.supersedes = { packId: first.pack.packId, semanticRoot: first.pack.semanticRoot };
 nextRelease.lifecycle.failedUpgrade.previousPackId = first.pack.packId;
 nextRelease.lifecycle.failedUpgrade.previousSemanticRoot = first.pack.semanticRoot;
-const second = await createSignedPackFixture({ release: nextRelease });
+const second = await createSignedPackFixture({ release: nextRelease, operation: 'rerank' });
 assert.notEqual(first.pack.semanticRoot, second.pack.semanticRoot);
 const fixtures = [first, second];
 const references = fixtures.map(({ pack }, index) => ({

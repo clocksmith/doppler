@@ -53,7 +53,14 @@ ${FREEDOM}
 
 const repositoryReport = await buildCatscanReport({ repoRoot: process.cwd() });
 assert.equal(repositoryReport.ok, true, repositoryReport.errors.join('\n'));
-assert.equal(repositoryReport.records.length, 29);
+assert.deepEqual(
+  repositoryReport.records.map((record) => record.path).sort(),
+  [...repositoryReport.policy.requiredCharterPaths].sort()
+);
+assert.equal(
+  repositoryReport.records.find((record) => record.path === 'src/client/model-host/CATSCAN.md')?.componentId,
+  'doppler.runtime-source.client.model-host'
+);
 
 const fixtureRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-catscan-'));
 try {

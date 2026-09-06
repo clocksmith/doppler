@@ -11,6 +11,23 @@ import {
   projectQ4KRowWiseReference,
 } from '../../tools/lib/q4k-projection-reference.js';
 import { float32ToFloat16 } from '../../src/converter/quantizer.js';
+import { normalizeProjectionCapture } from '../../tools/q4k-projection-oracle.js';
+
+const legacy = { prompt: 'unchanged', generation: { operatorDiagnostics: {} } };
+assert.equal(normalizeProjectionCapture(legacy), legacy);
+const rerank = { schema: 'doppler.rerankModelQualification.v1', passed: false,
+  runtime: { adapterInfo: { vendor: 'synthetic' } }, policy: { runtimeConfig: {} },
+  raw: { diagnostic: { matchesOrdinary: true, prompt: 'same prompt', tokens: [1, 2],
+    operatorDiagnostics: { recordCount: 1, timeline: [] } } } };
+const normalized = normalizeProjectionCapture(rerank);
+assert.equal(normalized.passed, false, 'source rejection must remain adverse evidence');
+assert.equal(normalized.prompt, 'same prompt');
+assert.deepEqual(normalized.promptTokens.ids, [1, 2]);
+assert.equal(normalized.generation.operatorDiagnostics, rerank.raw.diagnostic.operatorDiagnostics);
+for (const patch of [{ matchesOrdinary: false }, { tokens: null }, { operatorDiagnostics: null }]) {
+  assert.throws(() => normalizeProjectionCapture({ ...rerank, raw: { diagnostic: {
+    ...rerank.raw.diagnostic, ...patch } } }), /must match ordinary execution/);
+}
 
 const rows = 5;
 const columns = 512;

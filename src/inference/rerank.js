@@ -141,6 +141,7 @@ export async function scoreRerankDocument(
     );
   }
   const config = scoringConfig ?? resolveRerankScoringConfig(pipeline);
+  options.signal?.throwIfAborted();
   const prompt = formatRerankPrompt(query, document, config);
   pipeline.reset?.();
   const startedAt = performance.now();
@@ -150,12 +151,14 @@ export async function scoreRerankDocument(
     ? await pipeline.prefillWithTokenLogits(
       prompt,
       [config.trueTokenId, config.falseTokenId],
-      { useChatTemplate: false, benchmark: options.benchmark === true }
+      { useChatTemplate: false, benchmark: options.benchmark === true, signal: options.signal }
     )
     : await pipeline.prefillWithLogits(prompt, {
       useChatTemplate: false,
       benchmark: options.benchmark === true,
+      signal: options.signal,
     });
+  options.signal?.throwIfAborted();
   const logits = assertRerankLogitsVector(result?.logits);
   const trueLogit = Number(logits[selected ? 0 : config.trueTokenId]);
   const falseLogit = Number(logits[selected ? 1 : config.falseTokenId]);

@@ -7,7 +7,7 @@
       "inputFields": ["prompt", "promptTokens"],
       "optionFields": ["maxTokens", "maxSeqLen", "temperature", "topP", "topK", "repetitionPenalty", "repetitionPenaltyWindow", "useChatTemplate", "seed", "suppressTokenIds", "stopSequences"]
     },
-    "embed": { "version": 1, "inputFields": ["texts"], "optionFields": [] },
+    "embed": { "version": 1, "inputFields": ["texts", "application"], "optionFields": [] },
     "rerank": { "version": 1, "inputFields": ["query", "documents", "application"], "optionFields": [] },
     "encodeSequence": {
       "version": 1,

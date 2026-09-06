@@ -102,6 +102,24 @@ async function readJson(filename) {
   return JSON.parse(await fs.readFile(filename, 'utf8'));
 }
 
+export function normalizeProjectionCapture(receipt) {
+  if (receipt.schema !== 'doppler.rerankModelQualification.v1') return receipt;
+  const diagnostic = receipt.raw?.diagnostic;
+  if (diagnostic?.matchesOrdinary !== true || typeof diagnostic.prompt !== 'string'
+    || !Array.isArray(diagnostic.tokens) || !diagnostic.operatorDiagnostics?.recordCount) {
+    throw new Error('Rerank projection capture must match ordinary execution and retain prompt, tokens and operators.');
+  }
+  return {
+    ...receipt,
+    prompt: diagnostic.prompt,
+    promptTokens: { ids: diagnostic.tokens },
+    generation: { operatorDiagnostics: diagnostic.operatorDiagnostics },
+    gpu: receipt.runtime.adapterInfo,
+    runtimeProfile: receipt.policy.runtimeConfig,
+    executionPlan: receipt.raw.initialExecutionIdentity,
+  };
+}
+
 async function readFileSlice(filename, offset, size) {
   const file = await fs.open(filename, 'r');
   try {
@@ -234,9 +252,15 @@ async function main() {
   const [q4ManifestBytes, f16ManifestBytes, q4Receipt, f16Receipt] = await Promise.all([
     fs.readFile(path.join(q4ModelDir, 'manifest.json')),
     fs.readFile(path.join(f16ModelDir, 'manifest.json')),
-    readJson(q4CapturePath),
-    readJson(f16CapturePath),
+    readJson(q4CapturePath).then(normalizeProjectionCapture),
+    readJson(f16CapturePath).then(normalizeProjectionCapture),
   ]);
+  for (const [capture, bytes] of [[q4Receipt, q4ManifestBytes], [f16Receipt, f16ManifestBytes]]) {
+    if (capture.schema === 'doppler.rerankModelQualification.v1'
+      && capture.model.manifestHash !== `sha256:${sha256(bytes)}`) {
+      throw new Error('Rerank capture manifest does not match the supplied model bytes.');
+    }
+  }
   const q4Manifest = JSON.parse(q4ManifestBytes.toString('utf8'));
   const f16Manifest = JSON.parse(f16ManifestBytes.toString('utf8'));
   const [q4Tensor, f16Tensor] = await Promise.all([
@@ -345,7 +369,7 @@ async function main() {
       inputOpId: options['input-op'],
       outputOpId: options['output-op'],
       capturedRow: row,
-      rowMeaning: 'last prompt token',
+      rowMeaning: row === q4InputCapture.shape[0] - 1 ? 'last prompt token' : 'explicit prompt row',
       shape: q4Tensor.descriptor.shape,
       q4Dtype: q4Tensor.descriptor.dtype,
       q4Layout: q4Tensor.descriptor.layout,
@@ -425,7 +449,9 @@ async function main() {
   console.log(outputPath);
 }
 
-main().catch((error) => {
-  console.error(error?.stack ?? String(error));
-  process.exitCode = 1;
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    console.error(error?.stack ?? String(error));
+    process.exitCode = 1;
+  });
+}

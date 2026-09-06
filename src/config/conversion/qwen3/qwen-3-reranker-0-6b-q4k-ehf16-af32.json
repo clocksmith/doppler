@@ -103,9 +103,11 @@
     "hashAlgorithm": "blake3",
     "artifactIdentity": {
       "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
-      "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v2",
-      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
-      "artifactCompleteness": "complete"
+      "weightPackId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-source-pinned-01-local-grid",
+      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-source-pinned-02-closed",
+      "artifactCompleteness": "complete",
+      "sourceRepo": "Qwen/Qwen3-Reranker-0.6B",
+      "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473"
     },
     "eosTokenId": 151645
   },
@@ -293,7 +295,7 @@
       "q4_decode_gemv": {
         "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_gemv",
-        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+        "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
       },
       "q4_widetile": {
         "kernel": "fused_matmul_q4_widetile.wgsl",
@@ -322,7 +324,7 @@
       "lm_head_q4": {
         "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_gemv",
-        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+        "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
         "constants": {
           "COLS_PER_WG": 64,
           "THREADS_PER_COL_GEMV": 4
@@ -365,7 +367,7 @@
       "silu": {
         "kernel": "silu.wgsl",
         "entry": "main",
-        "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5"
+        "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca"
       },
       "sample": {
         "kernel": "sample.wgsl",
@@ -376,6 +378,46 @@
         "kernel": "matmul_gemv_subgroup.wgsl",
         "entry": "main_vec4",
         "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
+      },
+      "dequant_q4_f16": {
+        "kernel": "dequant_f16_out_vec4.wgsl",
+        "entry": "main_vec4",
+        "digest": "sha256:ff729cc220ba5425e17c4c537a9993f25b6541046b6c2553d2a43a8b40ed2ce9"
+      },
+      "rope_precompute": {
+        "kernel": "rope_precompute.wgsl",
+        "entry": "main",
+        "digest": "sha256:0ccd038aa7e69bf064d599e86f93100735cc32fba20a942cb1deed5da5a692e8"
+      },
+      "gather_vec4": {
+        "kernel": "gather_f16_vec4.wgsl",
+        "entry": "gather_vec4",
+        "digest": "sha256:dc87e5e03cdbff74347ef8e42774570b1807d239ad64501a7e90ec8f600e912c"
+      },
+      "rmsnorm_qk": {
+        "kernel": "rmsnorm_qk.wgsl",
+        "entry": "main",
+        "digest": "sha256:6347c59ffd5c2a766c68a482d3019677676c14c6462de42f79d4d8d9846bf105"
+      },
+      "rope_qk": {
+        "kernel": "rope_qk.wgsl",
+        "entry": "main",
+        "digest": "sha256:379186c35451a1bf08f3d157db52e48f4865c92caee230656fd55b7fa500351c"
+      },
+      "kv_write_f32_f16": {
+        "kernel": "kv_cache_write_f32_to_f16.wgsl",
+        "entry": "main",
+        "digest": "sha256:d2e5459501320a767a33b12c6c088dda8527895e978338694463f2a4f286df8e"
+      },
+      "residual_vec4": {
+        "kernel": "residual_vec4.wgsl",
+        "entry": "add_vec4",
+        "digest": "sha256:99e8217beb9ebc661ae8da6dde06196c0746e884421fe803b1a8bcea22e753b1"
+      },
+      "lm_head_select_logits": {
+        "kernel": "lm_head_select_logits.wgsl",
+        "entry": "main",
+        "digest": "sha256:41ed8ecef1bb439dc852591278a78680bd4166e8e3d3af39484784722ccb3561"
       }
     },
     "preLayer": [
@@ -543,6 +585,16 @@
         "sample"
       ]
     ],
-    "sampling": null
+    "sampling": null,
+    "mechanismKernels": [
+      "dequant_q4_f16",
+      "rope_precompute",
+      "gather_vec4",
+      "rmsnorm_qk",
+      "rope_qk",
+      "kv_write_f32_f16",
+      "residual_vec4",
+      "lm_head_select_logits"
+    ]
   }
 }

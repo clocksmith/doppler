@@ -16,6 +16,7 @@ Give browser, Node, and CLI adapters one normalized command contract and one evi
 ## Scope
 
 - Shipped tooling APIs and shared browser/Node command infrastructure.
+- [Pack Forge command](model-pack-forge.js) handles files and signing inputs around the [converter-owned compiler](../converter/CATSCAN.md), not a second compiler.
 
 ## Contracts
 

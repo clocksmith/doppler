@@ -18,6 +18,39 @@ customer-authorization policy. A digest is a reference to authorization, not
 proof that an arbitrary renderer is authorized to activate a release. The
 example does not replace those application boundaries.
 
+### Durable local state
+
+`release-storage.js` supplies main-process example stores for release state and
+Pack v3 checkpoints. Give each an absolute filename in an existing private
+application directory. They use exclusive writer locks, compare-and-swap,
+synced temporary files, atomic rename, and directory fsync. The observed lane is
+a local Linux filesystem; this is not a network-filesystem or Windows durability
+claim. Unsupported file primitives fail explicitly. Do not import this module
+into the browser renderer.
+
+`createDocumentSearchReleaseStore(filename)` implements the coordinator's
+`stateStore`. `createDocumentSearchCheckpointStore(filename)` holds a separate
+monotonic sequence/digest for one authorized release stream. Do not reuse that
+file for unrelated streams or reset it to make older history pass.
+
+`prepareDocumentSearchReleaseOptions()` verifies supplied v3 release history
+against the persisted checkpoint and the application's explicit trust, time,
+and minimum sequence. It returns the existing runtime options and a bound
+`persistReleaseCheckpoint()` callback. Runtime must successfully persist the
+verified head before model creation. Preparing or downloading history does not
+activate a release; the application must still authorize its Pack and plans.
+Prepare again for every open. Concurrent updates require re-verification, not
+an implicit retry with weakened policy.
+
+A malformed record is an error, never an empty store. A retained crash lock
+blocks writes; an operator must establish that no writer survives before
+recovering it. Do not remove locks based on age. State, lock, and storage errors
+must prevent execution. Keep these files outside renderer-controlled content.
+The stores do not protect against an operator restoring an old filesystem
+snapshot; deployments needing that threat model require an external monotonic
+anchor. Unseen revocations remain unknowable offline, and expired v3 eligibility
+still fails closed.
+
 ## Renderer
 
 ```js

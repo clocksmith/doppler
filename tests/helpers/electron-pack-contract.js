@@ -50,7 +50,7 @@ export async function runElectronPackContract({ fixture, trustedSigners, createR
         reset() {},
         async executePhase() { throw new Error('Not a generation test.'); },
         releaseStepResult() {},
-        async rerank(request) { calls.push(request); await onRun?.(); return evidence; },
+        async rerank(request) { calls.push(request); await onRun?.(request); return evidence; },
         async close() { closed += 1; if (closeFailure) throw closeFailure; },
       };
     },
@@ -116,8 +116,29 @@ export async function runElectronPackContract({ fixture, trustedSigners, createR
   await assert.rejects(renderer.rerank(request), { code: 'DOPPLER_ELECTRON_RELEASE_CHANGED' });
   current = reference;
   const duringRun = new AbortController();
-  onRun = () => duringRun.abort();
+  onRun = (received) => {
+    assert.equal(received.options.signal, duringRun.signal, 'cancellation must reach the actual Pack program');
+    duringRun.abort();
+  };
   await assert.rejects(renderer.rerank(request, { signal: duringRun.signal }), { code: 'DOPPLER_ELECTRON_CANCELLED' });
+  for (const cancelSource of ['open', 'request']) {
+    const opening = new AbortController();
+    const running = new AbortController();
+    onRun = (received) => {
+      const signal = received.options.signal;
+      assert.notEqual(signal, opening.signal);
+      assert.notEqual(signal, running.signal);
+      (cancelSource === 'open' ? opening : running).abort();
+      assert.equal(signal.aborted, true, 'either caller can cancel the combined execution');
+    };
+    await assert.rejects(renderer.rerank({ ...request, options: { signal: running.signal } },
+      { signal: opening.signal }), { code: 'DOPPLER_ELECTRON_CANCELLED' });
+    assert.equal(opened, closed);
+  }
+  const beforeRequestAbort = opened;
+  await assert.rejects(renderer.rerank({ ...request, options: { signal: abort.signal } }),
+    { code: 'DOPPLER_ELECTRON_CANCELLED' });
+  assert.equal(opened, beforeRequestAbort);
   onRun = () => { throw Object.assign(new Error('adapter removed'), { code: 'GPU_DEVICE_LOST' }); };
   closeFailure = new Error('cleanup also failed');
   await assert.rejects(renderer.rerank(request), { code: 'DOPPLER_ELECTRON_DEVICE_LOST' });

@@ -1,8 +1,8 @@
 {
   "schema": "doppler.pack-runtime-closure/v1",
   "entrypoint": "src/pack-runtime.js",
-  "fileCount": 43,
-  "sourceBytes": 219830,
+  "fileCount": 45,
+  "sourceBytes": 228257,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -22,13 +22,18 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 13427,
-      "hash": "sha256:b68e629cbd69189776bb861e337ef2ac5f4065a29ef59acd30639c7684e8c1e2"
+      "sizeBytes": 14892,
+      "hash": "sha256:7806c3bb0a085312b99b346e33a70407aebc95f9737c4e2532101aced964f560"
     },
     {
       "path": "src/client/runtime/fetch-pack-artifact-store.js",
       "sizeBytes": 1130,
       "hash": "sha256:f95991a5ee21cd4b7c0ce3c2ea5554a5bff6547ed632d1a9ba93aa56284fb571"
+    },
+    {
+      "path": "src/client/runtime/pack-embedding.js",
+      "sizeBytes": 4481,
+      "hash": "sha256:3ac63cff1602346d545c73abd24f2a0765a75a838d83da3eff6edfca45dbdd02"
     },
     {
       "path": "src/client/runtime/pack-forecast-program.js",
@@ -42,8 +47,8 @@
     },
     {
       "path": "src/client/runtime/pack-operation-adapters.js",
-      "sizeBytes": 4010,
-      "hash": "sha256:7bc33d30cbdfd0e08ddb1d7535124a7f8df3e6cceb34d26cc735fdf65868d37a"
+      "sizeBytes": 3733,
+      "hash": "sha256:ea75d6e91383ca2a2f1fa02cc43b1dfd6546972d3f7edef15e8bbe1d3a68e1ea"
     },
     {
       "path": "src/client/runtime/pack-operation-executor.js",
@@ -52,8 +57,8 @@
     },
     {
       "path": "src/client/runtime/pack-rerank.js",
-      "sizeBytes": 3673,
-      "hash": "sha256:306cbb59232b8f7ea5eaa136a699b77576574a9af27d061f850a96a0004881b1"
+      "sizeBytes": 3763,
+      "hash": "sha256:fccdd544c8dde4dd134d7290aa50bfbe68b498f43e41bc8f12dda897ef4315f9"
     },
     {
       "path": "src/client/runtime/resource-binder.js",
@@ -74,6 +79,11 @@
       "path": "src/client/runtime/verified-pack-artifact-store.js",
       "sizeBytes": 2147,
       "hash": "sha256:449b9fda99ffae095cc0960c9b2b3ccf98274230878f43df19981e3c04ab9971"
+    },
+    {
+      "path": "src/config/embedding-contract.js",
+      "sizeBytes": 1628,
+      "hash": "sha256:fffc8ccb1530f08866e2f6687c4733338c320d409a63ecdedad90c7ebd917a88"
     },
     {
       "path": "src/config/forecast-manifest.js",
@@ -102,8 +112,8 @@
     },
     {
       "path": "src/config/pack-operations.json",
-      "sizeBytes": 724,
-      "hash": "sha256:f3be0cb503afa4ba8ceb63e093d3db9e2fece023d9edeeb840b0f45c4bb6a170"
+      "sizeBytes": 739,
+      "hash": "sha256:f7190db4340d0f698f4cb725bd4c187939a20151b0d445eea1fb2bd2b5107353"
     },
     {
       "path": "src/config/pack-release-contract.js",
@@ -147,8 +157,8 @@
     },
     {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 16315,
-      "hash": "sha256:716c38114e98bd52164822a3b4aed8932fda5eb1424992e3c5267c5fbd18b15d"
+      "sizeBytes": 17400,
+      "hash": "sha256:84d9b018323247587e3493a2eb7ca41e1bc188a9ce4d03528128bee9f5db6ff7"
     },
     {
       "path": "src/debug/capture-policy.js",
@@ -222,8 +232,8 @@
     },
     {
       "path": "src/pack-runtime.js",
-      "sizeBytes": 1140,
-      "hash": "sha256:01a8583f83871fe36002432ff501d397a2e92ae110ecd8db224ccbe73a93074f"
+      "sizeBytes": 1080,
+      "hash": "sha256:8a4c1e70734c45a35740e2f0a164fb41ddc6bd270981ac93735708ef59707842"
     },
     {
       "path": "src/version.js",

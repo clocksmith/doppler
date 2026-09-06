@@ -12,12 +12,13 @@ import { assertPackageSourceClosure } from './package-source-closure.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
-  // Merged Pack operation adapters, host, rerank and forecast factories, and
-  // shader scope guards: 1744 entries, 2,073,126 packed bytes, 10,717,246 unpacked.
-  // The converter entrypoint remains the only packaged repository tool.
-  maxEntryCount: 1744,
-  maxPackedSize: 2_075_000,
-  maxUnpackedSize: 10_720_000,
+  // Host composition/evidence extraction and Forge candidate evaluation add five
+  // reachable files; compatibility facades replace, not duplicate, implementation.
+  // Audited inventory: 1754 entries, under 2,082,000 packed and 10,760,127 unpacked bytes.
+  // No repository tools or evaluation fixtures ship; Pack root remains isolated.
+  maxEntryCount: 1754,
+  maxPackedSize: 2_082_000,
+  maxUnpackedSize: 10_761_000,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

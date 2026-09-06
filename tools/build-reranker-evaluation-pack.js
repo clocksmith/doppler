@@ -69,6 +69,7 @@ export async function buildRerankerEvaluationPack(config) {
   };
   await write('release.json', release);
   const forge = { repoRoot: ROOT, manifestPath, modelDir: path.dirname(manifestPath),
+    ...(config.modelIRReceiptPath ? { modelIRReceiptPath: path.resolve(config.modelIRReceiptPath) } : {}),
     programBundlePath: bundle.outputPath, referenceReportPath: path.resolve(config.qualificationPath),
     releaseManifestPath: path.join(outputDir, 'release.json'),
     initialExecutionIdentityPath: path.resolve(config.qualificationPath), outputPath: path.join(outputDir, 'distribution/pack.json'),

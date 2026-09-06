@@ -16,7 +16,7 @@ export interface PackRerankRequest {
   application: PackRerankApplicationBinding;
   query: string;
   documents: string[];
-  options?: { benchmark?: boolean };
+  options?: { benchmark?: boolean; signal?: AbortSignal };
 }
 
 export interface PackRerankReceipt {

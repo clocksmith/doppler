@@ -1,0 +1,77 @@
+{
+  "schema": "doppler.reference-semantic-index/v1",
+  "source": {
+    "package": "transformers",
+    "version": "5.6.2",
+    "file": "transformers/models/qwen3/modeling_qwen3.py",
+    "hash": "sha256:fbdcfeeb1b54135ca67ba7df924da92f4b264e1252b517eea2de989289ebaeab"
+  },
+  "authorship": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "qwen3-reranker-source-intake-20260905"
+  },
+  "boundary": "Reviewed interpretation of the named reference implementation; hash custody and source facts do not establish universal semantic equivalence.",
+  "attention": {
+    "causal": true,
+    "queryKeyNorm": true,
+    "outputGate": false
+  },
+  "normalization": {
+    "type": "rmsnorm",
+    "weightOffset": false
+  },
+  "feedForward": {
+    "gated": true
+  },
+  "rope": {
+    "type": "rope",
+    "layout": "split-half"
+  },
+  "observations": [
+    {
+      "symbol": "Qwen3Attention.__init__",
+      "lines": [
+        234,
+        254
+      ],
+      "supports": [
+        "attention.causal",
+        "attention.queryKeyNorm",
+        "attention.outputGate"
+      ]
+    },
+    {
+      "symbol": "Qwen3RMSNorm.forward",
+      "lines": [
+        58,
+        64
+      ],
+      "supports": [
+        "normalization.type",
+        "normalization.weightOffset"
+      ]
+    },
+    {
+      "symbol": "Qwen3MLP.forward",
+      "lines": [
+        80,
+        82
+      ],
+      "supports": [
+        "feedForward.gated"
+      ]
+    },
+    {
+      "symbol": "rotate_half/apply_rotary_pos_emb",
+      "lines": [
+        146,
+        180
+      ],
+      "supports": [
+        "rope.type",
+        "rope.layout"
+      ]
+    }
+  ]
+}

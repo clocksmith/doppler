@@ -1,10 +1,14 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import * as runtime from '../../src/pack-runtime.js';
+import { createForecastProgramFactory } from '../../src/client/runtime/composition-root.js';
 
 assert.equal(typeof runtime.openPack, 'function');
 assert.equal(typeof runtime.createDopplerRuntime, 'function');
 assert.equal(typeof runtime.createFetchPackArtifactStore, 'function');
+assert.equal(typeof runtime.createForecastProgramFactory, 'function');
+assert.equal(runtime.createForecastProgramFactory, createForecastProgramFactory);
+assert.throws(() => runtime.createForecastProgramFactory(null), /explicit GPUDevice/);
 assert.equal('load' in runtime, false);
 assert.equal('open' in runtime, false);
 assert.equal('createDopplerProvider' in runtime, false);

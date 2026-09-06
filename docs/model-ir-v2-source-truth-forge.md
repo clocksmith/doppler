@@ -114,6 +114,65 @@ phase programs and supported state kinds; it cannot be selected because a
 checkpoint has a familiar name. Candidate proposals must be attributable.
 Invalid candidates and losing valid candidates remain in the search receipt.
 
+### Candidate evaluation and ownership
+
+`src/converter/execution-candidate-forge.js` owns semantic candidate generation.
+Its v2 search receipt retains every eligible candidate. `acceptedCandidate`
+without evaluation is a compatibility preview ordered by proposal score, not
+correctness qualification or measured optimization; `selectedCandidates` stays
+empty in that mode.
+
+`src/converter/forge-candidate-evaluation.js` owns replayable evaluation and
+selection. The explicit contract follows
+`src/config/schema/forge-candidate-evaluation.schema.json`. It freezes candidate
+hashes, ModelIR, source/oracle reference, inputs, runtime/environment scope,
+cache/load policy, warmup/timed counts, rotation seed, complete output checks,
+metric units, directions, and nullable limits. Retain the bytes behind every
+digest, including source and oracle implementation, hardware/driver/provider
+record, and exact runtime package. A digest alone proves none of those facts.
+
+Use `createForgeEvaluationSchedule()` to obtain the ordered attempts.
+`runForgeCandidateEvaluation()` invokes a host-owned `runAttempt` adapter and
+retains raw observations through an awaited `onObservation` callback. The adapter
+owns execution, cache preparation, work counts, timing boundaries, cancellation,
+and cleanup; it must report observed scope and candidate identity, not simply
+copy requested identities. Failed attempts do not retry silently. Cancellation
+leaves unexecuted attempts visibly missing. Evidence-storage failure stops the
+runner. No observer may change the frozen contract or source reference.
+
+`evaluateForgeCandidates()` replays retained observations without a GPU.
+Incorrect outputs, incomplete arrays, scope drift, missing attempts, and breached
+limits exclude a candidate. Warmup outputs are checked but never timed. Order
+changes, duplicates, and unknown attempts fail the evaluation. No successful
+subset can replace the frozen population.
+
+Selection is a conservative observed-range Pareto filter, per input case and
+metric: one candidate dominates another only when its worst observed value is
+no worse than the other's best everywhere and strictly better somewhere.
+Overlapping ranges, ties, and latency/memory trade-offs retain alternatives.
+These ranges are not confidence intervals or proof of general superiority.
+Every receipt sets `claimAllowed` and `promotionAllowed` to false. Existing
+benchmark statistical controls, physical qualification, and human promotion
+remain separate; this filter does not replace them.
+
+Pass the replay inputs as `evaluation` to semantic search or as
+`candidateEvaluation` to `runForgePipeline()`. The latter binds exactly the
+specialized TargetPlan hashes, preserves the selection receipt, and refuses
+signing if none survive. Existing execution-identity and qualification gates
+still run. Omitting evaluation keeps the existing closed-source-plan build
+without granting optimization credit.
+
+The existing file-based Forge command accepts `--candidate-evaluation <path>`
+or `candidateEvaluationPath` in its JSON config. That JSON contains `contract`,
+`reference`, and ordered `observations`. The command returns the replayed
+`searchReceipt` and the input-file identity with its ordinary build receipt.
+Keep the input and receipt together; neither is automatic public promotion.
+
+Repository/host I/O remains in `src/tooling/model-pack-forge.js`; compilation,
+semantic decisions, and this selection algorithm remain under `src/converter/`.
+The architecture gate prevents the Forge algorithm from importing model-host
+composition or Pack execution. This split is intentional, not two Forge engines.
+
 Promotion requires:
 
 - a valid ModelIR v2 hash;

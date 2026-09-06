@@ -80,7 +80,7 @@ assert.throws(
   /generation may contain only disableMultiTokenDecode/,
   'application generation policy must not leak into the signed program-load policy'
 );
-const fixture = await createSignedPackFixture({ initialExecutionIdentity: expectedIdentity });
+const fixture = await createSignedPackFixture({ initialExecutionIdentity: expectedIdentity, operation: 'encodeSequence' });
 const events = [];
 let buffersCreated = 0;
 const device = {

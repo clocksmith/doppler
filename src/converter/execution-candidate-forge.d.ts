@@ -1,5 +1,6 @@
 import type { ModelIRV2 } from '../config/model-ir-v2.js';
 import type { TargetPlanV2 } from '../config/target-plan.js';
+import type { ForgeEvaluationInput } from './forge-candidate-evaluation.js';
 
 export const EXECUTION_CANDIDATE_FORGE_SCHEMA_ID: 'doppler.execution-candidate-forge/v1';
 
@@ -13,6 +14,7 @@ export declare function searchExecutionCandidates(options: {
   entryPointId: string;
   vocabulary: Record<string, unknown>;
   proposals: Array<Record<string, unknown>>;
+  evaluation?: ForgeEvaluationInput;
 }): Record<string, unknown>;
 export declare function promoteExecutionCandidate(
   candidate: Record<string, unknown>,

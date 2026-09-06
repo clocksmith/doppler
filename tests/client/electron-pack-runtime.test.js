@@ -3,7 +3,7 @@ import { runElectronPackContract } from '../helpers/electron-pack-contract.js';
 import { createSignedPackFixture, TEST_PACK_AUTHORITY, TEST_PACK_PUBLIC_KEY } from '../helpers/pack-v2-fixture.js';
 
 await runElectronPackContract({
-  fixture: await createSignedPackFixture(),
+  fixture: await createSignedPackFixture({ operation: 'rerank' }),
   trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
   createRenderer: createDocumentSearchRenderer,
 });

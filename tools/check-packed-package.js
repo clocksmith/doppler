@@ -78,7 +78,7 @@ import { createDocumentSearchRenderer, createDocumentSearchHostRenderer } from '
 import { openPack } from '${packageJson.name}/host';
 import type { DopplerPackOpenOptions } from '${packageJson.name}/host';
 import { registerDocumentSearchReleaseMain } from './main.js';
-import type { RuntimePorts, PackRerankRequest, DopplerRuntimeSession } from '${packageJson.name}';
+import type { RuntimePorts, PackRerankRequest, PackEmbeddingRequest, PackEmbeddingResult, DopplerRuntimeSession } from '${packageJson.name}';
 import type { ElectronReleaseStateCoordinator } from '${packageJson.name}/electron';
 declare const ports: RuntimePorts;
 declare const releaseState: ElectronReleaseStateCoordinator;
@@ -90,6 +90,14 @@ const hostSession: Promise<DopplerRuntimeSession> = openPack('https://applicatio
 const renderer = createDocumentSearchRenderer(releaseState, ports);
 renderer.rerank(request).then(receipt => receipt.pack.semanticRoot);
 const session: Promise<DopplerRuntimeSession> = renderer.openCurrent();
+declare const embeddingRequest: PackEmbeddingRequest;
+const embedding: Promise<PackEmbeddingResult> = session.then(value => value.embed(embeddingRequest));
+session.then(value => {
+  // @ts-expect-error Pack embedding requires an application-bound request.
+  value.embed('document');
+  // @ts-expect-error Pooling overrides cannot change signed semantics.
+  value.embed({ ...embeddingRequest, options: { embeddingMode: 'mean' } });
+});
 // @ts-expect-error Positional reranking cannot omit the application binding.
 renderer.rerank('query', ['document']);
 // @ts-expect-error Host ports must be explicit.
@@ -136,7 +144,7 @@ async function runElectronPackSmoke(consumerDir) {
     path.join(ROOT_DIR, 'tests/fixtures/packed-electron-consumer.js'),
     path.join(consumerDir, 'electron-smoke.js'),
   );
-  const fixture = await createSignedPackFixture();
+  const fixture = await createSignedPackFixture({ operation: 'rerank' });
   await fs.writeFile(path.join(consumerDir, 'pack-fixture.json'), JSON.stringify({
     pack: fixture.pack,
     trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
@@ -165,6 +173,22 @@ async function assertInstalledFiles(consumerDir, packageJson) {
     }
     throw new Error(`optional dependency should be omitted from package smoke install: ${optionalName}`);
   }
+}
+
+async function runEmbeddingPackSmoke(consumerDir) {
+  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-embedding-consumer.js'),
+    path.join(consumerDir, 'embedding-smoke.js'));
+  const fixture = await createSignedPackFixture({ operation: 'embed', manifest: {
+    modelId: 'pack-test-model', modelType: 'embedding', architecture: { hiddenSize: 4 },
+    inference: { output: { embeddingPostprocessor: {
+      poolingMode: 'last', includePrompt: true, projections: [], normalize: 'l2',
+    } } },
+  } });
+  await fs.writeFile(path.join(consumerDir, 'embedding-fixture.json'), JSON.stringify({
+    pack: fixture.pack, trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
+    artifacts: [...fixture.artifactBytes].map(([id, bytes]) => [id, [...bytes]]),
+  }));
+  process.stdout.write(run(process.execPath, ['embedding-smoke.js'], { cwd: consumerDir }));
 }
 
 async function runCliSmokes(consumerDir, packageJson) {
@@ -257,6 +281,7 @@ async function main() {
     await runTrainingApiSmoke(consumerDir, packageJson);
     await runCliSmokes(consumerDir, packageJson);
     await runElectronPackSmoke(consumerDir);
+    await runEmbeddingPackSmoke(consumerDir);
     await writeTypeSmoke(consumerDir, packageJson);
     receipt.passed = true;
     console.log(

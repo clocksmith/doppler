@@ -5,6 +5,12 @@ import { buildRerankerEvaluationPack } from '../../tools/build-reranker-evaluati
 await assert.rejects(qualifyRerankerElectron({ mode: 'pack', fault: { kind: 'unknown' } }), /Unsupported qualification fault/);
 await assert.rejects(qualifyRerankerElectron({ mode: 'model', fault: { kind: 'device-loss' } }), /Unsupported qualification fault/);
 await assert.rejects(qualifyRerankerElectron({ mode: 'model' }), /requires policyPath/);
+await assert.rejects(qualifyRerankerElectron({ mode: 'pack', diagnosticCapture: {
+  documentIndex: 0, captureConfig: {} } }), /diagnosticCapture requires model mode/);
+await assert.rejects(qualifyRerankerElectron({ mode: 'model', diagnosticCapture: {
+  documentIndex: -1, captureConfig: {} } }), /non-negative documentIndex/);
+await assert.rejects(qualifyRerankerElectron({ mode: 'model', diagnosticCapture: {
+  documentIndex: 0, captureConfig: { defaultLevel: 'invalid' } } }), /CapturePolicy/);
 const config = { mode: 'pack', policyPath: 'missing-policy', referencePath: 'missing-reference',
   modelDir: 'missing-model', packageRoot: 'missing-package', outputDir: 'must-not-be-created' };
 await assert.rejects(qualifyRerankerElectron(config), /retained packageBundlePath/);

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://doppler.local/schemas/forge-candidate-evaluation.schema.json",
+  "title": "Frozen Forge candidate evaluation contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "evaluationId", "modelIRHash", "candidateHashes", "referenceHash", "scope", "sampling", "checks", "metrics", "selection"],
+  "properties": {
+    "schema": { "const": "doppler.forge-candidate-evaluation/v1" },
+    "evaluationId": { "$ref": "#/$defs/text" },
+    "modelIRHash": { "$ref": "#/$defs/digest" },
+    "referenceHash": { "$ref": "#/$defs/digest" },
+    "candidateHashes": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/digest" } },
+    "selection": { "const": "observed-range-pareto" },
+    "scope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["surface", "runtimeHash", "environmentHash", "workloadHash", "cacheMode", "loadMode"],
+      "properties": {
+        "surface": { "$ref": "#/$defs/text" },
+        "runtimeHash": { "$ref": "#/$defs/digest" },
+        "environmentHash": { "$ref": "#/$defs/digest" },
+        "workloadHash": { "$ref": "#/$defs/digest" },
+        "cacheMode": { "$ref": "#/$defs/text" },
+        "loadMode": { "$ref": "#/$defs/text" }
+      }
+    },
+    "sampling": {
+      "type": "object", "additionalProperties": false,
+      "required": ["warmupRuns", "timedRuns", "order", "seed"],
+      "properties": {
+        "warmupRuns": { "$ref": "#/$defs/count" },
+        "timedRuns": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+        "order": { "const": "balanced-rotation" },
+        "seed": { "$ref": "#/$defs/count" }
+      }
+    },
+    "checks": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "mode", "maxAbsoluteError"],
+        "properties": {
+          "id": { "$ref": "#/$defs/text" },
+          "mode": { "enum": ["canonical-exact", "absolute-array"] },
+          "maxAbsoluteError": { "type": ["number", "null"], "minimum": 0 }
+        },
+        "allOf": [{
+          "if": { "properties": { "mode": { "const": "canonical-exact" } } },
+          "then": { "properties": { "maxAbsoluteError": { "type": "null" } } },
+          "else": { "properties": { "maxAbsoluteError": { "type": "number" } } }
+        }]
+      }
+    },
+    "metrics": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "unit", "direction", "limit"],
+        "properties": {
+          "id": { "$ref": "#/$defs/text" },
+          "unit": { "$ref": "#/$defs/text" },
+          "direction": { "enum": ["minimize", "maximize"] },
+          "limit": { "type": ["number", "null"], "minimum": 0 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": { "type": "string", "pattern": "\\S" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "count": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 }
+  }
+}

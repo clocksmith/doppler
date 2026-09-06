@@ -1,0 +1,181 @@
+{
+  "schema": "doppler.pack-embedding-engineering-checkpoint/v1",
+  "generatedAtUtc": "2026-09-05 23:13:03 UTC",
+  "source": {
+    "repository": "clocksmith/doppler",
+    "commit": "9737bcd341bf5dd6706a76bfd6527d70f1344e15",
+    "worktree": "dirty; retained complete source patch and accompanying untracked files",
+    "pull": {
+      "path": "reports/electron-adoption/rdpull-20260905-02.log",
+      "result": "aligned; no incoming changes"
+    },
+    "committed": false,
+    "pushed": false
+  },
+  "componentIntent": {
+    "components": [
+      "doppler.runtime-source.client",
+      "doppler.runtime-source.config",
+      "doppler.runtime-source.converter",
+      "doppler.runtime-source.tooling"
+    ],
+    "intent": "preserved",
+    "boundaryEffects": "Adds explicit text embedding admission from source references through Forge and the existing Pack session; no numerical runtime implementation, new provider dependency, catalog promotion, or application authority change."
+  },
+  "implemented": [
+    "Pack session embed accepts an application-bound text request and forwards cancellation to the existing model evidence handle and WGSL pipeline.",
+    "Manifest postprocessor and projection geometry are explicit; call-time pooling, normalization, or input-policy overrides reject.",
+    "Qualification is operation/surface-specific. Embedding, rerank, sequence, generation and forecast counts cannot substitute for one another.",
+    "Returned vectors and receipts are detached immutable snapshots; mismatched inputs, token geometry, output hashes, manifest or execution identities reject.",
+    "Forge rechecks complete source-reference vectors and exact token IDs, pinned source identity, manifest contract and capture surface before qualifying embed.",
+    "ModelIR v2 supports a separately lowered embed entry point; legacy embedding ModelIR records the declared output postprocessor.",
+    "Pack v3 uses the selected release event's application authority and persists its checkpoint before loading.",
+    "Installed package consumer tests exercise the embedding API, declarations, cancellation and cross-operation refusal without rebuilding Doppler."
+  ],
+  "acceptance": {
+    "fullCheck": {
+      "command": "npm run ci:check",
+      "path": "reports/electron-adoption/standalone-ci-20260905-07.log",
+      "exitCode": 0,
+      "unitFiles": 752,
+      "packFiles": 35,
+      "packFilesAlreadyIncluded": true
+    },
+    "focused": {
+      "path": "reports/electron-adoption/pack-embed-final-focused.log",
+      "exitCode": 0,
+      "files": 5
+    },
+    "package": {
+      "evidenceClass": "installed-package-test",
+      "passed": true,
+      "physicalExecution": false,
+      "externalAdoption": false,
+      "nodeVersion": "v22.22.1",
+      "platform": "linux",
+      "arch": "x64",
+      "startedAtUtc": "2026-09-05T23:07:30.373Z",
+      "package": {
+        "filename": "doppler-gpu-0.5.1.tgz",
+        "integrity": "sha512-/GbU8v+qqEtrDhJnVshdBfSCwdV7+Jo7jv35oITLtc9pwF/ONTI035Uj64254pu7o548FluinEw2OaCDVED0Pg==",
+        "sizeBytes": 2068744,
+        "sha256": "4a0915a174f5f7798639c3fbda11ee27f976824f710cba90e7c9c8169bda3a82"
+      },
+      "failure": null,
+      "completedAtUtc": "2026-09-05T23:07:38.363Z",
+      "path": "reports/electron-adoption/20260905-standalone-package-08",
+      "exports": 27,
+      "clis": 3,
+      "entryCount": 1740,
+      "unpackedBytes": 10714610
+    },
+    "runtimeClosure": {
+      "path": "reports/pack-runtime/runtime-closure.json",
+      "files": 41,
+      "sourceBytes": 214572
+    },
+    "syntaxAndCharters": [
+      "git diff --check",
+      "npm run catscan:check"
+    ]
+  },
+  "physical": {
+    "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-04/qualification.json",
+    "operation": "rerank",
+    "passed": true,
+    "checks": 16,
+    "passedChecks": 16,
+    "closed": true,
+    "runtime": {
+      "surface": "browser-webgpu",
+      "host": "electron",
+      "electronVersion": "43.4.0",
+      "executionGraphHash": "sha256:90cc175b341a4c032aeb521c2bf85e14a0d583f1baf118901dfa5b2c67ba4f53",
+      "sourceRevision": "9737bcd341bf5dd6706a76bfd6527d70f1344e15",
+      "adapterInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+      }
+    },
+    "identity": {
+      "schema": "doppler.pack/v2",
+      "packId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-pack-v2-95a9bbdb7e7288d5",
+      "semanticRoot": "sha256:95a9bbdb7e7288d5eed71d6d75b832a3ad2075fd51ee454eef7382db4dc0aede",
+      "envelopeDigest": "sha256:3880a1e5ea7ce8e41921ec93192429f8db0ce7baca98ba8afb728ad661aa9c66",
+      "artifactClosureDigest": "sha256:abc4f8a8866ff0da36032d16a1216a16eb0383396e232f3f71bd83a56d8b0cee"
+    },
+    "boundary": {
+      "externalAdoption": false,
+      "sourceComparison": true,
+      "signedPackExecution": true,
+      "applicationAuthorization": "pinned-internal-evaluation-resolver",
+      "productionIpc": false
+    },
+    "measurementNote": "Correctness run overlapped repository tests; no performance superiority claim."
+  },
+  "embeddingEvidence": {
+    "connectedComponents": [
+      "public Pack runtime",
+      "Pack program adapter",
+      "model evidence handle"
+    ],
+    "syntheticPipeline": true,
+    "syntheticDevice": true,
+    "physicalQualification": false,
+    "sourceQualifiedArtifact": false,
+    "localArtifactLimitation": "Retained models/local Qwen embedding manifest lacks immutable sourceRepo/sourceRevision; no source qualification inferred from its presence."
+  },
+  "adverse": {
+    "retained": [
+      {
+        "path": "reports/electron-adoption/pack-embed-qualification-before.log",
+        "finding": "Regression rejected pre-change cross-operation count admission."
+      },
+      {
+        "path": "reports/electron-adoption/standalone-ci-20260905-05.log",
+        "finding": "Failed stale generated source-closure inventory; synchronized and reran without weakening the closure check."
+      },
+      {
+        "path": "reports/electron-adoption/pack-embed-package-budget-01.log",
+        "finding": "Root type export violated allowed import boundary; routed through existing runtime composition facade."
+      },
+      {
+        "path": "reports/electron-adoption/pack-embed-package-budget-02.log",
+        "finding": "New API exceeded file budget; audited generated closure and bounded the actual package delta."
+      }
+    ],
+    "historicalRerankerFailures": "reports/pack-runtime/reranker-source-pack-20260905.json"
+  },
+  "custody": {
+    "path": "reports/electron-adoption/20260905-embedding-code-handoff.tar",
+    "sizeBytes": 5273600,
+    "sha256": "2a8a5c4d505c08b8ea31bc8dd3d9ef9464d1459f4050f597b7b213e78f5fbb68",
+    "tarComparePassed": true,
+    "compareLog": "reports/electron-adoption/embedding-code-archive-compare.log",
+    "inventory": "reports/electron-adoption/20260905-embedding-code-handoff/files.json",
+    "files": 90,
+    "containsWeights": false,
+    "privateKeysIncluded": false,
+    "requiredEarlierModelArchive": {
+      "path": "reports/electron-adoption/20260905-source-pack-handoff.tar",
+      "sha256": "d7f81272f20f76466f44fd1df9319de739833870af749fe932644b8022e4293b"
+    },
+    "availability": "local retained bytes; not a public publication"
+  },
+  "remainingEngineering": [
+    "Pin and qualify the canonical text embedding source/model on physical supported hosts; build and execute its signed Pack.",
+    "Connect reproducible measured candidate search and Pareto selection to qualification.",
+    "Exercise the installed Pack v3 release/update workflow on the physical application and define explicit recipient-controlled retained-use policy.",
+    "Run complete application incumbent controls and second model release without application rewrites."
+  ],
+  "externalEvidence": {
+    "voluntaryExternalAdoption": false,
+    "retentionThroughSecondRelease": false,
+    "paidUse": false,
+    "recurringRevenue": false,
+    "buyerInterest": false
+  },
+  "goalComplete": false
+}

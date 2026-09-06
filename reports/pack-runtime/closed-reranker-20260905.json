@@ -1,0 +1,287 @@
+{
+  "schema": "doppler.standalone-engineering-checkpoint/v1",
+  "generatedAtUtc": "2026-09-05 23:48:33 UTC",
+  "component": [
+    "doppler.runtime-source.client",
+    "doppler.runtime-source.config",
+    "doppler.runtime-source.converter",
+    "doppler.repository-tooling",
+    "doppler.tests"
+  ],
+  "intent": "preserved",
+  "goalComplete": false,
+  "source": {
+    "baseCommit": "881880397793b319b49a36ca2bfc2453615b94c5",
+    "dirtyWorktree": true,
+    "pullSucceeded": true,
+    "unresolvedMergeConflicts": 0,
+    "pushed": false,
+    "patch": {
+      "path": "reports/electron-adoption/standalone-closed-pack-source-20260905.patch",
+      "sizeBytes": 136535,
+      "sha256": "73b9c20dab4092866a01e29ecb7f8971d8aa7fab3a980a45a24f7f8fa0fd3c64"
+    },
+    "instructions": "Apply the complete source patch only to a separate checkout at this baseline; added files are retained in the archive."
+  },
+  "changes": [
+    "Resolved five stash-restoration conflicts after the Doppler-only pull; retained the recovery stash.",
+    "Reconciled the relocated forecasting factory export without restoring a dependency on the removed inference module.",
+    "Removed an auto-merged duplicate embed method that overwrote evidence-producing execution.",
+    "Generic embedding and sequence operation adapters delegate to qualified Pack session methods; embedding requires signed application identity and validates full output evidence.",
+    "Sequence operation receipts bind the assignment; batch embedding preserves each application-bound item receipt.",
+    "Updated the maintained Qwen reranker conversion recipe with immutable source provenance and eight content-pinned mechanism kernels.",
+    "Reconverted from original source. All 14 BLAKE3 shard hashes match the previous local-grid candidate; numerical policy and source acceptance remain unchanged.",
+    "Rebuilt and physically qualified a new source-fact ModelIR v2 / Pack v2 closure; runtime shader isolation was not weakened.",
+    "Regenerated kernel reachability, routing inventory, public API docs, package closure and runtime closure."
+  ],
+  "tests": {
+    "evidenceClass": "repository-tests",
+    "command": "npm run ci:check",
+    "exitCode": 0,
+    "testFiles": 757,
+    "packFilesIncludedInThatCount": 35,
+    "log": {
+      "path": "reports/electron-adoption/standalone-ci-20260905-11.log",
+      "sizeBytes": 390052,
+      "sha256": "295b1cda8fcb15db15ea5f8376e5639c56b631ea6f3888bea47dc027605b34a1"
+    },
+    "explicitSkips": [
+      "two Apple Metal subgroup GPU regressions",
+      "local Gemma 3 NaN fixture absent",
+      "Apple-specific Gemma 4 regression on AMD",
+      "LiteRT source task unavailable",
+      "Qwen linear attention model directory not supplied",
+      "legacy TranslateGemma lane outside current release focus"
+    ],
+    "architecture": {
+      "owners": 21,
+      "files": 2605,
+      "governedOversizeFiles": 0
+    },
+    "style": {
+      "governedJavascriptModules": 972,
+      "reviewedNumericCandidates": 205
+    },
+    "focused": [
+      {
+        "path": "reports/electron-adoption/post-pull-contract-regressions-20260905-02.log",
+        "sizeBytes": 1600,
+        "sha256": "bcda3de7c8e55a6199128580530c6135da790e5346f3f31a1ea67e7d9d6bc4a5"
+      },
+      {
+        "path": "reports/electron-adoption/reranker-closure-regressions-20260905-01.log",
+        "sizeBytes": 2573,
+        "sha256": "14cf0581976554f5fe2f3b831146d11de9d00e17115d0bdd67295d08b82f9467"
+      }
+    ],
+    "boundary": "Passing files include contract fixtures and explicitly skipped lanes, not 757 physical GPU qualifications."
+  },
+  "package": {
+    "evidenceClass": "installed-package-test",
+    "receipt": {
+      "path": "reports/electron-adoption/20260905-standalone-package-11/receipt.json",
+      "sizeBytes": 590,
+      "sha256": "c4d879e381ca3c2ea40ca8f3073c7c050ba6495b4f927a6ceeece0df7e6a6a67"
+    },
+    "tarball": {
+      "path": "reports/electron-adoption/20260905-standalone-package-11/doppler-gpu-0.5.1.tgz",
+      "sizeBytes": 2076263,
+      "sha256": "6ba5c3de601d0cac1e9ff62d43969150aa0d381213046fd3e1604c5bf7229677"
+    },
+    "entryCount": 1749,
+    "packedBytes": 2076263,
+    "unpackedBytes": 10742263,
+    "publicExports": 27,
+    "checks": [
+      "isolated imports including browser condition",
+      "declarations",
+      "three CLI bins",
+      "installed Electron Pack adapter",
+      "installed embedding and generic operation authority"
+    ],
+    "runtimeClosure": {
+      "files": 45,
+      "bytes": 228257
+    },
+    "physicalEmbedding": false,
+    "externalAdoption": false
+  },
+  "pack": {
+    "evidenceClass": "source-fact-signed-executable-artifact",
+    "path": {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-03/distribution/pack.json",
+      "sizeBytes": 649099,
+      "sha256": "30972bcb1981e438e6ffd3c56b26e26e7d607aed1598662ef052206b923534e0"
+    },
+    "schema": "doppler.pack/v2",
+    "modelIRSchema": "doppler.model-ir/v2",
+    "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "semanticRoot": "sha256:16bcdeef41216f71b1243e97a87bc882eaac7e5f988d7a9718e241233b88c3ba",
+    "envelopeDigest": "sha256:9f39167a1fd7c3d8036462ff52d469a993aeb4f37a454269aac09a972c029276",
+    "targetPlanDigest": "sha256:a01505932b80f92faf7800d1104249685282f6af8de0d736d02ade6da4bb4dbb",
+    "initialExecutionIdentity": "sha256:db25144e2d95cb23dbc281708aecf0ce519ec38e357dd66c851ad063bc3b09d7",
+    "artifactCount": 42,
+    "wgslModuleCount": 21,
+    "qualifiedOperations": [
+      "rerank"
+    ],
+    "signingAuthority": "local-reranker-source-evaluator-20260905-03",
+    "trustBoundary": "Locally generated evaluation signer, explicitly chosen by the evaluator; no production authority claim.",
+    "weights": "Attention projections Q4K; MLP, embeddings and head F16; declared F32 activation lane. Not an all-four-bit model.",
+    "integrity": {
+      "path": "reports/electron-adoption/qwen-q4k-mechanism-closed-integrity-01.json",
+      "sizeBytes": 3661,
+      "sha256": "043b1b73cb656f53c96e566023194228df2a75145c789f69ab06f64ad27212a8"
+    }
+  },
+  "physical": {
+    "evidenceClass": "retained-physical-Electron-observation",
+    "surface": "browser-webgpu",
+    "host": "Electron 43.4.0",
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "0x1586",
+      "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+    },
+    "sourceReference": {
+      "path": "reports/electron-adoption/qwen-source-reference-01.json",
+      "sizeBytes": 7051,
+      "sha256": "81df00d625d7e8114f82fc4d67f487dde4946b684a809e63376e046a0bc88c4a"
+    },
+    "modelQualification": {
+      "path": "reports/electron-adoption/qwen-q4k-mechanism-closed-qualification-01/qualification.json",
+      "sizeBytes": 335795,
+      "sha256": "819b4c934da6580a9d40a998ad285a72328ebbee78d6b1bc08374931249832ed"
+    },
+    "packQualification": {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-06/qualification.json",
+      "sizeBytes": 369300,
+      "sha256": "8a8c8506a29ebaee681b4b3839d00f7821213cb20fe13ad1667ac6a9cef063c7"
+    },
+    "checksPassed": 16,
+    "checksTotal": 16,
+    "queryCount": 1,
+    "documentCount": 3,
+    "adapterClosedSession": true,
+    "networkBoundary": "Original /model route and external origins blocked; local /pack distribution allowed. Model shader bytes came from verified Pack artifacts. Two package-level device probes ran before model execution.",
+    "performanceClaim": false,
+    "concurrentRepositoryChecks": true,
+    "faults": {
+      "corruption": {
+        "path": "reports/electron-adoption/qwen-q4k-closed-pack-corruption-01/qualification.json",
+        "sizeBytes": 60738,
+        "sha256": "7ad1e082b4b29c7812a6b499b331a56d2a607843f37725ff712ef51f4311ed21"
+      },
+      "interruption": {
+        "path": "reports/electron-adoption/qwen-q4k-closed-pack-interruption-01/qualification.json",
+        "sizeBytes": 62324,
+        "sha256": "a964beae4cd7a385b198c1dd1ff604d356d28c0e89e40af5bf08cc26b91a7631"
+      },
+      "deviceLoss": {
+        "path": "reports/electron-adoption/qwen-q4k-closed-pack-device-loss-01/qualification.json",
+        "sizeBytes": 68612,
+        "sha256": "cdd8daf7027896d003ecf7841ca9fc94c358e08b4d3ee18111aceb163f8dac0d"
+      },
+      "expectedQualificationPassed": false,
+      "deviceLossCode": "DOPPLER_ELECTRON_DEVICE_LOST",
+      "deviceLossCauseCode": "DOPPLER_GPU_DEVICE_LOST",
+      "deviceLossSessionClosed": true
+    },
+    "recovery": {
+      "report": {
+        "path": "reports/electron-adoption/qwen-q4k-closed-pack-recovery-01/qualification.json",
+        "sizeBytes": 369248,
+        "sha256": "f1fe8855438f220af9b3f03edf39e8001da18db5290f6eeeae86ea2071378e18"
+      },
+      "passed": true,
+      "checks": 16,
+      "kind": "explicit fresh-process reopening",
+      "automaticResume": false
+    }
+  },
+  "adverse": [
+    {
+      "kind": "merge-restoration-failure",
+      "evidence": {
+        "path": "reports/electron-adoption/rdpull-20260905-03.log",
+        "sizeBytes": 4748,
+        "sha256": "8b6f925cba7a1cb342739858cc52081427911b4cb5a0ca66e8c62667ba165eb3"
+      },
+      "resolution": {
+        "path": "reports/electron-adoption/rdpull-20260905-04.log",
+        "sizeBytes": 138,
+        "sha256": "296a01e0017ce8484031fe29ff4659e7473c534d4b645da0e3264dd0464e28fc"
+      }
+    },
+    {
+      "kind": "merged-interface-regression",
+      "evidence": {
+        "path": "reports/electron-adoption/post-pull-contract-regressions-20260905-01.log",
+        "sizeBytes": 2761,
+        "sha256": "689f17434bf9ff163462c28217f2cf8c47bd775ea1945e3cc8b8bf18d504f175"
+      }
+    },
+    {
+      "kind": "physical-Pack-rejection",
+      "evidence": {
+        "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-05/qualification.json",
+        "sizeBytes": 68051,
+        "sha256": "9cbb4b2d05fe4f7a2e523b568e2e1345b9b6fc1cf9ab2ae241de8edb93473fa7"
+      },
+      "reason": "The previous Pack omitted dequant_f16_out_vec4.wgsl and seven other observed model mechanisms. The stricter shader scope rejected loading. Earlier observations are not upgraded to complete shader-closure proof."
+    },
+    {
+      "kind": "stale-generated-kernel-inventory",
+      "evidence": {
+        "path": "reports/electron-adoption/standalone-ci-20260905-09.log",
+        "sizeBytes": 5018,
+        "sha256": "cbecc6356aeb879fdf093f506ee40a43bd3a1bda2e1142be3ba2a6c559fde0f8"
+      }
+    },
+    {
+      "kind": "stale-generated-routing-inventory",
+      "evidence": {
+        "path": "reports/electron-adoption/standalone-ci-20260905-10.log",
+        "sizeBytes": 21795,
+        "sha256": "db2cd9ffc38019c8b44b58a208c0e64cabd0bda55eaef7bbce4d54d1dd3449ab"
+      }
+    }
+  ],
+  "handoff": {
+    "path": "reports/electron-adoption/20260905-closed-pack-handoff.tar",
+    "sha256": "1150f307a6755d266ae5a85555cb15f838d675895224a5ef7a7f312e574d6dbd",
+    "sizeBytes": 958115840,
+    "inventory": "reports/electron-adoption/20260905-closed-pack-handoff/files.json",
+    "inventorySha256": "7b016079b28cd26b4382abce6bc578392aff079503d0d550ab2ae2129f0f978e",
+    "payloadFiles": 210,
+    "tarCompareExitCode": 0,
+    "retention": "local; not fetched by a repository clone",
+    "completeExecutableClosure": true,
+    "originalSourceSnapshot": "Use separately retained reports/electron-adoption/20260905-source-pack-handoff.tar (sha256 d7f81272f20f76466f44fd1df9319de739833870af749fe932644b8022e4293b).",
+    "exclusions": [
+      "private signing keys",
+      "browser profiles",
+      "installed node_modules",
+      "npm caches"
+    ]
+  },
+  "boundaries": {
+    "runtimePlanMutation": false,
+    "verificationBypass": false,
+    "applicationActivationAuthority": "unchanged",
+    "DoeRequired": false,
+    "PooldayRequired": false,
+    "ReploidRequired": false,
+    "externalAdoption": false,
+    "paidUse": false,
+    "recurringRevenue": false
+  },
+  "remaining": [
+    "Physically qualify a source-pinned canonical text embedding Pack; the new API currently has synthetic connected evidence, not physical embedding Pack evidence.",
+    "Integrate measured, reproducible Forge candidate evaluation and Pareto selection; current proposal-score selection is not performance evidence.",
+    "Qualify the Pack v3 release/update and explicit retained-use policy through the installed application.",
+    "Complete credible incumbent application controls and a separately evaluated second model release.",
+    "Independent maintainer use and retention require external decisions; fixtures and internal physical episodes cannot supply them."
+  ]
+}

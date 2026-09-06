@@ -27,23 +27,38 @@ const program = {
     outputHash: hashPackObservation('output'), backendIdentityHash: hashPackObservation('backend'),
     scores: [1, 0], ranking: [0, 1] }; },
 };
-const runtime = createDopplerRuntime({
+const createRuntime = (qualifiedFixture) => createDopplerRuntime({
   device: { getDevice: () => ({ limits: { maxBufferSize: 1024 },
     createBuffer: () => ({ destroy() {} }), createCommandEncoder() {}, queue: { writeBuffer() {} } }),
   getProfile: () => ({ surface: 'test-webgpu', hasF16: false, hasSubgroups: false, maxBufferSize: 1024 }) },
-  artifactStore: fixture.artifactStore, trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
+  artifactStore: qualifiedFixture.artifactStore, trustedSigners: { [TEST_PACK_AUTHORITY]: TEST_PACK_PUBLIC_KEY },
   programFactory: async () => program,
 });
-const session = await runtime.openPack(fixture.pack);
+const session = await createRuntime(fixture).openPack(fixture.pack);
+const sessions = [session];
+const rerankFixture = await createSignedPackFixture({ operation: 'rerank' });
+const sequenceFixture = await createSignedPackFixture({ operation: 'encodeSequence' });
+const rerankSession = await createRuntime(rerankFixture).openPack(rerankFixture.pack);
+const sequenceSession = await createRuntime(sequenceFixture).openPack(sequenceFixture.pack);
+sessions.push(rerankSession, sequenceSession);
 const collect = async (iterator) => { const values = []; for await (const value of iterator) values.push(value); return values; };
 const jobs = [
   request('generate', { prompt: 'public question' }, generationOptions),
-  request('embed', { texts: ['a', 'b'] }),
+  request('embed', { texts: ['a', 'b'], application: structuredClone(fixture.pack.release.application) }),
   request('rerank', { query: 'a', documents: ['a', 'b'], application: structuredClone(fixture.pack.release.application) }),
   request('encodeSequence', { sequence: 'ACD' }, { includeLogits: false, includeTokenEmbeddings: false }),
 ];
 for (const job of jobs) {
-  const events = await collect(session.executeOperation(job));
+  if (job.operation.name !== 'generate') {
+    const callsBefore = calls.length;
+    await assert.rejects(collect(session.executeOperation(job)), /not qualified/);
+    assert.equal(calls.length, callsBefore, 'generic operation may not bypass qualification');
+  }
+  // Full evidence-backed embedding integration is exercised in pack-embedding.test.js.
+  if (job.operation.name === 'embed') continue;
+  const qualifiedSession = job.operation.name === 'generate' ? session
+    : job.operation.name === 'rerank' ? rerankSession : sequenceSession;
+  const events = await collect(qualifiedSession.executeOperation(job));
   assert.equal(events.filter((event) => event.status === 'completed').length, 1);
   let previous = null;
   for (const [index, event] of events.entries()) {
@@ -59,19 +74,22 @@ for (const job of jobs) {
   const completed = events.at(-1);
   const { receiptDigest, ...payload } = completed.receipt;
   assert.equal(receiptDigest, hashPackObservation(payload));
-  assert.equal(payload.pack.envelopeDigest, session.packIdentity.envelopeDigest);
-  assert.equal(payload.targetPlanDigest, session.selectedTargetPlanDigest);
+  assert.equal(payload.pack.envelopeDigest, qualifiedSession.packIdentity.envelopeDigest);
+  assert.equal(payload.targetPlanDigest, qualifiedSession.selectedTargetPlanDigest);
   assert.equal(payload.outputHash, hashPackObservation(completed.output));
   assert.equal(payload.inputHash, hashPackObservation({ input: job.input, options: job.options }));
   assert.deepEqual(payload.operation, job.operation);
   assert.ok(payload.runtimeVersion);
   if (job.operation.name === 'generate') assert.deepEqual(completed.output, { text: '1,1', tokenIds: [1, 1] });
-  if (job.operation.name === 'embed') assert.deepEqual(completed.output.embeddings[0].embedding, [0.5, 1]);
+  if (job.operation.name === 'encodeSequence') {
+    assert.equal(completed.output.receipt.assignmentHash, hashPackObservation(job.assignment));
+    assert.equal(completed.output.receipt.operation, 'encodeSequence');
+  }
 }
 
 const mutable = structuredClone(jobs[3]);
 const beforeMutation = hashPackObservation(mutable);
-const frozenInvocation = session.executeOperation(mutable);
+const frozenInvocation = sequenceSession.executeOperation(mutable);
 mutable.input.sequence = 'changed'; mutable.assignment.attempt = 9;
 const original = (await collect(frozenInvocation)).at(-1);
 assert.equal(original.requestHash, beforeMutation);
@@ -134,6 +152,6 @@ const cleanupFailure = createPackOperationExecutor({ identity: {}, assertCurrent
     return: async () => { throw new Error('cleanup failed'); } }) },
 } });
 await assert.rejects(cleanupFailure(jobs[3]).next(), /cleanup failed/);
-await session.close();
+for (const openSession of sessions) await openSession.close();
 await assert.rejects(collect(session.executeOperation(jobs[3])), /session is closed/);
 console.log('✔ pack-operation.test.js passed (injected program; contract evidence only)');

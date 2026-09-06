@@ -1,0 +1,140 @@
+import type { ChatMessage } from '../../inference/pipelines/text/chat-format.js';
+import type { GenerateOptions } from '../../generation/index.js';
+import type { LogitsStepResult, PrefillResult } from '../../inference/pipelines/text/types.d.ts';
+import type { DopplerPack } from '../../config/pack.js';
+import type { DopplerRuntimeSession, PackSessionOptions } from '../runtime/composition-root.js';
+import type { TargetPlan } from '../../config/target-plan.js';
+import type {
+  DopplerLoadOptions,
+  DopplerLoadProgress,
+  DopplerModelSource,
+  DopplerModelSourceResolution,
+  DopplerPersistentCacheReceipt,
+} from '../runtime/model-source.js';
+import type { DopplerGenerationEvidence, DopplerModelHandle } from './model-session.js';
+import type {
+  DopplerGenerationResult,
+  DopplerPromptInput,
+  DopplerScopedGenerateOptions,
+  DopplerScopedModelSession,
+} from '../runtime/scoped-session.js';
+
+export type DopplerGenerateOptions = Omit<GenerateOptions, 'stopTokens'>;
+
+export interface DopplerChatResponse {
+  content: string;
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  evidence: DopplerGenerationEvidence;
+}
+
+export interface DopplerNamespace {
+  (prompt: string, options: DopplerCallOptions): AsyncGenerator<string, void, void>;
+  load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
+  open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;
+  openPack(pack: string | DopplerPack, options?: DopplerPackOpenOptions): Promise<DopplerRuntimeSession>;
+  generate(
+    model: DopplerModelSource,
+    input: DopplerPromptInput,
+    options?: DopplerLoadOptions & DopplerScopedGenerateOptions
+  ): Promise<DopplerGenerationResult>;
+  text(prompt: string, options: DopplerCallOptions): Promise<string>;
+  chat(messages: ChatMessage[], options: DopplerCallOptions): AsyncGenerator<string, void, void>;
+  chatText(messages: ChatMessage[], options: DopplerCallOptions): Promise<DopplerChatResponse>;
+  evict(model: DopplerModelSource): Promise<boolean>;
+  evictAll(): Promise<void>;
+  listModels(): Promise<string[]>;
+  listModelDetails(): Promise<Array<Record<string, unknown> & { modelId: string }>>;
+  listPersistentModels(): Promise<Array<Record<string, unknown> & { modelId: string }>>;
+  removePersistentModel(model: DopplerModelSource): Promise<boolean>;
+}
+
+export interface DopplerPackOpenOptions extends PackSessionOptions {
+  artifactStore?: object;
+  /** Explicit Pack signing authorities. No development or package key is trusted by default. */
+  trustedSigners?: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
+  verificationCache?: { set(key: string, value: unknown): Promise<void> | void } | null;
+  observer?: { observe(event: Record<string, unknown>): void } | null;
+}
+
+export interface DopplerCallOptions extends DopplerGenerateOptions {
+  model: DopplerModelSource;
+  onProgress?: (event: DopplerLoadProgress) => void;
+}
+
+export interface DopplerRuntimeService {
+  doppler: DopplerNamespace;
+  load(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerModelHandle>;
+  open(model: DopplerModelSource, options?: DopplerLoadOptions): Promise<DopplerScopedModelSession>;
+  openPack(pack: string | DopplerPack, options?: DopplerPackOpenOptions): Promise<DopplerRuntimeSession>;
+  generate(
+    model: DopplerModelSource,
+    input: DopplerPromptInput,
+    options?: DopplerLoadOptions & DopplerScopedGenerateOptions
+  ): Promise<DopplerGenerationResult>;
+  clearModelCache(): void;
+  resolveLoadProgressHandlers(options?: DopplerLoadOptions): {
+    userProgress: ((event: DopplerLoadProgress) => void) | null;
+    pipelineProgress: ((event: DopplerLoadProgress) => void) | null;
+  };
+  createDefaultNodeLoadProgressLogger(): (event: DopplerLoadProgress) => void;
+}
+
+export declare function createDopplerRuntimeService(options: {
+  ensureWebGPUAvailable: () => Promise<void>;
+  defaultLoadProgressLogger?: ((event: DopplerLoadProgress) => void) | null;
+  resolvePackInput?: ((source: unknown, options?: DopplerPackOpenOptions) => Promise<{ pack: DopplerPack; artifactStore: object }>) | null;
+}): DopplerRuntimeService;
+
+export declare function resolvePackProgramLoadOptions(targetPlan: TargetPlan): {
+  runtimeConfig?: Record<string, unknown>;
+};
+
+export declare function resolvePersistentBrowserLoadSource(
+  loadSource: DopplerModelSourceResolution,
+  cache: false | 'opfs' | undefined,
+  onProgress?: ((event: DopplerLoadProgress) => void) | null,
+  cacheSource?: (
+    modelId: string,
+    modelBaseUrl: string,
+    onProgress: ((event: Record<string, unknown>) => void) | null,
+    options: { expectedManifestHash: string }
+  ) => Promise<{
+    storageContext: Record<string, unknown>;
+    storageBackend: 'opfs';
+    cacheState: 'hit' | 'verified-hit' | 'manifest-refresh' | 'imported';
+    fromCache: boolean;
+    manifestHash: string;
+    totalBytes: number;
+  }>
+): Promise<DopplerModelSourceResolution & {
+  persistentCache?: DopplerPersistentCacheReceipt;
+}>;
+
+export type {
+  DopplerLoadOptions,
+  DopplerLoadProgress,
+  DopplerPersistentCacheReceipt,
+  DopplerModelSource,
+  DopplerModelSourceResolution,
+} from '../runtime/model-source.js';
+export type {
+  DopplerResolutionPolicy,
+  ResolvedDopplerResolutionPolicy,
+} from '../runtime/resolution-policy.js';
+
+export type { DopplerModelHandle } from './model-session.js';
+export type {
+  DopplerGenerationEvent,
+  DopplerGenerationResult,
+  DopplerObservationPolicyId,
+  DopplerObservationTier,
+  DopplerPromptInput,
+  DopplerScopedGenerateOptions,
+  DopplerScopedModelSession,
+} from '../runtime/scoped-session.js';
+export type { PrefillResult, LogitsStepResult } from '../../inference/pipelines/text/types.d.ts';
+export type { LoRAManifest, ExtensionBridgeClient } from '../runtime/types.js';

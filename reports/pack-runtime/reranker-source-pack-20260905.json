@@ -1,0 +1,1091 @@
+{
+  "schema": "doppler.reranker-source-pack-checkpoint/v1",
+  "generatedAtUtc": "2026-09-05 22:44:37 UTC",
+  "source": {
+    "repository": "clocksmith/doppler",
+    "commit": "9737bcd341bf5dd6706a76bfd6527d70f1344e15",
+    "worktree": "dirty; exact changed source and untracked intake files retained in archive",
+    "pull": {
+      "path": "reports/electron-adoption/rdpull-20260905-02.log",
+      "result": "aligned; no incoming changes"
+    }
+  },
+  "componentIntent": {
+    "components": [
+      "doppler.runtime-source.converter",
+      "doppler.runtime-source.client",
+      "doppler.runtime-source.config"
+    ],
+    "intent": "preserved",
+    "boundaryEffects": "Forge qualifies rerank ModelIR v2; runtime enforces operation/surface admission and propagates cancellation. No Doe, Poolday, Reploid, or public catalog changes."
+  },
+  "engineering": {
+    "completed": [
+      "Root forecast factory is routed through runtime composition without changing its public signature.",
+      "Q4K encoding uses stored multiplier grids and local scale/minimum error refinement; runtime kernels and frozen acceptance unchanged.",
+      "Electron opening/request cancellation propagates into selected/full-logit inference; resource cleanup is regression-tested.",
+      "Source intake reads pinned JSON and bounded SafeTensors headers; changed bytes and receipt overwrites reject.",
+      "Authored Qwen source-fact recipe covers 310 tensor headers and 331 facts; generation remains unqualified.",
+      "Forge packages the source-fact receipt and uses rerank-specific source acceptance, not generation parity.",
+      "Every Pack operation must have passed qualification on the selected surface; legacy generation evidence authorizes generation only.",
+      "New candidate digest synchronization is selectable without rewriting adjacent historical artifacts."
+    ],
+    "tests": {
+      "command": "npm run ci:check",
+      "log": "reports/electron-adoption/standalone-ci-20260905-04.log",
+      "exitCode": 0,
+      "unitFiles": 749,
+      "packFiles": 35,
+      "packFilesAlreadyIncluded": true,
+      "publicPackage": {
+        "files": 1735,
+        "packedBytes": 2064557,
+        "unpackedBytes": 10695496
+      },
+      "physicalBenchmarksRerun": false
+    },
+    "runtimeBundle": "reports/electron-adoption/20260905-standalone-package-06",
+    "sourceRecipe": "reports/model-ir-v2/qwen3-reranker.spec.json",
+    "sourceReceipt": "reports/model-ir-v2/qwen3-reranker.model-ir-receipt.json",
+    "conversionRecipe": "reports/model-ir-v2/qwen3-reranker-q4k-local-grid.conversion.json",
+    "determinism": {
+      "identicalWeightShards": 14,
+      "meaning": "Two local-grid conversions produced identical shard hashes; corrected WGSL pins changed the manifest/executable identity, not those weights."
+    }
+  },
+  "physical": {
+    "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-03/qualification.json",
+    "passed": true,
+    "checks": 16,
+    "checksPassed": 16,
+    "identity": {
+      "schema": "doppler.pack/v2",
+      "packId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-pack-v2-95a9bbdb7e7288d5",
+      "semanticRoot": "sha256:95a9bbdb7e7288d5eed71d6d75b832a3ad2075fd51ee454eef7382db4dc0aede",
+      "envelopeDigest": "sha256:3880a1e5ea7ce8e41921ec93192429f8db0ce7baca98ba8afb728ad661aa9c66",
+      "artifactClosureDigest": "sha256:abc4f8a8866ff0da36032d16a1216a16eb0383396e232f3f71bd83a56d8b0cee"
+    },
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "0x1586",
+      "description": "Radeon 8060S Graphics (RADV STRIX_HALO)"
+    },
+    "electron": "43.4.0",
+    "closed": true,
+    "package": "393167ac2240d67ad5180962d5a9e79fdf4966d88cb3a85703305b24d7d4d7dc",
+    "modelIRSchema": "doppler.model-ir/v2",
+    "sourceFacts": 331,
+    "qualifiedEntryPoints": [
+      "text.rerank"
+    ],
+    "targetPlans": 1,
+    "artifactCount": 34,
+    "boundary": {
+      "externalAdoption": false,
+      "sourceComparison": true,
+      "signedPackExecution": true,
+      "applicationAuthorization": "pinned-internal-evaluation-resolver",
+      "productionIpc": false
+    }
+  },
+  "adverse": {
+    "failures": [
+      {
+        "path": "reports/electron-adoption/qwen-q4k-local-grid-qualification-01/qualification.json",
+        "passed": false,
+        "faultInjected": false,
+        "stage": "launch",
+        "error": "electron.launch: Process failed to launch!\nCall log:\n\u001b[2m  - <launching> /home/x/deco/doppler/node_modules/electron/dist/electron --no-sandbox --inspect=0 --remote-debugging-port=0 --ozone-platform=x11 --enable-unsafe-webgpu --enable-webgpu-developer-features --use-angle=vulkan --enable-features=Vulkan --disable-vulkan-surface --doppler-probe-user-data=/home/x/deco/doppler/reports/electron-adoption/qwen-q4k-local-grid-qualification-01/user-data /home/x/deco/doppler/tools/fixtures/electron-webgpu-main.js\u001b[22m\n\u001b[2m  - <launched> pid=2999288\u001b[22m\n\u001b[2m  - [pid=2999288][err] Debugger listening on ws://127.0.0.1:33245/046b8f39-413d-4eda-8016-a072141efa5e\u001b[22m\n\u001b[2m  - [pid=2999288][err] For help, see: https://nodejs.org/learn/getting-started/debugging\u001b[22m\n\u001b[2m  - <ws connecting> ws://127.0.0.1:33245/046b8f39-413d-4eda-8016-a072141efa5e\u001b[22m\n\u001b[2m  - <ws connected> ws://127.0.0.1:33245/046b8f39-413d-4eda-8016-a072141efa5e\u001b[22m\n\u001b[2m  - [pid=2999288][err] Debugger attached.\u001b[22m\n\u001b[2m  - [pid=2999288][err] [2999288:0905/181410.516174:ERROR:ui/ozone/platform/x11/ozone_platform_x11.cc:257] Missing X server or $DISPLAY\u001b[22m\n\u001b[2m  - [pid=2999288][err] [2999288:0905/181410.516209:ERROR:ui/aura/env.cc:246] The platform failed to initialize.  Exiting.\u001b[22m\n\u001b[2m  - <ws disconnected> ws://127.0.0.1:33245/046b8f39-413d-4eda-8016-a072141efa5e code=1005 reason=\u001b[22m\n\u001b[2m  - [pid=2999288] <kill>\u001b[22m\n\u001b[2m  - [pid=2999288] <will force kill>\u001b[22m\n\u001b[2m  - [pid=2999288] <process did exit: exitCode=null, signal=SIGTRAP>\u001b[22m\n\u001b[2m  - [pid=2999288] starting temporary directories cleanup\u001b[22m\n\u001b[2m  - [pid=2999288] finished temporary directories cleanup\u001b[22m\n",
+        "cleanupErrors": []
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-source-pack-corruption-01/qualification.json",
+        "passed": false,
+        "faultInjected": true,
+        "stage": "pack-execution",
+        "error": "page.evaluate: Error: Pack artifact hash or size mismatch for \"artifacts/model/shard_00000.bin\".\n    at http://127.0.0.1:35489/src/client/runtime/verified-pack-artifact-store.js:20:17",
+        "cleanupErrors": []
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-source-pack-interruption-01/qualification.json",
+        "passed": false,
+        "faultInjected": true,
+        "stage": "pack-execution",
+        "error": "page.evaluate: TypeError: Failed to fetch\n    at fetchBytes (http://127.0.0.1:42051/src/client/runtime/fetch-pack-artifact-store.js:6:26)\n    at Object.readArtifact (http://127.0.0.1:42051/src/client/runtime/fetch-pack-artifact-store.js:25:14)\n    at http://127.0.0.1:42051/src/client/runtime/verified-pack-artifact-store.js:15:38\n    at Object.readArtifact (http://127.0.0.1:42051/src/client/runtime/verified-pack-artifact-store.js:23:9)\n    at Object.hashArtifact (http://127.0.0.1:42051/src/config/pack.js:38:51)\n    at verifyPackV2Artifacts (http://127.0.0.1:42051/src/config/pack-v2.js:413:42)\n    at async verifyPack (http://127.0.0.1:42051/src/config/pack.js:36:28)\n    at async Object.openPack (http://127.0.0.1:42051/src/client/runtime/composition-root.js:58:24)\n    at async Object.openPack (eval at evaluate (:311:30), <anonymous>:19:25)\n    at async openCurrent (http://127.0.0.1:42051/src/client/electron/renderer-runtime.js:51:17)",
+        "cleanupErrors": []
+      },
+      {
+        "path": "reports/electron-adoption/qwen-q4k-source-pack-device-loss-01/qualification.json",
+        "passed": false,
+        "faultInjected": true,
+        "stage": "pack-execution",
+        "error": "page.evaluate: DopplerElectronDeviceLostError: Electron renderer WebGPU device was lost: [DOPPLER_GPU_DEVICE_LOST] Pack session GPU device lost (destroyed): Device was destroyed.. Close this session and explicitly reopen on a new device.\n    at deviceLossError (http://127.0.0.1:38063/src/client/electron/renderer-runtime.js:15:17)\n    at translateError (http://127.0.0.1:38063/src/client/electron/renderer-runtime.js:32:12)\n    at Object.rerank (http://127.0.0.1:38063/src/client/electron/renderer-runtime.js:89:13)\n    at async eval (eval at evaluate (:311:30), <anonymous>:32:21)\n    at async <anonymous>:337:30",
+        "cleanupErrors": []
+      }
+    ],
+    "buildRejection": {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-01/build-failure.json",
+      "reason": "Stale fused_matmul_q4.wgsl digest in candidate recipe. Original candidate was not signed; a new source-closed conversion was qualified."
+    },
+    "priorCandidates": "Earlier Q4K failures remain rejected and retained; see reranker-quantization-20260905.json and included raw reports.",
+    "inventory": {
+      "path": "reports/electron-adoption/conversion-digest-inventory-20260905.log",
+      "staleReferences": 73,
+      "boundary": "Broad diagnostic includes older conversion recipes and local manifests. Only the new candidate recipe was synchronized; historical artifacts were not rewritten."
+    },
+    "ciRejection": {
+      "path": "reports/electron-adoption/standalone-ci-20260905-03.log",
+      "reason": "Operation gate exposed generation-only qualification in an Electron rerank fixture. Fixture was corrected to declare rerank evidence; runtime gate retained."
+    }
+  },
+  "recovery": {
+    "passed": true,
+    "path": "reports/electron-adoption/qwen-q4k-source-pack-recovery-01/qualification.json",
+    "checks": 16,
+    "boundary": "Separate fresh process after corruption, interrupted acquisition and destroyed-device probes; not same-device recovery or resumable range transfer."
+  },
+  "claims": {
+    "sourceComparison": "One frozen query, three documents, true-logit/sigmoid scoring, exact tokenizer/ranking and unchanged numerical tolerances. Authored source mapping, not universal semantic equivalence.",
+    "quantization": "Mixed precision: attention projections Q4K; MLP, embeddings/output F16, declared activation F32.",
+    "hardware": "Internally operated named AMD Electron tuple only; signatures do not prove hardware honesty.",
+    "performance": "No incumbent advantage, held-out retrieval quality, clean-install latency comparison, or cold/warm superiority is claimed. Some qualification runs overlapped repository tests.",
+    "packVersion": "Physical proof is ModelIR v2 in Pack v2. Pack v3 regression coverage is not physical v3 qualification.",
+    "externalAdoption": false,
+    "secondExternalRelease": false,
+    "paidUse": false,
+    "revenue": false,
+    "publicPromotion": false
+  },
+  "custody": {
+    "archive": {
+      "path": "reports/electron-adoption/20260905-source-pack-handoff.tar",
+      "sizeBytes": 2162012160,
+      "sha256": "d7f81272f20f76466f44fd1df9319de739833870af749fe932644b8022e4293b",
+      "tarComparePassed": true,
+      "availability": "local-only-not-published"
+    },
+    "inventory": "reports/electron-adoption/20260905-source-pack-handoff/files.json",
+    "files": 180,
+    "exclusions": [
+      "private keys",
+      "browser profiles",
+      "node_modules",
+      "npm caches",
+      "Electron installation",
+      "reference-engine installation"
+    ],
+    "reproduction": "Install the retained runtime tarball; follow the archive README and preserve explicit application, signer, Pack, TargetPlan and acceptance pins. Raw data availability is local, not implied by repository cloning."
+  },
+  "unfinishedCode": [
+    "Pack-backed text-embedding contract and independently qualified canonical embedding lane.",
+    "Automatic measured candidate evaluation/Pareto selection and reduced manual source-model bring-up.",
+    "Complete installed Pack v3 lifecycle exercise and explicit recipient-controlled retained-use policy.",
+    "Complete application-level incumbent comparison and reusable second-release workflow beyond synthetic release tests."
+  ],
+  "externalProofStillRequired": [
+    "Independent maintainer use and voluntary retention through a subsequent model release. Internal fixtures and this physical observation do not supply that decision."
+  ],
+  "evidence": [
+    {
+      "path": "benchmarks/kernels/execution-routing-audit.json",
+      "sizeBytes": 360876,
+      "sha256": "5f9a3c74613b608ea83fffdc90f00af935ea22a699ca6883d4c5fbb9736412cb"
+    },
+    {
+      "path": "docs/api/reference/exports.md",
+      "sizeBytes": 20137,
+      "sha256": "2a51c7ef1845ded22e9d190443ad1918c5759a8fd23853c6eb23974d452ece0b"
+    },
+    {
+      "path": "docs/integration/reranker-evaluation.md",
+      "sizeBytes": 12390,
+      "sha256": "40554b62dbd228ba616343d994bdaf4f5cdd07d7b0a996cf5116ecacfed7855f"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-source-pack-handoff/README.md",
+      "sizeBytes": 2897,
+      "sha256": "fbb148480b1386442ae7c69832cd98406d9625343b0813ac7f0ac0f9158f4375"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-04/commands.json",
+      "sizeBytes": 240800,
+      "sha256": "8cea994a3b69866987ce95d3d82b05d67ae69014449a553ad9df7929b0436673"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-04/doppler-gpu-0.5.1.tgz",
+      "sizeBytes": 2064391,
+      "sha256": "71a024987176ef6666006903faeb468009fc2b7aeb5b1308cd9020bf70d68c63"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-04/npm-pack.json",
+      "sizeBytes": 206155,
+      "sha256": "01abbb32e7dc2ffd129774fc82f488f4cdbf59a1a6cb17b39d2665a8b16e2277"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-04/receipt.json",
+      "sizeBytes": 590,
+      "sha256": "6e958444a4ec52e33de4c245d253b2b0451fb5cc3ba7298060ee7aa0dff56cd8"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-04/source-state.json",
+      "sizeBytes": 1944,
+      "sha256": "9ab9357f37c6939bf219891b85c70f6033a9c621eb8a2e5f616d457dade6879d"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-05/commands.json",
+      "sizeBytes": 241139,
+      "sha256": "84e9c5041ebfa41328493a739f71aaa70ff0071cb51002adb04fbca2200b1a87"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-05/doppler-gpu-0.5.1.tgz",
+      "sizeBytes": 2064556,
+      "sha256": "9d5eb7d7e9eba3679c195090ad1d40df0ac5b38cd570e56d5c29a8a7de605ce3"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-05/npm-pack.json",
+      "sizeBytes": 206155,
+      "sha256": "010078ee1bd3b9c0981aec17ed9ed97ba21afea67bdfb24a1e824a4c85e08b36"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-05/receipt.json",
+      "sizeBytes": 590,
+      "sha256": "2c790617040893288f4c36fc633e72c0440cf6f565380570ba779143a394cdd0"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-05/source-state.json",
+      "sizeBytes": 2283,
+      "sha256": "2d58ca614aa32e8252eba1defaeebcca52ebded680ecd577bf753b9a0276b73e"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-06/commands.json",
+      "sizeBytes": 241189,
+      "sha256": "4eeb1e6664980fa4bd47f837d5979091355cc0e6222aeadc89533d9b45335931"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-06/doppler-gpu-0.5.1.tgz",
+      "sizeBytes": 2064557,
+      "sha256": "393167ac2240d67ad5180962d5a9e79fdf4966d88cb3a85703305b24d7d4d7dc"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-06/npm-pack.json",
+      "sizeBytes": 206155,
+      "sha256": "af14ea745ed21cdb4fcef7c96d26b0c2ff8110e617c9197a0b3c46ef789e4bff"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-06/receipt.json",
+      "sizeBytes": 590,
+      "sha256": "d93fa486980d99f4911416e142c3709813bb221b286c8838d0659daa2fcbfb73"
+    },
+    {
+      "path": "reports/electron-adoption/20260905-standalone-package-06/source-state.json",
+      "sizeBytes": 2333,
+      "sha256": "93a561f1b02e5817fb0df06a8f5738a5fea81544329ba0686dd45f6c6f7ac830"
+    },
+    {
+      "path": "reports/electron-adoption/APACHE-2.0.txt",
+      "sizeBytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "reports/electron-adoption/q4k-local-grid-after.log",
+      "sizeBytes": 19,
+      "sha256": "a777d5c778f16a1d8ca3debe3b3fb61faa75d887d4e6d365414bdf283907ecd8"
+    },
+    {
+      "path": "reports/electron-adoption/q4k-local-grid-before.log",
+      "sizeBytes": 377,
+      "sha256": "5e4c46590f7cb81f4de0dd8c9994c80e1bc0e63d139bae16e4539490fd6059e8"
+    },
+    {
+      "path": "reports/electron-adoption/q4k-local-grid-conversion.log",
+      "sizeBytes": 58242,
+      "sha256": "3e645f1ba1b50b5d368866c552661a0d94c1e4bf89c8812c85c639c7371b5799"
+    },
+    {
+      "path": "reports/electron-adoption/q4k-local-grid-physical-01.log",
+      "sizeBytes": 3929,
+      "sha256": "db0692601a60b5570861939b424312d5df3a45b9a95f94b226a88aad1540fa3d"
+    },
+    {
+      "path": "reports/electron-adoption/q4k-local-grid-physical-02.log",
+      "sizeBytes": 66,
+      "sha256": "73aa481bb0fbf2b453490d8d5f135522963dd559f82b6f63df4885de6aeedc12"
+    },
+    {
+      "path": "reports/electron-adoption/q4k-source-closed-conversion-01.log",
+      "sizeBytes": 58242,
+      "sha256": "c0d32211ec830df8b435d71da2f3e515a39f95da4e65413b0309e9dd5087ab03"
+    },
+    {
+      "path": "reports/electron-adoption/q4k-source-closed-physical-01.log",
+      "sizeBytes": 66,
+      "sha256": "73aa481bb0fbf2b453490d8d5f135522963dd559f82b6f63df4885de6aeedc12"
+    },
+    {
+      "path": "reports/electron-adoption/q4k-stored-parameter-after.log",
+      "sizeBytes": 566,
+      "sha256": "f7df117ba88aa1514ec0682ddbddb3918cbc4b4ca376fb5859269be6f540eb30"
+    },
+    {
+      "path": "reports/electron-adoption/q4k-stored-parameter-before.log",
+      "sizeBytes": 222,
+      "sha256": "bb63c7838a4a5190e242f701e5ab6654d1d9704251db09053758609aa94582cd"
+    },
+    {
+      "path": "reports/electron-adoption/q4k-stored-parameter-intermediate.log",
+      "sizeBytes": 241,
+      "sha256": "0bdc008c8223dadb77b21c1b62bcb248b03969470939514e9327bc7d1902ac15"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-local-grid-conversion-01.json",
+      "sizeBytes": 15500,
+      "sha256": "ceefcf036ed420b78eb8c41e27fc7bfdaa72ae95a7e106ccafaf9ba7afc35f73"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-local-grid-qualification-01-config.json",
+      "sizeBytes": 520,
+      "sha256": "e08a82003addab33712415b6420eddd0765a80aee821f23520f15c1afff22520"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-local-grid-qualification-01/qualification.json",
+      "sizeBytes": 18904,
+      "sha256": "973fca40825c787253c14547a1fcdc05870663c91a2c47edbf84065e7b2ba1d1"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-local-grid-qualification-02-config.json",
+      "sizeBytes": 520,
+      "sha256": "3439c6c2950774f9873c7195b4cd458675336e707f47c7b582c6999e31a4c0db"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-local-grid-qualification-02/qualification.json",
+      "sizeBytes": 325208,
+      "sha256": "4bfa357a47e31be10db4d0c67632641fc1e425d9ffe21b27350340ec726fccc3"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-pinned-qualification-01/qualification.json",
+      "sizeBytes": 322565,
+      "sha256": "64c8f25b2309a3fefc3dca7287bbe34bb4f573a241d78ecb231be56f9be774ec"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-closed-qualification-01-config.json",
+      "sizeBytes": 526,
+      "sha256": "ba59857593c9475de5c7940d5faf01923e6f087e0747b5324b01b18665893f77"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-closed-qualification-01/qualification.json",
+      "sizeBytes": 326477,
+      "sha256": "9bd7bb39e00d634ae10588c64caacf974fc3ed5612adb7013114635dacf93303"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-01/build-failure.json",
+      "sizeBytes": 1805,
+      "sha256": "9189e8f7a95e6de078ed234c9560c1798ad59249742929b588c39370100c7610"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/build-receipt.json",
+      "sizeBytes": 3320,
+      "sha256": "fe24d2cc11931432fc7ef6680d99a3ca54a6512fc436c5cf288f56049a8304a1"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/MODEL_LICENSE.txt",
+      "sizeBytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/evidence/model-ir-ff68ff4ac55f.json",
+      "sizeBytes": 484582,
+      "sha256": "ff68ff4ac55fd5a0c98fcd87c330f8b380d0d62eb28fd1e15c5640dd5f5d09db"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/evidence/qualification.json",
+      "sizeBytes": 326477,
+      "sha256": "9bd7bb39e00d634ae10588c64caacf974fc3ed5612adb7013114635dacf93303"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/manifest.json",
+      "sizeBytes": 135157,
+      "sha256": "72a48f6de5b6a980747bf009d53181351d5632325db1dbd33efe87429ba1071d"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00000.bin",
+      "sizeBytes": 67108864,
+      "sha256": "e43dc1fe474193bad57b19b1daf032a070c99f87ce79bc8995c4c1f37b120b53"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00001.bin",
+      "sizeBytes": 67108864,
+      "sha256": "b1a9ca6f91fbe89d2ca0e027014521447629f7a50e5afdb9ee94c8716328ee55"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00002.bin",
+      "sizeBytes": 67108864,
+      "sha256": "53bb6a526b121103cb13b0af70699af64485b62d98e1420d8bd43faf5ef960a7"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00003.bin",
+      "sizeBytes": 67108864,
+      "sha256": "74b1668c351029b2222e0145af3da91592c1e8a9a8aa40a5441c28cc88d9855c"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00004.bin",
+      "sizeBytes": 67108864,
+      "sha256": "a56401f052950847cccf90b35c63683a3cebf627f0089b150ee5b655343dfe51"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00005.bin",
+      "sizeBytes": 67108864,
+      "sha256": "a324a0b5f2b088647cc25b828929419fe9486db1dea0abe928dea572e5cf0f2f"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00006.bin",
+      "sizeBytes": 67108864,
+      "sha256": "08c097b21b6d9d52b04eda0c9178730c6bb361aa8e5bc908bfe9e8422f327d66"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00007.bin",
+      "sizeBytes": 67108864,
+      "sha256": "21acf56bea1ae5f19131689d69a3cccdbcdce399284a713b6ae735d1af44e7a9"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00008.bin",
+      "sizeBytes": 67108864,
+      "sha256": "a8ba8eafc16bb7f2db12acff3ae5cd6f1b9eae8ceff4841a05daf821d6ec3ef1"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00009.bin",
+      "sizeBytes": 67108864,
+      "sha256": "ecc4d663ae607d28ca706e36d9bd48a90c77a9b5e35b724133979c9cb0ac8eb9"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00010.bin",
+      "sizeBytes": 67108864,
+      "sha256": "eb46664bf45fc99235ab15657fd917931a0c25b49231f63f40de3468800203c2"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00011.bin",
+      "sizeBytes": 67108864,
+      "sha256": "0040bc969e75a2b3f4ce9457f28245d08587c471c4dd839a47a42c45e3dbfd65"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00012.bin",
+      "sizeBytes": 67108864,
+      "sha256": "9f13205d7a6ed5af57a7787d5b2eec59f2a23040ae7d4ad18bf9b0a9cb0c767b"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/shard_00013.bin",
+      "sizeBytes": 65906688,
+      "sha256": "564c21f6c2b68955af3050f9936b616deda700d90c1184831b1e7999db4e50f8"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/model/tokenizer.json",
+      "sizeBytes": 5363085,
+      "sha256": "4dae0c382163323e93f51d37f4c27d96c74f6be94b231289c24da71dfa3f7dc6"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program-bundle.json",
+      "sizeBytes": 109261,
+      "sha256": "785edf445402c4ebe656b48a7bd5af93e2e16fc4c2acbf6e5771a4b1de768f9c"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/host/reranking-d7abaa224ec64128.js",
+      "sizeBytes": 1096,
+      "sha256": "d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/attn_decode-4feba111cc381d0a.wgsl",
+      "sizeBytes": 7779,
+      "sha256": "4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/attn_small-d06953f85b75a70a.wgsl",
+      "sizeBytes": 9366,
+      "sha256": "d06953f85b75a70a7423bd92afbbb476bff77acaf0f8378135465d0f742bb276"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/embed-838e3c69451d02fe.wgsl",
+      "sizeBytes": 2538,
+      "sha256": "838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/gemv-04db4c712bc4f88c.wgsl",
+      "sizeBytes": 16657,
+      "sha256": "04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/lm_head_gemv-04db4c712bc4f88c.wgsl",
+      "sizeBytes": 16657,
+      "sha256": "04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/q4_decode_gemv-9c4d919d5ad5eadd.wgsl",
+      "sizeBytes": 15738,
+      "sha256": "9c4d919d5ad5eadd225f34938c47b9c604e8a1fa05ec73c5eccfb882395bd935"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/q4_widetile-d3fc7b8145d9acf8.wgsl",
+      "sizeBytes": 5617,
+      "sha256": "d3fc7b8145d9acf8d5dc56c063557074a361844d25b00b76c6a9fa961b4d8735"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+      "sizeBytes": 1712,
+      "sha256": "e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/rmsnorm-57c810ce293ec2ae.wgsl",
+      "sizeBytes": 15770,
+      "sha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/rope-a4472c7134a08c77.wgsl",
+      "sizeBytes": 12251,
+      "sha256": "a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/sample-36437b17a1a7f624.wgsl",
+      "sizeBytes": 13789,
+      "sha256": "36437b17a1a7f624ae31d3420ed8142df194b7b8ca800d30a1855fc52e754cd4"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/silu-e14958d8bd06dd50.wgsl",
+      "sizeBytes": 3390,
+      "sha256": "e14958d8bd06dd50596fef718ca5731366d24ee78f13c547c600cac4723cd1b8"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/program/wgsl/tiled-78b78ec9a73766b5.wgsl",
+      "sizeBytes": 2558,
+      "sha256": "78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/artifacts/source/qwen3-reranker-q4k-local-grid.conversion.json",
+      "sizeBytes": 15500,
+      "sha256": "205210de3f9479afcba2ce9e367d69929ca1718071c151a9ce22104458276841"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/distribution/pack.json",
+      "sizeBytes": 628446,
+      "sha256": "8c68b611e89b24cab633037db54eb190b4f0090a7f4e5d141ac3a719e79f8490"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/forge-config.json",
+      "sizeBytes": 1343,
+      "sha256": "763fe80d8f6bd7f07e31bfd0c622a210b97e62a27f6bfd54ff82e0a991f5edb5"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/open-options.json",
+      "sizeBytes": 306,
+      "sha256": "d024212ce657b24ab955c054e07f7b9a0b461deb7c31a056809f2732540b6612"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-02/release.json",
+      "sizeBytes": 2564,
+      "sha256": "09b583de3acefc6c55eb6914cde23b41810eb674eef3fc3a218779b6d027fa3b"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-build-01-config.json",
+      "sizeBytes": 631,
+      "sha256": "e5680e847338729bf31fdc6dba2f1e5563daf31d36a670457c97c2dbc3b890df"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-build-01.log",
+      "sizeBytes": 771,
+      "sha256": "4fe3eb32a9b78fa036c506b29a1e8faff09c697e21624654107f6fda226fa8e9"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-build-02-config.json",
+      "sizeBytes": 648,
+      "sha256": "eb19809f5f2746ad68b4edb26f34b509574552d3f85a60fff1f6b3a4f4a8e678"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-build-02.log",
+      "sizeBytes": 1352,
+      "sha256": "da0e76d8970fcb412b6d78331b11156f2e326a232eae20c31e145a31de790475"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-corruption-01-config.json",
+      "sizeBytes": 1893,
+      "sha256": "4ab874a1af6b9c941901b8a0da689c77a39e3c667d6d7b286363b48b2d9c42b0"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-corruption-01.log",
+      "sizeBytes": 662,
+      "sha256": "0a21aaab75bfb7ad98a64705c7683ec426d9b3b9ebe1bfa46ac6661c267b08b4"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-corruption-01/qualification.json",
+      "sizeBytes": 57685,
+      "sha256": "5b28738c5934269abbc2394f9e0f3c830840244f0eb12349bb5440e2b7d7f91c"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-device-loss-01-config.json",
+      "sizeBytes": 1823,
+      "sha256": "733e10c9d03487bc1bad71b93e9ac5af0ef3a0c3a219afd71e298c390abd9f54"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-device-loss-01.log",
+      "sizeBytes": 1528,
+      "sha256": "4117e5f0cfc2571db41504e5fa8204aa3ea7f83485664ea61e3037d30ea51053"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-device-loss-01/qualification.json",
+      "sizeBytes": 64993,
+      "sha256": "6d727da1b0a0b40f0e9dded5a5ea07ac7854d314824e29ecd1234baa9af0fba0"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-interruption-01-config.json",
+      "sizeBytes": 1897,
+      "sha256": "9b712d2dcd2ae0ace573f678f52b8bbf8399562caaac8833635f211e72456883"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-interruption-01.log",
+      "sizeBytes": 2198,
+      "sha256": "9cd24bc21c78b4f74c669d912ef1ebae799673c4a6c7f0714efd31d65b9916a7"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-interruption-01/qualification.json",
+      "sizeBytes": 59321,
+      "sha256": "1a994a7f06512ce2fa698b5cce901e11602b493582aef68e40d1498869773efb"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-physical-01.log",
+      "sizeBytes": 66,
+      "sha256": "73aa481bb0fbf2b453490d8d5f135522963dd559f82b6f63df4885de6aeedc12"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-01-config.json",
+      "sizeBytes": 1781,
+      "sha256": "0394feb604918bbc2afdaf6aa35c87fa5237fa77c2bb28da2ae69cb5ec03b26d"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-01/qualification.json",
+      "sizeBytes": 360059,
+      "sha256": "c1fc6ce8117f1c8c28fb96ba0a60213488d1bd00817c7ffc3f1bb740eea249d0"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-02-config.json",
+      "sizeBytes": 1781,
+      "sha256": "04b5facad14eda24f7d54ed492e83b6b4de20d804d3dec5b3c9e022003a67c76"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-02.log",
+      "sizeBytes": 66,
+      "sha256": "73aa481bb0fbf2b453490d8d5f135522963dd559f82b6f63df4885de6aeedc12"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-02/qualification.json",
+      "sizeBytes": 360747,
+      "sha256": "fcf11ac8465cedb4cf84b39aeacd81583c0c61e7b1ea1511961e2f44a8adcc89"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-03-config.json",
+      "sizeBytes": 1781,
+      "sha256": "8c812d5d7d64ca30eae4621f64c4d21ebcd0e185f9c1d4012d0881f9736c93e4"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-03.log",
+      "sizeBytes": 66,
+      "sha256": "73aa481bb0fbf2b453490d8d5f135522963dd559f82b6f63df4885de6aeedc12"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-qualification-03/qualification.json",
+      "sizeBytes": 360834,
+      "sha256": "5b0a1ade79f65019fe9bb315a649b4eb5a89ce09bd1bf5f3b3b8b6e9a080c64b"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-recovery-01-config.json",
+      "sizeBytes": 1776,
+      "sha256": "cda70d49ebbeb231132ed462f10b67e85f6771595380741b93c4a040003e2c65"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-recovery-01.log",
+      "sizeBytes": 66,
+      "sha256": "73aa481bb0fbf2b453490d8d5f135522963dd559f82b6f63df4885de6aeedc12"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-source-pack-recovery-01/qualification.json",
+      "sizeBytes": 360771,
+      "sha256": "341435d358272f48af269af1dfd6fd148e327dd1197f34dd75d068c0feb779ed"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-stored-grid-qualification-01/qualification.json",
+      "sizeBytes": 323607,
+      "sha256": "b19855d1098aeae550070838e75165d113b9e9d96bc3025e5a219de3b84107d0"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-q4k-vf16-qualification-01/qualification.json",
+      "sizeBytes": 323084,
+      "sha256": "36d413d7c1578320ee3de579c010f33418026198d7727dc71ca4bd7556862130"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-source-e61197ed/.cache/huggingface/download/README.md.metadata",
+      "sizeBytes": 101,
+      "sha256": "4432decd6eb80f1c650dcec4b0d5040c5dc2e1c537518e22049739881f2d2200"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-source-e61197ed/.cache/huggingface/download/config.json.metadata",
+      "sizeBytes": 101,
+      "sha256": "44ea1431ce7b917ece8ef4d3713815389675c5f817b5a8baefcc972600418cfa"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-source-e61197ed/.cache/huggingface/download/model.safetensors.metadata",
+      "sizeBytes": 123,
+      "sha256": "d4f662937406af70a4870bb40a1c51e9b7928083699999e8c31834fce3535ab7"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-source-e61197ed/.cache/huggingface/download/tokenizer.json.metadata",
+      "sizeBytes": 125,
+      "sha256": "c475ba78f6d0f7476eca036337414d63396819656cf2c36d7a726a005ce79242"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-source-e61197ed/.cache/huggingface/download/tokenizer_config.json.metadata",
+      "sizeBytes": 100,
+      "sha256": "7172deb49cb33d0d753efdb593933d32db4856d593964d6527c3f3c89848132e"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-source-e61197ed/README.md",
+      "sizeBytes": 14742,
+      "sha256": "5bba8c734f6dd3ae48317b4139317e45a7fce48fc55e15670b23a0dd15492ab6"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-source-e61197ed/config.json",
+      "sizeBytes": 727,
+      "sha256": "d479c427a9ca5295218063d4f9aca4f297ab4ac27487cca7af42c84643d51ef0"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-source-e61197ed/model.safetensors",
+      "sizeBytes": 1191588280,
+      "sha256": "27cd75a405b9c1b46b59abfd88aaa209e6fed2a1972cde9b70e7659537c5e65b"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-source-e61197ed/tokenizer.json",
+      "sizeBytes": 11422654,
+      "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-source-e61197ed/tokenizer_config.json",
+      "sizeBytes": 9706,
+      "sha256": "253153d0738ceb4c668d2eff957714dd2bea0b56de772a9fdccd96cbf517e6a0"
+    },
+    {
+      "path": "reports/electron-adoption/qwen-source-reference-01.json",
+      "sizeBytes": 7051,
+      "sha256": "81df00d625d7e8114f82fc4d67f487dde4946b684a809e63376e046a0bc88c4a"
+    },
+    {
+      "path": "reports/electron-adoption/rdpull-20260905-02.log",
+      "sizeBytes": 138,
+      "sha256": "4cfbf8c6b921aaa54661f6d61226d33977c68c8ae48a068b4aa189a25b450041"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-architecture-02.log",
+      "sizeBytes": 279,
+      "sha256": "742b0d5cc468caf99447f2edd69f5310f360a5487c6f0053f9e0b53606fea765"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-ci-20260905-01.log",
+      "sizeBytes": 156844,
+      "sha256": "0b278b0c12b6fef286001d51fbb5580dd76304f616c61673a5a1f298cd9a2bd8"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-ci-20260905-02.log",
+      "sizeBytes": 157087,
+      "sha256": "7a25280553b31be3666daf60682620897cb07f8088f4fe9c9d79017c188512f4"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-ci-20260905-03.log",
+      "sizeBytes": 5947,
+      "sha256": "2c1ff4e683d5e7d23fc09683b5e57e464f86003ec7e5c832a7c7ef7f7e7e4c1b"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-ci-20260905-04.log",
+      "sizeBytes": 157115,
+      "sha256": "b2aa809a359c0c35dd4e7b958f3e61fe05d78e661987a592dee6ac29a5207d16"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-package-03.log",
+      "sizeBytes": 551,
+      "sha256": "ec6dbf696b1867aa74774406edcd09b7eec1beef32d1da2e77d6a14b2d40b13f"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-package-04.log",
+      "sizeBytes": 551,
+      "sha256": "40ab8c3cc3528e2d1d2f9aec89a4909536c64a059e8a805f96ee1e740d542647"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-package-05.log",
+      "sizeBytes": 551,
+      "sha256": "8f69fa3b1b50f9a3150ede463bdf908f4fcf92994ee8ab26c90b9ffd2821c8c9"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-package-06.log",
+      "sizeBytes": 551,
+      "sha256": "dd2ee1b9348f6ba5c32c5345d37aced54597a00b7a2bfd7f67974f298aa4c33a"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-package-budget-04.json",
+      "sizeBytes": 206155,
+      "sha256": "01abbb32e7dc2ffd129774fc82f488f4cdbf59a1a6cb17b39d2665a8b16e2277"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-source-20260905.patch",
+      "sizeBytes": 87299,
+      "sha256": "e3cbab5c8ffe7095dbf00300badd72538d2a9829807ff00392e1a0e655966bdc"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-style-02.log",
+      "sizeBytes": 309,
+      "sha256": "558463db0ec89605e8ca7552a107457bd34c886a0d641c9fe3b4d78af0fa5c34"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-types-02.log",
+      "sizeBytes": 341,
+      "sha256": "4cf08ec5fb3aac3a02ebb2671a221bf6ccff09a6f3a6a4c63d13cd7fc92c99c8"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-types-03.log",
+      "sizeBytes": 94,
+      "sha256": "f6a30de0a93244a02dccd1c80991697ffd2aecdef9f1ba9abab531439336e0a4"
+    },
+    {
+      "path": "reports/electron-adoption/standalone-untracked-20260905.txt",
+      "sizeBytes": 441,
+      "sha256": "42d010a8255ecccea1d957656c1a37533a676e12253944cd4ce2f5e2125e3f01"
+    },
+    {
+      "path": "reports/model-ir-v2/qwen3-reranker-q4k-local-grid.conversion.json",
+      "sizeBytes": 15500,
+      "sha256": "205210de3f9479afcba2ce9e367d69929ca1718071c151a9ce22104458276841"
+    },
+    {
+      "path": "reports/model-ir-v2/qwen3-reranker.model-ir-receipt.json",
+      "sizeBytes": 484582,
+      "sha256": "ff68ff4ac55fd5a0c98fcd87c330f8b380d0d62eb28fd1e15c5640dd5f5d09db"
+    },
+    {
+      "path": "reports/model-ir-v2/qwen3-reranker.spec.json",
+      "sizeBytes": 225555,
+      "sha256": "a6049af1fe2359fa7bdf83312fbc3838142b571be2a4be03551a882f5e992bc5"
+    },
+    {
+      "path": "reports/model-ir-v2/source/qwen3-reranker-reference-semantics.json",
+      "sizeBytes": 1623,
+      "sha256": "f7112dff8604957b242bfb0f0b283c8bb7adf88daaf9157966aed5bf085cd575"
+    },
+    {
+      "path": "reports/pack-runtime/reranker-quantization-20260905.json",
+      "sizeBytes": 32479,
+      "sha256": "0d596fe2616595b81ebc57416dbed5d3286977577118ad6ff0e22cbfa250a57c"
+    },
+    {
+      "path": "reports/pack-runtime/runtime-closure.json",
+      "sizeBytes": 7140,
+      "sha256": "58ffd35360053a96e50f8b9c3eea0f9b7feb57f7353631755826a9e2ea0af074"
+    },
+    {
+      "path": "src/client/electron/renderer-runtime.js",
+      "sizeBytes": 3524,
+      "sha256": "3ad0b6cedf4bf96eb31a2e65adc372ce3f5ba0191f2862c9c7c31db885896b72"
+    },
+    {
+      "path": "src/client/runtime/composition-root.d.ts",
+      "sizeBytes": 3168,
+      "sha256": "768650a0b16152bac3e78b5e8c62993b5dd90193976587f919ae5cd8bf7d32c8"
+    },
+    {
+      "path": "src/client/runtime/composition-root.js",
+      "sizeBytes": 13060,
+      "sha256": "bd61c6fd50ec54d58da472eaf0622c2f60621ba6d727df912c5a3583ca492b9c"
+    },
+    {
+      "path": "src/client/runtime/model-rerank.js",
+      "sizeBytes": 1769,
+      "sha256": "52341e48dc88d5eca6a68fb3ed13b34b08ac2d6b36eb7ee52251b0604877e993"
+    },
+    {
+      "path": "src/client/runtime/pack-rerank.d.ts",
+      "sizeBytes": 1607,
+      "sha256": "564a2b8b414430387e19cfa82d275057203c47b688404200693079f0d34246f2"
+    },
+    {
+      "path": "src/client/runtime/pack-rerank.js",
+      "sizeBytes": 3763,
+      "sha256": "fccdd544c8dde4dd134d7290aa50bfbe68b498f43e41bc8f12dda897ef4315f9"
+    },
+    {
+      "path": "src/config/target-plan.d.ts",
+      "sizeBytes": 3188,
+      "sha256": "41a5df7b254561060bdaf64be2a11804e9719be46433a08df2d817591ebd6e2d"
+    },
+    {
+      "path": "src/config/target-plan.js",
+      "sizeBytes": 16724,
+      "sha256": "83a69927f54f6778d1e9dc922ac3e29fbf225b642188229771a71d15b2fe0b6d"
+    },
+    {
+      "path": "src/converter/forge-qualification.d.ts",
+      "sizeBytes": 354,
+      "sha256": "d6fcd53ebf1536615a4a6ebe3d720e69033c5f147e3289898e6e0f4496099d99"
+    },
+    {
+      "path": "src/converter/forge-qualification.js",
+      "sizeBytes": 7409,
+      "sha256": "0010a1048df101a100988a5e8964fd49812d846713d663395879a9ee489d1765"
+    },
+    {
+      "path": "src/converter/forge-stages.js",
+      "sizeBytes": 35185,
+      "sha256": "dd790fcec32521c940a67abe2a0c4d8f0f5064969bec5d51eb78ced66ffd874d"
+    },
+    {
+      "path": "src/converter/quantizer.js",
+      "sizeBytes": 18657,
+      "sha256": "a1a744041dbc4e636a536be726f9adfb298f4f1952c155ba63f0a4b5ce470068"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/training.js",
+      "sizeBytes": 29020,
+      "sha256": "fe0e38d772d634137f98e9e0f9ab7c45723795c80db7bb427818585714119d48"
+    },
+    {
+      "path": "src/inference/rerank.d.ts",
+      "sizeBytes": 1362,
+      "sha256": "ac2896b4a566bf02bda19434173815edec6b032f14b342127a111ad246d10069"
+    },
+    {
+      "path": "src/inference/rerank.js",
+      "sizeBytes": 6106,
+      "sha256": "d53097fb9a59c557f76a442e785017fdd9f964a54b25d07ceccd33b70b352ca7"
+    },
+    {
+      "path": "src/pack-runtime.d.ts",
+      "sizeBytes": 978,
+      "sha256": "cff699d2e1239dec73da13dce2d381448c85de8e08d1a9b7d236c09a84ada36e"
+    },
+    {
+      "path": "src/pack-runtime.js",
+      "sizeBytes": 1080,
+      "sha256": "8a4c1e70734c45a35740e2f0a164fb41ddc6bd270981ac93735708ef59707842"
+    },
+    {
+      "path": "tests/client/electron-pack-runtime.test.js",
+      "sizeBytes": 600,
+      "sha256": "6c2933767d0b445d340ac210bb01ec2f6e52a35ca56b1f2b8356d7607e6df9f9"
+    },
+    {
+      "path": "tests/client/electron-release-episode.test.js",
+      "sizeBytes": 6979,
+      "sha256": "451b75b4adb6ae9dc9893fd4567c18a959433276b8c815c037fc1adc4c76525e"
+    },
+    {
+      "path": "tests/config/target-plan.test.js",
+      "sizeBytes": 5713,
+      "sha256": "2171dceaab005fb5612f347a9c72af632837e4556984c2826c9df5b9cf7ad0f9"
+    },
+    {
+      "path": "tests/converter/forge-stages.test.js",
+      "sizeBytes": 12614,
+      "sha256": "66c6e3e0d3f5385c28c24d7a07dcdb14a82e634621bbf3d6fca2587c11b39266"
+    },
+    {
+      "path": "tests/converter/quantizer.test.js",
+      "sizeBytes": 8292,
+      "sha256": "4fdc7005e14a80531234267dc7ee85571c68f36d767045247c8ff1f12cad19e7"
+    },
+    {
+      "path": "tests/helpers/electron-pack-contract.js",
+      "sizeBytes": 7791,
+      "sha256": "26490f366cd0a3b67d416a201beb1fcc03325ef2acdde36b472690d0e027a2e7"
+    },
+    {
+      "path": "tests/helpers/pack-v2-fixture.js",
+      "sizeBytes": 8187,
+      "sha256": "e01e764b9cfce7266c8d63083189ff7ed22e7b3adb2ed60af6873a2c354ca9b1"
+    },
+    {
+      "path": "tests/inference/rerank-scoring-details.test.js",
+      "sizeBytes": 10206,
+      "sha256": "3ffaf16462ce8db11cfbb1115b826de2b6f2dd5a5c27118f99a58193d6abb652"
+    },
+    {
+      "path": "tests/inference/selected-logits-diagnostics.test.js",
+      "sizeBytes": 4393,
+      "sha256": "491ab346f9762db579bc481cd2414716d59e0eed9aef2c2314e5b634689f0fcc"
+    },
+    {
+      "path": "tests/pack/pack-v3.test.js",
+      "sizeBytes": 7335,
+      "sha256": "b1a0241febb2210c71b0a00ac42e73b6fcb47317028b74db1b02615939744436"
+    },
+    {
+      "path": "tests/runtime/initial-execution-identity.test.js",
+      "sizeBytes": 9909,
+      "sha256": "4c2adeeef81e502fcbefab7c21b5695a857291e0327a78aecd930aedb741d75a"
+    },
+    {
+      "path": "tests/runtime/pack-rerank.test.js",
+      "sizeBytes": 3953,
+      "sha256": "81a42f517e49c59c46b20b14ddd2fdde056a0cdbbec76c02dbe522c07ea609c6"
+    },
+    {
+      "path": "tests/runtime/pack-runtime-entrypoint.test.js",
+      "sizeBytes": 1397,
+      "sha256": "45c9e84abf579cee4f22d4fd0c9c88c0311639e2413a60eae5d293821a2f6cb5"
+    },
+    {
+      "path": "tests/tooling/conversion-digest-selection.test.js",
+      "sizeBytes": 1882,
+      "sha256": "55b7cfe9bd1e3d446977c074efa196cd22ede14335d6873cd01e75d01565fd4c"
+    },
+    {
+      "path": "tests/tooling/q4k-projection-reference.test.js",
+      "sizeBytes": 3402,
+      "sha256": "cb2d512f78230a0b05d3e422b6081f6ae6353b85afa01bb80efd3af2ccb52cd3"
+    },
+    {
+      "path": "tests/tooling/reranker-evaluation-preflight.test.js",
+      "sizeBytes": 1759,
+      "sha256": "eb28fc2ffa33ffae5f17614f850225ff45b943e4aaf5708b867df93f8a4eb283"
+    },
+    {
+      "path": "tests/tooling/source-truth-input-files.test.js",
+      "sizeBytes": 4327,
+      "sha256": "89f0249575520c436014484a3473b8f671b6da5ec41ebdce1e4ae48ef2a0952a"
+    },
+    {
+      "path": "tools/build-reranker-evaluation-pack.js",
+      "sizeBytes": 7613,
+      "sha256": "da079eabb9da0f5a8749f19d71cd1880c89aa60b7ad1b07440822d936989974a"
+    },
+    {
+      "path": "tools/check-packed-package.js",
+      "sizeBytes": 12027,
+      "sha256": "2889d38342207f7c2c92d18aa2ddf063010071f4a9062b51f8ee0ce4ced29cff"
+    },
+    {
+      "path": "tools/check-public-boundaries.js",
+      "sizeBytes": 16424,
+      "sha256": "47500a0a952ba0de78e5fc53dfeeb3e465773cad738140297f063353a57e7c53"
+    },
+    {
+      "path": "tools/forge-source-truth-model-ir-v2.js",
+      "sizeBytes": 3166,
+      "sha256": "912627bffaa03226e0482db4bfea3e68503e92a5d58c71ea13d4989f37479b93"
+    },
+    {
+      "path": "tools/q4k-projection-oracle.js",
+      "sizeBytes": 17164,
+      "sha256": "67a7331c74d062483475f7a294e193ef367ae0c1741e96b19a34272850386b33"
+    },
+    {
+      "path": "tools/qualify-reranker-electron.js",
+      "sizeBytes": 16018,
+      "sha256": "0d932a3c700c9e8b926e463e9f71dda6099681caf1b8a0922704008867d407ed"
+    },
+    {
+      "path": "tools/sync-conversion-kernel-digests.js",
+      "sizeBytes": 3440,
+      "sha256": "2b8aa9951494a639c5dc669a8ff61552c02d4b36cefad5fa3803b87fc004d9d4"
+    }
+  ]
+}
