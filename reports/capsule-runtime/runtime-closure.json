@@ -2,7 +2,7 @@
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
   "fileCount": 49,
-  "sourceBytes": 247359,
+  "sourceBytes": 247362,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -252,8 +252,8 @@
     },
     {
       "path": "src/gpu/readback-buffer.js",
-      "sizeBytes": 994,
-      "hash": "sha256:64973d225fa84ca361c4b262a336b966d958f80ce59bbfca93afe8544ebeed04"
+      "sizeBytes": 997,
+      "hash": "sha256:b106a5b2a92285574331b8cdebbb9e1535a9036a1d75f586a4b75a143ce9beab"
     },
     {
       "path": "src/version.js",
