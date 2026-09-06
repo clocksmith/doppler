@@ -1,0 +1,154 @@
+{
+  "schema": "doppler.standalone-node-checkpoint/v1",
+  "generatedAtUtc": "2026-09-06T13:58:46.836Z",
+  "implementationCommit": "54524cdfbcfce20a268ae1b0612a847e23f7b757",
+  "goalComplete": false,
+  "components": [
+    "doppler.runtime-source.tooling",
+    "doppler.repository-tooling",
+    "doppler.tests",
+    "doppler.docs"
+  ],
+  "intent": "preserved",
+  "changes": [
+    "Doppler owns default Node provider composition; Doe contract loading is opt-in.",
+    "Declared provider ordering, adapter selection, errors and reversible global installation remain explicit.",
+    "Provider ownership survives concurrent opening, closing and cleanup failure; external frozen session objects remain usable.",
+    "Installed-package gate executes the standalone host adapter with Doe absent.",
+    "Evaluation Pack exclusions use the observed Node or browser surface rather than hardcoded Electron wording."
+  ],
+  "evidence": {
+    "tests": {
+      "local": {
+        "command": "npm run check:green",
+        "passed": true,
+        "testFiles": 764,
+        "record": "reports/electron-adoption/20260906-node-standalone-handoff/evidence/repository-checks.log"
+      },
+      "focusedFinalChanges": [
+        "tests/integration/node-provider-standalone.test.js",
+        "tests/integration/node-webgpu-bootstrap.test.js",
+        "tests/tooling/reranker-evaluation-preflight.test.js",
+        "tests/tooling/reranker-kernel-closure.test.js"
+      ],
+      "hosted": {
+        "commit": "54524cdfbcfce20a268ae1b0612a847e23f7b757",
+        "runId": 34037263345,
+        "jobId": 101497492904,
+        "url": "https://github.com/clocksmith/doppler/actions/runs/34037263345",
+        "passed": true,
+        "repositoryAcceptancePassed": true,
+        "browserKernelContractPassed": true,
+        "browserHardwareClass": "SwiftShader",
+        "demoOfflineContractPassed": true,
+        "demoExecutionClass": "mocked-contract",
+        "log": {
+          "path": "reports/electron-adoption/github-ci-54524cdf-34037263345.log",
+          "sha256": "a56d0b3058005cfc65e01e79a6a3f2629bfa05a7c10759801225540252786c90"
+        }
+      }
+    },
+    "installedPackage": {
+      "sourceCommit": "54524cdfbcfce20a268ae1b0612a847e23f7b757",
+      "sourceWorktreeClean": true,
+      "path": "reports/electron-adoption/20260906-node-standalone-handoff/runtime/doppler-gpu-0.5.1.tgz",
+      "sha256": "219574dab3215b42201844e5c7ce0297f2045d53cd49bb43a62c3d2b816595c1",
+      "fileCount": 1757,
+      "sizeBytes": 2086959,
+      "unpackedBytes": 10791691,
+      "testsPassed": true,
+      "externalAdoption": false,
+      "providerTarballsRetained": [
+        "webgpu@0.4.0",
+        "@webgpu/types@0.1.72",
+        "debug@4.4.3",
+        "ms@2.1.3"
+      ]
+    },
+    "physicalExecution": {
+      "record": "reports/electron-adoption/20260906-node-standalone-handoff/replay.json",
+      "sha256": "009493d4fd32aae2d9eb5193860015dc94e0f45ffddb7790e04c0dbfaaddb6df",
+      "passed": true,
+      "operatorCount": 1,
+      "machineCount": 1,
+      "runtime": "Node 22.22.1",
+      "provider": "webgpu 0.4.0 (Dawn)",
+      "backend": "Vulkan",
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "Radeon 8060S / RADV STRIX_HALO",
+        "driver": "Mesa 26.0.3-1ubuntu1",
+        "fallback": false
+      },
+      "installedFromRetainedTarballsOffline": true,
+      "doeAbsent": true,
+      "networkRequests": 0,
+      "operation": "rerank",
+      "sourceCheckpoint": "Qwen/Qwen3-Reranker-0.6B",
+      "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+      "packSchema": "doppler.pack/v2",
+      "packSemanticRoot": "sha256:fac5bba65bb1cdab39f7a4b609e0d0be065fd9c3ff8554ea925bcc2426ec65be",
+      "targetPlanDigest": "sha256:cf53f16d8dd167accd67ed142bd0896a5d8941f086325efaa9d43535f962e3dd",
+      "qualifiedSurface": "node-webgpu",
+      "artifactCount": 42,
+      "wgslModuleCount": 21,
+      "executions": 2,
+      "sourceChecksPerExecution": 16,
+      "queries": 1,
+      "documents": 3,
+      "targetPlanUnchanged": true,
+      "cleanupPassed": true,
+      "observationOnly": {
+        "loadMs": 81224.39810699999,
+        "rerankMs": [
+          753.4845159999968,
+          858.7945939999918
+        ],
+        "coldOperatingSystemCache": false,
+        "incumbentComparison": false
+      }
+    },
+    "adverse": [
+      {
+        "path": "reports/electron-adoption/20260906-node-standalone-handoff/evidence/investigation/physical-reranker-01.json",
+        "sha256": "a70b0f4b60fafce71448d54191bc65d27eee6b41cfeb5b371e80eec9a80ef5f9",
+        "finding": "The old browser-qualified Pack was rejected on Node. New source qualification and a separately signed Node candidate earned the surface; no selection gate was relaxed."
+      },
+      {
+        "path": "reports/electron-adoption/20260906-node-standalone-handoff/evidence/investigation/node-source-qualification-01.json",
+        "sha256": "33c3811797493c5e5be22ee26a06da6e9e4f9116f206ede641c8e9f1bcb7fcae",
+        "finding": "The initial probe incorrectly compared SHA-256 against BLAKE3 shard metadata and stopped before model loading. Corrected to the manifest-declared algorithm. Harness error, not model corruption."
+      }
+    ]
+  },
+  "handoff": {
+    "path": "reports/electron-adoption/20260906-node-standalone-handoff.tar",
+    "sha256": "6097d07236364acb6b12a04128408b1d0ccbccfadf4a329303f4cee868097b08",
+    "sizeBytes": 974151680,
+    "fileCount": 74,
+    "inventorySha256": "b1138bade077ef9ad42ad2b80a005cf0b2c04bf99cb4d65d330d287492e2feea",
+    "extractedInventoryVerified": true,
+    "privateKeysIncluded": false,
+    "readme": "reports/electron-adoption/20260906-node-standalone-handoff/README.md",
+    "custodyReceipt": "reports/electron-adoption/20260906-node-standalone-handoff-receipt.json",
+    "availability": "Retained locally; the archive is not published by committing this checkpoint.",
+    "signerBoundary": "Explicit local evaluator public key, not production publisher endorsement."
+  },
+  "remaining": [
+    "Broader held-out document quality and credible full-application incumbent comparisons.",
+    "Measured Forge candidate search and lower effort for a changed source checkpoint or model family.",
+    "Explicit recipient-controlled v3 retained-use policy; current managed eligibility expiry still fails closed.",
+    "Independent maintainer installation and voluntary retention through a subsequent model release.",
+    "This checkpoint adds Node reranking proof, not independent Node generation/embedding qualification or broad fleet support."
+  ],
+  "boundaries": {
+    "doeRequired": false,
+    "pooldayRequired": false,
+    "reploidRequired": false,
+    "externalAdoption": false,
+    "paidUse": false,
+    "acquisitionClaim": false,
+    "packRuntimeSelectionRelaxed": false
+  }
+}
