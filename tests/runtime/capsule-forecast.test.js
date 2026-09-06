@@ -29,7 +29,10 @@ assert.deepEqual(pipelines, [{ WIDTH: 4 }, { WIDTH: 8 }]);
 globalThis.GPUBufferUsage ??= { COPY_DST: 8, MAP_READ: 1 };
 globalThis.GPUMapMode ??= { READ: 1 };
 let destroyed = 0;
-const failedReadback = { createBuffer: () => ({ mapAsync: async () => { throw new Error('map failed'); }, destroy() { destroyed++; } }),
+const failedReadback = { createBuffer: descriptor => {
+  assert.equal(descriptor.label, 'doppler-capsule:readback');
+  return { mapAsync: async () => { throw new Error('map failed'); }, destroy() { destroyed++; } };
+},
   createCommandEncoder: () => ({ copyBufferToBuffer() {}, finish() {} }), queue: { submit() {} } };
 await assert.rejects(readbackBuffer(failedReadback, { size: 4 }, 4), /map failed/);
 assert.equal(destroyed, 1);

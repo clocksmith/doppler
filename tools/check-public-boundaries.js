@@ -37,10 +37,12 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // 1769 entries, 2,096,452 packed / 10,827,703 unpacked on Node 22/npm 9.
   // Retain the cross-npm compression allowance; the isolated core has 49 files.
   maxEntryCount: 1769,
-  maxPackedSize: 2_099_000,
+  // CI Node 22.23/npm 10.9 observed 2,099,525 bytes for the same inventory.
+  maxPackedSize: 2_100_000,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
-  maxUnpackedSize: 10_835_420,
+  // The remaining GPU diagnostic label adds three uncompressed bytes.
+  maxUnpackedSize: 10_835_423,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

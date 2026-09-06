@@ -4,7 +4,7 @@ export async function readbackBuffer(device, buffer, sizeBytes) {
   if (!Number.isSafeInteger(sizeBytes) || sizeBytes < 4 || sizeBytes % 4 !== 0 || sizeBytes > buffer.size) {
     throw new Error('Readback requires a positive aligned range within its GPU buffer.');
   }
-  const staging = device.createBuffer({ label: 'doppler-pack:readback', size: sizeBytes,
+  const staging = device.createBuffer({ label: 'doppler-capsule:readback', size: sizeBytes,
     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
   let mapped = false;
   try {
