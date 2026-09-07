@@ -85,13 +85,13 @@
             "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
             "surface": "node",
             "status": "pass",
-            "path": "reports/gemma4-preflight/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-06-20T201732Z.preflight.json"
+            "path": "reports/gemma4-preflight/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-09-07T022848Z.preflight.json"
           },
           {
             "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
             "surface": "node",
             "status": "pass",
-            "path": "reports/gemma4-preflight/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-06-20T201732Z.preflight.json"
+            "path": "reports/gemma4-preflight/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-09-07T022848Z.preflight.json"
           }
         ]
       },
