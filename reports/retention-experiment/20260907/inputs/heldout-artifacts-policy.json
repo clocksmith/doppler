@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.rerank-source-capture/v1",
+  "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+  "repository": "Qwen/Qwen3-Reranker-0.6B",
+  "revision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+  "manifestPath": "/var/tmp/doppler-release-20260907-restored-02/retained/node-capsule/distribution/artifacts/model/manifest.json",
+  "sourceDirectory": "/home/x/deco/doppler/reports/electron-adoption/qwen-source-e61197ed",
+  "input": {
+    "query": "How do signed model artifacts help detect corruption during installation?",
+    "documents": [
+      "The loader hashes downloaded artifact bytes and checks their digest against the signed manifest before execution.",
+      "The application chooses a new color theme when installation finishes.",
+      "The loader ignores an incorrect checksum and executes the incomplete model."
+    ]
+  },
+  "tolerances": {
+    "logitMaxAbs": 1,
+    "scoreMaxAbs": 1,
+    "probabilityMaxAbs": 0.05,
+    "ranking": "exact"
+  },
+  "referenceDevice": "cpu",
+  "referenceDtype": "float32",
+  "threads": 8,
+  "claimBoundary": "Frozen bounded source comparison for quantized Qwen reranking. Not held-out task quality, broad model equivalence, performance superiority, or external adoption."
+}
