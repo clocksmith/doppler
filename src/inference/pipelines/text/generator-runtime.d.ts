@@ -5,6 +5,8 @@ import type { ExecutionSessionPlan } from './execution-plan.js';
 import type { LoadedEmbeddingPostprocessor } from '../../../loader/final-weights-loader.js';
 
 export interface StepOptionsResolved {
+  logitMaskFn: GenerateOptions['logitMaskFn'];
+  promptTokenCount?: number;
   temperature: number;
   topP: number;
   topK: number;
