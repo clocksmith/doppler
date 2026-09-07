@@ -136,3 +136,18 @@ Component: doppler.repository-tooling. Intent: preserved.
 Acceptance evidence: retained restoration and installed qualification receipts.
 Boundary effects: none; application activation and compiler/runtime ownership
 remain explicit.
+
+## Rebuild retained application assets without signing custody
+
+Later repository tooling supports `models: null` in
+`tools/build-document-search-app.js`, with `previousApplicationDir` pointing to
+the reconstructed `retained/application` directory. Keep its `search` and
+`storage` settings unchanged, select the installed package bundle, and declare
+the desired `loading.maxRetainedArtifactBytes` explicitly. The builder verifies
+the signed Capsules and every artifact, preserves their release events and
+checkpoints, and rebuilds the application cache manifest. It requires the same
+application program. A changed program or model release needs its own reviewed
+release workflow; this retained-model mode cannot sign or promote it.
+
+This mode permits an independently reproduced retention experiment using only
+the public reconstruction bundle. Unlimited retention remains the default.

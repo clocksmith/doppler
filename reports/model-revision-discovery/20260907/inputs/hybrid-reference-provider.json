@@ -1,0 +1,6 @@
+{
+  "provider": "webgpu",
+  "createArgs": ["backend=vulkan", "enable-dawn-features=allow_unsafe_apis"],
+  "requiredVendor": "amd",
+  "isFallbackAdapter": false
+}

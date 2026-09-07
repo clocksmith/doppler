@@ -1,0 +1,13 @@
+2026-09-07T16:23:14.4973910Z # skipped 0
+2026-09-07T16:23:14.4974176Z # todo 0
+2026-09-07T16:23:14.4974447Z # duration_ms 73.469987
+2026-09-07T16:23:14.4975071Z [node-tests] ok: tests/tooling/runtime-ownership-execution-evidence.test.js
+2026-09-07T16:23:14.4975652Z [node-tests] ok: 3 files
+2026-09-07T16:23:14.4976087Z [node-tests] script: runtime:closure:check
+2026-09-07T16:23:14.6100086Z Capsule runtime closure passed: 59 files, 576502 source bytes.
+2026-09-07T16:23:14.6143832Z [node-tests] script: public:boundaries:check
+2026-09-07T16:23:24.1972958Z npm package packed-size budget exceeded: 2107481 > 2107100
+2026-09-07T16:23:24.2033027Z [node-tests] public:boundaries:check failed: exit 1
+2026-09-07T16:23:24.2217489Z ##[error]Process completed with exit code 1.
+2026-09-07T16:23:24.2365573Z Post job cleanup.
+2026-09-07T16:23:24.3228769Z [command]/usr/bin/git version

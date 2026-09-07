@@ -5,6 +5,8 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createRetainedReleaseCheckpoint } from './retained-release-checkpoint.js';
+import { closeInstalledCapsule } from './close-installed-capsule.js';
 
 // Repository qualification imports execution exclusively from the installed archive.
 const read = async filename => JSON.parse(await fs.readFile(filename, 'utf8'));
@@ -34,23 +36,16 @@ const pack = await read(`${capsuleRoot}/distribution/capsule-v3.json`);
 const options = await read(`${capsuleRoot}/current-open-options.json`);
 options.releasePolicy = { ...options.releasePolicy, now: new Date().toISOString() };
 const application = options.releaseEvents.at(-1).release.application;
-const sourceLedgerPath = `${capsuleRoot}/release-checkpoints.json`;
-const sourceLedgerBytes = await fs.readFile(sourceLedgerPath);
-const ledgerPath = path.join(outputDir, 'release-checkpoints.json');
-await fs.writeFile(ledgerPath, sourceLedgerBytes, { flag: 'wx' });
-const priorLedger = await read(ledgerPath);
-options.persistReleaseCheckpoint = async checkpoint => {
-  const ledger = await read(ledgerPath);
-  assert(checkpoint.sequence >= ledger[pack.semanticRoot].sequence);
-  if (checkpoint.sequence === ledger[pack.semanticRoot].sequence) assert.equal(checkpoint.digest, ledger[pack.semanticRoot].digest);
-  ledger[pack.semanticRoot] = checkpoint;
-  await fs.writeFile(ledgerPath, JSON.stringify(ledger, null, 2) + '\n');
-};
+const checkpointStore = await createRetainedReleaseCheckpoint(`${capsuleRoot}/release-checkpoints.json`, outputDir, pack.semanticRoot);
+options.persistReleaseCheckpoint = checkpointStore.persist;
 const reference = await read(referencePath);
 const require = createRequire(path.join(installedRoot, 'package.json'));
 const report = { schema: 'doppler.standalone-node-capsule-probe/v1', startedAtUtc: new Date().toISOString(),
   passed: false, installedPackage: installed.package, config, stage: 'provider', nodeVersion: process.version, platform: process.platform,
+  runtime: { name: process.versions.bun ? 'bun' : 'node', version: process.versions.bun ?? process.version },
   qualifierSha256: sha256(await fs.readFile(new URL(import.meta.url))),
+  checkpointWriterSha256: sha256(await fs.readFile(new URL('./retained-release-checkpoint.js', import.meta.url))),
+  cleanupSha256: sha256(await fs.readFile(new URL('./close-installed-capsule.js', import.meta.url))),
   consumerLockSha256: sha256(await fs.readFile(path.join(config.packageBundlePath, 'consumer/package-lock.json'))),
   releaseEvaluationTime: options.releasePolicy.now,
   evidenceClass: 'internal-physical-installed-package', externalAdoption: false,
@@ -109,18 +104,15 @@ try {
   await assert.rejects(openCapsule(deniedRoot + '/distribution/capsule-v3.json', { ...rejectOptions, releaseEvents: [events.eligible, events.revoked] }), /revoked|denied/i);
   await assert.rejects(openCapsule(deniedRoot + '/distribution/capsule-v3.json', rejectOptions), /checkpoint|rollback|sequence|history/i);
   assert.deepEqual(await fs.readFile(deniedRoot + '/recovery-checkpoint.json'), denialBytes);
-  assert.deepEqual(await read(ledgerPath), priorLedger);
-  assert.deepEqual(await fs.readFile(sourceLedgerPath), sourceLedgerBytes);
+  assert.deepEqual(await read(checkpointStore.filename), checkpointStore.original);
+  await checkpointStore.verifySourceUnchanged();
   report.priorDenialPreserved = { passed: true, checkpoint, rollbackRejected: true };
   report.passed = true;
   report.stage = 'complete';
 } catch (error) { report.error = { message: error.message, stack: error.stack }; }
 finally {
-  const errors = [];
-  for (const close of [() => session?.close(), () => destroyDevice(), async () => { report.release = await releaseNodeWebGPU(); }]) {
-    try { await close(); } catch (error) { errors.push(error.message); }
-  }
-  report.cleanup = { passed: errors.length === 0, errors };
+  report.cleanup = await closeInstalledCapsule({ closeSession: () => session?.close(), destroyDevice,
+    releaseProvider: async () => { report.release = await releaseNodeWebGPU(); } });
   report.passed &&= report.cleanup.passed;
   report.completedAtUtc = new Date().toISOString();
   await fs.writeFile(outputPath, JSON.stringify(report, null, 2), { flag: 'wx' });

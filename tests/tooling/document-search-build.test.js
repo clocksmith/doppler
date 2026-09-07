@@ -22,6 +22,11 @@ try {
   const fixture = await createSignedCapsuleFixture();
   const capsule = await signCapsuleV2(fixture.capsule, signer);
   await write(path.join(capsuleRoot, 'distribution/capsule.json'), capsule);
+  for (const artifact of capsule.artifacts) {
+    const filename = path.join(capsuleRoot, 'distribution', artifact.path);
+    await fs.mkdir(path.dirname(filename), { recursive: true });
+    await fs.writeFile(filename, fixture.artifactBytes.get(artifact.artifactId));
+  }
   await write(path.join(capsuleRoot, 'custody/public-key.json'), signer.publicKeyJwk);
   await write(path.join(capsuleRoot, 'custody/private-key.json'), signer.privateKeyJwk);
   await write(path.join(capsuleRoot, 'open-options.json'), { trustedSigners: { [signer.authority]: signer.publicKeyJwk } });
@@ -42,6 +47,25 @@ try {
     assert.deepEqual(second.models[index].options.releaseEvents, first.models[index].options.releaseEvents);
     assert.deepEqual(second.models[index].options.releasePolicy.checkpoint, first.models[index].options.releasePolicy.checkpoint);
   }
+  await fs.unlink(path.join(capsuleRoot, 'custody/private-key.json'));
+  const retainedDir = path.join(root, 'retained');
+  await buildDocumentSearchApplication({ ...config, models: null, previousApplicationDir: secondDir,
+    outputDir: retainedDir, loading: { maxRetainedArtifactBytes: 134217728 } });
+  const retained = await read(path.join(retainedDir, 'models.json'));
+  for (let index = 0; index < 2; index++) {
+    assert.deepEqual(retained.models[index].identity, second.models[index].identity);
+    assert.deepEqual(retained.models[index].options.releaseEvents, second.models[index].options.releaseEvents);
+    assert.deepEqual(retained.models[index].options.releasePolicy, second.models[index].options.releasePolicy);
+    assert.equal(retained.models[index].options.maxRetainedArtifactBytes, 134217728);
+  }
+  await assert.rejects(buildDocumentSearchApplication({ ...config, models: null, outputDir: path.join(root, 'missing-prior') }), /previousApplicationDir/);
+  await assert.rejects(buildDocumentSearchApplication({ ...config, models: null, previousApplicationDir: secondDir,
+    outputDir: path.join(root, 'changed-search'), search: { candidateCount: 4 } }), /unchanged search/);
+  const artifact = capsule.artifacts[0];
+  await fs.writeFile(path.join(secondDir, 'capsules/embedding', artifact.path), 'corruption');
+  await assert.rejects(buildDocumentSearchApplication({ ...config, models: null, previousApplicationDir: secondDir,
+    outputDir: path.join(root, 'corrupt-retained') }), /hash|size/i);
+  await write(path.join(capsuleRoot, 'custody/private-key.json'), signer.privateKeyJwk);
   const prior = structuredClone(first);
   const model = prior.models[0];
   const eligible = model.options.releaseEvents[0];
