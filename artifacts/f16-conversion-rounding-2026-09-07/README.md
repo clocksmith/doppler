@@ -175,9 +175,38 @@ same directory:
 node compare-f16-speculation.js . rechecked-speculation.json
 ```
 
-A subsequent observational probe captures embeddings and selected final logits
-on the same corrected artifact and ordered corpus. That probe is not yet
-included here. No runtime arithmetic, prompts, or acceptance rules change.
+The first observational run completes all eight cases with identical tokens to
+the uninstrumented single-token control and clean teardown. Its sixteen sampled
+prefill embedding values match the source for each case at the trace's displayed
+four-decimal precision; this is not full-tensor equivalence. It captures zero
+requested `logits_final` probes: that stage is not the normal GPU output stage,
+and GPU output finalization also omits configured probe forwarding. Therefore
+this run cannot compare the required logits boundary. It is retained in
+`embedding-probe-browser.tar.gz`, including its configuration and browser code.
+
+The isolated source candidate forwards configured probes through GPU logits
+finalization and releases the output on an observation failure. Regression
+tests reproduce both the missing handoff and failure-path leak before repair;
+the repaired orchestration and 170 inference test files pass. The next physical
+run requests the `logits` stage and uses the same frozen browser closure with
+only `logits/output-transform.js` changed. The complete candidate workflow passes,
+including 790 test files. `logits-probe-repair-checks.tar.gz` retains the failing
+handoff/cleanup regressions, repaired source and tests, inference suite, package
+inventory, initial unpacked-budget failure, and complete passing workflow log.
+The physical run is producing the requested logits observations; its full result
+and teardown remain pending. This repairs diagnostic visibility, not the answer defect.
+`probe-package-audit.json` accounts for the exact 192-byte unpacked increase in
+one shipped file; file count and packed-size limits remain unchanged.
+
+The completed CPU source replay in `source-step-reference.tar.gz` preserves all
+eight original source token sequences while recording each generation step's
+top eight scores, stop-token/newline scores, and full score-vector digest.
+These are Transformers `output_scores` observations after generation processors,
+not a claim to capture every raw intermediate activation. Source identity and
+all input tokens are checked before execution. On the museum case, after the
+eight shared answer tokens, the source ranks token 248046 at 22.861713 and
+newline 198 at 21.697491. The browser's corresponding numerical scores remain
+to be captured; this source observation alone does not locate the runtime defect.
 
 ## Claim boundary
 
