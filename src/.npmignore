@@ -51,6 +51,7 @@ config/forge/forecast/chronos-bolt-tiny.json
 config/forge/lineage/qwen3.8-27b.json
 config/forge/lowering-vocabularies/heterogeneous-text-v2.json
 config/forge/lowering-vocabularies/hybrid-text-v1.json
+config/forge/model-onboarding-execution.schema.json
 config/forge/model-onboarding.schema.json
 config/forge/onboarding/qwen3.8-27b.json
 config/forge/reference/glimmer-30b-bf16-prefill-boundary-comparison.json
@@ -715,7 +716,6 @@ storage/artifact-storage-context.d.ts
 storage/backend-selection.d.ts
 storage/backends/idb-store.d.ts
 storage/backends/memory-store.d.ts
-storage/backends/opfs-store.d.ts
 storage/blake3.d.ts
 storage/distribution-transport.d.ts
 storage/download-types.d.ts
@@ -783,6 +783,10 @@ tooling/lean-execution-contract.js
 tooling/litert-package-runtime.d.ts
 tooling/litert/package.d.ts
 tooling/model-capsule-forge.d.ts
+tooling/model-onboarding-custody.d.ts
+tooling/model-onboarding-custody.js
+tooling/model-onboarding-execution.d.ts
+tooling/model-onboarding-execution.js
 tooling/model-onboarding.d.ts
 tooling/model-onboarding.js
 tooling/node-browser/static-server.d.ts

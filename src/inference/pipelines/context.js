@@ -4,6 +4,7 @@ import {
   getPlatformConfig,
   setDevice,
 } from '../../gpu/device.js';
+import { isDeviceLost } from '../../gpu/device-state.js';
 import { applyDebugConfig, setGPUDevice } from '../../debug/index.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../../config/runtime.js';
 import { kernelTrace } from './text/kernel-trace.js';
@@ -79,7 +80,7 @@ function restoreDebugState(snapshot) {
     }
   }
 
-  setGPUDevice(snapshot.gpuDevice ?? null);
+  setGPUDevice(isDeviceLost(snapshot.gpuDevice) ? getDevice() : snapshot.gpuDevice ?? null);
 }
 
 export function restorePipelineContexts(target) {
@@ -183,7 +184,10 @@ export function applyPipelineContexts(target, contexts = {}, options = {}) {
     delete target[RESTORE_PIPELINE_CONTEXTS];
 
     setRuntimeConfig(previousRuntimeConfig);
-    if (previousDevice) {
+    if (isDeviceLost(previousDevice)) {
+      // A closed scope cannot restore a destroyed device or displace its replacement.
+      if (isDeviceLost(getDevice())) setDevice(null);
+    } else if (previousDevice) {
       setDevice(previousDevice, {
         platformConfig: previousPlatformConfig,
         adapterInfo: previousAdapterInfo,

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local document search</title>
+<style>
+body{max-width:760px;margin:48px auto;padding:0 24px;font:17px/1.5 system-ui;color:#172c35;background:#f4f7f5}h1{font-size:34px}button,input{font:inherit}button{padding:10px 16px;border:0;border-radius:6px;background:#155d50;color:white;cursor:pointer}button:disabled{opacity:.5}input[type=search]{box-sizing:border-box;width:100%;padding:12px;margin:12px 0}section{padding:20px 0;border-top:1px solid #c8d4cd}label{display:block;margin:12px 0}#status{min-height:2em}article{background:white;padding:16px;margin:12px 0;border-radius:8px}article p{white-space:pre-wrap}small{color:#45625a}
+</style>
+<h1>Local document search</h1>
+<p>Search text and Markdown on this device using an embedding model and a reranker.</p>
+<section>
+<label><input id="retention" type="checkbox"> Keep these model releases for offline use. Offline use cannot check new revocations.</label>
+<button id="install">Install models</button>
+<button id="open">Open installed models</button>
+<button id="repair">Repair damaged model files</button>
+<button id="cancel" disabled>Cancel</button>
+</section>
+<section>
+<label>Documents <input id="files" type="file" accept=".txt,.md,.markdown,text/plain,text/markdown" multiple></label>
+<button id="index" disabled>Save document index</button>
+<button id="rebuild" disabled>Rebuild retained index</button>
+<input id="query" type="search" placeholder="Ask about your documents" aria-label="Search query">
+<button id="search" disabled>Search</button>
+</section>
+<p id="status" role="status">Preparing application…</p>
+<div id="results"></div>
+<script type="importmap">{"imports":{"doppler-gpu":"./runtime/src/capsule-runtime.js","doppler-gpu/host":"./runtime/src/client/capsule-host.browser.js","doppler-gpu/capsule":"./runtime/src/capsule.js","doppler-gpu/tooling/storage":"./runtime/src/tooling-exports/storage.js"}}</script>
+<script type="module" src="./browser.js"></script>
+</html>

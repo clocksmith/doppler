@@ -23,6 +23,8 @@ export { listStorageInventory, deleteStorageEntry } from '../storage/inventory.j
 export { formatBytes, getQuotaInfo } from '../storage/quota.js';
 export { exportModelToDirectory } from '../storage/export.js';
 export { ensureModelCached, ensureModelCachedSource } from '../tooling/opfs-cache.js';
+export { createOpfsStore } from '../storage/backends/opfs-store.js';
+export type { OpfsStore, OpfsStoreConfig } from '../storage/backends/opfs-store.js';
 export {
   buildManifestVersionSet,
   inspectModelDownloadResume,

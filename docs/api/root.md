@@ -78,7 +78,7 @@ application's durable checkpoint; cancellation and device incompatibility cannot
 erase them. Metadata-only verification is not permission to execute: the full
 artifact closure must pass byte verification before constructing a program.
 
-Session opening accepts `signal`, `loadTimeoutMs`, `maxMetadataBytes`, and
+Session opening accepts `signal`, `loadTimeoutMs`, `maxMetadataBytes`, `maxRetainedArtifactBytes`, and
 `onLoadProgress`. Pass these directly to `doppler-gpu/host` or
 `runtime.openCapsule()`, and under `options.session` for the explicit-port root
 `openCapsule()` facade. The JSON loading policy
@@ -112,8 +112,16 @@ per-operation cancellation control. Electron translates opening cancellation to
 its existing `DOPPLER_ELECTRON_CANCELLED` error.
 
 The internal verified store owns a detached copy of every admitted artifact.
+The loading policy defaults `maxRetainedArtifactBytes` to `null` (unlimited).
+A nonnegative byte limit bounds cached verified files using least-recently-used
+eviction. Files larger than the limit are verified for the active read without
+being cached; zero disables retention. A later read of an evicted file acquires
+and verifies its bytes again. The limit excludes active reads, returned slices,
+loader allocations, and GPU memory. Use a persistent artifact source when repeat
+network acquisition is undesirable.
+
 `hashArtifact()` reports that internally computed verification without copying or
-rehashing the file. `readArtifactRange()` returns only an owned requested slice;
+rehashing a retained file. `readArtifactRange()` returns only an owned requested slice;
 neither callers nor source buffers can mutate retained bytes. Externally supplied
 hash claims are never trusted by Capsule opening. Manifest-level shard checks remain
 separate because they bind another identity.
@@ -121,6 +129,9 @@ separate because they bind another identity.
 Observer events `capsule-validation-complete` and `capsule-load-complete` include
 `artifactMetrics`: source bytes read, bytes hashed by the verified store, bytes
 copied there, retained and peak-retained bytes, and bytes returned to consumers.
+`evictions` counts removed cached files. `sourceReadMs`, `hashingMs`, and
+`copyingMs` measure successful source reads, store hashing, and owned copies;
+source reads include work performed inside the supplied artifact adapter.
 These counters exclude HTTP internals, manifest hashing, GPU upload, driver
 allocation, and total process memory. They establish copy/verification work, not
 a measured latency or peak-memory improvement. Capsule acquisition does not provide

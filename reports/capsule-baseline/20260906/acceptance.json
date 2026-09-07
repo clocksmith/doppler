@@ -1,0 +1,363 @@
+{
+  "schema": "doppler.capsule-physical-baseline-acceptance/v1",
+  "component": "doppler",
+  "intent": "changed",
+  "compilerRuntimeOwnership": "preserved",
+  "status": "locally-verified",
+  "source": {
+    "baseCommit": "575ffeb3a7ac66a070db2bd4c58cc68f2448a529",
+    "uncommittedChanges": true,
+    "snapshot": {
+      "schema": "doppler.source-worktree-custody/v1",
+      "baseCommit": "575ffeb3a7ac66a070db2bd4c58cc68f2448a529",
+      "uncommitted": true,
+      "archive": "source-worktree.tar.gz",
+      "digest": "sha256:80b5ec53fb849a53c6b64a91ae6b0d33404dc918f0dc4e8c12c2cee7bc619dd2",
+      "files": 6853,
+      "excluded": "Local experiment tree and the acceptance receipt; no Git history is included."
+    },
+    "installedSourceComparison": {
+      "files": 1740,
+      "differences": [],
+      "scope": "Every installed src file compared byte-for-byte to the working tree."
+    }
+  },
+  "installedPackage": {
+    "filename": "doppler-gpu-0.6.0.tgz",
+    "integrity": "sha512-ZPqEXQ/2T9BfyVf/jfJ3NY44FgCj6Qlr6a6bV+ufY9pku4cORDBQtKkNfqvDknU70qQDHqri4LN8xbsoh1cGyQ==",
+    "sizeBytes": 2104942,
+    "sha256": "9bc30b7d39cfee870ffd26f6e0f6011e3f77adaed6a51eb66a27408c8a7aa81f"
+  },
+  "hardware": {
+    "node": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1",
+      "isFallbackAdapter": false
+    },
+    "browser": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "0x1586",
+      "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+      "isFallbackAdapter": false
+    }
+  },
+  "acceptance": {
+    "localCommand": "TMPDIR=/var/tmp npm run check:green",
+    "passingTestFiles": 778,
+    "capsuleContractFilesIncluded": 36,
+    "publicExportAndDeclarationChecks": 28,
+    "packagingEvidence": "Synthetic integration and installed-package contract checks; separate from physical inference.",
+    "signedNodeInference": true,
+    "signedBrowserInference": true,
+    "physicalDeviceLossRecovery": [
+      "node",
+      "browser"
+    ],
+    "knownDenialPreserved": {
+      "passed": true,
+      "checkpoint": {
+        "sequence": 2,
+        "digest": "sha256:f7297e89694340818a85217fb06bce7ee326c791f548a48d17389b9e7a586170"
+      },
+      "rollbackRejected": true
+    },
+    "offlineAfterBrowserRestartAndServerStop": true,
+    "realEmbeddingCapsuleUpdate": {
+      "staleIndexRejected": true,
+      "priorCheckpointsPreserved": true,
+      "retainedTextReembedded": true,
+      "offlineMaxScoreDifference": 0
+    },
+    "onlinePrivacy": {
+      "onlineRequests": [],
+      "scope": "Browser context requests including service workers; online reembedding and search must make zero requests."
+    },
+    "unseenSearch": {
+      "documents": 6,
+      "queries": 6,
+      "modelTop1": 6,
+      "bm25Top1": 5,
+      "incumbentVictories": [
+        "bike",
+        "moon",
+        "sun",
+        "restore",
+        "motor"
+      ],
+      "scope": "Frozen local fixture; no general retrieval-superiority claim."
+    },
+    "onboarding": {
+      "qualifiedRevisions": [
+        "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+        "c54f2e6e80b2d7b7de06f51cec4959f6b3e03418"
+      ],
+      "stages": [
+        "conversion",
+        "source-reference",
+        "model-qualification",
+        "capsule-construction",
+        "capsule-qualification"
+      ],
+      "interruptedRealConversionReused": true,
+      "completedRunsRevalidatedWithoutStageExecution": true,
+      "relatedRevisionChangedFiles": [
+        "README.md"
+      ],
+      "referenceOutputsIdenticalAcrossRelatedRevision": true,
+      "publication": false
+    }
+  },
+  "retentionComparison": {
+    "passed": true,
+    "summary": {
+      "unlimited": {
+        "runs": 3,
+        "openMsMedian": 64921.17369300005,
+        "rendererRssPeakMedian": 3024470016,
+        "retainedBytesMedian": 2145446153,
+        "firstQueryMsMedian": 1182.4119770000107
+      },
+      "bounded": {
+        "runs": 3,
+        "openMsMedian": 184892.35062699998,
+        "rendererRssPeakMedian": 1127718912,
+        "retainedBytesMedian": 250826752,
+        "firstQueryMsMedian": 1179.2415760000004
+      }
+    },
+    "defaultPolicy": "unlimited",
+    "benefit": "Lower renderer memory; increased opening cost.",
+    "scope": "Renderer RSS from Linux /proc, sampled during opening. RSS includes shared mappings and is not unique system memory. Artifact counters exclude temporary reads, returned slices, loader and GPU allocations.",
+    "sourceReadTiming": "Source adapter wall time includes its own integrity checks; not isolated I/O latency.",
+    "gpuTiming": "Native upload submission and queue completion observations, not isolated transfer throughput.",
+    "sameRankingsAndFrozenScoreTolerance": true
+  },
+  "custody": {
+    "schema": "doppler.capsule-baseline-custody-verification/v1",
+    "passed": true,
+    "manifestDigest": "sha256:5f4d169b4fdd711bd698c69c951f662ccba5f2abf757420cbf7e61556739ee97",
+    "files": 45970,
+    "regularFileBytes": 49445395928,
+    "sourceSnapshot": {
+      "schema": "doppler.source-worktree-custody/v1",
+      "baseCommit": "575ffeb3a7ac66a070db2bd4c58cc68f2448a529",
+      "uncommitted": true,
+      "archive": "source-worktree.tar.gz",
+      "digest": "sha256:80b5ec53fb849a53c6b64a91ae6b0d33404dc918f0dc4e8c12c2cee7bc619dd2",
+      "files": 6853,
+      "excluded": "Local experiment tree and the acceptance receipt; no Git history is included."
+    },
+    "custodyDirectory": "/home/x/.local/share/doppler/capsule-baselines/20260906"
+  },
+  "evidence": [
+    {
+      "path": "final-node-capsule-qualification-03.json",
+      "digest": "sha256:f77516bf9edc1976a7bd325e578dd05f06af0b55449a80a574cbfb8d1b1f13ec",
+      "sizeBytes": 176541,
+      "kind": "physical-execution"
+    },
+    {
+      "path": "final-node-model-qualification.json",
+      "digest": "sha256:7e731029bfbcd6285cdf0741987f4e09e749fd70cf7ca3d5180d601d2e12b333",
+      "sizeBytes": 89808,
+      "kind": "physical-execution"
+    },
+    {
+      "path": "node-recovery.json",
+      "digest": "sha256:18f715d1ca4f2b9484b68d8591150f8d6eea16e5eec93477e4bb4c9604a33981",
+      "sizeBytes": 90366,
+      "kind": "physical-execution"
+    },
+    {
+      "path": "browser-capsule-09/qualification.json",
+      "digest": "sha256:cb013850d64f1e8fdf0b4e7987dbd92f6b422bc2848c3c0c722ea93bc16fac61",
+      "sizeBytes": 471129,
+      "kind": "physical-execution"
+    },
+    {
+      "path": "offline-search-unlimited-02/qualification.json",
+      "digest": "sha256:9b831e59ef3ceda1b46a7bb452a351afd6f13ae2d36c89d886bcdc9388257ae4",
+      "sizeBytes": 5377142,
+      "kind": "physical-execution"
+    },
+    {
+      "path": "offline-search-bounded-02/qualification.json",
+      "digest": "sha256:ce4468c2ab000059f7934d62392cc8c9d715f1027856a58e37eb74c6413c6333",
+      "sizeBytes": 4500308,
+      "kind": "physical-execution"
+    },
+    {
+      "path": "application-update-qualification/qualification.json",
+      "digest": "sha256:562c62a4993fbb75cc8230568d240fe22161c19ce423fd88d0516c601076d711",
+      "sizeBytes": 4706322,
+      "kind": "physical-execution"
+    },
+    {
+      "path": "onboarding-97b0c614/execution/model-qualification/attempt-0/browser/qualification.json",
+      "digest": "sha256:d2fe519e47e231c4914de7af4a2b3f0ff54d3ce51b3255101ac86c074d41838b",
+      "sizeBytes": 2096308,
+      "kind": "physical-execution"
+    },
+    {
+      "path": "onboarding-97b0c614/execution/capsule-qualification/attempt-0/browser/qualification.json",
+      "digest": "sha256:8ed9611340eaac0a3066a997ecc9b0cfa02ad42208915b8efefdb4040c953cb3",
+      "sizeBytes": 2484313,
+      "kind": "physical-execution"
+    },
+    {
+      "path": "onboarding-c54f2e6e/execution/model-qualification/attempt-0/browser/qualification.json",
+      "digest": "sha256:646c79083c90113dbdf6c2ae9efb9ea473845ef1e20a73ab1ddc1d3e64129019",
+      "sizeBytes": 2096454,
+      "kind": "physical-execution"
+    },
+    {
+      "path": "onboarding-c54f2e6e/execution/capsule-qualification/attempt-0/browser/qualification.json",
+      "digest": "sha256:927e9e821706d44bcec4c3419e459d0a2d233e05d9a379f47d93464b3fee9a65",
+      "sizeBytes": 2484354,
+      "kind": "physical-execution"
+    },
+    {
+      "path": "migration-package/receipt.json",
+      "digest": "sha256:a7163abc18e9c0ba988db61c91180f97aea8f810439ac6cfcf995018ff6bb7a0",
+      "sizeBytes": 1763,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "device-recovery-package-verified/receipt.json",
+      "digest": "sha256:4f35db5620ecfa834f865621f8c37a2d8a182fdc14b36d5366f2b35d39b242bb",
+      "sizeBytes": 1763,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "reranker-reference.json",
+      "digest": "sha256:81df00d625d7e8114f82fc4d67f487dde4946b684a809e63376e046a0bc88c4a",
+      "sizeBytes": 7051,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "embedding-reference.json",
+      "digest": "sha256:cbee2b44c44a564e3e4f84720ae7216ce6a54e48e39c1581ac94f6079de272ff",
+      "sizeBytes": 573271,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "embedding-related-frozen-reference.json",
+      "digest": "sha256:b44cabb137aa84f617cd6a9e45765a5f4d1c4307d729fe8b6f559c869f1845c8",
+      "sizeBytes": 573271,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "embedding-related-source-comparison.json",
+      "digest": "sha256:652cb50b4b5a7b29b876382fd8dc18310c60e8f57d16fc2fb2f140618e54a57c",
+      "sizeBytes": 1519,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "onboarding-97b0c614/onboarding-result.json",
+      "digest": "sha256:31e32edee4f579376cd4b088a85996b7309b1110345aba7fe73aafe929af86ce",
+      "sizeBytes": 2409,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "onboarding-97b0c614/resume-exercise.json",
+      "digest": "sha256:53b3ef5f4517806f207af69f3c4d126e260b137f4f96fd5dc08622e6d7bf7e69",
+      "sizeBytes": 2170,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "onboarding-c54f2e6e/onboarding-result.json",
+      "digest": "sha256:d4305376cc2f191b22743a3bb52d7753adc084c6a913cc00fba1a7acff018787",
+      "sizeBytes": 2424,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "onboarding-c54f2e6e-resume.log",
+      "digest": "sha256:d4305376cc2f191b22743a3bb52d7753adc084c6a913cc00fba1a7acff018787",
+      "sizeBytes": 2424,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "final-node-capsule/current-open-options.json",
+      "digest": "sha256:ea8e5dfcfc6023851a52c6a27d7f8ac178438425f535dfdb37de636b1f15c758",
+      "sizeBytes": 11042,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "final-node-capsule/release-checkpoints.json",
+      "digest": "sha256:4ac865106058b7c4795471ca9555ada3cb9ff05dec7c41461892cdf320371148",
+      "sizeBytes": 385,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "reranker-capsule/recovery-checkpoint.json",
+      "digest": "sha256:a3a9c4e4e119715dc10b76c28bb6c425624fc609f1e534bb801db1313c4b7953",
+      "sizeBytes": 106,
+      "kind": "retained-reference-or-contract"
+    },
+    {
+      "path": "retention-comparison/comparison.json",
+      "digest": "sha256:5f74d969c8901a87cb9f00edeba4aeefea21e9fef363e02394109cf910a24cc1",
+      "sizeBytes": 532990,
+      "kind": "controlled-local-comparison"
+    },
+    {
+      "path": "check-green-04.log",
+      "digest": "sha256:cf0fcf3838511fafcc27c48f4791074b01393dbd7001fc5bfa1863ecb8547d43",
+      "sizeBytes": 395683,
+      "kind": "local-acceptance"
+    }
+  ],
+  "retainedFailures": [
+    {
+      "path": "offline-search-bounded/qualification.json",
+      "digest": "sha256:36ee7968271ed0a26ce91df3c9ae325a39060f51940c94f1e5966bf43cb50c3c",
+      "sizeBytes": 5167736,
+      "kind": "retained-negative-observation",
+      "meaning": "Pre-fix destroyed-device restoration; replaced by successful physical reopening checks."
+    },
+    {
+      "path": "final-node-capsule-qualification.json",
+      "digest": "sha256:358488be488f2f5fb3d0c6a93a64603a3b6f34cd07c545346a992ef18dce3e1c",
+      "sizeBytes": 1153,
+      "kind": "retained-negative-observation",
+      "meaning": "Isolation probe rejected an install containing the optional Doe provider; corrected isolated install omits optional dependencies."
+    },
+    {
+      "path": "final-node-capsule-qualification-02.json",
+      "digest": "sha256:d3d827f94139983f28eb88b89b0d4b513d34cda42c2a73973ff8fd920897cfe3",
+      "sizeBytes": 5047,
+      "kind": "retained-negative-observation",
+      "meaning": "Expected Node rejection of a browser-only qualified plan."
+    },
+    {
+      "path": "electron-artifact-corruption-03/qualification.json",
+      "digest": "sha256:bd3543cc182084c360bcb9ba2b840bffa82aeddc3b48f578d82f8aafdeb56e25",
+      "sizeBytes": 55118,
+      "kind": "retained-negative-observation",
+      "meaning": "Expected rejection of an injected corrupt weight artifact."
+    },
+    {
+      "path": "check-green-03.log",
+      "digest": "sha256:a2d210cdfc90d9fedb778ac6fe59b5a2453b183758811f92a59d42b200f90da6",
+      "sizeBytes": 1619,
+      "kind": "retained-negative-observation",
+      "meaning": "Charter word limit rejected; corrected charter passes check-green-04."
+    }
+  ],
+  "boundaryEffects": [
+    "application-owned persistent storage and vector index",
+    "optional verified-artifact retention budget",
+    "lost-device restoration prevention",
+    "resumable local development orchestration"
+  ],
+  "publication": {
+    "npmPublished": false,
+    "adjacentRepositoriesChanged": false,
+    "externalAdoptionEstablished": false,
+    "remoteBackupEstablished": false
+  },
+  "reproductionGuide": "docs/capsule-physical-baseline.md"
+}

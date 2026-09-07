@@ -119,15 +119,52 @@ with credible adopters:
 
 ## Repository work queue
 
-1. Select one authorized external adopter through the existing design-partner
-   process.
-2. Freeze D0 in the product-integration qualification contract.
-3. Record the exact incumbent and Doppler execution comparison before tuning.
-4. Close only the model, kernel, host, and lifecycle gaps reached by that
-   adopter.
-5. Retain D1 through D4 evidence without converting external authority into a
-   repository fixture.
-6. Run the next consequential change through D5.
+The next destination is a reproducible release, automatic source discovery, and
+one independently reproducible optimization, in that order. Engineering proceeds
+without requiring an external adopter; external adoption retains its separate
+D0–D5 proof requirements.
+
+The [local-inference baseline](capsule-physical-baseline.md) closes the implemented
+Node/browser application and repeatable preparation milestone. Its linked
+receipts retain the exact qualification scope. Two source revisions differing
+only in README content prove orchestration repeatability, not architecture
+coverage. The integrated archive requires its own physical qualification.
+
+1. **Reproducible release.** Review and commit the implementation, rebuild from
+   an isolated checkout using documented dependencies and retained artifacts,
+   and run installed Node/browser qualification against the preserved references.
+   Bind acceptance to the exact commit, runtime archive, model/source identities,
+   environment, and commands. Confirm remote checks and provide a retrieval path
+   for everything legally distributable that does not depend on the working
+   directory. Preserve private signing custody, historical observations,
+   application approvals/denials, and revoked checkpoints.
+2. **General model onboarding.** Extend the existing coordinator to detect an
+   upstream revision automatically and produce its support assessment. Exercise
+   a different architecture. Distinguish reusable configuration changes from
+   missing computation; emit precise implementation tasks and executable
+   reference tests. Discovery and successful preparation do not approve release
+   promotion.
+3. **Reusable optimization.** Connect candidate generation to physical hardware
+   experiments under unchanged correctness tests. Freeze tuning and held-out
+   inputs separately, demonstrate an improvement on the held-out inputs, and
+   reproduce it in a second application. Preserve failed candidates and all
+   costs. Outside contribution strengthens evidence but does not gate machinery.
+   Keep limited artifact retention explicit: its measured memory benefit costs
+   opening time, and unlimited retention remains the default.
+4. **Verified inference coverage.** Qualify generation, additional physical
+   devices, and Bun separately. Compare strong alternatives under equivalent
+   quality requirements and visible startup, memory, throughput, cancellation,
+   and recovery contracts. Record blocked or failed lanes. One AMD configuration
+   does not establish general portability or superiority.
+5. **Architecture through extensions.** Fix concrete coupling and defects exposed
+   by these extensions, remove duplicated execution paths, enforce module
+   ownership, and keep publication tooling outside runtime dependencies. Preserve
+   compiler/runtime ownership and application activation authority.
+
+For voluntary adoption, select an authorized unrelated application through the
+existing design-partner process, freeze D0, retain comparable incumbent and
+Doppler results before tuning, and retain owner-attributed D1–D5 evidence.
+Internal application work does not satisfy that external authority requirement.
 
 Current status remains machine-owned by the goal matrix, support registries,
 runtime-ownership decisions, and retained receipts. This plan owns sequence and

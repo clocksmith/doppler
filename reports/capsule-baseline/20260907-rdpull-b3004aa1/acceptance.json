@@ -1,0 +1,100 @@
+{
+  "schema": "doppler.capsule-baseline-integration/v1",
+  "component": "doppler",
+  "intent": "changed",
+  "status": "locally-verified",
+  "baseCommit": "b3004aa162ac5d4488a98af5a9f05234a4b68cd0",
+  "originMain": "b3004aa162ac5d4488a98af5a9f05234a4b68cd0",
+  "pull": {
+    "command": "DECO_ROOT=/home/x/deco TMPDIR=/var/tmp bash ../rdpull.sh doppler",
+    "exitCode": 0,
+    "resolvedConflict": "tools/check-public-boundaries.js",
+    "resolution": "Combined package measured at 1780 files and 10866108 unpacked bytes; compressed allowance unchanged.",
+    "automaticStashRetained": true
+  },
+  "validation": {
+    "command": "TMPDIR=/var/tmp npm run check:green",
+    "exitCode": 0,
+    "passingTestFiles": 778,
+    "capsuleContractFilesIncluded": 36,
+    "gitDiffCheckPassed": true
+  },
+  "package": {
+    "filename": "doppler-gpu-0.6.0.tgz",
+    "sha256": "61a23b9cafd17eb2b420c7bd8bb1f7e8cfae859048f581e42a5fb01ad767ed19",
+    "sizeBytes": 2104958,
+    "unpackedSize": 10866108,
+    "entryCount": 1780
+  },
+  "physicalQualification": {
+    "rerun": false,
+    "priorAcceptance": "reports/capsule-baseline/20260906/acceptance.json",
+    "priorAcceptanceSha256": "bb24d0ab9e294df91fa695b32b5162244958c91e9e85da600adb350221c49859",
+    "runtimeSourceUnchanged": true,
+    "changedArchiveSourceFiles": [
+      "package/src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
+      "package/src/converter/forge-qualification.js",
+      "package/src/converter/forge-stages.js"
+    ],
+    "scope": "Prior physical results remain bound to their original archive and snapshot."
+  },
+  "historicalRevokedCheckpointSha256": "a3a9c4e4e119715dc10b76c28bb6c425624fc609f1e534bb801db1313c4b7953",
+  "publication": {
+    "thisArchivePublished": false,
+    "upstreamPublicationReceipt": "reports/release-qualification/0.6.0-20260907/publication/receipt.json",
+    "upstreamPublishedArchiveSha256": "52dafbf5fbd06a2568ccfe95e0a27d65e01200f60da826bfc63e43427fd8492e"
+  },
+  "uncommittedChanges": true,
+  "adjacentRepositoriesChanged": false,
+  "externalAdoptionEstablished": false,
+  "custody": {
+    "directory": "/home/x/.local/share/doppler/capsule-baselines/20260907-rdpull-b3004aa1",
+    "filesVerified": 7,
+    "remoteBackup": false
+  },
+  "evidence": [
+    {
+      "path": "archive-source-comparison.json",
+      "sha256": "2a62e404481df8bcf7be775aa9429106574c0d42cbbc3a687ce2cb51122551fb",
+      "sizeBytes": 501
+    },
+    {
+      "path": "check-green.log",
+      "sha256": "a1570d853fada450ef5282f842a4969858ebb6c87fac0ef202e2ba2ae3d4e4fb",
+      "sizeBytes": 395678
+    },
+    {
+      "path": "doppler-gpu-0.6.0.tgz",
+      "sha256": "61a23b9cafd17eb2b420c7bd8bb1f7e8cfae859048f581e42a5fb01ad767ed19",
+      "sizeBytes": 2104958
+    },
+    {
+      "path": "local-source-changes.patch",
+      "sha256": "2461a695cfbec91a97111bfa562553d5000467154cf313fba2bc3b153a712d27",
+      "sizeBytes": 36833
+    },
+    {
+      "path": "local-source-changes.tar.gz",
+      "sha256": "b652919ff0e9883be14788cb241c729d4a0186d290e93410498b881c6677ec87",
+      "sizeBytes": 89359
+    },
+    {
+      "path": "npm-pack.json",
+      "sha256": "21d25bf5fb65dd3e167f911c53c7487d2459d3aba65a2c536b479950891977a5",
+      "sizeBytes": 211511
+    },
+    {
+      "path": "source-state.json",
+      "sha256": "568acb70c7411009605afcd1a57b427bdc28c9715503b72f900cd6b570882781",
+      "sizeBytes": 9629
+    }
+  ],
+  "reproduction": "Check out baseCommit, restore local-source-changes.tar.gz, and retain the separately pinned prior acceptance and current receipt. The archive contains all 48 local changed source files; Git history and model evidence remain separate.",
+  "boundaryEffects": [
+    "application storage",
+    "verified artifact retention",
+    "GPU loss recovery",
+    "resumable onboarding",
+    "upstream Forge sequence classification"
+  ]
+}

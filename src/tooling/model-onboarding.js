@@ -6,6 +6,8 @@ import { hashBytesSha256, computeCanonicalSha256 } from '../formats/canonical-ha
 import { forgeSourceTruthFromFiles } from './source-truth-inputs.js';
 import { assessModelSupport } from '../converter/model-support-assessment.js';
 import { materializeLineageConversionCandidate } from '../converter/lineage-lowering-forge.js';
+import { retainOnboardingJson as retainJson } from './model-onboarding-custody.js';
+import { runOnboardingExecution, validateOnboardingExecution } from './model-onboarding-execution.js';
 
 function requireKeys(value, keys, label) {
   if (!isPlainObject(value) || keys.some((key) => !Object.hasOwn(value, key))
@@ -42,29 +44,27 @@ async function readInput(input, sourceRoot) {
   return JSON.parse(bytes.toString('utf8'));
 }
 
-async function retainJson(outputDir, filename, value) {
-  const text = `${JSON.stringify(value, null, 2)}\n`;
-  const output = path.join(outputDir, filename);
-  try {
-    await fs.writeFile(output, text, { flag: 'wx' });
-  } catch (error) {
-    if (error.code !== 'EEXIST') throw error;
-    if (await fs.readFile(output, 'utf8') !== text) {
-      throw new Error(`Retained onboarding output differs: ${filename}. Preserve it and use a new output directory.`);
-    }
-  }
-  return { path: filename, digest: hashBytesSha256(Buffer.from(text)) };
-}
-
-export async function runModelOnboarding(config, { sourceRoot, outputDir }) {
+export async function runModelOnboarding(config, { sourceRoot, outputDir, execution }) {
   validateConfig(config);
+  if (execution != null) {
+    validateOnboardingExecution(execution.config);
+    if (typeof execution.runStage !== 'function' || typeof execution.verifyStage !== 'function') {
+      throw new Error('Explicit onboarding stage execution and verification ports required.');
+    }
+    execution = { ...execution, config: structuredClone(execution.config) };
+  }
   if (typeof sourceRoot !== 'string' || !sourceRoot.trim() || typeof outputDir !== 'string' || !outputDir.trim()) {
     throw new Error('Model onboarding requires sourceRoot and outputDir.');
   }
   config = structuredClone(config);
-  const inputDigest = computeCanonicalSha256(config);
+  const inputDigest = computeCanonicalSha256(execution == null ? config : { config, execution: execution.config });
   await fs.mkdir(outputDir, { recursive: true });
+  try {
+    const previous = JSON.parse(await fs.readFile(path.join(outputDir, 'onboarding-result.json'), 'utf8'));
+    if (previous.inputDigest !== inputDigest) throw new Error('Retained onboarding inputs differ. Preserve them and use a new output directory.');
+  } catch (error) { if (error.code !== 'ENOENT') throw error; }
   await retainJson(outputDir, 'onboarding-input.json', config);
+  if (execution != null) await retainJson(outputDir, 'onboarding-execution-input.json', execution.config);
   let stage = 'source-facts';
   const outputs = {};
   try {
@@ -100,6 +100,16 @@ export async function runModelOnboarding(config, { sourceRoot, outputDir }) {
       ],
       qualified: false, published: false,
     };
+    if (execution != null && status === 'candidate-materialized') {
+      stage = 'execution';
+      const executionResult = await runOnboardingExecution(execution.config, { sourceRoot,
+        outputDir: path.join(outputDir, 'execution'), sourceIdentity: source.modelIR.sourceIdentity,
+        conversionPath: path.join(outputDir, outputs.conversion.path), conversionDigest: outputs.conversion.digest,
+        runStage: execution.runStage, verifyStage: execution.verifyStage });
+      result.schema = 'doppler.model-onboarding-result/v2';
+      result.status = 'capsule-qualified'; result.qualified = true; result.manualRequirements = [];
+      outputs.execution = await retainJson(outputDir, 'execution-summary.json', executionResult);
+    }
     await retainJson(outputDir, 'onboarding-result.json', result);
     return result;
   } catch (error) {

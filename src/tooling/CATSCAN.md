@@ -17,9 +17,10 @@ Give browser, Node, and CLI adapters one normalized command contract and one evi
 
 - Shipped tooling APIs and shared browser/Node command infrastructure.
 - [Capsule Forge command](model-capsule-forge.js) handles files and signing inputs around the [converter-owned compiler](../converter/CATSCAN.md), not a second compiler.
-- [Model onboarding](model-onboarding.js) coordinates pinned source evidence,
-  semantic assessment, and lineage materialization. It retains immutable stage
-  outputs; it cannot turn preparation into inference or publication evidence.
+- [Model onboarding](model-onboarding.js) coordinates pinned source assessment,
+  lineage, conversion, independent comparison, physical qualification, and signed
+  Capsule execution resumably. Retains immutable outputs and failures.
+  Preparation cannot establish inference; onboarding cannot publish or approve application upgrades.
 
 ## Contracts
 

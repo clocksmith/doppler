@@ -62,6 +62,35 @@ function createFakeDevice(label) {
 }
 
 {
+  const loss = Promise.withResolvers();
+  const device = { ...createFakeDevice('lost-scope'), lost: loss.promise };
+  setDevice(device);
+  const target = {};
+  applyPipelineContexts(target, { gpu: { device } });
+  loss.resolve({ reason: 'destroyed', message: 'Test loss' });
+  await loss.promise;
+  assert.equal(getDevice(), null);
+  restorePipelineContexts(target);
+  assert.equal(getDevice(), null, 'closing a lost pipeline must not restore its destroyed device');
+  assert.throws(() => setDevice(device), /lost GPU device/);
+}
+
+{
+  const loss = Promise.withResolvers();
+  const device = { ...createFakeDevice('old-scope'), lost: loss.promise };
+  setDevice(device);
+  const target = {};
+  applyPipelineContexts(target, { gpu: { device } });
+  loss.resolve({ reason: 'destroyed', message: 'Test replacement' });
+  await loss.promise;
+  const replacement = createFakeDevice('replacement-after-loss');
+  setDevice(replacement);
+  restorePipelineContexts(target);
+  assert.equal(getDevice(), replacement, 'closing an old scope preserves an explicitly acquired replacement');
+  setDevice(null);
+}
+
+{
   const originalRuntime = getRuntimeConfig();
   const originalDevice = createFakeDevice('original');
   setDevice(originalDevice, {

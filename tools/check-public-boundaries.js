@@ -40,14 +40,15 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Measured npm 9 inventory: 1776 entries, 2,102,329 packed / 10,856,136 unpacked.
   // Explicit LoRA layout policy adds three files. npm 9 measured 1779 entries,
   // 2,103,827 packed / 10,861,748 unpacked bytes; no model weights are shipped.
-  maxEntryCount: 1779,
+  // Exporting the existing OPFS backend adds its declaration to the public closure.
+  maxEntryCount: 1780,
   // CI Node 22.23/npm 10.9 observed 2,099,525 bytes for the same inventory.
   maxPackedSize: 2_106_000,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
-  // Sequence ModelIR classification preserves the 1779-file closure: 10,861,856 bytes.
-  maxUnpackedSize: 10_861_900,
+  // Sequence classification, public OPFS, retention, and device recovery: measured npm 9 archive.
+  maxUnpackedSize: 10_866_108,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

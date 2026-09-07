@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.document-search-evaluation/v1",
+  "scope": "Frozen application evaluation inputs, absent from the source qualification reference; no external adoption claim.",
+  "documents": [
+    { "id": "sourdough", "title": "Maintaining a sourdough starter", "mediaType": "text/markdown", "text": "# Maintaining a sourdough starter\nA starter is a living mixture of flour, water, yeast and bacteria. Feed it fresh flour and water regularly. For occasional baking, keep it refrigerated and refresh it before mixing dough. Discard any starter showing fuzzy mold or pink discoloration." },
+    { "id": "tire", "title": "Repairing a bicycle puncture", "mediaType": "text/plain", "text": "Remove the bicycle wheel and lift one tire bead off the rim. Pull out the tube and inflate it to locate the puncture. Check the tire for glass or thorns before patching the tube or fitting a replacement. Seat the bead and inflate to the tire manufacturer's pressure range." },
+    { "id": "eclipse", "title": "How a lunar eclipse happens", "mediaType": "text/markdown", "text": "# Lunar eclipses\nA lunar eclipse occurs when Earth moves between the Sun and the Moon and Earth's shadow falls on the Moon. It can happen only at full moon, but the tilt of the lunar orbit means most full moons are not eclipses. A total lunar eclipse can make the Moon look copper red." },
+    { "id": "solar", "title": "How a solar eclipse happens", "mediaType": "text/plain", "text": "A solar eclipse occurs when the Moon moves between Earth and the Sun. The Moon's shadow crosses part of Earth and blocks the bright solar disk. This geometry is possible at new moon. Observing the Sun requires suitable solar viewing protection." },
+    { "id": "git", "title": "Restoring a removed Git file", "mediaType": "text/markdown", "text": "# Recover a tracked file\nIf a tracked file was removed from the working tree but the deletion has not been committed, git restore -- path/to/file restores it from the index. To recover a version from a particular commit, specify --source followed by that commit. Untracked files cannot be recovered from Git history unless they were previously committed." },
+    { "id": "starter-motor", "title": "What a starter motor does", "mediaType": "text/plain", "text": "The starter motor uses electricity from a vehicle battery to rotate the engine until combustion can continue on its own. A clicking sound with no engine rotation can indicate a weak battery or poor connection. This electrical starter does not use flour or yeast." }
+  ],
+  "queries": [
+    { "id": "bread", "text": "How should I store the culture that leavens my bread when I only bake occasionally?", "expectedTopId": "sourdough" },
+    { "id": "bike", "text": "What should I inspect before replacing the inner tube on my bike?", "expectedTopId": "tire" },
+    { "id": "moon", "text": "Why can our planet's shadow turn the full moon red?", "expectedTopId": "eclipse" },
+    { "id": "sun", "text": "Which body passes in front of the Sun during a solar eclipse?", "expectedTopId": "solar" },
+    { "id": "restore", "text": "I accidentally deleted a tracked file without committing. How do I get it back?", "expectedTopId": "git" },
+    { "id": "motor", "text": "What component uses the car battery to crank the engine?", "expectedTopId": "starter-motor" }
+  ],
+  "acceptance": { "requiredTop1": 6, "offlineScoreMaxAbs": 0.0001, "preserveIncumbentResults": true },
+  "incumbent": { "algorithm": "bm25", "k1": 1.2, "b": 0.75, "tokenization": "lowercase-ascii-words" }
+}
