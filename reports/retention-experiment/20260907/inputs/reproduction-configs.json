@@ -1,0 +1,172 @@
+{
+  "schema": "doppler.retention-reproduction-configs/v1",
+  "configs": {
+    "node": {
+      "schema": "doppler.capsule-retention-experiment/v1",
+      "id": "qwen-reranker-retention-20260907",
+      "hypothesis": "Bounding verified artifact retention at 128 MiB reduces fresh-process peak RSS beyond observed run ranges on held-out reranking inputs, while preserving all frozen source tolerances and staying within explicit opening/inference budgets.",
+      "outputDir": "@output/node-experiment-03",
+      "packageBundlePath": "@runtime",
+      "capsuleRoot": "@restoration/retained/node-capsule",
+      "worker": {
+        "path": "@repo/tools/measure-capsule-retention.js",
+        "digest": "sha256:7a2e28d4e6d8736dbd58c8e35b8a1f86e3d1f128246f30836ad0643acdfbf914"
+      },
+      "baseline": {
+        "path": "@inputs/baseline-qualification.json",
+        "digest": "sha256:fac98d4c10c834dd43411214a2db7e0ef2a84cebf4dbe08e583be7a5afd225f1"
+      },
+      "retentionBytes": [
+        null,
+        134217728
+      ],
+      "tuning": [
+        {
+          "id": "webgpu-api",
+          "sourceReference": {
+            "path": "@restoration/retained/references/reranker-reference.json",
+            "digest": "sha256:81df00d625d7e8114f82fc4d67f487dde4946b684a809e63376e046a0bc88c4a"
+          }
+        }
+      ],
+      "heldout": [
+        {
+          "id": "heldout-recovery",
+          "sourceReference": {
+            "path": "@inputs/heldout-recovery-reference.json",
+            "digest": "sha256:46f440f7c67dcf55fdc069eb176a16c7394e60b584032bc4c9f9b0b4d92c57c6"
+          }
+        },
+        {
+          "id": "heldout-artifacts",
+          "sourceReference": {
+            "path": "@inputs/heldout-artifacts-reference.json",
+            "digest": "sha256:e128ad8ec1f4f746c7db1df973ccc16092d14e6090470ded63f886449c8710a5"
+          }
+        }
+      ],
+      "sampling": {
+        "warmupRuns": 1,
+        "timedRuns": 3,
+        "order": "balanced-rotation",
+        "seed": 7
+      },
+      "measurement": {
+        "requiredVendor": "amd",
+        "providerCreateArgs": [
+          "backend=vulkan",
+          "enable-dawn-features=allow_unsafe_apis"
+        ],
+        "maxLoadMs": 180000,
+        "maxInferenceMs": 5000
+      },
+      "timeoutMs": 300000,
+      "workerDependencies": [
+        {
+          "path": "@repo/tools/retained-release-checkpoint.js",
+          "digest": "sha256:8b2a17baec9cb0b5dd26b43ba950f6cf066a2e6520c5b7f3bc708303bb075d3a"
+        },
+        {
+          "path": "@repo/tools/close-installed-capsule.js",
+          "digest": "sha256:5f91b7726f12b775a3b32fdfe2a82cbd515f99f08eb7049c3ec8097358be3da7"
+        }
+      ]
+    },
+    "build-unlimited": {
+      "packageBundlePath": "@runtime",
+      "outputDir": "@output/browser-app-unlimited",
+      "previousApplicationDir": "@restoration/retained/application",
+      "models": null,
+      "search": {
+        "dimension": 1024,
+        "candidateCount": 3,
+        "queryPrefix": "",
+        "documentPrefix": ""
+      },
+      "storage": {
+        "opfsRootDir": "doppler-document-search",
+        "useSyncAccessHandle": false,
+        "maxConcurrentHandles": 1
+      },
+      "loading": {
+        "maxRetainedArtifactBytes": null
+      }
+    },
+    "build-bounded": {
+      "packageBundlePath": "@runtime",
+      "outputDir": "@output/browser-app-bounded",
+      "previousApplicationDir": "@restoration/retained/application",
+      "models": null,
+      "search": {
+        "dimension": 1024,
+        "candidateCount": 3,
+        "queryPrefix": "",
+        "documentPrefix": ""
+      },
+      "storage": {
+        "opfsRootDir": "doppler-document-search",
+        "useSyncAccessHandle": false,
+        "maxConcurrentHandles": 1
+      },
+      "loading": {
+        "maxRetainedArtifactBytes": 134217728
+      }
+    },
+    "qualify-unlimited": {
+      "applicationDir": "@output/browser-app-unlimited",
+      "fixturePath": "@inputs/browser-heldout-fixture.json",
+      "outputDir": "@output/browser-qualification-unlimited",
+      "temporaryDirectory": "/var/tmp",
+      "launchArgs": [
+        "--enable-unsafe-webgpu",
+        "--enable-webgpu-developer-features",
+        "--disable-dawn-features=disallow_unsafe_apis",
+        "--ignore-gpu-blocklist",
+        "--use-angle=vulkan",
+        "--enable-features=Vulkan",
+        "--disable-vulkan-surface",
+        "--enable-precise-memory-info"
+      ],
+      "requiredVendor": "amd",
+      "timeoutMs": 1800000,
+      "recovery": true
+    },
+    "qualify-bounded": {
+      "applicationDir": "@output/browser-app-bounded",
+      "fixturePath": "@inputs/browser-heldout-fixture.json",
+      "outputDir": "@output/browser-qualification-bounded",
+      "temporaryDirectory": "/var/tmp",
+      "launchArgs": [
+        "--enable-unsafe-webgpu",
+        "--enable-webgpu-developer-features",
+        "--disable-dawn-features=disallow_unsafe_apis",
+        "--ignore-gpu-blocklist",
+        "--use-angle=vulkan",
+        "--enable-features=Vulkan",
+        "--disable-vulkan-surface",
+        "--enable-precise-memory-info"
+      ],
+      "requiredVendor": "amd",
+      "timeoutMs": 1800000,
+      "recovery": true
+    },
+    "compare": {
+      "fixturePath": "@inputs/browser-heldout-fixture.json",
+      "qualifications": {
+        "unlimited": "@output/browser-qualification-unlimited/qualification.json",
+        "bounded": "@output/browser-qualification-bounded/qualification.json"
+      },
+      "outputDir": "@output/browser-comparison",
+      "order": [
+        "unlimited",
+        "bounded",
+        "bounded",
+        "unlimited",
+        "unlimited",
+        "bounded"
+      ],
+      "sampleIntervalMs": 25,
+      "timeoutMs": 1800000
+    }
+  }
+}

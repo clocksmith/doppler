@@ -130,6 +130,12 @@ reports/**
 !reports/model-revision-discovery/20260907/acceptance.json
 !reports/model-revision-discovery/20260907/evidence.tar.gz
 !reports/model-revision-discovery/20260907/remote-merge-budget-failure.log
+!reports/retention-experiment/
+!reports/retention-experiment/20260907/
+!reports/retention-experiment/20260907/inputs/
+!reports/retention-experiment/20260907/inputs/*.json
+!reports/retention-experiment/20260907/acceptance.json
+!reports/retention-experiment/20260907/evidence.tar.gz
 !reports/pack-v0/
 !reports/pack-v0/**/
 !reports/pack-v0/**/*-qualification.json

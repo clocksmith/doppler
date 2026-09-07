@@ -1,0 +1,85 @@
+{
+  "schema": "doppler.document-search-evaluation/v1",
+  "scope": "Frozen second-application inputs excluded from Node retention tuning; unchanged correctness for control and candidate.",
+  "documents": [
+    {
+      "id": "index",
+      "title": "Rebuild an incompatible search index",
+      "mediaType": "text/plain",
+      "text": "A saved document index contains vectors produced by a specific embedding model and preprocessing contract. If the model identity or preprocessing changes, discard the incompatible vectors, retain the original documents and recompute their embeddings before searching."
+    },
+    {
+      "id": "offline",
+      "title": "Offline application restart",
+      "mediaType": "text/plain",
+      "text": "A service worker stores the application code, tokenizer and verified model artifacts locally. After the browser closes and reopens without a network connection, the application can reload these retained files and search documents offline."
+    },
+    {
+      "id": "quota",
+      "title": "Recover from storage exhaustion",
+      "mediaType": "text/plain",
+      "text": "If persistent browser storage runs out during model installation, the installation attempt fails explicitly. Preserve the previously accepted model, remove incomplete new artifacts, free storage and retry installation into a separate attempt."
+    },
+    {
+      "id": "revoke",
+      "title": "Respect a revoked model release",
+      "mediaType": "text/plain",
+      "text": "A release authority may issue a signed revocation for a model. An application preserves the highest accepted checkpoint and rejects the revoked release. Loading an older eligible event cannot erase the later revocation or reset the rollback protection."
+    },
+    {
+      "id": "cancel",
+      "title": "Cancel an active query",
+      "mediaType": "text/plain",
+      "text": "A user can cancel an inference request using its abort signal. The application stops admitting new work for that request and releases its owned temporary resources. Other accepted documents remain available for a later query."
+    },
+    {
+      "id": "integrity",
+      "title": "Verify downloaded artifacts",
+      "mediaType": "text/plain",
+      "text": "Each model artifact is declared by path, byte size and cryptographic digest in signed metadata. The loader checks the acquired bytes against that declaration before using them. Corrupted or truncated downloads must be rejected rather than executed."
+    }
+  ],
+  "queries": [
+    {
+      "id": "reindex",
+      "text": "What should happen to saved vectors when the embedding model changes?",
+      "expectedTopId": "index"
+    },
+    {
+      "id": "restart",
+      "text": "How can search work after restarting the browser without networking?",
+      "expectedTopId": "offline"
+    },
+    {
+      "id": "capacity",
+      "text": "What should the installer do when persistent storage fills up?",
+      "expectedTopId": "quota"
+    },
+    {
+      "id": "rollback",
+      "text": "Can an older eligible release event bypass a later signed revocation?",
+      "expectedTopId": "revoke"
+    },
+    {
+      "id": "abort",
+      "text": "How does a user stop an active inference request?",
+      "expectedTopId": "cancel"
+    },
+    {
+      "id": "checksum",
+      "text": "How should the loader detect corrupted model downloads?",
+      "expectedTopId": "integrity"
+    }
+  ],
+  "acceptance": {
+    "requiredTop1": 6,
+    "offlineScoreMaxAbs": 0.0001,
+    "preserveIncumbentResults": true
+  },
+  "incumbent": {
+    "algorithm": "bm25",
+    "k1": 1.2,
+    "b": 0.75,
+    "tokenization": "lowercase-ascii-words"
+  }
+}
