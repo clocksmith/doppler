@@ -40,6 +40,24 @@ try {
   const failure = JSON.parse(await fs.readFile(path.join(traversalOutput, 'restoration.json'), 'utf8'));
   assert.match(failure.error.message, /inside their root/);
   assert.deepEqual(failure.commands, []);
+  recipe.files[0].path = 'runtime.tgz';
+  await fs.writeFile(path.join(bundle, 'runtime.tgz'), bytes);
+  const modelFile = { path: 'shard_00000.bin', origin: 'converted', sizeBytes: 1, sha256: '0'.repeat(64) };
+  for (const [label, destination, pattern] of [
+    ['model-root-escape', { path: '../consumer', files: [modelFile] }, /inside their root/],
+    ['model-file-escape', { path: 'model', files: [{ ...modelFile, path: '../manifest.json' }] }, /inside their root/],
+    ['model-origin', { path: 'model', files: [{ ...modelFile, origin: 'remote' }] }, /Explicit model file origin/],
+    ['model-hash', { path: 'model', files: [{ ...modelFile, sha256: null }] }, /byte size and SHA-256/],
+  ]) {
+    recipe.sources = [{ distributions: [], modelDirectories: [destination] }];
+    await fs.writeFile(configPath, JSON.stringify(recipe));
+    const attempt = path.join(root, label);
+    assert.equal(spawnSync(process.execPath, [tool, bundle, attempt]).status, 1);
+    const result = JSON.parse(await fs.readFile(path.join(attempt, 'restoration.json')));
+    assert.match(result.error.message, pattern);
+    assert.deepEqual(result.commands, [], 'Invalid raw model destinations fail before installation.');
+    assert.deepEqual(result.downloads, []);
+  }
 } finally {
   await fs.rm(root, { recursive: true, force: true });
 }

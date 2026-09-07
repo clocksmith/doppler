@@ -151,3 +151,18 @@ release workflow; this retained-model mode cannot sign or promote it.
 
 This mode permits an independently reproduced retention experiment using only
 the public reconstruction bundle. Unlimited retention remains the default.
+
+## Separately qualified Bun lane
+
+The [Bun acceptance receipt](../reports/inference-coverage/20260907-bun/acceptance.json)
+binds signed Qwen reranking, source-reference comparisons, device recovery and
+release denials to Bun 1.3.10, the retained runtime archive and physical AMD
+Radeon 8060S hardware. It does not qualify generation or another device.
+
+After reconstructing the public baseline and installing its documented consumer,
+extract the adjacent Bun `evidence.tar.gz` into a new directory. The archive
+includes the exact executed `qualifier-source.js`; its hash matches the receipt.
+Rebind `config.json` to the reconstructed paths and a new output directory, then
+run `bun qualifier-source.js config.json`. The original configuration and receipt
+remain provenance. The newer repository qualifier shares checkpoint and cleanup
+helpers, so its source hash differs from this retained historical execution.
