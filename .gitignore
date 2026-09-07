@@ -136,6 +136,9 @@ reports/**
 !reports/retention-experiment/20260907/inputs/*.json
 !reports/retention-experiment/20260907/acceptance.json
 !reports/retention-experiment/20260907/evidence.tar.gz
+!reports/retention-experiment/20260907-independent/
+!reports/retention-experiment/20260907-independent/acceptance.json
+!reports/retention-experiment/20260907-independent/evidence.tar.gz
 !reports/inference-coverage/
 !reports/inference-coverage/20260907-bun/
 !reports/inference-coverage/20260907-bun/acceptance.json
