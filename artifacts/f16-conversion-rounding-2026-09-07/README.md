@@ -5,6 +5,12 @@ Boundary effects: newly converted tensor bytes and Q4_K scale encodings may
 change. Previously converted and signed artifacts are not rewritten. No model
 publication, catalog promotion, or runtime fallback is authorized by this record.
 
+The later diagnostic repair also touches
+`doppler.runtime-source.inference.pipelines.text`: configured logits-probe
+forwarding and failure-path cleanup only. `doppler.repository-tooling` retains
+the measured package delta. Intent is preserved in both components; the
+session-order failure remains an unresolved runtime observation.
+
 ## Observed defect
 
 An F16 precision control for Reploid's document-answer investigation sampled 16
@@ -193,8 +199,11 @@ only `logits/output-transform.js` changed. The complete candidate workflow passe
 including 790 test files. `logits-probe-repair-checks.tar.gz` retains the failing
 handoff/cleanup regressions, repaired source and tests, inference suite, package
 inventory, initial unpacked-budget failure, and complete passing workflow log.
-The physical run is producing the requested logits observations; its full result
-and teardown remain pending. This repairs diagnostic visibility, not the answer defect.
+The physical run completes all eight cases with clean teardown and captures one
+logits probe for every generated token. Its outputs remain identical to the
+uninstrumented single-token control. `logits-probe-browser.tar.gz` retains the
+complete run and captured source. This repairs diagnostic visibility, not the
+answer defect.
 `probe-package-audit.json` accounts for the exact 192-byte unpacked increase in
 one shipped file; file count and packed-size limits remain unchanged.
 
@@ -205,8 +214,43 @@ These are Transformers `output_scores` observations after generation processors,
 not a claim to capture every raw intermediate activation. Source identity and
 all input tokens are checked before execution. On the museum case, after the
 eight shared answer tokens, the source ranks token 248046 at 22.861713 and
-newline 198 at 21.697491. The browser's corresponding numerical scores remain
-to be captured; this source observation alone does not locate the runtime defect.
+newline 198 at 21.697491. In the reused browser session, those scores are
+19.9951 and 20.2742 respectively: the ranking has inverted before token
+selection. The browser then repeats to the 256-token limit.
+
+## Session-order control
+
+The same museum question, run first in a fresh browser/model session, emits nine
+tokens and stops at token 248046. Its stop-token score is 22.8625 and newline
+score is 21.6960, close to the CPU source observation. It matches the source's
+token sequence through the chat-end token. The runtime stops at chat end while
+the source control continues its formatting suffix, so this is not full raw
+token-sequence identity. The answer still omits required information and is not
+task-qualified.
+
+`session-reuse-browser.tar.gz` retains the fresh control and executable pair
+comparator. The comparator checks completed runs, clean teardown, identical
+model inventories, browser/device identity, load/generation/observation policy,
+the exact question and passages, and all 591 captured source files in each run.
+It verifies one logits observation per generated token. The differing condition
+is the museum question's position: third after ticket and sensor, versus first
+in a fresh model session. The full eight-case corpus remains the regression
+corpus; the one-case arm is a reduced diagnostic, not a replacement evaluation.
+
+After extracting `logits-probe-browser.tar.gz`, `session-reuse-browser.tar.gz`,
+and `source-step-reference.tar.gz` together, reproduce with:
+
+```sh
+node compare-f16-session-reuse.js . rechecked-session-reuse.json
+```
+
+Fresh extraction and comparison pass. Browser values are displayed to four
+decimal places; source step scores are generation-processor output. Concurrent
+local activity prevents performance claims. This establishes session-order
+dependence of the failure, not the identity of the faulty buffer or state owner.
+The next paired probes inspect layer-zero projections, linear-attention output,
+and completed-layer output under the two job histories. No numerical kernel or
+state-reset repair is included yet.
 
 ## Claim boundary
 
