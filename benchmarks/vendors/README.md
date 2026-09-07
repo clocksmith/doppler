@@ -444,3 +444,11 @@ installed Doppler qualification. It records model load, per-input duration,
 renderer RSS, exact browser identity, and fallback state. These qualification
 measurements do not establish a paired speed claim or cancellation/recovery
 coverage. The timed benchmark contract and its fairness gate remain separate.
+
+The corresponding `tools/qualify-installed-reranker-browser.js` probe opens an
+installed signed Capsule under its retained application approval and copies its
+checkpoint ledger into the new attempt. Browser checkpoint callbacks delegate
+persistence to the qualification host; model execution stays in the browser's
+installed Doppler modules. It observes the same full source oracle and renderer
+RSS definition as the Transformers.js reference probe. Its raw receipts remain
+qualification evidence until a paired timing and fairness contract passes.

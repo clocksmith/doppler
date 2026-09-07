@@ -17,6 +17,8 @@ assert.equal(audit(inputs).claimGrade, true);
 for (const change of [
   value => { value.dopplerBench.env.runtime = 'node'; },
   value => { value.tjsBench.env.browserUserAgent = 'different browser'; },
+  value => { value.dopplerVerify.env.browserUserAgent = 'different verification browser'; },
+  value => { value.dopplerVerify.env.browserPlatform = 'different verification platform'; },
   value => { value.tjsBench.env.device = 'wasm'; },
   value => { value.tjsBench.deviceInfo.device = 'different GPU'; },
   value => { value.tjsBench.cacheMode = 'cold'; },
