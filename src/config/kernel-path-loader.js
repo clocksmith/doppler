@@ -412,7 +412,9 @@ export function getKernelPathActivationSpec(op, phase, layerIndex, path) {
   if (!['prefill', 'decode'].includes(phase) || !Number.isInteger(layerIndex) || layerIndex < 0) {
     throw new Error('Activation kernel lookup requires an explicit phase and layer index.');
   }
-  const steps = getLayerSteps(path, layerIndex, phase).filter(step => step.op === 'activation');
+  const steps = getLayerSteps(path, layerIndex, phase).filter(
+    step => step.op === 'activation' || (step.op === 'ffn' && step.kernel?.includes(op))
+  );
   if (steps.length !== 1) {
     throw new Error(`Activation ${op} requires exactly one declared step at ${phase}/${layerIndex}; found ${steps.length}.`);
   }
