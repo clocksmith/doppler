@@ -7,6 +7,13 @@ GPU device, and reopening with a new device. Node, Chromium and Bun run the same
 scenario through their installed module URLs and retain separate receipts.
 This is raw RDRR model API qualification, not a signed generation Capsule.
 
+The [retained acceptance](../reports/inference-coverage/20260907-generation/acceptance.json)
+records passing Node, Chromium and Bun runs on AMD Radeon 8060S. Each surface
+matched all 317 generated reference tokens, recovered after cancellation, and
+reopened successfully after device loss. The evidence archive retains the exact
+qualifier and scenario sources, complete observations, dependency identities and
+public reconstruction result. These are separate host qualifications on one GPU.
+
 Use the repository dependencies and Linux setup described in
 [Capsule release reproduction](capsule-release-reproduction.md). The retained
 [reconstruction recipe](../reports/inference-coverage/20260907-generation/reproduction.json)
