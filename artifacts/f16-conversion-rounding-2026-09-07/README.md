@@ -348,6 +348,54 @@ in `state-probe-checks.tar.gz`. `state-probe-package-audit.json` accounts for th
 These passing checks supersede the earlier merged-check failure for this
 candidate only; the failed receipts remain intact.
 
+## Complete-prompt state repair
+
+`reset-lifecycle-control.tar.gz` preserves the next physical control: the same
+three jobs in the same order, same loaded model, same 591 runtime source files,
+and unchanged prompts/settings, with explicit public `resetGenerationState()`
+before each prompt. Museum generation changes from 256 tokens to nine. Every
+recorded museum checkpoint, including initial state and all observed logits,
+matches the fresh run. The first two answers retain their original token counts.
+Both control comparators pass after fresh extraction with
+`state-reuse-browser.tar.gz`. This tests raw-handle lifecycle, not a signed
+Capsule or semantic qualification.
+
+The owning normal-generation entry points, `_generateTokensInternal()` and
+`generateTokenIds()`, reset decode bookkeeping but previously retained KV,
+sequence position, and recurrent context from the preceding full prompt.
+They now call the existing `_resetReplayPrefillRuntimeState()` after validation
+and before beginning generation. Loaded model weights remain resident. Explicit
+prefix-KV and incremental-decode methods are unchanged. Busy and unloaded calls
+still reject before resetting any owned state.
+
+The new regression runs the real generation entry points and reset owner,
+stopping before GPU work. With the original source it fails because zero KV
+clears occurred instead of one; with the repair both entry points clear KV,
+reset sequence position, and empty prior linear runtime state. The initial
+test-harness import-name error is retained separately from that valid regression
+failure and is not evidence of the runtime defect.
+
+`prompt-reset-browser.tar.gz` repeats the three-job physical run with the original
+caller and **no explicit caller reset**. Its frozen runtime changes only the two
+reset call sites; the other 590 served source files are byte-identical. Each
+comparator verifies the exact source transformation, not merely an allowlisted
+filename. Museum generation stops at nine tokens, and every recorded checkpoint
+matches the fresh control. Fresh extraction and both comparators pass using
+`state-reuse-browser.tar.gz` as the preserved baseline.
+
+The same repair in the reconciled current source passes 173 inference test files
+and the complete 796-file `check:green` workflow. `prompt-reset-checks.tar.gz`
+retains both failure logs, passing logs, exact current source, regression, and
+package inventory. `prompt-reset-package-audit.json` accounts for 86 additional
+source bytes in one existing file. No kernel arithmetic, prompts, model bytes,
+acceptance thresholds, or continuation APIs changed.
+
+This closes the measured full-prompt state-contamination defect, not assistant
+quality. The causal browser proof deliberately uses the earlier frozen runtime;
+the actual newly packed candidate must also complete its separate eight-question
+screen and eventual signed-Capsule/held-out qualification. The nine-token museum
+answer still omits required facts and is not a useful-answer success.
+
 ## Claim boundary
 
 This establishes a conversion-code defect and its focused repair. It does not
