@@ -39,7 +39,7 @@ try {
   await fs.writeFile(binary, 'synthetic executable identity; never launched');
   await fs.writeFile(path.join(electronDir, 'index.js'), `module.exports = ${JSON.stringify(binary)};\n`);
   const host = await resolvePinnedElectronHost(hostRoot, '43.4.0');
-  assert.equal(host.executablePath, binary);
+  assert.equal(host.executablePath, await fs.realpath(binary));
   assert.equal(host.resolution, 'qualification-checkout-local');
   assert.match(host.executableSha256, /^[a-f0-9]{64}$/);
   await assert.rejects(resolvePinnedElectronHost(hostRoot, '43.5.0'), /Pinned Electron 43.5.0 required/);

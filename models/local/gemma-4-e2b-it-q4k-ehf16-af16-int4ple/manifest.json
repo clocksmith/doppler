@@ -25352,12 +25352,12 @@
   },
   "artifactIdentity": {
     "sourceCheckpointId": "google/gemma-4-E2B-it",
-    "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+    "weightCapsuleId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
     "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-mv-f16-activations-v1",
     "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea",
     "artifactCompleteness": "weights-ref",
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
-    "conversionConfigDigest": "sha256:0dd695ced1c1cab5d5d4fef5b6bd5c5eb0f0d2e7d416778d0f13b99623528887"
+    "conversionConfigDigest": "sha256:b7961c6c2c0fa75a51db4eb689e737c88d70231c86a5a0d13c093be6af7d607f"
   },
   "integrityExtensions": {
     "contractVersion": 1,
@@ -27379,9 +27379,9 @@
     }
   },
   "weightsRef": {
-    "weightPackId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+    "weightCapsuleId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
     "artifactRoot": "../gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-    "manifestDigest": "sha256:512d6e16602071cccff4cbe576bf3b2c20bd43fd32aefc271db4bb95cc9c7f17",
+    "manifestDigest": "sha256:55071a8f35b230cb3c5f2c09654f22962bf72cc7eeb0ce55a454a4473a197a85",
     "shardSetHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea"
   }
 }
