@@ -164,8 +164,10 @@ coverage. The integrated archive's subsequent qualification is retained in the
    full hybrid model qualification remains a separate gate.
    The [unfamiliar ESM-2 encoder experiment](unfamiliar-model-qualification.md)
    now passes full installed reference comparison and recovery after repairing
-   erf GELU and activation-step binding. Retaining its final committed-checkout
-   reconstruction is the remaining release step for this extension.
+   erf GELU and activation-step binding. Its [committed-checkout reconstruction
+   and acceptance](../reports/unfamiliar-model/20260907-esm2-8m/acceptance.json)
+   retain full installed replay and the manual interventions; unattended
+   unfamiliar-family implementation remains a separate expansion.
 3. **Reusable optimization.** Connect candidate generation to physical hardware
    experiments under unchanged correctness tests. Freeze tuning and held-out
    inputs separately, demonstrate an improvement on the held-out inputs, and
@@ -190,6 +192,12 @@ coverage. The integrated archive's subsequent qualification is retained in the
    pins public reconstruction and per-surface physical probes.
    [Generation acceptance](../reports/inference-coverage/20260907-generation/acceptance.json)
    now records distinct passing Node, Chromium and Bun observations.
+   The [retained browser reranker comparison](../reports/reranker-comparison/20260907/acceptance.json)
+   qualifies a source-derived Transformers.js fp16 alternative and retains
+   separate paired startup, warm inference and memory measurements, plus actual
+   cancellation and recovery observations. Its forward API did not honor abort;
+   that gap remains visible. Additional devices and adoption are outside the
+   current completion gate.
 5. **Architecture through extensions.** Fix concrete coupling and defects exposed
    by these extensions, remove duplicated execution paths, enforce module
    ownership, and keep publication tooling outside runtime dependencies. Preserve
