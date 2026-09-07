@@ -44,9 +44,17 @@ try {
   server = await createStaticFileServer({ rootDir: installedRoot, host: '127.0.0.1', port: 0,
     staticMounts: [{ urlPrefix: '/retained-capsule', rootDir: path.join(config.capsuleRoot, 'distribution') }] });
   const profile = path.join(config.outputDir, 'profile');
+  const startupStarted = performance.now();
   context = await chromium.launchPersistentContext(profile, { headless: true, args: config.launchArgs,
     timeout: config.timeoutMs, env: { ...process.env, TMPDIR: config.temporaryDirectory } });
   const page = context.pages()[0]; page.setDefaultTimeout(config.timeoutMs);
+  report.startup = { scope: 'Browser launch through model readiness and first completed query; local artifact verification and server setup excluded.' };
+  await page.exposeFunction('qualificationModelReady', () => {
+    report.startup.modelReadyMs ??= performance.now() - startupStarted;
+  });
+  await page.exposeFunction('qualificationFirstResult', () => {
+    report.startup.firstResultMs ??= performance.now() - startupStarted;
+  });
   report.browser = await (await context.newCDPSession(page)).send('Browser.getVersion');
   page.on('console', message => report.logs.push({ type: message.type(), text: message.text() }));
   page.on('pageerror', error => report.logs.push({ type: 'pageerror', text: error.message }));
@@ -79,12 +87,14 @@ try {
       try {
         const result = { modelLoadMs: performance.now() - started, identity: session.capsuleIdentity,
           targetPlanDigest: session.selectedTargetPlanDigest, scoringConfig: session.manifest.inference.rerank, runs: [] };
+        await globalThis.qualificationModelReady();
         const application = options.releaseEvents.at(-1).release.application;
         for (const sample of runSchedule) {
           for (const [referenceIndex, reference] of references.entries()) {
             const start = performance.now();
             const receipt = await session.rerank({ application, ...reference.input });
             result.runs.push({ ...sample, referenceIndex, durationMs: performance.now() - start, scores: receipt.evidence.scores, receipt });
+            if (result.runs.length === 1) await globalThis.qualificationFirstResult();
           }
         }
         return result;
@@ -94,7 +104,8 @@ try {
     const comparisons = observation.runs.map(run => {
       const reference = references[run.referenceIndex];
       return { phase: run.phase, iteration: run.iteration, referenceIndex: run.referenceIndex,
-        ...evaluateRerankReference(reference, { input: reference.input, scoringConfig: observation.scoringConfig, outputs: run.scores }) };
+        ...evaluateRerankReference(reference, { input: { query: run.receipt.evidence.query, documents: run.receipt.evidence.documents },
+          scoringConfig: observation.scoringConfig, outputs: run.scores }) };
     });
     report.phases.push({ repeat, observation, comparisons });
     await fs.writeFile(path.join(config.outputDir, 'progress.json'), JSON.stringify(report.phases, null, 2));
