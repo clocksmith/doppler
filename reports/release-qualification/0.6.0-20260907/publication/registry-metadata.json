@@ -1,0 +1,19 @@
+{
+  "version": "0.6.0",
+  "dist": {
+    "integrity": "sha512-1SKgx0KWKMHJEg4m5BdqLS1oV/kImbHfLaug8tOuwghjca166lrL/Qi7t+AXW/O4MQjONcFaWwPjaKILGINspA==",
+    "shasum": "c0da88446012a0c0873b30462ceb551109f8c28b",
+    "tarball": "https://registry.npmjs.org/doppler-gpu/-/doppler-gpu-0.6.0.tgz",
+    "fileCount": 1779,
+    "unpackedSize": 10861758,
+    "signatures": [
+      {
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+        "sig": "MEYCIQCI3YlqX8n9jZrME0FwAHR0f6c2FyFmC0ief3P7qZVMswIhAKrBErHTBIKZTPXRUKVbZV0PLR4xpXwxYxwalpKYApDU"
+      }
+    ]
+  },
+  "dist-tags": {
+    "latest": "0.6.0"
+  }
+}

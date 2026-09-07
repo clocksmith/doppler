@@ -1,0 +1,23 @@
+{
+  "schema": "doppler.npm-publication-observation/v1",
+  "observedAtUtc": "2026-09-07T13:10:21.819039+00:00",
+  "sourceRevision": "52f5961a41e9983c27cb8237569ba08a9c30a9ad",
+  "publisher": "clocksmith",
+  "version": "0.6.0",
+  "publishCommand": "npm publish <qualified-doppler-gpu-0.6.0.tgz> --access public --tag latest --registry=https://registry.npmjs.org/ --ignore-scripts --loglevel=warn",
+  "publishExitCode": 0,
+  "publishOutput": "+ doppler-gpu@0.6.0",
+  "browserPublishAuthenticationCompleted": true,
+  "published": true,
+  "registryConsumerVerified": true,
+  "physicalModelExecution": false,
+  "independentAdoption": false,
+  "amdStartupResolved": false,
+  "artifacts": {
+    "registry-consumer-smokes.json": "ef818ed37029e60910e7446ee61c6c1f26d40ab902cd7f927149b98812fb828b",
+    "cdn-browser.json": "268843b30141aeec596c933346d226ab691f039d956d035aa4f3ab914d680837",
+    "registry-smoke.js": "85665b6724fe6a76f9cabc916706a161f59bd761da426a503a0e37a4479630f4",
+    "registry-byte-verification.json": "3410a7c25e7445769c011e780eb0527bc5b71430ea083e1414e4642c489b8209",
+    "registry-metadata.json": "6df6524072089c41df90080e7dbcf39381aeba000edc159947511588de0c376c"
+  }
+}

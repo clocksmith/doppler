@@ -1,0 +1,30 @@
+[
+  {
+    "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+    "args": [
+      "registry-smoke.js"
+    ],
+    "status": 0,
+    "stdout": "Registry import smoke passed (28 exports and browser tooling; version 0.6.0).\n",
+    "stderr": ""
+  },
+  {
+    "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+    "args": [
+      "node-provider-smoke.js"
+    ],
+    "status": 0,
+    "stdout": "Installed standalone Node provider smoke passed (synthetic; Doe absent).\n",
+    "stderr": ""
+  },
+  {
+    "command": "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
+    "args": [
+      "node_modules/doppler-gpu/src/cli/doppler-cli.js",
+      "--help"
+    ],
+    "status": 0,
+    "stdout": "Usage:\n  doppler convert --config <path|url|json> [--surface auto|node]\n  doppler refresh-integrity --config <path|url|json> [--surface auto|node]\n  doppler release --manifest <path> --out <dir> --capsule-trusted-signers <path> --fleet-trusted-signers <path> --signing-private-key <path> --signing-public-key <path> --signing-authority <id> [--fleet-receipts <path,path>] [--forge-config <path>]\n  doppler release --action qualify --manifest <path> --target <id> --device-identity <path> --out <dir> --capsule-trusted-signers <path> --signing-private-key <path> --signing-public-key <path> --signing-authority <id>\n  doppler debug --config <path|url|json> [--runtime-profile <id>|--runtime-config <path|url|json>] [--surface auto|node|browser]\n  doppler bench --config <path|url|json> [--runtime-profile <id>|--runtime-config <path|url|json>] [--surface auto|node|browser]\n  doppler verify --config <path|url|json> [--runtime-profile <id>|--runtime-config <path|url|json>] [--surface auto|node|browser]\n  doppler diagnose --config <path|url|json> [--runtime-profile <id>|--runtime-config <path|url|json>] [--surface auto|node]\n  doppler profiles [--json|--pretty]\n  doppler lora --config <path|url|json> [--surface auto|node]\n  doppler distill --config <path|url|json> [--surface auto|node]\n  doppler program-bundle --config <path|json>\n  doppler program-bundle --manifest <path> --reference-report <path> --out <path> [--conversion-config <path>]\n  doppler onboard inspect --source <checkpoint-dir> --out <dir> [--family-intake <source-intake.json>]\n  doppler boundary capture --report <diagnose-report.json> --out <runtime-boundaries.json>\n  doppler boundary source-capsule --provider-capture <provider-capture.json> --out <source-boundaries.json>\n  doppler boundary token-evidence --reference-transcript <reference-transcript.json> --out <token-evidence.json>\n  doppler boundary compare --source-capsule <source-boundaries.json> --runtime-capture <runtime-boundaries.json> --token-evidence <json> --out <receipt.json>\n  doppler intake --convert-config <path|json> [--manifest <path>] [--out <intake-report.json>]\n  doppler bundle --manifest <path> --out <dir> [--prompt <text>] [--max-tokens <n>] [--surface node|browser]\n  doppler bundle --convert-config <path|json> --out <dir>\n\nFlags:\n  --config <path|url|json>        Required command config payload (file path, URL, or JSON object string).\n  --runtime-config <value>        Compatibility runtime override alias (JSON object, URL, or file path).\n  --runtime-profile <id>          Convenience alias for request.runtimeProfile on harnessed commands.\n  --surface <auto|node|browser>   Optional execution surface override.\n  --json                          Explicitly print JSON output (default).\n  --pretty                        Print human-readable summary instead of JSON\n  --help, -h                      Show this help message\n\nCommand Config Contract:\n  The config payload must be a JSON object and may include:\n    - request: tooling command request fields (workload, modelId, training fields, convertPayload, etc).\n      May also include `runtimeProfile`, `runtimeConfigUrl`, and `runtimeConfig`.\n      Unknown top-level keys are disallowed when `request` is used as the envelope key.\n    - run: CLI-only run controls (surface, browser options, and bench save/compare/manifest settings).\n    - runtimeProfile: optional runtime profile id.\n    - runtimeConfigUrl: optional runtime override URL or local JSON path.\n    - runtimeConfig: optional inline runtime override object.\n\nExample:\n  doppler verify --config '{\"request\":{\"workload\":\"inference\",\"modelId\":\"gemma-3-270m-it-f16-af32\"}}'\n  doppler profiles --pretty\n  doppler refresh-integrity --config '{\"request\":{\"modelDir\":\"models/local/gemma-3-270m-it-q4k-ehf16-af32\"}}'\n  doppler verify --config '{\"request\":{\"workload\":\"inference\",\"workloadType\":\"program-bundle\",\"programBundlePath\":\"examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json\"}}'\n  doppler program-bundle --config '{\"manifestPath\":\"models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json\",\"referenceReportPath\":\"tests/fixtures/reports/gemma-3-270m-it-q4k-ehf16-af32/2026-03-18T13-33-38.973Z.json\",\"outputPath\":\"examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json\"}'\n",
+    "stderr": ""
+  }
+]

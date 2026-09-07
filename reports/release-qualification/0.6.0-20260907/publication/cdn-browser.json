@@ -1,0 +1,33 @@
+{
+  "package": "doppler-gpu",
+  "version": "0.6.0",
+  "urls": [
+    {
+      "url": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.0/src/index.js",
+      "status": 200,
+      "sha256": "18605234736f9dd66f95ef49e7e05d58f7021426e169f2b798320e40dad39631"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.0/src/tooling-exports.browser.js",
+      "status": 200,
+      "sha256": "c0ce26f0a521a62449defc6bf3a998df7479e32ade19f40331f6fe805623aed5"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.0/src/tooling-exports/storage.js",
+      "status": 200,
+      "sha256": "71d3639c5e1bd07b09d61f11a867c76add8c2c9f292e864f0af7710abac23b39"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.0/src/gpu/kernels/matmul_f16_tiled.wgsl",
+      "status": 200,
+      "sha256": "1b5de39adba93307e1aceb356b67f7d81930afe3c1a31251658bf6b9592a81b5"
+    }
+  ],
+  "physicalModelExecution": false,
+  "browserImports": {
+    "version": "0.6.0",
+    "openCapsule": "function",
+    "openPack": "undefined"
+  },
+  "browserVersion": "152.0.7977.76"
+}
