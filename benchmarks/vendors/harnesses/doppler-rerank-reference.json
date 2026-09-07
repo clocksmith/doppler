@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "doppler-rerank-reference",
+  "name": "Installed Doppler Frozen Reranker Reference Qualification",
+  "parentHarness": "doppler",
+  "execution": {
+    "mode": "manual-json",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": [
+      "node tools/qualify-installed-reranker-browser.js /absolute/qualification-config.json"
+    ]
+  },
+  "normalization": {
+    "metricPaths": {
+      "modelLoadMs": [
+        "phases.0.observation.modelLoadMs"
+      ],
+      "peakRendererRssBytes": [
+        "peakRendererRssBytes"
+      ]
+    },
+    "metadataPaths": {
+      "runtimeArchive": [
+        "installedPackage.sha256"
+      ],
+      "capsule": [
+        "phases.0.observation.identity"
+      ],
+      "targetPlan": [
+        "phases.0.observation.targetPlanDigest"
+      ],
+      "sourceReferenceComparisons": [
+        "phases"
+      ],
+      "claimAllowed": [
+        "claimAllowed"
+      ]
+    },
+    "requiredMetrics": [
+      "modelLoadMs"
+    ]
+  }
+}

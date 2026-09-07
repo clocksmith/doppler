@@ -196,7 +196,9 @@
         "src/tooling/source-runtime-bundle.js",
         "src/tooling/node-source-runtime.js",
         "docs/operations.md",
-        "tools/compare-engines.js"
+        "tools/compare-engines.js",
+        "tools/qualify-installed-reranker-browser.js",
+        "benchmarks/vendors/harnesses/doppler-rerank-reference.json"
       ]
     },
     {

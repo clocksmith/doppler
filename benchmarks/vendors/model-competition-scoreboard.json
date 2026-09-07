@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-07T17:23:31.812Z",
+  "updatedAt": "2026-09-07T18:11:16.222Z",
   "sources": [
     "models/catalog.json",
     "benchmarks/vendors/model-support-inventory.json",

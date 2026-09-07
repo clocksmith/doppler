@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-07T17:23:31.812Z",
+  "generatedAt": "2026-09-07T18:11:16.222Z",
   "release": {
     "channel": "main-snapshot",
     "version": "0.6.0",
-    "commitSha": "b694d421b6ee6cbadb2c8ec81d76f4e9f0d116e4",
+    "commitSha": "7451ce780039fb320a6f0798cac8b23c3070d4af",
     "dirty": true
   },
   "sources": {
@@ -22,8 +22,8 @@
     },
     "capabilities": {
       "path": "benchmarks/vendors/capabilities.json",
-      "sha256": "cca560b998f4620176c20170a002ef4e2e656117521e76ff94ab09be63bbc5d3",
-      "bytes": 24575,
+      "sha256": "1da5cb12f4d370ad5fa0d59258571ab53a390582fa59beb0f41232d994a0ba33",
+      "bytes": 24750,
       "updated": "2026-07-07"
     },
     "compareConfig": {
@@ -234,7 +234,9 @@
         "src/tooling/source-runtime-bundle.js",
         "src/tooling/node-source-runtime.js",
         "docs/operations.md",
-        "tools/compare-engines.js"
+        "tools/compare-engines.js",
+        "tools/qualify-installed-reranker-browser.js",
+        "benchmarks/vendors/harnesses/doppler-rerank-reference.json"
       ]
     },
     {
@@ -579,6 +581,7 @@
         "benchmarks/runners/transformersjs-bench.js",
         "benchmarks/runners/transformersjs-runner.html",
         "tools/qualify-transformersjs-reranker.js",
+        "benchmarks/vendors/harnesses/transformersjs-rerank-reference.json",
         "benchmarks/vendors/harnesses/transformersjs.json",
         "tools/compare-engines.js"
       ]

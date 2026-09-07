@@ -437,7 +437,9 @@ function buildRerankFairnessAudit({ profile, dopplerSource, summary, dopplerBenc
     sameSurface: left.surface === 'browser' && right.surface === 'browser' && dopplerVerify?.env?.runtime === 'browser',
     webgpuOnly: left.env?.device === 'webgpu' && right.env?.device === 'webgpu' && dopplerVerify?.env?.device === 'webgpu',
     sameBrowser: equalPresent(left.env?.browserUserAgent, right.env?.browserUserAgent)
-      && equalPresent(left.env?.browserPlatform, right.env?.browserPlatform),
+      && equalPresent(left.env?.browserPlatform, right.env?.browserPlatform)
+      && equalPresent(left.env?.browserUserAgent, dopplerVerify?.env?.browserUserAgent)
+      && equalPresent(left.env?.browserPlatform, dopplerVerify?.env?.browserPlatform),
     sameHardware: ['vendor', 'architecture', 'device', 'description'].every(key => equalPresent(left.hardware?.[key], right.hardware?.[key])
       && equalPresent(left.hardware?.[key], dopplerVerify?.deviceInfo?.adapterInfo?.[key])),
     sameCacheAndLoad: equalPresent(left.cacheMode, right.cacheMode) && equalPresent(left.loadMode, right.loadMode),
