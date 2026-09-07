@@ -407,6 +407,23 @@ export function getKernelPathMatmulPrecision(
   return fusedStep?.precision ?? null;
 }
 
+export function getKernelPathActivationSpec(op, phase, layerIndex, path) {
+  if (path == null) return null;
+  if (!['prefill', 'decode'].includes(phase) || !Number.isInteger(layerIndex) || layerIndex < 0) {
+    throw new Error('Activation kernel lookup requires an explicit phase and layer index.');
+  }
+  const steps = getLayerSteps(path, layerIndex, phase).filter(step => step.op === 'activation');
+  if (steps.length !== 1) {
+    throw new Error(`Activation ${op} requires exactly one declared step at ${phase}/${layerIndex}; found ${steps.length}.`);
+  }
+  const step = steps[0];
+  const variant = findKernelVariant(op, step.kernel, step.entry, phase, step.constants);
+  if (!variant || KERNEL_CONFIGS[op][variant].entryPoint !== step.entry) {
+    throw new Error(`Activation ${op} has no exact registered kernel for ${step.kernel}#${step.entry}.`);
+  }
+  return { variant, constants: step.constants ?? null };
+}
+
 export function getKernelPathStepPrecision(
   op,
   section,

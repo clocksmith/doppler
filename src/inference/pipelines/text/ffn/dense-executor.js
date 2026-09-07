@@ -319,6 +319,8 @@ export async function runDenseUngatedFFNGPU(layerIdx, inputTensor, numTokens, co
     layerIdx
   );
   const activated = await dispatchActivation(hiddenActivation, upOutput, {
+    kernelPath,
+    phase,
     size: numTokens * intermediateSize,
     gate: null,
     label: `L${layerIdx}.ffn_activation`,
@@ -659,6 +661,9 @@ export async function runDenseFFNWithFusedPostNormGPU(
       );
 
       activatedOutput = await dispatchActivation(hiddenActivation, upOutput, {
+        kernelPath,
+        phase,
+        layerIdx,
         size: numTokens * intermediateSize,
         gate: gateOutput,
         inputActivation: 'identity',

@@ -8,6 +8,7 @@
 override WORKGROUP_SIZE: u32 = 256u;
 override HAS_GATE: bool = false;
 override USE_ROWSPLIT: bool = false;
+override GELU_ERF: bool = false;
 
 struct Uniforms {
     size: u32,          // Total output elements
@@ -21,7 +22,22 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read_write> output: array<f32>;
 @group(0) @binding(3) var<storage, read> gate: array<f32>;
 
+// Source erf GELU, evaluated in f32 even for f16 storage. The polynomial
+// approximates erf rather than substituting the distinct tanh GELU function.
+fn erf_gelu(x: f32) -> f32 {
+    let z = abs(x) * 0.7071067811865476;
+    let t = 1.0 / (1.0 + 0.3275911 * z);
+    let polynomial = (((((1.061405429 * t - 1.453152027) * t)
+        + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t;
+    let complement = polynomial * exp(-z * z);
+    let cdf_twice = select(complement, 2.0 - complement, x >= 0.0);
+    return 0.5 * x * cdf_twice;
+}
+
 fn gelu(x: f32) -> f32 {
+    if (GELU_ERF) {
+        return erf_gelu(x);
+    }
     let sqrt_2_over_pi: f32 = 0.7978845608;
     let c: f32 = 0.044715;
     let inner = sqrt_2_over_pi * (x + c * x * x * x);

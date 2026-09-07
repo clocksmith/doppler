@@ -1,0 +1,312 @@
+{
+  "schema": "doppler.installed-generation-acceptance/v1",
+  "passed": true,
+  "scope": "Installed raw RDRR Qwen3 generation on Node, Chromium, and Bun, separately observed on one AMD Radeon 8060S. No signed generation Capsule, new hardware, vendor speed claim, or external adoption.",
+  "qualifierCommit": "799fde06ae86fc0ec22d2269e743eeb9864b0335",
+  "qualifierDigest": "sha256:d384439b0bd521fd79e5798cea21faacd8e8d72d67c3ccde3e1f220d85748417",
+  "scenarioDigest": "sha256:9a28dcd7ae6540f741262f4c6bd242774f7ff73fdb06493006348e701cf03bd3",
+  "runtime": {
+    "filename": "doppler-gpu-0.6.0.tgz",
+    "integrity": "sha512-uDxLvnAqy8Ceunr1zGXkMZXvXe6sqk4gOqAFuhJ0npokk/VFZs6v9bJjU6XNkF7d+f/S+n65zI95+h8tWN4G6g==",
+    "sizeBytes": 2104958,
+    "sha256": "61a23b9cafd17eb2b420c7bd8bb1f7e8cfae859048f581e42a5fb01ad767ed19"
+  },
+  "manifestDigest": "sha256:192ecf66a2410e61c990931ed2cd2a93f6141cb1434c0c8d57fe478c8f31493f",
+  "referenceDigest": "sha256:f60b7696f8a5e030ee52eedc45ab2e0aa92f00ddd192ccbf7d216c832288cf47",
+  "source": {
+    "model": "Qwen/Qwen3-0.6B",
+    "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+    "engine": "hf-transformers-pytorch",
+    "torchVersion": "2.11.0+cu130",
+    "transformersVersion": "5.6.2",
+    "pythonVersion": "3.14.4",
+    "device": "cpu",
+    "dtype": "float32",
+    "files": [
+      {
+        "path": "config.json",
+        "hash": "sha256:660db3b73d788119c04535e48cf9be5f55bc3100841a718637ae695b442f27dd"
+      },
+      {
+        "path": "generation_config.json",
+        "hash": "sha256:2325da0f15bb848e018c5ae071b7943332e9f871d6b60e2ed22ca97d4cb993d2"
+      },
+      {
+        "path": "model.safetensors",
+        "hash": "sha256:f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b"
+      },
+      {
+        "path": "tokenizer.json",
+        "hash": "sha256:aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+      },
+      {
+        "path": "tokenizer_config.json",
+        "hash": "sha256:d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101"
+      },
+      {
+        "path": "README.md",
+        "hash": "sha256:1ab64a26fcb3b461423b89a433a8c858f1bf8d4086f979cbb3ff878d47cf20e9"
+      },
+      {
+        "path": "LICENSE",
+        "hash": "sha256:832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e"
+      }
+    ]
+  },
+  "surfaces": {
+    "node": {
+      "passed": true,
+      "receipt": "node/qualification.json",
+      "sha256": "017c7b25e1a87a210158e61c468d7da6349d327ba2edb95d40010f0ae4739ea5",
+      "runtime": {
+        "name": "node",
+        "version": "v22.22.1"
+      },
+      "browserIdentity": null,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1",
+        "isFallbackAdapter": false
+      },
+      "fullPromptAndGeneratedTokensMatched": true,
+      "expectedGeneratedTokens": 317,
+      "outputs": 6,
+      "cancellation": {
+        "chunks": 1,
+        "stopReason": "aborted",
+        "elapsedMs": 2408.9890719999967,
+        "reusedModelPassed": true
+      },
+      "deviceLoss": {
+        "rejectedOldSession": true,
+        "reopenedModelPassed": true
+      },
+      "loadMs": 1474.789096,
+      "peakRssBytes": 950669312,
+      "memoryDefinition": "Linux fresh-process peak RSS, including shared mappings, across load, generation, cancellation and recovery."
+    },
+    "browser": {
+      "passed": true,
+      "receipt": "browser/qualification.json",
+      "sha256": "aba29b62a682be4f5c9701b319df386c888911d5c99891b77b916a230744a7bd",
+      "runtime": null,
+      "browserIdentity": {
+        "protocolVersion": "1.3",
+        "product": "HeadlessChrome/151.0.7922.34",
+        "revision": "@782af9cb30a53f54487e5d2e44738645a8ec457c",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+        "jsVersion": "15.1.206.8"
+      },
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+        "isFallbackAdapter": false
+      },
+      "fullPromptAndGeneratedTokensMatched": true,
+      "expectedGeneratedTokens": 317,
+      "outputs": 6,
+      "cancellation": {
+        "chunks": 1,
+        "stopReason": "aborted",
+        "elapsedMs": 2068,
+        "reusedModelPassed": true
+      },
+      "deviceLoss": {
+        "rejectedOldSession": true,
+        "reopenedModelPassed": true
+      },
+      "loadMs": 22773.700000047684,
+      "peakRssBytes": 1665581056,
+      "memoryDefinition": "Sampled Linux renderer RSS, including shared mappings, across load, generation, cancellation and recovery."
+    },
+    "bun": {
+      "passed": true,
+      "receipt": "bun/qualification.json",
+      "sha256": "e902259cc53268e1bd9101965e501b3ec00aacaaa3d1beb82180238a97611a88",
+      "runtime": {
+        "name": "bun",
+        "version": "1.3.10"
+      },
+      "browserIdentity": null,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1",
+        "isFallbackAdapter": false
+      },
+      "fullPromptAndGeneratedTokensMatched": true,
+      "expectedGeneratedTokens": 317,
+      "outputs": 6,
+      "cancellation": {
+        "chunks": 1,
+        "stopReason": "aborted",
+        "elapsedMs": 2076.7741870000027,
+        "reusedModelPassed": true
+      },
+      "deviceLoss": {
+        "rejectedOldSession": true,
+        "reopenedModelPassed": true
+      },
+      "loadMs": 726.297261,
+      "peakRssBytes": 1393131520,
+      "memoryDefinition": "Linux fresh-process peak RSS, including shared mappings, across load, generation, cancellation and recovery."
+    }
+  },
+  "publicReconstruction": {
+    "receipt": "source-reconstruction/restoration.json",
+    "sha256": "5edd19d493f8c42e318ddc92fb6b40ab458aeaeb0d7c49dbadee200cf58ddd3b",
+    "reproduction": "reproduction.json"
+  },
+  "evidence": {
+    "path": "evidence.tar.gz",
+    "sha256": "0139806c8a301c56e4018ddd7f9c6ceceaccac57f18948eb9befa3ea68f360cc",
+    "bytes": 392537,
+    "files": [
+      {
+        "path": "browser/config.json",
+        "sha256": "2047478aa2f8a8fef3adea8e11fa92c95972842a8f200bc770e30ec6d3892bdc",
+        "bytes": 2082
+      },
+      {
+        "path": "browser/qualification.json",
+        "sha256": "aba29b62a682be4f5c9701b319df386c888911d5c99891b77b916a230744a7bd",
+        "bytes": 1359001
+      },
+      {
+        "path": "browser/run.log",
+        "sha256": "8d7116bd274c783a4fa655168f98db5f44dadb9cc8f7ebc910d93074a5a0ca10",
+        "bytes": 1178
+      },
+      {
+        "path": "bun/config.json",
+        "sha256": "fde1f566bfd419881065db90f5faa34051ef2c34d9831e40d14c7675c0e40767",
+        "bytes": 2074
+      },
+      {
+        "path": "bun/qualification.json",
+        "sha256": "e902259cc53268e1bd9101965e501b3ec00aacaaa3d1beb82180238a97611a88",
+        "bytes": 987886
+      },
+      {
+        "path": "bun/run.log",
+        "sha256": "3685b2af0827656ca5a9774c40f1f3501b9b9d5fbbf14140acccb7624d1b5bdb",
+        "bytes": 35281
+      },
+      {
+        "path": "inputs/conversion.json",
+        "sha256": "bece23c0419207c2a00773abd08a47952b65e03a8e72b84bb41af341a240e632",
+        "bytes": 12858
+      },
+      {
+        "path": "inputs/reference.json",
+        "sha256": "f60b7696f8a5e030ee52eedc45ab2e0aa92f00ddd192ccbf7d216c832288cf47",
+        "bytes": 60037
+      },
+      {
+        "path": "inputs/source-policy.json",
+        "sha256": "eff1fbc5cf252c5175c892643c7d2ee50e15dc4359ed0751c97542b6411a7d74",
+        "bytes": 13020
+      },
+      {
+        "path": "integration/upstream-catscan-check.log",
+        "sha256": "5db402aef42255e31b96d21944206d1a112c0a908991bd0fa3fbd90716c8ebbf",
+        "bytes": 136
+      },
+      {
+        "path": "integration/upstream-ci-package-budget-failure.log",
+        "sha256": "476c9fae8a2790bb940cf1ec29dc66aa07b9b58e592fec5207fd1eb1c91fb061",
+        "bytes": 92968
+      },
+      {
+        "path": "integration/upstream-constraint-test.log",
+        "sha256": "21274443a64c72718c661de3292cbd10e1ad1efdf55da464873d5fe963703d94",
+        "bytes": 75
+      },
+      {
+        "path": "integration/upstream-package-inventory.json",
+        "sha256": "c2cd8da6d9f82d8d077152c485c81444ac9ffb528ae0635f2d3d7b19f779eeaa",
+        "bytes": 211511
+      },
+      {
+        "path": "integration/upstream-quantizer-test.log",
+        "sha256": "a777d5c778f16a1d8ca3debe3b3fb61faa75d887d4e6d365414bdf283907ecd8",
+        "bytes": 19
+      },
+      {
+        "path": "node/config.json",
+        "sha256": "a24b14993ac88d9f405e96ac077761bce6519780a7e57731bc9c8239ec35d511",
+        "bytes": 2076
+      },
+      {
+        "path": "node/qualification.json",
+        "sha256": "017c7b25e1a87a210158e61c468d7da6349d327ba2edb95d40010f0ae4739ea5",
+        "bytes": 987881
+      },
+      {
+        "path": "node/run.log",
+        "sha256": "a5b15263994aa8078ddea705374222ac73f4ff02886567ea7062d793479efced",
+        "bytes": 35262
+      },
+      {
+        "path": "qualifier-source/browser-renderer-memory.js",
+        "sha256": "20f26c2ee2856d45238167f3dfc5fc95a4504165e951205b8d40d20c4c8a8c41",
+        "bytes": 1366
+      },
+      {
+        "path": "qualifier-source/generation-qualification-scenario.js",
+        "sha256": "9a28dcd7ae6540f741262f4c6bd242774f7ff73fdb06493006348e701cf03bd3",
+        "bytes": 5363
+      },
+      {
+        "path": "qualifier-source/qualify-installed-generation.js",
+        "sha256": "d384439b0bd521fd79e5798cea21faacd8e8d72d67c3ccde3e1f220d85748417",
+        "bytes": 9438
+      },
+      {
+        "path": "source-reconstruction/capture-generation-source.py",
+        "sha256": "63c3b192d5a39b06d56ee26a4b8edb2010c938c9c671f7642d365783e1356f7d",
+        "bytes": 2301
+      },
+      {
+        "path": "source-reconstruction/public-restoration-01.log",
+        "sha256": "1f1b1a4fca9aa403e328bc11c4bdcd4cbc6e2dfd11e8116015b451f06633994f",
+        "bytes": 603
+      },
+      {
+        "path": "source-reconstruction/recaptured-source-reference.json",
+        "sha256": "f60b7696f8a5e030ee52eedc45ab2e0aa92f00ddd192ccbf7d216c832288cf47",
+        "bytes": 60037
+      },
+      {
+        "path": "source-reconstruction/recaptured-source-reference.log",
+        "sha256": "49efa6652b232f4c87bf3747f03d91b96466f691679e14d35d33cd603409a6aa",
+        "bytes": 2647
+      },
+      {
+        "path": "source-reconstruction/restoration.json",
+        "sha256": "5edd19d493f8c42e318ddc92fb6b40ab458aeaeb0d7c49dbadee200cf58ddd3b",
+        "bytes": 9717
+      },
+      {
+        "path": "source-reconstruction/source-recapture-comparison.json",
+        "sha256": "dced0dfea2e7f815e7e4645a4e1b743e0689c412c8b433fdd09034364a48c16b",
+        "bytes": 291
+      }
+    ]
+  },
+  "limitations": [
+    "Generation timings include the retained observation configuration and are not a paired vendor benchmark.",
+    "Node process RSS and browser renderer RSS have different scopes.",
+    "Other physical GPU configurations are unqualified.",
+    "The separate upstream integration changes current repository source, not the immutable tested runtime archive."
+  ],
+  "defaultChanged": false,
+  "promotionAllowed": false,
+  "externalAdoption": false,
+  "createdAtUtc": "2026-09-07T19:23:50.258347+00:00"
+}

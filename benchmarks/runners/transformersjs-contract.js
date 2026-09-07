@@ -1,4 +1,4 @@
-const SUPPORTED_TJS_DTYPES = Object.freeze(['fp16', 'q4', 'q4f16']);
+const SUPPORTED_TJS_DTYPES = Object.freeze(['fp32', 'fp16', 'q8', 'q4', 'q4f16']);
 const SUPPORTED_TJS_FORMATS = Object.freeze(['onnx', 'safetensors']);
 const DEFAULT_TJS_FORMAT = 'onnx';
 const DEFAULT_CACHE_MODE = 'warm';
@@ -9,7 +9,10 @@ const HF_CACHE_TOKEN_FILE = '.cache/huggingface/token';
 
 export function normalizePreferredDtype(dtype) {
   const normalized = String(dtype || 'fp16').trim().toLowerCase();
-  return SUPPORTED_TJS_DTYPES.includes(normalized) ? normalized : 'fp16';
+  if (!SUPPORTED_TJS_DTYPES.includes(normalized)) {
+    throw new Error(`Unsupported Transformers.js dtype: ${normalized}. Expected ${SUPPORTED_TJS_DTYPES.join(', ')}.`);
+  }
+  return normalized;
 }
 
 export function normalizeFormat(format) {

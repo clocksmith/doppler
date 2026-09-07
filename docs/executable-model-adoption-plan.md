@@ -124,6 +124,17 @@ one independently reproducible optimization, in that order. Engineering proceeds
 without requiring an external adopter; external adoption retains its separate
 D0–D5 proof requirements.
 
+The pinned standalone architecture and first complete product loop are delivered.
+Do not reopen their implementation because broader portability or adoption claims
+remain unproved. The current completion gate is to finish and retain the existing
+browser replay; qualify browser and Bun generation separately; qualify the
+Transformers.js alternative before comparing separate startup, warm inference,
+memory, cancellation and recovery results; and carry one unfamiliar full model
+through conversion, reference comparison, installed inference and recovery while
+recording manual interventions. A comparison favoring the alternative is a valid
+completed experiment. Another physical GPU and external adoption remain separate
+expansion gates; unavailable hardware does not justify speculative runtime edits.
+
 The [local-inference baseline](capsule-physical-baseline.md) closes the implemented
 Node/browser application and repeatable preparation milestone. Its linked
 receipts retain the exact qualification scope. Two source revisions differing
@@ -162,6 +173,8 @@ coverage. The integrated archive's subsequent qualification is retained in the
    the existing evaluator and transfers its selected policy to browser search.
    [Retained acceptance](../reports/retention-experiment/20260907/acceptance.json)
    records passing held-out Node references and the measured browser transfer.
+   The [separate reconstruction replay](../reports/retention-experiment/20260907-independent/acceptance.json)
+   also passed the full experiment from an isolated checkout on the same GPU.
 4. **Verified inference coverage.** Qualify generation, additional physical
    devices, and Bun separately. Compare strong alternatives under equivalent
    quality requirements and visible startup, memory, throughput, cancellation,
@@ -171,6 +184,8 @@ coverage. The integrated archive's subsequent qualification is retained in the
    retains its exact executed qualifier. The separate
    [generation reproduction procedure](generation-qualification-reproduction.md)
    pins public reconstruction and per-surface physical probes.
+   [Generation acceptance](../reports/inference-coverage/20260907-generation/acceptance.json)
+   now records distinct passing Node, Chromium and Bun observations.
 5. **Architecture through extensions.** Fix concrete coupling and defects exposed
    by these extensions, remove duplicated execution paths, enforce module
    ownership, and keep publication tooling outside runtime dependencies. Preserve
