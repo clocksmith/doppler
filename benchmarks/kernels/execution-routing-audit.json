@@ -4,8 +4,38 @@
   "manifestCount": 30,
   "integrityFailures": [
     {
+      "manifestPath": "models/local/create-gemma-3-1b-qualification/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
       "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
       "kernelId": "q4_decode_gemv",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af16/manifest.json",
+      "kernelId": "gelu",
       "status": "digest-mismatch"
     },
     {
@@ -15,7 +45,22 @@
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af32/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af32/manifest.json",
       "kernelId": "q4_decode_gemv",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json",
+      "kernelId": "gelu",
       "status": "digest-mismatch"
     },
     {
@@ -25,7 +70,17 @@
     },
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json",
       "kernelId": "q4_decode_gemv",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
+      "kernelId": "gelu",
       "status": "digest-mismatch"
     },
     {
@@ -34,8 +89,28 @@
       "status": "digest-mismatch"
     },
     {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
       "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
       "kernelId": "silu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/google-embeddinggemma-300m-q4k-ehf16-af32/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32/manifest.json",
+      "kernelId": "gelu",
       "status": "digest-mismatch"
     },
     {
@@ -162,6 +237,16 @@
       "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
       "kernelId": "gated_delta_recurrent",
       "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "gelu",
+      "status": "digest-mismatch"
     }
   ],
   "opportunityCount": 136,
@@ -218,11 +303,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -435,7 +520,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:b01cd16d9f2beb1f80e03235dc9b328407054009b3fc07e4eef208e07b4f3ad6"
+      "digest": "sha256:eeebb7c1c5f030f7008848a0f10c30b6b044abb046ae12a594eccdb5e6d982ee"
     },
     {
       "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
@@ -520,11 +605,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -658,7 +743,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:f2cd853a99eaa5c4ba05667a14f47a3b5923ee295bf6094f5e07611387956ce7"
+      "digest": "sha256:1d2e328bb93c957580c6dc4a60dfba8a24f3a226748556c17ffaf718dc64b1f2"
     },
     {
       "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json",
@@ -712,11 +797,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -929,7 +1014,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:b01cd16d9f2beb1f80e03235dc9b328407054009b3fc07e4eef208e07b4f3ad6"
+      "digest": "sha256:eeebb7c1c5f030f7008848a0f10c30b6b044abb046ae12a594eccdb5e6d982ee"
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json",
@@ -983,11 +1068,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -1160,7 +1245,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:f2762e56a4435c7388d16b8c60a795433abba53bf69dbbf57f74758ae6000b3c"
+      "digest": "sha256:237621bd003be43160c2fb2ce69c1e78279434d9fd38fc1eb456df7194e3b360"
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
@@ -1214,11 +1299,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -1391,7 +1476,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:2a0e3741639c56ff2484e88bb9ebea4fcf87eeeec25a2abf7ad74116d140bba8"
+      "digest": "sha256:35688922a9eb890a037315aeacec1a022539969e0f87caf909a2fd0403b38552"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af16/manifest.json",
@@ -1476,11 +1561,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -1604,7 +1689,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:fcde693808cd9e1f86bd783bb99296475cfcdadada2338d52749d563152871f6"
+      "digest": "sha256:bca7e9690540c1c13cf9eebe8d3b70b59deeed6d9dd613447e40fd089d042caf"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af32/manifest.json",
@@ -1689,11 +1774,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -1911,7 +1996,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:22341b7e10288eb7de2f8b471622aba0e7fca188775b34b512835938040a36c4"
+      "digest": "sha256:829086b5cc6680beb71a3ce37d2a84d79ab80b25735b6d33ecba3b8cc1d4a1a6"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/manifest.json",
@@ -1997,11 +2082,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -2095,7 +2180,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:15d6b085e8caaef4e8a52a40bca9914c0a01f4a990fb376630edf5fad6eb01e3"
+      "digest": "sha256:e6d74dd8c7e196a9916d3dd438ac38f47cee58cbc8b2c20aac6615480d34b70c"
     },
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json",
@@ -2180,11 +2265,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -2308,7 +2393,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:a9635ad80ff0eedb2631d3ec50ab34e2c8301614ceef8852268ad2eea8f7bf56"
+      "digest": "sha256:ffded9228760557e310f380a2e0a4567cf5e8448492b815461ba3f73665f0b5a"
     },
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json",
@@ -2393,11 +2478,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -2615,7 +2700,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:35b40e93d5b2e2e9f2bd90e10ebec8c9fbac7121c42e4bc350b6e24c9cbd8ca4"
+      "digest": "sha256:da8b0081e4c3e0dde5335b669b787864b7396e5c68876852bf54fbbf4b76d943"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
@@ -2700,11 +2785,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -2828,7 +2913,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:727f6b16501dd23ee446ac929abd9cc87f54ddd65b90393fbc8ed1dfefc08c46"
+      "digest": "sha256:9c39ad01dccd50600343d8c870bc3979f38d8e2f34e2e56d0238cd37d5f1e2c8"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
@@ -2913,11 +2998,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -3113,7 +3198,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:af76eb2a17832506779cbbfe8b6d3f2e83638726ea5cddeab1738fa72e2bd286"
+      "digest": "sha256:436d80120f1fa47f166e2f7f536cce9ddbfbd2798262b9cf6b5394f0cb6aa0fc"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
@@ -3198,11 +3283,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -3398,7 +3483,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:55d1cf120aefa2cb9b81249036cf6532b1cb0044d89829b4d819f511ce1a58d2"
+      "digest": "sha256:bc59369268101e3e6f34ab40a21d4f8a9bcc743eb5afadff6726572f5661ff4e"
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32-pad-token-v1/manifest.json",
@@ -3948,11 +4033,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "residual",
@@ -4099,7 +4184,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:e3fb36669c2aca5fff009404fa21cd11c10be6490b9a850b4dc1c6f2bc79fcbc"
+      "digest": "sha256:a929183105853a5131be04c25566f74b0403bc539cff7fd75fc875367f3ff484"
     },
     {
       "manifestPath": "models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32/manifest.json",
@@ -4143,11 +4228,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -4406,7 +4491,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:3e66284edbe380eaff416392a93ebd6430c1232989cf173c659757d5222dbbb0"
+      "digest": "sha256:85cbe56d4ac3914c01d65182e78c9b82552a6e482385f1e808e764b526c7418d"
     },
     {
       "manifestPath": "models/local/minicpm4-0-5b-f16-af32/manifest.json",
@@ -8134,11 +8219,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -8659,7 +8744,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:f7f47d75db6578d307fb38a4a3210b5538399e70a4f2dde7737af53062ee7910"
+      "digest": "sha256:3eb0665cfc13aa071bbe8a2526f24815dccca394890e35d88872795f0ed6c219"
     },
     {
       "manifestPath": "models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json",
@@ -8703,11 +8788,11 @@
           "kernelId": "gelu",
           "key": "gelu.wgsl#main",
           "declaredDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
-          "expectedDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "expectedDigest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
           "registeredVariants": [
             "gelu/gelu"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "gemv",
@@ -9134,8 +9219,8 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:daf32065d9c8c64d2c980d9f2c326b6de5a413b761df1bb5bd552d044b9a1b01"
+      "digest": "sha256:85eb8e9ef024c0e34698b699e85f6f844cfa2362cbbc6ca638ca2c5dba6d21ab"
     }
   ],
-  "digest": "sha256:ba3760d156a23af6b89392bab2e71a5d92992700a2f11091486b8db637d0670b"
+  "digest": "sha256:e889f964637102e94995cbe06238bee230e8fe568b06cf026575221027eef35e"
 }

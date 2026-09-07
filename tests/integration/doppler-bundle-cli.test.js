@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 
 const { performIntake } = await import('../../src/cli/doppler-cli.js');
 
@@ -115,6 +116,9 @@ function runCli(args, options = {}) {
     '2026-03-18T13-33-38.973Z.json'
   );
   const manifest = JSON.parse(readFileSync(FIXTURE_MANIFEST, 'utf8'));
+  // This happy-path capture is synthetic. Bind its temporary manifest to the
+  // current shader while leaving the retained model and report untouched.
+  manifest.inference.execution.kernels.gelu.digest = `sha256:${KERNEL_REF_CONTENT_DIGESTS['gelu.wgsl#main']}`;
   const executionGraphHash = resolveExecutionGraphHash(manifest);
   assert.ok(executionGraphHash, 'manifest must expose an executionGraphHash');
 
@@ -160,12 +164,15 @@ function runCli(args, options = {}) {
   const outDir = mkdtempSync(path.join(tmpdir(), 'doppler-bundle-happy-'));
   try {
     const { writeFileSync } = await import('node:fs');
+    const syntheticManifestPath = path.join(outDir, 'synthetic-manifest.json');
+    writeFileSync(syntheticManifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
     const synthTranscriptPath = path.join(outDir, 'synth-reference-transcript.json');
     writeFileSync(synthTranscriptPath, `${JSON.stringify(synthTranscript, null, 2)}\n`);
 
     const result = runCli([
       'bundle',
-      '--manifest', FIXTURE_MANIFEST,
+      '--manifest', syntheticManifestPath,
+      '--model-dir', path.dirname(FIXTURE_MANIFEST),
       '--out', outDir,
       '--skip-capture',
       '--reference-report', FIXTURE_REPORT,

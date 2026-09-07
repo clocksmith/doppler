@@ -267,6 +267,11 @@ Canonical Transformers.js compare metadata comes from [models/catalog.json](../.
 - `vendorBenchmark.transformersjs.repoId` is the canonical repo mapping fallback when a compare profile omits `defaultTjsModelId`
 - `vendorBenchmark.transformersjs.dtype` is the canonical default `--tjs-dtype` for claim lanes unless the caller overrides it explicitly
 
+The local runner accepts explicit `fp32`, `fp16`, `q8`, `q4`, and `q4f16`
+artifacts. Unknown dtype values fail before loading; they never select a different
+precision silently. Each artifact must pass the unchanged source-reference gate
+before its startup, inference, or memory measurements enter a comparison.
+
 Embedding compare metadata lives in [embedding-compare.config.json](./embedding-compare.config.json).
 It uses the same split: shared prompt/run/cache policy at the root, model-specific
 Doppler engine overlays and embedding call semantics in each profile, catalog-owned
