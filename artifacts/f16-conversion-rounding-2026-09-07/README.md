@@ -157,7 +157,27 @@ The published Q4K observation uses batched GPU decoding, whereas both F16 runs
 use self-speculation with command batching disabled. A subsequent diagnostic
 changes only resolved `session.speculation.mode` to `none` on the corrected
 artifact. It preserves the same ordered cases and frozen browser source. Its
-result is not yet included here, and disabling a path is not promoted as a fix.
+completed run confirms `single_token` decoding for all eight cases, with clean
+teardown. All eight token sequences and output strings remain exactly identical
+to corrected attempt 02. The hypothesis that disabling self-speculation removes
+these failures is therefore refuted; no workaround is promoted.
+
+`no-speculation-browser.tar.gz` retains the run, all 591 captured source files,
+configuration, log, and executable comparator. The comparator rehashes both runs'
+captured sources, checks identical model artifacts and ordered inputs, and
+requires the actual decode modes to differ as intended. It retains the differing
+server addresses and session identities. Other exposed runtime-profile fields
+match; this is not a claim that the complete resolved sessions are identical.
+Reproduce after extracting this archive and `corrected-browser.tar.gz` into the
+same directory:
+
+```sh
+node compare-f16-speculation.js . rechecked-speculation.json
+```
+
+A subsequent observational probe captures embeddings and selected final logits
+on the same corrected artifact and ordered corpus. That probe is not yet
+included here. No runtime arithmetic, prompts, or acceptance rules change.
 
 ## Claim boundary
 
