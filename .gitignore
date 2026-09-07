@@ -140,6 +140,13 @@ reports/**
 !reports/inference-coverage/20260907-bun/
 !reports/inference-coverage/20260907-bun/acceptance.json
 !reports/inference-coverage/20260907-bun/evidence.tar.gz
+!reports/inference-coverage/20260907-generation/
+!reports/inference-coverage/20260907-generation/inputs/
+!reports/inference-coverage/20260907-generation/inputs/*.json
+!reports/inference-coverage/20260907-generation/reproduction.json
+!reports/inference-coverage/20260907-generation/reproduction.tar.gz
+!reports/inference-coverage/20260907-generation/acceptance.json
+!reports/inference-coverage/20260907-generation/evidence.tar.gz
 !reports/pack-v0/
 !reports/pack-v0/**/
 !reports/pack-v0/**/*-qualification.json
