@@ -296,8 +296,19 @@ await assert.rejects(
       'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json'
     ),
   }),
-  /reference report must include metrics\.prompt or metrics\.promptInput/
+  /kernel digest mismatch for gelu\.wgsl#main/
 );
+
+// Test missing prompt metadata independently of retained shader identities.
+const noPromptReport = JSON.parse(await fs.readFile(reportPath, 'utf8'));
+delete noPromptReport.metrics.prompt;
+delete noPromptReport.metrics.promptInput;
+delete noPromptReport.metrics.referenceTranscript.prompt;
+const noPromptPath = path.join(reportDir, 'missing-prompt.json');
+await fs.writeFile(noPromptPath, JSON.stringify(noPromptReport));
+await assert.rejects(() => exportProgramBundle({
+  repoRoot, manifestPath, modelDir, referenceReportPath: noPromptPath, conversionConfigPath,
+}), /reference report must include metrics\.prompt or metrics\.promptInput/);
 
 const unsafeHostPath = path.join(fixtureRoot, 'unsafe-host.js');
 await fs.writeFile(

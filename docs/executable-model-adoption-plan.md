@@ -162,6 +162,10 @@ coverage. The integrated archive's subsequent qualification is retained in the
    [Retained discovery acceptance](../reports/model-revision-discovery/20260907/acceptance.json)
    covers automatic upstream assessment and a hybrid GPU operation reference;
    full hybrid model qualification remains a separate gate.
+   The [unfamiliar ESM-2 encoder experiment](unfamiliar-model-qualification.md)
+   now passes full installed reference comparison and recovery after repairing
+   erf GELU and activation-step binding. Retaining its final committed-checkout
+   reconstruction is the remaining release step for this extension.
 3. **Reusable optimization.** Connect candidate generation to physical hardware
    experiments under unchanged correctness tests. Freeze tuning and held-out
    inputs separately, demonstrate an improvement on the held-out inputs, and

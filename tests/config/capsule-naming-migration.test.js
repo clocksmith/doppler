@@ -20,6 +20,18 @@ for (const entry of manifest.files) {
   if (!entry.source.startsWith('src/config/conversion/')) continue;
   const current = JSON.parse(await fs.readFile(entry.source, 'utf8'));
   const expected = renameIdentityFields(JSON.parse(bytes));
+  // The later GELU specialization changes shader identity independently of the
+  // naming migration. Every other computational field still matches this archive.
+  const geluDigests = {
+    'sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34':
+      'sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0',
+  };
+  for (const [id, kernel] of Object.entries(expected.execution.kernels)) {
+    if (kernel.digest in geluDigests) {
+      assert.equal(current.execution.kernels[id].digest, geluDigests[kernel.digest]);
+      kernel.digest = geluDigests[kernel.digest];
+    }
+  }
   if (entry.source === 'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json') {
     // The referenced manifest now uses Capsule identity fields. Bind the new
     // digest to its actual bytes while comparing every computational field.
