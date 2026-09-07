@@ -101,6 +101,9 @@ try {
     report.runtime = { name: config.surface, version: process.versions.bun ?? process.version };
     const originalFetch = globalThis.fetch; restoreFetch = () => { globalThis.fetch = originalFetch; };
     globalThis.fetch = async input => { report.requests.push(String(input)); throw new Error('Network disabled for retained generation qualification.'); };
+    const { installNodeFileFetchShim } = await import(moduleUrl('src/tooling/node-file-fetch.js'));
+    installNodeFileFetchShim();
+    report.fileAccess = 'Installed Node file-fetch adapter; non-file acquisition is rejected.';
     report.result = await runGenerationQualificationScenario({ ...scenario, modelUrl: pathToFileURL(config.modelDir + '/').href,
       apiModule: moduleUrl('src/client/doppler-api.js'), deviceModule: moduleUrl('src/gpu/device.js'),
       identityModule: moduleUrl('src/config/initial-execution-identity.js') }, reference, observe);
