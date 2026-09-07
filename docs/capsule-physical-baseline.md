@@ -130,3 +130,20 @@ archive smoke receipt, onboarding resumes, and complete local acceptance.
 Boundary effects: application storage and index ownership, optional runtime file
 retention, GPU loss recovery, and resumable development orchestration. Application
 release acceptance remains explicit; onboarding cannot publish or approve upgrades.
+
+## Subsequent committed release reproduction
+
+The [20260907 release acceptance](../reports/capsule-baseline/20260907-release/acceptance.json)
+records a separate qualification of archive `61a23b9cafd17eb2…`, with tooling and
+remote CI bound to commit `984d25633566420e6791c57ce271e388c4bc05b5`.
+The isolated checkout passes 779 test files. Public-source reconstruction verifies
+126 signed artifacts, and reconstructed models pass installed Node and Chromium
+inference, offline search, and recovery on AMD Radeon 8060S. Historical evidence
+above retains its original source and archive identities.
+
+The [reproduction instructions](capsule-release-reproduction.md) use the committed
+archive, public dependency lockfile, signed metadata, and pinned upstream sources.
+The evidence bundle includes full acceptance logs, failed attempts, successful
+restorations, and physical reports. This archive is publicly retained in Git;
+it is distinct from the npm registry's `0.6.0` archive. Other devices, Bun,
+generation, and external adoption remain separate qualification work.

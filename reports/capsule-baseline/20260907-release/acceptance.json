@@ -1,0 +1,435 @@
+{
+  "schema": "doppler.capsule-release-acceptance/v1",
+  "component": "doppler",
+  "intent": "preserved",
+  "status": "reproduced-and-physically-qualified",
+  "sourceCommit": "984d25633566420e6791c57ce271e388c4bc05b5",
+  "runtimeImplementationCommit": "add14e4bd6085d0f65ecb49ee2b72554d27ccce6",
+  "package": {
+    "filename": "doppler-gpu-0.6.0.tgz",
+    "integrity": "sha512-uDxLvnAqy8Ceunr1zGXkMZXvXe6sqk4gOqAFuhJ0npokk/VFZs6v9bJjU6XNkF7d+f/S+n65zI95+h8tWN4G6g==",
+    "sizeBytes": 2104958,
+    "sha256": "61a23b9cafd17eb2b420c7bd8bb1f7e8cfae859048f581e42a5fb01ad767ed19"
+  },
+  "isolatedAcceptance": {
+    "commit": "984d25633566420e6791c57ce271e388c4bc05b5",
+    "status": "",
+    "command": "TMPDIR=/var/tmp npm ci && TMPDIR=/var/tmp npm run check:green",
+    "exitCode": 0,
+    "testFiles": 779,
+    "capsuleContractFiles": 36
+  },
+  "remoteChecks": [
+    {
+      "id": 101804469892,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/clocksmith/doppler/actions/runs/34141539391/job/101804469892"
+    }
+  ],
+  "reproduction": {
+    "bundle": {
+      "path": "reproduction.tar.gz",
+      "sha256": "bdda49b7006fd03955e52d01da0c61724a8ff62d1ced730687dddfd8546f9d51",
+      "sizeBytes": 12322019
+    },
+    "publicUrl": "https://raw.githubusercontent.com/clocksmith/doppler/984d25633566420e6791c57ce271e388c4bc05b5/reports/capsule-baseline/20260907-release/reproduction.tar.gz",
+    "publicDownloadSha256": "bdda49b7006fd03955e52d01da0c61724a8ff62d1ced730687dddfd8546f9d51",
+    "independentCheckoutRunPassed": true,
+    "publicSourceFilesDownloaded": 16,
+    "signedArtifactsVerified": 126,
+    "artifactBytesIdenticalAcrossRestorations": true,
+    "signingKeysIncluded": false,
+    "models": [
+      {
+        "id": "embedding",
+        "repository": "Qwen/Qwen3-Embedding-0.6B",
+        "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+        "license": "apache-2.0"
+      },
+      {
+        "id": "reranker",
+        "repository": "Qwen/Qwen3-Reranker-0.6B",
+        "revision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+        "license": "apache-2.0"
+      }
+    ]
+  },
+  "physicalQualification": {
+    "node": {
+      "passed": true,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1",
+        "isFallbackAdapter": false
+      },
+      "nodeVersion": "v22.22.1",
+      "providerVersion": "0.4.0",
+      "identity": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4ecc046b2d589b64cf16668009d3ed64f82ca8ca490bd0e5ee207ec380dbcaa6",
+        "semanticRoot": "sha256:4ecc046b2d589b64cf16668009d3ed64f82ca8ca490bd0e5ee207ec380dbcaa6",
+        "envelopeDigest": "sha256:e58c4711d4d1eddb891f41c834662658093a40ea643f702fc043a6a8764e206f",
+        "artifactClosureDigest": "sha256:2279d60892542e621da700c0eec8460f6e5359f98e64f990795d0a24d9b1a4ce"
+      },
+      "sourceReferenceDigest": "81df00d625d7e8114f82fc4d67f487dde4946b684a809e63376e046a0bc88c4a",
+      "evidence": "public-node/qualification.json",
+      "deviceLossRecovery": true,
+      "revokedReleaseAndRollbackRejected": true
+    },
+    "browser": {
+      "passed": true,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+        "isFallbackAdapter": false
+      },
+      "applicationDigest": "sha256:7284579e0a1f651661886ba39a47070a4984866f04a387241cd6db30392b5dd5",
+      "fixtureDigest": "sha256:d95b39aedf9bad4a74cd36863c4f3b8c7b77518a061b25712aa7ba935be497e1",
+      "evidence": "public-browser/qualification.json",
+      "onlineAndOfflineExpectations": 6,
+      "bm25Expectations": 5,
+      "offlineRankingsIdentical": true,
+      "recovery": [
+        "cancellation",
+        "storage-exhaustion",
+        "artifact-corruption",
+        "index-invalidation",
+        "device-loss"
+      ]
+    },
+    "retentionPolicy": "unlimited; bounded retention remains an explicit option",
+    "externalAdoption": false
+  },
+  "historicalRevokedCheckpointSha256": "a3a9c4e4e119715dc10b76c28bb6c425624fc609f1e534bb801db1313c4b7953",
+  "distribution": {
+    "runtimeArchivePubliclyRetained": true,
+    "signedMetadataPubliclyRetained": true,
+    "weightsReconstructedFromPinnedPublicSources": true,
+    "thisArchivePublishedToNpm": false,
+    "npmRegistryVersionHasDifferentArchive": true
+  },
+  "scopeLimits": [
+    "AMD Radeon 8060S only",
+    "No new generation or Bun evidence",
+    "No vendor superiority claim",
+    "No external adoption claim"
+  ],
+  "evidenceArchive": {
+    "path": "evidence.tar.gz",
+    "sha256": "4728693141c0646cfb210b728c16b84a43a5744c122f729fba9eec5b37108904",
+    "sizeBytes": 3041275
+  },
+  "evidenceInventory": [
+    {
+      "path": "application-build-config.json",
+      "sha256": "bd90fca99fbc50e2ca1cc37b57386d9d57545c2d097ed3cfda2db8483d776b15",
+      "sizeBytes": 873
+    },
+    {
+      "path": "application-build.log",
+      "sha256": "4095f14707f3ffa1ba5d1cadb56eb4188257da37c07d005cd27ae5f731036c90",
+      "sizeBytes": 1135
+    },
+    {
+      "path": "browser-search-config.json",
+      "sha256": "5f92854ce71504714ce086f1051160cd2435ff070d92a373bddaf380926ef4db",
+      "sizeBytes": 690
+    },
+    {
+      "path": "browser-search.log",
+      "sha256": "493635a1b0ae5d0739ab479cabd88459bd1e5c1f5e4ceca41587996d23ab7bd8",
+      "sizeBytes": 419
+    },
+    {
+      "path": "budget-fix-check-runs.json",
+      "sha256": "0a14116b8de4778d58aa10b0c406eecd7148b00161f0c08da7b584cec29f2ad1",
+      "sizeBytes": 4295
+    },
+    {
+      "path": "check-green.log",
+      "sha256": "24f1a58bae35c8615ef82e9108bbe622087c9d5419523d55347305ef8be6087e",
+      "sizeBytes": 395711
+    },
+    {
+      "path": "committed-package.log",
+      "sha256": "4c2727fecfd28f73d8391204d64bd3c7ab97349b54c3c7169808ccdb8d606e56",
+      "sizeBytes": 739
+    },
+    {
+      "path": "committed-package/npm-pack.json",
+      "sha256": "21d25bf5fb65dd3e167f911c53c7487d2459d3aba65a2c536b479950891977a5",
+      "sizeBytes": 211511
+    },
+    {
+      "path": "committed-package/receipt.json",
+      "sha256": "bdb701f5d5ade704bceb7ed62884695ace2d4ed23095129cb0c9cc15cb25f285",
+      "sizeBytes": 1763
+    },
+    {
+      "path": "committed-package/source-state.json",
+      "sha256": "4b09098467aac3930d77550820504034bec32025d1111e5971a50be5e3148934",
+      "sizeBytes": 160
+    },
+    {
+      "path": "embedding-upstream-metadata.json",
+      "sha256": "83226f21488c82b925b40460b7d9b4446cfea9c6b639ff8a495cf7498d2e5287",
+      "sizeBytes": 9141
+    },
+    {
+      "path": "failed-restoration/restoration.json",
+      "sha256": "c478d912eddff7cefaef2a96405c577e2becd8d5cb97447bca4c0e34d03ec7c9",
+      "sizeBytes": 1328
+    },
+    {
+      "path": "final-isolated-check-green.log",
+      "sha256": "9df1db29eebd53973c92a086e5c642fe7ba900d1d9e338799cf732ed255a67a7",
+      "sizeBytes": 397393
+    },
+    {
+      "path": "final-isolated-npm-ci.log",
+      "sha256": "37c183d4c48dafb47bfe6cfd80ea3921358899b3c46089a25a4eef23d0697bf3",
+      "sizeBytes": 354
+    },
+    {
+      "path": "implementation-check-runs.json",
+      "sha256": "abbeac203e6f20788f06b8982922dc788dd9f3345eb8518d07ead9e20bb70ed7",
+      "sizeBytes": 4316
+    },
+    {
+      "path": "implementation-ci-job.json",
+      "sha256": "194d7e8f40052ccda4c709803f9236c8c2fed145e66c843336c9b37d4e88460d",
+      "sizeBytes": 3620
+    },
+    {
+      "path": "independent-restoration.log",
+      "sha256": "2599d0c0fa3fab031b196c4ca9250298a935c0d1ebed3eabc9b4da8ad5578165",
+      "sizeBytes": 1251
+    },
+    {
+      "path": "independent-restoration/convert-embedding.log",
+      "sha256": "636aeed9ebc750974453adba068e240511e7ed428c6d50ee93bdea8bb0569f2d",
+      "sizeBytes": 52599
+    },
+    {
+      "path": "independent-restoration/convert-reranker.log",
+      "sha256": "1abb7230ea0df28729e68b50ea13c8ab8c69c894ba0ace14cf4ef17d91cdfc3a",
+      "sizeBytes": 58242
+    },
+    {
+      "path": "independent-restoration/install-runtime.log",
+      "sha256": "6a8e6f2655f3315551542564dece29a8376a80715eeb323697b6c92207445b72",
+      "sizeBytes": 26
+    },
+    {
+      "path": "independent-restoration/restoration.json",
+      "sha256": "d9c1a361ff5ce6bb8adc2cec9ea818d588eaa44b942da92a34a26e5477f79eea",
+      "sizeBytes": 37411
+    },
+    {
+      "path": "initial-browser/qualification.json",
+      "sha256": "156271e5d19f42150e2f7350888332e6fe05ee2ff343cddd309568309f859ae8",
+      "sizeBytes": 5608807
+    },
+    {
+      "path": "initial-node/qualification.json",
+      "sha256": "585c6fc8bfb15ac9eff7463ae8429009f350ca038df5ef0cdd12e6ca9cd52a9b",
+      "sizeBytes": 177461
+    },
+    {
+      "path": "installed-archive-comparison.json",
+      "sha256": "e8805f8983f62059394a4a1736aec18040215342ed4d1089befc2047035cc576",
+      "sizeBytes": 318013
+    },
+    {
+      "path": "isolated-check-green.log",
+      "sha256": "fc96ee8758bc3f099f019e4f144417862da4203a935aa43f656c699c46b40b60",
+      "sizeBytes": 397068
+    },
+    {
+      "path": "isolated-npm-ci-02.log",
+      "sha256": "37c183d4c48dafb47bfe6cfd80ea3921358899b3c46089a25a4eef23d0697bf3",
+      "sizeBytes": 354
+    },
+    {
+      "path": "isolated-npm-ci.log",
+      "sha256": "49ad432bf251728cb0b87667bd9738732be9a0944ce7028e46eb8e7078679fd2",
+      "sizeBytes": 935
+    },
+    {
+      "path": "isolated-source-state.json",
+      "sha256": "a80f8d000e871d175eb52c7b6eff502eb3c1bc0b83187cc28b1f208a338d6146",
+      "sizeBytes": 220
+    },
+    {
+      "path": "node-provider-install.log",
+      "sha256": "848bd66809d98091d1364c17e9f26e26da50731f47a4711acf94b99fe482adf5",
+      "sizeBytes": 27
+    },
+    {
+      "path": "node-reranker-config.json",
+      "sha256": "170ecfbc40fa5fb831cbc1b8949e929ad37550d2b8a266f035726996e8fe4915",
+      "sizeBytes": 596
+    },
+    {
+      "path": "node-reranker.log",
+      "sha256": "40d32781f40ca6508626bb755339a8e6f087090fa7ab2e5bf24b45fe2e7ce2aa",
+      "sizeBytes": 5948
+    },
+    {
+      "path": "package-budget-check.log",
+      "sha256": "a4665c99977fa31b8811459d6524731cfccb6bdfc2854e1b01c404ba4da3d1b1",
+      "sizeBytes": 188
+    },
+    {
+      "path": "package-isolated.log",
+      "sha256": "d853a7ccfbdad5eb407c99050a2e1be0cae001e08d13e2e06834e0a03d8a562f",
+      "sizeBytes": 729
+    },
+    {
+      "path": "package.log",
+      "sha256": "319e9d383c1c67364a1f10a1151956abf214973fae5ccb61f9223adf98597227",
+      "sizeBytes": 1020
+    },
+    {
+      "path": "public-browser-config.json",
+      "sha256": "fc0826feb82dd4915bd6426a30714169e06d004cc7c584a95b2824b552a08367",
+      "sizeBytes": 689
+    },
+    {
+      "path": "public-browser-qualification.log",
+      "sha256": "8d3c483cb251d5e1be732f53744fef9e8753026825fe6b025d9b2656a8ab41e3",
+      "sizeBytes": 404
+    },
+    {
+      "path": "public-browser/qualification.json",
+      "sha256": "fcd7e9ebfe1439b89bf52a61b58a1324ddd7b1687702e66de765436ee1cb5b3d",
+      "sizeBytes": 5610043
+    },
+    {
+      "path": "public-node-config.json",
+      "sha256": "8bbe0aa308cc5f0f484146c25f7911d31aa65ad0489311b615d45f1e2977d226",
+      "sizeBytes": 586
+    },
+    {
+      "path": "public-node-install-02.log",
+      "sha256": "f12dee7bfee459cbfac383897c5bb66b498e3ee3f36653c02ab50f558e99ba5e",
+      "sizeBytes": 1019
+    },
+    {
+      "path": "public-node-install-03.log",
+      "sha256": "f735bd683c3c4dd399414311ef00c221232c66b1b9c7a72953d6eccd13c9dd90",
+      "sizeBytes": 27
+    },
+    {
+      "path": "public-node-install.log",
+      "sha256": "0d523527ace75c144904ad9b242970b927749a2de14eeca3ab51da47b800b8cc",
+      "sizeBytes": 154
+    },
+    {
+      "path": "public-node-qualification.log",
+      "sha256": "9d3185822523367ff7cabd932afa2cf35ca472fea1782b68a86072d6045dc24f",
+      "sizeBytes": 5931
+    },
+    {
+      "path": "public-node/qualification.json",
+      "sha256": "fac98d4c10c834dd43411214a2db7e0ef2a84cebf4dbe08e583be7a5afd225f1",
+      "sizeBytes": 177691
+    },
+    {
+      "path": "qualification-tool-comparison.json",
+      "sha256": "7f02db7a253f0ba056a652d42c0d6afdcf8286088de35a0da5385e79e0d5da75",
+      "sizeBytes": 547
+    },
+    {
+      "path": "rejected-reproduction-recipe.json",
+      "sha256": "cf0c459054622a5525f0eb24d817c56e2b11db03f2cfbaee1143d680efed9b8f",
+      "sizeBytes": 393878
+    },
+    {
+      "path": "remote-check-green.log",
+      "sha256": "89fb7cdfe5d9ab618ed659d9b518dbc4c60b25d03f2df60288e00475950b8ac9",
+      "sizeBytes": 1009530
+    },
+    {
+      "path": "remote-package-budget-failure.log",
+      "sha256": "3e213f8f4750e62a119780df71c8faf2c3cbf6fbd690a6b48a3752389d320390",
+      "sizeBytes": 481
+    },
+    {
+      "path": "reproduction-check-runs.json",
+      "sha256": "11c55ef97203b3bf5a767a413489473871a996f22dbafa0a89d3f8eee08d8e8e",
+      "sizeBytes": 4316
+    },
+    {
+      "path": "reranker-upstream-metadata.json",
+      "sha256": "f18bb33c1687304413c27dd23592f443b0cb130e86df33d979f256f3364443b9",
+      "sizeBytes": 7620
+    },
+    {
+      "path": "restoration-02.log",
+      "sha256": "eb077f4de604f3a3138aa98296ad113bf6f29f81125e2af4f6b82759b704aee0",
+      "sizeBytes": 1239
+    },
+    {
+      "path": "restoration.log",
+      "sha256": "00f9e68af7867a03c5c1ed157f1ef40d5d4a0a900cc4acfec4bc64b5c2d6f12c",
+      "sizeBytes": 318
+    },
+    {
+      "path": "restoration/convert-embedding.log",
+      "sha256": "9b678f675381fd4d573dd3a059302d26dc28b429ad0750404636035c89a18c0a",
+      "sizeBytes": 52599
+    },
+    {
+      "path": "restoration/convert-reranker.log",
+      "sha256": "c61f588880a86e21f91399166c954c2c7a6b577bbfc13c48de021c5fdd6bd8cb",
+      "sizeBytes": 58242
+    },
+    {
+      "path": "restoration/install-runtime.log",
+      "sha256": "b5dc8c7f02eeff96cff570e4d8e7b7f026d2ddc813ff7387d1a4e7ba7a837130",
+      "sizeBytes": 26
+    },
+    {
+      "path": "restoration/reproduction-input.json",
+      "sha256": "52ec823f5ab53b650baa657a787f12be2be47947b61468de81f53e23d46a9d50",
+      "sizeBytes": 389758
+    },
+    {
+      "path": "restoration/restoration.json",
+      "sha256": "5ea3db5e9cdbaa5b8e268ac8d6347f29402ee6e2d10cdf3d7eafdf39ad3cedec",
+      "sizeBytes": 37309
+    },
+    {
+      "path": "restore-contract-02.log",
+      "sha256": "18d8f0d1220cb003e9f1711c9e68718474b192205368faf301a38d7cc9c08fbd",
+      "sizeBytes": 439
+    },
+    {
+      "path": "restore-contract.log",
+      "sha256": "c006c7c6647f73ca86b859a04d0ce0014430fef9521be69286cab223827738de",
+      "sizeBytes": 1069
+    },
+    {
+      "path": "upstream-check-runs.json",
+      "sha256": "fb23e56ded8e32bb81ec5d3309e87a0b0793de298801eeb0dee78af8f45d5d54",
+      "sizeBytes": 4316
+    },
+    {
+      "path": "webgpu-archive-comparison.json",
+      "sha256": "24516b61e05da9f4b5f7be887e09f45dee78fc8de18d7a761da9b8af10ffa934",
+      "sizeBytes": 402
+    },
+    {
+      "path": "webgpu-registry-metadata.json",
+      "sha256": "3dbe1b08187056a09c66a72f467d633fe6c7ac3b4a2ddeb9ece665af0d6f8055",
+      "sizeBytes": 2095
+    }
+  ],
+  "boundaryEffects": []
+}
