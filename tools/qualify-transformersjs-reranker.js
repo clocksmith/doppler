@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
@@ -23,7 +24,9 @@ assert.equal(acquisition.revision, config.revision);
 for (const file of acquisition.files) {
   const target = path.resolve(config.modelRoot, config.modelId, file.path);
   assert(target.startsWith(path.resolve(config.modelRoot, config.modelId) + path.sep));
-  assert.equal(hash(await fs.readFile(target)), `sha256:${file.sha256}`);
+  const digest = createHash('sha256');
+  for await (const bytes of createReadStream(target)) digest.update(bytes);
+  assert.equal(digest.digest('hex'), file.sha256);
 }
 const references = [];
 for (const input of config.references) {

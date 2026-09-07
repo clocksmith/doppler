@@ -117,6 +117,13 @@ export function getKernelPathMatmulPrecision(
   outputDtype?: 'f16' | 'f32';
 } | null;
 
+export function getKernelPathActivationSpec(
+  op: string,
+  phase: KernelPathPhase | undefined,
+  layerIndex: number | undefined,
+  path?: KernelPathSchema | null
+): { variant: string; constants: Record<string, number | boolean> | null } | null;
+
 export function getKernelPathStepPrecision(
   op: string | undefined,
   section: KernelPathSection,

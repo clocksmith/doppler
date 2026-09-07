@@ -1,5 +1,3 @@
-
-
 import {
   doBiasAdd, doMatmul, doSiLU, doGeLU, doSiLURowSplit, doMatmulRMSNormFused,
   releaseOrTrack
@@ -819,6 +817,8 @@ export async function runDenseFFNGPU(
   enqueueRecordedDenseHealth(context, layerIdx, 'ffn_up', upOutput, numTokens * intermediateSize);
 
   const activatedOutput = await dispatchActivation(hiddenActivation, upOutput, {
+    kernelPath,
+    phase,
     size: numTokens * intermediateSize,
     gate: gateOutput,
     inputActivation: 'identity',

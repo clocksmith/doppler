@@ -186,7 +186,7 @@
       "gelu": {
         "kernel": "gelu.wgsl",
         "entry": "main",
-        "digest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+        "digest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
         "constants": {
           "HAS_GATE": true
         }

@@ -1,6 +1,6 @@
 --- src/gpu/kernels/gelu.wgsl
 +++ src/gpu/kernels/gelu_f16.wgsl
-@@ -1,9 +1,9 @@
+@@ -1,9 +1,8 @@
 -// GeLU Activation Kernel
 +// GeLU Activation Kernel with F16 Input/Output
  //
@@ -14,7 +14,7 @@
 
  override WORKGROUP_SIZE: u32 = 256u;
  override HAS_GATE: bool = false;
-@@ -17,9 +17,9 @@
+@@ -18,9 +17,9 @@
  }
 
  @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -25,10 +25,20 @@
 +@group(0) @binding(2) var<storage, read_write> output: array<f16>;
 +@group(0) @binding(3) var<storage, read> gate: array<f16>;
 
+ // Source erf GELU, evaluated in f32 even for f16 storage. The polynomial
+ // approximates erf rather than substituting the distinct tanh GELU function.
+@@ -34,15 +33,15 @@
+     return 0.5 * x * cdf_twice;
+ }
+
 -fn gelu(x: f32) -> f32 {
++fn gelu(x: f16) -> f16 {
+     if (GELU_ERF) {
+-        return erf_gelu(x);
++        return f16(erf_gelu(f32(x)));
+     }
 -    let sqrt_2_over_pi: f32 = 0.7978845608;
 -    let c: f32 = 0.044715;
-+fn gelu(x: f16) -> f16 {
 +    let sqrt_2_over_pi = f16(0.7978845608);
 +    let c = f16(0.044715);
      let inner = sqrt_2_over_pi * (x + c * x * x * x);
