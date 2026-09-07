@@ -29,6 +29,7 @@ Compose model acquisition and application handles above the injected Capsule exe
 - Evidence construction cannot acquire GPU resources or invoke a model pipeline.
 - Forwarding entry points expose the same Capsule contract without former product-name aliases.
 - Loading and cancellation failures preserve cleanup and the original failure.
+- Receipted token constraints require a declared content identity bound into the generation configuration hash.
 
 ## Acceptance
 

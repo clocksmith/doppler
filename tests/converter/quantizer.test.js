@@ -20,6 +20,33 @@ import {
 } from '../../src/converter/quantizer.js';
 import { decodeQ4KBlockReference } from '../../tools/lib/q4k-projection-reference.js';
 
+// Source F32 normalization weights must round to the nearest F16, ties to even.
+assert.equal(float32ToFloat16(0.955810546875), 0x3ba6);
+assert.equal(float32ToFloat16(-0.955810546875), 0xbba6);
+assert.equal(float32ToFloat16(0), 0x0000);
+assert.equal(float32ToFloat16(-0), 0x8000);
+assert.equal(float32ToFloat16(65520), 0x7c00);
+assert.equal(float32ToFloat16(-65520), 0xfc00);
+
+// Cover both signs at every adjacent finite-half midpoint, including zero,
+// subnormal/normal transitions, and exponent carries. Neighboring F32 values
+// distinguish nearest rounding from truncation and ties-away-from-zero.
+{
+  const scratch = new DataView(new ArrayBuffer(4));
+  for (let lower = 0; lower < 0x7bff; lower += 1) {
+    const midpoint = (float16ToFloat32(lower) + float16ToFloat32(lower + 1)) / 2;
+    const nearestEven = lower + (lower & 1);
+    scratch.setFloat32(0, midpoint, true);
+    const bits = scratch.getUint32(0, true);
+    for (const [delta, expected] of [[-1, lower], [0, nearestEven], [1, lower + 1]]) {
+      scratch.setUint32(0, bits + delta, true);
+      const input = scratch.getFloat32(0, true);
+      assert.equal(float32ToFloat16(input), expected, `F16 midpoint ${lower}, F32 delta ${delta}`);
+      assert.equal(float32ToFloat16(-input), expected | 0x8000, `negative F16 midpoint ${lower}, F32 delta ${delta}`);
+    }
+  }
+}
+
 // After coding values, neighboring representable scale/minimum pairs must not
 // lower squared reconstruction error. Includes partial subblocks, not padding.
 for (const length of [17, 256, 300]) {

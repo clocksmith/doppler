@@ -1,0 +1,86 @@
+{
+  "capturedAt": "2026-09-07T16:23:37.606Z",
+  "algorithm": "blake3",
+  "rows": [
+    {
+      "filename": "shard_00000.bin",
+      "bytes": 67108864,
+      "blake3": "7942ebdbfdc232d4d265551884baa0f57376d8c31411d26c484d87a8d785483f"
+    },
+    {
+      "filename": "shard_00001.bin",
+      "bytes": 67108864,
+      "blake3": "d8c8da07da459e5b98b28fd7bb61bb86360e50dc6915d2490335dc57847bbb2a"
+    },
+    {
+      "filename": "shard_00002.bin",
+      "bytes": 67108864,
+      "blake3": "ef667deb46b9209067b970053a46b5c45383ad5c7d1e837b2efd5c501ff3346d"
+    },
+    {
+      "filename": "shard_00003.bin",
+      "bytes": 67108864,
+      "blake3": "3b3a3c8096ec36d27eb2478d70b63c0a39caf9296be84a856e693f2cd9006f6f"
+    },
+    {
+      "filename": "shard_00004.bin",
+      "bytes": 67108864,
+      "blake3": "8c81318065ec35a89d004cea743b75009809fdc5f01fee2d70b6a906ef2835bf"
+    },
+    {
+      "filename": "shard_00005.bin",
+      "bytes": 67108864,
+      "blake3": "655edcd7e804ae43ed219bf822915260523e866b2a6dcdcc3bf9549c61e122f6"
+    },
+    {
+      "filename": "shard_00006.bin",
+      "bytes": 67108864,
+      "blake3": "20b3e8795a63cb877a63122c56a65758c7c80623d0bd5fbb15fb9a14ea0d659e"
+    },
+    {
+      "filename": "shard_00007.bin",
+      "bytes": 67108864,
+      "blake3": "403f62c9ac4184fd1123ea89a772b36657474b4e6a1191fb4c07fb25fe44be31"
+    },
+    {
+      "filename": "shard_00008.bin",
+      "bytes": 67108864,
+      "blake3": "200adb7ec4d486cc3bc837af6be8f2e6ba421d062f5a00476f34c0cb62afcf41"
+    },
+    {
+      "filename": "shard_00009.bin",
+      "bytes": 67108864,
+      "blake3": "58dde0231e8d41633ba13afd824cee261a5b5c799d45ab9a9c6d5fc7f645e967"
+    },
+    {
+      "filename": "shard_00010.bin",
+      "bytes": 67108864,
+      "blake3": "8a7ff885352836f8fe53ee92ce8ed9ea1d56495f1077382241ddbbd4850d4aa3"
+    },
+    {
+      "filename": "shard_00011.bin",
+      "bytes": 67108864,
+      "blake3": "23cdd46c97ba7a0e1434468db1b5ec82ea08eccb67744f813639040cd3ae9955"
+    },
+    {
+      "filename": "shard_00012.bin",
+      "bytes": 67108864,
+      "blake3": "227f2d627baef8934d6ba0d247fab4388cc9ba11c58d7f1d027233705a7911b9"
+    },
+    {
+      "filename": "shard_00013.bin",
+      "bytes": 67108864,
+      "blake3": "f1902fdd3e7ddf9f1be22ecd9f26d17edf66fd2948d5b6e82199143ca53afb46"
+    },
+    {
+      "filename": "shard_00014.bin",
+      "bytes": 67108864,
+      "blake3": "ab0285b11a06bf3c937b64c5aef2246b1e5f5af4933c29c5c6fb85655de3c224"
+    },
+    {
+      "filename": "shard_00015.bin",
+      "bytes": 18860288,
+      "blake3": "da6cb2f3cbb3a032c9ffaf2acf3f724009ff8cdb9be2f4fd4715fef8d96f044f"
+    }
+  ]
+}

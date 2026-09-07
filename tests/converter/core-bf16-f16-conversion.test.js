@@ -73,7 +73,7 @@ const io = {
   },
 };
 
-await convertModel(model, io, {
+const conversionOptions = {
   modelId: 'bf16-f16-conversion-test',
   modelType: 'transformer',
   quantization: 'F16',
@@ -99,7 +99,8 @@ await convertModel(model, io, {
   },
   eosTokenId: 1,
   converterConfig: createConverterConfig(),
-});
+};
+await convertModel(model, io, conversionOptions);
 
 assert.ok(capturedManifest, 'manifest should be written');
 assert.ok(capturedShard, 'converted shard should be written');
@@ -121,5 +122,21 @@ for (let i = 0; i < sourceValues.length; i++) {
     `converted value mismatch at ${i}: got ${outF32[i]}, expected ${sourceValues[i]}`
   );
 }
+
+// Exercise the source F32 -> tensor transform -> shard bytes boundary with
+// values that truncation gets wrong, not a reference using the same encoder.
+const f32Source = new Float32Array([0.955810546875, -0.955810546875, 2 ** -25, 1.99951171875]);
+await convertModel({
+  ...model,
+  tensors: [{ ...tensors[0], dtype: 'F32', size: f32Source.byteLength }],
+}, {
+  ...io,
+  async readTensorData() { return toArrayBuffer(f32Source); },
+}, conversionOptions);
+const f32Location = capturedManifest.tensors[tensors[0].name];
+assert.equal(f32Location.dtype, 'F16');
+assert.deepEqual(Array.from(new Uint16Array(
+  capturedShard.buffer, capturedShard.byteOffset + f32Location.offset, f32Source.length
+)), [0x3ba6, 0xbba6, 0x0000, 0x4000]);
 
 console.log('core-bf16-f16-conversion.test: ok');

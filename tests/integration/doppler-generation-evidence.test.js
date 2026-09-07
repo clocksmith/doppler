@@ -316,3 +316,20 @@ await assert.rejects(
 );
 
 console.log('doppler-generation-evidence.test: ok');
+
+let constrainedCalls = 0;
+const constrainedHandle = createModelHandle({ ...pipeline,
+  async generateTokenIds() { constrainedCalls += 1; return { tokenIds: [101], stats }; },
+}, { logicalModelId: 'constraint-test', modelId: 'constraint-test', manifestHash: 'a'.repeat(64) });
+const constraint = { id: 'json-object-syntax-v1', contentDigest: `sha256:${'d'.repeat(64)}` };
+await assert.rejects(constrainedHandle.generateWithEvidence('x', { logitMaskFn() {} }), /logitMaskIdentity/);
+await assert.rejects(constrainedHandle.generateWithEvidence('x', { logitMaskIdentity: constraint }), /executed/);
+await assert.rejects(constrainedHandle.generateWithEvidence('x', { logitMaskFn() {}, logitMaskIdentity: { ...constraint, contentDigest: 'forged' } }), /SHA-256/);
+assert.equal(constrainedCalls, 0);
+const masked = await constrainedHandle.generateWithEvidence('x', { logitMaskFn() {}, logitMaskIdentity: constraint });
+assert.deepEqual(masked.generationConfig.logitMaskIdentity, constraint);
+const different = await constrainedHandle.generateWithEvidence('x', { logitMaskFn() {}, logitMaskIdentity: { ...constraint, contentDigest: `sha256:${'e'.repeat(64)}` } });
+assert.notEqual(masked.generationConfigHash, different.generationConfigHash);
+constraint.contentDigest = `sha256:${'f'.repeat(64)}`;
+assert.equal(masked.generationConfig.logitMaskIdentity.contentDigest, `sha256:${'d'.repeat(64)}`);
+console.log('doppler-generation-evidence constraints: ok');

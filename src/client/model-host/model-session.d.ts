@@ -22,6 +22,7 @@ export type DopplerEvidenceStats = Omit<PipelineStats, 'gpuTimePrefillMs' | 'gpu
 };
 
 export interface DopplerGenerationConfigEvidence {
+  logitMaskIdentity?: { id: string; contentDigest: string };
   maxTokens: number;
   temperature: number;
   topP: number;

@@ -1,0 +1,119 @@
+{
+  "capturedAt": "2026-09-07T16:22:39.975158+00:00",
+  "manifest": {
+    "filename": "manifest.json",
+    "bytes": 94391,
+    "sha256": "3fa778f7f55a6a395c9c5a5fcef11dea00dca96780c57315e8ebb815b4d1cc0a",
+    "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/manifest.json"
+  },
+  "files": [
+    {
+      "filename": "shard_00000.bin",
+      "bytes": 67108864,
+      "sha256": "ae59dfc515325ad66254bc8e0952f9782010beeee8895af2ed24d0a3af85708b",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00000.bin"
+    },
+    {
+      "filename": "shard_00001.bin",
+      "bytes": 67108864,
+      "sha256": "7f2bd116e3bf169cdcd5c2f2b45c3832227995da10d22a0f5e659302ca920d2e",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00001.bin"
+    },
+    {
+      "filename": "shard_00002.bin",
+      "bytes": 67108864,
+      "sha256": "4baf3cf8bba3e8f74e81b2b858feb80bbfbedc7de021bef7392f16e8e7b99baa",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00002.bin"
+    },
+    {
+      "filename": "shard_00003.bin",
+      "bytes": 67108864,
+      "sha256": "edf5eb51366290f304c876c29a166a55d0150d5b69e19e4971415a9f8fd40475",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00003.bin"
+    },
+    {
+      "filename": "shard_00004.bin",
+      "bytes": 67108864,
+      "sha256": "81750dd385bc44e56be423621a23049fc792d3fc2deb3ebed2fe1ab435747bcd",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00004.bin"
+    },
+    {
+      "filename": "shard_00005.bin",
+      "bytes": 67108864,
+      "sha256": "c833b08239e103c8486d3777a2e53f2f3e877be4da853bc45b7eaf96644840cb",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00005.bin"
+    },
+    {
+      "filename": "shard_00006.bin",
+      "bytes": 67108864,
+      "sha256": "8b21d4f1dc25ea1365d319bdaad9c9ae9a54ba0809cfc37a70d745d561479974",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00006.bin"
+    },
+    {
+      "filename": "shard_00007.bin",
+      "bytes": 67108864,
+      "sha256": "0c70519721968578e49c061d11df16e8320e75141490e4d8f0f92bb38040e1cf",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00007.bin"
+    },
+    {
+      "filename": "shard_00008.bin",
+      "bytes": 67108864,
+      "sha256": "f17281795147464b0380d9643f768ef0de6ad56b29e5e7a2fc0a0f9043b5617f",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00008.bin"
+    },
+    {
+      "filename": "shard_00009.bin",
+      "bytes": 67108864,
+      "sha256": "33fc5a11cf2e7a2892dc2884645fe2369d34604529543656486c90bd861527f4",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00009.bin"
+    },
+    {
+      "filename": "shard_00010.bin",
+      "bytes": 67108864,
+      "sha256": "1e62b2b8e1afabf0b18f4e4b80f9aa6e10ab0e3510e7fb55a14c855ba98ed1f5",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00010.bin"
+    },
+    {
+      "filename": "shard_00011.bin",
+      "bytes": 67108864,
+      "sha256": "dab1e05567b9a6334f040ace55c9e9495e24fd387eb9fe835c69b469b59bd2ed",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00011.bin"
+    },
+    {
+      "filename": "shard_00012.bin",
+      "bytes": 67108864,
+      "sha256": "15a621b8623205dec62a525b7fb1242d2db978e445390db6df67a2333612ffe0",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00012.bin"
+    },
+    {
+      "filename": "shard_00013.bin",
+      "bytes": 67108864,
+      "sha256": "9973bc999243fe44c55c519ebb5094fba69b1ef422ba40671065785fd2af57fa",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00013.bin"
+    },
+    {
+      "filename": "shard_00014.bin",
+      "bytes": 67108864,
+      "sha256": "bc007f864b09995f3add6c1058db6d598f03b41daeabbc2215f083659400d4c3",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00014.bin"
+    },
+    {
+      "filename": "shard_00015.bin",
+      "bytes": 18860288,
+      "sha256": "7ce9f77fc4e16726d608a5b22a825b792e7c27bc188c7a0a8515fb13208da839",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/shard_00015.bin"
+    },
+    {
+      "filename": "tokenizer.json",
+      "bytes": 14386245,
+      "sha256": "8ef59ebecae680b6ab1ebc65c3855238032d55dea31d27968a6eacf458144ee9",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/tokenizer.json"
+    },
+    {
+      "filename": "origin.json",
+      "bytes": 395,
+      "sha256": "c26c8c23bf20a0d712887b5cca68e72dd3d0d66879dbc906883d536d79d16825",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/7c3d30e300bcb02cbd68fb0db3eee64fbf738f99/models/gemma-3-1b-it-q4k-ehf16-af32/origin.json"
+    }
+  ]
+}
