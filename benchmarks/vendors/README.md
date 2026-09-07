@@ -452,3 +452,12 @@ persistence to the qualification host; model execution stays in the browser's
 installed Doppler modules. It observes the same full source oracle and renderer
 RSS definition as the Transformers.js reference probe. Its raw receipts remain
 qualification evidence until a paired timing and fairness contract passes.
+
+Both reference probes accept optional explicit `sampling` with `warmupRuns` and
+`timedRuns`. Without that object, observations are labeled `reference` and cannot
+form a timed population. With it, the same expanded schedule applies to both
+engines and every warmup/timed result must pass the full source oracle. Missing,
+duplicated or relabeled samples fail the shared coverage contract. The receipt
+pins that contract and the memory sampler. Sampling does not itself authorize a
+paired performance claim; observed identity, cache/load, browser, hardware and
+lifecycle requirements still need the comparison gate.

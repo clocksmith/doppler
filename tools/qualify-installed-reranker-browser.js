@@ -8,12 +8,14 @@ import { createStaticFileServer } from '../src/tooling/node-browser-command-runn
 import { evaluateRerankReference } from '../src/config/rerank-reference.js';
 import { createRetainedReleaseCheckpoint } from './retained-release-checkpoint.js';
 import { rendererPids, rendererRss } from './browser-renderer-memory.js';
+import { assertRerankerRunCoverage, buildRerankerReferenceSchedule } from './reranker-reference-schedule.js';
 
 const hash = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 const read = async file => JSON.parse(await fs.readFile(file, 'utf8'));
 const config = await read(process.argv[2]);
 assert.equal(config.schema, 'doppler.installed-browser-reranker-qualification/v1');
 for (const key of ['repeatRuns', 'timeoutMs', 'sampleIntervalMs']) assert(Number.isSafeInteger(config[key]) && config[key] > 0);
+const runSchedule = buildRerankerReferenceSchedule(config.sampling ?? null);
 const bundle = await read(path.join(config.packageBundlePath, 'receipt.json')); assert(bundle.passed);
 assert.equal(hash(await fs.readFile(path.join(config.packageBundlePath, bundle.package.filename))), `sha256:${bundle.package.sha256}`);
 const installedRoot = path.join(config.packageBundlePath, 'consumer/node_modules/doppler-gpu');
@@ -33,6 +35,9 @@ const report = { schema: 'doppler.installed-browser-reranker-qualification-resul
   config, installedPackage: bundle.package, startedAtUtc: new Date().toISOString(), phases: [], logs: [], requests: [], samples: [],
   qualifierDigest: hash(await fs.readFile(new URL(import.meta.url))), capsuleDigest: hash(await fs.readFile(path.join(config.capsuleRoot, 'distribution/capsule-v3.json'))),
   checkpointWriterDigest: hash(await fs.readFile(new URL('./retained-release-checkpoint.js', import.meta.url))),
+  scheduleDigest: hash(await fs.readFile(new URL('./reranker-reference-schedule.js', import.meta.url))),
+  memorySamplerDigest: hash(await fs.readFile(new URL('./browser-renderer-memory.js', import.meta.url))),
+  sampling: config.sampling ?? null, runSchedule,
   claimAllowed: false, scope: 'Installed signed Capsule on browser WebGPU against unchanged source references; no paired performance claim.' };
 let server, context, timer, pending;
 try {
@@ -65,7 +70,7 @@ try {
       .catch(error => { report.memoryError = error.message; }).finally(() => { pending = null; });
   }, config.sampleIntervalMs);
   for (let repeat = 0; repeat < config.repeatRuns; repeat++) {
-    const observation = await page.evaluate(async ({ options, references }) => {
+    const observation = await page.evaluate(async ({ options, references, runSchedule }) => {
       const { openCapsule } = await import('/src/client/doppler-api.browser.js');
       const { destroyDevice } = await import('/src/gpu/device.js');
       const started = performance.now();
@@ -75,16 +80,22 @@ try {
         const result = { modelLoadMs: performance.now() - started, identity: session.capsuleIdentity,
           targetPlanDigest: session.selectedTargetPlanDigest, scoringConfig: session.manifest.inference.rerank, runs: [] };
         const application = options.releaseEvents.at(-1).release.application;
-        for (const reference of references) {
-          const start = performance.now();
-          const receipt = await session.rerank({ application, ...reference.input });
-          result.runs.push({ durationMs: performance.now() - start, scores: receipt.evidence.scores, receipt });
+        for (const sample of runSchedule) {
+          for (const [referenceIndex, reference] of references.entries()) {
+            const start = performance.now();
+            const receipt = await session.rerank({ application, ...reference.input });
+            result.runs.push({ ...sample, referenceIndex, durationMs: performance.now() - start, scores: receipt.evidence.scores, receipt });
+          }
         }
         return result;
       } finally { try { await session.close(); } finally { destroyDevice(); } }
-    }, { options, references });
-    const comparisons = references.map((reference, index) => evaluateRerankReference(reference,
-      { input: reference.input, scoringConfig: observation.scoringConfig, outputs: observation.runs[index].scores }));
+    }, { options, references, runSchedule });
+    assertRerankerRunCoverage(observation.runs, runSchedule, references.length);
+    const comparisons = observation.runs.map(run => {
+      const reference = references[run.referenceIndex];
+      return { phase: run.phase, iteration: run.iteration, referenceIndex: run.referenceIndex,
+        ...evaluateRerankReference(reference, { input: reference.input, scoringConfig: observation.scoringConfig, outputs: run.scores }) };
+    });
     report.phases.push({ repeat, observation, comparisons });
     await fs.writeFile(path.join(config.outputDir, 'progress.json'), JSON.stringify(report.phases, null, 2));
     assert(comparisons.every(comparison => comparison.passed), 'Frozen source reference failed.');

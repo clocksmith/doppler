@@ -1182,8 +1182,11 @@ window.__runRerankReference = async (config) => {
   const modelLoadMs = performance.now() - started;
   try {
     const runs = [];
-    for (const input of config.inputs) {
-      runs.push(await runRerankOnce(runtime, scoringConfig, input.query, input.documents));
+    for (const sample of config.runSchedule) {
+      for (const [referenceIndex, input] of config.inputs.entries()) {
+        runs.push({ ...sample, referenceIndex,
+          ...await runRerankOnce(runtime, scoringConfig, input.query, input.documents) });
+      }
     }
     return { modelLoadMs, runs, scoringConfig, version: loadedVersion,
       requestedDtype: runtime.requestedDtype, effectiveDtype: runtime.effectiveDtype,

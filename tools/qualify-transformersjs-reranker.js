@@ -7,6 +7,7 @@ import { chromium } from 'playwright';
 import { createStaticFileServer } from '../src/tooling/node-browser-command-runner.js';
 import { evaluateRerankReference } from '../src/config/rerank-reference.js';
 import { rendererPids, rendererRss } from './browser-renderer-memory.js';
+import { assertRerankerRunCoverage, buildRerankerReferenceSchedule } from './reranker-reference-schedule.js';
 
 const hash = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 const read = async file => JSON.parse(await fs.readFile(file, 'utf8'));
@@ -15,6 +16,7 @@ assert.equal(config.schema, 'doppler.transformersjs-reranker-qualification/v1');
 assert(Number.isSafeInteger(config.repeatRuns) && config.repeatRuns > 0);
 assert(Number.isSafeInteger(config.timeoutMs) && config.timeoutMs > 0);
 assert(Number.isSafeInteger(config.sampleIntervalMs) && config.sampleIntervalMs > 0);
+const runSchedule = buildRerankerReferenceSchedule(config.sampling ?? null);
 const acquisition = await read(path.join(config.modelRoot, 'acquisition.json'));
 assert.equal(acquisition.repository, config.modelId);
 assert.equal(acquisition.revision, config.revision);
@@ -34,6 +36,9 @@ await fs.mkdir(config.outputDir);
 const report = { schema: 'doppler.transformersjs-reranker-qualification-result/v1', passed: false,
   config, acquisition, startedAtUtc: new Date().toISOString(), qualifierDigest: hash(await fs.readFile(new URL(import.meta.url))),
   runnerDigest: hash(await fs.readFile('benchmarks/runners/transformersjs-runner.html')),
+  scheduleDigest: hash(await fs.readFile(new URL('./reranker-reference-schedule.js', import.meta.url))),
+  memorySamplerDigest: hash(await fs.readFile(new URL('./browser-renderer-memory.js', import.meta.url))),
+  sampling: config.sampling ?? null, runSchedule,
   packageLockDigest: hash(await fs.readFile('package-lock.json')), phases: [], logs: [], requests: [], samples: [],
   claimAllowed: false, scope: 'Pinned ONNX product path against unchanged source tokens and numerical tolerances.' };
 let context, server, timer, pending;
@@ -67,9 +72,13 @@ try {
   for (let repeat = 0; repeat < config.repeatRuns; repeat++) {
     const observation = await page.evaluate(input => window.__runRerankReference(input), {
       modelId: config.modelId, dtype: config.dtype, format: 'onnx',
-      scoringConfig: references[0].scoringConfig, inputs: references.map(reference => reference.input) });
-    const comparisons = references.map((reference, index) => evaluateRerankReference(reference,
-      { input: reference.input, scoringConfig: observation.scoringConfig, outputs: observation.runs[index].scores }));
+      scoringConfig: references[0].scoringConfig, inputs: references.map(reference => reference.input), runSchedule });
+    assertRerankerRunCoverage(observation.runs, runSchedule, references.length);
+    const comparisons = observation.runs.map(run => {
+      const reference = references[run.referenceIndex];
+      return { phase: run.phase, iteration: run.iteration, referenceIndex: run.referenceIndex,
+        ...evaluateRerankReference(reference, { input: reference.input, scoringConfig: observation.scoringConfig, outputs: run.scores }) };
+    });
     report.phases.push({ repeat, observation, comparisons });
     await fs.writeFile(path.join(config.outputDir, 'progress.json'), JSON.stringify(report.phases, null, 2));
     assert(comparisons.every(comparison => comparison.passed), 'Frozen source reference failed.');
