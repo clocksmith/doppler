@@ -109,6 +109,11 @@ benchmarks/.tjs-bench-profile/
 bench/out/
 reports/**
 !reports/
+!reports/capsule-baseline/
+!reports/capsule-baseline/20260906/
+!reports/capsule-baseline/20260906/acceptance.json
+!reports/capsule-baseline/20260907-rdpull-b3004aa1/
+!reports/capsule-baseline/20260907-rdpull-b3004aa1/acceptance.json
 !reports/pack-v0/
 !reports/pack-v0/**/
 !reports/pack-v0/**/*-qualification.json

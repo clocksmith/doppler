@@ -36,12 +36,54 @@ that directory and start a new one. Failed stages retain a content-addressed
 failure record, including earlier completed outputs. Changed recipes or acceptance
 inputs require a separate directory; old failures are never overwritten.
 
-The result states `blocked`, `recipe-required`, or `candidate-materialized`.
+Without an execution plan, the result states `blocked`, `recipe-required`, or `candidate-materialized`.
 The last means a conversion configuration was produced, **not** that weights
 were converted or inference qualified. Conversion, independent source-reference
 comparison, physical candidate evaluation, complete Capsule signing, and publication
 remain explicit subsequent operations. No runtime, catalog, application pin,
 reference tolerance, or hosted model is changed by this command.
+
+## Resumable embedding execution
+
+The same repository-local entrypoint can execute a prepared embedding candidate:
+
+```bash
+node tools/forge-source-truth-model-ir-v2.js \
+  --config /absolute/onboarding.json \
+  --execution /absolute/embedding-execution.json \
+  --out /absolute/retained-onboarding
+```
+
+`runModelOnboarding()` accepts the execution plan and explicit `runStage` and
+`verifyStage` ports. The CLI supplies the bounded implementation in
+`tools/model-onboarding-embedding-driver.js`. This is local development
+orchestration: it uses local source files, a previously tested installed archive,
+Python source references, Chromium WebGPU, and local signing custody.
+
+The plan follows `src/config/forge/model-onboarding-execution.schema.json` and
+pins the source policy, frozen reference, qualification policy, Capsule policy,
+driver, installed archive and receipt, license, and application by byte SHA-256.
+Its `sourceFiles` inventory pins the checkpoint files and download metadata.
+The declared order is conversion, source-reference, model-qualification,
+capsule-construction, and capsule-qualification. Numerical policy stays in the
+configuration and frozen reference. The driver delegates conversion to the
+installed converter, comparison to the existing reference tools, and Capsule
+construction to Forge.
+
+Each completed stage seals an inventory of its attempt directory. Resume verifies
+the pinned inputs, materialized conversion config, dependency checkpoints, every
+retained output, and the stage's semantic evidence before reuse. An incomplete
+stage gets a new attempt directory; its earlier failure remains available.
+Changed completed outputs are rejected. Use one writer per output directory.
+Retain the source worktree and execution dependencies alongside these receipts
+when reproducing repository tooling; an archive hash alone does not pin the
+Python environment or repository tools.
+
+Only passing independent source comparison and physical model and signed Capsule
+execution produce `doppler.model-onboarding-result/v2` with
+`status: "capsule-qualified"` and `qualified: true`. A synthetic execution port is
+test evidence only. `published` remains false. This process neither changes an
+application's accepted release nor resets its denials or rollback checkpoint.
 
 ## Goal
 

@@ -5,7 +5,7 @@ import { probeSubmitLatency } from './submit-probe.js';
 import { log } from '../debug/index.js';
 import { createDopplerError, ERROR_CODES } from '../errors/doppler-error.js';
 import { GB } from '../config/schema/index.js';
-import { getSharedDeviceState } from './device-state.js';
+import { getSharedDeviceState, isDeviceLost } from './device-state.js';
 
 // Re-export submit tracker for convenience
 export { setTrackSubmits };
@@ -143,6 +143,7 @@ function isValidGPUBuffer(value) {
 function isUsableGPUDevice(device) {
   return !!(
     device
+    && !isDeviceLost(device)
     && typeof device.createBuffer === 'function'
     && typeof device.createBindGroup === 'function'
     && typeof device.createCommandEncoder === 'function'
@@ -255,6 +256,7 @@ function registerDeviceLostHandler(device) {
   if (device.lost && typeof device.lost.then === 'function') {
     const trackedDevice = device;
     device.lost.then((info) => {
+      sharedDeviceState.lostDevices.add(trackedDevice);
       if (sharedDeviceState.gpuDevice !== trackedDevice) {
         return;
       }
@@ -270,6 +272,7 @@ function registerDeviceLostHandler(device) {
       clearActiveDeviceState();
       advanceDeviceEpoch();
     }).catch((error) => {
+      sharedDeviceState.lostDevices.add(trackedDevice);
       if (sharedDeviceState.gpuDevice !== trackedDevice) {
         return;
       }
@@ -600,6 +603,7 @@ export async function initDevice() {
 
 export function setDevice(device, options = {}) {
   hydrateDeviceState();
+  if (isDeviceLost(device)) throw new Error('Cannot bind a lost GPU device. Explicitly initialize a replacement device.');
   if (!device) {
     clearActiveDeviceState();
     advanceDeviceEpoch();
@@ -694,6 +698,7 @@ export function resetDeviceState() {
 export function destroyDevice() {
   hydrateDeviceState();
   if (gpuDevice) {
+    sharedDeviceState.lostDevices.add(gpuDevice);
     gpuDevice.destroy();
     clearActiveDeviceState();
     advanceDeviceEpoch();

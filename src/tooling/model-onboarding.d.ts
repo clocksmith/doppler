@@ -7,16 +7,19 @@ export interface ModelOnboardingConfig {
   lineage: { recipe: OnboardingInput; template: OnboardingInput } | null;
 }
 export interface ModelOnboardingResult {
-  schema: 'doppler.model-onboarding-result/v1';
+  schema: 'doppler.model-onboarding-result/v1' | 'doppler.model-onboarding-result/v2';
   inputDigest: string;
-  status: 'blocked' | 'recipe-required' | 'candidate-materialized';
+  status: 'blocked' | 'recipe-required' | 'candidate-materialized' | 'capsule-qualified';
   outputs: Record<string, { path: string; digest: string }>;
   sourceIdentity: import('../config/model-ir-v2.js').ModelIRV2['sourceIdentity'];
   manualRequirements: Array<Record<string, unknown>>;
-  qualified: false;
+  qualified: boolean;
   published: false;
 }
-/** Local Forge orchestration only. Revalidates inputs on resume; never converts, executes or publishes implicitly. */
+/** Explicit execution ports may complete the pinned stages. Revalidates retained inputs and outputs on resume; never publishes. */
 export declare function runModelOnboarding(config: ModelOnboardingConfig, options: {
   sourceRoot: string; outputDir: string;
+  execution?: import('./model-onboarding-execution.js').OnboardingExecutionPorts & {
+    config: import('./model-onboarding-execution.js').OnboardingExecutionConfig;
+  };
 }): Promise<ModelOnboardingResult>;

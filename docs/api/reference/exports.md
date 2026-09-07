@@ -230,6 +230,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Exported symbols:
   - `buildManifestVersionSet`
   - `computeHash`
+  - `createOpfsStore`
   - `deleteModel`
   - `deleteStorageEntry`
   - `ensureModelCached`
@@ -250,6 +251,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `loadTokenizerModelFromStore`
   - `ModelDownloadResumeInspection`
   - `openModelStore`
+  - `OpfsStore`
+  - `OpfsStoreConfig`
   - `registerModel`
   - `removeRegisteredModel`
   - `saveAuxFile`

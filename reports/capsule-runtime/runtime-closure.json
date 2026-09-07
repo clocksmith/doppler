@@ -2,7 +2,7 @@
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
   "fileCount": 59,
-  "sourceBytes": 574815,
+  "sourceBytes": 576502,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -102,8 +102,8 @@
     },
     {
       "path": "src/client/runtime/verified-capsule-artifact-store.js",
-      "sizeBytes": 3820,
-      "hash": "sha256:9ab343c0ba05e707294d473ac6af49ec471b5c9c1cf7a8a87c58a0a07d8e99d2"
+      "sizeBytes": 5354,
+      "hash": "sha256:4c02f0d3f2f70ecaed8bbb1794c169c86a662024b9fa3d4e62f2cb4bb6a185f6"
     },
     {
       "path": "src/config/capsule-adapter-policy.js",
@@ -127,8 +127,8 @@
     },
     {
       "path": "src/config/capsule-loading.schema.json",
-      "sizeBytes": 446,
-      "hash": "sha256:8668d2ff9b1d1c941280ebf9af63d658db553c7b99735f4cb1e7818eaaff27b1"
+      "sizeBytes": 599,
+      "hash": "sha256:db4ed921409f08c0334f7d13c9f123855d0f948b00faf83cd08e4642c45db330"
     },
     {
       "path": "src/config/capsule-operation.js",
