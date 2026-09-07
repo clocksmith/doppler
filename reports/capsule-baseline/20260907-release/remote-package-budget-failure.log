@@ -1,0 +1,6 @@
+2026-09-07T15:55:37.8910415Z [node-tests] script: runtime:closure:check
+2026-09-07T15:55:38.0086182Z Capsule runtime closure passed: 59 files, 576502 source bytes.
+2026-09-07T15:55:38.0130416Z [node-tests] script: public:boundaries:check
+2026-09-07T15:55:46.4748868Z npm package packed-size budget exceeded: 2107073 > 2106000
+2026-09-07T15:55:46.4817619Z [node-tests] public:boundaries:check failed: exit 1
+2026-09-07T15:55:46.5012670Z ##[error]Process completed with exit code 1.

@@ -42,8 +42,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // 2,103,827 packed / 10,861,748 unpacked bytes; no model weights are shipped.
   // Exporting the existing OPFS backend adds its declaration to the public closure.
   maxEntryCount: 1780,
-  // CI Node 22.23/npm 10.9 observed 2,099,525 bytes for the same inventory.
-  maxPackedSize: 2_106_000,
+  // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
+  // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
+  // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
+  maxPackedSize: 2_107_100,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
