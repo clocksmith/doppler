@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-01T13:17:41.132Z",
+  "generatedAt": "2026-09-07T17:23:31.812Z",
   "release": {
     "channel": "main-snapshot",
-    "version": "0.5.1",
-    "commitSha": "8ecf91ab25c99ea13a440b292426ff6e333a2abd",
-    "dirty": false
+    "version": "0.6.0",
+    "commitSha": "b694d421b6ee6cbadb2c8ec81d76f4e9f0d116e4",
+    "dirty": true
   },
   "sources": {
     "registry": {
@@ -22,14 +22,14 @@
     },
     "capabilities": {
       "path": "benchmarks/vendors/capabilities.json",
-      "sha256": "8fe51a7671ca11f28e838898b098b4a869edc50df2e87a662c215d41f7613d6b",
-      "bytes": 24532,
+      "sha256": "cca560b998f4620176c20170a002ef4e2e656117521e76ff94ab09be63bbc5d3",
+      "bytes": 24575,
       "updated": "2026-07-07"
     },
     "compareConfig": {
       "path": "benchmarks/vendors/compare-engines.config.json",
-      "sha256": "49fdbad3645c3914cf1cc46b0eb839c750110876dbf2a1b2fb24b590f7ec6956",
-      "bytes": 8357,
+      "sha256": "e9c613521f47f339f05dc4dda7d41937ac7b88be9bb6f4ab23d2fa665b843a72",
+      "bytes": 8360,
       "updated": "2026-06-15"
     },
     "compareMetricContract": {
@@ -46,14 +46,14 @@
     },
     "localInferenceClaimMatrix": {
       "path": "benchmarks/vendors/local-inference-claim-matrix.json",
-      "sha256": "a9ea43cc625f602b87ae20a2fe9408441f9f27149e86d6bbc3c7ab2c082c8464",
-      "bytes": 25038,
+      "sha256": "3cb4df2a4aae0207e73d75098a22dd5d9201d2c3a314d2140b8f2cfcc7876742",
+      "bytes": 25148,
       "updated": "2026-06-27"
     },
     "modelCatalog": {
       "path": "models/catalog.json",
-      "sha256": "0da562b557f09f9e9ae3da0b7ea8fb146c1118ca3b2bbd9829c0fd9b3221cf8a",
-      "bytes": 55586,
+      "sha256": "9cf328fd916d6bb4b61b05577a55301ac8d902996efbad9f1789c3d55556075b",
+      "bytes": 55703,
       "updated": "2026-07-19"
     },
     "harness:doppler": {
@@ -578,6 +578,7 @@
       "evidence": [
         "benchmarks/runners/transformersjs-bench.js",
         "benchmarks/runners/transformersjs-runner.html",
+        "tools/qualify-transformersjs-reranker.js",
         "benchmarks/vendors/harnesses/transformersjs.json",
         "tools/compare-engines.js"
       ]

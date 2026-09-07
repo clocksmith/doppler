@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { compareGenerationTokens } from '../../tools/generation-qualification-scenario.js';
+const source = { queryIndex: 4, promptTokenIds: [10, 11], generatedTokenIds: [12, 13, 2] };
+const compare = (tokenIds, prompt = source.promptTokenIds) => compareGenerationTokens(source, { tokenIds }, prompt);
+assert.equal(compare([12, 13, 2]).passed, true);
+assert.equal(compare([12, 13]).firstTokenMismatch, 2, 'Truncation cannot pass an exact oracle.');
+assert.equal(compare([12, 13, 2, 9]).firstTokenMismatch, 3, 'Extra output cannot pass an exact oracle.');
+assert.equal(compare([12, 14, 2]).firstTokenMismatch, 1);
+assert.equal(compare([12, 13, 2], [10, 15]).passed, false, 'Same continuation with changed prompt tokens is not source parity.');
+assert.throws(() => compare([12, NaN, 2]), /integer token arrays/);
+assert.throws(() => compare([12, 1.5, 2]), /integer token arrays/);
+console.log('generation-qualification-scenario.test: ok');

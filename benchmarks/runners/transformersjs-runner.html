@@ -625,6 +625,7 @@ async function loadRerankRuntime(modelId, config = {}) {
         document,
         prompt,
         tokenCount: countPromptTokensFromEncoded(inputs),
+        tokenIds: Array.from(inputs.input_ids.data, Number),
         score,
         probability: sigmoid(score),
         trueLogit,
@@ -1171,6 +1172,29 @@ function summarizeRerankScores(scores) {
     top: sorted[0] ?? null,
   };
 }
+
+// Qualification observes the same loader, prompt formatter and scoring path as
+// the timed runner. Keep full token IDs and unrounded logits for source oracles.
+window.__runRerankReference = async (config) => {
+  const scoringConfig = normalizeRerankScoringConfig(config.scoringConfig);
+  const started = performance.now();
+  const runtime = await loadRerankRuntime(config.modelId, config);
+  const modelLoadMs = performance.now() - started;
+  try {
+    const runs = [];
+    for (const input of config.inputs) {
+      runs.push(await runRerankOnce(runtime, scoringConfig, input.query, input.documents));
+    }
+    return { modelLoadMs, runs, scoringConfig, version: loadedVersion,
+      requestedDtype: runtime.requestedDtype, effectiveDtype: runtime.effectiveDtype,
+      fallbackUsed: runtime.fallbackUsed, executionProviderMode: runtime.executionProviderMode,
+      executionProviderFallbackUsed: runtime.executionProviderFallbackUsed,
+      ortProxyFallbackUsed: runtime.ortProxyFallbackUsed };
+  } finally {
+    // Qualification must report disposal failures rather than swallowing them.
+    await runtime.release();
+  }
+};
 
 async function runRerankOnce(runtime, scoringConfig, query, documents) {
   const scores = [];

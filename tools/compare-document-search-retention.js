@@ -5,6 +5,7 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 import { observeDocumentSearchGpu, readDocumentSearchGpuObservation } from './document-search-gpu-observation.js';
+import { rendererPids, rendererRss as rss } from './browser-renderer-memory.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2], 'utf8'));
 const fixtureBytes = await fs.readFile(config.fixturePath);
@@ -31,33 +32,6 @@ const report = { schema: 'doppler.document-search-retention-comparison/v1', pass
   memoryDefinition: 'Renderer RSS from Linux /proc, sampled during opening. RSS includes shared mappings and is not unique system memory. Artifact counters exclude temporary reads, returned slices, loader and GPU allocations.',
   externalAdoption: false };
 
-async function rendererPids(profile) {
-  const records = [];
-  for (const name of await fs.readdir('/proc')) {
-    if (!/^\d+$/.test(name)) continue;
-    try {
-      const [status, command] = await Promise.all([fs.readFile(`/proc/${name}/status`, 'utf8'), fs.readFile(`/proc/${name}/cmdline`, 'utf8')]);
-      records.push({ pid: Number(name), parent: Number(status.match(/^PPid:\s+(\d+)/m)[1]),
-        root: command.includes('--user-data-dir=' + profile), renderer: command.includes('--type=renderer') });
-    } catch (error) { if (!['ENOENT', 'ESRCH', 'EACCES'].includes(error.code)) throw error; }
-  }
-  const owned = new Set(records.filter(row => row.root).map(row => row.pid));
-  for (let previous = -1; previous !== owned.size;) {
-    previous = owned.size;
-    for (const row of records) if (owned.has(row.parent)) owned.add(row.pid);
-  }
-  const pids = records.filter(row => owned.has(row.pid) && row.renderer).map(row => row.pid);
-  assert(pids.length, 'Physical browser renderer process must be identified.');
-  return pids;
-}
-async function rss(pids) {
-  let bytes = 0;
-  for (const pid of pids) {
-    const status = await fs.readFile(`/proc/${pid}/status`, 'utf8');
-    bytes += Number(status.match(/^VmRSS:\s+(\d+)/m)[1]) * 1024;
-  }
-  return bytes;
-}
 let context;
 try {
   for (const name of config.order) {

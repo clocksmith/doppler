@@ -426,6 +426,8 @@
       "evidence": [
         "benchmarks/runners/transformersjs-bench.js",
         "benchmarks/runners/transformersjs-runner.html",
+        "tools/qualify-transformersjs-reranker.js",
+        "benchmarks/vendors/harnesses/transformersjs-rerank-reference.json",
         "benchmarks/vendors/harnesses/transformersjs.json",
         "tools/compare-engines.js"
       ]

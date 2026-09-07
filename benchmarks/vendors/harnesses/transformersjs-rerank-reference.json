@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "transformersjs-rerank-reference",
+  "name": "Transformers.js Frozen Reranker Reference Qualification",
+  "parentHarness": "transformersjs",
+  "execution": {
+    "mode": "manual-json",
+    "stdoutFormat": "json",
+    "defaultCommand": null,
+    "examples": ["node tools/qualify-transformersjs-reranker.js /absolute/qualification-config.json"]
+  },
+  "normalization": {
+    "metricPaths": {
+      "modelLoadMs": ["phases.0.observation.modelLoadMs"],
+      "peakRendererRssBytes": ["peakRendererRssBytes"]
+    },
+    "metadataPaths": {
+      "version": ["phases.0.observation.version"],
+      "sourceReferenceComparisons": ["phases"],
+      "claimAllowed": ["claimAllowed"],
+      "model": ["config.modelId"],
+      "revision": ["config.revision"]
+    },
+    "requiredMetrics": ["modelLoadMs"]
+  }
+}

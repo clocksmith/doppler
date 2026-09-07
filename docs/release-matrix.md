@@ -1,7 +1,7 @@
 # Release Matrix
 
-Generated: 2026-09-01T13:17:41.132Z
-Release: channel=main-snapshot, version=0.5.1, commit=8ecf91ab25c99ea13a440b292426ff6e333a2abd, dirty=no
+Generated: 2026-09-07T17:23:31.812Z
+Release: channel=main-snapshot, version=0.6.0, commit=b694d421b6ee6cbadb2c8ec81d76f4e9f0d116e4, dirty=yes
 
 ## Engine Matrix
 
