@@ -119,6 +119,9 @@ reports/**
 !reports/capsule-baseline/20260907-release/reproduction.tar.gz
 !reports/capsule-baseline/20260907-release/evidence.tar.gz
 !reports/capsule-baseline/20260907-release/acceptance.json
+!reports/capsule-baseline/20260907-release/node-consumer/
+!reports/capsule-baseline/20260907-release/node-consumer/package.json
+!reports/capsule-baseline/20260907-release/node-consumer/package-lock.json
 !reports/pack-v0/
 !reports/pack-v0/**/
 !reports/pack-v0/**/*-qualification.json
