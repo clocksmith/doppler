@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { runForgePipeline, stageAnalyze } from '../../src/converter/forge-stages.js';
+import { buildQualificationRecords } from '../../src/converter/forge-qualification.js';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
 import { sha256Hex } from '../../src/utils/sha256.js';
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
@@ -374,5 +375,24 @@ assert.throws(
   () => stageAnalyze({ manifest: { ...manifest, architecture: { ...manifest.architecture, headDim: undefined } }, artifacts, manifestHash: hash(manifestRaw) }),
   /headDim/
 );
+
+// ESM sequence encoders produce embeddings but do not declare the text embed API.
+const sequenceManifest = structuredClone(manifest);
+sequenceManifest.modelType = 'embedding';
+Object.assign(sequenceManifest.inference, { supportsEmbedding: true, supportsSequence: true,
+  sequence: { alphabet: 'amino_acid', tokenEmbeddings: true,
+    pooledEmbedding: { mode: 'mean', excludeTokenIds: [0, 1, 2] }, logits: false } });
+sequenceManifest.inference.output.embeddingPostprocessor = null;
+const sequenceSource = { manifest: sequenceManifest,
+  artifacts: artifacts.map(artifact => ({ ...artifact, artifactId: artifact.role })), manifestHash: hash(manifestRaw),
+  programBundle, qualificationEvidence: [] };
+const sequenceAnalysis = stageAnalyze(sequenceSource);
+assert.equal(sequenceAnalysis.modelIR.outputTopology.headType, 'sequence-encoder');
+assert.deepEqual(sequenceAnalysis.modelIR.outputTopology.sequence, sequenceManifest.inference.sequence);
+assert.equal(Object.hasOwn(sequenceAnalysis.modelIR.outputTopology, 'embedding'), false);
+assert.throws(() => buildQualificationRecords(sequenceAnalysis), /requires sequence qualification/);
+const textEmbeddingManifest = structuredClone(sequenceManifest);
+textEmbeddingManifest.inference.supportsSequence = false;
+assert.throws(() => stageAnalyze({ ...sequenceSource, manifest: textEmbeddingManifest }), /embeddingPostprocessor/);
 
 console.log('✔ forge-stages.test.js passed');
