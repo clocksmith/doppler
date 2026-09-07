@@ -312,6 +312,42 @@ three failed check logs and both npm package inventories. The merged candidate
 is not green; the earlier passing 790-file workflow applies only to the earlier
 probe-repair candidate. No failure was skipped or converted into a pass.
 
+## Pre-core state observation
+
+`state-reuse-browser.tar.gz` retains the completed pair with six opt-in
+`linear_state_*` probes. Four parameter-buffer observations match throughout:
+convolution weights, dt bias, A log, and normalization weights. Fresh museum
+prefill starts with 24,576 zero convolution-state elements and 262,144 zero
+recurrent-state elements. Third-job museum prefill starts with nonzero state:
+convolution max absolute value 23.0348 and recurrent max absolute value 8.5972.
+The recurrent-state observations differ through all nine identical-input
+checkpoints. The answer remains nine tokens fresh versus 256 reused.
+
+The new adapter only observes existing GPU buffers before core dispatch. It
+uses declared logical element counts, not pooled buffer capacity; it does not
+reset, upload, or modify state. Ordinary execution and unrelated probes do not
+enter it. Configure these probes with an explicit trace category, as the retained
+configs do. The unit regression checks buffer identity, geometry, forwarding,
+non-mutation, opt-in dispatch, and failure propagation. Physical captures verify
+the readback path, not a state-management repair.
+
+Fresh extraction and `compare-f16-state-reuse.js` replay passed. The comparator
+checks local token indices as well as source/input/config identity. Out-of-range
+sample coordinates remain explicit strings, never numeric evidence or silent
+NaNs. Raw-handle generation and explicit reset semantics still require a
+lifecycle control before assigning the repair to runtime or caller. This result
+does not establish failure of the signed Capsule execution path.
+
+Upstream `b063f539` was reconciled as `90357cdd`; its retained-identity fixture
+repairs pass all five previously failing tests without changing old manifests.
+With the observation adapter, the complete `npm run check:green` workflow passes
+795 test files. The focused inference suite passes 172 files. The complete logs,
+focused regressions, exact observation source, and package inventory are retained
+in `state-probe-checks.tar.gz`. `state-probe-package-audit.json` accounts for the
+789-byte addition in one existing shipped module, with the file closure unchanged.
+These passing checks supersede the earlier merged-check failure for this
+candidate only; the failed receipts remain intact.
+
 ## Claim boundary
 
 This establishes a conversion-code defect and its focused repair. It does not

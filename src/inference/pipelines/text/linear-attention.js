@@ -135,6 +135,27 @@ function clearDynamicLayerState(layerState) {
   }
 }
 
+async function observeLinearAttentionState(layerState, options) {
+  for (const [name, field] of [
+    ['conv_weight', 'convWeight'],
+    ['dt_bias', 'dtBias'],
+    ['a_log', 'aLog'],
+    ['norm_weight', 'normWeight'],
+    ['conv_input', 'convState'],
+    ['recurrent_input', 'recurrentState'],
+  ]) {
+    await runProbes(`linear_state_${name}`, layerState[`${field}GPU`], {
+      layerIdx: options.layerIdx,
+      numTokens: 1,
+      hiddenSize: layerState[field].length,
+      probes: options.debugProbes,
+      recorder: options.recorder,
+      operatorDiagnostics: options.operatorDiagnostics,
+      dtype: 'f32',
+    });
+  }
+}
+
 async function syncLayerRuntimeStateFromGPU(layerState) {
   if (isGpuBuffer(layerState.convStateGPU)) {
     const rawConvState = await readBuffer(
@@ -579,6 +600,9 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
   let coreBTensor = bTensor;
 
   try {
+    if (options.debugProbes?.some((probe) => probe.stage.startsWith('linear_state_'))) {
+      await observeLinearAttentionState(layerState, options);
+    }
     await runProbes('linear_qkv_proj', qkvTensor.buffer, {
       layerIdx,
       numTokens,
