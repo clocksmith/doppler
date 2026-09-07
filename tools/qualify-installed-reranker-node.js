@@ -32,6 +32,7 @@ await fs.writeFile(path.join(outputDir, 'config.json'), JSON.stringify(config, n
 const outputPath = path.join(outputDir, 'qualification.json');
 const pack = await read(`${capsuleRoot}/distribution/capsule-v3.json`);
 const options = await read(`${capsuleRoot}/current-open-options.json`);
+options.releasePolicy = { ...options.releasePolicy, now: new Date().toISOString() };
 const application = options.releaseEvents.at(-1).release.application;
 const sourceLedgerPath = `${capsuleRoot}/release-checkpoints.json`;
 const sourceLedgerBytes = await fs.readFile(sourceLedgerPath);
@@ -49,6 +50,9 @@ const reference = await read(referencePath);
 const require = createRequire(path.join(installedRoot, 'package.json'));
 const report = { schema: 'doppler.standalone-node-capsule-probe/v1', startedAtUtc: new Date().toISOString(),
   passed: false, installedPackage: installed.package, config, stage: 'provider', nodeVersion: process.version, platform: process.platform,
+  qualifierSha256: sha256(await fs.readFile(new URL(import.meta.url))),
+  consumerLockSha256: sha256(await fs.readFile(path.join(config.packageBundlePath, 'consumer/package-lock.json'))),
+  releaseEvaluationTime: options.releasePolicy.now,
   evidenceClass: 'internal-physical-installed-package', externalAdoption: false,
   sourceReference: { path: referencePath, digest: createHash('sha256').update(await fs.readFile(referencePath)).digest('hex') },
   signedCapsule: { capsuleId: pack.capsuleId, semanticRoot: pack.semanticRoot }, requests: [] };
@@ -98,7 +102,8 @@ try {
   const deniedOptions = await read(deniedRoot + '/retained-open-options.json');
   const events = await read(deniedRoot + '/recovery-release-events.json');
   const checkpoint = JSON.parse(denialBytes);
-  const rejectOptions = { ...deniedOptions, releasePolicy: { ...deniedOptions.releasePolicy, minimumSequence: 2, checkpoint },
+  const rejectOptions = { ...deniedOptions, releasePolicy: { ...deniedOptions.releasePolicy,
+    now: new Date().toISOString(), minimumSequence: 2, checkpoint },
     persistReleaseCheckpoint: value => assert.deepEqual(value, checkpoint),
     artifactStore: { readArtifact() { throw Error('A denied release must not acquire artifacts'); } } };
   await assert.rejects(openCapsule(deniedRoot + '/distribution/capsule-v3.json', { ...rejectOptions, releaseEvents: [events.eligible, events.revoked] }), /revoked|denied/i);
