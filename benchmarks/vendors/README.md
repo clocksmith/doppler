@@ -461,3 +461,12 @@ duplicated or relabeled samples fail the shared coverage contract. The receipt
 pins that contract and the memory sampler. Sampling does not itself authorize a
 paired performance claim; observed identity, cache/load, browser, hardware and
 lifecycle requirements still need the comparison gate.
+
+`tools/compare-reranker-reference-runs.js <doppler-receipt>
+<transformersjs-receipt> <new-output.json>` recomputes the unchanged source oracle
+from both raw receipts and checks their observed device, browser, provider,
+sampling and measurement contracts. It retains failed checks and keeps a single
+pair non-claimable. Reference-only observations remain visible but cannot pass
+the timed-population gate. Both probes record browser launch through model
+readiness and first result separately from model loading; local artifact
+verification and server setup are explicitly outside that startup timer.

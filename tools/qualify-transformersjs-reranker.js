@@ -46,9 +46,17 @@ try {
   server = await createStaticFileServer({ rootDir: path.resolve('.'), host: '127.0.0.1', port: 0,
     staticMounts: [{ urlPrefix: '/retained-models', rootDir: config.modelRoot }] });
   const profile = path.join(config.outputDir, 'profile');
+  const startupStarted = performance.now();
   context = await chromium.launchPersistentContext(profile, { headless: true, args: config.launchArgs,
     timeout: config.timeoutMs, env: { ...process.env, TMPDIR: config.temporaryDirectory } });
   const page = context.pages()[0]; page.setDefaultTimeout(config.timeoutMs);
+  report.startup = { scope: 'Browser launch through model readiness and first completed query; local artifact verification and server setup excluded.' };
+  await page.exposeFunction('qualificationModelReady', () => {
+    report.startup.modelReadyMs ??= performance.now() - startupStarted;
+  });
+  await page.exposeFunction('qualificationFirstResult', () => {
+    report.startup.firstResultMs ??= performance.now() - startupStarted;
+  });
   report.browser = await (await context.newCDPSession(page)).send('Browser.getVersion');
   page.on('console', message => report.logs.push({ type: message.type(), text: message.text() }));
   page.on('pageerror', error => report.logs.push({ type: 'pageerror', text: error.message }));
@@ -77,7 +85,8 @@ try {
     const comparisons = observation.runs.map(run => {
       const reference = references[run.referenceIndex];
       return { phase: run.phase, iteration: run.iteration, referenceIndex: run.referenceIndex,
-        ...evaluateRerankReference(reference, { input: reference.input, scoringConfig: observation.scoringConfig, outputs: run.scores }) };
+        ...evaluateRerankReference(reference, { input: { query: run.query, documents: run.documents },
+          scoringConfig: observation.scoringConfig, outputs: run.scores }) };
     });
     report.phases.push({ repeat, observation, comparisons });
     await fs.writeFile(path.join(config.outputDir, 'progress.json'), JSON.stringify(report.phases, null, 2));

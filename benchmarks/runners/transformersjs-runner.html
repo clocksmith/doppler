@@ -1181,11 +1181,13 @@ window.__runRerankReference = async (config) => {
   const runtime = await loadRerankRuntime(config.modelId, config);
   const modelLoadMs = performance.now() - started;
   try {
+    await globalThis.qualificationModelReady?.();
     const runs = [];
     for (const sample of config.runSchedule) {
       for (const [referenceIndex, input] of config.inputs.entries()) {
         runs.push({ ...sample, referenceIndex,
           ...await runRerankOnce(runtime, scoringConfig, input.query, input.documents) });
+        if (runs.length === 1) await globalThis.qualificationFirstResult?.();
       }
     }
     return { modelLoadMs, runs, scoringConfig, version: loadedVersion,
