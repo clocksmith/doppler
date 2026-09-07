@@ -1,0 +1,134 @@
+{
+  "schema": "doppler.execution-candidate-forge/v1",
+  "vocabularyId": "qwen3-embedding-frozen-semantics-v1",
+  "scope": "semantic-contracts",
+  "supportedStateKinds": [
+    "kv"
+  ],
+  "componentContracts": {
+    "text-decoder": {
+      "allowedValues": {
+        "modelType": [
+          "qwen3"
+        ],
+        "hiddenSize": [
+          1024
+        ],
+        "vocabSize": [
+          151669
+        ],
+        "numLayers": [
+          28
+        ]
+      },
+      "dynamicFields": []
+    }
+  },
+  "outputHeadContracts": {
+    "text-embedding": {
+      "allowedValues": {
+        "embedding": [
+          {
+            "dimension": 1024,
+            "postprocessor": {
+              "poolingMode": "last",
+              "includePrompt": true,
+              "projections": [],
+              "normalize": "l2"
+            }
+          }
+        ]
+      },
+      "dynamicFields": []
+    }
+  },
+  "blockLowerings": [
+    {
+      "id": "existing-qwen3-embedding-full-attention",
+      "blockKinds": [
+        "full-attention"
+      ],
+      "blockContract": {
+        "geometry": {
+          "allowedValues": {
+            "numHeads": [
+              16
+            ],
+            "numKvHeads": [
+              8
+            ],
+            "headDim": [
+              128
+            ],
+            "queryKeyNorm": [
+              true
+            ],
+            "causal": [
+              true
+            ],
+            "outputGate": [
+              false
+            ],
+            "attentionBias": [
+              false
+            ]
+          },
+          "dynamicFields": []
+        },
+        "normalization": {
+          "allowedValues": {
+            "type": [
+              "rmsnorm"
+            ],
+            "eps": [
+              0.000001
+            ],
+            "weightOffset": [
+              false
+            ]
+          },
+          "dynamicFields": []
+        },
+        "positional": {
+          "allowedValues": {
+            "type": [
+              "rope"
+            ],
+            "theta": [
+              1000000
+            ],
+            "layout": [
+              "split-half"
+            ]
+          },
+          "dynamicFields": []
+        },
+        "feedForward": {
+          "allowedValues": {
+            "type": [
+              "gated-dense"
+            ],
+            "gated": [
+              true
+            ],
+            "activation": [
+              "silu"
+            ],
+            "intermediateSize": [
+              3072
+            ]
+          },
+          "dynamicFields": []
+        }
+      },
+      "phases": {
+        "prefill": [
+          {
+            "id": "attention",
+            "kernelId": "full_prefill"
+          }
+        ]
+      }
+    }
+  ]
+}

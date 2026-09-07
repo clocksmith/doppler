@@ -1,0 +1,27 @@
+{
+  "schema": "doppler.model-revision-discovery/v1",
+  "repository": "Qwen/Qwen3-Embedding-0.6B",
+  "ref": "main",
+  "previousRevision": "c54f2e6e80b2d7b7de06f51cec4959f6b3e03418",
+  "onboarding": {
+    "path": "reports/model-revision-discovery/20260907/inputs/embedding-onboarding.json",
+    "digest": "sha256:f98b36d0674049f1b9d8651a520e60f732a16a46585c5dd36c5573db2a256de5"
+  },
+  "remoteSources": [
+    {
+      "artifactId": "config",
+      "path": "config.json",
+      "format": "json"
+    },
+    {
+      "artifactId": "headers",
+      "path": "model.safetensors",
+      "format": "safetensors-header"
+    }
+  ],
+  "limits": {
+    "jsonBytes": 4194304,
+    "headerBytes": 67108864,
+    "timeoutMs": 120000
+  }
+}

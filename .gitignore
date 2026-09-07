@@ -122,6 +122,14 @@ reports/**
 !reports/capsule-baseline/20260907-release/node-consumer/
 !reports/capsule-baseline/20260907-release/node-consumer/package.json
 !reports/capsule-baseline/20260907-release/node-consumer/package-lock.json
+!reports/model-revision-discovery/
+!reports/model-revision-discovery/20260907/
+!reports/model-revision-discovery/20260907/inputs/
+!reports/model-revision-discovery/20260907/inputs/*.json
+!reports/model-revision-discovery/20260907/inputs/*.js
+!reports/model-revision-discovery/20260907/acceptance.json
+!reports/model-revision-discovery/20260907/evidence.tar.gz
+!reports/model-revision-discovery/20260907/remote-merge-budget-failure.log
 !reports/pack-v0/
 !reports/pack-v0/**/
 !reports/pack-v0/**/*-qualification.json

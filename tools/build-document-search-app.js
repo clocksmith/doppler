@@ -2,7 +2,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { migrateCapsuleV2, getCapsuleIdentity, signCapsuleReleaseEvent, verifyCapsuleReleaseEvents } from '../src/capsule.js';
+import { migrateCapsuleV2, getCapsuleIdentity, signCapsuleReleaseEvent, verifyCapsuleReleaseEvents, verifyCapsule } from '../src/capsule.js';
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 import { normalizeCapsuleLoadingPolicy } from '../src/config/capsule-loading.js';
 
@@ -13,9 +13,11 @@ export async function buildDocumentSearchApplication(config) {
   if (config.previousApplicationDir !== null && !path.isAbsolute(config.previousApplicationDir ?? '')) {
     throw new Error('Explicit previousApplicationDir required; use null only for the initial application build.');
   }
-  if (!Array.isArray(config.models) || config.models.length !== 2
+  const retainModels = config.models === null;
+  if (retainModels && config.previousApplicationDir === null) throw new Error('Retaining signed models requires previousApplicationDir.');
+  if (!retainModels && (!Array.isArray(config.models) || config.models.length !== 2
     || new Set(config.models.map(model => model.role)).size !== 2
-    || config.models.some(model => !['embedding', 'reranker'].includes(model.role) || !path.isAbsolute(model.capsuleRoot))) {
+    || config.models.some(model => !['embedding', 'reranker'].includes(model.role) || !path.isAbsolute(model.capsuleRoot)))) {
     throw new Error('One explicit embedding Capsule and one reranker Capsule required.');
   }
   const read = async filename => JSON.parse(await fs.readFile(filename, 'utf8'));
@@ -34,7 +36,34 @@ export async function buildDocumentSearchApplication(config) {
   await fs.cp(path.join(config.packageBundlePath, 'consumer/node_modules/doppler-gpu/src'), path.join(config.outputDir, 'runtime/src'), { recursive: true });
   const applicationDigest = hashBytesSha256(await fs.readFile(path.join(applicationDir, 'search.js')));
   const models = [];
-  for (const model of config.models) {
+  if (retainModels) {
+    if (computeCanonicalSha256(previous.search) !== computeCanonicalSha256(config.search)
+      || computeCanonicalSha256(previous.storage) !== computeCanonicalSha256(config.storage)) {
+      throw new Error('Retained model rebuild requires unchanged search and storage semantics.');
+    }
+    if (previous.models.length !== 2 || new Set(previous.models.map(model => model.role)).size !== 2) {
+      throw new Error('Retained application must contain exactly one embedding and reranker model.');
+    }
+    for (const model of previous.models) {
+      if (!['embedding', 'reranker'].includes(model.role) || model.capsuleUrl !== `./capsules/${model.role}/capsule-v3.json`
+        || model.application.applicationRevisionDigest !== applicationDigest) {
+        throw new Error('Retained model requires the same application program and a local Capsule path.');
+      }
+      const source = path.join(config.previousApplicationDir, 'capsules', model.role);
+      const capsule = await read(path.join(source, 'capsule-v3.json'));
+      const verified = await verifyCapsule(capsule, { ...model.options, artifactStore: {
+        async readArtifact(artifact) {
+          const filename = path.resolve(source, artifact.path), relative = path.relative(source, filename);
+          if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('Retained artifact escapes its Capsule directory.');
+          return fs.readFile(filename);
+        },
+      } });
+      if (computeCanonicalSha256(verified.identity) !== computeCanonicalSha256(model.identity)) throw new Error('Retained Capsule identity changed.');
+      await fs.cp(source, path.join(config.outputDir, 'capsules', model.role), { recursive: true });
+      models.push({ ...structuredClone(model), options: { ...structuredClone(model.options), ...loading } });
+    }
+  }
+  for (const model of config.models ?? []) {
     const capsule = await read(path.join(model.capsuleRoot, 'distribution/capsule.json'));
     const options = await read(path.join(model.capsuleRoot, 'open-options.json'));
     const signer = { authority: capsule.signature.authority,
@@ -94,7 +123,9 @@ export async function buildDocumentSearchApplication(config) {
   await fs.writeFile(path.join(config.outputDir, 'application-assets.js'), `self.DOCUMENT_SEARCH_ASSETS = ${JSON.stringify({ cacheName, assets })};\n`, { flag: 'wx' });
   const receipt = { schema: 'doppler.document-search-build/v1', installedPackage: installed.package,
     config, applicationDigest, cacheName, assets, models: models.map(model => ({ role: model.role, identity: model.identity })),
-    physicalExecution: false, externalAdoption: false, releaseScope: 'new internal evaluation streams; existing checkpoints and denials untouched' };
+    physicalExecution: false, externalAdoption: false,
+    releaseScope: retainModels ? 'retained signed models and release history; no signing or promotion'
+      : 'new internal evaluation streams; existing checkpoints and denials untouched' };
   await write('build-receipt.json', receipt);
   return receipt;
 }

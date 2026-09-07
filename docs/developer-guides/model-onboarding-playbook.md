@@ -2,6 +2,52 @@
 
 ## Repeatable source-to-candidate preparation
 
+Automatic upstream discovery feeds this same coordinator:
+
+```bash
+node tools/discover-model-revision.js \
+  reports/model-revision-discovery/20260907/inputs/embedding-discovery.json \
+  /var/tmp/doppler-embedding-discovery
+node tools/discover-model-revision.js \
+  reports/model-revision-discovery/20260907/inputs/hybrid-discovery.json \
+  /var/tmp/doppler-hybrid-discovery
+```
+
+The strict `doppler.model-revision-discovery/v1` input pins an authored source
+specification and vocabulary through an onboarding input, names the upstream
+repository/ref and previous immutable revision, and declares the source files
+and response limits. The tool resolves the ref once, records both upstream file
+inventories, compares every Git blob, and acquires source JSON and bounded
+SafeTensors headers at the resolved revision. Ignored byte ranges, changed Git
+blobs, oversized responses, omitted checkpoint sources, and changed pinned
+inputs fail closed. Header acquisition verifies only header bytes; upstream LFS
+identity is recorded separately from full-weight verification.
+
+Discovery copies unchanged semantic/reference inputs with their original hashes,
+then calls `runModelOnboarding()` for support assessment. It requires explicit
+`lineage: null`: a compatible assessment requests a recipe, while unsupported
+semantics produce the coordinator's source-bound implementation tasks. Static
+reference inputs do not become new numerical qualification. The retained example
+covers Qwen3 embedding and Qwen3.8 hybrid full/recurrent attention metadata;
+neither discovery nor source assessment establishes physical model execution.
+Every attempt uses a new directory and retains its success or failure receipt.
+
+The hybrid route has an executable operation reference, separate from full-model
+qualification:
+
+```bash
+TMPDIR=/var/tmp node \
+  --import ./reports/model-revision-discovery/20260907/inputs/hybrid-reference-preload.js \
+  tests/inference/linear-attention-core-gpu-regression.test.js
+```
+
+The explicit provider config requires physical AMD Vulkan execution. The test
+compares full numerical outputs and recurrent state against its unchanged CPU
+reference, including f16 and packed QKVZ paths. A skipped test is not acceptance.
+This verifies reusable computation used by the hybrid architecture, not inference
+of the complete 27B checkpoint. Missing-behavior tasks remain relative to their
+pinned vocabulary and must retain the exact source evidence and failed contract.
+
 The existing source-truth Forge entrypoint accepts a pinned onboarding config:
 
 ```bash

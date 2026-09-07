@@ -1,0 +1,15 @@
+{
+  "schema": "doppler.model-onboarding/v1",
+  "sourceSpec": {
+    "path": "reports/model-ir-v2/qwen3.8-27b.spec.json",
+    "digest": "sha256:686faf442978ed97367b9b602bad476254b5bf58baff32611378d2ab9e36f308"
+  },
+  "vocabulary": {
+    "path": "src/config/forge/lowering-vocabularies/hybrid-text-v1.json",
+    "digest": "sha256:b3d5c8b8fa8485425f8b95f48b6eb51d2c0c8f7c51cfc85b226d5d7c8d74f0e3"
+  },
+  "entryPointIds": [
+    "text.generate"
+  ],
+  "lineage": null
+}

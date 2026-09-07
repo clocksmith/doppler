@@ -1,0 +1,32 @@
+{
+  "schema": "doppler.model-revision-discovery/v1",
+  "repository": "Qwen/Qwen3.8-27B",
+  "ref": "main",
+  "previousRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "onboarding": {
+    "path": "reports/model-revision-discovery/20260907/inputs/hybrid-onboarding.json",
+    "digest": "sha256:91584b91b48587cf402c8b256d1d6ce43b829e9377d42d353632ad7338cc0864"
+  },
+  "remoteSources": [
+    {
+      "artifactId": "config",
+      "path": "config.json",
+      "format": "json"
+    },
+    {
+      "artifactId": "headers",
+      "path": "model-00001-of-00018.safetensors",
+      "format": "safetensors-header"
+    },
+    {
+      "artifactId": "generation",
+      "path": "generation_config.json",
+      "format": "json"
+    }
+  ],
+  "limits": {
+    "jsonBytes": 4194304,
+    "headerBytes": 67108864,
+    "timeoutMs": 120000
+  }
+}
