@@ -128,9 +128,13 @@ The [local-inference baseline](capsule-physical-baseline.md) closes the implemen
 Node/browser application and repeatable preparation milestone. Its linked
 receipts retain the exact qualification scope. Two source revisions differing
 only in README content prove orchestration repeatability, not architecture
-coverage. The integrated archive requires its own physical qualification.
+coverage. The integrated archive's subsequent qualification is retained in the
+[committed release receipt](../reports/capsule-baseline/20260907-release/acceptance.json).
 
-1. **Reproducible release.** Review and commit the implementation, rebuild from
+1. **Reproducible release — completed for the scoped Node/Chromium baseline.**
+   The linked receipt binds clean-checkout acceptance, successful remote CI,
+   public-source reconstruction, and physical execution to exact identities.
+   The repeatable release requirements remain: review and commit implementation, rebuild from
    an isolated checkout using documented dependencies and retained artifacts,
    and run installed Node/browser qualification against the preserved references.
    Bind acceptance to the exact commit, runtime archive, model/source identities,
