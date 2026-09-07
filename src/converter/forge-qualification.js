@@ -83,7 +83,8 @@ export function buildQualificationRecords(lowered) {
       transcriptHash: hashStable(transcript),
     }, ...normalized.qualificationEvidence.map(({ artifact, ...record }) => record)];
   }
-  if (normalized.manifest?.modelType === 'embedding') {
+  if (normalized.manifest?.modelType === 'embedding'
+    && normalized.manifest?.inference?.supportsSequence !== true) {
     throw new Error('Forge requires text embedding qualification for an embedding model; other operation evidence is insufficient.');
   }
   if (transcript?.operation === 'rerank') {

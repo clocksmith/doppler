@@ -337,6 +337,7 @@ export function stageAnalyze(normalized) {
   assertModelTopologyRepresentable(manifest);
   const architecture = requireObject(manifest.architecture, 'manifest.architecture');
   const inference = requireObject(manifest.inference, 'manifest.inference');
+  const isSequence = inference.supportsSequence === true;
   const attention = requireObject(inference.attention, 'manifest.inference.attention');
   const normalization = requireObject(inference.normalization, 'manifest.inference.normalization');
   const ffn = requireObject(inference.ffn, 'manifest.inference.ffn');
@@ -399,16 +400,17 @@ export function stageAnalyze(normalized) {
       intermediateSize: requirePositiveInteger(architecture.intermediateSize, 'manifest.architecture.intermediateSize'),
     },
     outputTopology: {
-      headType: manifest.modelType === 'embedding' ? 'text-embedding'
-        : inference.supportsSequence === true ? 'sequence-encoder' : 'causal-lm',
+      headType: isSequence ? 'sequence-encoder'
+        : manifest.modelType === 'embedding' ? 'text-embedding' : 'causal-lm',
       tieWeights: output.tieWordEmbeddings === true,
       ...(inference.supportsRerank === true
         ? { rerank: structuredClone(requireObject(inference.rerank, 'manifest.inference.rerank')) }
         : {}),
-      ...(inference.supportsSequence === true
+      ...(isSequence
         ? { sequence: structuredClone(requireObject(inference.sequence, 'manifest.inference.sequence')) }
         : {}),
-      ...(manifest.modelType === 'embedding' || inference.supportsEmbedding === true
+      ...(!isSequence
+        && (manifest.modelType === 'embedding' || inference.supportsEmbedding === true)
         ? { embedding: resolveCapsuleEmbeddingContract(manifest) }
         : {}),
     },

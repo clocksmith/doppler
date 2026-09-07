@@ -46,7 +46,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
-  maxUnpackedSize: 10_861_800,
+  // Sequence ModelIR classification preserves the 1779-file closure: 10,861,856 bytes.
+  maxUnpackedSize: 10_861_900,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
