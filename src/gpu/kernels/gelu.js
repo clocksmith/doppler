@@ -4,6 +4,7 @@ import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
+import { getKernelPathActivationSpec } from '../../config/kernel-path-loader.js';
 
 function selectGeluVariant(isF16) {
   return selectRuleValue('gelu', 'variant', { isF16 });
@@ -20,7 +21,16 @@ async function _gelu(target, input, options = {}) {
   const isF16 = input.dtype === 'f16';
   const bytesPerElement = dtypeBytes(input.dtype);
   const variant = selectGeluVariant(isF16);
-  const overrides = resolveOverrides({ hasGate: Boolean(gate), useRowsplit: false });
+  const declared = getKernelPathActivationSpec('gelu', options.phase, options.layerIdx, options.kernelPath);
+  if (declared && declared.variant !== variant) {
+    throw new Error(`GeLU input ${input.dtype} does not match declared kernel ${declared.variant}.`);
+  }
+  for (const [key, actual] of Object.entries({ HAS_GATE: Boolean(gate), USE_ROWSPLIT: false })) {
+    if (declared?.constants?.[key] != null && Number(declared.constants[key]) !== Number(actual)) {
+      throw new Error(`GeLU ${key} disagrees with the declared execution step.`);
+    }
+  }
+  const overrides = { ...resolveOverrides({ hasGate: Boolean(gate), useRowsplit: false }), ...declared?.constants };
 
   const inferredSize = size || (input.buffer.size / bytesPerElement);
   const outputSize = inferredSize * bytesPerElement;

@@ -20,7 +20,10 @@ assert.equal(HF_CACHE_TOKEN_FILE, '.cache/huggingface/token');
 
 assert.equal(normalizePreferredDtype('FP16'), 'fp16');
 assert.equal(normalizePreferredDtype('q4f16'), 'q4f16');
-assert.equal(normalizePreferredDtype('bogus'), 'fp16');
+assert.equal(normalizePreferredDtype('Q8'), 'q8');
+assert.equal(normalizePreferredDtype('fp32'), 'fp32');
+assert.throws(() => normalizePreferredDtype('bogus'), /Unsupported Transformers.js dtype/);
+assert.throws(() => buildStrictWebgpuExecution('bogus'), /Unsupported Transformers.js dtype/);
 
 assert.equal(requiresPersistentBrowserContext('warm', 'http'), true);
 assert.equal(requiresPersistentBrowserContext('cold', 'opfs'), true);
