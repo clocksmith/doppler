@@ -29,9 +29,11 @@ binding tests exercise the actual compiled ESM recipe and both dispatch paths.
 The installed candidate passes every element of all three references, then passes
 again after actual device destruction, rejected execution on the lost device,
 and reopening. Maximum token error is 0.0008462; observed recovery is 149.3 ms on
-the same AMD device. These observations belong to the retained candidate archive,
-not the earlier pinned release or an npm publication. Final committed-checkout
-reconstruction and acceptance retention are still required for this extension.
+the same AMD device. The [final acceptance and reproduction](../reports/unfamiliar-model/20260907-esm2-8m/acceptance.json)
+bind clean-checkout acceptance, successful remote CI, fresh source acquisition,
+verified reconstruction, byte-identical CPU references, and installed physical
+replay to commit `94570b43` and its exact runtime archive. This separate archive
+is not an npm publication or qualification of the earlier pinned release.
 
 Manual intervention consisted of choosing the checkpoint and output contract,
 adapting the reusable configuration, authoring the full reference and recovery
