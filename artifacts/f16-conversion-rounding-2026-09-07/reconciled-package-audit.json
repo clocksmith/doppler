@@ -1,0 +1,269 @@
+{
+  "schema": "doppler.package-delta-audit/v1",
+  "boundary": "Reconcile upstream exact-erf GELU/config binding and browser static-server changes with diagnostic probe repair",
+  "baseRevision": "dd8646cbf1d743b857ea2d79241706f39ebb2ca3",
+  "mergedRevision": "810b91fd",
+  "candidateRevision": "6877e02e",
+  "command": "npm pack --dry-run --json",
+  "nodeVersion": "22.23.2",
+  "npmVersion": "10.9.8",
+  "before": {
+    "files": 1780,
+    "packedBytes": 2107730,
+    "unpackedBytes": 10870125
+  },
+  "after": {
+    "files": 1780,
+    "packedBytes": 2108788,
+    "unpackedBytes": 10873696
+  },
+  "addedFiles": [],
+  "removedFiles": [],
+  "changedFiles": [
+    {
+      "path": "src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json",
+      "beforeBytes": 16183,
+      "afterBytes": 16183,
+      "beforeDigest": "sha256:bf39638e8db4015e74d65015f1d89685ffe8aef0a04d2680a1856556d32244e1",
+      "afterDigest": "sha256:881aca8c62df08dd4492be65246339b04a462f1247c01e972fd52bfb84ff8938"
+    },
+    {
+      "path": "src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json",
+      "beforeBytes": 8752,
+      "afterBytes": 8752,
+      "beforeDigest": "sha256:e1d3f9cf7229b90bd007dc410cf90020d1140079043a216af94cde3895187fec",
+      "afterDigest": "sha256:16369d95ea94eebefacd66d9fe100e5229d2e9f56c102f031e1e412e2c2dbfcc"
+    },
+    {
+      "path": "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
+      "beforeBytes": 16898,
+      "afterBytes": 17044,
+      "beforeDigest": "sha256:96896cc8c381f62f163b07b239a3168fda9655f445d11996cf33f6ec7e3569f5",
+      "afterDigest": "sha256:958493c0e5c81f6ecb494136d70c9c905fd6b48bd83bb916380f72b8f2eac3e8"
+    },
+    {
+      "path": "src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+      "beforeBytes": 9094,
+      "afterBytes": 9094,
+      "beforeDigest": "sha256:17f10335c5e4e12e39dad0d42f388f487f59265da040692e9211207e89a35c63",
+      "afterDigest": "sha256:b3cc2e8b5b0004b4344ef84a81737fc591faadbd0f886f33f61fb889776827ff"
+    },
+    {
+      "path": "src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+      "beforeBytes": 9816,
+      "afterBytes": 9816,
+      "beforeDigest": "sha256:e6abf445d252eee48485ac00912d976548037050f5413edf8a21ab37fc9e73a5",
+      "afterDigest": "sha256:70f6f2e82b1230274f9bf56ee377eed6d6268b6c8e2c694e76ebbb6eb72aefd3"
+    },
+    {
+      "path": "src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
+      "beforeBytes": 9598,
+      "afterBytes": 9598,
+      "beforeDigest": "sha256:76653a373051509f92d955bed15b3808d6176940d3ead39ff68c34a4ef452bed",
+      "afterDigest": "sha256:ec0b360dbbc6ae2abde97345ed3c5cbcc45ac1afc302dc4b192783b2bb3efa04"
+    },
+    {
+      "path": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json",
+      "beforeBytes": 10685,
+      "afterBytes": 10685,
+      "beforeDigest": "sha256:6774b12a74cfb643e7efad9d3175c6afd5f241c62a4f35925c48b8db735bce76",
+      "afterDigest": "sha256:987ddf88cef12223838714f247fc2549fd5dee86b71a8a40ae05fd25b09b4934"
+    },
+    {
+      "path": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+      "beforeBytes": 9607,
+      "afterBytes": 9607,
+      "beforeDigest": "sha256:f47345dd8d302d8d9c9d2ab68e96d5b10e0d77d9ab49040989d816dac8f32576",
+      "afterDigest": "sha256:2b1461471211ae624225b85884e66628ec9783638492b18f4872d58b6936954f"
+    },
+    {
+      "path": "src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json",
+      "beforeBytes": 9568,
+      "afterBytes": 9568,
+      "beforeDigest": "sha256:13a50609bef559281f81ce2cb8dacb8442850d50425b8c4b5e9ff7afe3c927fd",
+      "afterDigest": "sha256:ef14f7bc5ff6e63eb10f3798fbcbe254a03be2a8cd97dc6f81eede6c94003108"
+    },
+    {
+      "path": "src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json",
+      "beforeBytes": 9572,
+      "afterBytes": 9572,
+      "beforeDigest": "sha256:50abc863b485b6224905527a85632c0be69c1c0914cac9081b03b404d34f4fc2",
+      "afterDigest": "sha256:6e37dd8ac58bd2825f55985566c5cdb0e30d2583f4b9725b15eb67dde01cd7c0"
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json",
+      "beforeBytes": 19000,
+      "afterBytes": 19000,
+      "beforeDigest": "sha256:ff9c98d1abaea34312722bc1891e61d9ff34473b14b8849abd427a3b8bfbdc98",
+      "afterDigest": "sha256:06fb15ac89bd860279b9a12d07aa71232144792b5a8320c672b851bf578dd2ab"
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json",
+      "beforeBytes": 18531,
+      "afterBytes": 18531,
+      "beforeDigest": "sha256:92340fcb35951522ddb631d05f90bb30b5567084546f83db69a32821b20a120a",
+      "afterDigest": "sha256:d5be74014cdbc5a5da48d84aeaa0b0e796cd494a6405496816b48686fa537242"
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json",
+      "beforeBytes": 20546,
+      "afterBytes": 20546,
+      "beforeDigest": "sha256:bc75b4ebed9c7c9c8ecf763932ccb30dc91a868f3dc5699dacef32eefa63c508",
+      "afterDigest": "sha256:cc958a0ba74b8a84fddbbb8317f71fc6cd2a4258cb97de780dfe5872e09f926f"
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16.json",
+      "beforeBytes": 17977,
+      "afterBytes": 17977,
+      "beforeDigest": "sha256:33ded81cb64b955d6051dfdc2bfd9f0c850db27ff38417606cf443840da69cee",
+      "afterDigest": "sha256:67ba1280262134d0d9fe5bd2f86cbda5906c4e635dd6042aefc9e9708c825915"
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af16.json",
+      "beforeBytes": 18358,
+      "afterBytes": 18358,
+      "beforeDigest": "sha256:f724eaddaddf00377c3def1839f1feeee9186bd29e072400960f114acc7e7937",
+      "afterDigest": "sha256:c0121803a82482ec80067e17e21072c02845cacebaf14775573f010c97b6ed6c"
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json",
+      "beforeBytes": 18040,
+      "afterBytes": 18040,
+      "beforeDigest": "sha256:7c8e787cb03dd6bbdc31a4e83031e3b4851b5077e0719045d73c3ec7f6f19dbf",
+      "afterDigest": "sha256:a3708d862bde257d4a861bda901c770165776917befb2a335dbbaa52a0157c0f"
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
+      "beforeBytes": 15399,
+      "afterBytes": 15399,
+      "beforeDigest": "sha256:a1b5a8dccc5f48627eec8917589486014644febb1cdd62a0bc47325931c328b9",
+      "afterDigest": "sha256:f9dc086e8bd75beb9a3c34dc1fb8cfe06942a00caf88e267aa309689c08b45a0"
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json",
+      "beforeBytes": 14242,
+      "afterBytes": 14242,
+      "beforeDigest": "sha256:7dcb0c2148af70d3f56defd6d1616be09a70e4b5cd2fcae41b8a39601032fcb8",
+      "afterDigest": "sha256:2ffbe35145e71eccbce032b650fec634cd3047da388dd9170418d54fa0da1326"
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json",
+      "beforeBytes": 14086,
+      "afterBytes": 14086,
+      "beforeDigest": "sha256:2ce06e24d1063b3d1676b1328351c835a68a99005101221ebfff6acf4fabf90e",
+      "afterDigest": "sha256:9ed316fcb1c44147784076ad8658392660c7dc543d14742f81d3bd9d35d3c578"
+    },
+    {
+      "path": "src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json",
+      "beforeBytes": 8661,
+      "afterBytes": 8661,
+      "beforeDigest": "sha256:f20c0b219966e4c29aaac99e2fb0a5bda0b74f9a3a9bdfd1d0cd2097c865cd6b",
+      "afterDigest": "sha256:93dcb5c82d9f3d09af070dbf3f5966755c93361f7e17caafef29721c55382616"
+    },
+    {
+      "path": "src/config/conversion/gpt-oss-20b-f16-xmxfp4.json",
+      "beforeBytes": 8958,
+      "afterBytes": 8958,
+      "beforeDigest": "sha256:a8dff24f29f329e921c88da8767db0e185850feab9a35c071d4a52cd15147cd3",
+      "afterDigest": "sha256:9136f80b06843d0e9d0556fa77c785683da095468746a904543dd9c2e339d765"
+    },
+    {
+      "path": "src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json",
+      "beforeBytes": 8794,
+      "afterBytes": 8794,
+      "beforeDigest": "sha256:5e8bb518ad216a2ae2656bf37d6b04f5e973214a8cae654b3c7c52bb8e708f89",
+      "afterDigest": "sha256:6bb173ea903a7dc60aff4e4a645a82107ab7db05b968b544170c89b562aae89b"
+    },
+    {
+      "path": "src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+      "beforeBytes": 9381,
+      "afterBytes": 9381,
+      "beforeDigest": "sha256:eed6f3ea4f568e42b879563baa7c6561d0c244c8c8491e39d490b322d32823bb",
+      "afterDigest": "sha256:bff04962b705cd406f3f3227096443132e54df29faf8239b7dfd65928afac1ed"
+    },
+    {
+      "path": "src/config/kernel-path-loader.d.ts",
+      "beforeBytes": 5636,
+      "afterBytes": 5884,
+      "beforeDigest": "sha256:f12e86ab54109cfc274de25a8e821780fc96ff7c0b4bd3cc177ad2d83c46c643",
+      "afterDigest": "sha256:80d14241750a3099e51054a75f4802cc6a57b779ad14a34b8329d1dd63f3ee95"
+    },
+    {
+      "path": "src/config/kernel-path-loader.js",
+      "beforeBytes": 20172,
+      "afterBytes": 21090,
+      "beforeDigest": "sha256:74fafc6235749e1d327a064570731a0d88e3165840ffb307b6e8bc1432a1135b",
+      "afterDigest": "sha256:0cc9677349a22cb552a7ed8d1616f2b43e8ab1c659bd9a7b3bc589ebd74da14e"
+    },
+    {
+      "path": "src/config/kernels/kernel-ref-digests.js",
+      "beforeBytes": 36944,
+      "afterBytes": 36944,
+      "beforeDigest": "sha256:56636428d683633857fa1afd480ab818d7f31073f3374b162c37b8497f85001c",
+      "afterDigest": "sha256:e95513839e10ba9948a1656c3f54da0d0767476d371b38c0c3a3f58d668a86fb"
+    },
+    {
+      "path": "src/config/source-packages/litert/gemma-4-e2b-it.json",
+      "beforeBytes": 17691,
+      "afterBytes": 17691,
+      "beforeDigest": "sha256:e3ccaf630bd526ac29f5e9133e4e365db592bd679fbd986c744008ea95781c0e",
+      "afterDigest": "sha256:ecf17b4cd5341674c154bd42238acb109bd8afb64f78c8a97d300104249ff131"
+    },
+    {
+      "path": "src/gpu/kernels/gelu.d.ts",
+      "beforeBytes": 794,
+      "afterBytes": 970,
+      "beforeDigest": "sha256:3cbfe66c4c02bfe81b21651c5f1e5282dd808e9d9428fab55d877c861ec1ef20",
+      "afterDigest": "sha256:0700bc1b54cc789e7194631581a7add827f97724a35f8facdc7c6bbb4e83e915"
+    },
+    {
+      "path": "src/gpu/kernels/gelu.js",
+      "beforeBytes": 1835,
+      "afterBytes": 2503,
+      "beforeDigest": "sha256:d886b9f64a89301680d9056879de37c175f92735e197a76291cc2ba164327348",
+      "afterDigest": "sha256:b60e31e91eddd4b3f477bec9531b8c1635110b9dd9d1588649d02f268086edc2"
+    },
+    {
+      "path": "src/gpu/kernels/gelu.wgsl",
+      "beforeBytes": 1885,
+      "afterBytes": 2513,
+      "beforeDigest": "sha256:e6fb22edd25c1e210e7dfc61e0b67d31832c1d9d3caf985e4c56f61dd7b57ac6",
+      "afterDigest": "sha256:724e486ac608ceb50a6aef85282532f1e808e92f65036941c0671eed4789466d"
+    },
+    {
+      "path": "src/gpu/kernels/gelu_f16.wgsl",
+      "beforeBytes": 1982,
+      "afterBytes": 2620,
+      "beforeDigest": "sha256:8c9519f09ef6dfbab8bf5636f3a1897800e407a6de39edfafbdf26c80f25bcc5",
+      "afterDigest": "sha256:2ee86c156e4e6bf133ae0f277b581dce186a2f4f67e706dae71ea11b39547061"
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/dense-executor.js",
+      "beforeBytes": 24276,
+      "afterBytes": 24356,
+      "beforeDigest": "sha256:ec516ab3269234ef70c9cb345943c9b92ca71d31bbc9436069cdbf6582d11910",
+      "afterDigest": "sha256:c46d3cf1667dbbc28903148707cac6239adfcf837e2f296a28906bb34fa3a155"
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/dense.js",
+      "beforeBytes": 32619,
+      "afterBytes": 32644,
+      "beforeDigest": "sha256:1bed6d150cb57c63d5ce0cdb853e5c197a900fcc1af303ff56f09e629b00ec83",
+      "afterDigest": "sha256:966bc6b88a10c7aa73f343003bf9905d6879b77cc7cfcdacab363b0aae437877"
+    },
+    {
+      "path": "src/tooling/node-browser/static-server.js",
+      "beforeBytes": 6621,
+      "afterBytes": 6665,
+      "beforeDigest": "sha256:7933ec37cc3bfd0fc4dc82748a8503f34f8b33cf907c30a8a25c35a052a8b423",
+      "afterDigest": "sha256:33f1d8856ba7ba2f39ecc2a05118fd2cb16fbc8fd6706166837d40e7e5bc01fa"
+    }
+  ],
+  "limits": {
+    "fileCountUnchanged": 1780,
+    "packedBytes": 2108788,
+    "unpackedBytes": 10873696
+  },
+  "claim": "Ceilings equal measured combined payload. Dependency manifests and file closure are unchanged; no weights, tests, evidence, or duplicated files enter the package. Earlier failed size checks remain adverse evidence, not passing workflow receipts.",
+  "inventoryMethod": "Intersect git content changes from base to merged candidate with the unchanged npm file inventory; compare bytes and SHA-256, including same-size digest updates."
+}

@@ -252,6 +252,66 @@ The next paired probes inspect layer-zero projections, linear-attention output,
 and completed-layer output under the two job histories. No numerical kernel or
 state-reset repair is included yet.
 
+## Layer-zero session-reuse boundary
+
+`layer-reuse-browser.tar.gz` retains paired physical runs with the museum case
+first versus third after ticket and sensor. Both completed with clean teardown,
+the same corrected model inventory, generation controls, observation settings,
+and 591 byte-verified browser source files. No numerical kernel or reset change
+was applied. The answer again stops at nine tokens fresh and repeats to 256
+tokens after the preceding jobs.
+
+Across prefill and eight decode steps with identical input tokens, the displayed
+embedding and layer-zero QKV samples and statistics match at all nine checkpoints.
+The linear-core output statistics differ at all nine checkpoints; completed-layer
+and logits observations also differ. The first core checkpoint has equal sampled
+dimensions 0–15 but different whole-row statistics, so those samples cannot be
+used to claim complete tensor equality. This localizes the earliest observed
+divergence to the core boundary, not yet to a particular state buffer or kernel.
+
+The comparison rehashes all captured runtime files and checks artifact, prompt,
+generation, device, and source identity before comparing observations. Extract
+the archive into a fresh directory, then run:
+
+```sh
+node compare-f16-layer-reuse.js . f16-layer-fresh-01 f16-layer-reused-01 replayed.json
+```
+
+Fresh extraction and comparison passed. These are diagnostic development cases,
+not untouched holdout evidence or independent-machine participation.
+
+`core-input-reuse-browser.tar.gz` repeats the pair with additional existing Z,
+A, and B projection probes. Both runs completed with clean teardown and identical
+source/model controls. All nine displayed checkpoints match for embeddings and
+each of QKV/Z/A/B; all nine core-output checkpoints still differ. The same
+comparator passed after fresh extraction using `f16-inputs-fresh-01` and
+`f16-inputs-reused-01`. This narrows the next observation to the core's state and
+parameter buffers, without claiming all projected tensor elements are equal.
+
+## Reconciled candidate failures
+
+The isolated candidate merged concurrent upstream `810b91fd` as `6877e02e`,
+preserving its GELU, conversion, qualification, and tooling changes. These changes
+do not enter the frozen browser experiments above. The merged check first failed
+the measured package ceiling, then the stale generated execution-routing audit.
+`reconciled-package-audit.json` accounts for all 34 changed shipped files by
+SHA-256, including 24 same-size updates. Ten files contribute 3,571 additional
+unpacked bytes. The package remains 1,780 files with unchanged dependencies;
+ceilings now equal the measured 2,108,788 packed and 10,873,696 unpacked bytes.
+
+Regenerating the routing audit adds 17 GELU digest mismatches against retained
+manifests, taking surfaced integrity failures from 32 to 49, and removes none.
+It does not rewrite old manifests, authorize new kernels for old Capsules, or
+turn mismatches into verified model claims.
+
+The subsequent complete check failed **5 of 793 test files**: Capsule naming
+migration, Gemma 4 Q4-head conversion, Gemma 4 INT4-PLE variant identity, bundle
+CLI, and Program Bundle exporter. Each failure reaches a changed GELU digest
+or its derived conversion identity. `reconciled-checks.tar.gz` preserves all
+three failed check logs and both npm package inventories. The merged candidate
+is not green; the earlier passing 790-file workflow applies only to the earlier
+probe-repair candidate. No failure was skipped or converted into a pass.
+
 ## Claim boundary
 
 This establishes a conversion-code defect and its focused repair. It does not

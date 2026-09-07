@@ -51,14 +51,17 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // RNE conversion and reviewed generation constraints keep 1780 entries.
   // Node 22.23.2/npm 10.9.8: 2,107,701 packed; six shipped files add 2,597 bytes.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/package-audit.json.
-  maxPackedSize: 2_107_750,
+  // Reconciled 810b91fd: 34 shipped files change; ten add 3,571 source bytes.
+  // Exact-erf GELU/config binding and static-server changes; closure unchanged.
+  // Evidence: artifacts/f16-conversion-rounding-2026-09-07/reconciled-package-audit.json.
+  maxPackedSize: 2_108_788,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
   // Sequence classification, public OPFS, retention, and device recovery: measured npm 9 archive.
   // GPU logits probe forwarding and failure cleanup add 192 bytes, no files.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/probe-package-audit.json.
-  maxUnpackedSize: 10_870_125,
+  maxUnpackedSize: 10_873_696,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
