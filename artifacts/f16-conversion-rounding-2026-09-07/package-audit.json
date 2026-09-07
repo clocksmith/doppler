@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.package-delta-audit/v1",
+  "baselineRevision": "bb45c44c3dc1911c9b14235dfeee33fa4d542288",
+  "sourceRevision": "ae153af0a235b283c9ba8b8f80a356f3c8d570d2",
+  "node": "v22.23.2",
+  "npm": "10.9.8",
+  "command": "npm pack --dry-run --json --ignore-scripts",
+  "entryCount": 1780,
+  "packedBytes": 2107701,
+  "unpackedBytes": 10869933,
+  "unpackedDelta": 2597,
+  "changedShippedFiles": [
+    { "path": "src/client/model-host/model-session.d.ts", "deltaBytes": 61 },
+    { "path": "src/client/model-host/model-session.js", "deltaBytes": 704 },
+    { "path": "src/converter/quantizer.js", "deltaBytes": 572 },
+    { "path": "src/inference/pipelines/structured/json-grammar-mask.d.ts", "deltaBytes": 79 },
+    { "path": "src/inference/pipelines/structured/json-grammar-mask.js", "deltaBytes": 1114 },
+    { "path": "src/inference/pipelines/text/types.d.ts", "deltaBytes": 67 }
+  ],
+  "interpretation": "Existing public conversion and generation dependencies changed; no additional package files. Prior full package smoke passed, including synthetic installed execution. Physical model qualification is separate. Source closure, forbidden files, file count, and size checks remain enabled."
+}
