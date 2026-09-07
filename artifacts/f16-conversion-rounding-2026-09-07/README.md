@@ -136,9 +136,28 @@ precision and execution policy also differ. The original F16 artifact is
 retained as a known nonconforming adverse control, not admitted as qualified
 source-rounded model output. Its paired browser run uses a fresh persistent
 profile and the exact 591 frozen sources captured from corrected attempt 02.
-The paired result must be assessed separately before attributing answer changes
-to rounding. No prompt, acceptance rule, generation setting, or kernel changes
-are introduced for this comparison.
+The paired run completes all eight cases with clean teardown. Every original
+token sequence and output string is exactly identical to the corrected run.
+Both score 1/8 under the unchanged combined requirements. Thus the codec repair
+has no observed answer-quality benefit on these exposed regression cases.
+No prompt, acceptance rule, generation setting, or kernel changes are introduced
+for this comparison.
+
+`original-browser-comparison.tar.gz` retains the original run and executable
+pair comparator. `f16-paired-answer-comparison-02.json` records equal browser,
+device, load policy, generation controls, corpus, prompts, and all 591 frozen
+browser-source hashes. The exposed runtime profiles differ only in local server
+address, manifest hash, and bound session identity; those differing identities
+remain recorded, rather than claiming identical execution identity. An earlier
+comparison record omitted nested model identity fields because its temporary
+normalization shared an object reference. The corrected comparator copies those
+fields before normalization; the earlier record is retained and superseded.
+
+The published Q4K observation uses batched GPU decoding, whereas both F16 runs
+use self-speculation with command batching disabled. A subsequent diagnostic
+changes only resolved `session.speculation.mode` to `none` on the corrected
+artifact. It preserves the same ordered cases and frozen browser source. Its
+result is not yet included here, and disabling a path is not promoted as a fix.
 
 ## Claim boundary
 
