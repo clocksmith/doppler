@@ -1,0 +1,43 @@
+{
+  "schema": "doppler.release-qualification-observation/v1",
+  "sourceRevision": "52f5961a41e9983c27cb8237569ba08a9c30a9ad",
+  "sourceCleanAtQualification": true,
+  "version": "0.6.0",
+  "archive": "evidence.tar.gz",
+  "archiveSha256": "da21e5c04f8af9f9a610bb09449236e00343eb3092ea52ba603c519ad28adcc9",
+  "packageSha256": "52dafbf5fbd06a2568ccfe95e0a27d65e01200f60da826bfc63e43427fd8492e",
+  "installedFilesByteVerified": 1779,
+  "checks": {
+    "ci:check": {
+      "passed": true,
+      "unitFiles": 773
+    },
+    "test:gpu:browser": {
+      "passed": 71,
+      "failed": 0,
+      "skipped": 15,
+      "backend": "configured Chromium SwiftShader"
+    },
+    "test:demo:contract": {
+      "passed": true,
+      "executionClass": "mocked-contract"
+    }
+  },
+  "publication": {
+    "published": false,
+    "registryConsumerVerified": false,
+    "publisherIdentityHttpStatus": 401
+  },
+  "boundaries": {
+    "independentAdoption": false,
+    "amdStartupResolved": false,
+    "newPhysicalModelQualification": false
+  },
+  "component": "doppler",
+  "intent": "preserved",
+  "boundaryEffects": [
+    "current Gemma manifest identity and conversion references",
+    "historical benchmark revision binding",
+    "macOS test executable canonicalization"
+  ]
+}
