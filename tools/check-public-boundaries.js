@@ -48,10 +48,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Upstream generation constraints add 1,228 source bytes, no files. Measured
   // npm 9: 2,105,323; CI npm 10: 2,107,481. The failure receipt is retained in
   // reports/model-revision-discovery/20260907/remote-merge-budget-failure.log.
-  // ae153af0: nearest-even F16 conversion and structured-generation evidence:
-  // npm 9: 2,105,636; CI npm 10: 2,107,701; still 1,780 files.
-  // Inventory and CI log are retained with the generation qualification evidence.
-  maxPackedSize: 2_107_701,
+  // RNE conversion and reviewed generation constraints keep 1780 entries.
+  // Node 22.23.2/npm 10.9.8: 2,107,701 packed; six shipped files add 2,597 bytes.
+  // Evidence: artifacts/f16-conversion-rounding-2026-09-07/package-audit.json.
+  maxPackedSize: 2_107_750,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
