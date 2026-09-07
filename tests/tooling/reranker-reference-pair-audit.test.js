@@ -12,7 +12,8 @@ const sampling = { warmupRuns: 1, timedRuns: 3 };
 const runSchedule = buildRerankerReferenceSchedule(sampling);
 const base = {
   passed: true, cleanup: [], sampling, runSchedule,
-  config: { repeatRuns: 1, references: [{ digest }], launchArgs: [], sampleIntervalMs: 25, dtype: 'q4' },
+  config: { repeatRuns: 1, references: [{ digest }], launchArgs: [], sampleIntervalMs: 25, dtype: 'q4',
+    cachePolicy: { browser: 'fresh-profile', model: 'first-open', transport: 'local-http', operatingSystem: 'uncontrolled' } },
   hardware: { vendor: 'test', architecture: 'test', device: 'test', description: 'test', isFallbackAdapter: false },
   browser: { product: 'test', revision: 'test', userAgent: 'test', jsVersion: 'test' },
   qualifierDigest: digest, scheduleDigest: digest, memorySamplerDigest: digest,
@@ -44,6 +45,7 @@ for (const mutate of [
   p => { p.tjs.phases[0].observation.runs[0].durationMs = NaN; },
   p => { p.doppler.config.repeatRuns = 2; },
   p => { p.tjs.startup.scope = 'different'; },
+  p => { delete p.tjs.config.cachePolicy; },
 ]) {
   const altered = pair(); mutate(altered);
   assert.equal(evaluate(altered).timingComparable, false);

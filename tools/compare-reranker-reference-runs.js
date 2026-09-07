@@ -57,6 +57,9 @@ export function auditRerankerReferencePair(doppler, tjs, references) {
     check(timingFailures, `${engine}.timed-population`, () => {
       assert(report.sampling !== null, 'Reference qualification is not a timed population.');
       assert.equal(report.config.repeatRuns, 1, 'Paired samples require a fresh browser per opening.');
+      assert.deepEqual(report.config.cachePolicy, {
+        browser: 'fresh-profile', model: 'first-open', transport: 'local-http', operatingSystem: 'uncontrolled',
+      }, 'Cache scope must be explicit; fresh browser profiles do not flush the operating-system cache.');
       for (const phase of report.phases) {
         assert(Number.isFinite(phase.observation.modelLoadMs) && phase.observation.modelLoadMs > 0);
         for (const run of phase.observation.runs) assert(Number.isFinite(run.durationMs) && run.durationMs > 0);

@@ -470,3 +470,7 @@ pair non-claimable. Reference-only observations remain visible but cannot pass
 the timed-population gate. Both probes record browser launch through model
 readiness and first result separately from model loading; local artifact
 verification and server setup are explicitly outside that startup timer.
+For a timed pair, each probe uses `repeatRuns: 1` and declares `cachePolicy` as
+`{"browser":"fresh-profile","model":"first-open","transport":"local-http","operatingSystem":"uncontrolled"}`.
+Separate fresh browser launches must be interleaved by the retained experiment
+plan. A new browser profile does not imply a cold operating-system file cache.
