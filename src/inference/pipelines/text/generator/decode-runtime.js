@@ -91,7 +91,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     if (this._state.isGenerating) throw new Error('Generation already in progress');
 
     validateCallTimeOptions(options);
-
+    this._resetReplayPrefillRuntimeState();
     this._state.isGenerating = true;
     this._resetDecodeRuntimeState();
     this._state.stats.gpuTimePrefillMs = undefined;
@@ -329,7 +329,7 @@ export async function generateTokenIds(prompt, options = {}) {
     if (this._state.isGenerating) throw new Error('Generation already in progress');
 
     validateCallTimeOptions(options);
-
+    this._resetReplayPrefillRuntimeState();
     this._state.isGenerating = true;
     this._resetDecodeRuntimeState();
     this._state.stats.gpuTimePrefillMs = undefined;

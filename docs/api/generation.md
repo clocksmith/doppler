@@ -32,6 +32,11 @@ Current support tier: `tier1` advanced surface. See [Subsystem Support Matrix](.
 - direct access to text inference pipeline objects
 - lower-level than the root `doppler` facade
 
+`generate()`, `generateTokens()`, and `generateTokenIds()` start a new prompt
+context while retaining loaded model weights. Prior calls cannot supply hidden
+KV or recurrent state to that prompt. Explicit prefix-KV and manual decode APIs
+remain available for continuation, with their existing lifecycle contracts.
+
 ## Symbol Notes
 
 ### Construction

@@ -1,0 +1,17 @@
+{
+  "schema": "doppler.package-delta-audit/v1",
+  "boundary": "Normal full-prompt generation starts a fresh KV/recurrent context through its existing reset owner; explicit continuation APIs remain unchanged",
+  "baseRevision": "232300ec",
+  "command": "npm pack --dry-run --json",
+  "nodeVersion": "22.23.2",
+  "npmVersion": "10.9.8",
+  "before": { "files": 1780, "packedBytes": 2109008, "unpackedBytes": 10874485 },
+  "after": { "files": 1780, "packedBytes": 2109011, "unpackedBytes": 10874571 },
+  "addedFiles": [],
+  "removedFiles": [],
+  "changedFiles": [
+    { "path": "src/inference/pipelines/text/generator/decode-runtime.js", "beforeBytes": 43916, "afterBytes": 44002, "deltaBytes": 86 }
+  ],
+  "limits": { "fileCountUnchanged": 1780, "packedBytes": 2109011, "unpackedBytes": 10874571 },
+  "claim": "Ceilings equal the measured package. Two generation entry points call the existing reset owner before beginning a full prompt. No weights are reloaded and no files, dependencies, or model bytes enter the package."
+}
