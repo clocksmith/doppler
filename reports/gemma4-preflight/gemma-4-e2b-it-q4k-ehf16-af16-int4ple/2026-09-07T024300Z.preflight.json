@@ -1,0 +1,54 @@
+{
+  "receiptVersion": "doppler_gemma4_preflight_receipt_v1",
+  "schemaVersion": 1,
+  "surface": "node",
+  "runtime": "doppler-gpu",
+  "target": "gpuResidentEmbeddingLimit",
+  "status": "pass",
+  "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+  "generatedAt": "2026-09-07T02:43:00.562Z",
+  "observedWith": "node WebGPU provider plus resolveManifestGpuResidentEmbeddingLimitError",
+  "manifest": {
+    "path": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
+    "sha256": "sha256:e387c84d9bdceff75a15a385ba399c6162163a52afebd0622991ecaf4c8eb104"
+  },
+  "adapterInfo": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "apple-m3",
+    "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)"
+  },
+  "capabilities": {
+    "hasF16": true,
+    "hasSubgroups": true
+  },
+  "deviceLimits": {
+    "maxStorageBufferBindingSize": 4294967295,
+    "maxBufferSize": 4294967295,
+    "maxStorageBuffersPerShaderStage": 10
+  },
+  "embedding": {
+    "tensorName": "model.language_model.embed_tokens.weight",
+    "dtype": "F16",
+    "shape": [
+      262144,
+      1536
+    ],
+    "tensorSizeBytes": 805306368,
+    "kernel": {
+      "kernel": "gather_split8_f16_vec4_f16_out.wgsl",
+      "entry": "gather_vec4_f16_out",
+      "digest": "sha256:ce77263ace3099526665174b0fba1d93696bf782268d172d6b71b63a8021338d"
+    }
+  },
+  "preflight": {
+    "ok": true,
+    "splitKernelExpected": true,
+    "activeSplitKernelMaxSections": 8,
+    "maxSplitEmbeddingSections": 8,
+    "requiredSplitSections": 1,
+    "requiredStorageBuffers": 10,
+    "largeWeightMaxBytes": 3865470565,
+    "rowsPerSplitSection": 1258291
+  }
+}

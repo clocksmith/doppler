@@ -1,5 +1,5 @@
-// Historical artifact identities are checked against their frozen conversion inputs.
-// Current Capsule configurations require new conversion/qualification, not relabeling.
+// Current artifact identities are checked against current conversion inputs.
+// Historical inputs and benchmark receipts retain their original identities.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -41,7 +41,7 @@ function catalogEntry(catalog, modelId) {
 }
 
 const catalog = readJson('models/catalog.json');
-const af16Config = readJson(`tests/fixtures/pre-capsule/src/config/conversion/gemma4/${AF16_MODEL_ID}.json`);
+const af16Config = readJson(`src/config/conversion/gemma4/${AF16_MODEL_ID}.json`);
 const af32ManifestPath = path.join('models', 'local', AF32_MODEL_ID, 'manifest.json');
 const af16ManifestPath = path.join('models', 'local', AF16_MODEL_ID, 'manifest.json');
 const af32ManifestText = fs.readFileSync(af32ManifestPath, 'utf8');
@@ -59,14 +59,14 @@ assert.equal(af32Entry.demoPreferredVariantId, AF16_MODEL_ID);
 assert.equal(af16Entry.demoVisible, false);
 assert.equal(af16Entry.artifactCompleteness, 'weights-ref');
 assert.equal(af16Entry.weightsRefAllowed, true);
-assert.equal(af16Entry.weightCapsuleId, af32Manifest.artifactIdentity?.weightPackId);
+assert.equal(af16Entry.weightCapsuleId, af32Manifest.artifactIdentity?.weightCapsuleId);
 assert.equal(af16Entry.manifestVariantId, af16Manifest.artifactIdentity?.manifestVariantId);
 assert.equal(af16Entry.lifecycle?.status?.runtime, 'active');
 assert.equal(af16Entry.lifecycle?.status?.tested, 'verified');
 
 assert.equal(
-  af16Manifest.artifactIdentity?.weightPackId,
-  af32Manifest.artifactIdentity?.weightPackId,
+  af16Manifest.artifactIdentity?.weightCapsuleId,
+  af32Manifest.artifactIdentity?.weightCapsuleId,
   'af16 INT4-PLE manifest must reuse the af32 INT4-PLE weight capsule'
 );
 assert.equal(

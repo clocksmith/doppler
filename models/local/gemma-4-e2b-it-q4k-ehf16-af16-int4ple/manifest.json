@@ -25328,7 +25328,7 @@
   },
   "conversion": {
     "conversionConfigPath": "src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
-    "conversionConfigDigest": "sha256:0dd695ced1c1cab5d5d4fef5b6bd5c5eb0f0d2e7d416778d0f13b99623528887",
+    "conversionConfigDigest": "sha256:b7961c6c2c0fa75a51db4eb689e737c88d70231c86a5a0d13c093be6af7d607f",
     "sourceManifestId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
     "siblingMode": "weights-ref"
   },
