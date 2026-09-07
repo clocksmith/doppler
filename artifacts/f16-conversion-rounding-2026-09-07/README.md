@@ -442,6 +442,43 @@ node verify-f16-candidate-screen.js . ./package ./replayed-verification.json
 Fresh extraction and this verification passed. The archive omits model weights;
 their exact identities remain in the acquisition and execution records.
 
+## Reasoning-enabled configuration at the existing budget
+
+`thinking-budget-256.tar.gz` retains a single-case configuration diagnostic:
+the original product ticket prompt, unchanged 256-token generation ceiling,
+same runtime package, and a distinct manifest with
+`inference.chatTemplate.thinking: true`. Only that field and the diagnostic
+model ID differ. The original manifest and files remain unchanged. All 58
+non-manifest artifact identities and all 591 captured runtime sources match the
+packed baseline. The diagnostic manifest digest is
+`sha256:66465b299887c39ba5feb10c42cd6218a3b9b5f392112c903ff7aa325aefec4e`.
+
+The physical Intel Gen12LP browser run completes with clean teardown but reaches
+the 256-token ceiling without ending reasoning or producing a final answer.
+The unchanged answer inspector rejects the output. The pinned CPU F32 control
+verifies the same formatted prompt and all 262 input tokens, then reproduces
+all 256 generated browser tokens exactly. This is a failed budget/configuration
+candidate, not an observed browser divergence over those tokens. It does not
+establish behavior under a larger budget or on other questions.
+
+`compare-thinking-variant.js` verifies the exact manifest delta, runtime and
+artifact identities, original prompt/settings, clean teardown, source-input
+digest, and complete browser/source token agreement. Extract this archive and
+`packed-candidate-browser.tar.gz` into a fresh directory, then run:
+
+```bash
+node compare-thinking-variant.js . ./replayed-thinking-comparison.json
+```
+
+Fresh extraction and replay pass. The archive includes the diagnostic manifest,
+acquisition identities, raw browser and source reports, preparation/capture
+scripts, and comparisons. Weights remain omitted. The source reference requires
+the pinned checkpoint and Torch 2.11.0+cpu / Transformers 5.6.2 to re-execute.
+All reasoning tokens count toward the stated budget. No output stripping,
+acceptance relaxation, runtime publication, or catalog promotion accompanies
+this observation. Larger budgets and explicit final-answer handling require
+their own execution and quality evidence.
+
 ## Claim boundary
 
 This establishes a conversion-code defect and its focused repair. It does not
