@@ -51,6 +51,18 @@ const report = { schema: 'doppler.capsule-baseline-restoration/v1', passed: fals
   recipeSha256: await hash(path.join(bundle, 'reproduction.json')), nodeVersion: process.version,
   startedAtUtc: new Date().toISOString(), commands: [], downloads: [], artifacts: [], physicalExecution: false };
 try {
+  for (const source of recipe.sources) {
+    for (const destination of source.modelDirectories ?? []) {
+      const directory = inside(path.join(output, 'retained'), destination.path);
+      assert(Array.isArray(destination.files) && destination.files.length > 0, 'Model directory requires pinned files.');
+      for (const file of destination.files) {
+        inside(directory, file.path);
+        assert(['converted', 'retained'].includes(file.origin), 'Explicit model file origin required.');
+        assert(Number.isSafeInteger(file.sizeBytes) && file.sizeBytes > 0 && /^[a-f0-9]{64}$/.test(file.sha256),
+          'Model file requires byte size and SHA-256.');
+      }
+    }
+  }
   for (const file of recipe.files) await verify(inside(bundle, file.path), file);
   await fs.copyFile(inside(bundle, recipe.runtimeArchive), path.join(output, path.basename(recipe.runtimeArchive)), 1);
   await fs.copyFile(inside(bundle, recipe.runtimeReceipt), path.join(output, 'receipt.json'), 1);
@@ -96,6 +108,24 @@ try {
         }
         await verify(target, { sizeBytes: artifact.sizeBytes, sha256: artifact.hash.slice(7) });
         report.artifacts.push({ distribution: destination, path: artifact.path, hash: artifact.hash, sizeBytes: artifact.sizeBytes });
+      }
+    }
+    // Raw RDRR qualification has no Capsule signature. Preserve the explicitly
+    // retained manifest and verify regenerated shard bytes against its recipe.
+    for (const destination of source.modelDirectories ?? []) {
+      const directory = inside(path.join(output, 'retained'), destination.path);
+      for (const file of destination.files) {
+        assert(['converted', 'retained'].includes(file.origin), 'Explicit model file origin required.');
+        const target = inside(directory, file.path);
+        if (file.origin === 'converted') {
+          const generated = inside(converted, file.path);
+          await verify(generated, file);
+          await fs.mkdir(path.dirname(target), { recursive: true });
+          await fs.copyFile(generated, target, 1);
+        }
+        await verify(target, file);
+        report.artifacts.push({ kind: 'raw-rdrr', signedCapsule: false, distribution: destination.path,
+          path: file.path, hash: `sha256:${file.sha256}`, sizeBytes: file.sizeBytes });
       }
     }
   }

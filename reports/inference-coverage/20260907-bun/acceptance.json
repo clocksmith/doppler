@@ -1,0 +1,82 @@
+{
+  "schema": "doppler.installed-bun-reranker-acceptance/v1",
+  "passed": true,
+  "scope": "Signed installed Qwen reranker on Bun 1.3.10 and physical AMD Radeon 8060S; no generation, other-device or vendor superiority claim.",
+  "runtime": {
+    "name": "bun",
+    "version": "1.3.10"
+  },
+  "package": {
+    "filename": "doppler-gpu-0.6.0.tgz",
+    "integrity": "sha512-uDxLvnAqy8Ceunr1zGXkMZXvXe6sqk4gOqAFuhJ0npokk/VFZs6v9bJjU6XNkF7d+f/S+n65zI95+h8tWN4G6g==",
+    "sizeBytes": 2104958,
+    "sha256": "61a23b9cafd17eb2b420c7bd8bb1f7e8cfae859048f581e42a5fb01ad767ed19"
+  },
+  "hardware": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "isFallbackAdapter": false
+  },
+  "capsuleIdentity": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4ecc046b2d589b64cf16668009d3ed64f82ca8ca490bd0e5ee207ec380dbcaa6",
+    "semanticRoot": "sha256:4ecc046b2d589b64cf16668009d3ed64f82ca8ca490bd0e5ee207ec380dbcaa6",
+    "envelopeDigest": "sha256:e58c4711d4d1eddb891f41c834662658093a40ea643f702fc043a6a8764e206f",
+    "artifactClosureDigest": "sha256:2279d60892542e621da700c0eec8460f6e5359f98e64f990795d0a24d9b1a4ce"
+  },
+  "targetPlanDigest": "sha256:49a7f647fdc13fdc0c81b15e6dc0e0248a2c69d5883c1adb1eeedcba7034c932",
+  "sourceReference": {
+    "path": "/var/tmp/doppler-release-20260907-restored-02/retained/references/reranker-reference.json",
+    "digest": "81df00d625d7e8114f82fc4d67f487dde4946b684a809e63376e046a0bc88c4a"
+  },
+  "qualificationSha256": "be29d2f40c587316e05b6fefe1c6a4b8a2b4640ebbe6bc098216bf16180e7e75",
+  "qualifierSha256": "6df896cd68fccb81be09f70e89df740098cd0f8c36cf0f6db07be718189689c0",
+  "qualifierProvenance": {
+    "baseCommit": "984d25633566420e6791c57ce271e388c4bc05b5",
+    "change": "Add runtime name/version observation; exact executed source is retained in evidence.tar.gz."
+  },
+  "checks": [
+    "Frozen source token/logit/score/probability/ranking oracle on two executions",
+    "Destroyed-device reopen and fresh inference",
+    "Preserved revocation denial and rollback rejection",
+    "Network acquisition disabled",
+    "Successful cleanup; retained checkpoint source unchanged"
+  ],
+  "evidence": {
+    "path": "evidence.tar.gz",
+    "sha256": "d8e7a6285a6ed3008d2d02491c201b88f9fb270f5ad2ee9ce4211debd700e801",
+    "bytes": 21764,
+    "files": [
+      {
+        "path": "config.json",
+        "sha256": "82922d74c0841e80007c8482d231111cc2765cc6a6a2aa6d067054086b4fd901",
+        "bytes": 573
+      },
+      {
+        "path": "execution.log",
+        "sha256": "d4ae8593abdaf6e48e3c98832555b0bb564bb0f8cf4e1995ce85c66d56c48742",
+        "bytes": 5934
+      },
+      {
+        "path": "qualification.json",
+        "sha256": "be29d2f40c587316e05b6fefe1c6a4b8a2b4640ebbe6bc098216bf16180e7e75",
+        "bytes": 177720
+      },
+      {
+        "path": "qualifier-source.js",
+        "sha256": "6df896cd68fccb81be09f70e89df740098cd0f8c36cf0f6db07be718189689c0",
+        "bytes": 8868
+      },
+      {
+        "path": "release-checkpoints.json",
+        "sha256": "4ac865106058b7c4795471ca9555ada3cb9ff05dec7c41461892cdf320371148",
+        "bytes": 385
+      }
+    ]
+  },
+  "reproduction": "Restore the public Capsule baseline and its installed webgpu consumer, extract qualifier-source.js, rebind config paths into a new directory, and invoke bun qualifier-source.js config.json.",
+  "externalAdoption": false,
+  "createdAtUtc": "2026-09-07T17:40:47.374186+00:00"
+}
