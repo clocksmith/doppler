@@ -1175,6 +1175,21 @@ function summarizeRerankScores(scores) {
 
 // Qualification observes the same loader, prompt formatter and scoring path as
 // the timed runner. Keep full token IDs and unrounded logits for source oracles.
+window.__openRerankLifecycle = async (config) => {
+  const scoringConfig = normalizeRerankScoringConfig(config.scoringConfig);
+  const runtime = await loadRerankRuntime(config.modelId, config);
+  return {
+    scoringConfig,
+    cancellationMode: 'no-abort-signal-in-forward-api',
+    executionProviderMode: runtime.executionProviderMode,
+    fallbackUsed: runtime.fallbackUsed,
+    // The existing forward API has no AbortSignal contract. Do not manufacture
+    // cancellation by hiding its completed result in this observation adapter.
+    rerank: (input) => runRerankOnce(runtime, scoringConfig, input.query, input.documents),
+    close: () => runtime.release(),
+  };
+};
+
 window.__runRerankReference = async (config) => {
   const scoringConfig = normalizeRerankScoringConfig(config.scoringConfig);
   const started = performance.now();

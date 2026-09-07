@@ -1,0 +1,705 @@
+{
+  "schema": "doppler.reranker-comparison-acceptance/v1",
+  "passed": true,
+  "scope": "Numerically qualified browser product paths; lifecycle differences reported separately; no overall superiority or identical artifact claim.",
+  "timingImplementationCommit": "810b91fd3465686241b1e77cf7b7d2b075bf2946",
+  "lifecycleImplementationCommit": "37fd21709f98a500aa0dd9d5788a390204ba3e2e",
+  "runtimeArchiveSha256": "61a23b9cafd17eb2b420c7bd8bb1f7e8cfae859048f581e42a5fb01ad767ed19",
+  "vendor": {
+    "package": "@huggingface/transformers",
+    "version": "4.2.0",
+    "sourceRepository": "Qwen/Qwen3-Reranker-0.6B",
+    "sourceRevision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+    "dtype": "fp16",
+    "onnxSha256": "e145ff161cf3bab40c07afae6b9846a11b87204eec51f3700d7f96337e047e4c",
+    "exportReproducedByteIdentically": true
+  },
+  "hardware": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "0x1586",
+    "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+    "isFallbackAdapter": false
+  },
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "HeadlessChrome/151.0.7922.34",
+    "revision": "@782af9cb30a53f54487e5d2e44738645a8ec457c",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+    "jsVersion": "15.1.206.8"
+  },
+  "sampling": {
+    "warmupRuns": 1,
+    "timedRuns": 3
+  },
+  "openingOrder": [
+    "doppler",
+    "transformersjs",
+    "transformersjs",
+    "doppler",
+    "doppler",
+    "transformersjs"
+  ],
+  "cachePolicy": {
+    "browser": "fresh-profile",
+    "model": "first-open",
+    "transport": "local-http",
+    "operatingSystem": "uncontrolled"
+  },
+  "pairedTimingGatePassed": true,
+  "references": [
+    {
+      "path": "/var/tmp/doppler-release-20260907-restored-02/retained/references/reranker-reference.json",
+      "digest": "sha256:81df00d625d7e8114f82fc4d67f487dde4946b684a809e63376e046a0bc88c4a"
+    },
+    {
+      "path": "/var/tmp/doppler-retention-campaign/heldout-recovery-reference.json",
+      "digest": "sha256:46f440f7c67dcf55fdc069eb176a16c7394e60b584032bc4c9f9b0b4d92c57c6"
+    },
+    {
+      "path": "/var/tmp/doppler-retention-campaign/heldout-artifacts-reference.json",
+      "digest": "sha256:e128ad8ec1f4f746c7db1df973ccc16092d14e6090470ded63f886449c8710a5"
+    }
+  ],
+  "measurements": {
+    "doppler": {
+      "samples": 3,
+      "rows": [
+        {
+          "modelReadyMs": 29955.384147,
+          "firstResultMs": 30634.302345,
+          "modelLoadMs": 29223.700000047684,
+          "peakRendererRssBytes": 1609859072,
+          "documentsPerSecond": 4.782739623950501
+        },
+        {
+          "modelReadyMs": 29154.515644,
+          "firstResultMs": 29827.068593,
+          "modelLoadMs": 28440.099999904633,
+          "peakRendererRssBytes": 1595654144,
+          "documentsPerSecond": 4.8111190306486105
+        },
+        {
+          "modelReadyMs": 29423.943243,
+          "firstResultMs": 30076.509607,
+          "modelLoadMs": 28758.39999985695,
+          "peakRendererRssBytes": 1665613824,
+          "documentsPerSecond": 4.986057505731517
+        }
+      ],
+      "median": {
+        "modelReadyMs": 29423.943243,
+        "firstResultMs": 30076.509607,
+        "modelLoadMs": 28758.39999985695,
+        "peakRendererRssBytes": 1609859072,
+        "documentsPerSecond": 4.8111190306486105
+      }
+    },
+    "transformersjs": {
+      "samples": 3,
+      "rows": [
+        {
+          "modelReadyMs": 6515.486945000001,
+          "firstResultMs": 6817.844464000001,
+          "modelLoadMs": 6167.600000143051,
+          "peakRendererRssBytes": 6438203392,
+          "documentsPerSecond": 23.98294545694228
+        },
+        {
+          "modelReadyMs": 6349.812523,
+          "firstResultMs": 6633.214024,
+          "modelLoadMs": 6025.5,
+          "peakRendererRssBytes": 6430715904,
+          "documentsPerSecond": 24.074899687917966
+        },
+        {
+          "modelReadyMs": 6452.008843,
+          "firstResultMs": 6762.315756,
+          "modelLoadMs": 6112.900000095367,
+          "peakRendererRssBytes": 6458105856,
+          "documentsPerSecond": 23.267838674406246
+        }
+      ],
+      "median": {
+        "modelReadyMs": 6452.008843,
+        "firstResultMs": 6762.315756,
+        "modelLoadMs": 6112.900000095367,
+        "peakRendererRssBytes": 6438203392,
+        "documentsPerSecond": 23.98294545694228
+      }
+    }
+  },
+  "lifecycle": {
+    "doppler": {
+      "cancellationHonored": true,
+      "abortAfterSubmission": true,
+      "settlementAfterAbortMs": 199.79999995231628,
+      "outcome": "rejected",
+      "oldDeviceRejected": true,
+      "deviceLoss": {
+        "reason": "destroyed",
+        "message": "Device was destroyed."
+      },
+      "recoveryMs": 31555.688645999995,
+      "recoveryBudgetMs": 600000,
+      "recoveryStrategy": "close browser context and reopen in a fresh profile",
+      "sourceReferencesPassedInitiallyAfterCancellationAndRecovery": true
+    },
+    "transformersjs": {
+      "cancellationHonored": false,
+      "abortAfterSubmission": true,
+      "settlementAfterAbortMs": 118.59999990463257,
+      "outcome": "fulfilled",
+      "oldDeviceRejected": true,
+      "deviceLoss": {
+        "reason": "destroyed",
+        "message": "Device was destroyed."
+      },
+      "recoveryMs": 6948.451523,
+      "recoveryBudgetMs": 600000,
+      "recoveryStrategy": "close browser context and reopen in a fresh profile",
+      "sourceReferencesPassedInitiallyAfterCancellationAndRecovery": true
+    }
+  },
+  "applicationBehaviorEquivalent": false,
+  "applicationBehaviorGap": "Transformers.js forward API has no AbortSignal contract; the full query completed after the observed abort request.",
+  "claimAllowed": false,
+  "independentOperator": false,
+  "additionalDevice": false,
+  "portableControlReplay": {
+    "vendor": "preparation/portable-vendor-qualification.json",
+    "doppler": "preparation/portable-native-qualification.json",
+    "passed": true
+  },
+  "rejectedControls": [
+    {
+      "artifact": "upstream q4",
+      "reason": "Frozen numerical oracle failed."
+    },
+    {
+      "artifact": "upstream q8",
+      "reason": "Frozen numerical oracle failed."
+    },
+    {
+      "artifact": "source fp32",
+      "reason": "Browser startup failed before output; cause unproved."
+    }
+  ],
+  "evidence": {
+    "path": "evidence.tar.gz",
+    "sizeBytes": 1012356,
+    "sha256": "861117a3559600c23c92520b1946e49a36da5f56a5e81258665536d3382cf070"
+  },
+  "reproduction": {
+    "path": "reproduction.tar.gz",
+    "sizeBytes": 13713,
+    "sha256": "722f46b122273e5ad3949e16e43206c385e5b791efe4c11cf6b2088d8d8003c9"
+  },
+  "files": [
+    {
+      "path": "lifecycle/doppler/observation.json",
+      "sizeBytes": 97625,
+      "sha256": "5d6da5d5cf4f7605c404e6879e32ef4bb7f0c42df2ed301e6d214997259b14df"
+    },
+    {
+      "path": "lifecycle/doppler/progress.json",
+      "sizeBytes": 97131,
+      "sha256": "bee3130d5b0e3f96e776ed2a157b8e35f9717727565da1d444d4af9e2478a311"
+    },
+    {
+      "path": "lifecycle/doppler/release-checkpoints.json",
+      "sizeBytes": 194,
+      "sha256": "30125b2adfe527b2fd50eb0977c70c246b3e673e8eee97828af0d0e233ecfa07"
+    },
+    {
+      "path": "lifecycle/doppler-02/observation.json",
+      "sizeBytes": 217287,
+      "sha256": "dca0cf8e08bee2b536914b2570490beb224f409ee0ecd8d6391f1d1268fe182f"
+    },
+    {
+      "path": "lifecycle/doppler-02/progress.json",
+      "sizeBytes": 216999,
+      "sha256": "2a690a558c22d878579627a7d50df2d3c4f527e7bdf997a36c3b5b9bc786ac1f"
+    },
+    {
+      "path": "lifecycle/doppler-02/release-checkpoints.json",
+      "sizeBytes": 194,
+      "sha256": "30125b2adfe527b2fd50eb0977c70c246b3e673e8eee97828af0d0e233ecfa07"
+    },
+    {
+      "path": "lifecycle/doppler-02.json",
+      "sizeBytes": 403,
+      "sha256": "462da4657e46c78919b7039342cd6f572e24b0c61e5ab16d513708927f2520ca"
+    },
+    {
+      "path": "lifecycle/doppler-02.log",
+      "sizeBytes": 229,
+      "sha256": "fbf7ceeb9c4483d0da278a2107df4e38191332c4edd227f22b9d998138c34a3d"
+    },
+    {
+      "path": "lifecycle/doppler.json",
+      "sizeBytes": 400,
+      "sha256": "b71e03138c9a0ec616284e20f3d16e724567a386ca85067cf5621062213f2e44"
+    },
+    {
+      "path": "lifecycle/doppler.log",
+      "sizeBytes": 555,
+      "sha256": "d11c18a96a3945a2d238963b894608177f00b58ce549f4dc6fd7f6164abb61a7"
+    },
+    {
+      "path": "lifecycle/transformersjs/observation.json",
+      "sizeBytes": 171434,
+      "sha256": "e43dd1878932d0e8e499ca263529549cc3b21dc2555edb1f14d2b1a16ff190f5"
+    },
+    {
+      "path": "lifecycle/transformersjs/progress.json",
+      "sizeBytes": 171386,
+      "sha256": "80375a970e372b34e6323b675ab437034636267221b7cc4586fa775e7a5f92f8"
+    },
+    {
+      "path": "lifecycle/transformersjs.json",
+      "sizeBytes": 426,
+      "sha256": "aefa0d672321059c7d4cefa5472cb57de0b5f25b6807873627dbfae2dbfec988"
+    },
+    {
+      "path": "lifecycle/transformersjs.log",
+      "sizeBytes": 233,
+      "sha256": "3e228eb689a239e5cf1ba9ec197789ba517a14c487cab13854b7f223c25a80a1"
+    },
+    {
+      "path": "lifecycle-source/benchmarks/runners/transformersjs-runner.html",
+      "sizeBytes": 76878,
+      "sha256": "89e7d841d3a663c6ae0f838c7dab8c49747b91ce3168f70b602c585ef58fcc95"
+    },
+    {
+      "path": "lifecycle-source/tests/tooling/reranker-lifecycle-observation.test.js",
+      "sizeBytes": 2533,
+      "sha256": "044502ccc0f77dafc2253023c559e2b86b60c577c204abd77e3a998a519d77e9"
+    },
+    {
+      "path": "lifecycle-source/tools/observe-reranker-browser-lifecycle.js",
+      "sizeBytes": 11546,
+      "sha256": "7e0f2ed450e287a45428d84328f358b2bffe405b2856461a1598bd79789b6d73"
+    },
+    {
+      "path": "lifecycle-source/tools/reranker-lifecycle-observation.js",
+      "sizeBytes": 2570,
+      "sha256": "fdc8c6f3410bf3843b9197dc4b401b3855a317e0271fd92c1fa836e2218ffd6f"
+    },
+    {
+      "path": "paired/00-doppler/progress.json",
+      "sizeBytes": 877337,
+      "sha256": "1658c938908b00eaa4737ab0bcaa8d7f25310a3e35233bfaed4972d3ac619682"
+    },
+    {
+      "path": "paired/00-doppler/qualification.json",
+      "sizeBytes": 1092754,
+      "sha256": "30b52ae5b76468b9d8966e57640bbc49b837cb2f855dc6f7d24b4993cf531116"
+    },
+    {
+      "path": "paired/00-doppler.json",
+      "sizeBytes": 1545,
+      "sha256": "c956d882a673a5de293fccaa387a089c6b6b12e829cffca5a56703c4bf72be40"
+    },
+    {
+      "path": "paired/00-doppler.log",
+      "sizeBytes": 87,
+      "sha256": "61da8fa01b66766686bf48bd514ac89f31e97918fd3a3124d88f30b58dd53b84"
+    },
+    {
+      "path": "paired/01-transformersjs/progress.json",
+      "sizeBytes": 183484,
+      "sha256": "3918863e6851a978ec83b499834d7dae4223291de94f5ed58885048589e5975f"
+    },
+    {
+      "path": "paired/01-transformersjs/qualification.json",
+      "sizeBytes": 229169,
+      "sha256": "8d90e6a49f0ed12fba399a14bcc8bba70877538985d15ba1897716f2e70c568d"
+    },
+    {
+      "path": "paired/01-transformersjs.json",
+      "sizeBytes": 1586,
+      "sha256": "f83de3f313b501558407e8e1e01e05f40ba9860936ee0429627aa98ccc48b7d2"
+    },
+    {
+      "path": "paired/01-transformersjs.log",
+      "sizeBytes": 559,
+      "sha256": "c8bb5e0fc6fa8a8f2f75e2ba28a23b7c4fc785349d47be9866fd150ff9c98ce2"
+    },
+    {
+      "path": "paired/02-transformersjs/progress.json",
+      "sizeBytes": 183511,
+      "sha256": "ba0864a01eee9c4154e97049c1401d3a5a197d9be0ff27a22dc0a5df676bde36"
+    },
+    {
+      "path": "paired/02-transformersjs/qualification.json",
+      "sizeBytes": 228666,
+      "sha256": "dc040668729081d4cc846d4eb3fd6be99c4db500caa6afa1c8154192d8e468d8"
+    },
+    {
+      "path": "paired/02-transformersjs.json",
+      "sizeBytes": 1586,
+      "sha256": "3a92f2dc386c9ec67350f51d43b8d2965480dd07bb3719682390dc9d3fbb17dc"
+    },
+    {
+      "path": "paired/02-transformersjs.log",
+      "sizeBytes": 559,
+      "sha256": "f1132d9975b05ec80103637a8cd234731571228212960cc2a5c2d1338978e105"
+    },
+    {
+      "path": "paired/03-doppler/progress.json",
+      "sizeBytes": 877233,
+      "sha256": "1b138f6f89fd08893bf2549a453ec355e109635fb029ebd302f70183133dd968"
+    },
+    {
+      "path": "paired/03-doppler/qualification.json",
+      "sizeBytes": 1090287,
+      "sha256": "d0911e97a450c92a20e7daea9b11528b566cb93aa2396423a10d7df31558c52d"
+    },
+    {
+      "path": "paired/03-doppler.json",
+      "sizeBytes": 1545,
+      "sha256": "07abe16f8f8fadcb6a198729fd3d9a03994d1e86043e09b9f051fd29d33ab2bf"
+    },
+    {
+      "path": "paired/03-doppler.log",
+      "sizeBytes": 87,
+      "sha256": "4ef793290b890ca59234aa441c51a065fb7de32f8c575e937ffd5ca9e5ee6a94"
+    },
+    {
+      "path": "paired/04-doppler/progress.json",
+      "sizeBytes": 877304,
+      "sha256": "eb2c719562fc4fb20a87e8b4492b3c1c83b6b00367bdefadccb90a1708448697"
+    },
+    {
+      "path": "paired/04-doppler/qualification.json",
+      "sizeBytes": 1090375,
+      "sha256": "72006a9fb64a3a0a94e2b97fe536c2c49e311b896fabd7d57312c132d18fad05"
+    },
+    {
+      "path": "paired/04-doppler.json",
+      "sizeBytes": 1545,
+      "sha256": "0fa9f52483b6bc4e73cf070200db2baddb18d3386569dbfe5ba194c97b0b0323"
+    },
+    {
+      "path": "paired/04-doppler.log",
+      "sizeBytes": 87,
+      "sha256": "8a5231a01f301a6a9d235a2dddf2dc442282e634c4859cc03793178aaf31a2a0"
+    },
+    {
+      "path": "paired/05-transformersjs/progress.json",
+      "sizeBytes": 183497,
+      "sha256": "b615607977fb2ff8303f95fc2209efb81b90bd36142fb3cd4b8b39eef64de2ce"
+    },
+    {
+      "path": "paired/05-transformersjs/qualification.json",
+      "sizeBytes": 228950,
+      "sha256": "e0066820056b670d47b560f07645a070ef3cb26d622f14ee2c1435f9377249b9"
+    },
+    {
+      "path": "paired/05-transformersjs.json",
+      "sizeBytes": 1586,
+      "sha256": "630df58cfcbf15d58099e888dbe52ce884b1132568721732ea6cc90e33c37a8f"
+    },
+    {
+      "path": "paired/05-transformersjs.log",
+      "sizeBytes": 559,
+      "sha256": "c6ad26b32969a4523409f1f1f26b08993227579301770936c1987f4a6e32a219"
+    },
+    {
+      "path": "paired/comparison.json",
+      "sizeBytes": 302498,
+      "sha256": "bba2f26c33f630fc2c011ca685fb241368be62d2d7d4ec3aab65fdf812d9200a"
+    },
+    {
+      "path": "paired/plan.json",
+      "sizeBytes": 3157,
+      "sha256": "615d6181b550d3a009678243e8ace6a5697cf6cd1654b9a693f669dba7350e63"
+    },
+    {
+      "path": "paired/progress.json",
+      "sizeBytes": 300364,
+      "sha256": "ba298c082560f6cb6f8806e3e629e29d8790d56426dc1d7a88441f76a32c703f"
+    },
+    {
+      "path": "paired/run.js",
+      "sizeBytes": 5077,
+      "sha256": "1ac33862a6f747608d5c21b03e4bd5f92ff7e1a83900a798947e09d3f58e4af2"
+    },
+    {
+      "path": "paired/run.log",
+      "sizeBytes": 1733,
+      "sha256": "17ca2c029fe7f27e7459b55d2d10f8c9b8856576f97808bcf9d0835870797df7"
+    },
+    {
+      "path": "preparation/doppler-reranker-acquire-q8.log",
+      "sizeBytes": 405,
+      "sha256": "5dd39899c45a89d9e2d640c42b543dbddb0a555f5485ba9086ae7c9b4552bc24"
+    },
+    {
+      "path": "preparation/doppler-reranker-export-f16-portable.log",
+      "sizeBytes": 1567,
+      "sha256": "45e07b9c7326a05e345e1f61820fa79c6505b481586eccbd94fa82f8abc110dc"
+    },
+    {
+      "path": "preparation/doppler-reranker-export-f16-portable.py",
+      "sizeBytes": 3401,
+      "sha256": "0147d17b9ceb0146b37da0dbd4dc83ec431d0802e93ab4ec98db0dd368d6f6f0"
+    },
+    {
+      "path": "preparation/doppler-reranker-export-f16.log",
+      "sizeBytes": 1538,
+      "sha256": "18539012aeab904feb9a7ff1fc38dd9829321aa69d190c9e99a90561d2d9b53d"
+    },
+    {
+      "path": "preparation/doppler-reranker-export-f16.py",
+      "sizeBytes": 3465,
+      "sha256": "1bb25fabe79deda90815fac653925e28016e8b920557ec12086545f786a8cca1"
+    },
+    {
+      "path": "preparation/doppler-reranker-export-f32.log",
+      "sizeBytes": 1592,
+      "sha256": "2eca5747e286cd1a1b6e666afed06b4328ab11cef051438b20901ce90cb5d1df"
+    },
+    {
+      "path": "preparation/doppler-reranker-export-f32.py",
+      "sizeBytes": 3489,
+      "sha256": "63ec1eba8354a78428b296219af02d7aacb49026b2225d7bcedc5b9d30f1a3f3"
+    },
+    {
+      "path": "preparation/doppler-reranker-f16-export-reproduction.json",
+      "sizeBytes": 984,
+      "sha256": "b0448366073dfca34b5a7027f4d14e4a8288c040ca088c32020eecbeccc45b7e"
+    },
+    {
+      "path": "preparation/doppler-reranker-lifecycle-contract-02.log",
+      "sizeBytes": 1226,
+      "sha256": "4dfaffa6dc1901f0cba666ba101f82deefcb948e09ecbb20cbfd02bc004228a8"
+    },
+    {
+      "path": "preparation/doppler-reranker-onnx-pinned/acquisition.json",
+      "sizeBytes": 5567,
+      "sha256": "1d83e3fa6e902552536d3e309a799af26c6936c838843393f23cb88e92fb2c27"
+    },
+    {
+      "path": "preparation/doppler-reranker-onnx-q8-pinned/acquisition.json",
+      "sizeBytes": 5701,
+      "sha256": "8a5cc7d3def84565b24fcd30521a1efd25fb0b05414fa5e0560b158d90b6decd"
+    },
+    {
+      "path": "preparation/doppler-reranker-portable-config-replay-02.log",
+      "sizeBytes": 131,
+      "sha256": "196ea2b30b2eb0da73c0b148318a56cec8d4555616caf85b6e07490b5b50aec2"
+    },
+    {
+      "path": "preparation/doppler-reranker-portable-vendor-replay.log",
+      "sizeBytes": 675,
+      "sha256": "723787f7402603bdd31e2c5e9b5ee11353f39cdffb7172b4d6cc427a4085cdbc"
+    },
+    {
+      "path": "preparation/doppler-reranker-resume-q8.js",
+      "sizeBytes": 1871,
+      "sha256": "32e33502018c133b8fd33d5026d0e6d3a345037f2a33c7dba19e4e128dfafc96"
+    },
+    {
+      "path": "preparation/doppler-reranker-resume-q8.log",
+      "sizeBytes": 97,
+      "sha256": "e96eb4772c512bb89dc6c96563cfdd8e904a830c00e677496af696c9b1445fa9"
+    },
+    {
+      "path": "preparation/doppler-reranker-source-onnx-01/acquisition.json",
+      "sizeBytes": 33168,
+      "sha256": "77a3ff20a458cc04cfa233a94033c30724ec1d22293cc8aafc8dac046dba498d"
+    },
+    {
+      "path": "preparation/doppler-reranker-source-onnx-f16-01/acquisition.json",
+      "sizeBytes": 1584,
+      "sha256": "dcf5875dd64d38a8e58341436347a38e922d2ee565bfb80581fe8ccdc563e87d"
+    },
+    {
+      "path": "preparation/doppler-reranker-source-onnx-f16-reproduced-01/acquisition.json",
+      "sizeBytes": 1584,
+      "sha256": "4d19bab8cd63a71a2286e90a2eb76bb3163d71566f32c856ee0a21affe1353e2"
+    },
+    {
+      "path": "preparation/doppler-reranker-source-onnx-qualification-01.log",
+      "sizeBytes": 366,
+      "sha256": "f288b0e77bfd59672e82acf4e41ef207edf0317b9a6ffd463ba6508edbee7187"
+    },
+    {
+      "path": "preparation/doppler-tjs-load-diagnostic.json",
+      "sizeBytes": 911,
+      "sha256": "3261e7d6023bacb98c3e1e1c032818115f034aa0556ff6190511688ac4c69939"
+    },
+    {
+      "path": "preparation/interrupted-q8-acquisition.json",
+      "sizeBytes": 273,
+      "sha256": "8e184996d07d3f97a486006c8a0efc95f22283f37ec4c5f30434de1e8270b0fa"
+    },
+    {
+      "path": "preparation/portable-native-qualification.json",
+      "sizeBytes": 710307,
+      "sha256": "2af6711d8c83df27e282ce1dad9acd3cf25cbf92b3cf12d4d77d0f0bcfd80fb2"
+    },
+    {
+      "path": "preparation/portable-native-replay.log",
+      "sizeBytes": 98,
+      "sha256": "b6a6fcfed62c9e0ca37fe14c0cf826ebaafe042178709e15ef9b7fde3c490592"
+    },
+    {
+      "path": "preparation/portable-vendor-qualification.json",
+      "sizeBytes": 138048,
+      "sha256": "ba37c045de6389440dab5871b523ef39d681926a1d1ac18b3f74fcb3269829dc"
+    },
+    {
+      "path": "qualification/doppler-browser-reranker-reference-01/qualification.json",
+      "sizeBytes": 45328,
+      "sha256": "5ca29fcdd9bf4dbec62fe9eceb62e6760f6da28e30ae718848fb1823cefd06ae"
+    },
+    {
+      "path": "qualification/doppler-browser-reranker-reference-01.log",
+      "sizeBytes": 1545,
+      "sha256": "e94375caf342bb5da2fb3a476ea286933a85a2a8ce1b820c2f56d638896378f3"
+    },
+    {
+      "path": "qualification/doppler-browser-reranker-reference-02/progress.json",
+      "sizeBytes": 440936,
+      "sha256": "865168cb4071f0385686a628b5d00c4ac2b9f89f51844988742d6231f2b9ca81"
+    },
+    {
+      "path": "qualification/doppler-browser-reranker-reference-02/qualification.json",
+      "sizeBytes": 711406,
+      "sha256": "ec96a5ee24b75178b46236152ec54eec057f7e5ede3f77f0269ff96c6b17c03a"
+    },
+    {
+      "path": "qualification/doppler-browser-reranker-reference-02-config.json",
+      "sizeBytes": 1322,
+      "sha256": "4291f6239b022114bc8929a7a972c0561648a1c6ac16a614f386d9ade6a91568"
+    },
+    {
+      "path": "qualification/doppler-browser-reranker-reference-02.log",
+      "sizeBytes": 77,
+      "sha256": "d48658831fba3f906889650fadf5b3d9c719a5bce0e5a84950534430b3453114"
+    },
+    {
+      "path": "qualification/doppler-reranker-onnx-q8-qualification-01/progress.json",
+      "sizeBytes": 47256,
+      "sha256": "bb7bfd885d8edf3e31df1c98adffa3793f3f0cdee0150243603e4c4d02c3665e"
+    },
+    {
+      "path": "qualification/doppler-reranker-onnx-q8-qualification-01/qualification.json",
+      "sizeBytes": 121767,
+      "sha256": "bce0df10eb4d7bd8ad3597d9d510966c4e22776c145d055f2cc8c72fa5fa6698"
+    },
+    {
+      "path": "qualification/doppler-reranker-onnx-q8-qualification-01.log",
+      "sizeBytes": 653,
+      "sha256": "ea79d32b8aca137b20f8d37dccdd4bdb50f9d6506de8b91fb0fc82bd2039ff03"
+    },
+    {
+      "path": "qualification/doppler-reranker-onnx-qualification-01/qualification.json",
+      "sizeBytes": 10270,
+      "sha256": "a5fa6a1cd290f58d34c829b5f1d197a0888eac39a8bb2a4e95f4b9fb989e49da"
+    },
+    {
+      "path": "qualification/doppler-reranker-onnx-qualification-01.log",
+      "sizeBytes": 327,
+      "sha256": "d72c6d28be110a6d9f058773bbf8861c17bd8395ae6071154e947a4f3900dfed"
+    },
+    {
+      "path": "qualification/doppler-reranker-onnx-qualification-02/progress.json",
+      "sizeBytes": 47273,
+      "sha256": "fbbdbb878eeb25cbdfac9cd8cbdbdce15d5e438933b04674feffa6bd1685c244"
+    },
+    {
+      "path": "qualification/doppler-reranker-onnx-qualification-02/qualification.json",
+      "sizeBytes": 84336,
+      "sha256": "c8c2ddd9c21ce7271439d14a2a9c9b79405685193c8c4ea75457318c5ef7da18"
+    },
+    {
+      "path": "qualification/doppler-reranker-onnx-qualification-02-config.json",
+      "sizeBytes": 1363,
+      "sha256": "6c7b585e65bc30dbce9415df1e164ba36c1239d7ea03147c0a1c5641cfaed949"
+    },
+    {
+      "path": "qualification/doppler-reranker-onnx-qualification-02.log",
+      "sizeBytes": 650,
+      "sha256": "b97735278cb4fa332073508e2c9eee74a3e520d592c9ddaffeddc5c39f9308ec"
+    },
+    {
+      "path": "qualification/doppler-reranker-source-onnx-f16-qualification-01/progress.json",
+      "sizeBytes": 93515,
+      "sha256": "832e6be48eab63440aa0cdae7516ebadaed674840c88d1d00828b62be1c337be"
+    },
+    {
+      "path": "qualification/doppler-reranker-source-onnx-f16-qualification-01/qualification.json",
+      "sizeBytes": 140959,
+      "sha256": "c265c3db3b2a85b5de866ecb7575c19d01ce2f9bd7cf979904fd56d9acfa9323"
+    },
+    {
+      "path": "qualification/doppler-reranker-source-onnx-f16-qualification-01.log",
+      "sizeBytes": 659,
+      "sha256": "4d930fda05fbf521eaa62d47117c17e01eda4a8c346ad994117388ee551dd9c3"
+    },
+    {
+      "path": "qualification/doppler-reranker-source-onnx-qualification-02/qualification.json",
+      "sizeBytes": 99511,
+      "sha256": "4685a90abd1dff7b0c944dc1e6489943ad6b95a4133e58749992e4ce27f7de48"
+    },
+    {
+      "path": "qualification/doppler-reranker-source-onnx-qualification-02-config.json",
+      "sizeBytes": 1368,
+      "sha256": "196ced113054f88421d2c304af5552769688d8a3b3e1bc35a1e5e5f2e64037f7"
+    },
+    {
+      "path": "qualification/doppler-reranker-source-onnx-qualification-02.log",
+      "sizeBytes": 771,
+      "sha256": "6c8721aea809cde61618589b541cf07a831dc4d04cd2ed4ab4c29baa8a594caf"
+    },
+    {
+      "path": "timing-source/benchmarks/runners/transformersjs-contract.js",
+      "sizeBytes": 2057,
+      "sha256": "ff592bfb2a8f8eb0670c239babecd3e954c2caffe370c338ce5b072c94a3e194"
+    },
+    {
+      "path": "timing-source/benchmarks/runners/transformersjs-runner.html",
+      "sizeBytes": 76203,
+      "sha256": "95d302ae3a969bf1e62441d21193132d1742ddeb839781882b024548ebbc635d"
+    },
+    {
+      "path": "timing-source/package-lock.json",
+      "sizeBytes": 185651,
+      "sha256": "c682b246a0868a4200b4bde14753f41eaa54d04bc046839341a96a5650fa74fd"
+    },
+    {
+      "path": "timing-source/src/tooling/node-browser/static-server.js",
+      "sizeBytes": 6665,
+      "sha256": "33f1d8856ba7ba2f39ecc2a05118fd2cb16fbc8fd6706166837d40e7e5bc01fa"
+    },
+    {
+      "path": "timing-source/tools/browser-renderer-memory.js",
+      "sizeBytes": 1366,
+      "sha256": "20f26c2ee2856d45238167f3dfc5fc95a4504165e951205b8d40d20c4c8a8c41"
+    },
+    {
+      "path": "timing-source/tools/compare-reranker-reference-runs.js",
+      "sizeBytes": 8100,
+      "sha256": "117daa243a522ec47c31450475e3ac6b3370382c1c68f01a88360b22abac86cd"
+    },
+    {
+      "path": "timing-source/tools/qualify-installed-reranker-browser.js",
+      "sizeBytes": 9020,
+      "sha256": "c4a15540bcd342a897678f96fbdb79ca4a743bdd8ba61741e105a5ac61553a87"
+    },
+    {
+      "path": "timing-source/tools/qualify-transformersjs-reranker.js",
+      "sizeBytes": 8015,
+      "sha256": "02099a94f22990e92b2b76f94f7136478215bd5cb3b6f5d2d92b3ac950a0df30"
+    },
+    {
+      "path": "timing-source/tools/reranker-reference-schedule.js",
+      "sizeBytes": 1373,
+      "sha256": "bbe140352740dfd807985f79b007456a186be0e52e13aa7820eb3a44215141ae"
+    }
+  ]
+}

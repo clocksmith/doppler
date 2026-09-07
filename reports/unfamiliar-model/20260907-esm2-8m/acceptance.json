@@ -1,0 +1,564 @@
+{
+  "schema": "doppler.unfamiliar-model-acceptance/v1",
+  "passed": true,
+  "implementationCommit": "94570b438002ea681b7114dfb5bb4594f1956e40",
+  "runtime": {
+    "filename": "doppler-gpu-0.6.0.tgz",
+    "integrity": "sha512-FRm9wxAuigLEZNLHbQiZ/TcLop3IwbNjFRDpyGBeyZQDTDZhKciEhmMh55v1It7sI9pIXVFZC9CGKG9f7ezt6A==",
+    "sizeBytes": 2106616,
+    "sha256": "167bfda427e337d8dd2f90fee45dda49d1d6cd32eae510d3729cae67633451e4"
+  },
+  "model": {
+    "repository": "facebook/esm2_t6_8M_UR50D",
+    "revision": "c731040fcd8d73dceaa04b0a8e6329b345b0f5df",
+    "manifestDigest": "sha256:360335cc6d72e2919c83163cbecb1c2214c9e8efa9c855c7e51c797ae711e4ca",
+    "referenceDigest": "sha256:a777305d09f4f2480f0535dfc20c1ef817a65cbf06d4d805393290264b4dc394",
+    "license": "MIT"
+  },
+  "hardware": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "isFallbackAdapter": false
+  },
+  "scope": "Complete declared encoder outputs and installed Node device-loss recovery; no language-model head or biological claim.",
+  "signedCapsule": false,
+  "externalAdoption": false,
+  "independentOperator": false,
+  "additionalDevice": false,
+  "sourceReconstruction": {
+    "passed": true,
+    "receipt": "restored-final-94570b43/restoration.json"
+  },
+  "physicalQualification": {
+    "passed": true,
+    "receipt": "node-restored-final-94570b43/qualification.json",
+    "recoveryMs": 121.21267599999999,
+    "fullSequences": 3,
+    "tokenEmbeddingElementsPerPhase": 31360,
+    "pooledEmbeddingElementsPerPhase": 960,
+    "maxAbsTolerance": 0.001
+  },
+  "acceptance": {
+    "command": "TMPDIR=/var/tmp npm ci && TMPDIR=/var/tmp npm run check:green",
+    "testFiles": 792,
+    "cleanCheckout": true,
+    "log": "acceptance/doppler-erf-release-94570b43-green.log",
+    "remoteRun": "https://github.com/clocksmith/doppler/actions/runs/34158851174",
+    "remoteJobId": 101856249005,
+    "remoteConclusion": "success"
+  },
+  "manualInterventions": {
+    "count": 6,
+    "receipt": "manual-interventions.json",
+    "unattendedNewFamilyAutomation": false
+  },
+  "evidence": {
+    "path": "evidence.tar.gz",
+    "sizeBytes": 14912692,
+    "sha256": "a7be9763d61806e543eea193454bc2c59057fec00c503fa057a9963305888a04"
+  },
+  "reproduction": {
+    "path": "reproduction.tar.gz",
+    "sizeBytes": 2473061,
+    "sha256": "5aa4ad209df07f202a7745d8875d795155163bd1b38ea976a07113fab84c0831"
+  },
+  "files": [
+    {
+      "path": "acceptance/doppler-94570b43-remote-jobs.json",
+      "sizeBytes": 4156,
+      "sha256": "06dc8ef49dafebcd0f0a711db95383bf4875324209e21bf0450ea38bfcba6d64"
+    },
+    {
+      "path": "acceptance/doppler-erf-ci-package-inventory.json",
+      "sizeBytes": 211511,
+      "sha256": "36ac36180d7c995038f7bb511660e991100699d7b3a2129042e66a0425c18d02"
+    },
+    {
+      "path": "acceptance/doppler-erf-ci-runtime.json",
+      "sizeBytes": 57,
+      "sha256": "6e86d7ce829b1ae08e3e8873005dffda1984e263c5d474e1a378f1cfdbed1093"
+    },
+    {
+      "path": "acceptance/doppler-erf-focused-acceptance-03.log",
+      "sizeBytes": 1927,
+      "sha256": "e8f34d4c84c37076152560e68c9bb953c73a22ce7eb93eab3bfcc737322f1111"
+    },
+    {
+      "path": "acceptance/doppler-erf-release-94570b43-green.log",
+      "sizeBytes": 402736,
+      "sha256": "477844805d85d037290a7f36ae024a5b1f751e1d712ef9f5ce74c1d7acb21f61"
+    },
+    {
+      "path": "acceptance/doppler-erf-release-94570b43-install.log",
+      "sizeBytes": 355,
+      "sha256": "1c325dd53775381fbcbc3221e61995f5f3cd8f824074fc94317e1e25433c73f4"
+    },
+    {
+      "path": "acceptance/doppler-gelu-erf-gpu-test-03.log",
+      "sizeBytes": 386,
+      "sha256": "3ab66511596cc98146c07ca52e3df2d0fa35de563be9228afadb49309d0f3d06"
+    },
+    {
+      "path": "acquire.js",
+      "sizeBytes": 1659,
+      "sha256": "27ff9e8f1007c62ed495cfc2106eb0c624cb3d78a0c2ce6d7946b705c088239f"
+    },
+    {
+      "path": "acquisition.json",
+      "sizeBytes": 2211,
+      "sha256": "b091690b61f9205963e0b89c778f4ea05eb687c2096c38ac927a1b4bcd34f8eb"
+    },
+    {
+      "path": "acquisition.log",
+      "sizeBytes": 618,
+      "sha256": "f660b78a5431650255f04cfe8c749f712ec81bd194890a0962d104768c0b22fc"
+    },
+    {
+      "path": "binding-probe.jsonl",
+      "sizeBytes": 87,
+      "sha256": "837ce136114369b94e1e2d2b577d0cf36ec63d3d1d7b24c249d2679fffab5674"
+    },
+    {
+      "path": "binding-probe.log",
+      "sizeBytes": 3520,
+      "sha256": "07041f2b2148c748746e777ed50081c5a292406173d498ada1212b6bf5d8593a"
+    },
+    {
+      "path": "capture-reference-portable.py",
+      "sizeBytes": 2559,
+      "sha256": "c21730b5d003153383c4be42a48d2bb197e39951cd6e18f00ef9d1d94059770a"
+    },
+    {
+      "path": "capture-source.py",
+      "sizeBytes": 2638,
+      "sha256": "0b7871462edc31acd43ef614248332b2391fa105ec12f02c8b5353d4841ce369"
+    },
+    {
+      "path": "compiled-plan-diagnostic.json",
+      "sizeBytes": 42956,
+      "sha256": "76d15696dd23d37a9782da78f52eae19cec1774ab1478e5dac3ce89bd0db805e"
+    },
+    {
+      "path": "conversion-erf.json",
+      "sizeBytes": 17060,
+      "sha256": "a2dba367efaefe0533af9aec5685b8d3f4640d8e7dc1e95b594516b7c798cce8"
+    },
+    {
+      "path": "conversion-erf.log",
+      "sizeBytes": 13069,
+      "sha256": "909c449964778fc605969ef8d8f27e98a20afb82ac12cc48bb29e152335b149d"
+    },
+    {
+      "path": "conversion.json",
+      "sizeBytes": 17026,
+      "sha256": "e856ce71af84d0d7acc06bde4570912e09ae5ffaebf1d14015a9d729c0a71483"
+    },
+    {
+      "path": "conversion.log",
+      "sizeBytes": 13069,
+      "sha256": "7367756048b92deefc46abf9aa265f7f7d6282a2bc4b6dabce3e2aa2970a9d91"
+    },
+    {
+      "path": "converted/manifest.json",
+      "sizeBytes": 48800,
+      "sha256": "82ba3c0bf5916d9ab29940bfaf2e2478c790b1f47a257eaf333349fdefd2b4e9"
+    },
+    {
+      "path": "converted/tokenizer.json",
+      "sizeBytes": 1395,
+      "sha256": "f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37"
+    },
+    {
+      "path": "converted-erf/manifest.json",
+      "sizeBytes": 48830,
+      "sha256": "360335cc6d72e2919c83163cbecb1c2214c9e8efa9c855c7e51c797ae711e4ca"
+    },
+    {
+      "path": "converted-erf/tokenizer.json",
+      "sizeBytes": 1395,
+      "sha256": "f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37"
+    },
+    {
+      "path": "diagnose-gelu.py",
+      "sizeBytes": 1643,
+      "sha256": "634ea15c6dda7f2156fc18d555fbd01774ccc8dbcc0183d4cdd6e7b70146303d"
+    },
+    {
+      "path": "full-source-references.json",
+      "sizeBytes": 1755368,
+      "sha256": "a777305d09f4f2480f0535dfc20c1ef817a65cbf06d4d805393290264b4dc394"
+    },
+    {
+      "path": "gelu-diagnostic.json",
+      "sizeBytes": 4104511,
+      "sha256": "23d36edf5d62364bca442b341bf289af1c1fb801a32b8df3258101244dcc3f45"
+    },
+    {
+      "path": "gelu-diagnostic.log",
+      "sizeBytes": 820,
+      "sha256": "8b28ef4344b6406577068e381f7afcd75523bdc2f2e7eb1b45cd8bc76bb1bfe6"
+    },
+    {
+      "path": "gelu-gpu-probe.json",
+      "sizeBytes": 693518,
+      "sha256": "17c7934f26540501cd2decd9e485dec37dc9aa0651198fa271f97d5e421d33c6"
+    },
+    {
+      "path": "manual-interventions.json",
+      "sizeBytes": 1102,
+      "sha256": "092a7a9883c61ed72bf9140768e522eaa2d75b78cd7752e7b7d405525c8f748e"
+    },
+    {
+      "path": "node-01/progress.json",
+      "sizeBytes": 259523,
+      "sha256": "a4162412f07900cd543b05f59804a37e5236e0569635f6cff8d30d02319ac011"
+    },
+    {
+      "path": "node-01/qualification.json",
+      "sizeBytes": 301100,
+      "sha256": "e61aca36dc9996f8cf52126544ae04c7d3964d321da7db1d78fba0809574e02d"
+    },
+    {
+      "path": "node-01.log",
+      "sizeBytes": 3508,
+      "sha256": "1e8a2691f486ebfd5322fd40d000371795ecffb477f174aac33431f92fea06cc"
+    },
+    {
+      "path": "node-config.json",
+      "sizeBytes": 688,
+      "sha256": "eb25e92dddbdebe285c6ed236d51c8c02325d5e016f938854f9b15d6528e00f7"
+    },
+    {
+      "path": "node-erf-01/progress.json",
+      "sizeBytes": 259522,
+      "sha256": "89aafb8d55691d9175cec844c566cd661ef7b0112710ef38d91d20eb3ff5fa84"
+    },
+    {
+      "path": "node-erf-01/qualification.json",
+      "sizeBytes": 301185,
+      "sha256": "b5120859b5bc786b10fd47fad362042a68b81b535634a8f33efc4feef8adcd63"
+    },
+    {
+      "path": "node-erf-01.log",
+      "sizeBytes": 3512,
+      "sha256": "21f3a1dae14f7128e804dfb9028d89c3a820caf7ac664c730f304949b7bd546d"
+    },
+    {
+      "path": "node-erf-02/qualification.json",
+      "sizeBytes": 25324,
+      "sha256": "5866c7713a0a3256167549abf9a2f4394d0fcff48222863b3d55b932bcf84594"
+    },
+    {
+      "path": "node-erf-02-config.json",
+      "sizeBytes": 699,
+      "sha256": "3bd31b198889bd584a96ab494f78c782d5262546151eb4406d4c08569d774062"
+    },
+    {
+      "path": "node-erf-02.log",
+      "sizeBytes": 4958,
+      "sha256": "e9b51ad8e41731af3d00b6c2e2f1a9cef835bfc260f685a5f8b84b000d60d9f0"
+    },
+    {
+      "path": "node-erf-03/progress.json",
+      "sizeBytes": 1900193,
+      "sha256": "59e13e63c213d5d0b5d67fa506b0b7ba274771f4ef5d76201f6187305f09494c"
+    },
+    {
+      "path": "node-erf-03/qualification.json",
+      "sizeBytes": 2073455,
+      "sha256": "e550b5f5527e8f0634a1dd6ddd0e91580dfc5bdff9ad160e8a5a86e41534ca08"
+    },
+    {
+      "path": "node-erf-03-config.json",
+      "sizeBytes": 699,
+      "sha256": "2db499af0b5cd801806db517e45527ab7bd9c6d64803ea5e07b068c26d5f3ca7"
+    },
+    {
+      "path": "node-erf-03.log",
+      "sizeBytes": 5499,
+      "sha256": "a82fed5a62a763b58fda1864a84ef45d5db4c060e9ece20be033ecf079b3d781"
+    },
+    {
+      "path": "node-erf-binding-01/progress.json",
+      "sizeBytes": 259522,
+      "sha256": "b49b66127e910766b772e763d694fb4b8293dedb668968ca8b7dbf5855ad55df"
+    },
+    {
+      "path": "node-erf-binding-01/qualification.json",
+      "sizeBytes": 301194,
+      "sha256": "2bc7175e6d2f8729b9ed2afe3ea7fa329604ae0e2d67689619212c73ef5b0aac"
+    },
+    {
+      "path": "node-erf-binding-config.json",
+      "sizeBytes": 707,
+      "sha256": "e16a6b9b186d6fd401ca760dc3b956f0265e8aac280058df77e0f5ab62b7f774"
+    },
+    {
+      "path": "node-erf-config.json",
+      "sizeBytes": 699,
+      "sha256": "0288c1ca1b65f36eb73e1c58df20bc87143a7ba30437f8281a55eb9bfa769cd5"
+    },
+    {
+      "path": "node-restored-94570b43/progress.json",
+      "sizeBytes": 1900195,
+      "sha256": "38356f004cd9f49271c490dde4a72a2d94c1ddbde7afb3086d332d8ebd78e51f"
+    },
+    {
+      "path": "node-restored-94570b43/qualification.json",
+      "sizeBytes": 2073519,
+      "sha256": "5f8a63d45c71fd3f22c2f4f76fcb69d3eb54f7a25a76364993e34eb2e8a81e17"
+    },
+    {
+      "path": "node-restored-94570b43-config.json",
+      "sizeBytes": 769,
+      "sha256": "31c4fcad2e0512349b5f5da00342f12c8a56cb1d00acc633c69f404e16811738"
+    },
+    {
+      "path": "node-restored-94570b43.log",
+      "sizeBytes": 5510,
+      "sha256": "d6f62375e6812d585284f46077bbabfb1e576c039e0e3cc7678779fff581312e"
+    },
+    {
+      "path": "node-restored-final-94570b43/progress.json",
+      "sizeBytes": 1900194,
+      "sha256": "268ad79af66d46bdf49bfb5095d02d85580b168f024fee5db22f1653a3c7540c"
+    },
+    {
+      "path": "node-restored-final-94570b43/qualification.json",
+      "sizeBytes": 2073542,
+      "sha256": "669b925b02babc257bb9d64cc8ea16d4f5fb5af1b8c4dcbf88cadc2c97dde0a9"
+    },
+    {
+      "path": "node-restored-final-94570b43-config.json",
+      "sizeBytes": 793,
+      "sha256": "6b0506f41b1261b08be7dbdb3163f0ff4959a32fcf1db5007b32f338d2e71f4e"
+    },
+    {
+      "path": "node-restored-final-94570b43.log",
+      "sizeBytes": 5517,
+      "sha256": "fe929fbb5e16e0f1fad3f7705c9785d9de703c8b40b7e5e8e131cbdbf9c2d81f"
+    },
+    {
+      "path": "package-94570b43/doppler-gpu-0.6.0.tgz",
+      "sizeBytes": 2106616,
+      "sha256": "167bfda427e337d8dd2f90fee45dda49d1d6cd32eae510d3729cae67633451e4"
+    },
+    {
+      "path": "package-94570b43/npm-pack.json",
+      "sizeBytes": 211511,
+      "sha256": "4b51cd463fc08d69d62e1dfd5000dabd4592a52c330f11a3598485e717bea569"
+    },
+    {
+      "path": "package-94570b43/receipt.json",
+      "sizeBytes": 1763,
+      "sha256": "8e46b69230bdec7e8f8916903fc8bf9e86c7db56a11976b56052552f396d658f"
+    },
+    {
+      "path": "package-94570b43/source-state.json",
+      "sizeBytes": 160,
+      "sha256": "d83d30ffb76236ef32530339185d69341c1163405ffad273188f922d2786edcd"
+    },
+    {
+      "path": "package-94570b43.log",
+      "sizeBytes": 738,
+      "sha256": "91b594dfc769345f0ccbfb3542dc1f48ef5771b51eb7a80b5d7bfee37e6d1dfc"
+    },
+    {
+      "path": "package-erf-01/doppler-gpu-0.6.0.tgz",
+      "sizeBytes": 2106008,
+      "sha256": "a9774abedbb42026c12f605c0a6b0e6c2dd827b6888f396ca46abb6ffa1fe73f"
+    },
+    {
+      "path": "package-erf-01/npm-pack.json",
+      "sizeBytes": 211511,
+      "sha256": "81c042fd73476792b70f93af0a749ec7e8010a0653581c392bf5779fb6f42584"
+    },
+    {
+      "path": "package-erf-01/receipt.json",
+      "sizeBytes": 1763,
+      "sha256": "8d072719a5ba3df020450f740afbffb13a8de0d8f8ad128b11e86727f0f146ba"
+    },
+    {
+      "path": "package-erf-01/source-state.json",
+      "sizeBytes": 2127,
+      "sha256": "21531c72bc692b71697de4066fda2cc99143782d6d56d9c5c62d7489e3a8357d"
+    },
+    {
+      "path": "package-erf-01.log",
+      "sizeBytes": 736,
+      "sha256": "5fea26eb80c2228e325cfc1c9ae8f955b7a19e34ada1f51fb62541f9a72b8c96"
+    },
+    {
+      "path": "package-erf-02/doppler-gpu-0.6.0.tgz",
+      "sizeBytes": 2106617,
+      "sha256": "b44d728601df8568a867c925453df670250a194ea6f285a6bd67e70f5d73f353"
+    },
+    {
+      "path": "package-erf-02/npm-pack.json",
+      "sizeBytes": 211511,
+      "sha256": "27023e20965471c4595beebc5b6b2ebbfd7da01874e46ca9c4da88f6329d7f78"
+    },
+    {
+      "path": "package-erf-02/receipt.json",
+      "sizeBytes": 1763,
+      "sha256": "9a189e0cbd82ada99d9483440c789379c0e0e79596649d4759cf5f4c2ad09aab"
+    },
+    {
+      "path": "package-erf-02/source-state.json",
+      "sizeBytes": 2513,
+      "sha256": "5a8c2fcc379d3ccf4ec70b08908a2d555a034a816d694a1ab3decb3d3965a497"
+    },
+    {
+      "path": "package-erf-02.log",
+      "sizeBytes": 736,
+      "sha256": "4b6bcec92d3ef6f7b5289c7d889f4486af217f292a720f3c22e8349a26d99284"
+    },
+    {
+      "path": "package-erf-03/doppler-gpu-0.6.0.tgz",
+      "sizeBytes": 2106620,
+      "sha256": "a22c5d21bc68b21ed2e8f12b537a2728356a656106fef1bd636f1810f13a0ae5"
+    },
+    {
+      "path": "package-erf-03/npm-pack.json",
+      "sizeBytes": 211511,
+      "sha256": "b5f82ca1db41750ff921942f4636357d8edef96b81f1e075b942cd8298ef3bd5"
+    },
+    {
+      "path": "package-erf-03/receipt.json",
+      "sizeBytes": 1763,
+      "sha256": "b82e227a6b476b63e6a9a23aff056c252f9d580cddb7d2764901a6f714840ad2"
+    },
+    {
+      "path": "package-erf-03/source-state.json",
+      "sizeBytes": 2513,
+      "sha256": "5a8c2fcc379d3ccf4ec70b08908a2d555a034a816d694a1ab3decb3d3965a497"
+    },
+    {
+      "path": "package-erf-03.log",
+      "sizeBytes": 736,
+      "sha256": "3a0efb0e02ccefbf3cca9340158c4b3b00259fcc9bf244c1c0d273bcaaa7c626"
+    },
+    {
+      "path": "preparation-plan.json",
+      "sizeBytes": 1289,
+      "sha256": "3f4ef86426f392761862efaf2f1b1ccc02efd3d573d3c1e7b38ba4b125cff782"
+    },
+    {
+      "path": "probe-binding.js",
+      "sizeBytes": 723,
+      "sha256": "b78af6ec0aeae2502c0672aac9a488df3bfe01728644b2ecf0321981d91ceb58"
+    },
+    {
+      "path": "probe-gelu.js",
+      "sizeBytes": 2440,
+      "sha256": "d2c5d46e2eab8929dd575398c0239b5c4f5ef68519828c531c588d765ec47773"
+    },
+    {
+      "path": "provider-install-02.log",
+      "sizeBytes": 27,
+      "sha256": "5e37f0284c352832b47168e077a80281538e63262c30895ca5023fc061ff6553"
+    },
+    {
+      "path": "provider-install-03.log",
+      "sizeBytes": 27,
+      "sha256": "1c606ba75c9eaf21da587e341be82386785c0ae6ee1f466cf007ba7a15434699"
+    },
+    {
+      "path": "provider-install.log",
+      "sizeBytes": 27,
+      "sha256": "497eb476f4d7bb4e0608c48a87da114205ae81e08f43bbb1b749990271243035"
+    },
+    {
+      "path": "replayed-source.log",
+      "sizeBytes": 886,
+      "sha256": "3dc96b7133016a434ff714237f070c3a142b3b6cfa0a01d5de913fe24f455f93"
+    },
+    {
+      "path": "restored-94570b43/consumer/package-lock.json",
+      "sizeBytes": 3440,
+      "sha256": "c8da9e573a0361bbddef33b1371be42d3ed82e55e3f1b161f6a12396245ae0da"
+    },
+    {
+      "path": "restored-94570b43/consumer/package.json",
+      "sizeBytes": 145,
+      "sha256": "b21ff28aca1405172047c1497082c23389048d7b97795b6e797aa83c79de11c0"
+    },
+    {
+      "path": "restored-94570b43/reproduction-input.json",
+      "sizeBytes": 4047,
+      "sha256": "a0c96e3504d7d1ac8556905236e6463054511572b4bc54c1df5700cbedfe1598"
+    },
+    {
+      "path": "restored-94570b43/restoration.json",
+      "sizeBytes": 3830,
+      "sha256": "cae8d4069924472f4b97edd776f9e5161984021b21e090a2c60d978642c19109"
+    },
+    {
+      "path": "restored-94570b43.log",
+      "sizeBytes": 511,
+      "sha256": "cf0327250214648c4741774f42c5d18c9139a10127b1c35998b63513ffc50101"
+    },
+    {
+      "path": "restored-final-94570b43/consumer/package-lock.json",
+      "sizeBytes": 3440,
+      "sha256": "c8da9e573a0361bbddef33b1371be42d3ed82e55e3f1b161f6a12396245ae0da"
+    },
+    {
+      "path": "restored-final-94570b43/consumer/package.json",
+      "sizeBytes": 145,
+      "sha256": "b21ff28aca1405172047c1497082c23389048d7b97795b6e797aa83c79de11c0"
+    },
+    {
+      "path": "restored-final-94570b43/reproduction-input.json",
+      "sizeBytes": 4234,
+      "sha256": "d82c845e783a52224e202ef6b124a34da180bde48db2fef3e5ffb6f5d8bf8fb0"
+    },
+    {
+      "path": "restored-final-94570b43/restoration.json",
+      "sizeBytes": 3860,
+      "sha256": "91e1366b9643d8cbe2cb324c8235882c547e01240808f1c9bcd84776f076d9be"
+    },
+    {
+      "path": "restored-final-94570b43.log",
+      "sizeBytes": 517,
+      "sha256": "9a55c43c068ff77562f85ca59212366d4f5ff37a5caac130ece6dff18d6a2e8c"
+    },
+    {
+      "path": "restored-final-provider-install.log",
+      "sizeBytes": 27,
+      "sha256": "083c896fcceadfa21e2318a0f692282215b57e8299be99b30378299f4e3da53c"
+    },
+    {
+      "path": "restored-provider-install.log",
+      "sizeBytes": 27,
+      "sha256": "cb5f719e554735dead8f1ecdd4ca6f0ee5b6db6654c1c22e989a77f68f8b5baf"
+    },
+    {
+      "path": "source-capture.log",
+      "sizeBytes": 859,
+      "sha256": "758611933c5e92a1a68f99fd7c4a55356bcd7f4f59a4929d8ecf1d804dca88f9"
+    },
+    {
+      "path": "source-policy.json",
+      "sizeBytes": 844,
+      "sha256": "8155926ee4dba66ea285a94d71dbdb27d5cd10da85a88bb84f7d109ccec60e89"
+    },
+    {
+      "path": "source-reference-replay.json",
+      "sizeBytes": 311,
+      "sha256": "8781122aed7cb57ef8a137d598bf611e1cc7331d137b41391af2915807d3fe67"
+    },
+    {
+      "path": "upstream.json",
+      "sizeBytes": 4674,
+      "sha256": "95762759b6400c4da30d373bb3665212eb1940b3886c73eae9fb1b2560abbef9"
+    }
+  ],
+  "sourceReferenceReplay": {
+    "passed": true,
+    "byteIdentical": true,
+    "receipt": "source-reference-replay.json"
+  }
+}
