@@ -396,6 +396,52 @@ the actual newly packed candidate must also complete its separate eight-question
 screen and eventual signed-Capsule/held-out qualification. The nine-token museum
 answer still omits required facts and is not a useful-answer success.
 
+## Actual packed candidate screen
+
+`packed-candidate-browser.tar.gz` retains the actual npm package built from
+the repaired, reconciled candidate, its complete inventory, all eight physical
+browser answers, captured runtime sources, and a replayable verifier. Package
+SHA-256 is `bb4fc2e335c2a4afd23d64cbabdca78aaab12ebcd30d245de19d37f75780d97d`;
+packed size is 2,109,011 bytes, with 1,780 files and 10,874,571 unpacked bytes.
+This is a development package, not a new npm publication or signed Capsule.
+
+The run completes with clean teardown on the same Intel Gen12LP physical GPU
+and Chrome 145. All 590 captured `/src/` files match the extracted package
+byte-for-byte. Model inventory, eight prompts, load/generation options, and
+browser/device match the preserved no-speculation baseline. Sixteen captured
+source files differ from that old baseline; this is a combined candidate
+screen, not a single-variable conversion experiment. The separate frozen
+three-job experiment above establishes the reset repair's causal effect.
+
+The six previously token-limit-bound cases now stop: museum, both contradiction
+cases, and both unanswerable cases use nine tokens; carton uses sixteen.
+Ticket remains nine and sensor twenty-one. Every generated token sequence now
+matches the retained CPU reference prefix through the model's end-of-message
+token. The CPU reference continued beyond that token; the verifier explicitly
+compares the prefix and removes trailing whitespace for the text comparison.
+It does not claim identical complete raw reference transcripts.
+
+Useful-answer qualification still fails. Ticket improperly abstains; museum
+omits available facts; both contradiction answers fail to identify the conflict;
+carton leaves its first factual sentence uncited and omits the requested unknown
+part. Both fully unanswerable cases use an abstention sentence that fails the
+existing citation checker. Sensor alone is cited without structural errors.
+These are exposed development/regression cases, not an untouched holdout or
+independently reviewed semantic qualification. Source agreement establishes that
+these observed failures also occur in the source-model control; it does not
+justify changing acceptance rules or claiming useful output.
+
+To replay the identity and answer checks, extract `packed-candidate-browser.tar.gz`,
+`no-speculation-browser.tar.gz`, and `source-step-reference.tar.gz` into one fresh
+directory, then extract the contained `doppler-gpu-0.6.0.tgz` there. Run:
+
+```bash
+node verify-f16-candidate-screen.js . ./package ./replayed-verification.json
+```
+
+Fresh extraction and this verification passed. The archive omits model weights;
+their exact identities remain in the acquisition and execution records.
+
 ## Claim boundary
 
 This establishes a conversion-code defect and its focused repair. It does not
