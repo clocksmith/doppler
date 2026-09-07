@@ -5,6 +5,14 @@ reduces process memory while preserving the same model programs, frozen source
 references, and opening/inference budgets. It measures the opening-time cost as
 well as the memory benefit. Unlimited retention remains the runtime default.
 
+The [retained experiment acceptance](../reports/retention-experiment/20260907/acceptance.json)
+records passing Node held-out references and transfer to browser search on AMD
+Radeon 8060S. Three interleaved browser openings per policy measured median
+renderer peak RSS of 3.03 GB unlimited and 1.16 GB bounded, with opening medians
+of 65.6 and 186.5 seconds respectively. Both variants passed the same search and
+recovery suite. These are measurements for that hardware and corpus; the receipt
+preserves the opening-time cost and leaves promotion and defaults unchanged.
+
 Start with the public reconstruction and installed consumer described in
 [Capsule baseline reproduction](capsule-release-reproduction.md). Keep the
 restoration directory, its successful `restoration.json`, and the installed

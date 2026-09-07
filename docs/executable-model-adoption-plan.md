@@ -148,6 +148,9 @@ coverage. The integrated archive's subsequent qualification is retained in the
    missing computation; emit precise implementation tasks and executable
    reference tests. Discovery and successful preparation do not approve release
    promotion.
+   [Retained discovery acceptance](../reports/model-revision-discovery/20260907/acceptance.json)
+   covers automatic upstream assessment and a hybrid GPU operation reference;
+   full hybrid model qualification remains a separate gate.
 3. **Reusable optimization.** Connect candidate generation to physical hardware
    experiments under unchanged correctness tests. Freeze tuning and held-out
    inputs separately, demonstrate an improvement on the held-out inputs, and
@@ -155,11 +158,19 @@ coverage. The integrated archive's subsequent qualification is retained in the
    costs. Outside contribution strengthens evidence but does not gate machinery.
    Keep limited artifact retention explicit: its measured memory benefit costs
    opening time, and unlimited retention remains the default.
+   The [portable experiment procedure](capsule-retention-experiment.md) replays
+   the existing evaluator and transfers its selected policy to browser search.
+   [Retained acceptance](../reports/retention-experiment/20260907/acceptance.json)
+   records passing held-out Node references and the measured browser transfer.
 4. **Verified inference coverage.** Qualify generation, additional physical
    devices, and Bun separately. Compare strong alternatives under equivalent
    quality requirements and visible startup, memory, throughput, cancellation,
    and recovery contracts. Record blocked or failed lanes. One AMD configuration
    does not establish general portability or superiority.
+   [Bun reranker acceptance](../reports/inference-coverage/20260907-bun/acceptance.json)
+   retains its exact executed qualifier. The separate
+   [generation reproduction procedure](generation-qualification-reproduction.md)
+   pins public reconstruction and per-surface physical probes.
 5. **Architecture through extensions.** Fix concrete coupling and defects exposed
    by these extensions, remove duplicated execution paths, enforce module
    ownership, and keep publication tooling outside runtime dependencies. Preserve
