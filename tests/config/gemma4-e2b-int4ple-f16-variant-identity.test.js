@@ -1,5 +1,5 @@
-// Current artifact identities are checked against current conversion inputs.
-// Historical inputs and benchmark receipts retain their original identities.
+// Retained artifact identity is checked against the recipe that produced it.
+// Current candidate recipes have separate kernel identities and require qualification.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -42,6 +42,7 @@ function catalogEntry(catalog, modelId) {
 
 const catalog = readJson('models/catalog.json');
 const af16Config = readJson(`src/config/conversion/gemma4/${AF16_MODEL_ID}.json`);
+const retainedConfig = readJson('tests/fixtures/gemma4-e2b-int4ple-f16-conversion-source.json');
 const af32ManifestPath = path.join('models', 'local', AF32_MODEL_ID, 'manifest.json');
 const af16ManifestPath = path.join('models', 'local', AF16_MODEL_ID, 'manifest.json');
 const af32ManifestText = fs.readFileSync(af32ManifestPath, 'utf8');
@@ -84,8 +85,14 @@ assert.deepEqual(af16Manifest.weightsRef, af16Config.manifest?.weightsRef);
 assert.equal(af16Manifest.weightsRef?.artifactRoot, `../${AF32_MODEL_ID}`);
 assert.equal(af16Manifest.weightsRef?.manifestDigest, hashText(af32ManifestText));
 assert.equal(af16Manifest.weightsRef?.shardSetHash, af32Manifest.artifactIdentity?.shardSetHash);
-assert.equal(af16Manifest.artifactIdentity?.conversionConfigDigest, hashJson(af16Config));
-assert.equal(af16Manifest.conversion?.conversionConfigDigest, hashJson(af16Config));
+assert.equal(af16Manifest.artifactIdentity?.conversionConfigDigest, hashJson(retainedConfig));
+assert.equal(af16Manifest.conversion?.conversionConfigDigest, hashJson(retainedConfig));
+assert.equal(hashJson(retainedConfig), 'sha256:b7961c6c2c0fa75a51db4eb689e737c88d70231c86a5a0d13c093be6af7d607f');
+assert.notEqual(hashJson(af16Config), hashJson(retainedConfig));
+const currentWithRetainedKernel = structuredClone(af16Config);
+currentWithRetainedKernel.execution.kernels.gelu.digest = retainedConfig.execution.kernels.gelu.digest;
+assert.deepEqual(currentWithRetainedKernel, retainedConfig,
+  'This extension changes only the GELU source identity in the retained Gemma recipe.');
 
 assert.deepEqual(
   af16Manifest.inference?.session?.compute?.defaults,
