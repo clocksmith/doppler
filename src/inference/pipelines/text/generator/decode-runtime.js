@@ -131,7 +131,6 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
 
     const opts = resolveGenerateOptions(this._state, options);
     opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
-    opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
     // Validate and normalize sampling parameters through single source of truth
     const samplingConfig = resolveSamplingConfig(options, this._state.runtimeConfig);
     opts.temperature = samplingConfig.temperature;
@@ -195,7 +194,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
       this._state.stats.prefillTimeMs = performance.now() - prefillStart;
       this._assertTokenIdsInRange(inputIds, 'generate.prefillTokens');
       const generatedIds = [...inputIds];
-      this._state.stats.prefillTokens = inputIds.length;
+      this._state.stats.prefillTokens = opts.promptTokenCount = inputIds.length;
 
       if (opts.debug) {
         log.debug('Pipeline', `Input: ${inputIds.length} tokens`);
@@ -407,7 +406,7 @@ export async function generateTokenIds(prompt, options = {}) {
       this._state.stats.prefillTimeMs = performance.now() - prefillStart;
       this._assertTokenIdsInRange(inputIds, 'generateTokenIds.prefillTokens');
       const generatedIds = [...inputIds];
-      this._state.stats.prefillTokens = inputIds.length;
+      this._state.stats.prefillTokens = opts.promptTokenCount = inputIds.length;
 
       let firstToken;
       try {
@@ -542,7 +541,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           batchSize: executionPlan.batchSize,
           useGPU: this._state.useGPU,
           gpuSamplingAvailable,
-          disableMultiTokenDecode: executionPlan.disableMultiTokenDecode || hasSuppressedSamplingTokens,
+          disableMultiTokenDecode: executionPlan.disableMultiTokenDecode || hasSuppressedSamplingTokens || typeof opts.logitMaskFn === 'function',
           disableCommandBatching: executionPlan.disableCommandBatching,
           isBdpaPagedLayout: this._state.kvCache?.layout === 'bdpa_paged',
           finitenessFallbackWindowOpen: this._hasFinitenessFallbackWindow(),
@@ -558,6 +557,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
       else if (!gpuSamplingAvailable) reason = 'no_gpu_sampling';
       else if (executionPlan.disableCommandBatching) reason = 'command_batching_disabled';
       else if (hasSuppressedSamplingTokens) reason = 'sampling_suppression_requires_cpu_logits';
+      else if (typeof opts.logitMaskFn === 'function') reason = 'token_constraint_requires_per_token_logits';
       else if (executionPlan.disableMultiTokenDecode) reason = 'multi_token_decode_disabled';
       else if (executionPlan.batchSize <= 1) reason = 'batch_size_1';
       else if (this._state.kvCache?.layout === 'bdpa_paged') reason = 'bdpa_paged_layout';
