@@ -19,7 +19,14 @@ for (const entry of manifest.files) {
   assert.equal(createHash('sha256').update(bytes).digest('hex'), entry.sha256, entry.source);
   if (!entry.source.startsWith('src/config/conversion/')) continue;
   const current = JSON.parse(await fs.readFile(entry.source, 'utf8'));
-  assert.deepEqual(current, renameIdentityFields(JSON.parse(bytes)),
+  const expected = renameIdentityFields(JSON.parse(bytes));
+  if (entry.source === 'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json') {
+    // The referenced manifest now uses Capsule identity fields. Bind the new
+    // digest to its actual bytes while comparing every computational field.
+    const base = await fs.readFile('models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json');
+    expected.manifest.weightsRef.manifestDigest = `sha256:${createHash('sha256').update(base).digest('hex')}`;
+  }
+  assert.deepEqual(current, expected,
     `${entry.source}: naming must not change model computation or numerical policy`);
 }
 console.log('capsule-naming-migration.test: frozen evidence and unchanged conversion semantics passed');
