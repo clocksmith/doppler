@@ -1,0 +1,87 @@
+{
+  "startedAt": "2026-09-07T16:17:05.386Z",
+  "lane": "browser-generation-diagnostic",
+  "qualified": false,
+  "launchArguments": [
+    "--headless=new",
+    "--remote-debugging-port=0",
+    "--user-data-dir=/home/clocksmith/deco/doppler/artifacts/create-generation-qualification/tmp/simulatte-browser-qUWSXp",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--enable-unsafe-webgpu",
+    "--use-angle=vulkan",
+    "--enable-features=Vulkan",
+    "--window-size=1440,1000",
+    "about:blank"
+  ],
+  "device": {
+    "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "info": {
+      "vendor": "intel",
+      "architecture": "gen-12lp",
+      "device": "",
+      "description": ""
+    },
+    "features": [
+      "depth32float-stencil8",
+      "rg11b10ufloat-renderable",
+      "bgra8unorm-storage",
+      "texture-formats-tier1",
+      "chromium-experimental-multi-draw-indirect",
+      "texture-compression-bc",
+      "dual-source-blending",
+      "core-features-and-limits",
+      "chromium-experimental-sampling-resource-table",
+      "chromium-experimental-timestamp-query-inside-passes",
+      "float32-filterable",
+      "indirect-first-instance",
+      "texture-compression-astc-sliced-3d",
+      "float32-blendable",
+      "subgroup-size-control",
+      "texture-compression-unaligned",
+      "texture-compression-astc",
+      "texture-compression-etc2",
+      "depth-clip-control",
+      "texture-compression-bc-sliced-3d",
+      "shader-f16",
+      "texture-formats-tier2",
+      "clip-distances",
+      "timestamp-query",
+      "primitive-index",
+      "texture-component-swizzle",
+      "subgroups"
+    ],
+    "maxBufferSize": 4294967292
+  },
+  "result": {
+    "status": "failed",
+    "events": [],
+    "progress": {
+      "phase": "manifest",
+      "percent": 15,
+      "message": "Fetching manifest"
+    },
+    "error": {
+      "message": "Invalid manifest:\n  - Manifest \"gemma-3-1b-it-q4k-ehf16-af32\" has incomplete inference config. Missing required fields:\n  - ffn.branchMode is required\n  - output.embeddingScale must be explicitly set (null for scaleEmbeddings semantics, or number)\n  - output.logitInputScale is required\n  - layerPattern.residualBranchScale is required\n  - rope.longropeShortFactor must be explicitly set (null if not LongRoPE)\n  - rope.longropeLongFactor must be explicitly set (null if not LongRoPE)\n  - rope.longropeOriginalMaxPos must be explicitly set (null if not LongRoPE)\n  - rope LongRoPE fields must be null unless rope.ropeScalingType is \"longrope\"\nRe-convert the model using the latest converter.",
+      "stack": "Error: Invalid manifest:\n  - Manifest \"gemma-3-1b-it-q4k-ehf16-af32\" has incomplete inference config. Missing required fields:\n  - ffn.branchMode is required\n  - output.embeddingScale must be explicitly set (null for scaleEmbeddings semantics, or number)\n  - output.logitInputScale is required\n  - layerPattern.residualBranchScale is required\n  - rope.longropeShortFactor must be explicitly set (null if not LongRoPE)\n  - rope.longropeLongFactor must be explicitly set (null if not LongRoPE)\n  - rope.longropeOriginalMaxPos must be explicitly set (null if not LongRoPE)\n  - rope LongRoPE fields must be null unless rope.ropeScalingType is \"longrope\"\nRe-convert the model using the latest converter.\n    at parseManifest (http://127.0.0.1:43409/src/formats/rdrr/parsing.js:74:11)\n    at fetchManifestPayloadFromBaseUrl (http://127.0.0.1:43409/src/client/runtime/model-source.js:65:15)\n    at async doppler.load (http://127.0.0.1:43409/src/client/model-host/index.js:227:9)\n    at async <anonymous>:4:27"
+    }
+  },
+  "diagnostics": [],
+  "finishedAt": "2026-09-07T16:17:08.915Z",
+  "browserLog": {
+    "schema": "simulatte.auditChildProcessLog.v1",
+    "stdout": {
+      "characterCount": 0,
+      "chunkCount": 0,
+      "truncated": false,
+      "tail": ""
+    },
+    "stderr": {
+      "characterCount": 1558,
+      "chunkCount": 5,
+      "truncated": false,
+      "tail": "\nDevTools listening on ws://127.0.0.1:42313/devtools/browser/8fff7259-f8ba-40da-bcec-165bfec31f79\n[2546925:2546925:0907/121705.763493:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.ListActivatableNames: object_path= /org/freedesktop/DBus: org.freedesktop.DBus.Error.AccessDenied: An AppArmor policy prevents this sender from sending this message to this recipient; type=\"method_call\", sender=\":1.5135\" (uid=1000 pid=2546925 comm=\"/snap/chromium/3520/usr/lib/chromium-browser/chrom\" label=\"snap.chromium.chromium (enforce)\") interface=\"org.freedesktop.DBus\" member=\"ListActivatableNames\" error name=\"(unset)\" requested_reply=\"0\" destination=\"org.freedesktop.DBus\" (bus)\n[2546925:2546925:0907/121705.765201:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.ListActivatableNames: object_path= /org/freedesktop/DBus: org.freedesktop.DBus.Error.AccessDenied: An AppArmor policy prevents this sender from sending this message to this recipient; type=\"method_call\", sender=\":1.5135\" (uid=1000 pid=2546925 comm=\"/snap/chromium/3520/usr/lib/chromium-browser/chrom\" label=\"snap.chromium.chromium (enforce)\") interface=\"org.freedesktop.DBus\" member=\"ListActivatableNames\" error name=\"(unset)\" requested_reply=\"0\" destination=\"org.freedesktop.DBus\" (bus)\nWarning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.\nWarning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.\n"
+    }
+  }
+}

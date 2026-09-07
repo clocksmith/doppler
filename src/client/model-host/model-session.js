@@ -138,7 +138,19 @@ function resolveGenerationConfigEvidence(pipeline, options) {
   if (seed !== null && (!Number.isFinite(seed) || seed < 0)) {
     throw new Error('Resolved Doppler seed must be null or a non-negative number.');
   }
+  let logitMaskIdentity;
+  if (options.logitMaskFn != null) {
+    const identity = options.logitMaskIdentity;
+    if (typeof options.logitMaskFn !== 'function' || !identity || typeof identity.id !== 'string' || !identity.id.trim()
+      || !/^sha256:[a-f0-9]{64}$/.test(identity.contentDigest || '')) {
+      throw new Error('Generation evidence for logitMaskFn requires logitMaskIdentity with id and SHA-256 contentDigest.');
+    }
+    logitMaskIdentity = { id: identity.id, contentDigest: identity.contentDigest };
+  } else if (options.logitMaskIdentity != null) {
+    throw new Error('logitMaskIdentity requires an executed logitMaskFn.');
+  }
   return {
+    ...(logitMaskIdentity ? { logitMaskIdentity } : {}),
     maxTokens,
     temperature: sampling.temperature,
     topP: sampling.topP,

@@ -28,6 +28,7 @@ export interface QuantizationError {
   snr: number;
 }
 
+/** Encode F32 as IEEE binary16 with round-to-nearest, ties-to-even. */
 export declare function float32ToFloat16(value: number): number;
 
 export declare function float16ToFloat32(h: number): number;

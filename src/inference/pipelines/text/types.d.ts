@@ -344,10 +344,10 @@ export interface GenerateOptions {
 
   /** @category hybrid Apply chat template (auto-detected for Gemma) */
   useChatTemplate?: boolean;
-
   onToken?: ((tokenId: number, text: string) => void) | null;
   /** Synchronous constraint; errors abort, and generatedIds excludes prompt tokens. */
   logitMaskFn?: ((logits: Float32Array, context: { generatedIds: number[]; tokenizer: unknown; vocabSize: number }) => void) | null;
+  logitMaskIdentity?: { id: string; contentDigest: string } | null;
   /** @internal Callback with finalized per-step logits before sampling returns the token. */
   onLogits?: ((logits: Float32Array, context: {
     tokenId: number;

@@ -27,6 +27,7 @@ Bind declared model types to pipeline implementations without changing normalize
 - Unknown model types fail explicitly.
 - Pipeline selection is declared before execution.
 - Shared command and session semantics survive pipeline-family dispatch.
+- Token constraints fail closed and execute for every sampled token. JSON syntax constraints remain distinct from application schema validation.
 
 ## Acceptance
 

@@ -18,7 +18,7 @@ export function float32ToFloat16(value) {
 
   const sign = (f >> 31) & 0x1;
   let exp = (f >> 23) & 0xff;
-  let frac = f & 0x7fffff;
+  const frac = f & 0x7fffff;
 
   if (exp === 0xff) {
     return (sign << 15) | 0x7c00 | (frac ? 0x200 : 0);
@@ -38,11 +38,25 @@ export function float32ToFloat16(value) {
     if (exp < -10) {
       return sign << 15;
     }
-    frac = (frac | 0x800000) >> (1 - exp);
-    return (sign << 15) | (frac >> 13);
+    const significand = frac | 0x800000;
+    const shift = 14 - exp;
+    let rounded = significand >>> shift;
+    const remainder = significand & ((1 << shift) - 1);
+    const halfway = 1 << (shift - 1);
+    if (remainder > halfway || (remainder === halfway && (rounded & 1))) {
+      rounded += 1;
+    }
+    return (sign << 15) | rounded;
   }
 
-  return (sign << 15) | (exp << 10) | (frac >> 13);
+  // Round to nearest, ties to even. Carry may advance the exponent or overflow
+  // the largest finite half to infinity; truncation biases converted weights.
+  let rounded = (exp << 10) | (frac >>> 13);
+  const remainder = frac & 0x1fff;
+  if (remainder > 0x1000 || (remainder === 0x1000 && (rounded & 1))) {
+    rounded += 1;
+  }
+  return (sign << 15) | rounded;
 }
 
 export function float16ToFloat32(h) {

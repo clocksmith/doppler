@@ -1,0 +1,49 @@
+{
+  "schema": "simulatte.generationBrowserDiagnostic.v1",
+  "capturedAt": "2026-09-07T16:37:15.802Z",
+  "evidencePath": "artifacts/create-generation-qualification/browser-constraint-recovery.json",
+  "evidenceSha256": "87a9b522d402f3a589d5e58251d71e1edeef317d0bd1b49a1cbdedd6e94bd8f4",
+  "evidenceLayer": "actual-browser-component",
+  "checks": [
+    {
+      "field": "evidence",
+      "expected": {
+        "count": 3
+      },
+      "actual": {
+        "count": 3
+      },
+      "transcriptHash": "sha256:134d79814a35bfd4c2ee89c9cb9907660036a4bf93d45ab46cf937087cdf1a0b"
+    },
+    {
+      "field": "repeat",
+      "expected": {
+        "count": 5
+      },
+      "actual": {
+        "count": 5
+      },
+      "transcriptHash": "sha256:a8e9912e8148abdd5b3ad00eda6f308dda622787234a3f59f6ec29a3107742c6"
+    },
+    {
+      "field": "recovered",
+      "expected": {
+        "count": 2
+      },
+      "actual": {
+        "count": 2
+      },
+      "transcriptHash": "sha256:05459fadda410340430be2849064a74a276d223e6a4a1016de398af0cf048d82"
+    }
+  ],
+  "cancellationObserved": true,
+  "constraintFailureRecoveryObserved": true,
+  "qualifiedForCreate": false,
+  "remaining": [
+    "full linguistic and semantic schema fidelity",
+    "model and graphics budgets in Create",
+    "device loss and recovery",
+    "public dependency pin migration",
+    "application and held-out composition validation"
+  ]
+}
