@@ -1,0 +1,12 @@
+{
+  "package": "doppler-gpu",
+  "version": "0.6.0",
+  "registryTarball": "https://registry.npmjs.org/doppler-gpu/-/doppler-gpu-0.6.0.tgz",
+  "integrity": "sha512-1SKgx0KWKMHJEg4m5BdqLS1oV/kImbHfLaug8tOuwghjca166lrL/Qi7t+AXW/O4MQjONcFaWwPjaKILGINspA==",
+  "packageSha256": "52dafbf5fbd06a2568ccfe95e0a27d65e01200f60da826bfc63e43427fd8492e",
+  "qualifiedArchiveBytesMatch": true,
+  "registryInstalledFilesByteVerified": 1779,
+  "freshCache": true,
+  "physicalExecution": false,
+  "independentAdoption": false
+}
