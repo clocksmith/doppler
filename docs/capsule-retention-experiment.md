@@ -5,6 +5,15 @@ reduces process memory while preserving the same model programs, frozen source
 references, and opening/inference budgets. It measures the opening-time cost as
 well as the memory benefit. Unlimited retention remains the runtime default.
 
+The [separate public-reconstruction replay](../reports/retention-experiment/20260907-independent/acceptance.json)
+passed from a clean isolated checkout and a freshly installed consumer built from
+independently reconstructed artifacts. Both application arms passed their full
+functional checks. Across three interleaved openings per arm, median renderer RSS
+was 2.62 GB unlimited versus 0.95 GB bounded, and median opening time was 84 versus
+263 seconds. These observations remain separate from the first campaign. The
+operator and AMD Radeon 8060S were the same; this establishes reproducibility,
+not independent operation or hardware diversity.
+
 The [retained experiment acceptance](../reports/retention-experiment/20260907/acceptance.json)
 records passing Node held-out references and transfer to browser search on AMD
 Radeon 8060S. Three interleaved browser openings per policy measured median
