@@ -164,6 +164,8 @@ export function resolveStepOptions(state, options = {}) {
   const executionPlan = resolveExecutionSessionPlan(state, options);
 
   return {
+    logitMaskFn: resolveLogitMask(options),
+    promptTokenCount: 0,
     seed: resolveConfiguredValue(
       options.seed,
       undefined,
@@ -198,8 +200,14 @@ export function resolveGenerateOptions(state, options = {}) {
   const samplingDefaults = runtimeDefaults.sampling;
   const generationDefaults = runtimeDefaults.generation;
   const executionPlan = resolveExecutionSessionPlan(state, options);
+  const logitMaskFn = resolveLogitMask(options);
+  const speculation = resolveSpeculationConfig(state, options);
+  if (logitMaskFn && (speculation || (options.useSpeculative ?? generationDefaults.useSpeculative))) {
+    throw new Error('[Pipeline] logitMaskFn is incompatible with speculative decoding.');
+  }
 
   return {
+    logitMaskFn,
     seed: resolveConfiguredValue(
       options.seed,
       undefined,
@@ -233,12 +241,18 @@ export function resolveGenerateOptions(state, options = {}) {
     stopCheckMode: executionPlan.stopCheckMode,
     executionPlan,
     images: options.images ?? null,
-    speculation: resolveSpeculationConfig(state, options),
+    speculation,
     inputIds: resolveExplicitInputIds(options.inputIds, 'options.inputIds'),
     embeddingOverrides: options.embeddingOverrides ?? null,
     embeddingInputSpan: options.__internalEmbeddingInputSpan ?? null,
     multimodalBidirectionalSpan: options.__internalMultimodalBidirectionalSpan ?? null,
   };
+}
+
+function resolveLogitMask(options) {
+  if (options.logitMaskFn == null) return null;
+  if (typeof options.logitMaskFn !== 'function') throw new Error('[Pipeline] logitMaskFn must be a synchronous function or null.');
+  return options.logitMaskFn;
 }
 
 function resolveSpeculationConfig(state, options) {

@@ -365,14 +365,17 @@ export class PipelineGenerator {
     // mutable logit buffer (after repetition penalty) plus the running token
     // sequence so it can track parse state across decode steps.
     if (typeof opts?.logitMaskFn === "function") {
-      try {
-        opts.logitMaskFn(sampledLogits, {
-          generatedIds,
-          tokenizer: this._state.tokenizer ?? null,
-          vocabSize: this._state.modelConfig?.vocabSize ?? sampledLogits.length,
-        });
-      } catch (maskError) {
-        log.warn("Pipeline", `logitMaskFn threw; continuing without mask: ${maskError}`);
+      if (!Number.isSafeInteger(opts.promptTokenCount) || opts.promptTokenCount < 0 || opts.promptTokenCount > generatedIds.length) {
+        throw new Error('[Pipeline] logitMaskFn requires an explicit prompt token boundary.');
+      }
+      const result = opts.logitMaskFn(sampledLogits, {
+        generatedIds: generatedIds.slice(opts.promptTokenCount),
+        tokenizer: this._state.tokenizer ?? null,
+        vocabSize: this._state.modelConfig?.vocabSize ?? sampledLogits.length,
+      });
+      if (result && typeof result.then === 'function') {
+        Promise.resolve(result).catch(() => {});
+        throw new Error('[Pipeline] logitMaskFn must be synchronous.');
       }
     }
     const padTokenId = this._state.tokenizer?.getSpecialTokens?.()?.pad;
