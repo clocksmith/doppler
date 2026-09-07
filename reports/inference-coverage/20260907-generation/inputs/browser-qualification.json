@@ -1,0 +1,77 @@
+{
+  "schema": "doppler.installed-generation-qualification/v1",
+  "surface": "browser",
+  "packageBundlePath": "/var/tmp/doppler-release-20260907-public-node",
+  "modelDir": "/var/tmp/doppler-generation-20260907/public-restoration-01/retained/generation",
+  "manifestDigest": "sha256:192ecf66a2410e61c990931ed2cd2a93f6141cb1434c0c8d57fe478c8f31493f",
+  "reference": {
+    "path": "/var/tmp/doppler-generation-20260907/reproduction-bundle/inputs/reference.json",
+    "digest": "sha256:f60b7696f8a5e030ee52eedc45ab2e0aa92f00ddd192ccbf7d216c832288cf47"
+  },
+  "outputDir": "/var/tmp/doppler-generation-20260907/browser-01",
+  "requiredVendor": "amd",
+  "providerCreateArgs": [
+    "backend=vulkan",
+    "enable-dawn-features=allow_unsafe_apis"
+  ],
+  "launchArgs": [
+    "--enable-unsafe-webgpu",
+    "--enable-webgpu-developer-features",
+    "--disable-dawn-features=disallow_unsafe_apis",
+    "--ignore-gpu-blocklist",
+    "--use-angle=vulkan",
+    "--enable-features=Vulkan",
+    "--disable-vulkan-surface",
+    "--enable-precise-memory-info"
+  ],
+  "temporaryDirectory": "/var/tmp",
+  "timeoutMs": 600000,
+  "sampleIntervalMs": 25,
+  "repeatRuns": 1,
+  "runtimeConfig": {
+    "shared": {
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "debug"
+        },
+        "logOutput": {
+          "stdout": true
+        },
+        "trace": {
+          "enabled": false
+        }
+      }
+    },
+    "inference": {
+      "batching": {
+        "maxTokens": 1024
+      },
+      "session": {
+        "decodeLoop": {
+          "batchSize": 4,
+          "stopCheckMode": "batch",
+          "readbackInterval": 1,
+          "disableCommandBatching": false
+        }
+      }
+    }
+  },
+  "generation": {
+    "maxTokens": 192,
+    "maxSeqLen": 4096,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1,
+    "seed": 0,
+    "useChatTemplate": true,
+    "stopSequences": [],
+    "suppressSpecialTokens": false,
+    "suppressSpecialLikeTokens": false,
+    "suppressTokenIds": []
+  },
+  "cancellation": {
+    "afterChunks": 1,
+    "maxElapsedMs": 30000
+  }
+}
