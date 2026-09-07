@@ -42,6 +42,10 @@ const report = { schema: 'doppler.transformersjs-reranker-qualification-result/v
   packageLockDigest: hash(await fs.readFile('package-lock.json')), phases: [], logs: [], requests: [], samples: [],
   claimAllowed: false, scope: 'Pinned ONNX product path against unchanged source tokens and numerical tolerances.' };
 let context, server, timer, pending;
+let rejectStartup;
+const startupFailure = new Promise((resolve, reject) => { rejectStartup = reject; });
+// Attach immediately: browser errors can arrive before navigation finishes.
+startupFailure.catch(() => {});
 try {
   server = await createStaticFileServer({ rootDir: path.resolve('.'), host: '127.0.0.1', port: 0,
     staticMounts: [{ urlPrefix: '/retained-models', rootDir: config.modelRoot }] });
@@ -58,14 +62,23 @@ try {
     report.startup.firstResultMs ??= performance.now() - startupStarted;
   });
   report.browser = await (await context.newCDPSession(page)).send('Browser.getVersion');
-  page.on('console', message => report.logs.push({ type: message.type(), text: message.text() }));
-  page.on('pageerror', error => report.logs.push({ type: 'pageerror', text: error.message }));
+  page.on('console', message => {
+    report.logs.push({ type: message.type(), text: message.text() });
+    console.log(JSON.stringify(report.logs.at(-1)));
+  });
+  page.on('pageerror', error => {
+    report.logs.push({ type: 'pageerror', text: error.message });
+    rejectStartup(error);
+  });
   await page.route('**/*', route => {
     const url = new URL(route.request().url()); report.requests.push(url.href);
     return url.origin === server.baseUrl && route.request().method() === 'GET' ? route.continue() : route.abort();
   });
   await page.goto(server.baseUrl + '/benchmarks/runners/transformersjs-runner.html?v=4&localModelPath=/retained-models/');
-  await page.waitForFunction(() => typeof window.__runRerankReference === 'function');
+  await Promise.race([
+    page.waitForFunction(() => typeof window.__runRerankReference === 'function'),
+    startupFailure,
+  ]);
   report.hardware = await page.evaluate(async () => {
     const adapter = await navigator.gpu.requestAdapter();
     return Object.fromEntries(['vendor', 'architecture', 'device', 'description', 'isFallbackAdapter'].map(key => [key, adapter.info[key]]));

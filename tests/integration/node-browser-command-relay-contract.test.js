@@ -110,6 +110,16 @@ const KERNELS_REQUEST = {
     const response = await fetch(`${server.baseUrl}/src/tooling/command-runner.html`);
     assert.equal(response.status, 200);
     assert.match(await response.text(), /Doppler Command Runner/);
+    // Third-party ORT modules use .mjs even though Doppler source uses .js.
+    for (const modulePath of [
+      '/src/tooling/command-api.js',
+      '/node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs',
+    ]) {
+      const moduleResponse = await fetch(server.baseUrl + modulePath);
+      assert.equal(moduleResponse.status, 200);
+      assert.match(moduleResponse.headers.get('content-type'), /^text\/javascript\b/);
+      assert((await moduleResponse.text()).length > 0);
+    }
   } finally {
     await server.close();
   }
