@@ -56,7 +56,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
   // Sequence classification, public OPFS, retention, and device recovery: measured npm 9 archive.
-  maxUnpackedSize: 10_869_933,
+  // GPU logits probe forwarding and failure cleanup add 192 bytes, no files.
+  // Evidence: artifacts/f16-conversion-rounding-2026-09-07/probe-package-audit.json.
+  maxUnpackedSize: 10_870_125,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

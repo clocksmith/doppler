@@ -65,6 +65,7 @@ const probeForwardingFiles = [
   'src/inference/pipelines/text/logits/index.js',
   'src/experimental/logits/cpu-output.js',
   'src/inference/pipelines/text/logits/gpu.js',
+  'src/inference/pipelines/text/logits/output-transform.js',
 ];
 
 const ropeObservation = readSource(
@@ -76,6 +77,11 @@ assert.match(ropeObservation, /runProbes\('k_rope'/u);
 for (const relativePath of probeForwardingFiles) {
   const source = readSource(relativePath);
   assertCallBlocksContain(source, 'runProbes(', 'operatorDiagnostics', relativePath);
+}
+
+{
+  const path = 'src/inference/pipelines/text/logits/output-transform.js';
+  assertCallBlocksContain(readSource(path), 'runProbes(', 'probes:\\s*config\\.debugProbes', path);
 }
 
 {

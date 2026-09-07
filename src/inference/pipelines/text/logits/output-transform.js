@@ -40,8 +40,15 @@ export async function finalizeLogitOutputTensor(tensor, config, options) {
     });
   if (recorder) recorder.trackTemporaryBuffer(tensor.buffer);
   else releaseBuffer(tensor.buffer);
-  await runProbes('logits', output.buffer, {
-    numTokens, hiddenSize: targetVocabSize, recorder, operatorDiagnostics, dtype: output.dtype,
-  });
+  try {
+    await runProbes('logits', output.buffer, {
+      numTokens, hiddenSize: targetVocabSize, recorder, operatorDiagnostics, dtype: output.dtype,
+      probes: config.debugProbes,
+    });
+  } catch (error) {
+    if (recorder) recorder.trackTemporaryBuffer(output.buffer);
+    else releaseBuffer(output.buffer);
+    throw error;
+  }
   return output;
 }

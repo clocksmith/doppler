@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.package-delta-audit/v1",
+  "boundary": "GPU logits observation forwarding and failure-path cleanup, not model arithmetic",
+  "baseRevision": "1520848f",
+  "command": "npm pack --dry-run --json",
+  "nodeVersion": "22.23.2",
+  "npmVersion": "10.9.8",
+  "before": { "files": 1780, "packedBytes": 2107701, "unpackedBytes": 10869933 },
+  "after": { "files": 1780, "packedBytes": 2107730, "unpackedBytes": 10870125 },
+  "addedFiles": [],
+  "removedFiles": [],
+  "changedFiles": [
+    {
+      "path": "src/inference/pipelines/text/logits/output-transform.js",
+      "beforeBytes": 1591,
+      "afterBytes": 1783,
+      "deltaBytes": 192
+    }
+  ],
+  "limits": {
+    "fileCountUnchanged": 1780,
+    "packedBytesUnchanged": 2107750,
+    "unpackedBytes": 10870125
+  },
+  "claim": "Only the measured unpacked payload ceiling changes; closure, forbidden-file, file-count, and packed-size checks remain enforced. No dependencies, weights, tests, or evidence files enter the package."
+}
