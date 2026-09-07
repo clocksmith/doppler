@@ -379,14 +379,17 @@ function ratio(a, b) {
 function buildSummary(dopplerBench, dopplerVerify, tjsBench, expectedTopDocumentIndex) {
   const dopplerSpeed = extractRerankSpeed(dopplerBench);
   const dopplerCorrectness = extractRerankCorrectness(dopplerVerify);
+  const dopplerBenchmarkCorrectness = extractRerankCorrectness(dopplerBench);
   const tjsSpeed = extractRerankSpeed(tjsBench);
   const tjsCorrectness = extractTjsCorrectness(tjsBench);
   const expected = Number.isInteger(expectedTopDocumentIndex) ? expectedTopDocumentIndex : 0;
   const correctnessOk = dopplerCorrectness.semanticPassed === true
+    && dopplerBenchmarkCorrectness.semanticPassed === true
     && tjsCorrectness.semanticPassed === true
     && dopplerSpeed.nonFiniteScores === 0
     && tjsSpeed.nonFiniteScores === 0
     && dopplerCorrectness.topDocumentIndex === expected
+    && dopplerBenchmarkCorrectness.topDocumentIndex === expected
     && tjsCorrectness.topDocumentIndex === expected;
   return {
     correctnessOk,
@@ -394,6 +397,7 @@ function buildSummary(dopplerBench, dopplerVerify, tjsBench, expectedTopDocument
     doppler: {
       speed: dopplerSpeed,
       correctness: dopplerCorrectness,
+      benchmarkCorrectness: dopplerBenchmarkCorrectness,
     },
     transformersjs: {
       speed: tjsSpeed,
@@ -407,7 +411,7 @@ function buildSummary(dopplerBench, dopplerVerify, tjsBench, expectedTopDocument
   };
 }
 
-function buildRerankFairnessAudit({ profile, dopplerSource, summary }) {
+function buildRerankFairnessAudit({ profile, dopplerSource, summary, dopplerBench, dopplerVerify, tjsBench }) {
   const invalidReasons = [];
   const correctnessOk = summary.correctnessOk === true;
   const performanceComparable = profile.compareLane === 'performance_comparable';
@@ -416,13 +420,43 @@ function buildRerankFairnessAudit({ profile, dopplerSource, summary }) {
 
   if (!correctnessOk) invalidReasons.push('correctness-failed');
   if (!performanceComparable) invalidReasons.push('lane-not-performance-comparable');
+  const observed = {
+    doppler: { surface: dopplerBench?.env?.runtime ?? null, env: dopplerBench?.env ?? null,
+      hardware: dopplerBench?.deviceInfo?.adapterInfo ?? null, cacheMode: dopplerBench?.cacheMode ?? null,
+      loadMode: dopplerBench?.loadMode ?? null, warmupRuns: dopplerBench?.metrics?.warmupRuns ?? null,
+      timedRuns: dopplerBench?.metrics?.timedRuns ?? null, validRuns: dopplerBench?.metrics?.validRuns ?? null,
+      invalidRuns: dopplerBench?.metrics?.invalidRuns ?? null },
+    transformersjs: { surface: tjsBench?.env?.browserUserAgent ? 'browser' : null, env: tjsBench?.env ?? null,
+      hardware: tjsBench?.deviceInfo ?? null, cacheMode: tjsBench?.cacheMode ?? null, loadMode: tjsBench?.loadMode ?? null,
+      warmupRuns: tjsBench?.warmupRuns ?? null, timedRuns: tjsBench?.timedRuns ?? null,
+      validRuns: tjsBench?.metrics?.validRuns ?? null, invalidRuns: tjsBench?.metrics?.invalidRuns ?? null },
+  };
+  const left = observed.doppler, right = observed.transformersjs;
+  const equalPresent = (a, b) => typeof a === 'string' && a.trim().length > 0 && a === b;
+  const scopeGates = {
+    sameSurface: left.surface === 'browser' && right.surface === 'browser' && dopplerVerify?.env?.runtime === 'browser',
+    webgpuOnly: left.env?.device === 'webgpu' && right.env?.device === 'webgpu' && dopplerVerify?.env?.device === 'webgpu',
+    sameBrowser: equalPresent(left.env?.browserUserAgent, right.env?.browserUserAgent)
+      && equalPresent(left.env?.browserPlatform, right.env?.browserPlatform),
+    sameHardware: ['vendor', 'architecture', 'device', 'description'].every(key => equalPresent(left.hardware?.[key], right.hardware?.[key])
+      && equalPresent(left.hardware?.[key], dopplerVerify?.deviceInfo?.adapterInfo?.[key])),
+    sameCacheAndLoad: equalPresent(left.cacheMode, right.cacheMode) && equalPresent(left.loadMode, right.loadMode),
+    sameRunPolicy: Number.isSafeInteger(left.warmupRuns) && left.warmupRuns >= 0 && left.warmupRuns === right.warmupRuns
+      && Number.isSafeInteger(left.timedRuns) && left.timedRuns > 0 && left.timedRuns === right.timedRuns,
+    allRunsPassed: left.invalidRuns === 0 && right.invalidRuns === 0 && left.validRuns === left.timedRuns && right.validRuns === right.timedRuns,
+    noVendorFallback: right.env?.dtypeFallbackUsed === false && right.env?.executionProviderFallbackUsed === false
+      && right.env?.ortProxyFallbackUsed === false && right.env?.executionProviderMode === 'webgpu-only',
+  };
+  for (const [gate, passed] of Object.entries(scopeGates)) if (!passed) invalidReasons.push(`observed-scope:${gate}`);
 
   const claimGrade = invalidReasons.length === 0;
   const releaseClaimable = claimGrade && releaseConfigured && hostedDopplerArtifact;
   const localComparable = claimGrade && releaseClaimable !== true;
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
+    observed,
+    scopeGates,
     claimGrade,
     releaseClaimable,
     localComparable,
@@ -452,7 +486,7 @@ function buildRerankFairnessAudit({ profile, dopplerSource, summary }) {
       },
     },
     semantics: {
-      claimGrade: 'true means the rerank compare passed shared semantic correctness, expected top-document, and performance-comparable lane gates.',
+      claimGrade: 'true means both timed engines and the Doppler verify lane passed semantic correctness, with matching observed browser, hardware, cache/load and run policy, no failed runs or vendor fallback, and an explicitly comparable lane. This does not establish full source-logit equivalence or recovery superiority.',
       releaseClaimable: 'true means claimGrade evidence measured the hosted Doppler artifact selected by the rerank compare profile.',
       localComparable: 'true means claimGrade evidence exists but is not hosted release evidence.',
     },
@@ -607,7 +641,7 @@ async function runOne({ modelId, flags, configBundle, catalogBundle, timestamp }
   const dopplerVerify = unwrapToolingResult(await runNodeJson(dopplerVerifyArgs, `${modelId} Doppler rerank verify`, timeoutMs));
   const tjsBench = await runNodeJson(tjsArgs, `${modelId} Transformers.js rerank bench`, timeoutMs);
   const summary = buildSummary(dopplerBench, dopplerVerify, tjsBench, expectedTopDocumentIndex);
-  const fairness = buildRerankFairnessAudit({ profile, dopplerSource, summary });
+  const fairness = buildRerankFairnessAudit({ profile, dopplerSource, summary, dopplerBench, dopplerVerify, tjsBench });
 
   const result = {
     schemaVersion: 1,

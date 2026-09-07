@@ -1,0 +1,227 @@
+{
+  "schema": "doppler.model-revision-discovery-acceptance/v1",
+  "sourceCommit": "b694d421b6ee6cbadb2c8ec81d76f4e9f0d116e4",
+  "passed": true,
+  "discoveries": [
+    {
+      "kind": "embedding",
+      "repository": "Qwen/Qwen3-Embedding-0.6B",
+      "resolvedRevision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+      "previousRevision": "c54f2e6e80b2d7b7de06f51cec4959f6b3e03418",
+      "revisionChanged": true,
+      "changedFiles": [
+        "README.md"
+      ],
+      "assessment": "recipe-required",
+      "receipt": "embedding/discovery.json",
+      "sha256": "3086895de43877614f0cbc3245cfb6221ce6b31218d7c488b8682aabe868ea2c",
+      "qualified": false
+    },
+    {
+      "kind": "hybrid",
+      "repository": "Qwen/Qwen3.8-27B",
+      "resolvedRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+      "previousRevision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+      "revisionChanged": false,
+      "changedFiles": [],
+      "assessment": "recipe-required",
+      "receipt": "hybrid/discovery.json",
+      "sha256": "098259cbbefffd4f9ffbc62cbcba0799b2616fa81ebfffb8bf89edabde915f65",
+      "qualified": false
+    }
+  ],
+  "physicalReference": {
+    "passed": true,
+    "scope": "Hybrid linear-attention operation outputs and recurrent state against unchanged CPU references, including f32, f16 and packed QKVZ; not full 27B inference.",
+    "log": "physical/reference.log",
+    "testSha256": "848f433d9938261d88723c452ba88a5698ad872bc6d5f53213c39c9b8c3298be",
+    "preloadSha256": "f6bd22c2c8cbe8a3442e671678d71ccdfeac1ec7f2714ebb595fd96bd99749c5"
+  },
+  "remoteChecks": {
+    "conclusion": "success",
+    "testFiles": 784,
+    "url": "https://github.com/clocksmith/doppler/actions/runs/34144945874/job/101814824460",
+    "log": "ci/check-green.log"
+  },
+  "evidence": {
+    "path": "evidence.tar.gz",
+    "sha256": "4c4c904d28f0172dbd2396054eb7e63be66909887d1f6357c0d4d2f203818456",
+    "bytes": 437834,
+    "files": [
+      {
+        "path": "ci/check-green.log",
+        "sha256": "e80f1a39eacdc25712dfe510839c01b5045d02ed644386f2f7859e84a12216cb",
+        "bytes": 1013854
+      },
+      {
+        "path": "ci/check-runs.json",
+        "sha256": "d3add6fc877f26b1f81e9bc718b40e005020a71924e1c3fd744c8952187b8a33",
+        "bytes": 4316
+      },
+      {
+        "path": "embedding/assessment/model-ir-receipt.json",
+        "sha256": "7693157f651d914bb305e9ecf3efd697d0361d869f42387a4ee9621df4ea0d88",
+        "bytes": 473118
+      },
+      {
+        "path": "embedding/assessment/onboarding-input.json",
+        "sha256": "ddfa80354619935bceb1e78805a13c37c56794952a51bbb1284107e83cafc7fa",
+        "bytes": 473
+      },
+      {
+        "path": "embedding/assessment/onboarding-result.json",
+        "sha256": "567fe7fb063f86332cf11a36ee6406c2aa757afe54d025b40511890f3d36e2a2",
+        "bytes": 2393
+      },
+      {
+        "path": "embedding/assessment/support-assessment.json",
+        "sha256": "bcc7e8a86676396b7a1a152be0a764976f949687049328c3431495b6d7483290",
+        "bytes": 3047
+      },
+      {
+        "path": "embedding/discovery.json",
+        "sha256": "3086895de43877614f0cbc3245cfb6221ce6b31218d7c488b8682aabe868ea2c",
+        "bytes": 5878
+      },
+      {
+        "path": "embedding/onboarding.json",
+        "sha256": "ddfa80354619935bceb1e78805a13c37c56794952a51bbb1284107e83cafc7fa",
+        "bytes": 473
+      },
+      {
+        "path": "embedding/references/embedding/embedding-reference.json",
+        "sha256": "b44cabb137aa84f617cd6a9e45765a5f4d1c4307d729fe8b6f559c869f1845c8",
+        "bytes": 573271
+      },
+      {
+        "path": "embedding/references/reference/qwen3-reranker-reference-semantics.json",
+        "sha256": "f7112dff8604957b242bfb0f0b283c8bb7adf88daaf9157966aed5bf085cd575",
+        "bytes": 1623
+      },
+      {
+        "path": "embedding/source-spec.json",
+        "sha256": "964d64838af9e47d868cb06674cd3a250d001ae6ee87dac40a11cba8d29fa362",
+        "bytes": 213846
+      },
+      {
+        "path": "embedding/sources/config/config.json",
+        "sha256": "b5bf1f51fc45be473a54718cef92448d90a1be001bf9b9a44b8c7f10a19feaa9",
+        "bytes": 727
+      },
+      {
+        "path": "embedding/sources/headers/model.safetensors",
+        "sha256": "1ff013283b0190994f5557f04301841482bcba6c006dd557fcb15563d4f1768b",
+        "bytes": 33392
+      },
+      {
+        "path": "embedding/upstream-current.json",
+        "sha256": "f415f57f7035fb7db3dc262dc6795475646ffe346138857a0119d9e94ad02aef",
+        "bytes": 10159
+      },
+      {
+        "path": "embedding/upstream-previous.json",
+        "sha256": "be96466ba8391d2294a38ef3392cc2ab8eb3dcc71494dc585424fb3be2aa75a1",
+        "bytes": 10159
+      },
+      {
+        "path": "embedding/vocabulary.json",
+        "sha256": "7a6f1804887d259601116310ec109f2daa9cc4e6ae769ac188c9a328af1203e5",
+        "bytes": 2707
+      },
+      {
+        "path": "hybrid/assessment/model-ir-receipt.json",
+        "sha256": "b69d997e31a0d8b28611e0530f6759799a46e2a5ff51b3f5ecf60871f3dce5a6",
+        "bytes": 70723
+      },
+      {
+        "path": "hybrid/assessment/onboarding-input.json",
+        "sha256": "67a97ab447ac868591621f0dcf616f22e938d3f4e8dfc20b44801e5a48dff5d5",
+        "bytes": 470
+      },
+      {
+        "path": "hybrid/assessment/onboarding-result.json",
+        "sha256": "60db01f59db773838aaac790bc2626bf70c03f1aeba770d37656df10bab1d326",
+        "bytes": 2383
+      },
+      {
+        "path": "hybrid/assessment/support-assessment.json",
+        "sha256": "42b01847159a4a188549efec959a9bd703e30f645bc2e809bec1ffdf8d385fd6",
+        "bytes": 3756
+      },
+      {
+        "path": "hybrid/discovery.json",
+        "sha256": "098259cbbefffd4f9ffbc62cbcba0799b2616fa81ebfffb8bf89edabde915f65",
+        "bytes": 6207
+      },
+      {
+        "path": "hybrid/onboarding.json",
+        "sha256": "67a97ab447ac868591621f0dcf616f22e938d3f4e8dfc20b44801e5a48dff5d5",
+        "bytes": 470
+      },
+      {
+        "path": "hybrid/references/reference/qwen3.8-27b-reference-semantics.json",
+        "sha256": "d5f069855f1f06bf2d8beb34123ed709f57b9fa6498c75c95abb6d86ad544135",
+        "bytes": 1622
+      },
+      {
+        "path": "hybrid/source-spec.json",
+        "sha256": "f0b32ef6dacf0dd21602abd7f08c118a6bab02409c649ac1468b00ef2f7c27a8",
+        "bytes": 29882
+      },
+      {
+        "path": "hybrid/sources/config/config.json",
+        "sha256": "191e0af232104ed8b65258cf3fb2b842e288008baca7633c11b82a1ac7203aab",
+        "bytes": 4312
+      },
+      {
+        "path": "hybrid/sources/generation/generation_config.json",
+        "sha256": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+        "bytes": 202
+      },
+      {
+        "path": "hybrid/sources/headers/model-00001-of-00018.safetensors",
+        "sha256": "f4cbd9978d80810a0e91ff1b9eee98afb230fdc94ef59550954079df3752ca05",
+        "bytes": 45400
+      },
+      {
+        "path": "hybrid/upstream-current.json",
+        "sha256": "c75d2bd5c9d2aef396f30589ee26a462500375f7533cf8c074cc20941b51e30b",
+        "bytes": 28709
+      },
+      {
+        "path": "hybrid/upstream-previous.json",
+        "sha256": "c75d2bd5c9d2aef396f30589ee26a462500375f7533cf8c074cc20941b51e30b",
+        "bytes": 28709
+      },
+      {
+        "path": "hybrid/vocabulary.json",
+        "sha256": "b3d5c8b8fa8485425f8b95f48b6eb51d2c0c8f7c51cfc85b226d5d7c8d74f0e3",
+        "bytes": 3568
+      },
+      {
+        "path": "physical/preload.js",
+        "sha256": "f6bd22c2c8cbe8a3442e671678d71ccdfeac1ec7f2714ebb595fd96bd99749c5",
+        "bytes": 848
+      },
+      {
+        "path": "physical/reference-test.js",
+        "sha256": "848f433d9938261d88723c452ba88a5698ad872bc6d5f53213c39c9b8c3298be",
+        "bytes": 19371
+      },
+      {
+        "path": "physical/reference.log",
+        "sha256": "187f50c2fc8fb57a9e00d81a19641b2ce5ff9d49bb136e3c649a6974956dde7b",
+        "bytes": 568
+      }
+    ]
+  },
+  "qualified": false,
+  "published": false,
+  "limitations": [
+    "Support assessment is relative to the pinned operation vocabulary.",
+    "Embedding revision changes README content only.",
+    "SafeTensors discovery verifies bounded header acquisition, not complete weight bytes.",
+    "Hybrid full-model conversion, source numerical comparison, and Capsule signing remain separate gates."
+  ],
+  "createdAtUtc": "2026-09-07T17:19:35.188012+00:00"
+}

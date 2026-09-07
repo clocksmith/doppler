@@ -32,6 +32,14 @@ covers Qwen3 embedding and Qwen3.8 hybrid full/recurrent attention metadata;
 neither discovery nor source assessment establishes physical model execution.
 Every attempt uses a new directory and retains its success or failure receipt.
 
+The [retained discovery acceptance](../../reports/model-revision-discovery/20260907/acceptance.json)
+binds both live upstream acquisitions, their assessments, the physical operation
+reference, and the successful remote check to the committed implementation.
+Its adjacent evidence archive contains the acquired metadata, bounded headers,
+complete assessments, reference inputs, and logs. Repeating discovery against
+`main` may observe a later revision; the retained receipts preserve the original
+immutable identities.
+
 The hybrid route has an executable operation reference, separate from full-model
 qualification:
 

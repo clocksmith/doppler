@@ -27,6 +27,21 @@ node tools/compare-embeddings.js --model-id google-embeddinggemma-300m-q4k-ehf16
 node tools/compare-embeddings.js --model-id qwen-3-embedding-0-6b-q4k-ehf16-af32 --save --json
 ```
 
+## Reranker comparison scope gates
+
+New `tools/compare-rerankers.js` receipts use fairness schema version 2. Both
+timed engines and the Doppler verification lane must pass the shared semantic
+fixture and expected ranking. Observed browser surface/build, WebGPU hardware,
+cache/load mode and run counts must match; missing scope, failed runs, and vendor
+fallback make the result non-claimable. Requested settings alone are not evidence
+that the engines executed comparable work. The raw environments and individual
+scope gates remain in the receipt.
+
+These gates establish the declared semantic-fixture comparison. They do not
+substitute for frozen source-logit equivalence, startup/memory definitions, or
+cancellation/recovery evidence when a broader comparison requires those checks.
+Historical receipts retain their original contract and are not rewritten.
+
 ## Purpose
 
 - Track vendor targets in one machine-readable registry.
@@ -419,3 +434,13 @@ Add or rename a compare metric:
 - Ensure harness path mappings are present in both Doppler and Transformers.js harness files.
 - Run `node tools/compare-engines.js --help` sanity checks and a sample compare run.
 - Regenerate chart artifacts if metric display is expected in committed visuals.
+
+The repository-only `tools/qualify-transformersjs-reranker.js` entrypoint consumes
+an explicit pinned local ONNX acquisition receipt and frozen source references.
+It calls `__runRerankReference` in the existing browser runner, reusing its exact
+loader, prompt formatter and score computation. This observation path retains
+full input token IDs and unrounded logits for the same numerical oracle used by
+installed Doppler qualification. It records model load, per-input duration,
+renderer RSS, exact browser identity, and fallback state. These qualification
+measurements do not establish a paired speed claim or cancellation/recovery
+coverage. The timed benchmark contract and its fairness gate remain separate.
