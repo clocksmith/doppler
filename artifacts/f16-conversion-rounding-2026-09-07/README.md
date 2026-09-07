@@ -54,11 +54,40 @@ F32 source values rather than deriving expected words with the same encoder.
 - `npm run artifact:contract:check`: passes, seven of 31 catalog models exposed.
 - `git diff --check`: passes.
 
-The broader unit run and fresh conversion are separate observations; this record
-does not substitute the converter suite for either result. The fresh output root
-is `/tmp/reploid-qwen35-answer-screen.06HATl/f16-rne-model`; source/config lineage
-is in `f16-rne-lineage.json`. Its contents must pass integrity and source-value
-checks before the same development prompts execute physically.
+The broader unit run completed: 781 test files passed. Installed package smoke,
+model-release checks, and Program Bundle checks also passed. Installed execution
+smokes use synthetic programs and are not physical qualification.
+
+The fresh conversion completed with 57 shards and 320 text tensors. All 5,120
+samples now equal the source rounded to F16, with no failing tensor samples.
+Source checkpoint SHA-256 and all 57 shard BLAKE3 commitments passed independent
+rehashing. The new manifest SHA-256 is
+`b7b2f051c82aba757101eaa301fa6eccae91d3d56be9a52f1543e079544e131e`.
+The 59-file executable inventory contains 3,772,899,642 bytes. This remains an
+unsigned local precision control, not a qualified Capsule.
+
+`verified-conversion.tar.gz` retains the completed conversion report, manifest,
+config, source snapshots, lineage, samples, integrity verification, artifact
+inventory, and completed check logs. It omits model weights. The output root is
+`/tmp/reploid-qwen35-answer-screen.06HATl/f16-rne-model`.
+
+The complete green workflow first failed the package size budget. The unchanged
+1,780-file closure contains six changed shipped files adding 2,597 source bytes.
+`package-audit.json` records the source revisions and per-file accounting. The
+measured package is 2,107,701 packed bytes and 10,869,933 unpacked bytes. The
+budget adjustment preserves closure, forbidden-file, file-count, and size gates;
+the public boundary check then passed. A subsequent workflow failure exposed a
+stale routing inventory after the Gemma qualification manifest was committed.
+Its regenerated inventory records 30 manifests and preserves 32 surfaced
+integrity findings. Neither regeneration nor this repair resolves those findings.
+The subsequent complete workflow result must be checked separately.
+
+The first physical attempt stopped before generation because the temporary
+browser context offered 1.75 GB of storage against a 3.51 GB model-cache
+requirement. It generated zero cases and completed cleanup without errors. This
+is an infrastructure failure, not evidence about model output quality. A fresh
+persistent-profile retry retains the same model bytes, prompts, generation
+settings, and semantic acceptance requirements.
 
 ## Claim boundary
 
