@@ -272,6 +272,14 @@ artifacts. Unknown dtype values fail before loading; they never select a differe
 precision silently. Each artifact must pass the unchanged source-reference gate
 before its startup, inference, or memory measurements enter a comparison.
 
+`tools/observe-reranker-browser-lifecycle.js` consumes a pinned, passing source
+qualification. It observes cancellation after actual queue submission, verifies
+unchanged outputs afterward, destroys the submitted device, and measures fresh
+browser recovery under an explicit budget. Observation completion is separate
+from capability: a fulfilled request after abort is recorded as cancellation
+unsupported. The Transformers.js forward path is not wrapped in synthetic
+cancellation. Lifecycle observations remain separate from startup and warm timing.
+
 Embedding compare metadata lives in [embedding-compare.config.json](./embedding-compare.config.json).
 It uses the same split: shared prompt/run/cache policy at the root, model-specific
 Doppler engine overlays and embedding call semantics in each profile, catalog-owned
