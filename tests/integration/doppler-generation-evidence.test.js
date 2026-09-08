@@ -33,6 +33,7 @@ const runtimeConfig = {
       topK: 40,
       repetitionPenalty: 1.1,
       repetitionPenaltyWindow: 64,
+      presencePenalty: 0,
       greedyThreshold: 0,
       suppressSpecialTokens: true,
       suppressSpecialLikeTokens: true,
