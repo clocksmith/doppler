@@ -46,6 +46,12 @@ export function resolveSamplingConfig(opts, runtimeConfig) {
       samplingDefaults.repetitionPenalty,
       (value) => value > 0
     ),
+    presencePenalty: resolveSamplingNumber(
+      'presencePenalty',
+      opts?.presencePenalty,
+      samplingDefaults.presencePenalty ?? 0,
+      (value) => value >= 0
+    ),
     repetitionPenaltyWindow: resolveSamplingInteger(
       'repetitionPenaltyWindow',
       undefined,

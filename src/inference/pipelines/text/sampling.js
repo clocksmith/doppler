@@ -35,6 +35,19 @@ export function applyRepetitionPenalty(logits, previousTokens, penalty) {
   }
 }
 
+export function applyPresencePenalty(logits, previousTokens, penalty) {
+  if (!penalty || penalty <= 0) return;
+
+  const windowSize = getRuntimeConfig().inference.sampling.repetitionPenaltyWindow;
+  const slice = windowSize > 0 ? previousTokens.slice(-windowSize) : previousTokens;
+  const seen = new Set(slice);
+  for (const token of seen) {
+    if (token < logits.length) {
+      logits[token] -= penalty;
+    }
+  }
+}
+
 
 export function softmax(logits) {
   const n = logits.length;

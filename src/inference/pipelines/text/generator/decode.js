@@ -15,7 +15,7 @@ import {
   isDecodeRecorderEnabled,
   isProfileDecodeRecorderEnabled,
 } from '../execution-plan.js';
-import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from '../sampling.js';
+import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity, getTopK } from '../sampling.js';
 import { isStopToken } from '../init.js';
 import { embed } from '../embed.js';
 import { resolvePerLayerInputsSession } from './session-context.js';
@@ -724,6 +724,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         state.operatorDiagnostics
       );
       applyRepetitionPenalty(fallbackLogits, currentIds, opts.repetitionPenalty);
+      if (opts.presencePenalty) {
+        applyPresencePenalty(fallbackLogits, currentIds, opts.presencePenalty);
+      }
       const fallbackToken = sample(fallbackLogits, {
         temperature: opts.temperature,
         topP: opts.topP,
@@ -801,6 +804,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       const sampledLogits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
 
       applyRepetitionPenalty(sampledLogits, currentIds, opts.repetitionPenalty);
+      if (opts.presencePenalty) {
+        applyPresencePenalty(sampledLogits, currentIds, opts.presencePenalty);
+      }
       const nextToken = sample(sampledLogits, {
         temperature: opts.temperature,
         topP: opts.topP,
@@ -855,6 +861,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   }
 
   applyRepetitionPenalty(logits, currentIds, opts.repetitionPenalty);
+  if (opts.presencePenalty) {
+    applyPresencePenalty(logits, currentIds, opts.presencePenalty);
+  }
   const nextToken = sample(logits, {
     temperature: opts.temperature,
     topP: opts.topP,
