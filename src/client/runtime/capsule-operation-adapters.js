@@ -1,4 +1,4 @@
-import { requireGenerationOptions } from './session-controller.js';
+import { resolveGenerationOptions, validateGenerationInput } from '../../config/generation-contract.js';
 
 const text = (value) => typeof value === 'string' && value.trim().length > 0;
 const texts = (value) => Array.isArray(value) && value.length > 0 && value.every(text);
@@ -8,22 +8,23 @@ export function createCapsuleOperationAdapters({ program, generate, rerank, embe
   return {
     generate: {
       validate({ input, options }) {
-        requireValue(Object.hasOwn(input, 'prompt') !== Object.hasOwn(input, 'promptTokens'), 'generate requires exactly one prompt or promptTokens input.');
-        if (Object.hasOwn(input, 'prompt')) requireValue(text(input.prompt), 'generate requires a non-empty prompt.');
-        if (Object.hasOwn(input, 'promptTokens')) requireValue(Array.isArray(input.promptTokens) && input.promptTokens.length > 0 && input.promptTokens.every((id) => Number.isSafeInteger(id) && id >= 0), 'Invalid prompt token IDs.');
-        requireGenerationOptions(options);
-        if (options.stopSequences !== undefined) requireValue(Array.isArray(options.stopSequences) && options.stopSequences.every(text), 'Invalid stop sequences.');
-        if (options.suppressTokenIds !== undefined) requireValue(Array.isArray(options.suppressTokenIds) && options.suppressTokenIds.every((id) => Number.isSafeInteger(id) && id >= 0), 'Invalid suppressed token IDs.');
+        validateGenerationInput(input);
+        resolveGenerationOptions(options);
       },
       async *execute({ input, options }, signal) {
         const tokenIds = [];
-        for await (const tokenId of generate({ ...input, ...options, signal })) {
-          requireValue(Number.isSafeInteger(tokenId) && tokenId >= 0, 'Invalid generated token ID.');
-          tokenIds.push(tokenId);
-          const output = { text: program.decodeTokens(tokenIds), tokenIds: [...tokenIds] };
-          yield { delta: { tokenId }, output };
-        }
-        return { text: program.decodeTokens(tokenIds), tokenIds };
+        const iterator = generate({ ...input, ...options, signal });
+        try {
+          while (true) {
+            const next = await iterator.next();
+            if (next.done) return { text: program.decodeTokens(tokenIds), tokenIds, ...next.value };
+            const tokenId = next.value;
+            requireValue(Number.isSafeInteger(tokenId) && tokenId >= 0, 'Invalid generated token ID.');
+            tokenIds.push(tokenId);
+            const output = { text: program.decodeTokens(tokenIds), tokenIds: [...tokenIds] };
+            yield { delta: { tokenId }, output };
+          }
+        } finally { await iterator.return?.(); }
       },
     },
     embed: {

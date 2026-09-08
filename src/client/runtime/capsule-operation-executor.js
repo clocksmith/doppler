@@ -1,4 +1,5 @@
 import { DOPPLER_VERSION } from '../../version.js';
+import { GenerationError } from '../../config/generation-contract.js';
 import { freezeCapsuleV2 } from '../../config/capsule-v2.js';
 import { CAPSULE_OPERATION_EVENT_SCHEMA, CAPSULE_OPERATION_RECEIPT_SCHEMA, hashCapsuleObservation, normalizeCapsuleObservation, snapshotCapsuleOperationRequest } from '../../config/capsule-operation.js';
 
@@ -16,8 +17,8 @@ export function createCapsuleOperationExecutor({ adapters, identity, assertCurre
       if (active) throw new Error('Capsule operation already active; submit a distinct job after it finishes.');
       active = true;
       const controller = new AbortController();
-      const cancel = () => controller.abort(externalSignal.reason ?? new Error('Capsule operation cancelled.'));
-      const deadline = () => controller.abort(new Error('Capsule operation deadline exceeded.'));
+      const cancel = () => controller.abort(new GenerationError('aborted', externalSignal.reason?.message || 'Capsule operation cancelled.', { cause: externalSignal.reason }));
+      const deadline = () => controller.abort(new GenerationError('deadline', 'Capsule operation deadline exceeded.'));
       let timer;
       let iterator;
       let failure;

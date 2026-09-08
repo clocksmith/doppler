@@ -81,7 +81,13 @@ for (const job of jobs) {
   assert.equal(payload.inputHash, hashCapsuleObservation({ input: job.input, options: job.options }));
   assert.deepEqual(payload.operation, job.operation);
   assert.ok(payload.runtimeVersion);
-  if (job.operation.name === 'generate') assert.deepEqual(completed.output, { text: '1,1', tokenIds: [1, 1] });
+  if (job.operation.name === 'generate') {
+    assert.equal(completed.output.text, '1,1');
+    assert.deepEqual(completed.output.tokenIds, [1, 1]);
+    assert.deepEqual(completed.output.sampling, { ...generationOptions, presencePenalty: 0, suppressTokenIds: [], stopSequences: [] });
+    assert.deepEqual(completed.output.completion, { schema: 'doppler.generation-completion/v1', stopReason: 'max-tokens', promptTokenCount: 1, generatedTokenCount: 2 });
+    assert.equal(payload.modelId, fixture.capsule.modelId);
+  }
   if (job.operation.name === 'encodeSequence') {
     assert.equal(completed.output.receipt.assignmentHash, hashCapsuleObservation(job.assignment));
     assert.equal(completed.output.receipt.operation, 'encodeSequence');
@@ -107,7 +113,7 @@ for (const change of [
   assert.throws(() => session.executeOperation(invalid));
 }
 assert.throws(() => session.executeOperation(request('generate', { prompt: 'a', promptTokens: [] }, generationOptions)), /exactly one/);
-assert.throws(() => session.executeOperation(request('generate', { promptTokens: 'wrong' }, generationOptions)), /token IDs/);
+assert.throws(() => session.executeOperation(request('generate', { promptTokens: 'wrong' }, generationOptions)), /promptTokens/);
 assert.throws(() => normalizeCapsuleObservation([, 1]), /finite, acyclic/);
 assert.throws(() => normalizeCapsuleObservation({ vector: new Float32Array([NaN]) }), /finite, acyclic/);
 const cycle = {}; cycle.self = cycle;

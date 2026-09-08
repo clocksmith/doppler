@@ -723,9 +723,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
         null,
         state.operatorDiagnostics
       );
-      applyRepetitionPenalty(fallbackLogits, currentIds, opts.repetitionPenalty);
+      applyRepetitionPenalty(fallbackLogits, currentIds, opts.repetitionPenalty, opts.repetitionPenaltyWindow);
       if (opts.presencePenalty) {
-        applyPresencePenalty(fallbackLogits, currentIds, opts.presencePenalty);
+        applyPresencePenalty(fallbackLogits, currentIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
       }
       const fallbackToken = sample(fallbackLogits, {
         temperature: opts.temperature,
@@ -803,9 +803,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       const rawLogits = decodeReadback(logitsData, logitsDtype);
       const sampledLogits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
 
-      applyRepetitionPenalty(sampledLogits, currentIds, opts.repetitionPenalty);
+      applyRepetitionPenalty(sampledLogits, currentIds, opts.repetitionPenalty, opts.repetitionPenaltyWindow);
       if (opts.presencePenalty) {
-        applyPresencePenalty(sampledLogits, currentIds, opts.presencePenalty);
+        applyPresencePenalty(sampledLogits, currentIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
       }
       const nextToken = sample(sampledLogits, {
         temperature: opts.temperature,
@@ -860,9 +860,9 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     logitsSanity(logits, `Decode[${state.decodeStepCount}]`, opts.decode);
   }
 
-  applyRepetitionPenalty(logits, currentIds, opts.repetitionPenalty);
+  applyRepetitionPenalty(logits, currentIds, opts.repetitionPenalty, opts.repetitionPenaltyWindow);
   if (opts.presencePenalty) {
-    applyPresencePenalty(logits, currentIds, opts.presencePenalty);
+    applyPresencePenalty(logits, currentIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
   }
   const nextToken = sample(logits, {
     temperature: opts.temperature,

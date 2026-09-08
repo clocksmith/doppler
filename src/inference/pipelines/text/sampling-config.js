@@ -3,6 +3,7 @@ const REQUIRED_RUNTIME_SAMPLING_FIELDS = [
   'topP',
   'topK',
   'repetitionPenalty',
+  'presencePenalty',
   'repetitionPenaltyWindow',
   'greedyThreshold',
   'suppressSpecialTokens',
@@ -38,7 +39,7 @@ export function resolveSamplingConfig(opts, runtimeConfig) {
       'topK',
       opts?.topK,
       samplingDefaults.topK,
-      (value) => value >= 1
+      (value) => value >= 0
     ),
     repetitionPenalty: resolveSamplingNumber(
       'repetitionPenalty',
@@ -49,12 +50,12 @@ export function resolveSamplingConfig(opts, runtimeConfig) {
     presencePenalty: resolveSamplingNumber(
       'presencePenalty',
       opts?.presencePenalty,
-      samplingDefaults.presencePenalty ?? 0,
+      samplingDefaults.presencePenalty,
       (value) => value >= 0
     ),
     repetitionPenaltyWindow: resolveSamplingInteger(
       'repetitionPenaltyWindow',
-      undefined,
+      opts?.repetitionPenaltyWindow,
       samplingDefaults.repetitionPenaltyWindow,
       (value) => value >= 0
     ),
@@ -66,15 +67,15 @@ export function resolveSamplingConfig(opts, runtimeConfig) {
     ),
     suppressSpecialTokens: resolveSamplingBoolean(
       'suppressSpecialTokens',
-      samplingDefaults.suppressSpecialTokens
+      opts?.suppressSpecialTokens === undefined ? samplingDefaults.suppressSpecialTokens : opts.suppressSpecialTokens
     ),
     suppressSpecialLikeTokens: resolveSamplingBoolean(
       'suppressSpecialLikeTokens',
-      samplingDefaults.suppressSpecialLikeTokens
+      opts?.suppressSpecialLikeTokens === undefined ? samplingDefaults.suppressSpecialLikeTokens : opts.suppressSpecialLikeTokens
     ),
     suppressTokenIds: resolveSamplingTokenIdList(
       'suppressTokenIds',
-      samplingDefaults.suppressTokenIds
+      opts?.suppressTokenIds === undefined ? samplingDefaults.suppressTokenIds : opts.suppressTokenIds
     ),
   };
 }
@@ -103,6 +104,10 @@ function resolveSamplingTokenIdList(name, runtimeValue) {
 
 function resolveSamplingNumber(name, callValue, runtimeValue, validate) {
   const value = callValue === undefined ? runtimeValue : callValue;
+  if (Object.hasOwn(GENERATION_CONTRACT.options, name)) {
+    validateGenerationField(name, value);
+    return value;
+  }
   if (value === null) {
     throw new Error(`[Sampling] ${name} cannot be null.`);
   }
@@ -122,3 +127,4 @@ function resolveSamplingInteger(name, callValue, runtimeValue, validate) {
   }
   return value;
 }
+import { GENERATION_CONTRACT, validateGenerationField } from '../../../config/generation-contract.js';

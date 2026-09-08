@@ -1,11 +1,16 @@
 import catalog from './capsule-operations.json' with { type: 'json' };
 import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 import { freezeCapsuleV2 } from './capsule-v2.js';
+import { GENERATION_CONTRACT } from './generation-contract.js';
 
 export const CAPSULE_OPERATION_REQUEST_SCHEMA = 'doppler.capsule-operation-request/v1';
 export const CAPSULE_OPERATION_RECEIPT_SCHEMA = 'doppler.capsule-operation-receipt/v1';
 export const CAPSULE_OPERATION_EVENT_SCHEMA = 'doppler.capsule-operation-event/v1';
-export const CAPSULE_OPERATIONS = freezeCapsuleV2(catalog.operations);
+export const CAPSULE_OPERATIONS = freezeCapsuleV2({ ...catalog.operations, generate: {
+  ...catalog.operations.generate,
+  inputFields: Object.keys(GENERATION_CONTRACT.input),
+  optionFields: Object.keys(GENERATION_CONTRACT.options),
+} });
 
 // Receipt serialization only: no tensor arithmetic or model-policy selection.
 export function normalizeCapsuleObservation(value, depth = 0, ancestors = new Set()) {

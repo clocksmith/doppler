@@ -4,8 +4,7 @@
   "operations": {
     "generate": {
       "version": 1,
-      "inputFields": ["prompt", "promptTokens"],
-      "optionFields": ["maxTokens", "maxSeqLen", "temperature", "topP", "topK", "repetitionPenalty", "repetitionPenaltyWindow", "presencePenalty", "useChatTemplate", "seed", "suppressTokenIds", "stopSequences"]
+      "contract": "doppler.generation-contract/v1"
     },
     "embed": { "version": 1, "inputFields": ["texts", "application"], "optionFields": [] },
     "rerank": { "version": 1, "inputFields": ["query", "documents", "application"], "optionFields": [] },

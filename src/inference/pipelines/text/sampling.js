@@ -21,13 +21,12 @@ function unseededRandom() {
 }
 
 
-export function applyRepetitionPenalty(logits, previousTokens, penalty) {
+export function applyRepetitionPenalty(logits, previousTokens, penalty, windowSize = getRuntimeConfig().inference.sampling.repetitionPenaltyWindow) {
   if (penalty === 1.0) return;
 
-  const windowSize = getRuntimeConfig().inference.sampling.repetitionPenaltyWindow;
   const seen = new Set(previousTokens.slice(-windowSize));
   for (const token of seen) {
-    if (token < logits.length) {
+    if (token >= 0 && token < logits.length) {
       logits[token] = logits[token] > 0
         ? logits[token] / penalty
         : logits[token] * penalty;
@@ -35,14 +34,13 @@ export function applyRepetitionPenalty(logits, previousTokens, penalty) {
   }
 }
 
-export function applyPresencePenalty(logits, previousTokens, penalty) {
+export function applyPresencePenalty(logits, previousTokens, penalty, windowSize = getRuntimeConfig().inference.sampling.repetitionPenaltyWindow) {
   if (!penalty || penalty <= 0) return;
 
-  const windowSize = getRuntimeConfig().inference.sampling.repetitionPenaltyWindow;
   const slice = windowSize > 0 ? previousTokens.slice(-windowSize) : previousTokens;
   const seen = new Set(slice);
   for (const token of seen) {
-    if (token < logits.length) {
+    if (token >= 0 && token < logits.length) {
       logits[token] -= penalty;
     }
   }
@@ -271,7 +269,7 @@ export function sample(logits, opts) {
   const { temperature, topP, topK, decode, debug = false, padTokenId, seed, suppressTokenIds } = opts;
   const beforeMaskHealth = summarizeLogitHealth(logits);
 
-  if (padTokenId !== undefined && padTokenId >= 0 && padTokenId < logits.length) {
+  if (Number.isInteger(padTokenId) && padTokenId >= 0 && padTokenId < logits.length) {
     logits[padTokenId] = -Infinity;
   }
   if (Array.isArray(suppressTokenIds)) {

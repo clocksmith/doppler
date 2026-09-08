@@ -359,9 +359,9 @@ export class PipelineGenerator {
 
   _sampleNextTokenFromLogits(logits, generatedIds, opts) {
     const sampledLogits = Float32Array.from(logits);
-    applyRepetitionPenalty(sampledLogits, generatedIds, opts.repetitionPenalty);
+    applyRepetitionPenalty(sampledLogits, generatedIds, opts.repetitionPenalty, opts.repetitionPenaltyWindow);
     if (opts.presencePenalty) {
-      applyPresencePenalty(sampledLogits, generatedIds, opts.presencePenalty);
+      applyPresencePenalty(sampledLogits, generatedIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
     }
     // Optional pre-sample logit mask. Callers pass `opts.logitMaskFn` to
     // implement grammar/schema-constrained decoding. The hook receives the
