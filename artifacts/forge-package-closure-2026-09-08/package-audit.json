@@ -1,0 +1,32 @@
+{
+  "schema": "doppler.package-closure-repair-audit/v1",
+  "evidenceClass": "installed-package-test",
+  "physicalExecution": false,
+  "semanticQualification": false,
+  "baseline": {
+    "revision": "22bf17f64a3fdf97eacd659d54ee457eb46f0f0f",
+    "sha256": "93ba09e851dc1abf374ac9273701cf3c7c8fc45ebaffa56bfa6a6f0668777192",
+    "entryCount": 1787,
+    "packedBytes": 2110816,
+    "unpackedBytes": 10887937,
+    "failure": "Installed writeProgramBundle cannot read src/tooling/program-bundle-host.js."
+  },
+  "candidate": {
+    "sourceState": "Uncommitted closure repair, prior to clean-package reproduction",
+    "bundlePath": "/var/tmp/reploid-esm2-erf-20260908/package-forge-host-candidate",
+    "sha256": "5da06efdf00d0d11734c345a7d6305040a096ae8bdae104654f18146044ad4cc",
+    "entryCount": 1789,
+    "packedBytes": 2115750,
+    "unpackedBytes": 10914511,
+    "passed": true,
+    "checks": ["installed public bundle export", "closed host and WGSL integrity", "host corruption rejection", "existing package API, type, CLI and synthetic operation checks"]
+  },
+  "addedFiles": [
+    { "path": "src/experimental/training/workload-capsules/registry.json", "sizeBytes": 25478 },
+    { "path": "src/tooling/program-bundle-host.js", "sizeBytes": 1096 }
+  ],
+  "existingFileBytesChanged": false,
+  "measurementEnvironment": { "node": "v22.22.1", "npm": "9.2.0", "platform": "linux", "arch": "x64" },
+  "retainedCrossNpmPackedAllowanceBytes": 2158,
+  "boundary": "Repairs package discovery for existing source-root file literals. No model, kernel, sampling, adapter or application-policy change."
+}

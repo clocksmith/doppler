@@ -353,7 +353,6 @@ experimental/training/workload-capsules/lora-doppler-wgsl-writer-qwen35-9b-v2-se
 experimental/training/workload-capsules/lora-doppler-wgsl-writer-qwen35-9b-v2-seed47.json
 experimental/training/workload-capsules/lora-toy-medium.json
 experimental/training/workload-capsules/lora-toy-tiny.json
-experimental/training/workload-capsules/registry.json
 experimental/training/workload-capsules/ul-training-medium.json
 experimental/training/workload-capsules/ul-training-tiny.json
 experimental/turboquant/codebook.d.ts
@@ -803,7 +802,6 @@ tooling/node-file-fetch.d.ts
 tooling/node-source-runtime.d.ts
 tooling/node-webgpu.d.ts
 tooling/program-bundle-host.d.ts
-tooling/program-bundle-host.js
 tooling/program-bundle/embedding-reference.d.ts
 tooling/program-bundle/materialize.d.ts
 tooling/program-bundle/rerank-reference.d.ts
