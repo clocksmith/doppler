@@ -119,21 +119,57 @@ with credible adopters:
 
 ## Repository work queue
 
-The next destination is a reproducible release, automatic source discovery, and
-one independently reproducible optimization, in that order. Engineering proceeds
-without requiring an external adopter; external adoption retains its separate
-D0–D5 proof requirements.
+The next destination is dependable generation: useful answers, explicit completion
+outcomes, and qualification of the repaired distributable implementation. This
+queue follows the review of `9b65da13`. Existing architecture, source discovery,
+reproducible release, retention optimization, and scoped inference milestones
+remain closed under their retained evidence below. Do not reopen those tasks or
+undertake cosmetic restructuring to address model-quality failures.
 
-The pinned standalone architecture and first complete product loop are delivered.
-Do not reopen their implementation because broader portability or adoption claims
-remain unproved. The current completion gate is to finish and retain the existing
-browser replay; qualify browser and Bun generation separately; qualify the
-Transformers.js alternative before comparing separate startup, warm inference,
-memory, cancellation and recovery results; and carry one unfamiliar full model
-through conversion, reference comparison, installed inference and recovery while
-recording manual interventions. A comparison favoring the alternative is a valid
-completed experiment. Another physical GPU and external adoption remain separate
-expansion gates; unavailable hardware does not justify speculative runtime edits.
+The [rounding and prompt-reset evidence](../artifacts/f16-conversion-rounding-2026-09-07/README.md#complete-prompt-state-repair)
+closes the measured `float32ToFloat16()` rounding and previous-prompt state
+defects. Physical Intel Gen12LP browser controls establish the reset repair;
+hardware evidence is no longer AMD-only. Each receipt still applies only to its
+exact model, runtime, surface, and device. These repairs do not establish useful
+answers or qualify a newly signed Capsule.
+
+### Active TODO, in priority order
+
+- [ ] **1. Finish useful generation.** Evaluate suitable source models and
+  explicitly configured variants against fixed tasks and unchanged answer
+  requirements. Preserve source comparisons and rejected candidates. Freeze
+  untouched questions before selecting candidates; do not tune against them.
+  The [installed Qwen3.5-2B development screen](../artifacts/f16-conversion-rounding-2026-09-07/README.md#actual-packed-candidate-screen)
+  matches source tokens through the stop token but passes only one of eight
+  answer checks. Do not change GPU arithmetic to compensate for weaknesses
+  reproduced by the source model. **Exit evidence:** accepted final answers
+  under the frozen task requirements, with development and untouched results
+  reported separately and exact model/configuration identities retained.
+- [ ] **2. Make generation budgets and completion explicit.** Expose distinct
+  completion, budget-exhaustion, cancellation, and failure outcomes. Preserve
+  raw output and generated tokens, including reasoning. Evaluate separately
+  configured budgets; do not silently raise limits or strip output to manufacture
+  success. The [256-token reasoning diagnostic](../artifacts/f16-conversion-rounding-2026-09-07/README.md#reasoning-enabled-configuration-at-the-existing-budget)
+  produces no final answer, and the CPU reference reproduces every token.
+  **Exit evidence:** executable outcome-contract checks and source-bound runs
+  for the declared budgets; task success requires a final answer satisfying
+  the unchanged answer requirements, not merely completed execution.
+- [ ] **3. Qualify the repaired implementation as distributable software.**
+  Rebuild affected model packages and signed Capsules from pinned source using
+  the repaired implementation. Preserve historical packages, manifests,
+  signatures, observations, approvals, and denials. The latest answer screen
+  uses a development npm archive, not a signed Capsule. **Exit evidence:**
+  clean-checkout reconstruction and remote checks, exact runtime/model/Capsule
+  identities, documented distributable dependencies and artifacts, and installed
+  public-API tests covering repeated prompts, cancellation, recovery, and
+  untouched questions. Qualify the actual rebuilt bytes; earlier frozen-runtime
+  controls cannot stand in for this release acceptance.
+
+External use and broader host comparisons follow these three priorities.
+External adoption retains its separate D0–D5 proof requirements. Preserve
+compiler/runtime ownership and application activation authority throughout.
+
+### Retained milestones and standing constraints
 
 The [local-inference baseline](capsule-physical-baseline.md) closes the implemented
 Node/browser application and repeatable preparation milestone. Its linked
@@ -184,8 +220,8 @@ coverage. The integrated archive's subsequent qualification is retained in the
 4. **Verified inference coverage.** Qualify generation, additional physical
    devices, and Bun separately. Compare strong alternatives under equivalent
    quality requirements and visible startup, memory, throughput, cancellation,
-   and recovery contracts. Record blocked or failed lanes. One AMD configuration
-   does not establish general portability or superiority.
+   and recovery contracts. Record blocked or failed lanes. Device-specific
+   receipts do not establish general portability or superiority.
    [Bun reranker acceptance](../reports/inference-coverage/20260907-bun/acceptance.json)
    retains its exact executed qualifier. The separate
    [generation reproduction procedure](generation-qualification-reproduction.md)
@@ -196,8 +232,8 @@ coverage. The integrated archive's subsequent qualification is retained in the
    qualifies a source-derived Transformers.js fp16 alternative and retains
    separate paired startup, warm inference and memory measurements, plus actual
    cancellation and recovery observations. Its forward API did not honor abort;
-   that gap remains visible. Additional devices and adoption are outside the
-   current completion gate.
+   that gap remains visible. This comparison remains AMD-specific; the newer
+   Intel generation evidence above does not broaden its hardware scope.
 5. **Architecture through extensions.** Fix concrete coupling and defects exposed
    by these extensions, remove duplicated execution paths, enforce module
    ownership, and keep publication tooling outside runtime dependencies. Preserve
