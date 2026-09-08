@@ -4,7 +4,7 @@ export declare const canUseNativeF16FusedGateUp: any;
 export declare const coerceTensorDtype: any;
 export declare const dispatchActivation: any;
 export declare const dispatchFusedGateUp: any;
-export declare const requireFusedWeightDtype: any;
+export declare function requireFusedWeightDtype(dtype: unknown, label: string): 'bf16' | 'f16' | 'f32' | 'q4k' | 'w4a16';
 export declare const resolveActivationOp: any;
 export declare const resolveMatmulStepDtype: any;
 export declare const runDenseFFNWithFusedPostNormGPU: any;

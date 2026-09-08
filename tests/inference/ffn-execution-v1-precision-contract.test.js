@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { createWeightBuffer, getWeightDtype } from '../../src/gpu/weight-buffer.js';
+import { requireFusedWeightDtype } from '../../src/inference/pipelines/text/ffn/dense-executor.js';
 
 const {
   buildInlineKernelPath,
@@ -15,6 +17,20 @@ const {
   canUseNativeF16FusedGateUp,
   canFuseSplitPrefillF16GateUpPath,
 } = await import('../../src/inference/pipelines/text/ffn/dense.js');
+
+{
+  const gate = createWeightBuffer({}, 'w4a16', 'row', [128, 32], 'packed_gate');
+  const gateDtype = requireFusedWeightDtype(getWeightDtype(gate), 'gate');
+  assert.equal(gateDtype, 'w4a16', 'Known packed metadata must reach the declared FFN path selection');
+  assert.equal(canUseNativeF16FusedGateUp({ inputDtype: 'f16', hasF16: true, gateDtype }), false,
+    'Accepting packed metadata must not reinterpret it as native fused F16 weights');
+  assert.equal(canFuseSplitPrefillF16GateUpPath({
+    phase: 'prefill', kernelPath: { prefill: { steps: [] } }, gateDtype, upDtype: gateDtype,
+  }), false);
+  for (const dtype of [undefined, null, '', 'unknown']) {
+    assert.throws(() => requireFusedWeightDtype(dtype, 'gate'), /dtype metadata is required/);
+  }
+}
 
 {
   setRuntimeConfig({
