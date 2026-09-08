@@ -176,6 +176,65 @@ async function flushMicrotasks() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+{
+  const device = createFakeDevice();
+  const submissions = [];
+  device.queue.submit = buffers => submissions.push(buffers);
+  const recorder = new CommandRecorder(device, 'partial_submission');
+  const temp = recorder.createTempBuffer(64, GPUBufferUsage.STORAGE);
+  let completions = 0;
+  recorder.enqueueCompletionTask(() => { completions += 1; });
+  recorder.recordDispatch({}, {}, [1, 1, 1], 'prefix');
+  recorder.submitPartial();
+  assert.equal(submissions.length, 1);
+  assert.equal(device.computePasses[0].ended, true);
+  assert.equal(device.getSubmittedWorkDoneCount(), 0, 'Prefix submission does not wait or read back.');
+  assert.equal(temp.destroyed, false, 'Resources stay live across the submission boundary.');
+  assert.equal(completions, 0);
+  recorder.recordDispatch({}, {}, [2, 1, 1], 'suffix');
+  recorder.submit({ cleanup: 'deferred' });
+  assert.equal(submissions.length, 2);
+  assert.equal(recorder.getStats().submissionCount, 2);
+  assert.equal(recorder.getStats().opCount, 2);
+  assert.equal(temp.destroyed, false);
+  await recorder.completeDeferredCleanup();
+  assert.equal(temp.destroyed, true);
+  assert.equal(completions, 1);
+  assert.throws(() => recorder.submitPartial(), /Already submitted/);
+}
+
+for (const failure of ['abort', 'device-loss', 'final-submit', 'next-encoder']) {
+  const device = createFakeDevice();
+  let settleQueue;
+  device.queue.onSubmittedWorkDone = () => new Promise((resolve, reject) => {
+    settleQueue = failure === 'device-loss' ? () => reject(new Error('device lost')) : resolve;
+  });
+  const recorder = new CommandRecorder(device, failure);
+  const temp = recorder.createTempBuffer(64, GPUBufferUsage.STORAGE);
+  let completions = 0;
+  recorder.enqueueCompletionTask(() => { completions += 1; });
+  recorder.recordDispatch({}, {}, [1, 1, 1], 'prefix');
+  if (failure === 'next-encoder') {
+    device.createCommandEncoder = () => { throw new Error('encoder unavailable'); };
+    assert.throws(() => recorder.submitPartial(), /encoder unavailable/);
+  } else {
+    recorder.submitPartial();
+  }
+  if (failure === 'final-submit') {
+    device.queue.submit = () => { throw new Error('submit failed'); };
+    assert.throws(() => recorder.submit(), /submit failed/);
+  }
+  const cleanup = recorder.abort();
+  assert.equal(temp.destroyed, false, `${failure}: submitted resources cannot be released early.`);
+  assert.equal(recorder.getStats().submissionCount, 1);
+  assert.equal(recorder.abort(), cleanup, 'Repeated abort shares one cleanup.');
+  settleQueue();
+  await cleanup;
+  assert.equal(temp.destroyed, true);
+  assert.equal(completions, 0, 'Aborted results never run success completion tasks.');
+  assert.throws(() => recorder.getEncoder(), /after submit/);
+}
+
 configurePerfGuards({
   allowGPUReadback: true,
   trackSubmitCount: false,

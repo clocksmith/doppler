@@ -38,6 +38,8 @@ export class CommandRecorder {
 
   #submitted;
 
+  #submissionCount = 0;
+
   
   #opCount;
 
@@ -97,10 +99,8 @@ export class CommandRecorder {
     this.#deferredCleanup = null;
     this.#completionTasks = [];
 
-    // Track if already submitted
     this.#submitted = false;
 
-    // Operation count for debugging
     this.#opCount = 0;
     this.#recordLabels = options.recordLabels !== false;
     this.#recordDispatches = options.recordDispatches !== false;
@@ -112,7 +112,6 @@ export class CommandRecorder {
       : null;
     this.#computePassCount = 0;
     this.#activeComputePass = null;
-    // Initialize profiling if requested and available
     this.#profilingEnabled = options.profile === true && hasFeature(FEATURES.TIMESTAMP_QUERY);
     if (this.#profilingEnabled) {
       this.#initProfiling();
@@ -472,7 +471,7 @@ export class CommandRecorder {
         releaseBuffer(buffer);
       }
     }
-    getUniformCache().flushPendingDestruction();
+    if (this.#submissionCount > 0) getUniformCache().flushPendingDestruction();
   }
 
   #takeTrackedBuffers() {
@@ -495,6 +494,34 @@ export class CommandRecorder {
     this.#finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, discardPooled);
   }
 
+  submitPartial() {
+    if (this.#submitted) throw new Error('[CommandRecorder] Already submitted');
+    this.closeActiveComputePass();
+    this.#submitStartMs ??= performance.now();
+    try {
+      this.device.queue.submit([this.#encoder.finish()]);
+      this.#submissionCount += 1;
+      this.#encoder = this.device.createCommandEncoder({ label: this.label });
+    } catch (error) {
+      this.abort();
+      throw error;
+    }
+  }
+
+  #cleanupAbortedBuffers(buffersToDestroy, buffersToRelease) {
+    this.#completionTasks = [];
+    const cleanup = discard => {
+      this.#finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, discard);
+      this.#destroyProfilingResources();
+    };
+    if (this.#submissionCount === 0) {
+      cleanup(false);
+      return;
+    }
+    this.#cleanupPromise = this.device.queue.onSubmittedWorkDone()
+      .then(() => cleanup(false), () => cleanup(true));
+  }
+
   
   submit(options = {}) {
     if (this.#submitted) {
@@ -505,16 +532,16 @@ export class CommandRecorder {
       throw new Error('[CommandRecorder] submit cleanup must be "queue" or "deferred".');
     }
 
-    const submitStart = performance.now();
+    const submitStart = this.#submitStartMs ?? performance.now();
     this.closeActiveComputePass();
     const { buffersToDestroy, buffersToRelease } = this.#takeTrackedBuffers();
     try {
       this.device.queue.submit([this.#encoder.finish()]);
+      this.#submissionCount += 1;
     } catch (error) {
       this.#submitted = true;
       this.#submitStartMs = submitStart;
-      this.#finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, false);
-      this.#destroyProfilingResources();
+      this.#cleanupAbortedBuffers(buffersToDestroy, buffersToRelease);
       throw error;
     }
 
@@ -589,6 +616,7 @@ export class CommandRecorder {
       tempBufferCount: this.#tempBuffers.length,
       pooledBufferCount: this.#pooledBuffers.length,
       submitted: this.#submitted,
+      submissionCount: this.#submissionCount,
     };
   }
 
@@ -598,24 +626,14 @@ export class CommandRecorder {
 
 
   abort() {
-    if (this.#submitted) return;
+    if (this.#submitted) return this.#cleanupPromise;
 
     this.closeActiveComputePass();
 
-    // Destroy temp buffers without submitting
-    for (const buffer of this.#tempBuffers) {
-      buffer.destroy();
-    }
-    // Release pooled buffers back to pool
-    for (const buffer of this.#pooledBuffers) {
-      releaseBuffer(buffer);
-    }
-    this.#tempBuffers = [];
-    this.#pooledBuffers = [];
-    this.#tempBufferSet.clear();
-    this.#pooledBufferSet.clear();
-    this.#destroyProfilingResources();
-    this.#submitted = true; // Prevent further use
+    const { buffersToDestroy, buffersToRelease } = this.#takeTrackedBuffers();
+    this.#submitted = true;
+    this.#cleanupAbortedBuffers(buffersToDestroy, buffersToRelease);
+    return this.#cleanupPromise;
   }
 
   

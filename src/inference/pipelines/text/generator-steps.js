@@ -764,6 +764,9 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
       if (isGpuBufferInstance(stopCheck) && stopCheck !== stopBuffer) {
         recorder.trackTemporaryBuffer(stopCheck);
       }
+      if ((i + 1) % batchSize === 0 && i + 1 < N) {
+        recorder.submitPartial();
+      }
     }
 
     const recordMs = performance.now() - recordStart;
@@ -898,9 +901,10 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     return { tokens: generatedTokens, actualCount };
   } finally {
     state.batchingStats.totalBatchedTimeMs += Math.max(0, performance.now() - batchStart);
-    state.batchingStats.gpuSubmissions += 1;
+    state.batchingStats.gpuSubmissions += recorder.getStats().submissionCount;
 
     if (!readbackCleanupDelegated) {
+      await recorder.abort();
       if (ownsFinitenessStaging) {
         finitenessStagingBuffer.destroy();
       }
