@@ -33,7 +33,7 @@ const MODULE_SPECIFIER_PATTERNS = Object.freeze([
   /\b(?:import|export)\s+(?:type\s+)?(?:[^'";]*?\sfrom\s*)?['"]([^'"]+)['"]/gu,
   /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/gu,
 ]);
-const RELATIVE_FILE_LITERAL_PATTERN = /['"`]((?:\.\.\/|\.\/)[^'"`\n]+\.(?:d\.ts|js|json|html|wgsl))['"`]/gu;
+const SOURCE_FILE_LITERAL_PATTERN = /['"`]((?:\.\.\/|\.\/|src\/)[^'"`\n]+\.(?:d\.ts|js|json|html|wgsl))['"`]/gu;
 
 function normalizePath(filePath) {
   return path.relative(ROOT_DIR, filePath).split(path.sep).join('/');
@@ -119,11 +119,11 @@ function collectModuleSpecifiers(source) {
   return output;
 }
 
-function collectRelativeFileLiterals(source) {
+function collectSourceFileLiterals(source) {
   const output = new Set();
-  RELATIVE_FILE_LITERAL_PATTERN.lastIndex = 0;
+  SOURCE_FILE_LITERAL_PATTERN.lastIndex = 0;
   for (;;) {
-    const match = RELATIVE_FILE_LITERAL_PATTERN.exec(source);
+    const match = SOURCE_FILE_LITERAL_PATTERN.exec(source);
     if (!match) break;
     output.add(match[1]);
   }
@@ -132,8 +132,9 @@ function collectRelativeFileLiterals(source) {
 
 async function resolveRuntimeDependency(importerPath, rawSpecifier) {
   const specifier = stripQueryAndHash(rawSpecifier);
-  if (!isLocalSpecifier(specifier)) return null;
-  const basePath = path.resolve(path.dirname(importerPath), specifier);
+  const packageRootRelative = specifier.startsWith('src/');
+  if (!isLocalSpecifier(specifier) && !packageRootRelative) return null;
+  const basePath = path.resolve(packageRootRelative ? ROOT_DIR : path.dirname(importerPath), specifier);
   const candidates = path.extname(basePath)
     ? [basePath]
     : [basePath, `${basePath}.js`, path.join(basePath, 'index.js')];
@@ -202,7 +203,8 @@ async function scanRuntimeGraph(entrypoints) {
       }
     }
 
-    for (const specifier of collectRelativeFileLiterals(source)) {
+    // Forge reads source assets by package-root path as well as relative paths.
+    for (const specifier of collectSourceFileLiterals(source)) {
       const resolved = await resolveRuntimeDependency(currentPath, specifier);
       if (!resolved) continue;
       const resolvedRepoPath = normalizePath(resolved);

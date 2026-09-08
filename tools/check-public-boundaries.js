@@ -44,7 +44,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The generation contract adds three files; source-frequency preservation adds
   // four reachable files including the extracted RoPE declaration. Inventory is in
   // reports/sequence-source-frequencies/20260908/package-audit.json.
-  maxEntryCount: 1787,
+  // Package-root resource discovery restores the existing Forge host and training
+  // registry, not new runtime features. Exact additions and candidate archive:
+  // artifacts/forge-package-closure-2026-09-08/package-audit.json.
+  maxEntryCount: 1789,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -63,14 +66,15 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/prompt-reset-package-audit.json.
   // Observed npm 9 payload plus the retained 2,158-byte npm 10 allowance.
   // Legacy shader compatibility: package-legacy-compatibility-audit.json beside the audit above.
-  maxPackedSize: 2_113_095,
+  // Measured npm 9 payload: 2,115,750; preserve the 2,158-byte npm 10 allowance.
+  maxPackedSize: 2_117_908,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
   // Sequence classification, public OPFS, retention, and device recovery: measured npm 9 archive.
   // GPU logits probe forwarding and failure cleanup add 192 bytes, no files.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/probe-package-audit.json.
-  maxUnpackedSize: 10_888_309,
+  maxUnpackedSize: 10_914_511,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
