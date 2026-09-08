@@ -1,4 +1,5 @@
 import { readBuffer } from '../../../memory/buffer-pool.js';
+import { resolveSamplingConfig } from './sampling-config.js';
 import { isGpuBufferInstance, isWeightBuffer, isCpuWeightBuffer, getBufferDtype } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
@@ -160,7 +161,6 @@ function resolveChatTemplateEnabled(state, options) {
 
 export function resolveStepOptions(state, options = {}) {
   const runtimeDefaults = state.runtimeConfig.inference;
-  const samplingDefaults = runtimeDefaults.sampling;
   const executionPlan = resolveExecutionSessionPlan(state, options);
 
   return {
@@ -172,14 +172,7 @@ export function resolveStepOptions(state, options = {}) {
       'options.seed',
       (value) => Number.isFinite(value) && value >= 0
     ),
-    temperature: resolveConfiguredValue(options.temperature, samplingDefaults.temperature, 'options.temperature'),
-    topP: resolveConfiguredValue(options.topP, samplingDefaults.topP, 'options.topP'),
-    topK: resolveConfiguredValue(options.topK, samplingDefaults.topK, 'options.topK'),
-    repetitionPenalty: resolveConfiguredValue(
-      options.repetitionPenalty,
-      samplingDefaults.repetitionPenalty,
-      'options.repetitionPenalty'
-    ),
+    ...resolveSamplingConfig(options, state.runtimeConfig),
     debug: resolveConfiguredValue(options.debug, state.debug, 'options.debug', (value) => typeof value === 'boolean'),
     debugLayers: options.debugLayers,
     profile: resolveConfiguredValue(options.profile, runtimeDefaults.generation.profile, 'options.profile'),
@@ -197,7 +190,6 @@ export function resolveStepOptions(state, options = {}) {
 
 export function resolveGenerateOptions(state, options = {}) {
   const runtimeDefaults = state.runtimeConfig.inference;
-  const samplingDefaults = runtimeDefaults.sampling;
   const generationDefaults = runtimeDefaults.generation;
   const executionPlan = resolveExecutionSessionPlan(state, options);
   const logitMaskFn = resolveLogitMask(options);
@@ -215,14 +207,7 @@ export function resolveGenerateOptions(state, options = {}) {
       (value) => Number.isFinite(value) && value >= 0
     ),
     maxTokens: executionPlan.maxTokens,
-    temperature: resolveConfiguredValue(options.temperature, samplingDefaults.temperature, 'options.temperature'),
-    topP: resolveConfiguredValue(options.topP, samplingDefaults.topP, 'options.topP'),
-    topK: resolveConfiguredValue(options.topK, samplingDefaults.topK, 'options.topK'),
-    repetitionPenalty: resolveConfiguredValue(
-      options.repetitionPenalty,
-      samplingDefaults.repetitionPenalty,
-      'options.repetitionPenalty'
-    ),
+    ...resolveSamplingConfig(options, state.runtimeConfig),
     stopSequences: resolveConfiguredValue(options.stopSequences, [], 'options.stopSequences', Array.isArray),
     useSpeculative: resolveConfiguredValue(
       options.useSpeculative,

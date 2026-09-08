@@ -3,6 +3,24 @@ import { createPipeline, getOrCreateBindGroupLayout } from './pipeline-cache.js'
 import { createUniformBufferWithView } from './uniform-utils.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { selectRuleValue } from './rule-registry.js';
+import { validateGenerationField } from '../../config/generation-contract.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+
+export async function recordHistoryPenalties(recorder, logitsBuffer, tokenIds, options) {
+  if (options.repetitionPenalty === 1 && options.presencePenalty === 0) return;
+  const history = Uint32Array.from(tokenIds.slice(-options.repetitionPenaltyWindow));
+  const buffer = acquireBuffer(Math.max(4, history.byteLength), undefined, 'sampling_penalty_history');
+  let transferred = false;
+  try {
+    recorder.trackTemporaryBuffer(buffer);
+    transferred = true;
+    if (history.byteLength) recorder.device.queue.writeBuffer(buffer, 0, history);
+    await recordRepPenalty(recorder, logitsBuffer, buffer, buffer, {
+      ...options, penalty: options.repetitionPenalty, historyCount: history.length,
+      batchCount: 0, batchOffset: 0,
+    });
+  } finally { if (!transferred) releaseBuffer(buffer); }
+}
 
 
 function getRepPenaltyBindGroupLayout(device) {
@@ -32,8 +50,8 @@ function createRepPenaltyUniformBuffer(device, recorder, options) {
       view.setFloat32(8, options.penalty, true);
       view.setUint32(12, options.batchCount, true);
       view.setUint32(16, options.batchOffset, true);
-      view.setUint32(20, 0, true);
-      view.setUint32(24, 0, true);
+      view.setFloat32(20, options.presencePenalty, true);
+      view.setUint32(24, options.repetitionPenaltyWindow, true);
       view.setUint32(28, 0, true);
     },
     recorder,
@@ -52,22 +70,27 @@ export async function recordRepPenalty(
     vocabSize,
     historyCount,
     penalty,
+    presencePenalty,
+    repetitionPenaltyWindow,
     batchCount,
     batchOffset,
     logitsDtype,
   } = options;
 
-  if (!Number.isFinite(batchCount) || batchCount < 0) {
+  validateGenerationField('repetitionPenalty', penalty);
+  validateGenerationField('presencePenalty', presencePenalty);
+  validateGenerationField('repetitionPenaltyWindow', repetitionPenaltyWindow);
+  if (!Number.isSafeInteger(batchCount) || batchCount < 0) {
     throw new Error('[RepPenalty] batchCount is required and must be non-negative.');
   }
-  if (!Number.isFinite(batchOffset) || batchOffset < 0) {
+  if (!Number.isSafeInteger(batchOffset) || batchOffset < 0) {
     throw new Error('[RepPenalty] batchOffset is required and must be non-negative.');
   }
   if (logitsDtype !== 'f16' && logitsDtype !== 'f32') {
     throw new Error('[RepPenalty] logitsDtype must be "f16" or "f32".');
   }
 
-  if (penalty === 1.0 || (historyCount === 0 && batchCount === 0)) {
+  if ((penalty === 1.0 && presencePenalty === 0) || (historyCount === 0 && batchCount === 0)) {
     return;
   }
 
@@ -85,6 +108,8 @@ export async function recordRepPenalty(
     vocabSize,
     historyCount,
     penalty,
+    presencePenalty,
+    repetitionPenaltyWindow,
     batchCount,
     batchOffset,
   });

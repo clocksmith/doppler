@@ -8642,11 +8642,11 @@
      "type": "u32",
      "offset": 16
     },
-    "_pad0": {
-     "type": "u32",
+    "presence_penalty": {
+     "type": "f32",
      "offset": 20
     },
-    "_pad1": {
+    "repetition_penalty_window": {
      "type": "u32",
      "offset": 24
     },

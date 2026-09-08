@@ -30,7 +30,7 @@ assert.equal(resolvedExplicit.presencePenalty, 0.5);
 // 3. Validation: negative numbers must throw
 assert.throws(
   () => resolveSamplingConfig({ presencePenalty: -0.1 }, runtimeConfig),
-  /outside the configured range/
+  /outside its supported range/
 );
 
 // 4. Behavior: presence penalty subtracts penalty once per distinct seen token

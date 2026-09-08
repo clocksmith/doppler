@@ -7,6 +7,7 @@ import type { InitialExecutionIdentity } from '../../config/initial-execution-id
 import type { DeviceProfile } from './target-selector.js';
 import type { GenerationRunOptions, GenerationResult } from './session-controller.js';
 import type { GenerationOutput } from '../../config/generation-contract.js';
+import type { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import type { CapsuleRerankReceipt, CapsuleRerankRequest } from './capsule-rerank.js';
 import type { CapsuleOperationRequest } from '../../config/capsule-operation.js';
 import type { CapsuleOperationEvent } from './capsule-operation-executor.js';
@@ -40,6 +41,7 @@ export interface RuntimePorts {
 }
 
 export interface DopplerRuntimeSession {
+  readonly generationContract: typeof GENERATION_CONTRACT;
   schema: 'doppler.capsule-session/v1';
   readonly loaded: boolean;
   readonly closed: boolean;

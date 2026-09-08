@@ -1,17 +1,13 @@
 import type { PipelineState } from './state.js';
+import type { RuntimeSamplingOptions } from '../../../config/generation-contract.js';
 import type { GenerateOptions } from './types.js';
 import type { ParsedModelConfig } from './config.js';
 import type { ExecutionSessionPlan } from './execution-plan.js';
 import type { LoadedEmbeddingPostprocessor } from '../../../loader/final-weights-loader.js';
 
-export interface StepOptionsResolved {
+export interface StepOptionsResolved extends RuntimeSamplingOptions {
   logitMaskFn: GenerateOptions['logitMaskFn'];
   promptTokenCount?: number;
-  temperature: number;
-  topP: number;
-  topK: number;
-  repetitionPenalty: number;
-  suppressTokenIds?: number[];
   debug: boolean;
   debugLayers?: number[];
   profile: boolean;

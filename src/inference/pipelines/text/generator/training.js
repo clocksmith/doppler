@@ -8,7 +8,7 @@ import {
   validateCaptureConfig,
 } from '../../../../debug/index.js';
 import { validateCallTimeOptions } from '../../../../config/param-validator.js';
-import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from '../sampling.js';
+import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity, getTopK } from '../sampling.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from '../logits/index.js';
 import { OperatorEventEmitter } from '../operator-events.js';
 import {
@@ -706,6 +706,7 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}) {
       this._state.stats.prefillTimeMs = performance.now() - prefillStart;
 
       applyRepetitionPenalty(prefillLogits, generatedIds, opts.repetitionPenalty, opts.repetitionPenaltyWindow);
+      applyPresencePenalty(prefillLogits, generatedIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
       const padTokenId = this._state.tokenizer?.getSpecialTokens?.()?.pad;
       const firstToken = sample(prefillLogits, {
         temperature: opts.temperature,

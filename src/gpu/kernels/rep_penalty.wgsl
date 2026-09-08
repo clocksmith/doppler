@@ -1,14 +1,5 @@
-// Repetition Penalty Kernel
-//
-// Applies repetition penalty to logits in-place before sampling.
-// Reads unique history token IDs (pre-deduplicated on CPU) and
-// current-batch tokens from separate buffers.
-//
-// For each token ID: logit > 0 ? logit / penalty : logit * penalty
-// Matches CPU applyRepetitionPenalty() behavior.
-//
-// One thread per token in (history + batch). Benign data race when the same
-// token appears in both buffers: both threads compute identical results.
+// Repetition followed by presence penalty over the ordered recent context.
+// Only the first occurrence inside the window writes a token's logit.
 
 override WORKGROUP_SIZE: u32 = 256u;
 
@@ -17,9 +8,9 @@ struct Uniforms {
     history_count: u32,
     penalty: f32,
     batch_count: u32,
-    batch_offset: u32,    // Offset into batch_tokens (skip startToken at index 0)
-    _pad0: u32,
-    _pad1: u32,
+    batch_offset: u32,
+    presence_penalty: f32,
+    repetition_penalty_window: u32,
     _pad2: u32,
 }
 
@@ -28,30 +19,34 @@ struct Uniforms {
 @group(0) @binding(2) var<storage, read> history: array<u32>;
 @group(0) @binding(3) var<storage, read> batch_tokens: array<u32>;
 
+fn context_token(idx: u32) -> u32 {
+    if (idx < u.history_count) {
+        return history[idx];
+    }
+    return batch_tokens[u.batch_offset + idx - u.history_count];
+}
+
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let idx = gid.x;
     let total = u.history_count + u.batch_count;
-    if (idx >= total) {
+    var start = 0u;
+    if (u.repetition_penalty_window > 0u) {
+        start = total - min(total, u.repetition_penalty_window);
+    }
+    if (idx < start || idx >= total) {
         return;
     }
-
-    var token_id: u32;
-    if (idx < u.history_count) {
-        token_id = history[idx];
-    } else {
-        token_id = batch_tokens[u.batch_offset + (idx - u.history_count)];
-    }
-
+    let token_id = context_token(idx);
     if (token_id >= u.vocab_size) {
         return;
     }
-
-    let penalty = u.penalty;
-    let logit = logits[token_id];
-    if (logit > 0.0) {
-        logits[token_id] = logit / penalty;
-    } else {
-        logits[token_id] = logit * penalty;
+    for (var prior = start; prior < idx; prior++) {
+        if (context_token(prior) == token_id) {
+            return;
+        }
     }
+    let logit = f32(logits[token_id]);
+    let repeated = select(logit * u.penalty, logit / u.penalty, logit > 0.0);
+    logits[token_id] = f32(repeated - u.presence_penalty);
 }

@@ -9,6 +9,7 @@ const runtimeConfig = {
       topP: 0.95,
       topK: 40,
       repetitionPenalty: 1.0,
+      presencePenalty: 0,
       repetitionPenaltyWindow: 100,
       greedyThreshold: 0.01,
       suppressSpecialTokens: false,
@@ -56,22 +57,22 @@ assert.throws(
 
 assert.throws(
   () => resolveSamplingConfig({ topP: 2 }, runtimeConfig),
-  /topP is outside the configured range/
+  /topP: outside its supported range/
 );
 
 assert.throws(
   () => resolveSamplingConfig({ topK: 1.5 }, runtimeConfig),
-  /topK must be an integer/
+  /topK: integer required/
 );
 
 assert.throws(
   () => resolveSamplingConfig({}, { inference: { sampling: { ...runtimeConfig.inference.sampling, suppressSpecialLikeTokens: null } } }),
-  /suppressSpecialLikeTokens cannot be null/
+  /suppressSpecialLikeTokens.*cannot be null/
 );
 
 assert.throws(
   () => resolveSamplingConfig({}, { inference: { sampling: { ...runtimeConfig.inference.sampling, suppressTokenIds: [1.5] } } }),
-  /suppressTokenIds\[0\] must be a non-negative integer token ID/
+  /suppressTokenIds: integer required/
 );
 
 console.log('sampling-config.test: ok');
