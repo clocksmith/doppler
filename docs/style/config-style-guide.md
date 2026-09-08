@@ -83,8 +83,9 @@ Recorded decode submits at `batchSize` token boundaries. `readbackInterval`
 groups those batches before token readback; it does not combine them into one
 unbounded command buffer. Resources remain owned until the grouped work
 completes, including aborts after a submitted prefix. Execution statistics count
-the actual submissions. Submit latency covers the first submission through
-completion and may overlap subsequent host recording.
+the actual submissions. Submit latency covers the final submission through
+completion. Earlier submissions may execute during host recording; full decode
+wall time includes both, without subtracting overlapped recording twice.
 
 ---
 

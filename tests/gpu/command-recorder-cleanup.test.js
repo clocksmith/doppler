@@ -203,6 +203,24 @@ async function flushMicrotasks() {
   assert.throws(() => recorder.submitPartial(), /Already submitted/);
 }
 
+for (const cleanup of ['queue', 'deferred']) {
+  const clock = Object.getOwnPropertyDescriptor(globalThis, 'performance');
+  let now = 10;
+  Object.defineProperty(globalThis, 'performance', { configurable: true, value: { now: () => now } });
+  try {
+    const recorder = new CommandRecorder(createFakeDevice(), 'submission_timing');
+    recorder.submitPartial();
+    now = 30;
+    recorder.submit({ cleanup });
+    now = 50;
+    await recorder.completeDeferredCleanup();
+    assert.equal(recorder.getSubmitLatencyMs(), 20,
+      'Completion wait starts at the final submission, excluding overlapped host recording.');
+  } finally {
+    Object.defineProperty(globalThis, 'performance', clock);
+  }
+}
+
 for (const failure of ['abort', 'device-loss', 'final-submit', 'next-encoder']) {
   const device = createFakeDevice();
   let settleQueue;

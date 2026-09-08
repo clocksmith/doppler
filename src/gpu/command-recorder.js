@@ -75,7 +75,6 @@ export class CommandRecorder {
   
   #queryCapacity = 0;
 
-  #submitStartMs = null;
 
   #submitLatencyMs = null;
   
@@ -497,7 +496,6 @@ export class CommandRecorder {
   submitPartial() {
     if (this.#submitted) throw new Error('[CommandRecorder] Already submitted');
     this.closeActiveComputePass();
-    this.#submitStartMs ??= performance.now();
     try {
       this.device.queue.submit([this.#encoder.finish()]);
       this.#submissionCount += 1;
@@ -532,7 +530,7 @@ export class CommandRecorder {
       throw new Error('[CommandRecorder] submit cleanup must be "queue" or "deferred".');
     }
 
-    const submitStart = this.#submitStartMs ?? performance.now();
+    const submitStart = performance.now();
     this.closeActiveComputePass();
     const { buffersToDestroy, buffersToRelease } = this.#takeTrackedBuffers();
     try {
@@ -540,13 +538,11 @@ export class CommandRecorder {
       this.#submissionCount += 1;
     } catch (error) {
       this.#submitted = true;
-      this.#submitStartMs = submitStart;
       this.#cleanupAbortedBuffers(buffersToDestroy, buffersToRelease);
       throw error;
     }
 
     this.#submitted = true;
-    this.#submitStartMs = submitStart;
     this.#cleanupPromise = null;
 
     if (cleanup === 'deferred') {
