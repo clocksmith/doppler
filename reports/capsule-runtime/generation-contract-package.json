@@ -1,0 +1,29 @@
+{
+  "schema": "doppler.package-inventory-observation/v1",
+  "sourceRevision": "13fc9077",
+  "sourceDirty": true,
+  "node": "v22.20.0",
+  "npm": "10.9.3",
+  "entryCount": 1783,
+  "packedBytes": 2111322,
+  "unpackedBytes": 10880817,
+  "sha256": "91d04f0c5ea559d63155f8c6086499183956af24c50fbc4eed9aef7c5628ec89",
+  "addedFiles": [
+    {
+      "path": "src/config/generation-contract.d.ts",
+      "size": 2429,
+      "mode": 420
+    },
+    {
+      "path": "src/config/generation-contract.js",
+      "size": 3374,
+      "mode": 420
+    },
+    {
+      "path": "src/config/generation-contract.json",
+      "size": 1848,
+      "mode": 420
+    }
+  ],
+  "claim": "Local package inventory; no registry publication or model qualification."
+}
