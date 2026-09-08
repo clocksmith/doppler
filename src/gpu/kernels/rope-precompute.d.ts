@@ -2,6 +2,7 @@ export interface RoPEPrecomputeOptions {
   theta: number;
   rotaryDim: number;
   frequencyBaseDim: number;
+  inverseFrequencies?: number[] | null;
   maxSeqLen: number;
   ropeScale: number;
   scalingType?: 'linear' | 'yarn' | 'longrope' | null;

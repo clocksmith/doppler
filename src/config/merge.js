@@ -1,3 +1,4 @@
+import { DEFAULT_MANIFEST_INFERENCE } from './schema/manifest.schema.js';
 import { chooseDefined, chooseDefinedWithSource } from './merge/value-selection.js';
 import { log } from '../debug/index.js';
 
@@ -218,6 +219,9 @@ function mergeRoPE(
   sources
 ) {
   const prefix = 'inference.rope';
+  if (runtime?.ropeInverseFrequencies !== undefined) {
+    throw new Error('inference.rope.ropeInverseFrequencies is source-owned; re-convert the model to change it.');
+  }
   return {
     ropeTheta: overlay(
       `${prefix}.ropeTheta`,
@@ -265,6 +269,12 @@ function mergeRoPE(
       `${prefix}.ropeLocalPartialRotaryFactor`,
       manifest.ropeLocalPartialRotaryFactor,
       runtime?.ropeLocalPartialRotaryFactor,
+      sources
+    ),
+    ropeInverseFrequencies: overlay(
+      `${prefix}.ropeInverseFrequencies`,
+      manifest.ropeInverseFrequencies ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeInverseFrequencies,
+      undefined,
       sources
     ),
     ropeFrequencyBaseDim: overlay(

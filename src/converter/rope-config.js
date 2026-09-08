@@ -365,6 +365,7 @@ export function buildRoPEConfig(converterInference, config) {
     mropeSection,
     partialRotaryFactor,
     ropeLocalPartialRotaryFactor,
+    ropeInverseFrequencies: configuredRoPE.ropeInverseFrequencies ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeInverseFrequencies,
     ropeFrequencyBaseDim,
     ropeLocalFrequencyBaseDim,
     ropeScalingType: globalScaling.ropeScalingType,

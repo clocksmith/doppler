@@ -80,6 +80,7 @@
       "properties": {
         "dimension": { "type": "integer", "minimum": 1 },
         "baseFreq": { "type": "number", "minimum": 1 },
+        "inverseFrequencies": { "type": ["array", "null"], "minItems": 1, "items": { "type": "number", "exclusiveMinimum": 0 } },
         "scaling": { "type": ["object", "null"] }
       }
     },

@@ -109,6 +109,8 @@ benchmarks/.tjs-bench-profile/
 bench/out/
 reports/**
 !reports/
+!reports/sequence-source-frequencies/
+!reports/sequence-source-frequencies/**
 !reports/capsule-baseline/
 !reports/capsule-baseline/20260906/
 !reports/capsule-baseline/20260906/acceptance.json

@@ -1,0 +1,114 @@
+[
+  {
+    "op": "embed.out",
+    "maxAbsoluteError": 0.0,
+    "meanAbsoluteError": 0.0,
+    "maximumIndex": 0,
+    "actual": 0.046271972358226776,
+    "expected": 0.046271972358226776
+  },
+  {
+    "op": "layer.0.attn.post_input_norm",
+    "maxAbsoluteError": 2.384185791015625e-07,
+    "meanAbsoluteError": 3.81476570185799e-09,
+    "maximumIndex": 11717,
+    "actual": -1.366623878479004,
+    "expected": -1.3666236400604248
+  },
+  {
+    "op": "layer.0.attn.q_proj",
+    "maxAbsoluteError": 4.291534423828125e-06,
+    "meanAbsoluteError": 1.434465695376013e-07,
+    "maximumIndex": 459,
+    "actual": -5.363414287567139,
+    "expected": -5.363409996032715
+  },
+  {
+    "op": "layer.0.attn.k_proj",
+    "maxAbsoluteError": 2.6226043701171875e-06,
+    "meanAbsoluteError": 1.4066900003053999e-07,
+    "maximumIndex": 595,
+    "actual": -2.216341257095337,
+    "expected": -2.216338634490967
+  },
+  {
+    "op": "layer.0.attn.v_proj",
+    "maxAbsoluteError": 1.6689300537109375e-06,
+    "meanAbsoluteError": 7.651186750807754e-08,
+    "maximumIndex": 1830,
+    "actual": -2.20518159866333,
+    "expected": -2.2051799297332764
+  },
+  {
+    "op": "layer.0.attn.q_rope",
+    "maxAbsoluteError": 6.416662693023682,
+    "meanAbsoluteError": 0.5213428700581594,
+    "maximumIndex": 468,
+    "actual": -8.06239128112793,
+    "expected": -1.645728588104248
+  },
+  {
+    "op": "layer.0.attn.k_rope",
+    "maxAbsoluteError": 0.013994216918945312,
+    "meanAbsoluteError": 0.00019274886458414163,
+    "maximumIndex": 48493,
+    "actual": -0.5526167750358582,
+    "expected": -0.5386225581169128
+  },
+  {
+    "op": "layer.0.attn.core_out",
+    "maxAbsoluteError": 0.0002774670720100403,
+    "meanAbsoluteError": 4.178094881845818e-06,
+    "maximumIndex": 11118,
+    "actual": 0.0817759558558464,
+    "expected": 0.08149848878383636
+  },
+  {
+    "op": "layer.0.attn.out",
+    "maxAbsoluteError": 0.0001674741506576538,
+    "meanAbsoluteError": 1.1769670740463183e-05,
+    "maximumIndex": 11069,
+    "actual": 0.11395993828773499,
+    "expected": 0.11412741243839264
+  },
+  {
+    "op": "layer.0.attn.post_attn",
+    "maxAbsoluteError": 1.9628522545099258,
+    "meanAbsoluteError": 0.06750941403941058,
+    "maximumIndex": 53016,
+    "actual": 0.047131672501564026,
+    "expected": -1.9157205820083618
+  },
+  {
+    "op": "layer.0.ffn.in",
+    "maxAbsoluteError": 0.00014710426330566406,
+    "meanAbsoluteError": 6.888322715311787e-06,
+    "maximumIndex": 51885,
+    "actual": 2.199572801589966,
+    "expected": 2.1997199058532715
+  },
+  {
+    "op": "layer.0.ffn.out",
+    "maxAbsoluteError": 0.00012111663818359375,
+    "meanAbsoluteError": 9.72268151288206e-06,
+    "maximumIndex": 287,
+    "actual": 15.583780288696289,
+    "expected": 15.583659172058105
+  },
+  {
+    "op": "layer.0.layer.out",
+    "maxAbsoluteError": 0.00017321109771728516,
+    "meanAbsoluteError": 1.4867799534174326e-05,
+    "maximumIndex": 11069,
+    "actual": -0.3352159261703491,
+    "expected": -0.33504271507263184
+  },
+  {
+    "op": "layer.0.layer.out",
+    "maxAbsoluteError": 0.00017321109771728516,
+    "meanAbsoluteError": 1.4867799534174326e-05,
+    "maximumIndex": 11069,
+    "actual": -0.3352159261703491,
+    "expected": -0.33504271507263184
+  }
+]

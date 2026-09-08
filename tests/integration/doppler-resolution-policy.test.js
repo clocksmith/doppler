@@ -50,6 +50,7 @@ const pipeline = {
         topK: 1,
         repetitionPenalty: 1,
         repetitionPenaltyWindow: 0,
+        presencePenalty: 0,
         greedyThreshold: 0,
         suppressSpecialTokens: true,
         suppressSpecialLikeTokens: true,

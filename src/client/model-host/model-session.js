@@ -156,6 +156,7 @@ function resolveGenerationConfigEvidence(pipeline, options) {
     topP: sampling.topP,
     topK: sampling.topK,
     repetitionPenalty: sampling.repetitionPenalty,
+    presencePenalty: sampling.presencePenalty,
     repetitionPenaltyWindow: sampling.repetitionPenaltyWindow,
     greedyThreshold: sampling.greedyThreshold,
     suppressSpecialTokens: sampling.suppressSpecialTokens,

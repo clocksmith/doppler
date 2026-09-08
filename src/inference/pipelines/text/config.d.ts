@@ -173,6 +173,7 @@ export interface ParsedModelConfig {
   ropeDisabledLayers: number[];
   ropeRotaryDim: number;
   ropeLocalRotaryDim: number;
+  ropeInverseFrequencies: number[] | null;
   ropeFrequencyBaseDim: number;
   ropeLocalFrequencyBaseDim: number;
   ropeInterleaved: boolean;

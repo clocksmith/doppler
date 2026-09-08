@@ -1,3 +1,4 @@
+import { validateRoPEInverseFrequencies } from '../../../config/rope-frequencies.js';
 import { log } from '../../../debug/index.js';
 import { mergeConfig, dumpConfigSources } from '../../../config/merge.js';
 import { validateModelOverrides } from '../../../config/param-validator.js';
@@ -504,6 +505,9 @@ function toParsedConfigFromMerged(merged, manifest) {
     : null;
   const ropeRotaryDim = resolveRotaryDim(archGlobalHeadDim ?? archHeadDim, partialRotaryFactor, merged.modelId);
   const ropeLocalRotaryDim = resolveRotaryDim(archHeadDim, ropeLocalPartialRotaryFactor, merged.modelId);
+  const ropeInverseFrequencies = validateRoPEInverseFrequencies(
+    inf.rope.ropeInverseFrequencies, ropeRotaryDim, 'inference.rope.ropeInverseFrequencies'
+  );
   const ropeFrequencyBaseDim = resolveFrequencyBaseDim(
     archGlobalHeadDim ?? archHeadDim,
     ropeRotaryDim,
@@ -699,6 +703,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     ropeLocalTheta: inf.rope.ropeLocalTheta,
     ropeRotaryDim,
     ropeLocalRotaryDim,
+    ropeInverseFrequencies,
     ropeFrequencyBaseDim,
     ropeLocalFrequencyBaseDim,
     ropeInterleaved,

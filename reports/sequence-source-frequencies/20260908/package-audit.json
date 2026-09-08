@@ -1,0 +1,149 @@
+{
+  "schema": "doppler.package-delta-audit/v1",
+  "baselineRevision": "13fc9077bf90f45adbaae386ac14cb231dad0e68",
+  "baseline": {
+    "entryCount": 1783,
+    "size": 2108874,
+    "unpackedSize": 10880817
+  },
+  "candidate": {
+    "entryCount": 1787,
+    "size": 2110932,
+    "unpackedSize": 10888297
+  },
+  "added": [
+    {
+      "path": "src/config/rope-frequencies.js",
+      "size": 444,
+      "mode": 420
+    },
+    {
+      "path": "src/config/schema/manifest-rope.schema.d.ts",
+      "size": 2929,
+      "mode": 420
+    },
+    {
+      "path": "src/converter/source-rotary-frequencies.d.ts",
+      "size": 403,
+      "mode": 420
+    },
+    {
+      "path": "src/converter/source-rotary-frequencies.js",
+      "size": 1803,
+      "mode": 420
+    }
+  ],
+  "removed": [],
+  "changedSizes": [
+    {
+      "path": "src/client/model-host/model-session.d.ts",
+      "baseline": 11029,
+      "candidate": 11056
+    },
+    {
+      "path": "src/client/model-host/model-session.js",
+      "baseline": 22950,
+      "candidate": 22997
+    },
+    {
+      "path": "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
+      "baseline": 17044,
+      "candidate": 17219
+    },
+    {
+      "path": "src/config/kernels/registry.json",
+      "baseline": 297767,
+      "candidate": 297856
+    },
+    {
+      "path": "src/config/merge.js",
+      "baseline": 20412,
+      "candidate": 20873
+    },
+    {
+      "path": "src/config/model-ir.js",
+      "baseline": 6644,
+      "candidate": 6954
+    },
+    {
+      "path": "src/config/param-categories.js",
+      "baseline": 2697,
+      "candidate": 2744
+    },
+    {
+      "path": "src/config/schema/converter.schema.d.ts",
+      "baseline": 5062,
+      "candidate": 5222
+    },
+    {
+      "path": "src/config/schema/converter.schema.js",
+      "baseline": 5786,
+      "candidate": 6026
+    },
+    {
+      "path": "src/config/schema/manifest.schema.d.ts",
+      "baseline": 28949,
+      "candidate": 26285
+    },
+    {
+      "path": "src/config/schema/manifest.schema.js",
+      "baseline": 10251,
+      "candidate": 10285
+    },
+    {
+      "path": "src/converter/forge-stages.js",
+      "baseline": 37634,
+      "candidate": 37775
+    },
+    {
+      "path": "src/converter/rope-config.js",
+      "baseline": 15641,
+      "candidate": 15766
+    },
+    {
+      "path": "src/gpu/kernels/rope-precompute.js",
+      "baseline": 6045,
+      "candidate": 6869
+    },
+    {
+      "path": "src/gpu/kernels/rope_precompute.wgsl",
+      "baseline": 2598,
+      "candidate": 2812
+    },
+    {
+      "path": "src/inference/pipelines/text/config.d.ts",
+      "baseline": 10578,
+      "candidate": 10621
+    },
+    {
+      "path": "src/inference/pipelines/text/config.js",
+      "baseline": 33756,
+      "candidate": 34032
+    },
+    {
+      "path": "src/inference/pipelines/text/init-rope.js",
+      "baseline": 10823,
+      "candidate": 12342
+    },
+    {
+      "path": "src/inference/pipelines/text/init.d.ts",
+      "baseline": 11933,
+      "candidate": 11977
+    },
+    {
+      "path": "src/inference/pipelines/text/lifecycle.js",
+      "baseline": 37257,
+      "candidate": 36001
+    },
+    {
+      "path": "src/tooling/node-converter.js",
+      "baseline": 33521,
+      "candidate": 33745
+    },
+    {
+      "path": "src/tooling/node-converter/input.js",
+      "baseline": 19536,
+      "candidate": 20357
+    }
+  ]
+}

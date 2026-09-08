@@ -117,6 +117,7 @@ export interface RoPEConfig {
   localHeadDim?: number;
   rotaryDim?: number;
   ropeLocalRotaryDim?: number;
+  ropeInverseFrequencies?: number[] | null;
   ropeFrequencyBaseDim?: number | null;
   ropeLocalFrequencyBaseDim?: number | null;
   maxSeqLen: number;

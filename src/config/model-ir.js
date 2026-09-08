@@ -1,3 +1,4 @@
+import { validateRoPEInverseFrequencies } from './rope-frequencies.js';
 
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
@@ -114,6 +115,10 @@ export function validateModelIR(ir) {
       errors.push('rope must be an object or null.');
     } else {
       requirePositiveInteger(ir.rope.dimension, 'rope.dimension', errors);
+      if (ir.rope.inverseFrequencies !== undefined) {
+        try { validateRoPEInverseFrequencies(ir.rope.inverseFrequencies, ir.rope.dimension, 'rope.inverseFrequencies'); }
+        catch (error) { errors.push(error.message); }
+      }
       if (!Number.isFinite(ir.rope.baseFreq) || ir.rope.baseFreq < 1) {
         errors.push('rope.baseFreq must be a finite number greater than or equal to one.');
       }
