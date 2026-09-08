@@ -161,7 +161,7 @@ export async function runRoPEPrecompute(options) {
         frequency_offset: frequencyOffset,
       },
       dispatchPlan.workgroups,
-      { USE_INVERSE_FREQUENCIES: inverseFrequencies !== null }
+      inverseFrequencies === null ? {} : { USE_INVERSE_FREQUENCIES: true }
     );
     return { cos, sin };
   } catch (error) {

@@ -112,3 +112,9 @@ values, and cache identity includes them. ModelIR retains them in
 the schema's null value and declared theta-generated behavior. Re-convert and
 requalify an artifact to preserve source buffers that an earlier conversion
 ignored; existing signed artifacts are never rewritten during opening.
+
+The source-frequency specialization is supplied only for a non-null vector.
+Theta-generated execution leaves the shader's default path selected, allowing
+older signed shaders without that specialization to remain executable. Their
+sealed WGSL is not replaced during opening. The physical GPU regression retains
+the exact pre-change shader as its compatibility input.

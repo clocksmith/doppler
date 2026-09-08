@@ -1,0 +1,17 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+node:internal/per_context/domexception:76
+    const self = new Error();
+                 ^
+
+GPUPipelineError [DOMException]: Pipeline overridable constant ""USE_INVERSE_FREQUENCIES"" not found in [ShaderModule "rope_precompute_f32"].
+ - While validating compute stage ([ShaderModule "rope_precompute_f32"], entryPoint: "main").
+
+    at new DOMException (node:internal/per_context/domexception:76:18)
+    at new GPUPipelineError (<anonymous>:5:11)
+    at process.processImmediate (node:internal/timers:484:21) {
+  reason: 'validation'
+}
+
+Node.js v22.22.1

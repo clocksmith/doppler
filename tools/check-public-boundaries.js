@@ -62,14 +62,15 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Independent full-prompt reset adds 86 bytes in the existing decode runtime.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/prompt-reset-package-audit.json.
   // Observed npm 9 payload plus the retained 2,158-byte npm 10 allowance.
-  maxPackedSize: 2_113_090,
+  // Legacy shader compatibility: package-legacy-compatibility-audit.json beside the audit above.
+  maxPackedSize: 2_113_095,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
   // Sequence classification, public OPFS, retention, and device recovery: measured npm 9 archive.
   // GPU logits probe forwarding and failure cleanup add 192 bytes, no files.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/probe-package-audit.json.
-  maxUnpackedSize: 10_888_297,
+  maxUnpackedSize: 10_888_309,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
