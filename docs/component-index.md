@@ -7,7 +7,7 @@ Components: 30
 
 | Component | Target | Charter | Parent |
 | --- | --- | --- | --- |
-| `doppler` | Make intelligence executable as portable JavaScript model programs: source-traceable compilation, immutable Capsules, and dependable local inference that independent applications voluntarily retain. | [CATSCAN.md](../CATSCAN.md) | none |
+| `doppler` | Make intelligence executable as portable JavaScript model programs. Immediate work supports Reploid's ordered milestones through dependable public inference; durable success remains independent application adoption. | [CATSCAN.md](../CATSCAN.md) | none |
 | `doppler.benchmarks` | Produce reproducible measurements whose workload, identity, timing scope, and claim status are explicit. | [benchmarks/CATSCAN.md](../benchmarks/CATSCAN.md) | `doppler` |
 | `doppler.demo` | Give users one dependable browser surface for verified local model execution and inspectable evidence. | [demo/CATSCAN.md](../demo/CATSCAN.md) | `doppler` |
 | `doppler.docs` | Preserve navigable human contracts without competing with machine-readable status or implementation evidence. | [docs/CATSCAN.md](../docs/CATSCAN.md) | `doppler` |

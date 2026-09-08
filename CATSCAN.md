@@ -6,7 +6,7 @@ Parent: none
 
 ## Target
 
-Make intelligence executable as portable JavaScript model programs: source-traceable compilation, immutable Capsules, and dependable local inference that independent applications voluntarily retain.
+Make intelligence executable as portable JavaScript model programs. Immediate work supports Reploid's ordered milestones through dependable public inference; durable success remains independent application adoption.
 
 ## Authority
 

@@ -27,7 +27,7 @@ export function validateGenerationField(name, value, rule = GENERATION_CONTRACT.
   if (rule.type === 'array') {
     requireValue(Array.isArray(value) && (!rule.nonempty || value.length > 0), `Invalid ${name}: array required.`);
     for (const item of value) validateGenerationField(name, item, {
-      type: rule.items, minimum: rule.minimum, nonempty: rule.nonemptyItems,
+      type: rule.items, minimum: rule.minimum, maximum: rule.maximum, nonempty: rule.nonemptyItems,
     });
     return;
   }

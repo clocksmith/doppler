@@ -1,0 +1,319 @@
+function seededRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+let fallbackRandomState = (Date.now() >>> 0) || 0x6d2b79f5;
+
+function unseededRandom() {
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const values = new Uint32Array(1);
+    crypto.getRandomValues(values);
+    return values[0] / 4294967296;
+  }
+  fallbackRandomState = (fallbackRandomState + 0x6d2b79f5) >>> 0;
+  return fallbackRandomState / 4294967296;
+}
+
+
+export function applyRepetitionPenalty(logits, previousTokens, penalty, windowSize) {
+  if (penalty === 1.0) return;
+
+  const seen = new Set(previousTokens.slice(-windowSize));
+  for (const token of seen) {
+    if (token >= 0 && token < logits.length) {
+      logits[token] = logits[token] > 0
+        ? logits[token] / penalty
+        : logits[token] * penalty;
+    }
+  }
+}
+
+export function applyPresencePenalty(logits, previousTokens, penalty, windowSize) {
+  if (!penalty || penalty <= 0) return;
+
+  const slice = windowSize > 0 ? previousTokens.slice(-windowSize) : previousTokens;
+  const seen = new Set(slice);
+  for (const token of seen) {
+    if (token >= 0 && token < logits.length) {
+      logits[token] -= penalty;
+    }
+  }
+}
+
+
+export function softmax(logits) {
+  const n = logits.length;
+  let max = -Infinity;
+  for (let i = 0; i < n; i++) {
+    if (logits[i] > max) max = logits[i];
+  }
+
+  const exps = new Float32Array(n);
+  let sum = 0;
+  for (let i = 0; i < n; i++) {
+    const e = Math.exp(logits[i] - max);
+    exps[i] = e;
+    sum += e;
+  }
+
+  const invSum = sum > 0 ? 1 / sum : 0;
+  for (let i = 0; i < n; i++) {
+    exps[i] *= invSum;
+  }
+  return exps;
+}
+
+function summarizeLogitHealth(logits) {
+  const health = {
+    length: logits.length,
+    finite: 0,
+    nan: 0,
+    posInf: 0,
+    negInf: 0,
+    min: Infinity,
+    max: -Infinity,
+  };
+  for (let i = 0; i < logits.length; i++) {
+    const value = logits[i];
+    if (Number.isNaN(value)) {
+      health.nan += 1;
+      continue;
+    }
+    if (value === Infinity) {
+      health.posInf += 1;
+      continue;
+    }
+    if (value === -Infinity) {
+      health.negInf += 1;
+      continue;
+    }
+    if (Number.isFinite(value)) {
+      health.finite += 1;
+      if (value < health.min) health.min = value;
+      if (value > health.max) health.max = value;
+    }
+  }
+  if (health.finite === 0) {
+    health.min = null;
+    health.max = null;
+  }
+  return health;
+}
+
+function formatLogitHealth(health) {
+  return [
+    `len=${health.length}`,
+    `finite=${health.finite}`,
+    `nan=${health.nan}`,
+    `posInf=${health.posInf}`,
+    `negInf=${health.negInf}`,
+    `min=${health.min === null ? 'n/a' : Number(health.min).toPrecision(6)}`,
+    `max=${health.max === null ? 'n/a' : Number(health.max).toPrecision(6)}`,
+  ].join(',');
+}
+
+function assertFiniteSamplingCandidates(logits, label, beforeMaskHealth) {
+  const afterMaskHealth = summarizeLogitHealth(logits);
+  if (afterMaskHealth.finite > 0) {
+    return;
+  }
+  throw new Error(
+    `[Sampling] ${label} has no finite candidate logits after masking suppressed tokens. ` +
+    'Upstream decode likely produced NaN/Inf or an all-masked distribution. ' +
+    `beforeMask={${formatLogitHealth(beforeMaskHealth || afterMaskHealth)}} ` +
+    `afterMask={${formatLogitHealth(afterMaskHealth)}}`
+  );
+}
+
+function isHigherPriorityCandidate(candidate, current) {
+  return candidate.logit > current.logit
+    || (candidate.logit === current.logit && candidate.token < current.token);
+}
+
+function isLowerPriorityCandidate(candidate, current) {
+  return candidate.logit < current.logit
+    || (candidate.logit === current.logit && candidate.token > current.token);
+}
+
+function heapSwap(heap, a, b) {
+  const tmp = heap[a];
+  heap[a] = heap[b];
+  heap[b] = tmp;
+}
+
+function heapPushLowestFirst(heap, candidate) {
+  heap.push(candidate);
+  let index = heap.length - 1;
+  while (index > 0) {
+    const parent = Math.floor((index - 1) / 2);
+    if (!isLowerPriorityCandidate(heap[index], heap[parent])) {
+      break;
+    }
+    heapSwap(heap, index, parent);
+    index = parent;
+  }
+}
+
+function heapifyLowestFirst(heap, index) {
+  while (true) {
+    const left = index * 2 + 1;
+    const right = left + 1;
+    let smallest = index;
+    if (left < heap.length && isLowerPriorityCandidate(heap[left], heap[smallest])) {
+      smallest = left;
+    }
+    if (right < heap.length && isLowerPriorityCandidate(heap[right], heap[smallest])) {
+      smallest = right;
+    }
+    if (smallest === index) {
+      return;
+    }
+    heapSwap(heap, index, smallest);
+    index = smallest;
+  }
+}
+
+function selectTopKLogitCandidates(logits, topK) {
+  const limit = Math.max(1, Math.floor(topK));
+  if (!Number.isFinite(limit) || limit >= logits.length) {
+    return null;
+  }
+
+  const heap = [];
+  for (let token = 0; token < logits.length; token++) {
+    const logit = logits[token];
+    if (!Number.isFinite(logit)) {
+      continue;
+    }
+    const candidate = { token, logit };
+    if (heap.length < limit) {
+      heapPushLowestFirst(heap, candidate);
+      continue;
+    }
+    if (isHigherPriorityCandidate(candidate, heap[0])) {
+      heap[0] = candidate;
+      heapifyLowestFirst(heap, 0);
+    }
+  }
+  if (heap.length === 0) {
+    return [];
+  }
+  return heap.sort((a, b) => b.logit - a.logit || a.token - b.token);
+}
+
+function sampleFromLogitCandidates(candidates, temperature, seed, topP, onCandidates) {
+  if (candidates.length === 0) {
+    throw new Error(
+      '[Sampling] Top-k filtering produced no finite candidates. ' +
+      'Upstream decode likely produced NaN/Inf logits.'
+    );
+  }
+  if (candidates.length === 1) {
+    return candidates[0].token;
+  }
+
+  const invTemperature = 1 / temperature;
+  let maxScaled = -Infinity;
+  for (const candidate of candidates) {
+    const scaled = candidate.logit * invTemperature;
+    candidate.scaled = scaled;
+    if (scaled > maxScaled) {
+      maxScaled = scaled;
+    }
+  }
+
+  let sum = 0;
+  for (const candidate of candidates) {
+    const weight = Math.exp(candidate.scaled - maxScaled);
+    candidate.prob = weight;
+    sum += weight;
+  }
+
+  if (sum > 0) {
+    const invSum = 1 / sum;
+    for (const candidate of candidates) {
+      candidate.prob *= invSum;
+    }
+  } else {
+    const uniformProb = 1.0 / candidates.length;
+    for (const candidate of candidates) {
+      candidate.prob = uniformProb;
+    }
+  }
+
+  // Normalize the retained top-k distribution before nucleus selection.
+  if (topP < 1) {
+    let cumulative = 0;
+    candidates = candidates.filter(candidate => {
+      if (cumulative >= topP) return false;
+      cumulative += candidate.prob;
+      return true;
+    });
+    const retained = candidates.reduce((total, candidate) => total + candidate.prob, 0);
+    for (const candidate of candidates) candidate.prob /= retained;
+  }
+
+  onCandidates?.(candidates);
+
+  const r = seed !== undefined ? seededRandom(seed) : unseededRandom();
+  let cumProb = 0;
+  for (const candidate of candidates) {
+    cumProb += candidate.prob;
+    if (r < cumProb) return candidate.token;
+  }
+  return candidates[candidates.length - 1].token;
+}
+
+
+export function sample(logits, opts) {
+  const { temperature, topP, topK, padTokenId, seed, suppressTokenIds, onCandidates } = opts;
+  const beforeMaskHealth = summarizeLogitHealth(logits);
+
+  if (Number.isInteger(padTokenId) && padTokenId >= 0 && padTokenId < logits.length) {
+    logits[padTokenId] = -Infinity;
+  }
+  if (Array.isArray(suppressTokenIds)) {
+    for (const tokenId of suppressTokenIds) {
+      if (Number.isInteger(tokenId) && tokenId >= 0 && tokenId < logits.length) {
+        logits[tokenId] = -Infinity;
+      }
+    }
+  }
+
+  assertFiniteSamplingCandidates(logits, 'Logits', beforeMaskHealth);
+
+  // Greedy (argmax) when temperature = 0
+  if (temperature === 0) {
+    let maxIdx = -1;
+    let maxVal = -Infinity;
+    for (let i = 0; i < logits.length; i++) {
+      const value = logits[i];
+      if (!Number.isFinite(value)) {
+        continue;
+      }
+      if (value > maxVal) {
+        maxVal = value;
+        maxIdx = i;
+      }
+    }
+    if (maxIdx < 0) {
+      throw new Error(
+        '[Sampling] Greedy sampling could not find a finite candidate logit. ' +
+        'Upstream decode likely produced NaN/Inf.'
+      );
+    }
+    onCandidates?.([{ token: maxIdx, logit: maxVal, prob: 1 }]);
+    return maxIdx;
+  }
+
+  let candidates = topK > 0 ? selectTopKLogitCandidates(logits, topK) : null;
+  if (candidates === null) {
+    candidates = [];
+    for (let token = 0; token < logits.length; token++) {
+      if (Number.isFinite(logits[token])) candidates.push({ token, logit: logits[token] });
+    }
+    candidates.sort((a, b) => b.logit - a.logit || a.token - b.token);
+  }
+  return sampleFromLogitCandidates(candidates, temperature, seed, topP, onCandidates);
+}

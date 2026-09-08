@@ -13,6 +13,7 @@ import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
 import { getKernelThresholds } from '../../config/schema/index.js';
 import { recordDispatch } from './dispatch.js';
+import { validateGenerationField } from '../../config/generation-contract.js';
 
 
 function getSampleBindGroupLayout(device) {
@@ -74,6 +75,7 @@ function assertArgmaxOptions(options, recordMode = false) {
 
 function assertSampleOptions(options, recordMode = false) {
   const suffix = recordMode ? ' (record)' : '';
+  for (const key of ['temperature', 'topK', 'topP']) validateGenerationField(key, options[key]);
   if (options.temperature == null) {
     throw new Error(`[Sample] temperature is required for sampling${suffix}.`);
   }
@@ -138,7 +140,7 @@ function createArgmaxUniformBuffer(device, recorder, vocabSize, options) {
   );
 }
 
-function createSampleUniformBuffer(device, recorder, vocabSize, topK, temperature, randomValue, padTokenId, logitSoftcap, outputIndex) {
+function createSampleUniformBuffer(device, recorder, vocabSize, topK, temperature, randomValue, padTokenId, logitSoftcap, outputIndex, topP) {
   return createUniformBufferWithView(
     'sample_uniforms',
     32,
@@ -150,6 +152,7 @@ function createSampleUniformBuffer(device, recorder, vocabSize, topK, temperatur
       view.setUint32(16, padTokenId == null ? 0xFFFFFFFF : padTokenId, true);
       view.setFloat32(20, logitSoftcap, true);
       view.setUint32(24, outputIndex, true);
+      view.setFloat32(28, topP, true);
     },
     recorder,
     device
@@ -163,7 +166,17 @@ function ensureOutputBufferSize(outputBuffer, minBytes, label) {
 }
 
 async function readTokenFromOutput(outputBuffer, outputIndex) {
-  return new Uint32Array(await readBufferSlice(outputBuffer, outputIndex * 4, 4))[0];
+  const token = new Uint32Array(await readBufferSlice(outputBuffer, outputIndex * 4, 4))[0];
+  if (token === 0xFFFFFFFF) throw new Error('[Sampling] No finite candidate logits.');
+  return token;
+}
+
+function resolveSampleGeometry(vocabSize, requestedTopK) {
+  if (!Number.isSafeInteger(vocabSize) || vocabSize < 1) throw new Error('[Sample] Positive vocabSize required.');
+  const topK = requestedTopK === 0 ? vocabSize : Math.min(requestedTopK, vocabSize);
+  const numWorkgroups = Math.max(1, Math.min(WORKGROUP_SIZES.DEFAULT,
+    Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT), Math.floor(vocabSize / topK)));
+  return { topK, numWorkgroups, scratchBytes: (numWorkgroups + 1) * topK * Uint32Array.BYTES_PER_ELEMENT };
 }
 
 function cleanupRunResources(uniformBuffer, ownedBuffers) {
@@ -357,7 +370,8 @@ export async function runGPUSample(
 
   const {
     temperature,
-    topK,
+    topK: requestedTopK,
+    topP,
     randomSeed,
     padTokenId,
     logitSoftcap,
@@ -367,7 +381,8 @@ export async function runGPUSample(
   } = options;
   const logitsDtype = resolveLogitsDtype(options.logitsDtype);
 
-  if (temperature < greedyThreshold || topK <= 1) {
+  const { topK, numWorkgroups, scratchBytes } = resolveSampleGeometry(vocabSize, requestedTopK);
+  if (temperature < greedyThreshold || topK === 1) {
     return runArgmax(logits, vocabSize, {
       padTokenId,
       logitSoftcap,
@@ -389,16 +404,14 @@ export async function runGPUSample(
   const phase2Pipeline = await createSamplePipeline(device, variants.phase2);
   const phase3Pipeline = await createSamplePipeline(device, variants.phase3);
 
-  const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
-
   let topkLogits = null;
   let topkIndices = null;
   let outputBuffer = null;
   let ownsOutputBuffer = false;
   let uniformBuffer = null;
   try {
-    topkLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_logits');
-    topkIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_indices');
+    topkLogits = acquireBuffer(scratchBytes, undefined, 'topk_logits');
+    topkIndices = acquireBuffer(scratchBytes, undefined, 'topk_indices');
     const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
     outputBuffer = outputBufferOverride ?? acquireBuffer(minOutputBytes, undefined, 'sample_output');
     ownsOutputBuffer = !outputBufferOverride;
@@ -413,7 +426,8 @@ export async function runGPUSample(
       randomValue,
       padTokenId,
       logitSoftcap,
-      outputIndex
+      outputIndex,
+      topP
     );
 
     const bindGroupLayout = getSampleBindGroupLayout(device);
@@ -480,7 +494,8 @@ export async function recordGPUSample(
 
   const {
     temperature,
-    topK,
+    topK: requestedTopK,
+    topP,
     randomSeed,
     padTokenId,
     logitSoftcap,
@@ -490,7 +505,8 @@ export async function recordGPUSample(
   } = options;
   const logitsDtype = resolveLogitsDtype(options.logitsDtype);
 
-  if (temperature < greedyThreshold || topK <= 1) {
+  const { topK, numWorkgroups, scratchBytes } = resolveSampleGeometry(vocabSize, requestedTopK);
+  if (temperature < greedyThreshold || topK === 1) {
     return recordArgmax(recorder, logits, vocabSize, {
       padTokenId,
       logitSoftcap,
@@ -511,16 +527,14 @@ export async function recordGPUSample(
   const phase2Pipeline = await createSamplePipeline(device, variants.phase2);
   const phase3Pipeline = await createSamplePipeline(device, variants.phase3);
 
-  const numWorkgroups = Math.min(WORKGROUP_SIZES.DEFAULT, Math.ceil(vocabSize / WORKGROUP_SIZES.DEFAULT));
-
   let topkLogits = null;
   let topkIndices = null;
   let outputBuffer = null;
   let ownsOutputBuffer = false;
   let completed = false;
   try {
-    topkLogits = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_logits');
-    topkIndices = acquireBuffer(WORKGROUP_SIZES.DEFAULT * 4, undefined, 'topk_indices');
+    topkLogits = acquireBuffer(scratchBytes, undefined, 'topk_logits');
+    topkIndices = acquireBuffer(scratchBytes, undefined, 'topk_indices');
     const minOutputBytes = Math.max(4, (outputIndex + 1) * 4);
     outputBuffer = outputBufferOverride ?? acquireBuffer(minOutputBytes, undefined, 'sample_output');
     ownsOutputBuffer = !outputBufferOverride;
@@ -535,7 +549,8 @@ export async function recordGPUSample(
       randomValue,
       padTokenId,
       logitSoftcap,
-      outputIndex
+      outputIndex,
+      topP
     );
 
     const bindGroupLayout = getSampleBindGroupLayout(device);

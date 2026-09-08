@@ -721,6 +721,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
           await recordGPUSample(recorder, logitsBuffer, vocabSize, {
             temperature: opts.temperature,
             topK: opts.topK,
+            topP: opts.topP,
             padTokenId,
             logitSoftcap,
             logitsDtype,
@@ -844,6 +845,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     getUniformCache().flushPendingDestruction();
 
     const tokens = readback.tokens;
+    if (tokens.includes(0xFFFFFFFF)) throw new Error('[Sampling] No finite candidate logits.');
     const stopFlags = readback.stopFlags;
 
     if (stopFlags) {

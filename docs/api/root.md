@@ -142,6 +142,43 @@ including prompt tokens, output limit, sampling tuple, stop policy, and abort
 signal. It cannot change graph topology, precision, fusion, kernel selection,
 KV layout, or memory strategy.
 
+## Generation request and completion contract
+
+`doppler-gpu/generation-contract` exports the validation-only public contract:
+`GENERATION_CONTRACT`, `validateGenerationInput`, `resolveGenerationOptions`,
+and `GenerationError`. Its JSON definition owns accepted fields, ranges,
+defaults, stopping reasons and error codes; declarations are generated from it.
+It imports neither an engine nor storage. Consumers can bundle this public
+entrypoint and check it against `session.generationContract` before execution.
+
+`executeOperation()` generation input is exactly one of `{ prompt }` or
+`{ promptTokens }`. Supply explicit token and sequence budgets, temperature,
+top-k, top-p, repetition penalty/window, and chat-template policy. Stochastic
+requests require a nonnegative seed. Presence penalty defaults to zero;
+suppression and stop-sequence lists default to empty in the canonical contract.
+A zero repetition window includes the whole context, and top-k zero retains
+all finite candidates. Apply repetition then presence penalty once per distinct
+token in the window; normalize top-k before retaining the top-p prefix.
+
+Completed generation returns raw `text`, `tokenIds`, resolved `sampling`, and
+`completion` with prompt/output token counts and the actual `stopReason`:
+`max-tokens`, `eos-token`, `stop-token`, or `stop-sequence`. `generateText()` also
+returns `modelId`; operation receipts bind the model identity and complete
+output. Streaming iterators return completion metadata when exhausted. Cancelled
+or expired operations throw `DOPPLER_GENERATION_ABORTED` or
+`DOPPLER_GENERATION_DEADLINE` and do not issue successful completion receipts.
+Cancellation cannot preempt GPU commands already submitted.
+
+Migration: unknown/invalid generation settings now fail with
+`DOPPLER_GENERATION_INVALID_REQUEST`; applications must consume the supported
+contract rather than copy option lists. Shared CPU filtering replaces the
+legacy pipeline's differing top-p order. GPU sampling now retains exact top-k
+across partitions and applies top-p; F16 input storage uses declared F32
+candidate/probability accumulation. Shader changes require new identity-bound
+qualification, not relabeling old Capsule pins. Operator parity and injected
+public-API tests alone do not qualify a model or answer. Doppler performs no
+citation formatting, semantic review, passage selection, or application replay.
+
 ## Text embeddings
 
 `session.embed()` is a Capsule-backed text operation, distinct from protein

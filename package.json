@@ -107,7 +107,7 @@
     "catscan:sync": "node tools/sync-catscan-index.js",
     "catscan:check": "node tools/sync-catscan-index.js --check",
     "conflicts:check": "node tools/check-merge-markers.js",
-    "config:single-source:check": "node tools/check-config-single-source.js",
+    "config:single-source:check": "node tools/check-config-single-source.js && node tools/sync-generation-contract.js --check",
     "rules:bundle:sync": "node tools/sync-rule-bundle.js",
     "rules:bundle:check": "node tools/sync-rule-bundle.js --check",
     "evidence:workflows:check": "node tools/check-evidence-workflow-ownership.js",

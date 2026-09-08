@@ -1,5 +1,5 @@
 import { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validateGenerationInput } from '../../config/generation-contract.js';
-import { applyRepetitionPenalty, applyPresencePenalty, sample } from '../../inference/pipelines/text/sampling.js';
+import { applyRepetitionPenalty, applyPresencePenalty, sample } from '../../inference/token-sampling.js';
 
 export const requireGenerationOptions = resolveGenerationOptions;
 

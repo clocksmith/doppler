@@ -685,27 +685,27 @@
       "reason": "This symbol records or decodes bounded diagnostic evidence and cannot feed modified tensor values back into execution."
     },
     {
-      "id": "src/inference/pipelines/text/sampling.js#applyRepetitionPenalty",
+      "id": "src/inference/token-sampling.js#applyRepetitionPenalty",
       "category": "scalar-control",
       "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
     },
     {
-      "id": "src/inference/pipelines/text/sampling.js#applyPresencePenalty",
+      "id": "src/inference/token-sampling.js#applyPresencePenalty",
       "category": "scalar-control",
       "reason": "Applies the declared once-per-seen-token sampling penalty after logits readback; never uploads modified tensor values."
     },
     {
-      "id": "src/inference/pipelines/text/sampling.js#softmax",
+      "id": "src/inference/token-sampling.js#softmax",
       "category": "scalar-control",
       "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
     },
     {
-      "id": "src/inference/pipelines/text/sampling.js#selectTopKLogitCandidates",
+      "id": "src/inference/token-sampling.js#selectTopKLogitCandidates",
       "category": "scalar-control",
       "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
     },
     {
-      "id": "src/inference/pipelines/text/sampling.js#sample",
+      "id": "src/inference/token-sampling.js#sample",
       "category": "scalar-control",
       "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
     },

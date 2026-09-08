@@ -1721,6 +1721,7 @@ const testHarness = {
     const tokenId = await sampleKernel.runGPUSample(logitsBuf, logits.length, {
       temperature,
       topK,
+      topP: 1,
       randomSeed: randomValue * 10000, // Convert to seed
       logitsDtype: 'f32',
       padTokenId: null,

@@ -14,6 +14,29 @@ changes signed model behavior.
 
 ## Goal 1: Earn standalone executable-model adoption
 
+### Immediate mandate: support Reploid's ordered milestones
+
+The September 8 operating priority is dependable public inference for Reploid's
+five milestones. Reploid drives application acceptance; Doppler remains a
+reusable engine. First close request/settings/completion propagation and support
+qualification of grounded answers. Then support the same frozen model/adapter
+through verified acquisition, approved execution, durable completed-result
+replay, ownership reversal, privacy checks, and multi-machine acquisition.
+History-based scheduling and distributed model execution remain disabled during
+these milestones. Startup reliability and adapter usefulness require separate
+experiments; none substitutes for answer quality or a connected physical journey.
+
+Reploid owns prompts, passage selection, citations, semantic review, consent,
+network transfer, attempts, persistence, and replay. Doppler owns model/adapter
+verification and inference, honoring explicit injected restrictions. Every
+current change must remove an application limitation or improve inference
+reliability. Installed hashes, paired revisions, and model identities bind the
+evidence; reports about earlier revisions do not certify later bytes. This
+priority does not convert sibling integration into independent adoption or
+change the standalone completion matrix below.
+
+### Retained independent adoption objective
+
 Start with the maintained Electron reranker application using
 `qwen-3-reranker-0-6b-q4k-ehf16-af32`. Preserve application logic and its frozen
 correctness oracle. An unrelated maintainer must install the distributable

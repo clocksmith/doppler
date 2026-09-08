@@ -198,6 +198,7 @@ export async function readSampledTokenFromStagingBuffer(stagingBuffer, options =
     cleanupCompleted = true;
     const copyStart = performance.now();
     const mappedWords = new Uint32Array(stagingBuffer.getMappedRange());
+    if (mappedWords[0] === 0xFFFFFFFF) throw new Error('[Sampling] No finite candidate logits.');
     const result = {
       nextToken: mappedWords[0],
       finitenessStatus: hasFinitenessBuffer
@@ -532,7 +533,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
   const useFusedDecode = shouldUseFusedDecodeSampling({
     recorderEnabled: Boolean(recorder),
     gpuSamplingEnabled: useGPUSampling,
-    fusedDecodeDisabled: state.disableFusedDecode,
+    fusedDecodeDisabled: state.disableFusedDecode || opts.suppressTokenIds.length > 0 || typeof opts.logitMaskFn === 'function',
     layerTypes: config.layerTypes,
   });
 
@@ -573,6 +574,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
       : await recordGPUSample(recorder, logitsBuffer, vocabSize, {
         temperature: opts.temperature,
         topK: opts.topK,
+        topP: opts.topP,
         padTokenId,
         logitSoftcap,
         logitsDtype,

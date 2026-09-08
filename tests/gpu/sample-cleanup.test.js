@@ -254,6 +254,7 @@ function resetRuntimeState(device) {
     () => runGPUSample(logits, 32, {
       temperature: 1,
       topK: 4,
+      topP: 1,
       greedyThreshold: 0.1,
       randomSeed: 123,
       padTokenId: null,
@@ -305,6 +306,7 @@ function resetRuntimeState(device) {
     () => runGPUSample(logits, 32, {
       temperature: 1,
       topK: 4,
+      topP: 1,
       greedyThreshold: 0.1,
       randomSeed: 123,
       padTokenId: null,
@@ -357,6 +359,7 @@ function resetRuntimeState(device) {
     () => recordGPUSample(recorder, logits, 32, {
       temperature: 1,
       topK: 4,
+      topP: 1,
       greedyThreshold: 0.1,
       randomSeed: 123,
       padTokenId: null,
