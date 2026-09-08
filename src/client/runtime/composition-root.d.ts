@@ -5,7 +5,8 @@ import type { CapsuleReleaseEvent, CapsuleReleasePolicy, ReleaseCheckpoint } fro
 import type { TargetPlan, TargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import type { DeviceProfile } from './target-selector.js';
-import type { GenerationRunOptions } from './session-controller.js';
+import type { GenerationRunOptions, GenerationResult } from './session-controller.js';
+import type { GenerationOutput } from '../../config/generation-contract.js';
 import type { CapsuleRerankReceipt, CapsuleRerankRequest } from './capsule-rerank.js';
 import type { CapsuleOperationRequest } from '../../config/capsule-operation.js';
 import type { CapsuleOperationEvent } from './capsule-operation-executor.js';
@@ -54,8 +55,8 @@ export interface DopplerRuntimeSession {
   observedInitialExecutionIdentity: InitialExecutionIdentity | null;
   deviceProfile: DeviceProfile;
   verification: Awaited<ReturnType<typeof verifyCapsule>>;
-  generate(options: GenerationRunOptions): AsyncGenerator<number, void, void>;
-  generateText(options: GenerationRunOptions): Promise<{ text: string; tokenIds: number[] }>;
+  generate(options: GenerationRunOptions): AsyncGenerator<number, GenerationResult, void>;
+  generateText(options: GenerationRunOptions): Promise<GenerationOutput & { modelId: string }>;
   rerank(request: CapsuleRerankRequest): Promise<CapsuleRerankReceipt>;
   forecast(request: CapsuleForecastRequest): Promise<CapsuleForecastResult>;
   embed(request: CapsuleEmbeddingRequest): Promise<CapsuleEmbeddingResult>;

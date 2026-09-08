@@ -29,13 +29,15 @@ export interface LogitStats {
 export function applyRepetitionPenalty(
   logits: Float32Array,
   previousTokens: number[],
-  penalty: number
+  penalty: number,
+  windowSize?: number
 ): void;
 
 export function applyPresencePenalty(
   logits: Float32Array,
   previousTokens: number[],
-  penalty: number
+  penalty: number,
+  windowSize?: number
 ): void;
 
 export function softmax(logits: Float32Array): Float32Array;

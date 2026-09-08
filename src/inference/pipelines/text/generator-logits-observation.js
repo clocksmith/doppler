@@ -40,9 +40,9 @@ export async function captureObservedFusedDecodeLogits(
   );
   releaseBuffer(finalized.buffer);
   const observedLogits = new Float32Array(logitsData);
-  applyRepetitionPenalty(observedLogits, currentIds, opts.repetitionPenalty);
+  applyRepetitionPenalty(observedLogits, currentIds, opts.repetitionPenalty, opts.repetitionPenaltyWindow);
   if (opts.presencePenalty) {
-    applyPresencePenalty(observedLogits, currentIds, opts.presencePenalty);
+    applyPresencePenalty(observedLogits, currentIds, opts.presencePenalty, opts.repetitionPenaltyWindow);
   }
   return emitObservedLogits(opts.onLogits, observedLogits, tokenId, currentIds);
 }

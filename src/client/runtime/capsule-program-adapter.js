@@ -11,10 +11,12 @@ function arraysEqual(left, right) {
 function toPipelineOptions(options, signal) {
   return {
     maxTokens: options.maxTokens,
+    maxSeqLen: options.maxSeqLen,
     temperature: options.temperature,
     topP: options.topP,
     topK: options.topK,
     repetitionPenalty: options.repetitionPenalty,
+    presencePenalty: options.presencePenalty,
     repetitionPenaltyWindow: options.repetitionPenaltyWindow,
     ...(Number.isFinite(options.seed) ? { seed: options.seed } : {}),
     suppressSpecialTokens: options.suppressSpecialTokens,

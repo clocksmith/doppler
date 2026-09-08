@@ -243,7 +243,7 @@ export function createDopplerRuntime(ports) {
             await assertPlanUnchanged();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'generate');
             try {
-              yield* sessionController.generateTokens(selectedPlan, { ...generationOptions, modules });
+              return yield* sessionController.generateTokens(selectedPlan, { ...generationOptions, modules });
             } finally {
               await assertPlanUnchanged();
             }
@@ -251,8 +251,14 @@ export function createDopplerRuntime(ports) {
 
           async generateText(generationOptions = {}) {
             const tokens = [];
-            for await (const tokenId of this.generate(generationOptions)) tokens.push(tokenId);
-            return { text: program.decodeTokens(tokens), tokenIds: tokens };
+            const iterator = this.generate(generationOptions);
+            try {
+              while (true) {
+                const step = await iterator.next();
+                if (step.done) return { text: program.decodeTokens(tokens), tokenIds: tokens, modelId: capsule.modelId, ...step.value };
+                tokens.push(step.value);
+              }
+            } finally { await iterator.return?.(); }
           },
 
           async rerank(request) {
@@ -310,7 +316,7 @@ export function createDopplerRuntime(ports) {
         emit(observer, { type: 'capsule-load-complete', capsuleId: capsule.capsuleId, artifactMetrics: verifiedStore.getMetrics() });
         const executeOperation = createCapsuleOperationExecutor({ adapters,
             prepareExecution: createCapsuleAdapterExecution({ program, capsule: { ...verification.identity, modelId: capsule.modelId }, targetPlan: selectedPlan }),
-            identity: { capsule: verification.identity, targetId: selectedPlan.targetId, targetPlanDigest,
+            identity: { capsule: verification.identity, modelId: capsule.modelId, targetId: selectedPlan.targetId, targetPlanDigest,
               artifactReceipts: verification.artifactReceipts, releaseEventDigest: verification.lifecycle?.event.digest ?? null,
               ...releaseAuthorization.receiptFields },
             async assertCurrent(request) {
@@ -322,7 +328,7 @@ export function createDopplerRuntime(ports) {
         return Object.assign(session, {
           generate: (options = {}) => execution.stream(async function* (signal) {
             requireBaseProgram();
-            yield* local.generate({ ...options, signal });
+            return yield* local.generate({ ...options, signal });
           }, options.signal),
           generateText: async (options = {}) => runLocal(signal => local.generateText({ ...options, signal }), options.signal),
           forecast: async request => runLocal(signal => local.forecast({ ...request, signal }), request?.signal),

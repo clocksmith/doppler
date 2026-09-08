@@ -1,4 +1,5 @@
 export { DOPPLER_VERSION } from './version.js';
+export { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validateGenerationInput } from './config/generation-contract.js';
 export { createDopplerRuntime, createForecastProgramFactory, RUNTIME_CORE_VERSION } from './client/runtime/composition-root.js';
 export { createFetchCapsuleArtifactStore } from './client/runtime/fetch-capsule-artifact-store.js';
 

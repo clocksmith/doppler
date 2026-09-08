@@ -137,6 +137,8 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     opts.topP = samplingConfig.topP;
     opts.topK = samplingConfig.topK;
     opts.repetitionPenalty = samplingConfig.repetitionPenalty;
+    opts.presencePenalty = samplingConfig.presencePenalty;
+    opts.repetitionPenaltyWindow = samplingConfig.repetitionPenaltyWindow;
     opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this._state, samplingConfig);
     const diagnosticsEnabled = options?.diagnostics?.enabled === true
       || this._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
@@ -374,6 +376,8 @@ export async function generateTokenIds(prompt, options = {}) {
     opts.topP = samplingConfig.topP;
     opts.topK = samplingConfig.topK;
     opts.repetitionPenalty = samplingConfig.repetitionPenalty;
+    opts.presencePenalty = samplingConfig.presencePenalty;
+    opts.repetitionPenaltyWindow = samplingConfig.repetitionPenaltyWindow;
     opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this._state, samplingConfig);
     const diagnosticsEnabled = options?.diagnostics?.enabled === true
       || this._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';

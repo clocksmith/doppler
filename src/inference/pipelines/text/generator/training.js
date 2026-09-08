@@ -705,7 +705,7 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}) {
       const prefillLogits = await this._prefill(inputIds, opts);
       this._state.stats.prefillTimeMs = performance.now() - prefillStart;
 
-      applyRepetitionPenalty(prefillLogits, generatedIds, opts.repetitionPenalty);
+      applyRepetitionPenalty(prefillLogits, generatedIds, opts.repetitionPenalty, opts.repetitionPenaltyWindow);
       const padTokenId = this._state.tokenizer?.getSpecialTokens?.()?.pad;
       const firstToken = sample(prefillLogits, {
         temperature: opts.temperature,

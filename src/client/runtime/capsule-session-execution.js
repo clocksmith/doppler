@@ -56,12 +56,15 @@ export function createCapsuleSessionExecution() {
         lease.stop = () => output.return();
         try {
           controller.signal.throwIfAborted();
-          for await (const value of source) {
+          while (true) {
+            const step = await source.next();
             controller.signal.throwIfAborted();
-            yield value;
+            if (step.done) return step.value;
+            yield step.value;
           }
-          controller.signal.throwIfAborted();
-        } finally { lease.release(); }
+        } finally {
+          try { await source.return?.(); } finally { lease.release(); }
+        }
       })();
       return output;
     },
