@@ -45,6 +45,7 @@ export const DEFAULT_RUNTIME_CONFIG = {
       topP: 0.95,
       topK: 50,
       repetitionPenalty: 1.1,
+      presencePenalty: 0.0,
       greedyThreshold: 0.01,
       repetitionPenaltyWindow: 100,
       suppressSpecialTokens: false,

@@ -1,7 +1,7 @@
 import { readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../../gpu/tensor.js';
 import { runFinalizeLogitsTensor } from '../../../gpu/kernels/logit-finalize.js';
-import { applyRepetitionPenalty } from './sampling.js';
+import { applyRepetitionPenalty, applyPresencePenalty } from './sampling.js';
 
 export function emitObservedLogits(onLogits, logits, tokenId, currentIds) {
   if (typeof onLogits !== 'function') return false;
@@ -41,5 +41,8 @@ export async function captureObservedFusedDecodeLogits(
   releaseBuffer(finalized.buffer);
   const observedLogits = new Float32Array(logitsData);
   applyRepetitionPenalty(observedLogits, currentIds, opts.repetitionPenalty);
+  if (opts.presencePenalty) {
+    applyPresencePenalty(observedLogits, currentIds, opts.presencePenalty);
+  }
   return emitObservedLogits(opts.onLogits, observedLogits, tokenId, currentIds);
 }

@@ -28,7 +28,7 @@ import { validateCallTimeOptions } from '../../../config/param-validator.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 
 // Pipeline sub-modules
-import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
+import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity, getTopK } from './sampling.js';
 import { createKVCache, isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
@@ -360,6 +360,9 @@ export class PipelineGenerator {
   _sampleNextTokenFromLogits(logits, generatedIds, opts) {
     const sampledLogits = Float32Array.from(logits);
     applyRepetitionPenalty(sampledLogits, generatedIds, opts.repetitionPenalty);
+    if (opts.presencePenalty) {
+      applyPresencePenalty(sampledLogits, generatedIds, opts.presencePenalty);
+    }
     // Optional pre-sample logit mask. Callers pass `opts.logitMaskFn` to
     // implement grammar/schema-constrained decoding. The hook receives the
     // mutable logit buffer (after repetition penalty) plus the running token

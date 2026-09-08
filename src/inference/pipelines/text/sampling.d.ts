@@ -32,6 +32,12 @@ export function applyRepetitionPenalty(
   penalty: number
 ): void;
 
+export function applyPresencePenalty(
+  logits: Float32Array,
+  previousTokens: number[],
+  penalty: number
+): void;
+
 export function softmax(logits: Float32Array): Float32Array;
 
 export function sample(logits: Float32Array, opts: SamplingOptions): number;
