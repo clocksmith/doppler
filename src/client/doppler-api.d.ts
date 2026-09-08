@@ -123,3 +123,5 @@ export type {
   DopplerSignedRevocationEnvelope,
   DopplerSignedRevocationStatus,
 } from '../config/revocation-updates.js';
+export { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validateGenerationInput } from '../config/generation-contract.js';
+export type { GenerationOptions, GenerationInput, GenerationOutput, GenerationCompletion, ResolvedGenerationOptions } from '../config/generation-contract.js';

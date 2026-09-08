@@ -626,6 +626,7 @@ inference/pipelines/vision/patch-embed.d.ts
 inference/pipelines/vision/spatial-merge.d.ts
 inference/pipelines/vision/weight-loading.d.ts
 inference/rerank.d.ts
+inference/token-sampling.d.ts
 inference/tokenizers/base.d.ts
 inference/tokenizers/behavior-flags.d.ts
 inference/tokenizers/bpe.d.ts

@@ -1,5 +1,5 @@
 export { DOPPLER_VERSION } from './version.js';
-export { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validateGenerationInput } from './config/generation-contract.js';
+export { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validateGenerationInput } from './client/doppler-api.js';
 export {
   doppler,
   doppler as dr,

@@ -17,6 +17,7 @@ export interface ArgmaxOptions {
 export interface SampleOptions extends ArgmaxOptions {
   temperature: number;
   topK: number;
+  topP: number;
   randomSeed?: number;
   greedyThreshold: number;
 }

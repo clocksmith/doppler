@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.generation-contract-package-audit/v1",
+  "sourceHead": "13fc9077bf90f45adbaae386ac14cb231dad0e68",
+  "workingTree": "source changes present; installed file hashes bind tested bytes, not HEAD alone",
+  "node": "v22.22.1",
+  "npm": "9.2.0",
+  "package": {
+    "filename": "doppler-gpu-0.6.0.tgz",
+    "entryCount": 1784,
+    "packedBytes": 2110106,
+    "unpackedBytes": 10883449,
+    "integrity": "sha512-DIzDtAPHhOkyvPBXPbYUvOSqZe/wzstEW+E1FDB6MapwH8ZmZlcLXP7jjEUx7/X+xyrwocMVtO/1GccC2J+pZw==",
+    "sha256": "048943cb38a0b959cc9ed83cba9de4feed75a68e701a577e5742dab678e11cb9"
+  },
+  "runtimeClosureSha256": "b1429a75bd31d3f34a98770bf2e141ace66732cbc0d2f37b53d7a5452734d5bd",
+  "canonicalContractSha256": "6ae777e7e03acabe419ea70318023b42d991810b550ceb33399fdaaa5f1f1048",
+  "limits": {
+    "maxEntryCount": 1784,
+    "maxPackedSize": 2112264,
+    "maxUnpackedSize": 10883449,
+    "crossNpmCompressionAllowance": 2158
+  },
+  "scope": "Package content audit, not model/answer qualification or publication."
+}

@@ -8683,7 +8683,7 @@
    }
   },
   "sample": {
-   "description": "GPU-side sampling kernels",
+   "description": "Exact GPU top-k/top-p sampling; F16 logits use F32 candidate and probability accumulation",
    "baseBindings": [
     {
      "index": 0,
@@ -8699,6 +8699,16 @@
      "index": 2,
      "name": "output",
      "type": "storage"
+    },
+    {
+     "index": 3,
+     "name": "topk_indices",
+     "type": "storage"
+    },
+    {
+     "index": 4,
+     "name": "topk_logits",
+     "type": "storage"
     }
    ],
    "baseUniforms": {
@@ -8710,24 +8720,39 @@
       "offset": 0
      },
      {
-      "name": "temperature",
-      "type": "f32",
+      "name": "top_k",
+      "type": "u32",
       "offset": 4
      },
      {
-      "name": "top_k",
-      "type": "u32",
+      "name": "temperature",
+      "type": "f32",
       "offset": 8
      },
      {
-      "name": "top_p",
+      "name": "random_value",
       "type": "f32",
       "offset": 12
      },
      {
-      "name": "random_seed",
+      "name": "pad_token_id",
       "type": "u32",
       "offset": 16
+     },
+     {
+      "name": "logit_softcap",
+      "type": "f32",
+      "offset": 20
+     },
+     {
+      "name": "output_index",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "top_p",
+      "type": "f32",
+      "offset": 28
      }
     ]
    },

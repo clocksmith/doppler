@@ -18,7 +18,6 @@
 // Configuration
 override WORKGROUP_SIZE: u32 = 256u;
 const MAX_WORKGROUP_SIZE: u32 = 256u;
-const MAX_TOP_K: u32 = 128u;  // Max top-k supported
 const NEG_INF: f32 = -3.402823e+38;
 
 struct Uniforms {
@@ -29,7 +28,7 @@ struct Uniforms {
     pad_token_id: u32,
     logit_softcap: f32,  // Gemma 2: 30.0, 0.0 = disabled
     output_index: u32,   // Index into output token buffer
-    pad0: u32,
+    top_p: f32,
 }
 
 // Apply softcapping: softcap * tanh(x / softcap)
@@ -61,183 +60,140 @@ fn candidate_beats(candidate_value: f32, candidate_index: u32, best_value: f32, 
 var<workgroup> shared_values: array<f32, MAX_WORKGROUP_SIZE>;
 var<workgroup> shared_indices: array<u32, MAX_WORKGROUP_SIZE>;
 
-// Phase 1: Find local max in each workgroup for parallel top-k
-// Each thread scans a chunk of vocabulary, keeps local top element
+// Each partition retains its exact top-k in a min-heap. The merge has a
+// separate output region, so retaining a winner cannot overwrite unread input.
+// Scratch holds at most two vocabularies; top_k is resolved to [1, vocab_size].
+fn sample_group_count() -> u32 {
+    return max(1u, min(min(WORKGROUP_SIZE, (u.vocab_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE),
+        u.vocab_size / u.top_k));
+}
+
+fn heap_swap(base: u32, a: u32, b: u32) {
+    let value = topk_logits[base + a];
+    let token = topk_indices[base + a];
+    topk_logits[base + a] = topk_logits[base + b];
+    topk_indices[base + a] = topk_indices[base + b];
+    topk_logits[base + b] = value;
+    topk_indices[base + b] = token;
+}
+
+fn heap_better(base: u32, a: u32, b: u32) -> bool {
+    return candidate_beats(topk_logits[base + a], topk_indices[base + a],
+        topk_logits[base + b], topk_indices[base + b]);
+}
+
+fn heap_down(base: u32, count: u32) {
+    var root = 0u;
+    loop {
+        let left = root * 2u + 1u;
+        if (left >= count) { break; }
+        var worst = left;
+        let right = left + 1u;
+        if (right < count && heap_better(base, left, right)) { worst = right; }
+        if (!heap_better(base, root, worst)) { break; }
+        heap_swap(base, root, worst);
+        root = worst;
+    }
+}
+
+fn heap_offer(base: u32, count: u32, value: f32, token: u32) -> u32 {
+    if (count < u.top_k) {
+        topk_logits[base + count] = value;
+        topk_indices[base + count] = token;
+        var child = count;
+        loop {
+            if (child == 0u) { break; }
+            let parent = (child - 1u) / 2u;
+            if (!heap_better(base, parent, child)) { break; }
+            heap_swap(base, parent, child);
+            child = parent;
+        }
+        return count + 1u;
+    }
+    if (candidate_beats(value, token, topk_logits[base], topk_indices[base])) {
+        topk_logits[base] = value;
+        topk_indices[base] = token;
+        heap_down(base, count);
+    }
+    return count;
+}
+
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn find_topk_phase1(
-    @builtin(global_invocation_id) gid: vec3<u32>,
     @builtin(local_invocation_id) lid: vec3<u32>,
     @builtin(workgroup_id) wgid: vec3<u32>,
     @builtin(num_workgroups) num_wg: vec3<u32>
 ) {
-    let thread_idx = lid.x;
-    let global_idx = gid.x;
-    let vocab_size = u.vocab_size;
-    let temperature = u.temperature;
-    let pad_id = u.pad_token_id;
-    let softcap = u.logit_softcap;
-
-    // Single workgroup: write all logits directly for exact top-k
-    if (num_wg.x == 1u) {
-        var val: f32 = NEG_INF;
-        if (global_idx < vocab_size && global_idx != pad_id) {
-            val = apply_softcap(logits[global_idx], softcap) / temperature;
+    if (lid.x != 0u) { return; }
+    let base = wgid.x * u.top_k;
+    for (var k = 0u; k < u.top_k; k++) { topk_indices[base + k] = 0xffffffffu; }
+    var count = 0u;
+    for (var token = wgid.x; token < u.vocab_size; token += num_wg.x) {
+        let raw = logits[token];
+        // Non-finite and padding logits never enter the candidate distribution.
+        if (token != u.pad_token_id && abs(raw) <= 3.402823e+38) {
+            let value = apply_softcap(raw, u.logit_softcap);
+            count = heap_offer(base, count, value, token);
         }
-        topk_logits[thread_idx] = val;
-        topk_indices[thread_idx] = global_idx;
+    }
+}
+
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn find_topk_phase2(@builtin(local_invocation_id) lid: vec3<u32>) {
+    if (lid.x != 0u) { return; }
+    let base = sample_group_count() * u.top_k;
+    for (var k = 0u; k < u.top_k; k++) { topk_indices[base + k] = 0xffffffffu; }
+    var count = 0u;
+    for (var i = 0u; i < base; i++) {
+        if (topk_indices[i] != 0xffffffffu) {
+            count = heap_offer(base, count, topk_logits[i], topk_indices[i]);
+        }
+    }
+}
+
+// Sort the retained heap, normalize top-k, retain the minimal top-p prefix,
+// then sample from that renormalized prefix. F16 inputs use F32 accumulation.
+@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
+fn softmax_and_sample(@builtin(local_invocation_id) lid: vec3<u32>) {
+    if (lid.x != 0u) { return; }
+    let base = sample_group_count() * u.top_k;
+    var count = 0u;
+    while (count < u.top_k && topk_indices[base + count] != 0xffffffffu) { count++; }
+    if (count == 0u) {
+        output[u.output_index] = 0xffffffffu;
         return;
     }
-
-    // Each thread finds max in its assigned range
-    var local_max: f32 = NEG_INF;  // -FLT_MAX
-    var local_max_idx: u32 = 0u;
-
-    // Stride through vocabulary
-    var idx = global_idx;
-    while (idx < vocab_size) {
-        if (idx != pad_id) {
-            // Apply softcapping before temperature scaling
-            let val = apply_softcap(logits[idx], softcap) / temperature;
-            if (candidate_beats(val, idx, local_max, local_max_idx)) {
-                local_max = val;
-                local_max_idx = idx;
-            }
-        }
-        idx = idx + WORKGROUP_SIZE * num_wg.x;
+    var remaining = count;
+    while (remaining > 1u) {
+        remaining--;
+        heap_swap(base, 0u, remaining);
+        heap_down(base, remaining);
     }
-
-    shared_values[thread_idx] = local_max;
-    shared_indices[thread_idx] = local_max_idx;
-    workgroupBarrier();
-
-    // Reduce within workgroup to find workgroup's top value
-    var stride = WORKGROUP_SIZE / 2u;
-    while (stride > 0u) {
-        if (thread_idx < stride) {
-            if (candidate_beats(
-                shared_values[thread_idx + stride],
-                shared_indices[thread_idx + stride],
-                shared_values[thread_idx],
-                shared_indices[thread_idx]
-            )) {
-                shared_values[thread_idx] = shared_values[thread_idx + stride];
-                shared_indices[thread_idx] = shared_indices[thread_idx + stride];
-            }
-        }
-        workgroupBarrier();
-        stride = stride / 2u;
+    let maximum = topk_logits[base];
+    var total = 0.0;
+    for (var i = 0u; i < count; i++) {
+        let weight = exp((topk_logits[base + i] - maximum) / u.temperature);
+        topk_logits[base + i] = weight;
+        total += weight;
     }
-
-    // Thread 0 writes workgroup result
-    if (thread_idx == 0u) {
-        topk_logits[wgid.x] = shared_values[0];
-        topk_indices[wgid.x] = shared_indices[0];
+    var retained = 0u;
+    var retained_total = 0.0;
+    loop {
+        retained_total += topk_logits[base + retained];
+        retained++;
+        if (retained >= count || retained_total >= u.top_p * total) { break; }
     }
-}
-
-// Phase 2: Merge workgroup results and select final top-k
-// Single workgroup sorts and selects top-k from workgroup results
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn find_topk_phase2(
-    @builtin(local_invocation_id) lid: vec3<u32>
-) {
-    let thread_idx = lid.x;
-    let top_k = u.top_k;
-    let num_groups = min(WORKGROUP_SIZE, (u.vocab_size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE);
-    let num_candidates = select(num_groups, min(u.vocab_size, WORKGROUP_SIZE), num_groups == 1u);
-
-    // Load workgroup results into shared memory
-    // Assume <= WORKGROUP_SIZE workgroups from phase 1
-    if (thread_idx < WORKGROUP_SIZE) {
-        if (thread_idx < num_candidates) {
-            shared_values[thread_idx] = topk_logits[thread_idx];
-            shared_indices[thread_idx] = topk_indices[thread_idx];
-        } else {
-            shared_values[thread_idx] = NEG_INF;
-            shared_indices[thread_idx] = 0u;
+    let threshold = u.random_value * retained_total;
+    var cumulative = 0.0;
+    var selected = topk_indices[base + retained - 1u];
+    for (var i = 0u; i < retained; i++) {
+        cumulative += topk_logits[base + i];
+        if (cumulative >= threshold) {
+            selected = topk_indices[base + i];
+            break;
         }
     }
-    workgroupBarrier();
-
-    // Thread 0 does partial selection sort for top-k
-    if (thread_idx == 0u) {
-        for (var k: u32 = 0u; k < top_k && k < num_candidates; k = k + 1u) {
-            var max_idx = k;
-            var max_val = shared_values[k];
-
-            for (var i: u32 = k + 1u; i < num_candidates; i = i + 1u) {
-                if (candidate_beats(shared_values[i], shared_indices[i], max_val, shared_indices[max_idx])) {
-                    max_val = shared_values[i];
-                    max_idx = i;
-                }
-            }
-
-            if (max_idx != k) {
-                let tmp_val = shared_values[k];
-                let tmp_idx = shared_indices[k];
-                shared_values[k] = shared_values[max_idx];
-                shared_indices[k] = shared_indices[max_idx];
-                shared_values[max_idx] = tmp_val;
-                shared_indices[max_idx] = tmp_idx;
-            }
-        }
-
-        // Write sorted top-k back
-        for (var k: u32 = 0u; k < top_k; k = k + 1u) {
-            topk_logits[k] = shared_values[k];
-            topk_indices[k] = shared_indices[k];
-        }
-    }
-}
-
-// Phase 3: Softmax on top-k and sample
-@compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
-fn softmax_and_sample(
-    @builtin(local_invocation_id) lid: vec3<u32>
-) {
-    let thread_idx = lid.x;
-    let top_k = u.top_k;
-    let random_val = u.random_value;
-
-    // Load top-k logits
-    if (thread_idx < top_k) {
-        shared_values[thread_idx] = topk_logits[thread_idx];
-        shared_indices[thread_idx] = topk_indices[thread_idx];
-    }
-    workgroupBarrier();
-
-    // Thread 0 does softmax and sampling
-    if (thread_idx == 0u) {
-        // Find max for numerical stability
-        var max_val: f32 = shared_values[0];
-        for (var i: u32 = 1u; i < top_k; i = i + 1u) {
-            max_val = max(max_val, shared_values[i]);
-        }
-
-        // Compute exp and sum
-        var exp_sum: f32 = 0.0;
-        for (var i: u32 = 0u; i < top_k; i = i + 1u) {
-            let exp_val = exp(shared_values[i] - max_val);
-            shared_values[i] = exp_val;
-            exp_sum = exp_sum + exp_val;
-        }
-
-        // Normalize to probabilities and sample
-        let inv_sum = 1.0 / exp_sum;
-        var cum_prob: f32 = 0.0;
-        var selected_token: u32 = shared_indices[top_k - 1u];  // Default to last
-
-        for (var i: u32 = 0u; i < top_k; i = i + 1u) {
-            let prob = shared_values[i] * inv_sum;
-            cum_prob = cum_prob + prob;
-            if (cum_prob >= random_val) {
-                selected_token = shared_indices[i];
-                break;
-            }
-        }
-
-        output[u.output_index] = selected_token;
-    }
+    output[u.output_index] = selected;
 }
 
 // Combined single-pass version for smaller vocabularies (<= 65536)
@@ -250,7 +206,6 @@ fn sample_single_pass(
 ) {
     let thread_idx = lid.x;
     let vocab_size = u.vocab_size;
-    let top_k = min(u.top_k, MAX_TOP_K);
     let temperature = u.temperature;
     let random_val = u.random_value;
     let pad_id = u.pad_token_id;
