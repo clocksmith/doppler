@@ -27,6 +27,7 @@ export interface ResolvedGenerationOptions {
   suppressTokenIds: number[];
   stopSequences: string[];
 }
+export type RuntimeSamplingOptions = Pick<ResolvedGenerationOptions, "temperature" | "topP" | "topK" | "repetitionPenalty" | "repetitionPenaltyWindow" | "presencePenalty" | "suppressTokenIds">;
 export type GenerationInput = { prompt: string; promptTokens?: never } | { prompt?: never; promptTokens: number[] };
 export type GenerationStoppingReason = "max-tokens" | "eos-token" | "stop-token" | "stop-sequence";
 export interface GenerationCompletion { schema: "doppler.generation-completion/v1"; stopReason: GenerationStoppingReason; promptTokenCount: number; generatedTokenCount: number; }

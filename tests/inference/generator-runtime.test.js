@@ -141,7 +141,7 @@ function createTestSession() {
     debug: false,
     runtimeConfig: {
       inference: {
-        sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
+        sampling: { ...createDopplerConfig().runtime.inference.sampling, temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
         generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
         chatTemplate: { enabled: false },
         session: createTestSession(),
@@ -169,7 +169,7 @@ function createTestSession() {
     debug: false,
     runtimeConfig: {
       inference: {
-        sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
+        sampling: { ...createDopplerConfig().runtime.inference.sampling, temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
         generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
         chatTemplate: { enabled: undefined },
         session: createTestSession(),
@@ -203,7 +203,7 @@ function createTestSession() {
     debug: false,
     runtimeConfig: {
       inference: {
-        sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
+        sampling: { ...createDopplerConfig().runtime.inference.sampling, temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
         generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
         chatTemplate: { enabled: false },
         session: createTestSession(),
@@ -229,7 +229,7 @@ function createTestSession() {
     debug: false,
     runtimeConfig: {
       inference: {
-        sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
+        sampling: { ...createDopplerConfig().runtime.inference.sampling, temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
         generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
         chatTemplate: { enabled: undefined },
         session: createTestSession(),
@@ -252,7 +252,7 @@ function createTestSession() {
     debug: false,
     runtimeConfig: {
       inference: {
-        sampling: { temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
+        sampling: { ...createDopplerConfig().runtime.inference.sampling, temperature: 0.7, topP: 0.95, topK: 40, repetitionPenalty: 1.0 },
         generation: { maxTokens: 128, useSpeculative: false, profile: false, benchmark: false, embeddingMode: 'last' },
         chatTemplate: { enabled: false },
         session: createTestSession(),
@@ -265,7 +265,7 @@ function createTestSession() {
 
   assert.throws(
     () => resolveGenerateOptions(state, { temperature: null }),
-    /null is unsupported/
+    { code: 'DOPPLER_GENERATION_INVALID_REQUEST' }
   );
 }
 
@@ -276,7 +276,7 @@ function createTestSession() {
     debug: true,
     runtimeConfig: {
       inference: {
-        sampling: { temperature: 0, topP: 1, topK: 1, repetitionPenalty: 1.0 },
+        sampling: { ...createDopplerConfig().runtime.inference.sampling, temperature: 0, topP: 1, topK: 1, repetitionPenalty: 1.0 },
         generation: { profile: false, embeddingMode: 'last' },
         session: createTestSession(),
       },

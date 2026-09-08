@@ -1,7 +1,7 @@
 import { getDevice, setTrackSubmits } from '../../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
-import { recordRepPenalty } from '../../../../gpu/kernels/rep-penalty.js';
+import { recordHistoryPenalties } from '../../../../gpu/kernels/rep-penalty.js';
 import { recordCheckStop } from '../../../../gpu/kernels/check-stop.js';
 import { recordCheckHotVocabStop } from '../../../../gpu/kernels/check-hot-vocab-stop.js';
 import { resetSubmitStats, logSubmitStats } from '../../../../gpu/submit-tracker.js';
@@ -561,6 +561,7 @@ export async function decodeStep(state, currentIds, opts, helpers) {
     );
 
     const ringTokensBuffer = ringSlot?.tokens ?? null;
+    await recordHistoryPenalties(recorder, logitsBuffer, currentIds, { ...opts, vocabSize, logitsDtype });
     const sampleOutputBuffer = opts.temperature < samplingDefaults.greedyThreshold
       ? await recordArgmax(recorder, logitsBuffer, vocabSize, {
         padTokenId,

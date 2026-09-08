@@ -75,16 +75,6 @@
       "reason": "The symbol registers caller-declared materialization metadata and GPU buffer identities; it performs no tensor arithmetic."
     },
     {
-      "id": "src/client/runtime/session-controller.js#applyRepetitionPenalty",
-      "category": "scalar-control",
-      "reason": "Capsule sampling is an explicitly contracted scalar control-plane operation performed after declared logit readback."
-    },
-    {
-      "id": "src/client/runtime/session-controller.js#sampleCapsuleLogits",
-      "category": "scalar-control",
-      "reason": "Capsule sampling is an explicitly contracted scalar control-plane operation performed after declared logit readback."
-    },
-    {
       "id": "src/client/wrap-pipeline-handle.js#normalizeDreamLayerMap",
       "category": "non-tensor-data",
       "reason": "This compatibility adapter normalizes declared layer metadata and byte views without executing model tensor arithmetic."
@@ -698,6 +688,11 @@
       "id": "src/inference/pipelines/text/sampling.js#applyRepetitionPenalty",
       "category": "scalar-control",
       "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
+    },
+    {
+      "id": "src/inference/pipelines/text/sampling.js#applyPresencePenalty",
+      "category": "scalar-control",
+      "reason": "Applies the declared once-per-seen-token sampling penalty after logits readback; never uploads modified tensor values."
     },
     {
       "id": "src/inference/pipelines/text/sampling.js#softmax",

@@ -133,12 +133,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
     // Validate and normalize sampling parameters through single source of truth
     const samplingConfig = resolveSamplingConfig(options, this._state.runtimeConfig);
-    opts.temperature = samplingConfig.temperature;
-    opts.topP = samplingConfig.topP;
-    opts.topK = samplingConfig.topK;
-    opts.repetitionPenalty = samplingConfig.repetitionPenalty;
-    opts.presencePenalty = samplingConfig.presencePenalty;
-    opts.repetitionPenaltyWindow = samplingConfig.repetitionPenaltyWindow;
+    Object.assign(opts, samplingConfig);
     opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this._state, samplingConfig);
     const diagnosticsEnabled = options?.diagnostics?.enabled === true
       || this._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
@@ -372,12 +367,7 @@ export async function generateTokenIds(prompt, options = {}) {
     opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
     // Validate and normalize sampling parameters through single source of truth
     const samplingConfig = resolveSamplingConfig(options, this._state.runtimeConfig);
-    opts.temperature = samplingConfig.temperature;
-    opts.topP = samplingConfig.topP;
-    opts.topK = samplingConfig.topK;
-    opts.repetitionPenalty = samplingConfig.repetitionPenalty;
-    opts.presencePenalty = samplingConfig.presencePenalty;
-    opts.repetitionPenaltyWindow = samplingConfig.repetitionPenaltyWindow;
+    Object.assign(opts, samplingConfig);
     opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this._state, samplingConfig);
     const diagnosticsEnabled = options?.diagnostics?.enabled === true
       || this._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';

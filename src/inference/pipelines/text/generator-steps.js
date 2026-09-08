@@ -68,6 +68,7 @@ function shouldUseGreedyLmHeadArgmaxFusion(state, opts, samplingDefaults, repeti
   return state.runtimeConfig?.inference?.session?.useGreedyLmHeadArgmaxFusion === true && (state.modelConfig?.logitOutputScale ?? 1) === 1
     && opts.temperature < samplingDefaults.greedyThreshold
     && repetitionPenalty === 1.0
+    && opts.presencePenalty === 0
     && state.operatorDiagnostics == null
     && !(Array.isArray(probes) && probes.length > 0);
 }
@@ -561,19 +562,20 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
     const embedMetadata = getWeightMetadata(embedBufferRaw);
     const activationDtype = getEffectiveActivationDtype(state, opts);
 
-    // GPU-side repetition penalty: upload deduplicated history before batch
+    // Preserve order and duplicates so the window can advance within the batch.
     const repetitionPenalty = opts.repetitionPenalty ?? samplingDefaults.repetitionPenalty;
-    const repPenaltyWindow = samplingDefaults.repetitionPenaltyWindow;
-    if (repetitionPenalty !== 1.0 && currentIds.length > 0) {
-      const uniqueTokens = [...new Set(currentIds.slice(-repPenaltyWindow))];
-      repHistoryCount = uniqueTokens.length;
-      const historyData = new Uint32Array(uniqueTokens);
+    const presencePenalty = opts.presencePenalty ?? samplingDefaults.presencePenalty;
+    const repPenaltyWindow = opts.repetitionPenaltyWindow ?? samplingDefaults.repetitionPenaltyWindow;
+    if (repetitionPenalty !== 1.0 || presencePenalty !== 0) {
+      const historyTokens = currentIds.slice(-repPenaltyWindow);
+      repHistoryCount = historyTokens.length;
+      const historyData = new Uint32Array(historyTokens);
       repHistoryBuffer = device.createBuffer({
         size: Math.max(4, historyData.byteLength),
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
         label: 'rep_penalty_history',
       });
-      device.queue.writeBuffer(repHistoryBuffer, 0, historyData);
+      if (historyData.byteLength) device.queue.writeBuffer(repHistoryBuffer, 0, historyData);
     }
 
     // Hoist loop-invariant values to avoid repeated rule lookups and allocations.
@@ -694,11 +696,13 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
         logitsBuffer = logits.logitsBuffer;
 
         // Apply GPU-side repetition penalty before sampling
-        if (repHistoryBuffer && repetitionPenalty !== 1.0) {
+        if (repHistoryBuffer) {
           await recordRepPenalty(recorder, logitsBuffer, repHistoryBuffer, tokensBuffer, {
             vocabSize,
             historyCount: repHistoryCount,
             penalty: repetitionPenalty,
+            presencePenalty,
+            repetitionPenaltyWindow: repPenaltyWindow,
             batchCount: i,
             batchOffset: 1,
             logitsDtype,
@@ -723,6 +727,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
             outputBuffer: tokensBuffer,
             outputIndex,
             greedyThreshold: samplingDefaults.greedyThreshold,
+            randomSeed: opts.seed,
           });
         }
       }

@@ -112,6 +112,8 @@
     "rules:bundle:check": "node tools/sync-rule-bundle.js --check",
     "evidence:workflows:check": "node tools/check-evidence-workflow-ownership.js",
     "inference:boundaries:check": "node tools/check-inference-boundaries.js",
+    "generation:contract:check": "node tools/sync-generation-contract.js --check",
+    "generation:contract:sync": "node tools/sync-generation-contract.js",
     "source:style:sync": "node tools/check-source-style.js --write",
     "source:style:check": "node tools/check-source-style.js",
     "source:architecture:check": "node tools/check-source-architecture.js",
@@ -218,6 +220,10 @@
     "./runtime": {
       "types": "./src/capsule-runtime.d.ts",
       "import": "./src/capsule-runtime.js"
+    },
+    "./generation-contract": {
+      "types": "./src/config/generation-contract.d.ts",
+      "import": "./src/config/generation-contract.js"
     },
     "./host": {
       "types": "./src/client/capsule-host.d.ts",

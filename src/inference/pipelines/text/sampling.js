@@ -247,6 +247,18 @@ function sampleFromLogitCandidates(candidates, temperature, seed, decode, debug,
     }
   }
 
+  // Normalize the retained top-k distribution before nucleus selection.
+  if (topP < 1) {
+    let cumulative = 0;
+    candidates = candidates.filter(candidate => {
+      if (cumulative >= topP) return false;
+      cumulative += candidate.prob;
+      return true;
+    });
+    const retained = candidates.reduce((total, candidate) => total + candidate.prob, 0);
+    for (const candidate of candidates) candidate.prob /= retained;
+  }
+
   if (debug) {
     const top5 = candidates.slice(0, 5).map(c => {
       const text = decode?.([c.token]) ?? '?';
@@ -309,89 +321,15 @@ export function sample(logits, opts) {
     return maxIdx;
   }
 
-  if (topP >= 1.0 && Number.isFinite(topK) && topK > 0) {
-    const candidates = selectTopKLogitCandidates(logits, topK);
-    if (candidates) {
-      return sampleFromLogitCandidates(candidates, temperature, seed, decode, debug, topK, topP);
+  let candidates = topK > 0 ? selectTopKLogitCandidates(logits, topK) : null;
+  if (candidates === null) {
+    candidates = [];
+    for (let token = 0; token < logits.length; token++) {
+      if (Number.isFinite(logits[token])) candidates.push({ token, logit: logits[token] });
     }
+    candidates.sort((a, b) => b.logit - a.logit || a.token - b.token);
   }
-
-  // Apply temperature
-  if (temperature !== 1.0) {
-    for (let i = 0; i < logits.length; i++) {
-      logits[i] /= temperature;
-    }
-  }
-
-  const probs = softmax(logits);
-
-  // Build candidate list
-
-  let candidates = [];
-  for (let i = 0; i < probs.length; i++) {
-    const probability = probs[i];
-    if (!Number.isFinite(probability) || probability <= 0) {
-      continue;
-    }
-    candidates.push({ token: i, prob: probability });
-  }
-  if (candidates.length === 0) {
-    throw new Error(
-      '[Sampling] Softmax produced no finite candidate probabilities. ' +
-      'Upstream decode likely produced NaN/Inf logits.'
-    );
-  }
-  candidates.sort((a, b) => b.prob - a.prob);
-
-  // Top-k filtering
-  if (topK > 0) {
-    candidates = candidates.slice(0, topK);
-  }
-
-  // Top-p (nucleus) filtering
-  if (topP < 1.0) {
-    let cumProb = 0;
-
-    const filtered = [];
-    for (const c of candidates) {
-      filtered.push(c);
-      cumProb += c.prob;
-      if (cumProb >= topP) break;
-    }
-    candidates = filtered;
-  }
-
-  // Renormalize with guard against zero sum
-  const probSum = candidates.reduce((s, c) => s + c.prob, 0);
-  if (probSum > 0) {
-    for (const c of candidates) {
-      c.prob /= probSum;
-    }
-  } else {
-    // If all probabilities are zero, fall back to uniform distribution
-    const uniformProb = 1.0 / candidates.length;
-    for (const c of candidates) {
-      c.prob = uniformProb;
-    }
-  }
-
-  if (debug) {
-    const top5 = candidates.slice(0, 5).map(c => {
-      const text = decode?.([c.token]) ?? '?';
-      return `"${text}"(${(c.prob * 100).toFixed(1)}%)`;
-    });
-    trace.sample(`Top-5 (temp=${temperature}, topK=${topK}, topP=${topP}): ${top5.join(', ')}`);
-  }
-
-  // Sample from distribution
-  const r = seed !== undefined ? seededRandom(seed) : unseededRandom();
-  let cumProb = 0;
-  for (const c of candidates) {
-    cumProb += c.prob;
-    if (r < cumProb) return c.token;
-  }
-
-  return candidates[candidates.length - 1].token;
+  return sampleFromLogitCandidates(candidates, temperature, seed, decode, debug, topK, topP);
 }
 
 

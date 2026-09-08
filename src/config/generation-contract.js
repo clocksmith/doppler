@@ -1,7 +1,13 @@
 import definition from './generation-contract.json' with { type: 'json' };
-import { freezeCapsuleV2 } from './capsule-v2.js';
+// Validation is independently consumable; importing it must not load an engine,
+// storage implementation, or Capsule verifier.
+function freezeGeneration(value) {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  for (const child of Object.values(value)) freezeGeneration(child);
+  return Object.freeze(value);
+}
 
-export const GENERATION_CONTRACT = freezeCapsuleV2(definition);
+export const GENERATION_CONTRACT = freezeGeneration(definition);
 
 export class GenerationError extends Error {
   constructor(kind, message, options = {}) {
@@ -56,5 +62,5 @@ export function resolveGenerationOptions(options) {
     validateGenerationField(key, value, rule);
     resolved[key] = structuredClone(value);
   }
-  return freezeCapsuleV2(resolved);
+  return freezeGeneration(resolved);
 }

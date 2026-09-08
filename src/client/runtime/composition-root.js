@@ -1,4 +1,5 @@
 import { hashTargetPlan, assertQualifiedTargetOperation, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
+import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import { freezeCapsuleV2, verifyCapsuleV2Artifacts } from '../../config/capsule-v2.js';
 import { verifyCapsuleMetadata, getCapsuleIdentity } from '../../config/capsule.js';
@@ -157,6 +158,7 @@ export function createDopplerRuntime(ports) {
         }
 
         const session = {
+          get generationContract() { return GENERATION_CONTRACT; },
           modelId: capsule.modelId,
           capsuleId: capsule.capsuleId,
           semanticRoot: capsule.semanticRoot,

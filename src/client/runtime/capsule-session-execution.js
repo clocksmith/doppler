@@ -1,5 +1,6 @@
 // One loaded program owns mutable generation and adapter state. Cancellation
 // requests cooperation; disposal waits until the current operation has drained.
+import { GenerationError } from '../../config/generation-contract.js';
 export function createCapsuleSessionExecution() {
   let active = null;
   let closing = false;
@@ -13,7 +14,7 @@ export function createCapsuleSessionExecution() {
       || typeof signal.aborted !== 'boolean')) throw new Error('Capsule operation signal must be an AbortSignal.');
     let finish;
     const done = new Promise(resolve => { finish = resolve; });
-    const cancel = () => controller.abort(signal.reason);
+    const cancel = () => controller.abort(new GenerationError('aborted', signal.reason?.message || 'Capsule operation cancelled.', { cause: signal.reason }));
     const lease = { controller, done, stop: null, release() {
       signal?.removeEventListener('abort', cancel);
       active = null;
