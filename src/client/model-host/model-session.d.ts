@@ -28,6 +28,7 @@ export interface DopplerGenerationConfigEvidence {
   topP: number;
   topK: number;
   repetitionPenalty: number;
+  presencePenalty: number;
   repetitionPenaltyWindow: number;
   greedyThreshold: number;
   suppressSpecialTokens: boolean;

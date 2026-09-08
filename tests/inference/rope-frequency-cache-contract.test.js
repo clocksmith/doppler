@@ -29,6 +29,7 @@ globalThis.GPUBuffer = FakeBuffer;
 
 const { setDevice } = await import('../../src/gpu/device.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
+const { _initRoPE } = await import('../../src/inference/pipelines/text/lifecycle.js');
 const { initRoPEFrequencies } = await import('../../src/inference/pipelines/text/init.js');
 const { createShaderSourceScope, runWithShaderSourceScope } = await import('../../src/gpu/kernels/shader-source-scope.js');
 
@@ -158,6 +159,17 @@ const ropeConfig = {
   const restored = await initRoPEFrequencies(ropeConfig, true);
   assert.equal(restored.cos, first.cos);
   assert.equal(restored.sin, first.sin);
+  const sourceFrequencies = Array(32).fill(0.5);
+  const sourceConfig = { ...ropeConfig, ropeInverseFrequencies: sourceFrequencies };
+  const source = await initRoPEFrequencies(sourceConfig, true);
+  assert.notEqual(source.cos, first.cos, 'Different source frequencies must not reuse a generated table.');
+  const state = { useGPU: true, modelConfig: { ...sourceConfig,
+    globalHeadDim: ropeConfig.headDim, headDim: ropeConfig.localHeadDim,
+    ropeRotaryDim: ropeConfig.rotaryDim } };
+  await _initRoPE.call(state);
+  assert.equal(state.ropeFreqsCos, source.cos, 'Pipeline load must forward source frequencies.');
+  const changed = await initRoPEFrequencies({ ...sourceConfig, ropeInverseFrequencies: Array(32).fill(0.25) }, true);
+  assert.notEqual(changed.cos, source.cos, 'Source-frequency bytes belong to the cache identity.');
   resetRuntimeState();
 }
 

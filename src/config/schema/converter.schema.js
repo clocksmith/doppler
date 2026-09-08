@@ -94,6 +94,7 @@ export const DEFAULT_CONVERTER_CONFIG = {
   architecture: null,
   sourceTensors: null,
   sourceTokenizer: null,
+  sourceRotaryFrequencies: null,
   moeConfig: null,
 };
 
@@ -111,6 +112,7 @@ export function createConverterConfig(overrides) {
       architecture: null,
       sourceTensors: null,
       sourceTokenizer: null,
+      sourceRotaryFrequencies: null,
     };
   }
 
@@ -147,6 +149,9 @@ export function createConverterConfig(overrides) {
       : null,
     sourceTokenizer: Object.prototype.hasOwnProperty.call(overrides, 'sourceTokenizer')
       ? (overrides.sourceTokenizer ?? null)
+      : null,
+    sourceRotaryFrequencies: Object.prototype.hasOwnProperty.call(overrides, 'sourceRotaryFrequencies')
+      ? (overrides.sourceRotaryFrequencies ?? null)
       : null,
     moeConfig: Object.prototype.hasOwnProperty.call(overrides, 'moeConfig')
       ? (overrides.moeConfig ?? null)

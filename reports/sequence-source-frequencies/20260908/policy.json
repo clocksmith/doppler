@@ -1,0 +1,37 @@
+{
+  "schema": "reploid.local-science-batch-policy/v1",
+  "cases": [
+    {
+      "id": "retained-control",
+      "sequence": "MKTIIALSYIFCLVFADYKDDDDK",
+      "source": "retained ESM-2 numerical qualification control"
+    },
+    {
+      "id": "P69905",
+      "sequence": "MVLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR",
+      "source": "https://rest.uniprot.org/uniprotkb/P69905.fasta",
+      "header": ">sp|P69905|HBA_HUMAN Hemoglobin subunit alpha OS=Homo sapiens OX=9606 GN=HBA1 PE=1 SV=2",
+      "sourceDigest": "sha256:aecc3cb75f840f242f6b4489d501384d0c50cf0d61a8dab5a1dab81a80aa4bae",
+      "retrievedAt": "2026-09-08T16:51:30.178745+00:00"
+    },
+    {
+      "id": "P00044",
+      "sequence": "MTEFKAGSAKKGATLFKTRCLQCHTVEKGGPHKVGPNLHGIFGRHSGQAEGYSYTDANIKKNVLWDENNMSEYLTNPKKYIPGTKMAFGGLKKEKDRNDLITYLKKACE",
+      "source": "https://rest.uniprot.org/uniprotkb/P00044.fasta",
+      "header": ">sp|P00044|CYC1_YEAST Cytochrome c isoform 1 OS=Saccharomyces cerevisiae (strain ATCC 204508 / S288c) OX=559292 GN=CYC1 PE=1 SV=2",
+      "sourceDigest": "sha256:24306444764adabe3d7bdb50c3ab6a71faad43726929417b331096439b069092",
+      "retrievedAt": "2026-09-08T16:51:30.521387+00:00"
+    }
+  ],
+  "comparison": {
+    "rule": "numerical-tolerance",
+    "absoluteTolerance": 0.001,
+    "relativeTolerance": 0
+  },
+  "inputClass": "public_biological_sequence",
+  "maxAttemptsPerBatch": 2,
+  "disagreement": "retain both outcomes and the frozen reference comparison; no agreement-only biological conclusion",
+  "runtimeExecutionRequired": true,
+  "independentMachines": false,
+  "independentOperators": false
+}

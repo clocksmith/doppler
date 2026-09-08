@@ -121,6 +121,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     mropeSection: null,
     partialRotaryFactor: null,
     ropeLocalPartialRotaryFactor: null,
+    ropeInverseFrequencies: null,
     ropeFrequencyBaseDim: null,
     ropeLocalFrequencyBaseDim: null,
     ropeScalingType: null,  // No scaling (null = disabled)

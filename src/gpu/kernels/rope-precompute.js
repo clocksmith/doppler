@@ -1,3 +1,5 @@
+import { validateRoPEInverseFrequencies } from '../../config/rope-frequencies.js';
+import { DEFAULT_MANIFEST_INFERENCE } from '../../config/schema/manifest.schema.js';
 import { getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
@@ -115,16 +117,26 @@ export async function runRoPEPrecompute(options) {
   if (!device) throw new Error('[RoPE] GPU device is required for frequency precomputation.');
   const halfDim = options.rotaryDim / 2;
   const scaling = buildRoPEPrecomputeAuxiliaryData(options, halfDim);
+  const inverseFrequencies = validateRoPEInverseFrequencies(
+    options.inverseFrequencies ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeInverseFrequencies,
+    options.rotaryDim, 'RoPE inverseFrequencies'
+  );
+  const frequencyOffset = scaling.factors.length;
+  const data = new Uint32Array(frequencyOffset + (inverseFrequencies?.length ?? 0));
+  data.set(new Uint32Array(scaling.factors.buffer, scaling.factors.byteOffset, scaling.factors.length));
+  if (inverseFrequencies) {
+    data.set(new Uint32Array(Float32Array.from(inverseFrequencies).buffer), frequencyOffset);
+  }
   const count = options.maxSeqLen * halfDim;
   const dispatchPlan = planRoPEPrecomputeDispatch(device, count);
   const ropeData = acquireBuffer(
-    Math.max(4, scaling.factors.byteLength),
+    Math.max(4, data.byteLength),
     undefined,
     'rope_precompute_data'
   );
   const cos = acquireBuffer(count * Float32Array.BYTES_PER_ELEMENT, undefined, 'rope_cos');
   const sin = acquireBuffer(count * Float32Array.BYTES_PER_ELEMENT, undefined, 'rope_sin');
-  device.queue.writeBuffer(ropeData, 0, scaling.factors);
+  device.queue.writeBuffer(ropeData, 0, data);
   try {
     await unifiedKernelWrapper(
       'rope_precompute',
@@ -146,8 +158,10 @@ export async function runRoPEPrecompute(options) {
         mrope_section_t: scaling.mropeSection[0],
         mrope_section_h: scaling.mropeSection[1],
         mrope_section_w: scaling.mropeSection[2],
+        frequency_offset: frequencyOffset,
       },
-      dispatchPlan.workgroups
+      dispatchPlan.workgroups,
+      { USE_INVERSE_FREQUENCIES: inverseFrequencies !== null }
     );
     return { cos, sin };
   } catch (error) {

@@ -1,0 +1,129 @@
+{
+  "schema": "reploid.sequence-full-tensor-diagnostic/v1",
+  "passed": false,
+  "episodeDigest": "sha256:05ff0e13296a41d2982c94c9373a1408bf926354ef3a46b964ce0bec7cd0330f",
+  "comparison": {
+    "absoluteTolerance": 0.001,
+    "relativeTolerance": 0
+  },
+  "rows": [
+    {
+      "field": "pooledEmbedding",
+      "observedLength": 480,
+      "referenceLength": 480,
+      "maxAbsoluteError": 0.0015654563903808594,
+      "valuesOverTolerance": 4,
+      "worst": [
+        {
+          "index": 46,
+          "observed": 5.884291172027588,
+          "reference": 5.885856628417969,
+          "absoluteError": 0.0015654563903808594
+        },
+        {
+          "index": 320,
+          "observed": -0.17122472822666168,
+          "reference": -0.17020054161548615,
+          "absoluteError": 0.0010241866111755371
+        },
+        {
+          "index": 48,
+          "observed": -0.07178232073783875,
+          "reference": -0.07278771698474884,
+          "absoluteError": 0.0010053962469100952
+        },
+        {
+          "index": 377,
+          "observed": -0.037010256201028824,
+          "reference": -0.0360073447227478,
+          "absoluteError": 0.0010029114782810211
+        },
+        {
+          "index": 364,
+          "observed": -0.17643402516841888,
+          "reference": -0.1773919314146042,
+          "absoluteError": 0.0009579062461853027
+        },
+        {
+          "index": 437,
+          "observed": 0.12239807099103928,
+          "reference": 0.12151173502206802,
+          "absoluteError": 0.0008863359689712524
+        },
+        {
+          "index": 371,
+          "observed": 0.1040961965918541,
+          "reference": 0.10495438426733017,
+          "absoluteError": 0.0008581876754760742
+        },
+        {
+          "index": 328,
+          "observed": 0.025994597002863884,
+          "reference": 0.026835421100258827,
+          "absoluteError": 0.0008408240973949432
+        }
+      ]
+    },
+    {
+      "field": "tokenEmbeddings",
+      "observedLength": 12480,
+      "referenceLength": 12480,
+      "maxAbsoluteError": 0.004742145538330078,
+      "valuesOverTolerance": 705,
+      "worst": [
+        {
+          "index": 526,
+          "observed": 4.550338268280029,
+          "reference": 4.555080413818359,
+          "absoluteError": 0.004742145538330078
+        },
+        {
+          "index": 1006,
+          "observed": 5.364087104797363,
+          "reference": 5.368707180023193,
+          "absoluteError": 0.004620075225830078
+        },
+        {
+          "index": 1486,
+          "observed": 5.376974582672119,
+          "reference": 5.380751132965088,
+          "absoluteError": 0.00377655029296875
+        },
+        {
+          "index": 1966,
+          "observed": 5.946384906768799,
+          "reference": 5.949342727661133,
+          "absoluteError": 0.0029578208923339844
+        },
+        {
+          "index": 7726,
+          "observed": 5.666635036468506,
+          "reference": 5.669219493865967,
+          "absoluteError": 0.0025844573974609375
+        },
+        {
+          "index": 2446,
+          "observed": 6.002142906188965,
+          "reference": 6.004594802856445,
+          "absoluteError": 0.0024518966674804688
+        },
+        {
+          "index": 1420,
+          "observed": -1.4896823167800903,
+          "reference": -1.491789698600769,
+          "absoluteError": 0.002107381820678711
+        },
+        {
+          "index": 2720,
+          "observed": -0.06023501604795456,
+          "reference": -0.058238036930561066,
+          "absoluteError": 0.0019969791173934937
+        }
+      ]
+    }
+  ],
+  "hypothesis": "The retained ESM-2 program may evaluate an approximate GELU where the pinned source model requires exact GELU, accumulating hidden-state error.",
+  "disproof": "Capture source and browser layer boundaries including the first FFN pre/post activation. If outputs already diverge before that activation, or that activation matches source within the expected float32 error, reject this hypothesis.",
+  "runtimeChange": false,
+  "toleranceChanged": false
+}

@@ -33,6 +33,7 @@ const runtimeConfig = {
       topK: 40,
       repetitionPenalty: 1.1,
       repetitionPenaltyWindow: 64,
+      presencePenalty: 0,
       greedyThreshold: 0,
       suppressSpecialTokens: true,
       suppressSpecialLikeTokens: true,
@@ -160,6 +161,7 @@ assert.equal(evidence.generationConfig.temperature, 0);
 assert.equal(evidence.generationConfig.topK, 1);
 assert.equal(evidence.generationConfig.topP, 1);
 assert.equal(evidence.generationConfig.repetitionPenalty, 1.1);
+assert.equal(evidence.generationConfig.presencePenalty, 0);
 assert.equal(evidence.generationConfig.useChatTemplate, false);
 assert.equal(
   evidence.generationConfigHash,
@@ -195,6 +197,15 @@ assert.equal(
   evidence.runtimeProfile.resolvedRuntimeSessionId,
   `sha256:${'b'.repeat(64)}`
 );
+
+runtimeConfig.inference.sampling.presencePenalty = 0.75;
+const penaltyEvidence = await handle.generateWithEvidence('hello', {
+  maxTokens: 4, temperature: 0, topK: 1, topP: 1, useChatTemplate: false,
+});
+assert.equal(penaltyEvidence.generationConfig.presencePenalty, 0.75);
+assert.notEqual(penaltyEvidence.generationConfigHash, evidence.generationConfigHash);
+assert.deepEqual(penaltyEvidence.tokenIds, evidence.tokenIds);
+runtimeConfig.inference.sampling.presencePenalty = 0;
 
 const adapterDigest = `sha256:${'c'.repeat(64)}`;
 pipeline.getActiveLoRA = () => ({

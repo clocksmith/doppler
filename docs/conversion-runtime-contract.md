@@ -94,3 +94,21 @@ Execution dtype ownership:
 
 Other docs may describe subsets of this behavior for local context, but they
 should link here rather than redefine the contract in multiple places.
+
+## Retained rotary frequencies
+
+`sourceRotaryFrequencies` is an optional SafeTensors conversion policy with an
+explicit tensor-name pattern and expected match count. Conversion requires
+contiguous positive finite f32 vectors and exact agreement across matched layers.
+It retains their values as `inference.rope.ropeInverseFrequencies`; conflicting
+explicit config values, missing tensors, truncated bytes, other encodings, or
+per-layer differences fail before artifact emission. This source policy is not
+available for GGUF or diffusion conversion.
+
+The manifest field owns the exact global inverse-frequency vector. Runtime
+overrides are rejected. The declared GPU precompute program consumes those
+values, and cache identity includes them. ModelIR retains them in
+`rope.inverseFrequencies`. Existing manifests without the additive field retain
+the schema's null value and declared theta-generated behavior. Re-convert and
+requalify an artifact to preserve source buffers that an earlier conversion
+ignored; existing signed artifacts are never rewritten during opening.

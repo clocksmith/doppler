@@ -13413,6 +13413,11 @@
       "name": "mrope_section_w",
       "type": "u32",
       "offset": 52
+     },
+     {
+      "name": "frequency_offset",
+      "type": "u32",
+      "offset": 56
      }
     ]
    },

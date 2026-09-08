@@ -24,9 +24,18 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DOPPLER_VERSION`
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
+  - `GENERATION_CONTRACT`
+  - `GenerationCompletion`
+  - `GenerationError`
+  - `GenerationInput`
+  - `GenerationOptions`
+  - `GenerationOutput`
   - `openCapsule`
+  - `ResolvedGenerationOptions`
+  - `resolveGenerationOptions`
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
+  - `validateGenerationInput`
 
 ## `doppler-gpu/runtime`
 
@@ -48,9 +57,34 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DOPPLER_VERSION`
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
+  - `GENERATION_CONTRACT`
+  - `GenerationCompletion`
+  - `GenerationError`
+  - `GenerationInput`
+  - `GenerationOptions`
+  - `GenerationOutput`
   - `openCapsule`
+  - `ResolvedGenerationOptions`
+  - `resolveGenerationOptions`
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
+  - `validateGenerationInput`
+
+## `doppler-gpu/generation-contract`
+
+- Audience: unspecified
+- Stability: unspecified
+- Types: [src/config/generation-contract.d.ts](../../../src/config/generation-contract.d.ts)
+- Implementation: [src/config/generation-contract.js](../../../src/config/generation-contract.js)
+- Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `GenerationCompletion`
+  - `GenerationInput`
+  - `GenerationOptions`
+  - `GenerationOutput`
+  - `GenerationStoppingReason`
+  - `ResolvedGenerationOptions`
+  - `RuntimeSamplingOptions`
 
 ## `doppler-gpu/host`
 
@@ -62,7 +96,16 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Exported symbols:
   - `DopplerCapsuleOpenOptions`
   - `DopplerRuntimeSession`
+  - `GENERATION_CONTRACT`
+  - `GenerationCompletion`
+  - `GenerationError`
+  - `GenerationInput`
+  - `GenerationOptions`
+  - `GenerationOutput`
   - `openCapsule`
+  - `ResolvedGenerationOptions`
+  - `resolveGenerationOptions`
+  - `validateGenerationInput`
 
 ## `doppler-gpu/serve`
 
@@ -141,11 +184,20 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DopplerSignedRevocationStatus`
   - `dr`
   - `generate`
+  - `GENERATION_CONTRACT`
+  - `GenerationCompletion`
+  - `GenerationError`
+  - `GenerationInput`
+  - `GenerationOptions`
+  - `GenerationOutput`
   - `load`
   - `open`
   - `openCapsule`
+  - `ResolvedGenerationOptions`
+  - `resolveGenerationOptions`
   - `SequenceEncodeOptions`
   - `SequenceEncodeResult`
+  - `validateGenerationInput`
 
 ## `doppler-gpu/provider`
 

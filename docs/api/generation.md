@@ -76,3 +76,12 @@ console.log(text);
 - [Loaders API](loaders.md)
 - [Orchestration API](orchestration.md)
 - [Generated export inventory](reference/exports.md)
+
+## Generation evidence migration
+
+`generateWithEvidence()` records the resolved `presencePenalty` alongside the
+other sampling controls in `generationConfig`. Its configuration hash includes
+that value even when two runs happen to return identical tokens. Older receipts
+without this field do not establish the executed presence penalty and must be
+requalified before comparison with the current contract. The source defaults and
+validation remain owned by the generation contract.

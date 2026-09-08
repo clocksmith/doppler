@@ -1,0 +1,70 @@
+{
+  "schema": "reploid.esm2-activation-diagnostic/v1",
+  "hypothesis": "Exact versus approximate GELU",
+  "sourceFunction": "def gelu(x):\n    \"\"\"\n    This is the gelu implementation from the original ESM repo. Using F.gelu yields subtly wrong results.\n    \"\"\"\n    return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))\n",
+  "inputTokenIds": [
+    0,
+    20,
+    15,
+    11,
+    12,
+    12,
+    5,
+    4,
+    8,
+    19,
+    12,
+    18,
+    23,
+    4,
+    7,
+    18,
+    5,
+    13,
+    19,
+    15,
+    13,
+    13,
+    13,
+    13,
+    15,
+    2
+  ],
+  "browserEpisodeDigest": "sha256:05ff0e13296a41d2982c94c9373a1408bf926354ef3a46b964ce0bec7cd0330f",
+  "variants": [
+    {
+      "name": "source",
+      "errors": [
+        {
+          "field": "tokenEmbeddings",
+          "maxAbsoluteErrorToBrowser": 0.004742145538330078,
+          "valuesOverTolerance": 705
+        },
+        {
+          "field": "pooledEmbedding",
+          "maxAbsoluteErrorToBrowser": 0.0015654563903808594,
+          "valuesOverTolerance": 4
+        }
+      ],
+      "probePath": "/home/x/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/science-batches/retained-control/source-activation-probes.json",
+      "probeDigest": "sha256:1241d49c094c1bbbb4eeaf25585afe193abb866281ef040186bd2b41e5e560a6"
+    },
+    {
+      "name": "tanh-counterfactual",
+      "errors": [
+        {
+          "field": "tokenEmbeddings",
+          "maxAbsoluteErrorToBrowser": 0.00011527165770530701,
+          "valuesOverTolerance": 0
+        },
+        {
+          "field": "pooledEmbedding",
+          "maxAbsoluteErrorToBrowser": 5.0008296966552734e-05,
+          "valuesOverTolerance": 0
+        }
+      ],
+      "probePath": "/home/x/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/science-batches/retained-control/tanh-counterfactual-activation-probes.json",
+      "probeDigest": "sha256:536d1b60ca96c6686fbad6d8818d1cd345905b1f3d560f73ec319ce6e2551bc0"
+    }
+  ]
+}
