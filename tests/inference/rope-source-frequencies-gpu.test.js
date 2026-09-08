@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { createShaderSourceScope, runWithShaderSourceScope } from '../../src/gpu/kernels/shader-source-scope.js';
 import { probeNodeGPU } from '../helpers/gpu-probe.js';
 import { destroyDevice } from '../../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
@@ -15,10 +17,16 @@ if (!probe.ready) {
   console.log(`rope-source-frequencies-gpu.test: skipped (${probe.reason})`);
 } else {
   try {
-    for (const inverseFrequencies of [null, source]) {
+    const legacySource = await readFile(new URL('../fixtures/rope-precompute-before-source-frequencies.wgsl', import.meta.url), 'utf8');
+    const legacyScope = createShaderSourceScope(new Map([['rope_precompute.wgsl', legacySource]]));
+    for (const { inverseFrequencies, scope } of [
+      { inverseFrequencies: null, scope: null },
+      { inverseFrequencies: source, scope: null },
+      { inverseFrequencies: null, scope: legacyScope },
+    ]) {
       const options = { theta: 10000, rotaryDim: 24, frequencyBaseDim: 24,
         maxSeqLen: SEQUENCE_LENGTH, ropeScale: 1, scalingType: null, scaling: null, inverseFrequencies };
-      const tables = await runRoPEPrecompute(options);
+      const tables = await runWithShaderSourceScope(scope, () => runRoPEPrecompute(options));
       try {
         for (const name of ['cos', 'sin']) {
           const values = new Float32Array(await readBuffer(tables[name], SEQUENCE_LENGTH * source.length * 4));
@@ -33,6 +41,6 @@ if (!probe.ready) {
         }
       } finally { releaseBuffer(tables.cos); releaseBuffer(tables.sin); }
     }
-    console.log('rope-source-frequencies-gpu.test: ok (generated and retained source frequencies)');
+    console.log('rope-source-frequencies-gpu.test: ok (generated, source-preserved and legacy signed shader frequencies)');
   } finally { destroyDevice(); releaseNodeWebGPU(); }
 }

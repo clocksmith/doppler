@@ -62,10 +62,31 @@
     {
       "path": "package-audit.json",
       "hash": "sha256:7364606fe03201bce0c15f9b4e8c984a9da01d1c4c771ae41675f678223b0037"
+    },
+    {
+      "path": "legacy-rope-compatibility-hypothesis.json",
+      "hash": "sha256:a3a41ae04fac90daece3cc3a1456c602ba41e7aa7f0424983e43be94528ba8b8"
+    },
+    {
+      "path": "legacy-rope-compatibility.log",
+      "hash": "sha256:ecc40329a451256e015e2996ec019786f6a3ab2ea72667bc047692ff8be10caf"
+    },
+    {
+      "path": "legacy-rope-compatibility-corrected.log",
+      "hash": "sha256:5f1a8db386dd3075a931d247dc0f3acd6707bb6ee9557538d19285406f031ed4"
+    },
+    {
+      "path": "frequency-gpu-legacy-correction.log",
+      "hash": "sha256:795152bf32fc8d2b7405441572daa7665a8182199a6a81c760e7f57919664768"
+    },
+    {
+      "path": "package-legacy-compatibility-audit.json",
+      "hash": "sha256:86a8046e7965cd250509634d58ac9da9842985e82f1b85fcada4776441828155"
     }
   ],
   "sourceReferenceRoot": ".",
   "signedCapsuleQualified": false,
   "independentOperators": false,
-  "performanceAdvantageClaimed": false
+  "performanceAdvantageClaimed": false,
+  "legacySignedShaderCompatibilityPassed": true
 }
