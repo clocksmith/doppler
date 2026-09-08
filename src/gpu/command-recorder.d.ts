@@ -162,7 +162,7 @@ export declare class CommandRecorder {
   };
 
   /**
-   * Get the submit completion latency in milliseconds (null if not resolved yet).
+   * Final submit to completion in milliseconds (null until resolved).
    */
   getSubmitLatencyMs(): number | null;
 
