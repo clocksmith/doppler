@@ -1,0 +1,33 @@
+{
+  "schema": "reploid.local-runtime-candidate/v1",
+  "baseRevision": "29a64257be95122c94292bcc207b6e13c3d82db9",
+  "patchFile": "ffn-candidate-compact.patch",
+  "patchDigest": "sha256:3f8874be7097c69eb52a49f76e697ec081b4ed642f753a346f77062e8181a391",
+  "files": [
+    {
+      "path": "src/inference/pipelines/text/ffn/dense-executor.js",
+      "hash": "sha256:da399c68c3890baba33739d6ba3c3047172d0b888aef96254bad667396285a8d"
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/dense-executor.d.ts",
+      "hash": "sha256:5d947a4c079891f5eabae4128e63afa170971607334c604a66605ad1688e37ed"
+    },
+    {
+      "path": "tests/inference/ffn-execution-v1-precision-contract.test.js",
+      "hash": "sha256:8f3b670d932f4b5884739b835e12ef7d5f1fba1303f448f012033f8b66363b86"
+    }
+  ],
+  "installedPackage": false,
+  "greenGate": {
+    "passed": true,
+    "exitCode": 0,
+    "artifact": "doppler-ffn-green-compact.log",
+    "hash": "sha256:bb68c255e57d9686955e06221abf0e376df9a7afa81c837a9bb5450fe5dc54f9",
+    "packageBudgetsChanged": false
+  },
+  "modelAcceptance": {
+    "passed": false,
+    "reason": "First candidate advances past FFN planning but fails at GPU logits execution; diagnostic remains active.",
+    "artifact": "storage-ffn-candidate-browser.log"
+  }
+}
