@@ -1,0 +1,43 @@
+{
+  "schema": "doppler.w4a16-ffn-metadata-evidence/v1",
+  "files": [
+    {
+      "path": "diagnostic.json",
+      "hash": "sha256:e6db7bad0dc635b73050d49d8232a71fe70cf7eff3af453a4292b3755517402e",
+      "source": "/home/x/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/gemma4-retained-development/ffn-weight-metadata-diagnostic.json"
+    },
+    {
+      "path": "source-inspection.json",
+      "hash": "sha256:f858ecd43da1451ebc0bdae9603f4fe6aeed3f5cb6545a7518f57ff99f240f0e",
+      "source": "/home/x/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/gemma4-retained-development/source-conversion-inspection.json"
+    },
+    {
+      "path": "converted-integrity.json",
+      "hash": "sha256:0a1f0380f341deab7046907b99bddc82eabca64ceedb85dd6fd6ed99e89d80ed",
+      "source": "/home/x/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/gemma4-retained-development/converted-integrity.json"
+    },
+    {
+      "path": "baseline-error.json",
+      "hash": "sha256:d5f0ed8c3d8f363e4bc65cb1ec97516270d48cb71e753645b127cd6b63179510",
+      "source": "/home/x/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/gemma4-retained-development/storage-converted-browser.log"
+    },
+    {
+      "path": "candidate-error.json",
+      "hash": "sha256:ea9877466bee260b4901154ee0d055ae73aa052ad6346107be38508b546ad01d",
+      "source": "/home/x/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/gemma4-retained-development/storage-ffn-candidate-browser.log"
+    },
+    {
+      "path": "validation.json",
+      "hash": "sha256:d3ecef517ea407e178c07da052c588066af92e7720253a4a8e0b2eb5ccaf07d3",
+      "source": "/home/x/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/gemma4-retained-development/ffn-candidate-compact.json"
+    },
+    {
+      "path": "remaining-device-loss.json",
+      "hash": "sha256:640fbb435e4915849f40556dc30c4fe06ce10cc802472ca89b6b82c193f05f7c",
+      "source": "/home/x/deco/worktrees/reploid-local-journeys/artifacts/local-journeys-2026-09-08/gemma4-retained-development/device-loss-kernel-correlation.json"
+    }
+  ],
+  "runtimeChanged": "Accept already-declared w4a16 metadata before fusion eligibility selection.",
+  "modelAcceptance": false,
+  "remaining": "Physical decode causes Vulkan device loss; generation quality is not qualified."
+}

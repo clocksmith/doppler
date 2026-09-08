@@ -1,0 +1,22 @@
+{
+  "schema": "reploid.model-first-failure-diagnostic/v1",
+  "artifact": "storage-logits-diagnostic-browser.log",
+  "artifactDigest": "sha256:32b6b9c733f5c7b37092d0f457e75c8f6feec7c916714e82d380fad23149aa43",
+  "passed": false,
+  "earlierHypothesisRefuted": "Initial pipeline and generator GPU state agree; prefill logits execute with a live device.",
+  "firstObservedFailure": "Batch decode returns invalid padding token; Vulkan then reports VK_ERROR_DEVICE_LOST.",
+  "laterError": "Logits refuses execution after the GPU device is lost.",
+  "cpuInferenceUsed": false,
+  "prefillLogitsFinite": true,
+  "sourceNumericalParityEstablished": false,
+  "nextHypothesis": "The recorded multi-token decode path causes device loss; a single-token decode control will distinguish it from shared decode-kernel failure.",
+  "control": "storage-single-decode-diagnostic-config.json",
+  "controlIsWorkaround": true,
+  "runtimePathDisabled": false,
+  "answerQualityQualified": false,
+  "kernelObservation": {
+    "artifact": "kernel-device-loss.log",
+    "finding": "The kernel records Chrome gfx-ring timeouts and successful ring resets for both failed GPU runs.",
+    "rootCauseEstablished": false
+  }
+}
