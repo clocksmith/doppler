@@ -1,6 +1,6 @@
 {
   "name": "doppler-gpu",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "AI-native model release foundry and evidence-backed WebGPU runtime for JavaScript",
   "main": "src/capsule-runtime.js",
   "types": "src/capsule-runtime.d.ts",
