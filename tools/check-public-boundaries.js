@@ -60,8 +60,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/state-probe-package-audit.json.
   // Independent full-prompt reset adds 86 bytes in the existing decode runtime.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/prompt-reset-package-audit.json.
-  // Measured npm 9: 2,110,106 packed; retain the observed 2,158-byte npm allowance.
-  maxPackedSize: 2_112_264,
+  // Measured npm 9: 2,112,518 packed; retain the observed 2,158-byte npm allowance.
+  maxPackedSize: 2_114_676,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.

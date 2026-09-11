@@ -4276,13 +4276,13 @@
       "kind": "kernel-digest-binding",
       "kernelRef": "sample.wgsl#sample_single_pass",
       "templateDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-      "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-      "changed": false,
+      "digest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+      "changed": true,
       "disposition": "accepted"
     }
   ],
   "unresolvedFacts": [],
-  "conversionConfigDigest": "sha256:e2273b70e9c43c02c90b6443499ac22bdfaa5928a4b64cec98eebc00c96604b7",
+  "conversionConfigDigest": "sha256:d67f10f547283d46c5c1e887a14bcc7dc6bf35ae129c58d2894956da0fba4101",
   "conversionConfig": {
     "modelType": "transformer",
     "quantization": {
@@ -4456,7 +4456,7 @@
         "sample": {
           "kernel": "sample.wgsl",
           "entry": "sample_single_pass",
-          "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+          "digest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b"
         }
       },
       "preLayer": [
