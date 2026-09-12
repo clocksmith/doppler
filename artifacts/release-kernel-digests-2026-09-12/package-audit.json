@@ -1,0 +1,9 @@
+{
+  "name": "doppler-gpu",
+  "version": "0.6.1",
+  "size": 2109977,
+  "unpackedSize": 10883619,
+  "entryCount": 1784,
+  "sourceCommit": "9f86ec9b11e5f0d376e1d5649bd915512d8d8b99",
+  "change": "Package metadata adds the digest validation command and its default green-chain entry; no shipped files are added."
+}
