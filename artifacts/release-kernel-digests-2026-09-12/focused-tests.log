@@ -1,0 +1,54 @@
+TAP version 13
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.432091
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 245.991079
+[node-tests] ok: tests/config/kernel-ref-digests.test.js
+TAP version 13
+# conversion-digest-selection.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.428274
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1249.807178
+[node-tests] ok: tests/tooling/conversion-digest-selection.test.js
+TAP version 13
+# packed-package-options.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.877216
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 104.478933
+[node-tests] ok: tests/tooling/packed-package-options.test.js
+[node-tests] ok: 3 files
