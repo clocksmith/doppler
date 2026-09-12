@@ -68,7 +68,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Sequence classification, public OPFS, retention, and device recovery: measured npm 9 archive.
   // GPU logits probe forwarding and failure cleanup add 192 bytes, no files.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/probe-package-audit.json.
-  maxUnpackedSize: 10_883_449,
+  // Digest validation adds 170 package.json bytes; the 1784-file closure is unchanged.
+  // Evidence: artifacts/release-kernel-digests-2026-09-12/package-audit.json.
+  maxUnpackedSize: 10_883_619,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
