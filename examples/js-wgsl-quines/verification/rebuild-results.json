@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "filesCompared": 12,
+  "source": "Independent repeat of build.py; all generated source and gallery bytes unchanged",
+  "sha256": {
+    "quines/03-multiquine.wgsl": "d02da63e8105ead751e61a8165744e842c911b3c3f94e94af0c3c6d21f201b96",
+    "quines/02-polyglot.js": "265c54b8535790f1cc84dcb1985ce80862954e0e1e5fbdc11aef5fc132568794",
+    "quines/04-visual.wgsl": "5a366aa074b51902653a41ef107f35c2630500aef33bc8e758d58b9ff04ff123",
+    "quines/04-visual.js": "709794f926310b161928c536a756f48eae9c5863a299014b0beb4a6984f2006c",
+    "quines/05-compiler.wgsl": "edc3ac4b8d6adb2d66e9e20412db32538cb3adec207a345e915e2fb664723b76",
+    "quines/05-compiler.js": "f0c1978c422223cd9cbd078563fd7ebf53e77446e7f55c19ec76880cf53ad598",
+    "quines/01-application.js": "c59c946f1a9d9a8c167ace1a23d0bc879065291c84bfb29ef597f30ac48278e6",
+    "quines/01-application.wgsl": "54179734320b6d823091b630723570e471b6d32835a706ddf4068a4bcb6e9d89",
+    "quines/03-multiquine.js": "d9be124a54475e676ea90e90d51811bdaa5b63c6e6d5e617e7b9915d2164b2db",
+    "quines/02-polyglot.wgsl": "265c54b8535790f1cc84dcb1985ce80862954e0e1e5fbdc11aef5fc132568794",
+    "demo.html": "2b0176a2d333cb02c494397c72b8cebc0dc5fc771945dc111eed81c52c9d1cba",
+    "compiler/compiler-program.json": "c88dd77556050526d730d6028c972adc2cca2d23d768d8d488a6a3fe526e7573"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "browser": "144.0.7559.96",
+  "method": "set_content on about:blank; JavaScript checks only",
+  "results": [
+    {
+      "file": "01-application",
+      "mode": "cpu",
+      "checks": [
+        {
+          "name": "JavaScript reconstruction and WGSL generation",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "file": "02-polyglot",
+      "mode": "cpu",
+      "checks": [
+        {
+          "name": "JavaScript reconstruction and WGSL generation",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "file": "03-multiquine",
+      "mode": "cpu",
+      "checks": [
+        {
+          "name": "JavaScript reconstruction and WGSL generation",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "file": "04-visual",
+      "mode": "cpu",
+      "checks": [
+        {
+          "name": "JavaScript reconstruction and WGSL generation",
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "file": "05-compiler",
+      "mode": "cpu",
+      "checks": [
+        {
+          "name": "JavaScript reconstruction and WGSL generation",
+          "passed": true
+        },
+        {
+          "name": "Compile and run fibonacci",
+          "passed": true,
+          "output": "6765\n"
+        },
+        {
+          "name": "Compile and run factorial",
+          "passed": true,
+          "output": "3628800\n"
+        },
+        {
+          "name": "Compile and run hello",
+          "passed": true,
+          "output": "Hello from Sprout!\n"
+        },
+        {
+          "name": "Compile and run branch",
+          "passed": true,
+          "output": "Y\n"
+        },
+        {
+          "name": "Compile and run overflow",
+          "passed": true,
+          "output": "0\n"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "pageErrors": []
+}

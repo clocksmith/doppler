@@ -1,0 +1,60 @@
+{
+  "phase": "comparison-complete",
+  "caseId": "wide-output-saturation",
+  "experimentId": "submission",
+  "summary": {
+    "unit": "ms/completed-operation",
+    "baseline": {
+      "mean": 0.12062500026077032,
+      "median": 0.11250000074505806,
+      "min": 0.08749999850988388,
+      "max": 0.25,
+      "p95": 0.15500000566244096,
+      "p99": 0.25,
+      "stdDev": 0.03355893222531964,
+      "ci95": 0.010400020844172833,
+      "samples": 40,
+      "samplesAfterOutlierRemoval": 40,
+      "outliersRemoved": 0
+    },
+    "candidate": {
+      "mean": 0.11781249959021807,
+      "median": 0.11249999701976776,
+      "min": 0.08749999850988388,
+      "max": 0.21249999850988388,
+      "p95": 0.13875000290572637,
+      "p99": 0.19299999967217443,
+      "stdDev": 0.021722223249969832,
+      "ci95": 0.006731786728631837,
+      "samples": 40,
+      "samplesAfterOutlierRemoval": 40,
+      "outliersRemoved": 0
+    },
+    "pairedDifference": {
+      "mean": -0.002812500670552254,
+      "median": 0,
+      "min": -0.13749999552965164,
+      "max": 0.0625,
+      "p95": 0.0262500058859586,
+      "p99": 0.05762500174343585,
+      "stdDev": 0.03574835194237902,
+      "ci95": 0.011078529044051762,
+      "samples": 40,
+      "samplesAfterOutlierRemoval": 40,
+      "outliersRemoved": 0
+    },
+    "pairedMeanDifferenceInterval": {
+      "lower": -0.020157226614537647,
+      "upper": 0.010312498827115633,
+      "alpha": 0.00625,
+      "familySize": 8,
+      "method": "fixed-budget percentile bootstrap of paired mean(candidate-baseline); Bonferroni family correction"
+    },
+    "improvementPercent": 0.0000033113691322580367,
+    "tailNonRegression": true,
+    "outcome": "inconclusive",
+    "evidenceScope": "controlled-operator-ablation-only",
+    "productionPromotionAllowed": false,
+    "tailCaution": "Empirical tails from 40 pairs, not a tail-latency service guarantee."
+  }
+}

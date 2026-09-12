@@ -1,0 +1,443 @@
+{
+  "schema": "sprout-three-backend-browser-v1",
+  "started": "2026-09-12T21:36:00.480Z",
+  "browser": {
+    "Browser": "Chrome/152.0.7977.83",
+    "Protocol-Version": "1.3",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "V8-Version": "15.2.124.21",
+    "WebKit-Version": "537.36 (@79460ebecaa5625e57a5fb679a735659e73dc687)"
+  },
+  "artifacts": {
+    "gpu-returned.wgsl": {
+      "bytes": 63724,
+      "sha256": "a907e6cb9ed4c5b99c660855218d0450e5d92eae8b6f2c74801846526b9b5daf"
+    },
+    "gpu-emitted.wasm": {
+      "bytes": 68871,
+      "sha256": "5faf71c6ea748c4b1a59adf6df627b4904777fac32cda6b5d36751a7f78d7ea4"
+    },
+    "wasm-returned.js": {
+      "bytes": 71257,
+      "sha256": "e5dda07a6b42bb9f761fc48f92f7cffa4eb79963ddd521100c9873ce99ee16b4"
+    }
+  },
+  "status": "passed",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+  },
+  "cycles": [
+    {
+      "generation": 1,
+      "path": "JS -> GPU WGSL -> Wasm -> JS",
+      "jsSha256": "e5dda07a6b42bb9f761fc48f92f7cffa4eb79963ddd521100c9873ce99ee16b4",
+      "wgslSha256": "a907e6cb9ed4c5b99c660855218d0450e5d92eae8b6f2c74801846526b9b5daf",
+      "wasmSha256": "5faf71c6ea748c4b1a59adf6df627b4904777fac32cda6b5d36751a7f78d7ea4",
+      "wasmBytes": 68871,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false
+      }
+    },
+    {
+      "generation": 2,
+      "path": "JS -> GPU WGSL -> Wasm -> JS",
+      "jsSha256": "e5dda07a6b42bb9f761fc48f92f7cffa4eb79963ddd521100c9873ce99ee16b4",
+      "wgslSha256": "a907e6cb9ed4c5b99c660855218d0450e5d92eae8b6f2c74801846526b9b5daf",
+      "wasmSha256": "5faf71c6ea748c4b1a59adf6df627b4904777fac32cda6b5d36751a7f78d7ea4",
+      "wasmBytes": 68871,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false
+      }
+    },
+    {
+      "generation": 3,
+      "path": "JS -> GPU WGSL -> Wasm -> JS",
+      "jsSha256": "e5dda07a6b42bb9f761fc48f92f7cffa4eb79963ddd521100c9873ce99ee16b4",
+      "wgslSha256": "a907e6cb9ed4c5b99c660855218d0450e5d92eae8b6f2c74801846526b9b5daf",
+      "wasmSha256": "5faf71c6ea748c4b1a59adf6df627b4904777fac32cda6b5d36751a7f78d7ea4",
+      "wasmBytes": 68871,
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false
+      }
+    }
+  ],
+  "checks": [
+    {
+      "program": "fibonacci",
+      "compilerRuntime": "js",
+      "targetRuntime": "js",
+      "expected": "6765\n",
+      "actual": "6765\n",
+      "status": "passed"
+    },
+    {
+      "program": "fibonacci",
+      "compilerRuntime": "js",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "6765\n",
+      "actual": "6765\n",
+      "status": "passed"
+    },
+    {
+      "program": "fibonacci",
+      "compilerRuntime": "js",
+      "targetRuntime": "wasm",
+      "expected": "6765\n",
+      "actual": "6765\n",
+      "status": "passed"
+    },
+    {
+      "program": "fibonacci",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "js",
+      "expected": "6765\n",
+      "actual": "6765\n",
+      "status": "passed"
+    },
+    {
+      "program": "fibonacci",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "6765\n",
+      "actual": "6765\n",
+      "status": "passed"
+    },
+    {
+      "program": "fibonacci",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "wasm",
+      "expected": "6765\n",
+      "actual": "6765\n",
+      "status": "passed"
+    },
+    {
+      "program": "fibonacci",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "js",
+      "expected": "6765\n",
+      "actual": "6765\n",
+      "status": "passed"
+    },
+    {
+      "program": "fibonacci",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "6765\n",
+      "actual": "6765\n",
+      "status": "passed"
+    },
+    {
+      "program": "fibonacci",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "wasm",
+      "expected": "6765\n",
+      "actual": "6765\n",
+      "status": "passed"
+    },
+    {
+      "program": "factorial",
+      "compilerRuntime": "js",
+      "targetRuntime": "js",
+      "expected": "3628800\n",
+      "actual": "3628800\n",
+      "status": "passed"
+    },
+    {
+      "program": "factorial",
+      "compilerRuntime": "js",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "3628800\n",
+      "actual": "3628800\n",
+      "status": "passed"
+    },
+    {
+      "program": "factorial",
+      "compilerRuntime": "js",
+      "targetRuntime": "wasm",
+      "expected": "3628800\n",
+      "actual": "3628800\n",
+      "status": "passed"
+    },
+    {
+      "program": "factorial",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "js",
+      "expected": "3628800\n",
+      "actual": "3628800\n",
+      "status": "passed"
+    },
+    {
+      "program": "factorial",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "3628800\n",
+      "actual": "3628800\n",
+      "status": "passed"
+    },
+    {
+      "program": "factorial",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "wasm",
+      "expected": "3628800\n",
+      "actual": "3628800\n",
+      "status": "passed"
+    },
+    {
+      "program": "factorial",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "js",
+      "expected": "3628800\n",
+      "actual": "3628800\n",
+      "status": "passed"
+    },
+    {
+      "program": "factorial",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "3628800\n",
+      "actual": "3628800\n",
+      "status": "passed"
+    },
+    {
+      "program": "factorial",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "wasm",
+      "expected": "3628800\n",
+      "actual": "3628800\n",
+      "status": "passed"
+    },
+    {
+      "program": "hello",
+      "compilerRuntime": "js",
+      "targetRuntime": "js",
+      "expected": "Hello from Sprout!\n",
+      "actual": "Hello from Sprout!\n",
+      "status": "passed"
+    },
+    {
+      "program": "hello",
+      "compilerRuntime": "js",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "Hello from Sprout!\n",
+      "actual": "Hello from Sprout!\n",
+      "status": "passed"
+    },
+    {
+      "program": "hello",
+      "compilerRuntime": "js",
+      "targetRuntime": "wasm",
+      "expected": "Hello from Sprout!\n",
+      "actual": "Hello from Sprout!\n",
+      "status": "passed"
+    },
+    {
+      "program": "hello",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "js",
+      "expected": "Hello from Sprout!\n",
+      "actual": "Hello from Sprout!\n",
+      "status": "passed"
+    },
+    {
+      "program": "hello",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "Hello from Sprout!\n",
+      "actual": "Hello from Sprout!\n",
+      "status": "passed"
+    },
+    {
+      "program": "hello",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "wasm",
+      "expected": "Hello from Sprout!\n",
+      "actual": "Hello from Sprout!\n",
+      "status": "passed"
+    },
+    {
+      "program": "hello",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "js",
+      "expected": "Hello from Sprout!\n",
+      "actual": "Hello from Sprout!\n",
+      "status": "passed"
+    },
+    {
+      "program": "hello",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "Hello from Sprout!\n",
+      "actual": "Hello from Sprout!\n",
+      "status": "passed"
+    },
+    {
+      "program": "hello",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "wasm",
+      "expected": "Hello from Sprout!\n",
+      "actual": "Hello from Sprout!\n",
+      "status": "passed"
+    },
+    {
+      "program": "branch",
+      "compilerRuntime": "js",
+      "targetRuntime": "js",
+      "expected": "Y\n",
+      "actual": "Y\n",
+      "status": "passed"
+    },
+    {
+      "program": "branch",
+      "compilerRuntime": "js",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "Y\n",
+      "actual": "Y\n",
+      "status": "passed"
+    },
+    {
+      "program": "branch",
+      "compilerRuntime": "js",
+      "targetRuntime": "wasm",
+      "expected": "Y\n",
+      "actual": "Y\n",
+      "status": "passed"
+    },
+    {
+      "program": "branch",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "js",
+      "expected": "Y\n",
+      "actual": "Y\n",
+      "status": "passed"
+    },
+    {
+      "program": "branch",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "Y\n",
+      "actual": "Y\n",
+      "status": "passed"
+    },
+    {
+      "program": "branch",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "wasm",
+      "expected": "Y\n",
+      "actual": "Y\n",
+      "status": "passed"
+    },
+    {
+      "program": "branch",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "js",
+      "expected": "Y\n",
+      "actual": "Y\n",
+      "status": "passed"
+    },
+    {
+      "program": "branch",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "Y\n",
+      "actual": "Y\n",
+      "status": "passed"
+    },
+    {
+      "program": "branch",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "wasm",
+      "expected": "Y\n",
+      "actual": "Y\n",
+      "status": "passed"
+    },
+    {
+      "program": "overflow",
+      "compilerRuntime": "js",
+      "targetRuntime": "js",
+      "expected": "0\n",
+      "actual": "0\n",
+      "status": "passed"
+    },
+    {
+      "program": "overflow",
+      "compilerRuntime": "js",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "0\n",
+      "actual": "0\n",
+      "status": "passed"
+    },
+    {
+      "program": "overflow",
+      "compilerRuntime": "js",
+      "targetRuntime": "wasm",
+      "expected": "0\n",
+      "actual": "0\n",
+      "status": "passed"
+    },
+    {
+      "program": "overflow",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "js",
+      "expected": "0\n",
+      "actual": "0\n",
+      "status": "passed"
+    },
+    {
+      "program": "overflow",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "0\n",
+      "actual": "0\n",
+      "status": "passed"
+    },
+    {
+      "program": "overflow",
+      "compilerRuntime": "gpu-wgsl",
+      "targetRuntime": "wasm",
+      "expected": "0\n",
+      "actual": "0\n",
+      "status": "passed"
+    },
+    {
+      "program": "overflow",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "js",
+      "expected": "0\n",
+      "actual": "0\n",
+      "status": "passed"
+    },
+    {
+      "program": "overflow",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "gpu-wgsl",
+      "expected": "0\n",
+      "actual": "0\n",
+      "status": "passed"
+    },
+    {
+      "program": "overflow",
+      "compilerRuntime": "wasm",
+      "targetRuntime": "wasm",
+      "expected": "0\n",
+      "actual": "0\n",
+      "status": "passed"
+    }
+  ],
+  "finished": "2026-09-12T21:36:01.944Z"
+}

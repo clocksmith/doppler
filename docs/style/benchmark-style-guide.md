@@ -51,6 +51,24 @@ Do not mix fairness axes and engine-specific knobs in a single object.
 
 ## Maintainer checklist
 
+For inspectable operator-mechanism experiments, use
+[`benchmarks/compute/`](../../benchmarks/compute/README.md). Keep workload and
+acceptance policy in its suite contract, operation semantics in the workload
+adapter, GPU ownership in the plan executor, and statistics in the shared
+observation layer. Do not put operation-specific branches in the executor.
+
+- Use `computeSampleStats(samples, { outlierPolicy: 'none' })` for latency
+  populations. Reject invalid timing samples before summarizing; retain stalls.
+- Attach confidence intervals to their actual estimator, not a median paired
+  with a mean's standard error.
+- Capture source bytes before execution and execute that snapshot. Store raw
+  paired samples, inputs, representative outputs, exact plans, and failures.
+- Report observed API counters separately from analytically estimated traffic.
+- Keep timestamp-instrumented passes separate from primary timing samples.
+
+The acceptance and claim boundary is defined in
+[`Operator-mechanism evidence`](../benchmark-methodology.md#operator-mechanism-evidence).
+
 1. Validate registry/harness definitions.
 2. Run compare or vendor bench with explicit workload id.
 3. Save normalized artifact.

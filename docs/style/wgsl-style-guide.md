@@ -305,17 +305,20 @@ fn relu() { ... }
    - If you need one code path, use packed `u32` with explicit unpacking
    - Otherwise keep separate files (`matmul_f16.wgsl`, `matmul_f32.wgsl`)
 
-2. **Override constants cannot be used for array lengths**
-   - Workgroup arrays must use fixed sizes or a MAX size
-   - If you need multiple tile sizes, compile fixed-size variants and select at runtime
+2. **Array footprint depends on address space**
+   - The outermost array of a workgroup variable may use an override-expression
+     for its element count; its size is resolved at pipeline creation.
+   - Host-shareable storage and uniform layouts require creation-fixed element
+     footprints. Do not generalize the workgroup exception to those layouts.
+   - Bound each specialization against the device's workgroup storage and
+     invocation limits. A fixed maximum is an implementation choice, not a
+     blanket WGSL requirement.
    ```wgsl
-   // BAD - array size from override
-   var<workgroup> tile: array<f32, TILE_SIZE * TILE_SIZE>;
-
-   // GOOD - fixed MAX size
-   const MAX_TILE: u32 = 1024u;  // 32x32
-   var<workgroup> tile: array<f32, MAX_TILE>;
+   override TILE_ELEMENTS: u32;
+   var<workgroup> tile: array<f32, TILE_ELEMENTS>;
    ```
+   See [WGSL fixed-size arrays](https://google.github.io/tour-of-wgsl/types/arrays/fixed-size-arrays/)
+   and the executable `benchmarks/compute/override_probe.wgsl` probe.
 
 3. **Workgroup size is part of the pipeline**
    - Different `@workgroup_size` values are separate pipelines

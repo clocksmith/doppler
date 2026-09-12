@@ -1,0 +1,16 @@
+{
+  "name": "js-wgsl-five-quines",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Five JavaScript/WGSL self-reproducing constructions and a self-hosting toy compiler",
+  "scripts": {
+    "test": "node tests/test-minimal.js && node tests/cpu.mjs",
+    "test:minimal": "node tests/test-minimal.js",
+    "test:gpu": "node tests/gpu.mjs",
+    "build": "python3 build.py",
+    "serve": "python3 -m http.server 8000 --bind 127.0.0.1",
+    "test:wasm": "node tests/wasm.js",
+    "test:browser": "node tests/browser.js"
+  }
+}

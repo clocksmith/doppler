@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Five fixed points · JavaScript × WGSL</title>
+<style>
+:root{color-scheme:dark;--bg:#11151b;--panel:#19212a;--ink:#e9edea;--muted:#abb6bc;--accent:#aae1c5;--line:#34414b;font-family:system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink)}main{max-width:1140px;margin:auto;padding:48px 28px 70px}.eyebrow{font:12px ui-monospace,monospace;letter-spacing:.16em;color:var(--accent)}h1{font-size:clamp(34px,5vw,62px);line-height:1.05;letter-spacing:-.04em;margin:18px 0}h2{font-size:23px;margin:0 0 9px}p{line-height:1.6}.intro{max-width:760px;color:var(--muted);font-size:17px}.boundary{border-left:3px solid var(--accent);padding:12px 18px;background:var(--panel);font-size:14px;margin:24px 0}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:30px 0 22px}.card{text-align:left;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 13px;cursor:pointer;min-height:150px}.card[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}.num{display:block;color:var(--accent);font:13px ui-monospace,monospace;margin-bottom:15px}.name{font-size:15px;font-weight:650;display:block}.short{font-size:12px;color:var(--muted);display:block;margin-top:9px;line-height:1.4}.detail{padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:8px}#description{color:var(--muted);max-width:900px}#path{font:14px ui-monospace,monospace;color:var(--accent);overflow-wrap:anywhere}.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:20px}button.action,select,input{font:14px system-ui;padding:10px 13px;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}button.primary{background:var(--accent);color:#102219;border-color:var(--accent);font-weight:650}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}label{font-size:13px;color:var(--muted)}input{width:64px}pre{font:12px/1.7 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;padding:18px;background:#0d1116;border:1px solid var(--line);border-radius:6px;max-height:340px;overflow:auto}#log{min-height:110px}details{border-bottom:1px solid var(--line);padding:14px 0}summary{cursor:pointer;font-weight:600}textarea{margin-top:14px;width:100%;height:320px;resize:vertical;background:#0d1116;color:var(--ink);border:1px solid var(--line);padding:14px;font:12px/1.5 ui-monospace,monospace;white-space:pre;tab-size:2}.downloads{display:flex;gap:16px;flex-wrap:wrap;margin:15px 0}a{color:var(--accent);font-size:14px}.image-shell{max-height:550px;overflow:auto;border:1px solid var(--line);margin-top:18px}canvas{display:block;image-rendering:pixelated;width:100%;height:auto}#image-section[hidden]{display:none}.foot{color:var(--muted);font-size:13px;line-height:1.6;margin-top:30px}:focus-visible{outline:2px solid var(--accent);outline-offset:4px}@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.card:last-child{grid-column:span 2}.card{min-height:110px}main{padding:30px 18px}}
+</style></head>
+<body><main>
+<div class="eyebrow">FIVE EXECUTABLE FIXED POINTS / NO MODELS / NO FRAMEWORKS</div>
+<h1>JavaScript makes WGSL.<br>WGSL makes JavaScript.</h1>
+<p class="intro">A whole application, a genuine same-file polyglot, a four-way multiquine, a self-portrait made of source, and a compiler that compiles itself.</p>
+<div class="boundary"><strong>Verification boundary:</strong> bundled Node and independent CPU-reference tests passed. WGSL compilation and WebGPU dispatch were blocked in the construction environment. <strong>Run GPU checks below to test your actual adapter.</strong> Software adapters are reported, not presented as physical GPU proof.</div>
+<div class="grid" id="cards"></div>
+<section class="detail"><h2 id="title"></h2><div id="path"></div><p id="description"></p>
+<div class="controls"><button class="action" id="cpu">Check JavaScript</button><button class="action primary" id="gpu">Run GPU rounds</button><label>Rounds <input id="rounds" type="number" min="1" max="8" value="2"></label><button class="action" id="stop" disabled>Stop worker</button></div>
+<pre id="log" role="status" aria-live="polite">Choose a construction. Nothing executes until you press a button.</pre>
+<div class="downloads"><a id="download-js">JavaScript source</a><a id="download-wgsl">WGSL source</a><a id="download-result" hidden>Execution report</a></div>
+<div id="image-section" hidden><p>The image comes from a second GPU dispatch reading the first dispatch's reconstructed source. Each character cell also contains an exact byte; the full program is recoverable from the pixels.</p><a id="download-png">Save lossless PNG</a><div class="image-shell"><canvas id="image"></canvas></div></div>
+<details><summary>Complete JavaScript source</summary><textarea id="js-source" readonly spellcheck="false" aria-label="JavaScript source"></textarea></details>
+<details><summary>Complete WGSL source</summary><textarea id="wgsl-source" readonly spellcheck="false" aria-label="WGSL source"></textarea></details>
+<details><summary>Readable construction template</summary><textarea id="template-source" readonly spellcheck="false" aria-label="Quine construction template"></textarea></details>
+</section>
+<p class="foot">The first four shaders reconstruct source from their own constants. The compiler contains its Sprout source as data and compiles it into executable statements. No quine reads its file, inspects script elements, or uses function-source introspection. The demo starts only bundled programs and checks exact bytes before executing descendants. A worker is a timeout boundary, not a security sandbox for arbitrary code. WebGPU requires a supported browser and normally HTTPS or localhost.</p>
+</main>
+<script>
+const PROGRAMS = __PROGRAMS_JSON__;
+const HOST_CODE = __HOST_JSON__;
+const ITEMS = [
+ {file:'01-application',title:'The whole application',short:'The GPU rebuilds its own launcher.',path:'JS application → WGSL → identical JS application',description:'Everything authored in the JavaScript file is reproduced: WebGPU setup, shader construction, buffer handling, output decoding, and the self-representation. The shader receives no source input buffer.'},
+ {file:'02-polyglot',title:'The same-file polyglot',short:'One text. Two languages. Same output.',path:'S as JavaScript → S    |    S as WGSL → S',description:'The JS and WGSL files are byte-identical. Nested WGSL comments hide the JavaScript region; a JavaScript line comment hides the single-line shader region. Both interpretations reconstruct the entire shared source.'},
+ {file:'03-multiquine',title:'The four-way multiquine',short:'Each program makes either program.',path:'JS → JS    JS → WGSL    WGSL → JS    WGSL → WGSL',description:'Both programs carry templates for the complete pair. The shader’s main entry emits itself; its javascript entry emits the JavaScript partner. GPU rounds execute the returned shader before executing its returned JavaScript.'},
+ {file:'04-visual',title:'The visual quine',short:'Source builds its own exact portrait.',path:'JS → GPU source bytes → GPU glyphs + recoverable pixels → JS',description:'The first GPU pass reconstructs the complete JavaScript. A second pass reads those same GPU-produced bytes and draws a source-code tapestry. Pixel metadata stores every exact byte, including whitespace. The decoder checks that image and source agree.'},
+ {file:'05-compiler',title:'The self-compiling compiler',short:'A real compiler, written in its language.',path:'Sprout compiler → JS compiler ↔ WGSL compiler',description:'The compiler itself is a 19-opcode Sprout program. Both backends emit direct executable statements, not a bytecode interpreter. It compiles itself and unrelated Fibonacci, factorial, text, branch, and overflow programs. Self-reproduction reads embedded source data, never the running JS/WGSL file.'}
+];
+const $=id=>document.getElementById(id);let selected=0,worker=null,watchdog=null;const urls=new Map();
+function blobLink(id,data,type,name){if(urls.has(id))URL.revokeObjectURL(urls.get(id));const url=URL.createObjectURL(new Blob([data],{type}));urls.set(id,url);$(id).href=url;$(id).download=name;$(id).hidden=false;}
+function write(text){$('log').textContent+=text+'\n';$('log').scrollTop=$('log').scrollHeight;}
+function choose(index){if(worker)return;selected=index;const item=ITEMS[index],p=PROGRAMS[item.file];$('title').textContent=item.title;$('path').textContent=item.path;$('description').textContent=item.description;$('js-source').value=p.js;$('wgsl-source').value=p.wgsl;$('template-source').value=p.template;$('image-section').hidden=true;$('download-result').hidden=true;$('log').textContent='Ready. JavaScript checks never substitute for GPU execution.\n';blobLink('download-js',p.js,'text/javascript',item.file+'.js');blobLink('download-wgsl',p.wgsl,'text/plain',item.file+'.wgsl');document.querySelectorAll('.card').forEach((e,i)=>e.setAttribute('aria-pressed',String(i===index)));}
+ITEMS.forEach((item,i)=>{const b=document.createElement('button');b.className='card';b.type='button';b.innerHTML='<span class="num">0'+(i+1)+'</span><span class="name">'+item.title+'</span><span class="short">'+item.short+'</span>';b.addEventListener('click',()=>choose(i));$('cards').append(b);});
+function finish(){clearTimeout(watchdog);worker?.terminate();worker=null;$('gpu').disabled=false;$('cpu').disabled=false;$('stop').disabled=true;}
+const WORKER_CODE = HOST_CODE + '\n' + String.raw`
+globalThis.__QUINE_LIBRARY__=true;
+const equal=(a,b,what)=>{if(a!==b)throw new Error(what+': exact-byte mismatch.');};
+const hash=async text=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))),x=>x.toString(16).padStart(2,'0')).join('');
+const load=source=>{(0,eval)(source);return globalThis.Quine;};
+onmessage=async({data})=>{
+ const {program,mode,rounds,file}=data;const report={file,mode,checks:[],passed:false};let image=null;
+ try{
+  let current=program.js;let api=load(current);equal(api.self(),current,'JavaScript self reproduction');equal(api.wgsl(),program.wgsl,'Emitted WGSL');
+  if(mode==='cpu'){
+   report.checks.push({name:'JavaScript reconstruction and WGSL generation',passed:true});
+   if(file==='05-compiler')for(const example of program.examples){const js=api.compile(example.program,'js');const sample=load(js);equal(sample.execute(),example.expected,example.name);report.checks.push({name:'Compile and run '+example.name,passed:true,output:example.expected});}
+   postMessage({type:'log',text:'JavaScript checks passed. No shader was compiled or dispatched.'});
+  } else {
+   for(let round=1;round<=rounds;round++){
+    api=load(current);equal(api.self(),current,'Descendant JS');const shader=api.wgsl();let result;
+    postMessage({type:'log',text:'Round '+round+': compiling and dispatching WGSL...'});
+    if(file==='02-polyglot'){
+     equal(shader,current,'Same-file polyglot');result=await withDevice(device=>dispatchText(device,current));
+    } else if(file==='03-multiquine'){
+     const self=await withDevice(device=>dispatchText(device,shader));equal(self.text,shader,'WGSL self reproduction');
+     result=await withDevice(device=>dispatchText(device,self.text,'javascript'));
+    } else if(file==='05-compiler'){
+     const self=await withDevice(device=>dispatchText(device,shader,'main',{TARGET:1,EXTERNAL:0},[]));equal(self.text,shader,'GPU compiler self-compilation');
+     result=await withDevice(device=>dispatchText(device,self.text,'main',{TARGET:0,EXTERNAL:0},[]));
+    } else result=await api.run();
+    equal(result.text,current,'GPU reconstruction');current=result.text;
+    if(result.rgba)image={rgba:result.rgba,width:result.width,height:result.height};
+    const row={round,passed:true,bytes:current.length,sha256:await hash(current),adapter:result.adapter};report.checks.push(row);
+    postMessage({type:'log',text:'PASS round '+round+' | '+row.bytes+' bytes | SHA-256 '+row.sha256+'\nAdapter: '+JSON.stringify(row.adapter)});
+   }
+   if(file==='05-compiler'){
+    const compiler=load(current),example=program.examples[0];
+    const built=await compiler.run('wgsl',example.program);equal(built.text,compiler.compile(example.program,'wgsl'),'GPU-compiled Fibonacci');
+    const output=await withDevice(device=>dispatchText(device,built.text,'main',{TARGET:1,EXTERNAL:0},[]));equal(output.text,example.expected,'GPU-executed Fibonacci');
+    report.checks.push({name:'GPU compiler builds and executes Fibonacci',passed:true,output:output.text});
+    postMessage({type:'log',text:'PASS GPU compiled and executed Fibonacci: '+output.text.trim()});
+   }
+  }
+  report.passed=true;postMessage({type:'done',report,image},image?[image.rgba.buffer]:[]);
+ }catch(error){report.error={name:error.name,message:error.message};postMessage({type:'done',report,image:null});}
+};`;
+function run(mode){if(worker)return;const rounds=Number($('rounds').value);if(!Number.isSafeInteger(rounds)||rounds<1||rounds>8){write('Use 1–8 rounds.');return;}$('log').textContent='';$('image-section').hidden=true;$('gpu').disabled=true;$('cpu').disabled=true;$('stop').disabled=false;const file=ITEMS[selected].file;const url=URL.createObjectURL(new Blob([WORKER_CODE],{type:'text/javascript'}));worker=new Worker(url);URL.revokeObjectURL(url);watchdog=setTimeout(()=>{write('Stopped: total demo timeout exceeded. No pass claimed.');finish();},120000);worker.onerror=e=>{write('ERROR: '+e.message);finish();};worker.onmessage=({data})=>{if(data.type==='log'){write(data.text);return;}const {report,image}=data;write(report.passed?'PASS: '+(mode==='gpu'?'actual WebGPU checks on the reported adapter.':'JavaScript-only checks.'):'NOT PASSED: '+report.error.message);blobLink('download-result',JSON.stringify(report,null,2)+'\n','application/json',file+'-'+mode+'-results.json');if(image){const canvas=$('image');canvas.width=image.width;canvas.height=image.height;canvas.getContext('2d').putImageData(new ImageData(image.rgba,image.width,image.height),0,0);$('image-section').hidden=false;canvas.toBlob(blob=>{if(blob)blobLink('download-png',blob,'image/png','quine-source.png');});}window.lastQuineReport=report;finish();};worker.postMessage({program:PROGRAMS[file],file,mode,rounds});}
+$('cpu').onclick=()=>run('cpu');$('gpu').onclick=()=>run('gpu');$('stop').onclick=()=>{write('Stopped by user. No pass claimed.');finish();};choose(0);
+</script></body></html>

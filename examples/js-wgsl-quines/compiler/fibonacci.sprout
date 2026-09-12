@@ -1,0 +1,16 @@
+.data
+
+.code
+set 2 20 0
+set 3 0 0
+set 4 1 0
+set 5 1 0
+while 2 0 0
+add 6 3 4
+mov 3 4 0
+mov 4 6 0
+sub 2 2 5
+end 0 0 0
+decimal 3 0 0
+set 7 10 0
+put 7 0 0

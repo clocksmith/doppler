@@ -1,0 +1,105 @@
+{
+  "schema": "doppler.compute-regressions/v1",
+  "scope": "CPU contract regression checks; no GPU or performance evidence",
+  "passed": true,
+  "total": 24,
+  "failures": 0,
+  "cases": [
+    {
+      "name": "shared statistics preserve latency tails when explicitly requested",
+      "passed": true
+    },
+    {
+      "name": "legacy IQR callers retain their existing default behavior",
+      "passed": true
+    },
+    {
+      "name": "unknown outlier policy fails instead of silently selecting a population",
+      "passed": true
+    },
+    {
+      "name": "shared statistics retain empty and singleton compatibility",
+      "passed": true
+    },
+    {
+      "name": "benchmark summaries reject empty and non-finite populations",
+      "passed": true
+    },
+    {
+      "name": "kernel reporting preserves tails and identifies its actual wall clock",
+      "passed": true
+    },
+    {
+      "name": "kernel reporting rejects invalid timing values",
+      "passed": true
+    },
+    {
+      "name": "mean confidence interval is not presented as a median interval",
+      "passed": true
+    },
+    {
+      "name": "default compute suite validates without filling implicit fields",
+      "passed": true
+    },
+    {
+      "name": "suite rejects missing and unknown policy fields",
+      "passed": true
+    },
+    {
+      "name": "suite rejects changed non-treatment axes",
+      "passed": true
+    },
+    {
+      "name": "suite rejects duplicate shapes and unsupported numerical policy",
+      "passed": true
+    },
+    {
+      "name": "suite enforces the declared sample and workload envelope",
+      "passed": true
+    },
+    {
+      "name": "input generation is deterministic and case-seed-sensitive",
+      "passed": true
+    },
+    {
+      "name": "scalar oracle matches independently hand-expanded matrix arithmetic",
+      "passed": true
+    },
+    {
+      "name": "oracle controls reject corruption, incomplete writes, infinities, and guard changes",
+      "passed": true
+    },
+    {
+      "name": "fusion preserves the semantic contract and removes only declared intermediates",
+      "passed": true
+    },
+    {
+      "name": "submission treatment preserves the complete shader graph",
+      "passed": true
+    },
+    {
+      "name": "paired estimator uses candidate-minus-baseline and family correction",
+      "passed": true
+    },
+    {
+      "name": "equal timings cannot become a local improvement",
+      "passed": true
+    },
+    {
+      "name": "a slower candidate is reported as a regression",
+      "passed": true
+    },
+    {
+      "name": "negative evidence controls reject all declared invalid sample classes",
+      "passed": true
+    },
+    {
+      "name": "coverage and workgroup drift cannot pass the sample boundary",
+      "passed": true
+    },
+    {
+      "name": "retained statistics control remains executable",
+      "passed": true
+    }
+  ]
+}

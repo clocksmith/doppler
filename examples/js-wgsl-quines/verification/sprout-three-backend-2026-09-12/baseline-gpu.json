@@ -1,0 +1,41 @@
+{
+  "kind": "original-two-backend-gpu-baseline",
+  "startedAt": "2026-09-12T21:12:38.424Z",
+  "passed": true,
+  "sourceFiles": {
+    "quines/05-compiler.js": {
+      "bytes": 51366,
+      "sha256": "f0c1978c422223cd9cbd078563fd7ebf53e77446e7f55c19ec76880cf53ad598"
+    },
+    "quines/05-compiler.wgsl": {
+      "bytes": 46080,
+      "sha256": "edc3ac4b8d6adb2d66e9e20412db32538cb3adec207a345e915e2fb664723b76"
+    },
+    "lib/webgpu.js": {
+      "bytes": 4524,
+      "sha256": "b93074eee7ce303bf1a1197a41a7b3c295977508b8cf87822bb4e91930b98ad7"
+    }
+  },
+  "browser": {
+    "Browser": "Chrome/152.0.7977.83",
+    "Protocol-Version": "1.3",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "V8-Version": "15.2.124.21",
+    "WebKit-Version": "537.36 (@79460ebecaa5625e57a5fb679a735659e73dc687)"
+  },
+  "result": {
+    "roundTrip": "JavaScript -> GPU WGSL -> returned GPU WGSL -> JavaScript",
+    "javascriptSha256": "f0c1978c422223cd9cbd078563fd7ebf53e77446e7f55c19ec76880cf53ad598",
+    "wgslSha256": "edc3ac4b8d6adb2d66e9e20412db32538cb3adec207a345e915e2fb664723b76",
+    "javascriptBytes": 51366,
+    "wgslBytes": 46080,
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    }
+  },
+  "finishedAt": "2026-09-12T21:12:39.777Z"
+}

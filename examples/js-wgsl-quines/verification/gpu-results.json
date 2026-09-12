@@ -1,0 +1,11 @@
+{
+  "schema": "five-quines-gpu-verification/v1",
+  "node": "v22.16.0",
+  "checks": [],
+  "passed": false,
+  "status": "blocked",
+  "error": {
+    "name": "Error",
+    "message": "Cannot find package 'webgpu' imported from /mnt/data/js-wgsl-five-quines/tests/gpu.mjs"
+  }
+}
