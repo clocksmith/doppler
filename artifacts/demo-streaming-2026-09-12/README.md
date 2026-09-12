@@ -98,3 +98,10 @@ runtime plus the three-file streaming patch, and its shell check passes.
 `npm run check:world:doppler` now fails its full-sync version comparison because
 the sibling source is 0.6.1. This push does not claim a full runtime synchronization
 or deployment, and the check was not weakened to hide that difference.
+
+During `rdpush`, upstream advanced again to `31bdf3fd`, including a runtime stats
+module change. The UI commit rebased cleanly to `21e2c5f1`; D4DA pushed as
+`dd9a0c7`. The canonical shell was regenerated for that additional upstream
+change. `final-shell.log` and `final-contract.log` retain the passing shell and
+browser checks for that final graph. This follow-up updates generated cache
+evidence only; the reviewed streaming implementation is unchanged.
