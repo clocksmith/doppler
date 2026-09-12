@@ -1,10 +1,12 @@
-import { applyRuntimeProfile, getRuntimeConfig } from 'doppler-gpu/tooling/runtime';
+import { applyRuntimeProfile, getRuntimeConfig, setRuntimeConfig } from 'doppler-gpu/tooling/runtime';
 import { state } from './ui/state.js';
+import { syncModelControls } from './models.js';
 
 function $(id) { return document.getElementById(id); }
 
 const DEMO_DEFAULT_MAX_TOKENS = 1024;
 const WORD_QUALITY_STORAGE_KEY = 'doppler.demo.word-quality-enabled';
+let onProfileChanged = null;
 
 const GENERATION_FIELDS = [
   { key: 'temperature', id: 'set-temperature', path: ['inference', 'sampling', 'temperature'], parse: parseFiniteNumber },
@@ -25,6 +27,7 @@ const PROFILE_OWNED_FIELDS = [
 const ALL_PROFILE_DISPLAY_FIELDS = [...GENERATION_FIELDS, ...PROFILE_OWNED_FIELDS];
 
 function parseFiniteNumber(value) {
+  if (!String(value).trim()) return undefined;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : undefined;
 }
@@ -107,21 +110,36 @@ async function applyProfile(profileId, { required = false } = {}) {
   }
 
   const previousProfile = state.settings.runtimeProfile || 'profiles/default';
+  const previousConfig = structuredClone(getRuntimeConfig());
+  const profileSelect = $('set-profile');
+  const errorNotice = $('settings-error');
+  state.settingsBusy = true;
+  if (profileSelect) profileSelect.disabled = true;
+  if (errorNotice) errorNotice.hidden = true;
+  syncModelControls();
   try {
     await applyRuntimeProfile(targetProfile);
+    await onProfileChanged?.(targetProfile);
   } catch (error) {
     if (required) {
       throw new Error(
         `Failed to load default runtime profile "${targetProfile}": ${error?.message ?? String(error)}`
       );
     }
-    const profileSelect = $('set-profile');
     if (profileSelect) {
       profileSelect.value = previousProfile;
     }
     state.settings.runtimeProfile = previousProfile;
-    console.warn(`DemoSettings: failed to load runtime profile: ${error?.message || error}`);
+    setRuntimeConfig(previousConfig);
+    if (errorNotice) {
+      errorNotice.textContent = `Profile unchanged: ${error?.message || error}`;
+      errorNotice.hidden = false;
+    }
     return false;
+  } finally {
+    state.settingsBusy = false;
+    if (profileSelect) profileSelect.disabled = false;
+    syncModelControls();
   }
 
   state.settings.runtimeProfile = targetProfile;
@@ -142,7 +160,18 @@ function readGenerationSettings() {
 
 export function getSettings() {
   state.wordQualityEnabled = $('set-word-quality')?.checked ?? false;
-  state.liveTokSec = $('set-live-toks')?.checked ?? true;
+  for (const field of GENERATION_FIELDS) {
+    const input = $(field.id);
+    if (input && (!input.checkValidity() || field.parse(input.value) === undefined)) {
+      $('settings-panel')?.classList.add('is-open');
+      $('settings-toggle')?.setAttribute('aria-expanded', 'true');
+      const controls = $('chat-controls');
+      if (controls) controls.open = true;
+      input.focus();
+      input.reportValidity();
+      throw new Error(`Check ${input.labels?.[0]?.textContent || field.key}.`);
+    }
+  }
 
   const generationSettings = readGenerationSettings();
   const nextSettings = {
@@ -156,7 +185,8 @@ export function getSettings() {
   return nextSettings;
 }
 
-export async function initSettings({ requireDefaultProfile = false } = {}) {
+export async function initSettings({ requireDefaultProfile = false, onProfileChange = null } = {}) {
+  onProfileChanged = onProfileChange;
   const wordQualityToggle = $('set-word-quality');
   if (wordQualityToggle) {
     const savedWordQuality = readBooleanPreference(WORD_QUALITY_STORAGE_KEY);
@@ -189,6 +219,10 @@ export async function initSettings({ requireDefaultProfile = false } = {}) {
     if (element) {
       element.disabled = true;
     }
+  }
+  for (const field of GENERATION_FIELDS) {
+    const element = $(field.id);
+    if (element) element.required = true;
   }
 
   const defaultProfile = $('set-profile')?.value || 'profiles/default';

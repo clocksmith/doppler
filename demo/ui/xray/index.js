@@ -28,6 +28,7 @@ function syncState() {
   const container = $('xray-container');
   if (shell) shell.hidden = !enabled;
   if (container) container.hidden = !enabled;
+  if (enabled) updateXrayPanels();
   writePreference(enabled);
   onChangeCallback?.();
 }

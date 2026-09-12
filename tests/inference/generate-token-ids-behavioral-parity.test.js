@@ -180,6 +180,33 @@ function stubGenerator(gen, tokenSequence) {
   };
 }
 
+// Streaming observes the first token, every decode token, and immediate EOS.
+for (const sequence of [[9, 10, EOS_TOKEN], [EOS_TOKEN]]) {
+  const state = createMinimalState();
+  const gen = new PipelineGenerator(state);
+  stubGenerator(gen, sequence);
+  const observed = [];
+  const result = await gen.generateTokenIds('stream', {
+    useChatTemplate: false,
+    onToken: (id, text) => observed.push({ id, text }),
+  });
+  assert.deepEqual(observed, result.tokenIds.map((id) => ({ id, text: '' })));
+  assert.deepEqual(result.tokenIds, sequence);
+}
+
+// A first-token observer failure still releases generation ownership.
+{
+  const state = createMinimalState();
+  const gen = new PipelineGenerator(state);
+  stubGenerator(gen, [9, EOS_TOKEN]);
+  await assert.rejects(gen.generateTokenIds('stream', {
+    useChatTemplate: false,
+    onToken() { throw new Error('observer failed'); },
+  }), /observer failed/);
+  assert.equal(state.isGenerating, false);
+  assert.deepEqual((await gen.generateTokenIds('retry', { useChatTemplate: false })).tokenIds, [9, EOS_TOKEN]);
+}
+
 // === Test 0: generateTokenIds emits operator diagnostics when requested ===
 {
   const state = createMinimalState({ maxTokens: 4 });

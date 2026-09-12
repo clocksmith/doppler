@@ -1,7 +1,6 @@
 import { state } from './ui/state.js';
 import { restoreConversationHistory } from './input.js';
 import {
-  renderImportedChat,
   setFinalStats,
   setPhase,
   showWordQuality,
@@ -18,7 +17,7 @@ export function buildReport() {
     schema: 'doppler.demo-report/v1',
     timestamp: new Date().toISOString(),
     modelId: state.modelId,
-    settings: { ...state.settings },
+    settings: { ...(run.config ?? state.settings) },
     preset: state.preset,
     generationMode: run.wordQuality?.enabled ? 'guided_quality' : 'plain',
     prefillMs: run.prefillMs ?? null,
@@ -82,6 +81,10 @@ export function importReportData(value) {
   const report = validateImportedReport(value);
   const output = getReportOutput(report);
   state.lastImportedReport = report;
+  state.lastInspection = null;
+  state.lastInferenceStats = null;
+  delete globalThis.__DOPPLER_DEMO_EVIDENCE__;
+  $('xray-container')?.replaceChildren();
   state.lastRun = {
     mode: ['guided_quality', 'token_press'].includes(report.generationMode)
       ? 'guided-quality'
@@ -98,7 +101,11 @@ export function importReportData(value) {
   if (Array.isArray(report.conversation?.messages)) {
     restoreConversationHistory(report.conversation.messages);
   } else {
-    renderImportedChat(output, getReportPrompt(report));
+    const prompt = getReportPrompt(report);
+    restoreConversationHistory([
+      ...(prompt ? [{ role: 'user', content: prompt }] : []),
+      ...(output ? [{ role: 'assistant', content: output }] : []),
+    ]);
   }
   setPhase('Imported report');
   setFinalStats(state.lastRun);

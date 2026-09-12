@@ -23,7 +23,7 @@ assert.match(modelsSource, /from 'doppler-gpu\/compat'/);
 assert.equal((html.match(/id="xray-toggle-all"/g) ?? []).length, 1);
 assert.match(html, /<span class="chat-toggle-label">X-Ray<\/span>\s*<input id="xray-toggle-all" type="checkbox">/);
 assert.match(html, /<span class="chat-toggle-label">Word quality<\/span>\s*<input id="set-word-quality" type="checkbox">/);
-assert.match(html, /X-Ray off · Word quality off/);
+assert.match(html, /chat-controls-summary-state">Standard/);
 assert.match(html, /Enabled · 5 evidence panels/);
 assert.doesNotMatch(html, /capture-transcript|export-transcript|set-token-press/);
 assert.match(xraySource, /GPU timestamp queries/);
@@ -35,7 +35,8 @@ assert.match(settingsSource, /doppler\.demo\.word-quality-enabled/);
 assert.match(html, /id="set-max-tokens"[^>]*value="1024"/);
 assert.match(settingsSource, /DEMO_DEFAULT_MAX_TOKENS = 1024/);
 assert.match(html, /id="shuffle-btn"[^>]*>[\s\S]*Example<\/button>/);
-assert.match(html, /id="image-drop"[^>]*>Image<\/button>/);
+// Inspection accepts text and returns completed timing; don't offer disconnected controls.
+assert.doesNotMatch(html, /id="image-drop"|id="set-live-toks"/);
 assert.match(html, /id="run-btn"[^>]*>[\s\S]*Send<\/button>/);
 assert.match(inputSource, /state\.model/);
 

@@ -1,0 +1,6 @@
+
+> doppler-gpu@0.6.0 inference:boundaries:check
+> node tools/check-inference-boundaries.js
+
+inference boundary check passed
+- INV-ATTN-003: no getRuntimeConfig() calls under attention/

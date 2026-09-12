@@ -170,7 +170,7 @@ body.pwa-window-controls .app-shell {
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-xl);
-  padding: 40px;
+  padding: var(--space-lg) var(--space-xl);
   overflow: hidden;
   border: var(--border-md) solid var(--fg);
   border-radius: 20px;
@@ -227,7 +227,7 @@ body.pwa-window-controls .app-shell {
 
 .app-brand h1 {
   max-width: 680px;
-  font-size: clamp(38px, 6vw, 68px);
+  font-size: clamp(28px, 3.5vw, 44px);
   font-weight: var(--font-weight-light);
   line-height: 1.02;
   letter-spacing: -0.06em;
@@ -235,7 +235,7 @@ body.pwa-window-controls .app-shell {
 
 .app-brand p {
   max-width: 680px;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   line-height: var(--font-read-leading);
   opacity: 0.82;
 }
@@ -329,6 +329,50 @@ body.pwa-window-controls .app-shell {
 
 .app-shell .btn {
   border-radius: 999px;
+}
+
+/* Keep control states legible on both the light cards and inverted surfaces. */
+.app-shell :is(button, summary, a, input, select, textarea):focus-visible,
+.confirm-dialog :is(button, input):focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+.app-shell input[type="checkbox"] {
+  color: inherit;
+}
+
+.app-shell input[type="checkbox"]:focus-visible {
+  outline-color: currentColor;
+}
+
+.app-header :is(button, a):focus-visible {
+  outline-color: var(--bg);
+}
+
+.app-shell :is(button, input, select, textarea):disabled {
+  opacity: 1;
+  color: #666;
+  background-color: #eee;
+  cursor: not-allowed;
+}
+
+.app-header .btn {
+  border-color: currentColor;
+}
+
+.app-header .btn:hover {
+  outline: 1px solid currentColor;
+}
+
+.app-shell summary::after {
+  content: '+';
+  margin-left: auto;
+  font-size: var(--font-size-lg);
+}
+
+.app-shell details[open] > summary::after {
+  content: '−';
 }
 
 .app-links a:hover,
@@ -488,8 +532,8 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   border: var(--border-md) solid var(--doppler-line);
   border-radius: 12px;
   cursor: pointer;
-  transition: background var(--transition-fast) ease,
-              border-style var(--transition-fast) ease;
+  overflow-wrap: anywhere;
+  /* Invert both colors immediately; a background-only fade hides the label. */
 }
 
 .model-card-top {
@@ -523,7 +567,8 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 }
 
 /* Active / loaded — inverted + thick border */
-.model-card.is-active {
+.model-card.is-active,
+.model-card[aria-pressed="true"] {
   border-style: solid;
   border-width: var(--border-lg);
   background: var(--fg);
@@ -757,23 +802,13 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   font-weight: var(--font-weight-bold);
 }
 
-.attach-image-btn.drag-over {
-  border-style: solid;
-}
-
-.attach-image-btn.has-image {
-  background: var(--fg);
-  color: var(--bg);
-  border-style: solid;
-}
-
 /* --- Output area --- */
 
 .output-area {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  min-height: 250px;
+  min-height: 160px;
 }
 
 .output-phase {
@@ -793,7 +828,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   border: var(--border-md) solid var(--doppler-line);
   border-radius: 14px;
   background: var(--doppler-soft-surface);
-  min-height: 240px;
+  min-height: 160px;
   max-height: min(56vh, 560px);
   overflow: auto;
   overflow-anchor: none;
@@ -809,7 +844,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 
 .chat-empty {
   display: grid;
-  min-height: 238px;
+  min-height: 158px;
   place-content: center;
   justify-items: center;
   gap: var(--space-xs);
@@ -880,7 +915,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   min-width: 0;
 }
 
-.output-text:empty::before {
+#live-assistant-message[aria-busy="true"] .output-text:empty::before {
   content: 'Generating...';
   opacity: var(--opacity-disabled);
 }
@@ -980,7 +1015,9 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 .chat-toolbar-run {
   flex: 1;
   justify-content: flex-end;
-  overflow: hidden;
+  flex-wrap: wrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .chat-heading {
@@ -991,7 +1028,8 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  padding: var(--space-xxs) var(--space-xs);
+  min-height: 36px;
+  padding: var(--space-xs) var(--space-sm);
   border: var(--border-sm) solid transparent;
   cursor: pointer;
 }
@@ -1029,6 +1067,19 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 
 .settings-panel.is-open {
   display: flex;
+}
+
+.profile-details > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-block: var(--space-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.profile-details > summary > span {
+  opacity: var(--opacity-soft);
 }
 
 .xray-shell {
@@ -1441,6 +1492,10 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 /* --- Responsive --- */
 
 @media (max-width: 600px) {
+  .app-shell :is(.btn, .chat-toggle, summary, select, input:not([type="checkbox"])) {
+    min-height: 44px;
+  }
+
   .app-shell {
     padding: var(--space-sm);
     gap: var(--space-sm);
@@ -1457,7 +1512,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   }
 
   .app-brand h1 {
-    font-size: 38px;
+    font-size: 30px;
   }
 
   .app-proof-line {

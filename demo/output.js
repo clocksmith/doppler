@@ -42,9 +42,7 @@ function createEmptyState() {
   const heading = document.createElement('strong');
   heading.textContent = state.model ? 'Start a conversation.' : 'Load a model to begin.';
 
-  const detail = document.createElement('span');
-  detail.textContent = 'A sample prompt is ready below, or write your own.';
-  empty.append(mark, heading, detail);
+  empty.append(mark, heading);
   return empty;
 }
 
@@ -97,11 +95,6 @@ export function setPhase(label) {
   setText('output-phase', label);
 }
 
-export function setTokSec(value) {
-  if (!state.liveTokSec) return;
-  setText('output-toks', value != null ? `${value.toFixed(1)} tok/s` : '');
-}
-
 export function clearTokSec() {
   setText('output-toks', '');
 }
@@ -111,14 +104,70 @@ export function setPrefillProgress(percent) {
   if (bar) bar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
 }
 
-export function appendToken(text) {
-  const el = $('output-text');
+export function createOutputStream(decodeTokenIds, signal) {
+  const output = $('output-text');
+  const surface = document.querySelector('.chat-surface');
   const liveMessage = $('live-assistant-message');
-  if (liveMessage) liveMessage.hidden = false;
-  if (el) {
-    el.textContent += text;
-    scrollChatToLatest();
+  const textNode = document.createTextNode('');
+  output.replaceChildren(textNode);
+  liveMessage?.setAttribute('aria-busy', 'true');
+  const tokenIds = [];
+  let frame = null;
+  let closed = false;
+  let dirty = false;
+
+  function updateText(text) {
+    const previous = textNode.data;
+    if (text === previous) return;
+    const follow = surface && surface.scrollHeight - surface.scrollTop - surface.clientHeight <= 2;
+    if (text.startsWith(previous)) {
+      textNode.appendData(text.slice(previous.length));
+    } else {
+      // Tokenizer decoding can revise an unfinished byte sequence or whitespace.
+      let prefix = 0;
+      while (prefix < previous.length && prefix < text.length && previous[prefix] === text[prefix]) prefix++;
+      textNode.replaceData(prefix, previous.length - prefix, text.slice(prefix));
+    }
+    if (follow) surface.scrollTop = surface.scrollHeight;
   }
+
+  function flush() {
+    frame = null;
+    if (!dirty) return;
+    dirty = false;
+    // Decode together, once per paint, so split Unicode and tokenizer spacing
+    // stay consistent with the final receipt. Never decode each ID separately.
+    updateText(decodeTokenIds(tokenIds).replace(/\uFFFD+$/u, ''));
+  }
+
+  function finish(finalText) {
+    if (closed) return textNode.data;
+    closed = true;
+    signal?.removeEventListener('abort', onAbort);
+    if (frame !== null) cancelAnimationFrame(frame);
+    frame = null;
+    try {
+      if (typeof finalText === 'string') updateText(finalText);
+      else flush();
+    } finally {
+      liveMessage?.setAttribute('aria-busy', 'false');
+    }
+    return textNode.data;
+  }
+
+  function onAbort() { finish(); }
+  signal?.addEventListener('abort', onAbort, { once: true });
+  if (signal?.aborted) finish();
+
+  return {
+    push(tokenId) {
+      if (closed) return;
+      tokenIds.push(tokenId);
+      dirty = true;
+      if (frame === null) frame = requestAnimationFrame(flush);
+    },
+    finish,
+  };
 }
 
 export function clearOutput() {

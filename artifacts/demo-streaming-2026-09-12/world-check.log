@@ -1,0 +1,6 @@
+
+> d4da-app@0.1.0 check:world:doppler
+> node scripts/check-world-doppler.mjs
+
+Doppler world hosting contract passed: 5 reported modules checked; runtime 0.6.0
+demo shell manifest: 710 files, 670 modules, 6003303 bytes (sha256:f36cffb4601e52163ec87bde97805fadb1529bb28616c77c3a5fd72bebad3f2f)

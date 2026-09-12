@@ -1,0 +1,14 @@
+
+> doppler-gpu@0.6.0 test:demo:hardware
+> node tools/demo-hardware-smoke.js
+
+file:///home/x/deco/doppler/tools/demo-hardware-smoke.js:182
+    throw new Error(`Demo model load failed: ${loadState.status} (${loadState.detail})`);
+          ^
+
+Error: Demo model load failed: Load failed: Persistent model cache failed for "gemma-3-270m-it-q4k-ehf16-af32": Download incomplete: 6 shard(s) failed. Errors: Shard 0 HTTP 429: ; Shard 1 HTTP 429: ; Shard 2 HTTP 429: ; Shard 3 HTTP 429: ; Shard 4 HTTP 429: ; Shard 5 HTTP 429:  (Available · gemma-3-270m-it-q4k-ehf16-af32)
+    at waitForLoadedModel (file:///home/x/deco/doppler/tools/demo-hardware-smoke.js:182:11)
+    at async main (file:///home/x/deco/doppler/tools/demo-hardware-smoke.js:208:5)
+    at async file:///home/x/deco/doppler/tools/demo-hardware-smoke.js:304:3
+
+Node.js v22.22.1

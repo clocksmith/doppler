@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.0 source:architecture:check
+> node tools/check-source-architecture.js
+
+source architecture check passed: 21 owners, 2661 files, 0 governed oversize files, 52 reviewed soft-limit files, 25 reviewed generic modules (6 semantic owners, 19 facades, 0 legacy debt)

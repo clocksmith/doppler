@@ -426,6 +426,7 @@ export async function generateTokenIds(prompt, options = {}) {
       const tokenIds = [firstToken];
       this._state.stats.ttftMs = performance.now() - startTime;
       markKernelCacheWarmed();
+      if (options.onToken) options.onToken(firstToken, '');
 
       const decodeRuntime = {
         stopTokenIds,

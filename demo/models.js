@@ -1,7 +1,6 @@
 import { dr } from 'doppler-gpu/compat';
 import { state } from './ui/state.js';
-import { syncSendButton } from './input.js';
-import { clearOutput } from './output.js';
+import { clearConversationHistory, syncSendButton } from './input.js';
 import { setExportEnabled } from './report.js';
 
 const LAST_USED_MODEL_STORAGE_KEY = 'doppler.demo.last-used-model';
@@ -45,25 +44,35 @@ function selectedEntry() {
   return catalog.find((entry) => entry.modelId === selectedModelId) ?? null;
 }
 
-function syncSelectedControls() {
+export function syncModelControls() {
   const entry = selectedEntry();
   const status = entry ? (state.modelStatus[entry.modelId] ?? 'available') : null;
   const action = $('model-select-action');
   const remove = $('model-select-remove');
   const detail = $('model-select-detail');
+  const busy = state.modelBusy || state.settingsBusy || state.generating;
   if (action) {
-    action.disabled = !entry || status === 'loading';
+    action.disabled = !entry || busy || status === 'loaded';
     action.textContent = status === 'loaded'
       ? 'Loaded'
       : (status === 'stored' ? 'Use saved model' : 'Load locally');
   }
   if (remove) {
     remove.hidden = status !== 'stored' && status !== 'loaded';
-    remove.disabled = state.generating || status === 'loading';
+    remove.disabled = busy;
   }
   if (detail) {
     detail.textContent = entry ? buildModelCardDetail(entry, status) : '';
   }
+  const select = $('model-select');
+  if (select) select.disabled = !catalog.length || busy;
+  const profile = $('set-profile');
+  if (profile) profile.disabled = busy;
+  for (const card of document.querySelectorAll('.model-card')) {
+    card.disabled = busy;
+    card.setAttribute('aria-pressed', String(card.dataset.modelId === selectedModelId));
+  }
+  syncSendButton();
 }
 
 function createModelCard(entry) {
@@ -76,21 +85,23 @@ function createModelCard(entry) {
     selectedModelId = entry.modelId;
     const select = $('model-select');
     if (select) select.value = entry.modelId;
-    syncSelectedControls();
+    syncModelControls();
   });
   return card;
 }
 
-async function loadSelectedModel() {
-  const entry = selectedEntry();
-  if (!entry || state.generating) return;
+async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = state.settings.runtimeProfile, force = false } = {}) {
+  if (!entry || state.generating || state.modelBusy || (!force && state.modelId === entry.modelId)) return;
+  const previousStatus = state.modelStatus[entry.modelId];
+  state.modelBusy = true;
   state.modelStatus[entry.modelId] = 'loading';
-  syncSelectedControls();
+  syncModelControls();
   setStatus('Loading model…', true);
   setProgress({ percent: 0, message: 'Preparing model' });
   try {
     const model = await dr.load(entry.modelId, {
       cache: 'opfs',
+      runtimeProfile,
       onProgress: setProgress,
     });
     if (state.model && state.model !== model) {
@@ -106,31 +117,55 @@ async function loadSelectedModel() {
     setStatus('Ready');
     onModelLoaded?.(model, entry.modelId);
   } catch (error) {
-    state.modelStatus[entry.modelId] = 'available';
+    state.modelStatus[entry.modelId] = previousStatus ?? 'available';
     setStatus('Load failed');
     throw error;
   } finally {
+    state.modelBusy = false;
     setProgress(null);
     renderModelCards();
   }
 }
 
+export async function reloadActiveModel(runtimeProfile) {
+  if (!state.model) return;
+  const entry = catalog.find((item) => item.modelId === state.modelId);
+  await loadSelectedModel({ entry, runtimeProfile, force: true });
+}
+
 async function removeSelectedModel() {
   const entry = selectedEntry();
-  if (!entry || state.generating) return;
-  const removed = await dr.removePersistentModel(entry.modelId);
-  if (!removed) return;
-  if (state.modelId === entry.modelId) {
-    state.model = null;
-    state.modelId = null;
-    state.lastRun = null;
-    clearOutput();
-    setExportEnabled(false);
-    syncSendButton();
+  if (!entry || state.generating || state.modelBusy) return;
+  const dialog = $('remove-model-dialog');
+  $('remove-model-message').textContent = `Remove ${modelLabel(entry)}?`;
+  $('remove-model-detail').textContent = 'Deletes this browser’s cached copy. You can download it again.';
+  dialog.returnValue = '';
+  const confirmed = new Promise((resolve) => {
+    dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });
+  });
+  dialog.showModal();
+  if (!await confirmed) return;
+  state.modelBusy = true;
+  syncModelControls();
+  try {
+    if (state.modelId === entry.modelId) {
+      await state.model.unload();
+      state.modelStatus[entry.modelId] = 'stored';
+      state.model = null;
+      state.modelId = null;
+      state.conversationModelId = null;
+      clearConversationHistory();
+      setExportEnabled(false);
+      setStatus('Select model');
+    }
+    const removed = await dr.removePersistentModel(entry.modelId);
+    if (!removed) throw new Error('The cached model could not be removed. Retry removal.');
+    state.modelStatus[entry.modelId] = 'available';
+    localStorage.removeItem(LAST_USED_MODEL_STORAGE_KEY);
+  } finally {
+    state.modelBusy = false;
+    renderModelCards();
   }
-  state.modelStatus[entry.modelId] = 'available';
-  localStorage.removeItem(LAST_USED_MODEL_STORAGE_KEY);
-  renderModelCards();
 }
 
 function bindModelControls() {
@@ -139,7 +174,7 @@ function bindModelControls() {
     select.dataset.bound = 'true';
     select.addEventListener('change', () => {
       selectedModelId = select.value || null;
-      syncSelectedControls();
+      syncModelControls();
     });
   }
   const action = $('model-select-action');
@@ -240,5 +275,5 @@ export function renderModelCards() {
   if (status) status.textContent = catalog.length
     ? `${catalog.length} supported`
     : 'No supported models';
-  syncSelectedControls();
+  syncModelControls();
 }

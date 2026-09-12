@@ -8,7 +8,39 @@ import {
   hashBytesSha256,
 } from '../src/utils/canonical-hash.js';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+function parseOptions(args) {
+  const options = {
+    root: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'),
+    urlPrefix: '',
+    cachePrefix: 'doppler-demo-shell-',
+    checkOnly: false,
+  };
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index];
+    if (arg === '--check') {
+      options.checkOnly = true;
+      continue;
+    }
+    if (!['--root', '--url-prefix', '--cache-prefix'].includes(arg)) {
+      throw new Error(`Unknown argument: ${arg}`);
+    }
+    const value = args[++index];
+    if (!value || value.startsWith('--')) throw new Error(`Missing value for ${arg}`);
+    if (arg === '--root') options.root = path.resolve(value);
+    if (arg === '--url-prefix') {
+      if (!/^\/[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(value)) throw new Error('Invalid shell URL prefix.');
+      options.urlPrefix = value;
+    }
+    if (arg === '--cache-prefix') {
+      if (!/^[a-z0-9-]+-$/.test(value)) throw new Error('Invalid shell cache prefix.');
+      options.cachePrefix = value;
+    }
+  }
+  return options;
+}
+
+const OPTIONS = parseOptions(process.argv.slice(2));
+const ROOT = OPTIONS.root;
 const OUTPUT = path.join(ROOT, 'demo', 'generated-shell-manifest.js');
 const BUDGET_OUTPUT = path.join(ROOT, 'demo', 'generated-shell-budget.json');
 const MAX_MODULES = 700;
@@ -109,22 +141,18 @@ async function collectModules() {
 }
 
 function renderManifest(files, digest) {
-  const urls = files.map((file) => `/${file}`);
+  const urls = files.map((file) => `${OPTIONS.urlPrefix}/${file}`);
   return [
     `export const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';`,
     `export const SHELL_MANIFEST_DIGEST = '${digest}';`,
-    `export const CACHE_NAME = 'doppler-demo-shell-${digest.slice(7, 23)}';`,
+    `export const CACHE_NAME = '${OPTIONS.cachePrefix}${digest.slice(7, 23)}';`,
     `export const APP_SHELL = Object.freeze(${JSON.stringify(urls, null, 2)});`,
     '',
   ].join('\n');
 }
 
 async function main() {
-  const checkOnly = process.argv.slice(2).includes('--check');
-  const unsupported = process.argv.slice(2).filter((token) => token !== '--check');
-  if (unsupported.length > 0) {
-    throw new Error(`Unknown argument: ${unsupported[0]}`);
-  }
+  const checkOnly = OPTIONS.checkOnly;
   const modules = await collectModules();
   const files = [...new Set([...modules, ...DECLARED_ASSETS])].sort();
   for (const file of files) {
