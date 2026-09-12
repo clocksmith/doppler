@@ -312,6 +312,10 @@ async function main() {
     );
 
     await assertInstalledFiles(consumerDir, packageJson);
+    process.stdout.write(run(process.execPath, [
+      path.join(ROOT_DIR, 'tools/sync-conversion-kernel-digests.js'),
+      '--check', '--package-root', path.join(consumerDir, 'node_modules', packageJson.name),
+    ]));
     await writeImportSmoke(consumerDir, packageJson);
     await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-node-provider-consumer.js'),
       path.join(consumerDir, 'node-provider-smoke.js'));
