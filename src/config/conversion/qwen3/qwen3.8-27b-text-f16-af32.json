@@ -359,7 +359,7 @@
       "sample": {
         "kernel": "sample.wgsl",
         "entry": "sample_single_pass",
-        "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+        "digest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b"
       },
       "gated_delta_conv": {
         "kernel": "gated_delta_conv.wgsl",
@@ -369,12 +369,12 @@
       "gated_delta_recurrent": {
         "kernel": "gated_delta_recurrent.wgsl",
         "entry": "main",
-        "digest": "sha256:8a6a6392caa11b5f14500b543268df7b87ee3d56deaa72827f9b39692ccb835d"
+        "digest": "sha256:ece62cc88bd8eb6ad47a5472946ebbf53fc797a4665da47899a962e6e2bbc4a8"
       },
       "gated_delta_fused_decode": {
         "kernel": "gated_delta_fused_decode.wgsl",
         "entry": "main",
-        "digest": "sha256:b9aec655be0dfc674ba7ffc22dcb41bfccd655f9f8c0844b5eab4349494bb6b3"
+        "digest": "sha256:14e8d1a68e97d71c1b025e24fd3490fd75211e30a8758e54e158f0bd1886fc1a"
       },
       "gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",

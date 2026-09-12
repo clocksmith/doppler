@@ -334,7 +334,7 @@
       "q4_decode_gemv": {
         "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_gemv",
-        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+        "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
         "precision": {
           "inputDtype": "f32",
           "outputDtype": "f32"
@@ -451,7 +451,7 @@
       "sample": {
         "kernel": "sample.wgsl",
         "entry": "sample_single_pass",
-        "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+        "digest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b"
       }
     },
     "preLayer": [
