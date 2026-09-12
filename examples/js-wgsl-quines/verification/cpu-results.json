@@ -1,0 +1,159 @@
+{
+  "schema": "five-quines-verification/v1",
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "scope": "JavaScript execution, independent emitter specification, independent Sprout interpreter, CPU image reference. No WGSL compilation or GPU dispatch.",
+  "passed": true,
+  "checks": [
+    {
+      "name": "01-application / JS reconstruction and emitted WGSL",
+      "passed": true,
+      "elapsedMs": 2
+    },
+    {
+      "name": "01-application / no source-reading mechanism",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "name": "02-polyglot / JS reconstruction and emitted WGSL",
+      "passed": true,
+      "elapsedMs": 3
+    },
+    {
+      "name": "02-polyglot / no source-reading mechanism",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "name": "03-multiquine / JS reconstruction and emitted WGSL",
+      "passed": true,
+      "elapsedMs": 1
+    },
+    {
+      "name": "03-multiquine / no source-reading mechanism",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "name": "04-visual / JS reconstruction and emitted WGSL",
+      "passed": true,
+      "elapsedMs": 3
+    },
+    {
+      "name": "04-visual / no source-reading mechanism",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "name": "05-compiler / JS reconstruction and emitted WGSL",
+      "passed": true,
+      "elapsedMs": 21
+    },
+    {
+      "name": "05-compiler / no source-reading mechanism",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "name": "complete application / 32 descendant rounds through independent shader reference",
+      "passed": true,
+      "elapsedMs": 59
+    },
+    {
+      "name": "polyglot / identical file bytes and 32 mixed-language rounds",
+      "passed": true,
+      "elapsedMs": 52
+    },
+    {
+      "name": "multiquine / all four transitions and 64 mixed transitions",
+      "passed": true,
+      "elapsedMs": 66
+    },
+    {
+      "name": "visual / source reconstruction and lossless reference pixel decoding",
+      "passed": true,
+      "elapsedMs": 38
+    },
+    {
+      "name": "Sprout / human-readable assembler equals embedded compiler input",
+      "passed": true,
+      "elapsedMs": 5
+    },
+    {
+      "name": "Sprout / independent interpreter compiles its compiler to both exact backends",
+      "passed": true,
+      "elapsedMs": 23
+    },
+    {
+      "name": "Sprout / 16 alternating self-compilation rounds",
+      "passed": true,
+      "elapsedMs": 296
+    },
+    {
+      "name": "Sprout / compile and execute independent fibonacci example",
+      "passed": true,
+      "elapsedMs": 10
+    },
+    {
+      "name": "Sprout / compile and execute independent factorial example",
+      "passed": true,
+      "elapsedMs": 6
+    },
+    {
+      "name": "Sprout / compile and execute independent hello example",
+      "passed": true,
+      "elapsedMs": 5
+    },
+    {
+      "name": "Sprout / compile and execute independent branch example",
+      "passed": true,
+      "elapsedMs": 6
+    },
+    {
+      "name": "Sprout / compile and execute independent overflow example",
+      "passed": true,
+      "elapsedMs": 12
+    },
+    {
+      "name": "Sprout / rejects malformed headers, opcodes, and unclosed loops",
+      "passed": true,
+      "elapsedMs": 0
+    },
+    {
+      "name": "standalone CLI / exact stdout for all five JS and WGSL sources",
+      "passed": true,
+      "elapsedMs": 231
+    }
+  ],
+  "programs": [
+    {
+      "name": "01-application",
+      "bytes": 34465,
+      "sha256": "c59c946f1a9d9a8c167ace1a23d0bc879065291c84bfb29ef597f30ac48278e6"
+    },
+    {
+      "name": "02-polyglot",
+      "bytes": 58674,
+      "sha256": "265c54b8535790f1cc84dcb1985ce80862954e0e1e5fbdc11aef5fc132568794"
+    },
+    {
+      "name": "03-multiquine",
+      "bytes": 33805,
+      "sha256": "d9be124a54475e676ea90e90d51811bdaa5b63c6e6d5e617e7b9915d2164b2db"
+    },
+    {
+      "name": "04-visual",
+      "bytes": 64510,
+      "sha256": "709794f926310b161928c536a756f48eae9c5863a299014b0beb4a6984f2006c"
+    },
+    {
+      "name": "05-compiler",
+      "bytes": 71257,
+      "sha256": "e5dda07a6b42bb9f761fc48f92f7cffa4eb79963ddd521100c9873ce99ee16b4"
+    }
+  ]
+}

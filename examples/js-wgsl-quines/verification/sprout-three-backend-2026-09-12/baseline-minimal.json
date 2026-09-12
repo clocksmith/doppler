@@ -1,0 +1,7 @@
+{
+  "status": "pre-existing-failure-reproduced",
+  "unchangedFromBaseline": true,
+  "sourceBytes": 123,
+  "emittedBytes": 170,
+  "sha256": "90a323f582dd3dcfd2ae12dfe01e0693a1c98b0e6495a50b180add2f452f8fce"
+}

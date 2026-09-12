@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "command": "node quines/05-compiler.js --wasm",
+      "bytes": 68871,
+      "sha256": "5faf71c6ea748c4b1a59adf6df627b4904777fac32cda6b5d36751a7f78d7ea4"
+    },
+    {
+      "command": "node compiler/compile.mjs compiler/fibonacci.sprout --target wasm",
+      "bytes": 1064,
+      "sha256": "6f8cfea13014456b3a53d582730f320f4ad47f0f90340784afd4960b977b471a"
+    }
+  ]
+}

@@ -1,0 +1,240 @@
+{
+  "schema": "sprout-three-backend-cpu-v1",
+  "started": "2026-09-12T21:36:00.207Z",
+  "runtime": "v22.20.0",
+  "platform": "darwin/arm64",
+  "checks": [
+    {
+      "name": "Bootstrap agrees with the executing Sprout JS compiler for all three backends",
+      "status": "passed"
+    },
+    {
+      "name": "Native Wasm validates and has no imports",
+      "status": "passed"
+    },
+    {
+      "name": "Actual Wasm descendant emits byte-identical JS, WGSL, and Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Independent Sprout interpreter emits the same binary",
+      "status": "passed"
+    },
+    {
+      "name": "Compiler assembly describes the embedded program exactly",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated fibonacci to js",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated fibonacci to wgsl",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated fibonacci to wasm",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated fibonacci to js",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated fibonacci to wgsl",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated fibonacci to wasm",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated factorial to js",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated factorial to wgsl",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated factorial to wasm",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated factorial to js",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated factorial to wgsl",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated factorial to wasm",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated hello to js",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated hello to wgsl",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated hello to wasm",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated hello to js",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated hello to wgsl",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated hello to wasm",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated branch to js",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated branch to wgsl",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated branch to wasm",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated branch to js",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated branch to wgsl",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated branch to wasm",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated overflow to js",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated overflow to wgsl",
+      "status": "passed"
+    },
+    {
+      "name": "js compiles unrelated overflow to wasm",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated overflow to js",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated overflow to wgsl",
+      "status": "passed"
+    },
+    {
+      "name": "wasm compiles unrelated overflow to wasm",
+      "status": "passed"
+    },
+    {
+      "name": "unsigned arithmetic",
+      "status": "passed"
+    },
+    {
+      "name": "nested structured control",
+      "status": "passed"
+    },
+    {
+      "name": "bounds and register 63",
+      "status": "passed"
+    },
+    {
+      "name": "zero output is valid",
+      "status": "passed"
+    },
+    {
+      "name": "put preserves every boundary byte, not just ASCII",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 0 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 1 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 2 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 3 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 4 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 5 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 6 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 7 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 8 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 9 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 10 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 11 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Malformed program 12 is rejected by JS and native Wasm",
+      "status": "passed"
+    },
+    {
+      "name": "Raw native ABI rejects invalid targets and input pointers",
+      "status": "passed"
+    }
+  ],
+  "status": "passed",
+  "sources": {
+    "js": {
+      "bytes": 71257,
+      "sha256": "e5dda07a6b42bb9f761fc48f92f7cffa4eb79963ddd521100c9873ce99ee16b4"
+    },
+    "wgsl": {
+      "bytes": 63724,
+      "sha256": "a907e6cb9ed4c5b99c660855218d0450e5d92eae8b6f2c74801846526b9b5daf"
+    },
+    "wasm": {
+      "bytes": 68871,
+      "sha256": "5faf71c6ea748c4b1a59adf6df627b4904777fac32cda6b5d36751a7f78d7ea4"
+    }
+  },
+  "finished": "2026-09-12T21:36:00.446Z"
+}

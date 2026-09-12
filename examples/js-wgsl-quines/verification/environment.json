@@ -1,0 +1,19 @@
+{
+  "scope": "Construction-environment limitations; not a hardware result",
+  "browserNavigation": {
+    "url": "http://localhost:8765/",
+    "result": "ERR_BLOCKED_BY_ADMINISTRATOR",
+    "shaderCompilationReached": false,
+    "gpuDispatchReached": false
+  },
+  "nodeWebGPU": {
+    "bindingInstalled": false,
+    "npmRegistryReachable": false,
+    "registryError": "Could not resolve host: registry.npmjs.org"
+  },
+  "browserJavaScript": {
+    "method": "Playwright set_content on about:blank",
+    "allFiveGalleryChecksPassed": true,
+    "gpuExecutionClaim": false
+  }
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "fibonacci",
+    "expected": "6765\n"
+  },
+  {
+    "name": "factorial",
+    "expected": "3628800\n"
+  },
+  {
+    "name": "hello",
+    "expected": "Hello from Sprout!\n"
+  },
+  {
+    "name": "branch",
+    "expected": "Y\n"
+  },
+  {
+    "name": "overflow",
+    "expected": "0\n"
+  }
+]

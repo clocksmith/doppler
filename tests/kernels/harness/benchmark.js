@@ -66,8 +66,12 @@ export class KernelBenchmark {
   computeStats(times, label) {
     const warnings = [];
 
+    if (!Array.isArray(times) || times.some((value) => !Number.isFinite(value) || value < 0)) {
+      throw new Error('Kernel benchmark requires finite, non-negative wall-clock samples.');
+    }
+
     const stats = computeSampleStats(times, {
-      outlierIqrMultiplier: DEFAULT_BENCHMARK_STATS_CONFIG.outlierIqrMultiplier,
+      outlierPolicy: 'none',
     });
     if (stats.outliersRemoved > 0) {
       warnings.push(`Removed ${stats.outliersRemoved} outlier(s)`);
@@ -94,6 +98,10 @@ export class KernelBenchmark {
 
     return {
       label,
+      timingSource: 'performance.now',
+      timingScope: 'kernelFn-and-queue-completion',
+      gpuTimestampsUsed: false,
+      outlierPolicy: 'none',
       medianMs: stats.median,
       meanMs: stats.mean,
       minMs: stats.min,
@@ -171,8 +179,8 @@ export function computeMetrics(stats, workload) {
 export function formatBenchmarkResult(stats) {
   const lines = [
     `${stats.label}:`,
-    `  Median: ${stats.medianMs.toFixed(3)} ms (+/- ${stats.ci95Ms.toFixed(3)} ms, 95% CI)`,
-    `  Mean: ${stats.meanMs.toFixed(3)} ms`,
+    `  Median: ${stats.medianMs.toFixed(3)} ms`,
+    `  Mean: ${stats.meanMs.toFixed(3)} ms (+/- ${stats.ci95Ms.toFixed(3)} ms, approximate 95% mean CI)`,
     `  Min/Max: ${stats.minMs.toFixed(3)} / ${stats.maxMs.toFixed(3)} ms`,
     `  P95/P99: ${stats.p95Ms.toFixed(3)} / ${stats.p99Ms.toFixed(3)} ms`,
     `  StdDev: ${stats.stdDevMs.toFixed(3)} ms`,

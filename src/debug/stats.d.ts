@@ -34,6 +34,6 @@ export interface BasicStats {
 
 export declare function percentile(sorted: number[], p: number): number;
 export declare function median(sorted: number[]): number;
-export declare function computeSampleStats(values: number[], options?: { outlierIqrMultiplier?: number }): SampleStats;
+export declare function computeSampleStats(values: number[], options?: { outlierIqrMultiplier?: number; outlierPolicy?: 'iqr' | 'none' }): SampleStats;
 export declare function computeArrayStats(values: ArrayLike<number>, limit?: number): ArrayStats;
 export declare function computeBasicStats(values: number[]): BasicStats;

@@ -18,6 +18,7 @@
     "manifest-refresh": "node tools/refresh-converted-manifest.js",
     "debug": "node src/cli/doppler-cli.js debug",
     "bench": "node src/cli/doppler-cli.js bench",
+    "bench:compute": "node tools/bench-compute.js",
     "lean:check": "./lean/check.sh",
     "ci:lean:execution-contract:configs": "node tools/lean-execution-contract-config-sweep.js --config-root src/config/conversion --manifest-root models --require-manifest-match",
     "contracts:check": "node tools/check-contract-artifacts.js",

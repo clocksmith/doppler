@@ -1,0 +1,409 @@
+{
+  "name": "doppler-gpu",
+  "version": "0.6.1",
+  "description": "AI-native model release foundry and evidence-backed WebGPU runtime for JavaScript",
+  "main": "src/capsule-runtime.js",
+  "types": "src/capsule-runtime.d.ts",
+  "type": "module",
+  "bin": {
+    "doppler": "src/cli/doppler-cli.js",
+    "doppler-gpu": "src/cli/doppler-quickstart.js",
+    "doppler-serve": "src/cli/doppler-serve.js"
+  },
+  "scripts": {
+    "quickstart": "node src/cli/doppler-quickstart.js",
+    "serve": "node src/cli/doppler-serve.js",
+    "cli": "node src/cli/doppler-cli.js",
+    "convert": "node src/cli/doppler-cli.js convert",
+    "manifest-refresh": "node tools/refresh-converted-manifest.js",
+    "debug": "node src/cli/doppler-cli.js debug",
+    "bench": "node src/cli/doppler-cli.js bench",
+    "bench:compute": "node tools/bench-compute.js",
+    "lean:check": "./lean/check.sh",
+    "ci:lean:execution-contract:configs": "node tools/lean-execution-contract-config-sweep.js --config-root src/config/conversion --manifest-root models --require-manifest-match",
+    "contracts:check": "node tools/check-contract-artifacts.js",
+    "trainer-handoff:verify": "node tools/verify-trainer-artifact-handoff.js verify --contract tools/policies/nativekd2-bf16-baseline-handoff.json --repo-root clocksmith/doppler=. --repo-root clocksmith/gamma=../gamma",
+    "trainer-handoff:import": "node tools/verify-trainer-artifact-handoff.js import --contract tools/policies/nativekd2-bf16-baseline-handoff.json --repo-root clocksmith/doppler=. --repo-root clocksmith/gamma=../gamma",
+    "program-bundle:export": "node tools/export-program-bundle.js",
+    "forge:capsule": "node tools/forge-model-capsule.js",
+    "forge:release-receipt": "node tools/create-release-to-javascript-receipt.js",
+    "capsule-v2:check": "node tools/run-node-tests.js tests/config/model-ir.test.js tests/config/model-ir-v2.test.js tests/config/target-plan.test.js tests/converter/execution-candidate-forge.test.js tests/converter/forge-stages.test.js tests/converter/lineage-lowering-forge.test.js tests/converter/manifest-conversion-postflight.test.js tests/converter/manifest-conversion-preflight.test.js tests/converter/release-to-javascript-receipt.test.js tests/converter/safetensors-header-evidence.test.js tests/converter/semantic-manifest-lowering.test.js tests/converter/source-acquisition.test.js tests/converter/source-truth-forge.test.js tests/converter/tensor-role-closure.test.js tests/inference/embedding-normalization-contract.test.js tests/inference/heterogeneous-attention-contract.test.js tests/inference/logit-output-transform.test.js tests/inference/postnorm-contract.test.js tests/capsule/capsule-v2.test.js tests/capsule/capsule-v3.test.js tests/capsule/capsule-retained-local-use.test.js tests/runtime/capsule-artifact-source.test.js tests/runtime/initial-execution-identity.test.js tests/runtime/capsule-load-options.test.js tests/runtime/capsule-rerank.test.js tests/runtime/capsule-runtime-entrypoint.test.js tests/runtime/plan-bind-execute.test.js tests/runtime/target-selector.test.js tests/tooling/audit-model-ir-lowerability.test.js tests/tooling/create-release-to-javascript-receipt.test.js tests/tooling/forge-model-capsule.test.js tests/tooling/forge-source-truth.test.js tests/tooling/glimmer-hf-reference-contract.test.js tests/tooling/heterogeneous-source-truth.test.js tests/tooling/qualify-capsule-v0-node.test.js tests/tooling/source-intake.test.js",
+    "forge:lowerability:glimmer:check": "node tools/audit-model-ir-lowerability.js --model-ir-receipt reports/model-ir-v2/glimmer-30b.model-ir-receipt.json --vocabulary src/config/forge/lowering-vocabularies/heterogeneous-text-v2.json --entry-point text.generate --out reports/model-ir-v2/glimmer-30b.lowerability-audit.json --check",
+    "forge:semantic:glimmer:sync": "node tools/materialize-semantic-conversion.js --recipe src/config/forge/semantic-lowering/glimmer-30b-text.json",
+    "forge:semantic:glimmer:check": "node tools/materialize-semantic-conversion.js --recipe src/config/forge/semantic-lowering/glimmer-30b-text.json --check",
+    "forge:headers:glimmer:sync": "node tools/pin-safetensors-headers.js --recipe src/config/forge/source-intake/glimmer-30b-safetensors.json",
+    "forge:headers:glimmer:check": "node tools/pin-safetensors-headers.js --recipe src/config/forge/source-intake/glimmer-30b-safetensors.json --check",
+    "forge:tensors:glimmer:sync": "node tools/audit-tensor-role-closure.js --policy src/config/forge/tensor-role-closure/glimmer-30b-text.json",
+    "forge:tensors:glimmer:check": "node tools/audit-tensor-role-closure.js --policy src/config/forge/tensor-role-closure/glimmer-30b-text.json --check",
+    "forge:preflight:glimmer:sync": "node tools/create-manifest-conversion-preflight.js --policy src/config/forge/conversion-preflight/glimmer-30b-text.json",
+    "forge:preflight:glimmer:check": "node tools/create-manifest-conversion-preflight.js --policy src/config/forge/conversion-preflight/glimmer-30b-text.json --check",
+    "forge:postflight:glimmer:sync": "node tools/create-manifest-conversion-postflight.js --policy src/config/forge/conversion-postflight/glimmer-30b-text.json",
+    "forge:postflight:glimmer:check": "node tools/create-manifest-conversion-postflight.js --policy src/config/forge/conversion-postflight/glimmer-30b-text.json --check",
+    "forge:acquisition:glimmer:sync": "node tools/verify-source-acquisition.js --policy src/config/forge/source-acquisition/glimmer-30b.json",
+    "forge:acquisition:glimmer:check": "node tools/verify-source-acquisition.js --policy src/config/forge/source-acquisition/glimmer-30b.json --check",
+    "forge:reference:glimmer": "python3 tools/glimmer-hf-text-reference.py --policy src/config/forge/reference/glimmer-30b-text.json",
+    "forge:lineage:qwen38:sync": "node tools/materialize-lineage-conversion.js --recipe src/config/forge/lineage/qwen3.8-27b.json",
+    "forge:lineage:qwen38:check": "node tools/materialize-lineage-conversion.js --recipe src/config/forge/lineage/qwen3.8-27b.json --check",
+    "capsule-v2:gpu:node": "node tools/qualify-capsule-v0-node.js",
+    "capsule-v2:gpu:dispatch": "node --input-type=module -e \"const {bootstrapNodeWebGPU}=await import('./src/tooling/node-webgpu.js'); const result=await bootstrapNodeWebGPU(); if(!result.ok) throw new Error(result.detail); globalThis.__DOPPLER_REQUIRE_PHYSICAL_WEBGPU__=true; await import('./tests/kernels/capsule-command-executor-physical.test.js')\"",
+    "capsule-v2:gpu:browser": "node tools/qualify-capsule-v0-browser.js",
+    "program-bundle:reference": "node tools/run-program-bundle-reference.js",
+    "program-bundle:reference:gemma4-int4ple": "node tools/run-program-bundle-reference.js --manifest models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json --conversion-config src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json --out examples/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.program-bundle.json --surface browser --prompt \"The color of the sky is\" --max-tokens 8",
+    "program-bundle:check": "node tools/check-program-bundle.js examples/program-bundles/*.json",
+    "program-bundle:schema:sync": "node tools/generate-program-bundle-schema.js",
+    "program-bundle:schema:check": "node tools/generate-program-bundle-schema.js --check",
+    "program-bundle:parity": "node tools/check-program-bundle-parity.js examples/program-bundles/gemma-3-270m-it-q4k-ehf16-af32.program-bundle.json --providers browser-webgpu,node:webgpu,node:doe-gpu --mode contract",
+    "artifact-identity:inventory": "node tools/artifact-identity-inventory.js",
+    "artifact-identity:check": "node tools/artifact-identity-inventory.js --check",
+    "adapter-artifacts:check": "node tools/check-adapter-artifact-catalog.js",
+    "adapter-artifacts:verify-local": "node tools/check-adapter-artifact-catalog.js --verify-local-bytes",
+    "ci:check": "npm run test:ci && npm run kernels:check && npm run check:green",
+    "ci:contracts:check": "node tools/check-contract-artifacts.js --with-lean --lean-require-manifest-match",
+    "ci:diffusion:contract": "node tools/ci-diffusion-contract-gates.js",
+    "ci:training:contract": "node tools/ci-training-contract-gates.js",
+    "training:teachers:verify": "node tools/verify-host-teacher-contracts.js",
+    "training:teachers:qualify": "node tools/qualify-code-teachers.js",
+    "training:students:verify": "node tools/verify-student-code-experiment.js",
+    "training:students:run": "node tools/run-student-code-experiment.js",
+    "training:wgsl:corpus": "node tools/build-wgsl-repair-corpus.js",
+    "training:wgsl:experiment": "node tools/run-wgsl-repair-experiment.js",
+    "training:wgsl:rollouts": "node tools/run-wgsl-repair-rollouts.js",
+    "training:wgsl:semantic": "node tools/run-wgsl-repair-semantic-harness.js",
+    "training:wgsl:writer:semantic": "node tools/run-wgsl-writer-semantic-harness.js",
+    "training:wgsl:writer:candidate": "node tools/run-wgsl-writer-candidate.js",
+    "training:wgsl:writer:corpus": "node tools/build-wgsl-writer-corpus.js",
+    "training:wgsl:writer:corpus:check": "node tools/build-wgsl-writer-corpus.js --check",
+    "training:wgsl:writer:corpus:qualify": "node tools/qualify-wgsl-writer-corpus.js",
+    "training:wgsl:writer:workloads:check": "node tools/materialize-wgsl-writer-v2-seed-workloads.js --check",
+    "training:wgsl:writer:train": "node tools/run-wgsl-writer-v2-training.js",
+    "training:wgsl:writer:evaluate": "node tools/run-wgsl-writer-v2-evaluation.js",
+    "training:wgsl:writer:select": "node tools/select-wgsl-writer-v2-seed.js",
+    "training:wgsl:writer:confirm": "node tools/finalize-wgsl-writer-v2-confirmation.js",
+    "training:wgsl:writer:parity": "node tools/run-wgsl-writer-v2-parity.js",
+    "training:wgsl:writer:result": "node tools/finalize-wgsl-writer-v2-result.js",
+    "training:wgsl:author:contract": "node tools/run-node-tests.js tests/tooling/wgsl-author-package.test.js tests/tooling/wgsl-author-execution-plan.test.js tests/tooling/wgsl-author-browser-executor.test.js tests/tooling/wgsl-author-reference.test.js tests/training/wgsl-writer-v3-contract.test.js",
+    "training:wgsl:author:reference": "node tools/run-wgsl-author-v3-reference.js",
+    "training:wgsl:seed-candidates": "node tools/run-wgsl-repair-seed-candidates.js",
+    "training:wgsl:seed-select": "node tools/select-wgsl-repair-v13-seed.js",
+    "training:contract:delta": "node tools/emit-training-contract-delta.js",
+    "training:workloads:verify": "node tools/verify-training-workload-capsules.js --registry src/experimental/training/workload-capsules/registry.json",
+    "training:report-ids:publish": "node tools/publish-training-report-ids.js --registry src/experimental/training/workload-capsules/registry.json",
+    "test": "npm run test:unit",
+    "typecheck:source": "tsc -p tsconfig.source-strict.json --noEmit",
+    "typecheck:source-runtime": "tsc -p tsconfig.source-runtime.json --noEmit",
+    "test:ci": "node tools/run-node-tests.js tests/config/ci-workflow-local-model-contract.test.js tests/config/tracked-benchmark-evidence-contract.test.js tests/converter/quantizer.test.js tests/inference/attention-softmax-stability.test.js tests/inference/bdpa-steamroller.test.js tests/inference/generate-token-ids-behavioral-parity.test.js tests/integration/command-api.test.js tests/integration/doppler-provider-contract.test.js tests/tooling/workflow-surface-contract.test.js",
+    "test:unit": "node tools/run-node-tests.js --suite unit",
+    "test:gpu": "node tools/run-node-tests.js --suite gpu",
+    "test:coverage": "node tools/run-node-coverage.js",
+    "test:coverage:report": "node tools/run-node-coverage.js --no-threshold",
+    "test:gpu:browser": "node src/cli/doppler-cli.js verify --config '{\"request\":{\"workload\":\"kernels\"},\"run\":{\"surface\":\"browser\",\"browser\":{\"opfsCache\":false,\"headless\":true,\"channel\":\"chromium\",\"browserArgs\":[\"--use-angle=swiftshader\",\"--disable-vulkan-surface\"],\"console\":true}}}'",
+    "demo:shell:generate": "node tools/generate-demo-shell-manifest.js",
+    "demo:shell:check": "node tools/generate-demo-shell-manifest.js --check",
+    "demo:reachability:check": "node tools/check-demo-reachability.js",
+    "test:demo:contract": "node tools/demo-contract-smoke.js",
+    "test:demo:hardware": "node tools/demo-hardware-smoke.js",
+    "agents:verify": "node tools/verify-agent-parity.js",
+    "agents:freshness": "node tools/verify-agent-freshness.js",
+    "agents:freshness:strict": "node tools/verify-agent-freshness.js --strict",
+    "catscan:sync": "node tools/sync-catscan-index.js",
+    "catscan:check": "node tools/sync-catscan-index.js --check",
+    "conflicts:check": "node tools/check-merge-markers.js",
+    "config:single-source:check": "node tools/check-config-single-source.js && node tools/sync-generation-contract.js --check",
+    "rules:bundle:sync": "node tools/sync-rule-bundle.js",
+    "rules:bundle:check": "node tools/sync-rule-bundle.js --check",
+    "evidence:workflows:check": "node tools/check-evidence-workflow-ownership.js",
+    "inference:boundaries:check": "node tools/check-inference-boundaries.js",
+    "generation:contract:check": "node tools/sync-generation-contract.js --check",
+    "generation:contract:sync": "node tools/sync-generation-contract.js",
+    "source:style:sync": "node tools/check-source-style.js --write",
+    "source:style:check": "node tools/check-source-style.js",
+    "source:architecture:check": "node tools/check-source-architecture.js",
+    "capability-policy:check": "node tools/check-capability-transform-policy.js",
+    "imports:check:browser": "node tools/check-browser-import-graph.js",
+    "api:docs:sync": "node tools/sync-api-docs.js",
+    "api:docs:check": "node tools/sync-api-docs.js --check",
+    "package:closure:sync": "node tools/package-source-closure.js --write",
+    "package:closure:check": "node tools/package-source-closure.js",
+    "package:smoke": "node tools/check-packed-package.js",
+    "public:boundaries:check": "node tools/check-public-boundaries.js",
+    "exports:parity:check": "node tools/check-exports-parity.js",
+    "pending:check": "node tools/check-pending-tests.js",
+    "goals:check": "node tools/check-goal-completion.js",
+    "model-family:intake:check": "node tools/check-model-family-intake.js",
+    "goals:report": "node tools/render-goal-completion-summary.js",
+    "production-release:check": "node tools/run-node-tests.js tests/config/production-release.test.js tests/config/github-release-action.test.js tests/client/electron-release-adapter.test.js tests/client/electron-capsule-runtime.test.js tests/client/electron-release-episode.test.js tests/tooling/command-api-release.test.js tests/tooling/production-release.test.js tests/tooling/forge-model-capsule.test.js",
+    "model-release:check": "node tools/check-model-release-platform.js && node tools/run-node-tests.js tests/config/model-release-platform.test.js && npm run production-release:check",
+    "commands:surface:check": "node tools/check-command-surface-contract.js",
+    "check:green": "node tools/run-node-tests.js --scripts agents:verify catscan:check goals:check model-family:intake:check model-release:check product:portfolio:check product:prospects:check product:readiness:check revocations:check revocations:authority:check product:integrations:check provider:conformance:check runtime:ownership:check runtime:closure:check public:boundaries:check package:smoke commands:surface:check api:docs:check config:single-source:check rules:bundle:check routing:audit:check negative-results:check evidence:workflows:check optimization:control:check promotion:monitoring:check inference:boundaries:check source:style:check source:architecture:check capability-policy:check imports:check:browser pending:check exports:parity:check typecheck:source artifact:contract:check adapter-artifacts:check claims:evidence:check release-claims:check support:matrix:check support:subsystems:check policy:schemas:check program-bundle:schema:check program-bundle:check test:unit capsule-v2:check",
+    "verify:model": "node src/cli/doppler-cli.js verify",
+    "quickstart:sync": "node tools/sync-quickstart-registry.js",
+    "quickstart:check": "node tools/sync-quickstart-registry.js --check",
+    "release-claims:check": "node tools/check-release-claims.js",
+    "model-lanes:check": "node tools/check-model-lanes.js",
+    "onboarding:check": "node tools/onboarding-tooling.js check",
+    "onboarding:check:strict": "node tools/onboarding-tooling.js check --strict",
+    "bench:vendors:validate": "node tools/vendor-bench.js validate",
+    "bench:local-gpu:challengers": "node tools/local-gpu-challengers.js",
+    "bench:local-gpu:challengers:check": "node tools/local-gpu-challengers.js --check",
+    "optimization:index": "node tools/build-runtime-optimization-index.js",
+    "optimization:control:check": "node tools/run-node-tests.js tests/tooling/runtime-optimization.test.js tests/tooling/registered-variant-calibration-job.test.js tests/tooling/runtime-optimization-index.test.js",
+    "promotion:monitoring:record": "node tools/record-runtime-promotion-monitoring.js",
+    "promotion:monitoring:check": "node tools/check-runtime-promotion-monitoring.js && node tools/run-node-tests.js tests/tooling/runtime-promotion-monitoring.test.js tests/tooling/record-runtime-promotion-monitoring.test.js",
+    "calibrate:registered": "node tools/calibrate-registered-variants.js",
+    "routing:audit": "node tools/audit-execution-routing.js",
+    "routing:audit:check": "node tools/audit-execution-routing.js --check",
+    "negative-results:check": "node tools/check-kernel-negative-results.js",
+    "bench:embeddings:compare": "node tools/compare-embeddings.js",
+    "bench:rerank:compare": "node tools/compare-rerankers.js",
+    "bench:rerank:compare:hf": "node tools/compare-rerankers-hf.js",
+    "kernels:sync": "npm run kernels:codegen:sync && npm run kernels:registry:sync && npm run kernels:digests:sync",
+    "kernels:check": "node tools/check-kernels.js",
+    "kernels:codegen:sync": "node tools/generate-wgsl.js",
+    "kernels:codegen:check": "node tools/generate-wgsl.js --check",
+    "kernels:registry:sync": "node tools/sync-kernel-reachability.js",
+    "kernels:registry:check": "node tools/sync-kernel-reachability.js --check",
+    "kernels:reachability:sync": "npm run kernels:registry:sync",
+    "kernels:reachability:check": "npm run kernels:registry:check",
+    "kernels:supported-manifests:report": "node tools/list-supported-manifest-kernels.js",
+    "kernels:digests:sync": "node tools/sync-kernel-ref-digests.js",
+    "kernels:digests:check": "node tools/sync-kernel-ref-digests.js --check",
+    "kernels:conversion-digests:sync": "node tools/sync-conversion-kernel-digests.js",
+    "kernels:conversion-digests:check": "node tools/sync-conversion-kernel-digests.js --check",
+    "digests:sync": "npm run kernels:digests:sync",
+    "digests:check": "npm run kernels:digests:check",
+    "digests:sync-conversion": "npm run kernels:conversion-digests:sync",
+    "digests:check-conversion": "npm run kernels:conversion-digests:check",
+    "verify": "node tools/run-registry-verify.js",
+    "registry:sync:scripts": "node tools/sync-registry-scripts.js",
+    "registry:sync:scripts:check": "node tools/sync-registry-scripts.js --check",
+    "registry:hf:check": "node tools/check-hf-registry.js",
+    "registry:hf:probe": "node tools/check-hf-registry.js --probe-artifacts",
+    "registry:publish:hf": "node tools/publish-hf-registry-model.js",
+    "registry:publish:hf:all": "node tools/publish-hf-registry-model.js --all-approved",
+    "support:matrix:sync": "node tools/sync-model-support-matrix.js",
+    "support:matrix:check": "node tools/sync-model-support-matrix.js --check",
+    "support:inventory:sync": "node tools/sync-model-support-inventory.js",
+    "support:inventory:check": "node tools/sync-model-support-inventory.js --check",
+    "support:competition:sync": "node tools/sync-model-competition-scoreboard.js",
+    "support:competition:check": "node tools/sync-model-competition-scoreboard.js --check",
+    "support:subsystems:sync": "node tools/sync-subsystem-support-matrix.js",
+    "support:subsystems:check": "node tools/check-subsystem-support-contract.js",
+    "ci:catalog:check": "npm run registry:sync:scripts:check && npm run model-lanes:check && npm run revocations:check && npm run release-claims:check && npm run support:matrix:check && npm run support:inventory:check && npm run support:competition:check && npm run support:subsystems:check && npm run goals:check && npm run registry:hf:check",
+    "artifact:contract:check": "node tools/check-model-artifact-contract.js",
+    "product:readiness:report": "node tools/render-product-readiness-report.js",
+    "product:readiness:check": "node tools/run-node-tests.js tests/tooling/product-readiness-report.test.js",
+    "product:prospects:report": "node tools/check-electron-design-partner-prospects.js",
+    "product:prospects:check": "node tools/check-electron-design-partner-prospects.js && node tools/run-node-tests.js tests/config/electron-design-partner-prospects.test.js",
+    "product:portfolio:check": "node tools/check-product-portfolio-coherence.js && node tools/run-node-tests.js tests/config/product-portfolio-coherence.test.js",
+    "product:integrations:record": "node tools/record-product-integration-evaluation.js",
+    "product:integrations:check": "node tools/check-product-integration-qualification.js && node tools/run-node-tests.js tests/config/product-integration-qualification.test.js tests/tooling/product-integration-evidence.test.js tests/tooling/record-product-integration-evaluation.test.js",
+    "provider:conformance:record": "node tools/record-provider-conformance.js",
+    "provider:conformance:check": "node tools/check-provider-conformance.js && node tools/run-node-tests.js tests/config/provider-conformance.test.js tests/tooling/record-provider-conformance.test.js",
+    "runtime:ownership:evidence-id": "node tools/hash-runtime-ownership-execution-evidence.js",
+    "runtime:ownership:record": "node tools/record-runtime-ownership-evaluation.js",
+    "runtime:ownership:check": "node tools/check-runtime-ownership-decisions.js && node tools/run-node-tests.js tests/config/runtime-ownership-decisions.test.js tests/tooling/runtime-ownership-execution-evidence.test.js tests/tooling/record-runtime-ownership-evaluation.test.js",
+    "runtime:closure:sync": "node tools/check-capsule-runtime-closure.js --write",
+    "runtime:closure:check": "node tools/check-capsule-runtime-closure.js",
+    "bun:qualification:record": "node tools/record-bun-product-qualification.js",
+    "bun:qualification:check": "node tools/check-bun-product-qualification.js && node tools/run-node-tests.js tests/config/bun-product-qualification.test.js tests/tooling/record-bun-product-qualification.test.js",
+    "revocations:check": "node tools/check-revocation-registry.js && node tools/run-node-tests.js tests/config/revocation-policy.test.js tests/config/quickstart-registry-sync.test.js tests/config/signed-revocation-updates.test.js",
+    "revocations:authority:record": "node tools/record-signed-revocation-authority-evaluation.js",
+    "revocations:authority:check": "node tools/check-signed-revocation-authority-qualification.js && node tools/run-node-tests.js tests/config/signed-revocation-authority-qualification.test.js tests/tooling/record-signed-revocation-authority-evaluation.test.js",
+    "runtime:identity:check": "node tools/run-node-tests.js tests/integration/doppler-generation-evidence.test.js tests/integration/doppler-rerank-evidence.test.js tests/integration/doppler-resolution-policy.test.js tests/integration/lora-loader-contract.test.js tests/integration/lora-activation-contract.test.js tests/integration/doppler-provider-contract.test.js tests/integration/doppler-serve-handler.test.js",
+    "claims:evidence:check": "node tools/check-claim-evidence-contract.js",
+    "policy:schemas:check": "node tools/check-policy-schema-registry.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/capsule-runtime.d.ts",
+      "import": "./src/capsule-runtime.js"
+    },
+    "./runtime": {
+      "types": "./src/capsule-runtime.d.ts",
+      "import": "./src/capsule-runtime.js"
+    },
+    "./generation-contract": {
+      "types": "./src/config/generation-contract.d.ts",
+      "import": "./src/config/generation-contract.js"
+    },
+    "./host": {
+      "types": "./src/client/capsule-host.d.ts",
+      "browser": "./src/client/capsule-host.browser.js",
+      "import": "./src/client/capsule-host.js"
+    },
+    "./serve": {
+      "types": "./src/cli/serve/capsule-handler.d.ts",
+      "import": "./src/cli/serve/capsule-handler.js"
+    },
+    "./capsule": {
+      "types": "./src/capsule.d.ts",
+      "import": "./src/capsule.js"
+    },
+    "./compat": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./provider": {
+      "types": "./src/client/provider.d.ts",
+      "import": "./src/client/provider.js"
+    },
+    "./tooling": {
+      "types": "./src/tooling-exports.d.ts",
+      "browser": "./src/tooling-exports.browser.js",
+      "import": "./src/tooling-exports.js"
+    },
+    "./tooling/storage": {
+      "types": "./src/tooling-exports/storage.d.ts",
+      "import": "./src/tooling-exports/storage.js"
+    },
+    "./tooling/device": {
+      "types": "./src/tooling-exports/device.d.ts",
+      "import": "./src/tooling-exports/device.js"
+    },
+    "./tooling/manifest": {
+      "types": "./src/tooling-exports/manifest.d.ts",
+      "import": "./src/tooling-exports/manifest.js"
+    },
+    "./tooling/runtime": {
+      "types": "./src/tooling-exports/runtime.d.ts",
+      "import": "./src/tooling-exports/runtime.js"
+    },
+    "./tooling/evidence": {
+      "types": "./src/tooling-exports/evidence.d.ts",
+      "import": "./src/tooling-exports/evidence.js"
+    },
+    "./structured": {
+      "types": "./src/tooling-exports/structured.d.ts",
+      "import": "./src/tooling-exports/structured.js"
+    },
+    "./client/model-manager": {
+      "types": "./src/client/runtime/model-manager.d.ts",
+      "import": "./src/client/runtime/model-manager.js"
+    },
+    "./electron": {
+      "types": "./src/client/electron/index.d.ts",
+      "import": "./src/client/electron/index.js"
+    },
+    "./models/qwen3": {
+      "types": "./src/models/qwen3.d.ts",
+      "import": "./src/models/qwen3.js"
+    },
+    "./models/gemma3": {
+      "types": "./src/models/gemma3.d.ts",
+      "import": "./src/models/gemma3.js"
+    },
+    "./models/gemma4": {
+      "types": "./src/models/gemma4.d.ts",
+      "import": "./src/models/gemma4.js"
+    },
+    "./models/diffusiongemma": {
+      "types": "./src/models/diffusiongemma.d.ts",
+      "import": "./src/models/diffusiongemma.js"
+    },
+    "./models/embeddinggemma": {
+      "types": "./src/models/embeddinggemma.d.ts",
+      "import": "./src/models/embeddinggemma.js"
+    },
+    "./tooling-experimental": {
+      "types": "./src/tooling-experimental-exports.d.ts",
+      "browser": "./src/tooling-experimental-exports.browser.js",
+      "import": "./src/tooling-experimental-exports.js"
+    },
+    "./loaders": {
+      "types": "./src/loaders/index.d.ts",
+      "import": "./src/loaders/index.js"
+    },
+    "./orchestration": {
+      "types": "./src/experimental/orchestration/index.d.ts",
+      "import": "./src/experimental/orchestration/index.js"
+    },
+    "./generation": {
+      "types": "./src/generation/index.d.ts",
+      "import": "./src/generation/index.js"
+    },
+    "./training": {
+      "browser": {
+        "types": "./src/training-browser.d.ts",
+        "default": "./src/training-browser.js"
+      },
+      "types": "./src/training.d.ts",
+      "import": "./src/training.js"
+    },
+    "./diffusion": {
+      "types": "./src/experimental/diffusion/index.d.ts",
+      "import": "./src/experimental/diffusion/index.js"
+    },
+    "./energy": {
+      "types": "./src/experimental/energy/index.d.ts",
+      "import": "./src/experimental/energy/index.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clocksmith/doppler.git"
+  },
+  "homepage": "https://github.com/clocksmith/doppler",
+  "keywords": [
+    "doppler",
+    "webgpu",
+    "inference",
+    "llm",
+    "quantized",
+    "browser",
+    "local"
+  ],
+  "author": "clocksmith",
+  "bugs": {
+    "url": "https://github.com/clocksmith/doppler/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": [
+    "**/*.wgsl",
+    "./src/gpu/device.js"
+  ],
+  "files": [
+    "assets/doppler.svg",
+    "src",
+    "!src/**/CATSCAN.md",
+    "!src/config/schema/host-teacher-output.schema.json",
+    "!src/config/schema/host-teacher-qualification-policy.schema.json",
+    "!src/config/schema/host-teacher-qualification-receipt.schema.json",
+    "!src/config/schema/host-teacher-task-bank.schema.json",
+    "!src/config/schema/provider-conformance-policy.schema.json",
+    "models/catalog.json",
+    "tests/kernels/browser/kernel-suite.js",
+    "tests/kernels/browser/test-page.js",
+    "tests/kernels/harness/benchmark.js",
+    "tests/kernels/harness/buffer-utils.js",
+    "tests/kernels/harness/tolerance.js",
+    "tests/kernels/reference",
+    "!tests/kernels/reference/fused-ffn-q4k.js",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "tools/convert-safetensors-node.js"
+  ],
+  "devDependencies": {
+    "@huggingface/transformers": "^4.0.1",
+    "@types/node": "^25.6.0",
+    "@webgpu/types": "^0.1.69",
+    "jest": "^30.2.0",
+    "onnxruntime-web": "^1.24.1",
+    "playwright": "^1.58.2",
+    "typescript": "^6.0.2"
+  },
+  "overrides": {
+    "adm-zip": "^0.6.0",
+    "brace-expansion": "^5.0.8",
+    "glob": "^13.0.6",
+    "minimatch": "^10.2.5",
+    "sharp": "^0.35.3"
+  },
+  "optionalDependencies": {
+    "doe-gpu": "^0.4.2",
+    "webgpu": "^0.4.0"
+  }
+}

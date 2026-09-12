@@ -133,6 +133,34 @@ inconclusive. Keep the raw paired samples and the summary artifact together.
 
 ## Tooling contract
 
+## Operator-mechanism evidence
+
+Operator ablations may compare different dispatch counts when fusion is the
+declared treatment. They must preserve the mathematical workload, input bytes,
+output coverage, numerical error budget, and all non-treatment axes. Submission
+ablations preserve the complete shader graph and change only submission grouping.
+Do not require identical dispatch counts for a fusion experiment, and do not
+interpret different mathematical work as fusion.
+
+Predeclare shapes, sample counts, hypotheses, meaningful-effect threshold, and
+multiple-comparison correction. Alternate adjacent A/B and B/A pairs. Keep all
+valid latency observations, including stalls; failures stop qualification rather
+than being replaced with new favorable samples. Report empirical tails with
+their sample count, not as a tail-latency service guarantee.
+
+Every timed output must pass an independent numerical oracle and complete-write
+checks. Negative controls must demonstrate rejection of wrong, missing, and
+non-finite output. CPU/GPU references share the input contract, not generated
+expected answers. Profiling observations are separate from primary wall-clock
+timings. Requested capabilities and actual adapter identity remain distinct.
+
+A controlled fixture proves only that fixture on its recorded environment.
+Production promotion still requires the existing model, boundary, neighboring
+workload, and vendor comparison gates. Synthetic timings cannot select production
+kernels. See [`compute/README.md`](../benchmarks/compute/README.md).
+
+## Tooling references
+
 Registry and runner behavior are canonical in
 [../benchmarks/vendors/README.md](../benchmarks/vendors/README.md).
 Implementation conventions are in

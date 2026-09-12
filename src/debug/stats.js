@@ -42,10 +42,15 @@ function confidenceInterval95(stdDev, n) {
 }
 
 export function computeSampleStats(values, options = {}) {
-  const { outlierIqrMultiplier = 1.5 } = options;
+  const { outlierIqrMultiplier = 1.5, outlierPolicy = 'iqr' } = options;
+  if (outlierPolicy !== 'iqr' && outlierPolicy !== 'none') {
+    throw new Error(`Unknown sample outlier policy: ${outlierPolicy}`);
+  }
   const rawValues = Array.isArray(values) ? values : [];
   const finiteValues = rawValues.filter((value) => Number.isFinite(value));
-  const { filtered, removed } = removeOutliersIQR(finiteValues, outlierIqrMultiplier);
+  const { filtered, removed } = outlierPolicy === 'none'
+    ? { filtered: finiteValues, removed: 0 }
+    : removeOutliersIQR(finiteValues, outlierIqrMultiplier);
   const nonFiniteRemoved = rawValues.length - finiteValues.length;
   const sorted = [...filtered].sort((a, b) => a - b);
   const n = sorted.length;

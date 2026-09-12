@@ -1,0 +1,48 @@
+{
+  "schema": "doppler.compute-suite/v1",
+  "id": "linear-silu-architecture",
+  "shared": {
+    "seed": 20260912,
+    "warmupPairs": 6,
+    "timedPairs": 40,
+    "repetitions": 8,
+    "absoluteTolerance": 0.0002,
+    "relativeTolerance": 0.0002,
+    "sigmoidClamp": 15,
+    "guardElements": 16,
+    "guardValue": 12345.25,
+    "bootstrapResamples": 12000,
+    "familyAlpha": 0.05,
+    "minimumImprovementPercent": 5,
+    "maxMultiplyAddsPerCase": 10000000,
+    "timeoutMs": 180000
+  },
+  "engine": {
+    "surface": "browser-webgpu",
+    "channel": "chrome",
+    "headless": true,
+    "workgroupSize": 64,
+    "timestampDiagnostics": true,
+    "overrideProbeSizes": [32, 64]
+  },
+  "cases": [
+    { "id": "decode-like", "m": 1, "n": 256, "k": 256, "inputScale": 0.25, "biasScale": 1 },
+    { "id": "prefill-like", "m": 32, "n": 128, "k": 128, "inputScale": 0.25, "biasScale": 1 },
+    { "id": "non-aligned-tail", "m": 7, "n": 65, "k": 33, "inputScale": 0.25, "biasScale": 1 },
+    { "id": "wide-output-saturation", "m": 128, "n": 256, "k": 128, "inputScale": 0.25, "biasScale": 30 }
+  ],
+  "experiments": [
+    {
+      "id": "fusion",
+      "hypothesis": "Fusing bias and SiLU into the same matmul algorithm reduces dispatch and intermediate-buffer cost; the measured wall-time benefit may depend on shape.",
+      "baseline": { "id": "unfused-batched", "fused": false, "submission": "batch" },
+      "candidate": { "id": "fused-batched", "fused": true, "submission": "batch" }
+    },
+    {
+      "id": "submission",
+      "hypothesis": "Batching the identical unfused dispatch sequence into one queue submission reduces host submission overhead without changing shaders or arithmetic.",
+      "baseline": { "id": "unfused-separate", "fused": false, "submission": "dispatch" },
+      "candidate": { "id": "unfused-batched", "fused": false, "submission": "batch" }
+    }
+  ]
+}

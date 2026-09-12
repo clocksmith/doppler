@@ -1,0 +1,37 @@
+{
+  "schema": "sprout-size-v1",
+  "opcodes": 19,
+  "registers": 64,
+  "instructions": 412,
+  "dataWords": 14459,
+  "programWords": 16110,
+  "measurement": "Byte counts and deterministic gzip, not Kolmogorov complexity.",
+  "encoding": "Five-byte LEB128 for dynamic sizes and i32 constants; direct native instructions.",
+  "files": {
+    "compiler/compiler.sprout": {
+      "bytes": 55184,
+      "gzipBytes": 9043,
+      "sha256": "2cfd21216ec9790594546c6f02902888283f635d4803f32cead864cc673d44d5"
+    },
+    "compiler/compiler-program.json": {
+      "bytes": 70383,
+      "gzipBytes": 7930,
+      "sha256": "f2ae44169c39cb4e8f9018ac6c91b7b6c5f4199e5cb48190f8682de9878a8b17"
+    },
+    "quines/05-compiler.js": {
+      "bytes": 71257,
+      "gzipBytes": 12396,
+      "sha256": "e5dda07a6b42bb9f761fc48f92f7cffa4eb79963ddd521100c9873ce99ee16b4"
+    },
+    "quines/05-compiler.wgsl": {
+      "bytes": 63724,
+      "gzipBytes": 9429,
+      "sha256": "a907e6cb9ed4c5b99c660855218d0450e5d92eae8b6f2c74801846526b9b5daf"
+    },
+    "quines/05-compiler.wasm": {
+      "bytes": 68871,
+      "gzipBytes": 8829,
+      "sha256": "5faf71c6ea748c4b1a59adf6df627b4904777fac32cda6b5d36751a7f78d7ea4"
+    }
+  }
+}

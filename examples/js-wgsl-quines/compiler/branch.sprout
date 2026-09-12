@@ -1,0 +1,14 @@
+.data
+
+.code
+set 2 7 0
+set 3 7 0
+eq 4 2 3
+if 4 0 0
+set 5 89 0
+else 0 0 0
+set 5 78 0
+fi 0 0 0
+put 5 0 0
+set 5 10 0
+put 5 0 0

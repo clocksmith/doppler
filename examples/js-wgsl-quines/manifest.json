@@ -1,0 +1,65 @@
+{
+  "schema": "js-wgsl-five-quines/v1",
+  "programs": [
+    {
+      "path": "quines/00-minimal.js",
+      "bytes": 123,
+      "sha256": "90a323f582dd3dcfd2ae12dfe01e0693a1c98b0e6495a50b180add2f452f8fce"
+    },
+    {
+      "path": "quines/01-application.js",
+      "bytes": 34465,
+      "sha256": "c59c946f1a9d9a8c167ace1a23d0bc879065291c84bfb29ef597f30ac48278e6"
+    },
+    {
+      "path": "quines/01-application.wgsl",
+      "bytes": 27900,
+      "sha256": "54179734320b6d823091b630723570e471b6d32835a706ddf4068a4bcb6e9d89"
+    },
+    {
+      "path": "quines/02-polyglot.js",
+      "bytes": 58674,
+      "sha256": "265c54b8535790f1cc84dcb1985ce80862954e0e1e5fbdc11aef5fc132568794"
+    },
+    {
+      "path": "quines/02-polyglot.wgsl",
+      "bytes": 58674,
+      "sha256": "265c54b8535790f1cc84dcb1985ce80862954e0e1e5fbdc11aef5fc132568794"
+    },
+    {
+      "path": "quines/03-multiquine.js",
+      "bytes": 33805,
+      "sha256": "d9be124a54475e676ea90e90d51811bdaa5b63c6e6d5e617e7b9915d2164b2db"
+    },
+    {
+      "path": "quines/03-multiquine.wgsl",
+      "bytes": 28337,
+      "sha256": "d02da63e8105ead751e61a8165744e842c911b3c3f94e94af0c3c6d21f201b96"
+    },
+    {
+      "path": "quines/04-visual.js",
+      "bytes": 64510,
+      "sha256": "709794f926310b161928c536a756f48eae9c5863a299014b0beb4a6984f2006c"
+    },
+    {
+      "path": "quines/04-visual.wgsl",
+      "bytes": 54345,
+      "sha256": "5a366aa074b51902653a41ef107f35c2630500aef33bc8e758d58b9ff04ff123"
+    },
+    {
+      "path": "quines/05-compiler.js",
+      "bytes": 71257,
+      "sha256": "e5dda07a6b42bb9f761fc48f92f7cffa4eb79963ddd521100c9873ce99ee16b4"
+    },
+    {
+      "path": "quines/05-compiler.wasm",
+      "bytes": 68871,
+      "sha256": "5faf71c6ea748c4b1a59adf6df627b4904777fac32cda6b5d36751a7f78d7ea4"
+    },
+    {
+      "path": "quines/05-compiler.wgsl",
+      "bytes": 63724,
+      "sha256": "a907e6cb9ed4c5b99c660855218d0450e5d92eae8b6f2c74801846526b9b5daf"
+    }
+  ]
+}
