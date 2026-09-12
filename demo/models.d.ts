@@ -40,3 +40,5 @@ export declare function checkStoredModels(): Promise<Array<Record<string, unknow
 export declare function loadDefaultStoredModel(): Promise<unknown | null>;
 
 export declare function renderModelCards(): void;
+export declare function syncModelControls(): void;
+export declare function reloadActiveModel(runtimeProfile: string): Promise<void>;

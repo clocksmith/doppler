@@ -1,5 +1,5 @@
 import { boot } from './boot.js';
-import { setModelCallbacks } from './models.js';
+import { reloadActiveModel, setModelCallbacks } from './models.js';
 import { initInput, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
@@ -15,7 +15,8 @@ function refreshRuntimeNotice() {
   const wordQualityEnabled = $('set-word-quality')?.checked === true;
   const summary = document.querySelector('.chat-controls-summary-state');
   if (summary) {
-    summary.textContent = `X-Ray ${xrayEnabled ? 'on' : 'off'} · Word quality ${wordQualityEnabled ? 'on' : 'off'}`;
+    summary.textContent = [xrayEnabled && 'X-Ray', wordQualityEnabled && 'Word quality']
+      .filter(Boolean).join(' · ') || 'Standard';
   }
   const xraySummary = $('xray-summary-state');
   if (xraySummary) {
@@ -34,7 +35,7 @@ function refreshRuntimeNotice() {
     profilingEnabled: isXrayProfilingNeeded(),
   });
   el.textContent = text ?? '';
-  el.hidden = !text;
+  el.hidden = !xrayEnabled && !wordQualityEnabled;
 }
 
 async function init() {
@@ -47,7 +48,7 @@ async function init() {
   });
 
   // Init UI modules
-  await initSettings({ requireDefaultProfile: true });
+  await initSettings({ requireDefaultProfile: true, onProfileChange: reloadActiveModel });
   initReport();
   await initInput();
   flushPwaLaunchState();

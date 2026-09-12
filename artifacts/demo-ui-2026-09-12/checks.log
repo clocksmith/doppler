@@ -1,0 +1,7 @@
+[node-tests] script: demo:reachability:check
+demo reachability: 16 live modules, no duplicate implementation
+[node-tests] script: demo:shell:check
+demo shell manifest: 721 files, 678 modules, 6053725 bytes (sha256:a6e620facf656687d0736c1a22f1c29071d5f108f2e1db0fc2211449a27757dd)
+[node-tests] script: typecheck:source
+[node-tests] script: source:style:check
+[source:style:check] 995 governed JavaScript modules have sibling declarations, 204 reviewed numeric candidate(s), no runtime tensor compute, no implementation JSDoc, no undeclared raw console calls, and no banned geometry inference

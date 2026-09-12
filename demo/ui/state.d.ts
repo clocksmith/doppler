@@ -14,7 +14,8 @@ export interface DemoState {
   settings: Record<string, unknown>;
   preset: string;
   wordQualityEnabled: boolean;
-  liveTokSec: boolean;
+  modelBusy: boolean;
+  settingsBusy: boolean;
   xrayEnabled: boolean;
   lastInspection: unknown;
   lastInferenceStats: Record<string, unknown> | null;

@@ -1,0 +1,72 @@
+{
+  "createdAtUtc": "2026-09-12T21:47:29.078995+00:00",
+  "repositories": {
+    "doppler": {
+      "baselineCommit": "04db564d41d9a9ef9aea80ad5eb755b6368bff85",
+      "workingTreeFileDigests": {
+        "demo/README.md": "sha256:7ba36059c5e800c27d111bc9af26f930191fc188cd39e683999035824eed0c3b",
+        "demo/core.js": "sha256:6b0d657563ef54c900e7df6b496749e81523237e44f13e09059a26afd927af70",
+        "demo/demo.js": "sha256:72e4f2e7ded821b44c8b572e8089a3c1fd45d7751c301576e28bcc290b0864dd",
+        "demo/generated-shell-budget.json": "sha256:5cbc801b3cc858453f0951d7efa83365a65adff33545190a22f18b56ea53c93a",
+        "demo/generated-shell-manifest.js": "sha256:c4f01f327a8172b3f78e02ede5bbd7777b961ebab62dc382ecbfa8847c49b911",
+        "demo/index.html": "sha256:da83b2100afa186c029f5648b7481806f9819c524fe48cad74fa6c13bbafcb6b",
+        "demo/input.d.ts": "sha256:981cdfbf629712b6893495b742a6fb34650183d017b964e87e7d86ab80dabb55",
+        "demo/input.js": "sha256:2710e0dd9759a1fd7bc014f4bc546ba7b2881ac3c656fca238b6abb71911cf93",
+        "demo/models.d.ts": "sha256:50ea3e915322840c341b5e5acbb832e2af33522370c7e8d834304e12af2c85cf",
+        "demo/models.js": "sha256:b7925d1920215611f01fbe34eb616b0ed085d509b16741d0b9c136c0bb391c16",
+        "demo/output.d.ts": "sha256:dec9c5ecd5bce609b12c2b06533bca4f53bc1cc8d9dfa19b408f29c7f4cdd122",
+        "demo/output.js": "sha256:8a7faef3ff9fa5180d1e15b22c2ce5b0ae92c543efe8722fa322776d4f3a5f07",
+        "demo/report.js": "sha256:8251e40bedb9033229eb08798858b781dcdcfc27ddb492f7ca7df3054dd145c3",
+        "demo/settings.d.ts": "sha256:6fb11835c587ecfab0495f83b130c23deaaf8c605d307071c4e4241d8cebeeb6",
+        "demo/settings.js": "sha256:01465273df5f664b33fa217eb19aeb732aae44196ff1c5381a2b7d6b5076d9ed",
+        "demo/ui/precision-replay/index.js": "sha256:d5ed569dca29e5f2d1de2584a720f8271d818ffc0e62cf3c5c9534536711c426",
+        "demo/ui/state.d.ts": "sha256:4a9b6591a4df5110ddbce2ff9fb1e04c5d9c3c28062962ecd93a40b3410a8d70",
+        "demo/ui/state.js": "sha256:5bd371dae0e7d1673ae69d943b61371c83337b78643e45f013d911ab9c652b77",
+        "demo/ui/styles/app.css": "sha256:02bd2570c5b84cdf95b72527d200fa4063db95f6cb8c467b7da1f133bf9a215a",
+        "demo/ui/xray/index.js": "sha256:d233ccf37044fab1ff3d077a3b066e5e235d92f173e76141d42fae72b96ca5b0",
+        "docs/api/compat.md": "sha256:1e85878d0cb63e1ad684043865081b7e5443034dda5121d75328d04a92c68e45",
+        "src/client/model-host/model-session.d.ts": "sha256:7c628e7deb31a73f569fd5f96f990dab1bb2ed4dd6c5c6c7aeee2f0981bfe016",
+        "src/client/model-host/model-session.js": "sha256:8ddad4343682c7da07529b4b6088d80f83e7aa923af01ec3c4ebc87dcf21b984",
+        "src/inference/pipelines/text/generator/decode-runtime.js": "sha256:ff0aa1c65efd571bd53f0f718a18e2063f90a95d062f9420e5d207f37feebe54",
+        "tests/demo/browser-controls.js": "sha256:d13494b57b6a6ba82bffead0af020161eff6c8488eaf3966992959094b490877",
+        "tests/demo/browser-streaming.js": "sha256:714f55f8f56339aa3a41b318ad888b0a617f41023e6c7927fb99d038c9bc6b98",
+        "tests/demo/demo-ui-controls.test.js": "sha256:c0aea88a666f2ebfb7c0768d690edbd6c0b6010c6376fe3715d1903f60259233",
+        "tests/inference/generate-token-ids-behavioral-parity.test.js": "sha256:e5ae6a420c2283d84c19242b175034aff53f4a56cb43b4336ef76edcd522d2f0",
+        "tests/integration/doppler-generation-evidence.test.js": "sha256:9033d27232d3e4dbba22c8d7e40334175542f4fb7776e6c5c072907935eb6da8",
+        "tools/demo-contract-smoke.js": "sha256:30d6625f29f951ccf8c55e7d8948a6bc565376fafb09510f43818170adfdf4b3",
+        "tools/generate-demo-shell-manifest.js": "sha256:6247a26e34142807dfc37eded766e083daeaebda9783f43323881da53d356a10"
+      }
+    },
+    "d4da": {
+      "baselineCommit": "60cb4cf6efc89e139b728a37142b8ce088f0ac08",
+      "workingTreeFileDigests": {
+        "docs/hosting-surfaces.md": "sha256:0becb37206eaaf039b5215b964791bb2ecf4d506a024991f12934ba4fa819f9b",
+        "scripts/sync-world-doppler.mjs": "sha256:7b5462babc9f23aca1be99a44f6efcf351bf99cdfbd51d6c0f505e84e402f32c",
+        "sites/d4da-com/doppler/demo/README.md": "sha256:7ba36059c5e800c27d111bc9af26f930191fc188cd39e683999035824eed0c3b",
+        "sites/d4da-com/doppler/demo/core.js": "sha256:6b0d657563ef54c900e7df6b496749e81523237e44f13e09059a26afd927af70",
+        "sites/d4da-com/doppler/demo/demo.js": "sha256:72e4f2e7ded821b44c8b572e8089a3c1fd45d7751c301576e28bcc290b0864dd",
+        "sites/d4da-com/doppler/demo/generated-shell-budget.json": "sha256:2358dd160cd0dbd8bb44938de7149316b5acb9c4ee6a03c161ce66fc6cdb7dcf",
+        "sites/d4da-com/doppler/demo/generated-shell-manifest.js": "sha256:19f3a99c020d28e0eb8acadf0b5d19c5925b72a326b36673583db113af0f6941",
+        "sites/d4da-com/doppler/demo/index.html": "sha256:c987091aa726cef1061aa49cdab938491fd8a9798165b238a05277c89b987528",
+        "sites/d4da-com/doppler/demo/input.d.ts": "sha256:981cdfbf629712b6893495b742a6fb34650183d017b964e87e7d86ab80dabb55",
+        "sites/d4da-com/doppler/demo/input.js": "sha256:2710e0dd9759a1fd7bc014f4bc546ba7b2881ac3c656fca238b6abb71911cf93",
+        "sites/d4da-com/doppler/demo/models.d.ts": "sha256:50ea3e915322840c341b5e5acbb832e2af33522370c7e8d834304e12af2c85cf",
+        "sites/d4da-com/doppler/demo/models.js": "sha256:b7925d1920215611f01fbe34eb616b0ed085d509b16741d0b9c136c0bb391c16",
+        "sites/d4da-com/doppler/demo/output.d.ts": "sha256:dec9c5ecd5bce609b12c2b06533bca4f53bc1cc8d9dfa19b408f29c7f4cdd122",
+        "sites/d4da-com/doppler/demo/output.js": "sha256:8a7faef3ff9fa5180d1e15b22c2ce5b0ae92c543efe8722fa322776d4f3a5f07",
+        "sites/d4da-com/doppler/demo/report.js": "sha256:8251e40bedb9033229eb08798858b781dcdcfc27ddb492f7ca7df3054dd145c3",
+        "sites/d4da-com/doppler/demo/settings.d.ts": "sha256:6fb11835c587ecfab0495f83b130c23deaaf8c605d307071c4e4241d8cebeeb6",
+        "sites/d4da-com/doppler/demo/settings.js": "sha256:01465273df5f664b33fa217eb19aeb732aae44196ff1c5381a2b7d6b5076d9ed",
+        "sites/d4da-com/doppler/demo/ui/precision-replay/index.js": "sha256:d5ed569dca29e5f2d1de2584a720f8271d818ffc0e62cf3c5c9534536711c426",
+        "sites/d4da-com/doppler/demo/ui/state.d.ts": "sha256:4a9b6591a4df5110ddbce2ff9fb1e04c5d9c3c28062962ecd93a40b3410a8d70",
+        "sites/d4da-com/doppler/demo/ui/state.js": "sha256:5bd371dae0e7d1673ae69d943b61371c83337b78643e45f013d911ab9c652b77",
+        "sites/d4da-com/doppler/demo/ui/styles/app.css": "sha256:02bd2570c5b84cdf95b72527d200fa4063db95f6cb8c467b7da1f133bf9a215a",
+        "sites/d4da-com/doppler/demo/ui/xray/index.js": "sha256:d233ccf37044fab1ff3d077a3b066e5e235d92f173e76141d42fae72b96ca5b0",
+        "sites/d4da-com/doppler/index.html": "sha256:c987091aa726cef1061aa49cdab938491fd8a9798165b238a05277c89b987528",
+        "sites/d4da-com/doppler/src/client/model-host/model-session.d.ts": "sha256:c836dee647ef59828b098f2360be21f45287b39a0acbb43102ee6c8f75759c61",
+        "sites/d4da-com/doppler/src/client/model-host/model-session.js": "sha256:0c5d6f2b5671c265aa4a1b4f042f03b44547ef21a28568a33d9bff1794a7273c",
+        "sites/d4da-com/doppler/src/inference/pipelines/text/generator/decode-runtime.js": "sha256:73cf1cb5b4911ab2fe786b5062d88fcd98db9987f079fbe2c580c6d52809096d"
+      }
+    }
+  }
+}

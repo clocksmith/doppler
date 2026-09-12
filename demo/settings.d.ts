@@ -10,4 +10,5 @@ export declare function getSettings(): DemoSettingsSnapshot;
 
 export declare function initSettings(options?: {
   requireDefaultProfile?: boolean;
+  onProfileChange?: ((runtimeProfile: string) => Promise<void>) | null;
 }): Promise<boolean>;

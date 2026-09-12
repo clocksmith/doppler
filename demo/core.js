@@ -1,10 +1,12 @@
 import { state } from './ui/state.js';
+import { syncModelControls } from './models.js';
 import { getSettings } from './settings.js';
 import {
   buildConversationRequest,
   clearPrompt,
   getPrompt,
   recordConversationTurn,
+  setPromptValue,
   resetConversationForModel,
   setGenerating,
   syncSendButton,
@@ -12,6 +14,7 @@ import {
 import {
   beginChatTurn,
   clearTokSec,
+  createOutputStream,
   renderWordQuality,
   setFinalStats,
   setPhase,
@@ -53,9 +56,15 @@ export function onModelLoaded(model, modelId) {
 export async function runGeneration() {
   const model = state.model;
   const prompt = getPrompt();
-  if (!model || !prompt) return;
+  if (!model || !prompt || state.generating || state.modelBusy || state.settingsBusy) return;
 
-  const settings = getSettings();
+  let settings;
+  try {
+    settings = getSettings();
+  } catch (error) {
+    setPhase(error.message);
+    return;
+  }
   const conversationRequest = buildConversationRequest(prompt);
   const policyId = resolvePolicyId();
   beginChatTurn(conversationRequest.messages);
@@ -63,34 +72,51 @@ export async function runGeneration() {
   clearTokSec();
   setPrefillProgress(10);
   setPhase('Running');
-  setGenerating(true);
   setStatus('Running…', true);
   setExportEnabled(false);
   state.generating = true;
   state.prefilling = true;
+  state.lastImportedReport = null;
+  state.lastRun = null;
+  state.lastInspection = null;
+  delete globalThis.__DOPPLER_DEMO_EVIDENCE__;
+  setGenerating(true);
+  syncModelControls();
   state.abortController = new AbortController();
+  const signal = state.abortController.signal;
+  const stream = createOutputStream((ids) => model.advanced.decodeTokenIds(ids), signal);
+  let receiving = true;
   resetXray();
 
   try {
     const receipt = await model.inspect.generate(conversationRequest.currentPrompt, {
       policyId,
       topKSize: 8,
+      onEvent(event) {
+        if (!receiving || event.type !== 'token' || signal.aborted) return;
+        if (state.prefilling) {
+          state.prefilling = false;
+          setPhase('Generating');
+          setPrefillProgress(100);
+        }
+        stream.push(event.tokenId);
+      },
       generation: {
         temperature: settings.temperature,
         topK: settings.topK,
         topP: settings.topP,
         maxTokens: settings.maxTokens,
-        signal: state.abortController.signal,
+        signal,
         useChatTemplate: true,
       },
     });
+    receiving = false;
+    signal.throwIfAborted();
+    stream.finish(receipt.outputText);
     const qualityEnabled = receipt.quality != null;
     showWordQuality(qualityEnabled);
     if (qualityEnabled) {
       renderWordQuality(receipt.quality);
-    } else {
-      const output = $('output-text');
-      if (output) output.textContent = receipt.outputText;
     }
     const stats = receipt.generationEvidence?.stats ?? {};
     const totalTokens = receipt.generatedTokenIds.length;
@@ -123,25 +149,25 @@ export async function runGeneration() {
         tooltipRecords: receipt.tokens.length,
       },
     };
-    recordConversationTurn(conversationRequest, receipt.outputText);
-    if (qualityEnabled) {
-      beginChatTurn(state.conversationHistory.slice(0, -1));
-      showWordQuality(true);
-      renderWordQuality(receipt.quality);
-    }
+    recordConversationTurn(conversationRequest, receipt.outputText, { render: false });
     updateXrayPanels(receipt);
     setFinalStats(state.lastRun);
     setExportEnabled(true);
-    setPhase(receipt.performanceRepresentative ? 'Complete · representative wall timing' : 'Complete · diagnostic timing');
+    setPhase(receipt.performanceRepresentative ? 'Complete' : 'Complete · diagnostic timing');
   } catch (error) {
-    if (error?.name !== 'AbortError') {
-      setPhase(`Error: ${error?.message ?? error}`);
-    }
+    receiving = false;
+    const partialOutput = stream.finish();
+    if (partialOutput) recordConversationTurn(conversationRequest, partialOutput, { render: false });
+    setPhase(error?.name === 'AbortError' ? 'Stopped' : `Error: ${error?.message ?? error}`);
+    if (!getPrompt()) setPromptValue(prompt);
   } finally {
+    receiving = false;
+    stream.finish();
     state.generating = false;
     state.prefilling = false;
     state.abortController = null;
     setGenerating(false);
+    syncModelControls();
     setPrefillProgress(100);
     setStatus('Ready', false);
   }

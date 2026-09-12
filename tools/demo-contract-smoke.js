@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { checkDemoControls } from '../tests/demo/browser-controls.js';
 import {
   SHELL_MANIFEST_DIGEST,
 } from '../demo/generated-shell-manifest.js';
@@ -23,6 +24,7 @@ const MIME = new Map([
   ['.svg', 'image/svg+xml'],
 ]);
 const STUB_MODULE = `
+const controls = globalThis.__demoContract = { calls: [], loads: [], unloads: 0, removals: 0, blockNext: false, resolveOnAbort: false, failLoad: false };
 const policies = new Map([
   ['demo/always-on', { id: 'demo/always-on', modifiesExecution: false, performanceRepresentative: true }],
   ['demo/guided-quality', { id: 'demo/guided-quality', modifiesExecution: true, performanceRepresentative: false }],
@@ -33,9 +35,38 @@ const model = {
   loaded: true,
   manifestHash: 'sha256:${'a'.repeat(64)}',
   persistentCache: { backend: 'opfs', state: 'verified-hit', fromCache: true },
-  async unload() {},
+  async unload() { controls.unloads++; },
+  advanced: {
+    decodeTokenIds(ids) {
+      return ids.map((id) => ({ 1: 'Contract', 2: ' generation', 3: ' passed.', 4: '\\nAnother line.', 5: ' 🙂' })[id] ?? '').join('');
+    },
+  },
   inspect: {
     async generate(prompt, options = {}) {
+      controls.calls.push({ prompt, policyId: options.policyId, generation: options.generation });
+      let tokenIds = [];
+      controls.emitTokens = (ids) => {
+        for (const tokenId of ids) {
+          options.onEvent?.({ type: 'token', tokenId, index: tokenIds.length });
+          tokenIds.push(tokenId);
+        }
+      };
+      if (controls.streamNext) {
+        controls.streamNext = false;
+        await new Promise((resolve, reject) => {
+          controls.completeStream = resolve;
+          controls.failStream = () => reject(new Error('Contract stream failure'));
+          options.generation.signal.addEventListener('abort', () => reject(new DOMException('Stopped', 'AbortError')), { once: true });
+        });
+      } else {
+        controls.emitTokens(controls.blockNext ? [1] : [1, 2, 3]);
+      }
+      if (controls.blockNext) {
+        controls.blockNext = false;
+        await new Promise((resolve, reject) => {
+          options.generation.signal.addEventListener('abort', () => controls.resolveOnAbort ? resolve() : reject(new DOMException('Stopped', 'AbortError')), { once: true });
+        });
+      }
       const policy = policies.get(options.policyId) ?? policies.get('demo/always-on');
       return {
         schema: 'doppler.model-inspection-receipt/v1',
@@ -47,22 +78,26 @@ const model = {
           performanceDigest: 'sha256:${'d'.repeat(64)}',
           identity: { execution: { backend: 'mocked-contract' }, adapter: {} },
         },
-        outputText: 'Contract generation passed.',
-        generatedTokenIds: [1, 2, 3],
+        outputText: model.advanced.decodeTokenIds(tokenIds),
+        generatedTokenIds: tokenIds,
         wallTimingMs: 1,
         performanceRepresentative: policy.performanceRepresentative,
         tokens: [],
-        quality: null,
+        quality: policy.id === 'demo/guided-quality' ? { words: [{ text: 'Contract', rollingPerplexity: 2, summedSurprisal: 1, cumulativePerplexity: 2, tokenCount: 1, rollingWindow: { size: 1, unit: 'word' } }] } : null,
         generationEvidence: { stats: { tokensGenerated: 3, decodeTimeMs: 1 } },
       };
     },
   },
 };
 export const dr = {
-  async listModelDetails() { return [{ modelId: 'contract-model', label: 'Contract model' }]; },
+  async listModelDetails() { return [{ modelId: 'contract-model', label: 'Contract model' }, { modelId: 'second-model', label: 'Second model' }]; },
   async listPersistentModels() { return []; },
-  async load() { return model; },
-  async removePersistentModel() { return true; },
+  async load(modelId, options) {
+    controls.loads.push({ modelId, ...options });
+    if (controls.failLoad) throw new Error('Contract load failure');
+    return { ...model, modelId };
+  },
+  async removePersistentModel() { controls.removals++; return true; },
 };
 export const doppler = dr;
 export const DOPPLER_VERSION = 'contract';
@@ -102,8 +137,11 @@ async function startServer() {
 }
 
 async function main() {
-  const { server, origin } = await startServer();
-  const browser = await chromium.launch({ headless: true });
+  const { server, origin: localOrigin } = await startServer();
+  const origin = process.env.DOPPLER_DEMO_ORIGIN || localOrigin;
+  const entrypoint = process.env.DOPPLER_DEMO_ENTRYPOINT || '/demo/index.html';
+  const modulePath = entrypoint.startsWith('/doppler/') ? '/doppler/src/index-browser.js' : '/src/index-browser.js';
+  const browser = await chromium.launch({ headless: true, channel: process.env.DOPPLER_BROWSER_CHANNEL || undefined });
   const page = await browser.newPage();
   const fatalConsoleErrors = [];
   page.on('pageerror', (error) => fatalConsoleErrors.push(error.message));
@@ -118,7 +156,7 @@ async function main() {
       });
     }
   });
-  await page.route(`${origin}/src/index-browser.js`, async (route) => {
+  await page.route(`${origin}${modulePath}`, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'text/javascript',
@@ -132,8 +170,9 @@ async function main() {
     modelLoaded: false,
     generationCompleted: false,
   };
+  let testedShellDigest = SHELL_MANIFEST_DIGEST;
   try {
-    await page.goto(`${origin}/demo/index.html`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}${entrypoint}`, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => {
       const select = document.querySelector('#model-select');
       return select && !select.disabled && select.options.length > 0;
@@ -153,10 +192,13 @@ async function main() {
     await page.fill('#prompt-input', 'Run the demo contract.');
     await page.click('#run-btn');
     await page.waitForFunction(
-      () => Array.from(document.querySelectorAll('.chat-message--assistant .chat-message-text'))
-        .some((element) => element.textContent === 'Contract generation passed.')
+      () => document.querySelector('#output-phase').textContent === 'Complete'
+        && document.querySelector('#output-text').textContent === 'Contract generation passed.'
     );
     journey.generationCompleted = true;
+    await checkDemoControls(page);
+    testedShellDigest = await page.evaluate(async (url) => (await import(url)).SHELL_MANIFEST_DIGEST,
+      `${origin}${modulePath.replace('/src/index-browser.js', '/demo/generated-shell-manifest.js')}`);
     await page.evaluate(() => navigator.serviceWorker.ready);
   } finally {
     await browser.close();
@@ -164,14 +206,30 @@ async function main() {
   }
 
   const passed = Object.values(journey).every(Boolean) && fatalConsoleErrors.length === 0;
+  if (entrypoint !== '/demo/index.html') {
+    // Hosted wrappers have their own source and cache identity; they must not
+    // impersonate the canonical demo receipt used by the goal matrix.
+    console.log(JSON.stringify({
+      schema: 'doppler.demo-hosted-controls-check/v1',
+      status: passed ? 'passed' : 'failed',
+      createdAtUtc: new Date().toISOString(),
+      entrypoint,
+      executionClass: 'mocked-contract',
+      journey,
+      shellManifestDigest: testedShellDigest,
+      fatalConsoleErrors,
+    }, null, 2));
+    if (!passed) process.exitCode = 1;
+    return;
+  }
   const receipt = validateDemoContractReceipt({
     schema: DEMO_CONTRACT_RECEIPT_SCHEMA,
     status: passed ? 'passed' : 'failed',
     createdAtUtc: new Date().toISOString(),
-    entrypoint: '/demo/index.html',
+    entrypoint,
     executionClass: 'mocked-contract',
     journey,
-    shellManifestDigest: SHELL_MANIFEST_DIGEST,
+    shellManifestDigest: testedShellDigest,
     fatalConsoleErrors,
   });
   console.log(JSON.stringify(receipt, null, 2));

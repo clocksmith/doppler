@@ -236,6 +236,11 @@ export interface DopplerModelHandle {
         generation?: DopplerGenerateOptions;
         topKSize?: number;
         onEvent?: (event: {
+          /** Generated IDs in order, including the first and stop tokens. Decode together to preserve Unicode. */
+          type: 'token';
+          tokenId: number;
+          index: number;
+        } | {
           type: 'inspection-complete';
           receipt: DopplerModelInspectionReceipt;
         }) => void;

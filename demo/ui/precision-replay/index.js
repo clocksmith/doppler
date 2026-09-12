@@ -129,13 +129,18 @@ function renderModeGroup() {
       type="button"
       class="precision-replay-mode-btn${replayState.selectedMode === id ? ' is-active' : ''}"
       data-precision-mode="${id}"
+      aria-pressed="${replayState.selectedMode === id}"
     >${escapeHtml(label)}</button>
   `).join('');
   for (const button of groupEl.querySelectorAll('[data-precision-mode]')) {
     button.addEventListener('click', async () => {
       replayState.selectedMode = button.dataset.precisionMode;
-      renderModeGroup();
-      await renderSelectedPrompt();
+      for (const control of groupEl.querySelectorAll('[data-precision-mode]')) {
+        const active = control.dataset.precisionMode === replayState.selectedMode;
+        control.classList.toggle('is-active', active);
+        control.setAttribute('aria-pressed', String(active));
+      }
+      await renderSelectedPrompt().catch((error) => renderStatus(`Precision replay unavailable: ${error.message}`));
     });
   }
 }
@@ -281,6 +286,7 @@ function renderCandidateTable(prompt, slice) {
       </tr>
     `;
   }).join('');
+  tableBodyEl.dataset.promptId = prompt.id;
 }
 
 async function renderSelectedPrompt() {
@@ -295,8 +301,11 @@ async function renderSelectedPrompt() {
   renderWinnerCards(prompt);
   renderWatchPairs(prompt);
   renderBranch(prompt);
+  const table = $('precision-replay-table-body');
+  table?.replaceChildren();
+  if (table) delete table.dataset.promptId;
   const slice = await loadSlice(prompt);
-  if (slice) {
+  if (slice && getSelectedPrompt()?.id === prompt.id) {
     renderCandidateTable(prompt, slice);
   }
 }
@@ -347,7 +356,8 @@ export async function initPrecisionReplay() {
     try {
       await loading;
     } catch (error) {
-      toggleEl.disabled = true;
+      replayState.manifest = null;
+      replayState.curated = null;
       renderStatus(`Precision replay unavailable: ${error.message}`);
       throw error;
     } finally {
@@ -366,7 +376,7 @@ export async function initPrecisionReplay() {
 
   selectEl.addEventListener('change', async () => {
     replayState.selectedPromptId = selectEl.value;
-    await renderSelectedPrompt();
+    await renderSelectedPrompt().catch((error) => renderStatus(`Precision replay unavailable: ${error.message}`));
   });
 
   usePromptBtn.addEventListener('click', () => {

@@ -1,0 +1,16 @@
+
+> d4da-app@0.1.0 check:world:doppler
+> node scripts/check-world-doppler.mjs
+
+file:///home/x/deco/d4da/scripts/check-world-doppler.mjs:18
+  throw new Error(`Doppler world hosting contract: ${message}`);
+        ^
+
+Error: Doppler world hosting contract: hosted runtime version differs from the synchronized Doppler 0.6.1 source
+    at fail (file:///home/x/deco/d4da/scripts/check-world-doppler.mjs:18:9)
+    at file:///home/x/deco/d4da/scripts/check-world-doppler.mjs:70:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.1

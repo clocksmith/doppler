@@ -545,6 +545,18 @@ export function createModelHandle(pipeline, resolved) {
       const policy = resolveObservationPolicy(options.policyId);
       const generationOptions = resolveInspectionGenerationOptions(options, policy);
       assertSupportedGenerationOptions(generationOptions);
+      if (options.onEvent != null && typeof options.onEvent !== 'function') {
+        throw new Error('Doppler inspection onEvent must be a function.');
+      }
+      let streaming = typeof options.onEvent === 'function';
+      let tokenIndex = 0;
+      if (streaming) {
+        generationOptions.onToken = (tokenId) => {
+          if (streaming && !generationOptions.signal?.aborted) {
+            options.onEvent({ type: 'token', tokenId, index: tokenIndex++ });
+          }
+        };
+      }
       const logitsByStep = [];
       if (policy.requiredCaptures.includes('selected-token-probabilities')) {
         generationOptions.onLogits = (logits) => {
@@ -552,7 +564,13 @@ export function createModelHandle(pipeline, resolved) {
         };
       }
       const startedAt = performance.now();
-      const evidence = await generateWithEvidence(prompt, generationOptions);
+      let evidence;
+      try {
+        evidence = await generateWithEvidence(prompt, generationOptions);
+        generationOptions.signal?.throwIfAborted();
+      } finally {
+        streaming = false;
+      }
       const completedAt = performance.now();
       const promptTokenIds = tokenizeText(pipeline, prompt);
       const tokenRecords = policy.perplexity
@@ -595,6 +613,7 @@ export function createModelHandle(pipeline, resolved) {
         generationEvidence: evidence,
       };
       if (typeof options.onEvent === 'function') {
+        generationOptions.signal?.throwIfAborted();
         options.onEvent({ type: 'inspection-complete', receipt });
       }
       return receipt;

@@ -5,6 +5,20 @@ no second demo implementation. `npm run demo:reachability:check` fails when an
 unreferenced JavaScript implementation appears under `demo/` or live demo code
 imports private `src/` paths.
 
+The composer streams text through inspection token events. Incoming IDs are
+buffered and decoded together at most once per animation frame, preserving split
+Unicode characters and tokenizer spacing. The existing answer text node receives
+only the changed suffix; token updates never rebuild the conversation or reload
+the page. Auto-scroll follows the answer only while the reader stays at the bottom.
+Stop flushes pending text and retains the partial answer without publishing a
+completed receipt. Completion reconciles the text with the receipt, then displays
+word quality, X-Ray evidence, and final timing. Image attachment and live token-rate
+controls are not offered.
+Run options expose sampling and observation choices; profile-owned policy is
+shown under read-only details. Diagnostic timing notices remain visible whenever
+X-Ray or word quality is selected. Loading, generation, cancellation, receipt
+import/export, and confirmed cache removal keep their controls synchronized.
+
 ## Public boundaries
 
 The model picker, verified OPFS cache, model lifetime, and generation path use
@@ -12,6 +26,15 @@ the root `dr` API from `doppler-gpu`. Runtime-profile controls use
 `doppler-gpu/tooling/runtime`. Evidence views use
 `doppler-gpu/tooling/evidence` and the public `model.inspect` handle. Live demo
 code may not import the compatibility `doppler-gpu/tooling` barrel.
+
+`model.inspect.generate(prompt, { onEvent, generation, policyId })` emits ordered
+`{ type: 'token', tokenId, index }` events during generation, including the first
+and stop tokens. Consumers decode IDs using `model.advanced.decodeTokenIds(ids)`;
+an ID is not necessarily a complete character. Events do not change decode
+batching or request extra GPU readbacks. Callbacks are synchronous and should
+buffer work. The final `{ type: 'inspection-complete', receipt }` event and returned
+receipt retain the existing contract. Aborted or failed runs do not emit completion;
+callback errors reject the run and follow normal generation cleanup.
 
 ## Observation tiers
 

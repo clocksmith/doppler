@@ -174,12 +174,7 @@
           </nav>
         </div>
         <h1>Local AI you can inspect.</h1>
-        <p>Load a verified model, run it with WebGPU, and keep the evidence with the result.</p>
-        <div class="app-proof-line" aria-label="Demo guarantees">
-          <span>Runs in this browser</span>
-          <span>Verified local cache</span>
-          <span>Exportable run evidence</span>
-        </div>
+        <p>Runs in this browser. Your prompts stay here.</p>
       </div>
       <div class="app-header-end">
         <button id="install-btn" class="btn btn-ghost" hidden>Install</button>
@@ -197,7 +192,7 @@
         <div>
           <div class="flow-kicker"><span>01</span> Setup</div>
           <label id="model-picker-label" class="flow-title" for="model-select">Choose a model</label>
-          <p id="model-picker-help" class="model-picker-help">The first load downloads and verifies the model. Later visits reuse the browser cache.</p>
+          <p id="model-picker-help" class="model-picker-help">Download once. Reuse the verified cache.</p>
         </div>
         <span id="model-select-status" class="model-select-status" aria-live="polite">Loading catalog...</span>
       </div>
@@ -216,7 +211,7 @@
         <span id="model-select-progress-label" class="model-card-progress-percent">0%</span>
       </div>
       <details id="model-browser" class="model-browser">
-        <summary><span>See all supported models</span><span id="model-browser-count" class="model-browser-count"></span></summary>
+        <summary><span>Browse models</span><span id="model-browser-count" class="model-browser-count"></span></summary>
         <div id="model-cards" class="model-cards"></div>
       </details>
     </section>
@@ -227,13 +222,12 @@
           <div class="flow-kicker"><span>02</span> Run</div>
           <h2 id="chat-heading" class="flow-title chat-heading">Ask the model</h2>
         </div>
-        <p>Prompts and generated output stay on this device.</p>
       </div>
       <div class="chat-toolbar">
         <details id="chat-controls" class="chat-controls">
           <summary>
             <span>Run options</span>
-            <span class="chat-controls-summary-state">X-Ray off · Word quality off</span>
+            <span class="chat-controls-summary-state">Standard</span>
           </summary>
           <div class="chat-toolbar-main">
             <label class="chat-toggle" title="Show every inference-internals panel.">
@@ -254,6 +248,8 @@
         </div>
       </div>
 
+      <div id="runtime-notice" class="runtime-notice" role="status" hidden></div>
+
       <div id="settings-panel" class="settings-panel">
         <!-- Profile — loads a full runtime config, populates fields below -->
         <div class="setting-field">
@@ -267,6 +263,7 @@
             <option value="profiles/trace-layers">trace-layers</option>
           </select>
         </div>
+        <div id="settings-error" class="runtime-notice" role="alert" hidden></div>
 
         <!-- Sampling and max token fields are per-run options. Other fields display profile-owned runtime policy. -->
         <div class="settings-grid">
@@ -286,45 +283,46 @@
             <label for="set-max-tokens" title="inference.generation.maxTokens — Stop after N tokens. Also stops on EOS.">Max Tokens</label>
             <input id="set-max-tokens" type="number" min="1" step="1" value="1024">
           </div>
-          <div class="setting-field">
-            <label for="set-batch-max-tokens" title="inference.batching.maxTokens — Tokens per GPU dispatch. Higher = throughput, more VRAM.">Batch Size</label>
-            <input id="set-batch-max-tokens" type="number" min="1" step="1" value="64">
-          </div>
-          <div class="setting-field">
-            <label for="set-readback" title="inference.batching.readbackInterval — Steps between GPU readbacks. 0 = end-only.">Readback</label>
-            <input id="set-readback" type="number" min="0" step="1" value="0" placeholder="0 = end only">
-          </div>
-          <div class="setting-field">
-            <label for="set-kv-dtype" title="inference.kvcache.kvDtype — f16 halves memory. f32 is full precision.">KV Dtype</label>
-            <select id="set-kv-dtype">
-              <option value="">profile default</option>
-              <option value="f16">f16</option>
-              <option value="f32">f32</option>
-            </select>
-          </div>
-          <div class="setting-field">
-            <label for="set-kv-max-seq" title="inference.kvcache.maxSeqLen — Pre-allocated cache length. 0 = model default.">KV Max Seq</label>
-            <input id="set-kv-max-seq" type="number" min="0" step="256" value="0">
-          </div>
-          <div class="setting-field">
-            <label for="set-log-level" title="shared.debug.logLevel.defaultLogLevel — Console verbosity.">Log Level</label>
-            <select id="set-log-level">
-              <option value="silent">silent</option>
-              <option value="error">error</option>
-              <option value="info" selected>info</option>
-              <option value="verbose">verbose</option>
-            </select>
-          </div>
         </div>
-        <div class="settings-checkboxes">
-          <label class="checkbox-label checkbox-label--inline" title="Capture per-kernel and per-layer timing. Required for X-Ray decode/kernel panels. Adds overhead.">
-            <input id="set-trace" type="checkbox"> Trace
-          </label>
-          <label class="checkbox-label checkbox-label--inline" title="Show tokens-per-second during decode. Needs Readback > 0 for real-time updates.">
-            <input id="set-live-toks" type="checkbox"> Live tok/s
-          </label>
-        </div>
-        <div id="runtime-notice" class="runtime-notice" hidden></div>
+        <details class="profile-details">
+          <summary>Profile details <span>Read only</span></summary>
+          <div class="settings-grid">
+            <div class="setting-field">
+              <label for="set-batch-max-tokens" title="inference.batching.maxTokens — Tokens per GPU dispatch. Higher = throughput, more VRAM.">Batch Size</label>
+              <input id="set-batch-max-tokens" type="number" min="1" step="1" value="64">
+            </div>
+            <div class="setting-field">
+              <label for="set-readback" title="inference.batching.readbackInterval — Steps between GPU readbacks. 0 = end-only.">Readback</label>
+              <input id="set-readback" type="number" min="0" step="1" value="0" placeholder="0 = end only">
+            </div>
+            <div class="setting-field">
+              <label for="set-kv-dtype" title="inference.kvcache.kvDtype — f16 halves memory. f32 is full precision.">KV Dtype</label>
+              <select id="set-kv-dtype">
+                <option value="">profile default</option>
+                <option value="f16">f16</option>
+                <option value="f32">f32</option>
+              </select>
+            </div>
+            <div class="setting-field">
+              <label for="set-kv-max-seq" title="inference.kvcache.maxSeqLen — Pre-allocated cache length. 0 = model default.">KV Max Seq</label>
+              <input id="set-kv-max-seq" type="number" min="0" step="256" value="0">
+            </div>
+            <div class="setting-field">
+              <label for="set-log-level" title="shared.debug.logLevel.defaultLogLevel — Console verbosity.">Log Level</label>
+              <select id="set-log-level">
+                <option value="silent">silent</option>
+                <option value="error">error</option>
+                <option value="info" selected>info</option>
+                <option value="verbose">verbose</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-checkboxes">
+            <label class="checkbox-label checkbox-label--inline" title="Capture per-kernel and per-layer timing. Required for X-Ray decode/kernel panels. Adds overhead.">
+              <input id="set-trace" type="checkbox"> Trace
+            </label>
+          </div>
+        </details>
       </div>
 
       <!-- Output -->
@@ -335,10 +333,9 @@
             <div id="chat-empty" class="chat-empty">
               <span class="chat-empty-mark" aria-hidden="true">D</span>
               <strong>Load a model to begin.</strong>
-              <span>A sample prompt is ready below, or write your own.</span>
             </div>
           </div>
-          <article id="live-assistant-message" class="chat-message chat-message--assistant" hidden>
+          <article id="live-assistant-message" class="chat-message chat-message--assistant" aria-live="polite" aria-atomic="false" hidden>
             <div class="chat-role">Doppler</div>
             <div id="output-text" class="output-text"></div>
             <!-- Token logits container (optional) -->
@@ -350,11 +347,10 @@
       <!-- Chat composer -->
       <section id="input-area" class="input-area">
         <div class="input-row">
-          <textarea id="prompt-input" placeholder="Message Doppler..." rows="3"></textarea>
+          <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Message Doppler..." rows="3"></textarea>
         </div>
         <div class="input-actions">
           <button id="shuffle-btn" class="btn btn-ghost" type="button" title="Use another example prompt">&#x21BB; Example</button>
-          <button id="image-drop" class="btn btn-ghost attach-image-btn" type="button" aria-pressed="false" title="Attach an image, or drop an image on this button">Image</button>
           <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Load a model to send"><span aria-hidden="true">&#x25B8;</span> Send</button>
           <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
         </div>
@@ -383,7 +379,6 @@
     <div class="report-bar">
       <div class="report-intro">
         <strong>Run receipt</strong>
-        <span>Export the result and its execution evidence, or inspect a previous run.</span>
       </div>
       <div class="report-actions">
         <button id="export-btn" class="btn btn-ghost" disabled>Export receipt</button>
@@ -446,8 +441,7 @@
     </details>
 
     <footer class="app-footer">
-      <span>Doppler runs supported models through public browser APIs.</span>
-      <span>Unsupported paths fail closed.</span>
+      <span>WebGPU · Verified local models</span>
     </footer>
 
   </div>

@@ -8,14 +8,14 @@ import { clearOutput, renderChatMessages } from './output.js';
 
 let examples = null;
 let shuffleIndex = -1;
-let imageData = null;
 let onRun = null;
 
 function $(id) { return document.getElementById(id); }
 
 function syncClearChatButton() {
   const clearButton = $('clear-history-btn');
-  if (clearButton) clearButton.disabled = state.conversationHistory.length === 0;
+  if (clearButton) clearButton.disabled = state.generating || state.prefilling
+    || (state.conversationHistory.length === 0 && !state.lastRun);
 }
 
 function setupConversationActions() {
@@ -43,65 +43,6 @@ function shuffle() {
   }
 }
 
-function setupImageDrop() {
-  const zone = $('image-drop');
-  if (!zone) return;
-
-  zone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    zone.classList.add('drag-over');
-  });
-
-  zone.addEventListener('dragleave', () => {
-    zone.classList.remove('drag-over');
-  });
-
-  zone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    zone.classList.remove('drag-over');
-    const file = e.dataTransfer?.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      readImageFile(file);
-    }
-  });
-
-  zone.addEventListener('click', () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = () => {
-      const file = input.files?.[0];
-      if (file) readImageFile(file);
-    };
-    input.click();
-  });
-}
-
-function readImageFile(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    imageData = reader.result;
-    const zone = $('image-drop');
-    if (zone) {
-      zone.classList.add('has-image');
-      zone.setAttribute('aria-pressed', 'true');
-      zone.title = `Attached: ${file.name}`;
-    }
-  };
-  reader.readAsDataURL(file);
-}
-
-export function clearImage() {
-  imageData = null;
-  const zone = $('image-drop');
-  if (zone) {
-    zone.textContent = 'Image';
-    zone.classList.remove('has-image');
-    zone.setAttribute('aria-pressed', 'false');
-    zone.title = 'Attach an image, or drop an image on this button';
-  }
-}
-
 export function getPrompt() {
   return ($('prompt-input')?.value ?? '').trim();
 }
@@ -124,10 +65,6 @@ export function clearPrompt() {
   }
 }
 
-export function getImage() {
-  return imageData;
-}
-
 export function buildConversationRequest(prompt, options = {}) {
   return createConversationRequest(state.conversationHistory, prompt, {
     templateType: options.templateType ?? null,
@@ -135,14 +72,23 @@ export function buildConversationRequest(prompt, options = {}) {
   });
 }
 
-export function recordConversationTurn(request, output) {
+export function recordConversationTurn(request, output, { render = true } = {}) {
   state.conversationHistory = appendConversationTurn(state.conversationHistory, request, output);
-  renderChatMessages(state.conversationHistory);
+  if (render) renderChatMessages(state.conversationHistory);
   syncClearChatButton();
 }
 
 export function clearConversationHistory() {
+  if (state.generating || state.prefilling) return;
   state.conversationHistory = [];
+  state.lastRun = null;
+  state.lastImportedReport = null;
+  state.lastInspection = null;
+  state.lastInferenceStats = null;
+  delete globalThis.__DOPPLER_DEMO_EVIDENCE__;
+  $('xray-container')?.replaceChildren();
+  const exportButton = $('export-btn');
+  if (exportButton) exportButton.disabled = true;
   clearOutput();
   syncClearChatButton();
 }
@@ -157,7 +103,7 @@ export function resetConversationForModel(modelId) {
   const nextModelId = typeof modelId === 'string' && modelId.trim() ? modelId : null;
   if (state.conversationModelId === nextModelId) return;
   state.conversationModelId = nextModelId;
-  syncClearChatButton();
+  clearConversationHistory();
 }
 
 export function setRunHandler(handler) {
@@ -178,7 +124,7 @@ export function syncSendButton(options = {}) {
   const prompt = getPrompt();
   const generating = options.generating ?? state.generating;
   const prefilling = options.prefilling ?? state.prefilling;
-  const ready = isSendReady({
+  const ready = !state.modelBusy && !state.settingsBusy && isSendReady({
     model: state.model,
     prompt,
     generating,
@@ -220,7 +166,6 @@ export async function initInput() {
   });
   $('prompt-input')?.addEventListener('input', () => syncSendButton());
 
-  setupImageDrop();
   setupConversationActions();
 
   // Start with a random example
@@ -236,5 +181,18 @@ export function setGenerating(active) {
   const stopBtn = $('stop-btn');
   if (runBtn) runBtn.hidden = active;
   if (stopBtn) stopBtn.hidden = !active;
+  for (const control of document.querySelectorAll(
+    '#set-profile, #settings-panel input:not(:disabled), #xray-toggle-all, #set-word-quality, #import-btn'
+  )) {
+    if (active) control.dataset.runLocked = 'true';
+    control.disabled = active;
+  }
+  if (!active) {
+    for (const control of document.querySelectorAll('[data-run-locked]')) {
+      control.disabled = false;
+      delete control.dataset.runLocked;
+    }
+  }
+  syncClearChatButton();
   syncSendButton({ generating: active, prefilling: active });
 }
