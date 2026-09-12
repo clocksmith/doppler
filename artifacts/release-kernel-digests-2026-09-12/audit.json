@@ -1,0 +1,42 @@
+{
+  "schema": "doppler.release-kernel-digest-audit/v1",
+  "sourceCommit": "ded319f63c96b278dceb7090d620610fb759bd30",
+  "sourceInitiallyClean": true,
+  "check": {
+    "command": "npm run check:green",
+    "exitCode": 0,
+    "testFiles": 798,
+    "log": "check-green.log",
+    "sha256": "f22460c8e3b5d39ca040eeec2b7f0e9db5bf82907877482175d7ccac0950e15f",
+    "temporaryDirectory": "/var/tmp/doppler-061-registry-20260912/checks-tmp"
+  },
+  "registryPackage": {
+    "version": "0.6.1",
+    "archiveSha256": "96d2699a3e677815890f804459c023bea4fb2e2a1a59d157b5b6a04c9e573d5f",
+    "fileCount": 1784,
+    "differentFromRetainedCandidate": 34,
+    "registeredKernelDigestMismatches": 2,
+    "affectedRecipe": "src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+    "registeredKernelMismatches": [
+      "silu.wgsl#main",
+      "sample.wgsl#sample_single_pass"
+    ]
+  },
+  "sourceRepair": {
+    "updatedDigests": 72,
+    "updatedFiles": 35,
+    "newShippedFiles": 0,
+    "runtimeJavaScriptChanged": false,
+    "wgslChanged": false,
+    "retainedModelManifestsChanged": false
+  },
+  "applicationIntegration": {
+    "repository": "clocksmith/reploid",
+    "commit": "6478fc3e9b54447ebf0f7e53a094369ee7c4cecf",
+    "unitTestsPassed": 2506,
+    "documentBrowserTestsPassed": 4,
+    "realLocalEsm2BrowserTestsPassed": 1
+  },
+  "publicationPerformed": false,
+  "deploymentPerformed": false
+}
