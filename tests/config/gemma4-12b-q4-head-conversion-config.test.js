@@ -130,7 +130,7 @@ assert.deepEqual(q4HeadConfig.execution?.kernels?.q4_decode_gemv, {
 assert.deepEqual(q4HeadConfig.execution?.kernels?.q4_decode_gemv_stable, {
   kernel: 'fused_matmul_q4.wgsl',
   entry: 'main_gemv',
-  digest: 'sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d',
+  digest: 'sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7',
   precision: {
     inputDtype: 'f32',
     outputDtype: 'f32',
@@ -167,7 +167,7 @@ assert.deepEqual(q4HeadConfig.execution?.kernels?.q4_widetile_f16a, {
 assert.deepEqual(q4HeadConfig.execution?.kernels?.fused_ffn_q4k_f16, {
   kernel: 'fused_ffn_q4k_f16.wgsl',
   entry: 'main',
-  digest: 'sha256:ec277b54b3635280c9d2a25b4906b131ddcf26936d71ae4d64a0eeddb08efd7a',
+  digest: 'sha256:be4b8f38c80d23e560ab321b777eb6fd39135177dc06c330327d037c8c40cc88',
   precision: {
     inputDtype: 'f16',
     outputDtype: 'f16',
@@ -177,7 +177,7 @@ assert.deepEqual(q4HeadConfig.execution?.kernels?.fused_ffn_q4k_f16, {
 assert.deepEqual(q4HeadConfig.execution?.kernels?.lm_head_q4, {
   kernel: 'fused_matmul_q4.wgsl',
   entry: 'main_gemv',
-  digest: 'sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d',
+  digest: 'sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7',
   constants: {
     COLS_PER_WG: 64,
     THREADS_PER_COL_GEMV: 4,

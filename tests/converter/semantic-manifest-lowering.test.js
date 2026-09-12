@@ -71,10 +71,15 @@ assert.ok(
   'source generation defaults must remain explicit when qualification selects greedy decoding'
 );
 
+const staleTemplate = structuredClone(template);
+staleTemplate.execution.kernels.sample.digest = `sha256:${'0'.repeat(64)}`;
+const reboundReceipt = materializeSemanticManifestCandidate({ modelIR: sourceReceipt.modelIR, template: staleTemplate, recipe });
 assert.ok(
-  receipt.dispositions.some((item) => item.kind === 'kernel-digest-binding' && item.changed),
+  reboundReceipt.dispositions.some((item) => item.kind === 'kernel-digest-binding' && item.changed),
   'template kernel drift must be disclosed rather than silently normalized'
 );
+assert.deepEqual(reboundReceipt.conversionConfig, receipt.conversionConfig,
+  'stale template digests must bind the same declared shader content');
 assert.ok(
   receipt.dispositions.some((item) => item.kind === 'conservative-session-policy'),
   'unqualified session policy must have an explicit disposition'
