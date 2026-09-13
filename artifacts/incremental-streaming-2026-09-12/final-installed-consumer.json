@@ -1,0 +1,56 @@
+{
+  "evidenceClass": "installed-package-test",
+  "passed": true,
+  "physicalExecution": false,
+  "externalAdoption": false,
+  "nodeVersion": "v22.23.2",
+  "platform": "linux",
+  "arch": "x64",
+  "npmVersion": "10.9.8",
+  "zlibVersion": "1.3.1-e00f703",
+  "startedAtUtc": "2026-09-13T04:14:03.908Z",
+  "package": {
+    "filename": "doppler-gpu-0.6.1.tgz",
+    "version": "0.6.1",
+    "integrity": "sha512-rdesSSP6rFYmgf+pbIobrH99hs+HaAJfv7/lWl9FkGldlVOcdmSC7ZOHZhu+MxNBtmfeW2/AhWIUBVWbbHiSVg==",
+    "sizeBytes": 2119045,
+    "source": "local-npm-pack",
+    "sha256": "c21230a20471c8beb9fa414a326b7a2da889a4ef9d07c13f3f23e8db9a1ca962"
+  },
+  "failure": null,
+  "applicationFiles": {
+    "main.js": {
+      "sha256": "d49bf5c36dac8d688cd7f8a2f18a4cd72e05f7b3bf3551fdd9d0da841ae4ccea",
+      "sizeBytes": 644
+    },
+    "main.d.ts": {
+      "sha256": "d429ac8e964c90e31bba65d6dcd8a53b7309534b2ee7001a2ff37d25f3789620",
+      "sizeBytes": 691
+    },
+    "preload.js": {
+      "sha256": "0da70df6a8014a8cd71fe91665b0bd5da21ad8b0941fac969ea37b7506bb5d3a",
+      "sizeBytes": 780
+    },
+    "preload.d.ts": {
+      "sha256": "90f68a8bbe6344011c60ecab67ff3fd882288fdce19debafccfb1e38bb64ba62",
+      "sizeBytes": 223
+    },
+    "renderer.js": {
+      "sha256": "9726e598fe7e42c0d9b87aeff87121d6d450586ac1f8bb4c0f7919333ed9a7ac",
+      "sizeBytes": 886
+    },
+    "renderer.d.ts": {
+      "sha256": "2fd763e7ff0c647ae6ea489374c9e3ee72554fdbedf89f9a661bca1c2cf95c51",
+      "sizeBytes": 605
+    },
+    "release-storage.js": {
+      "sha256": "54f59f47f9379efee8509b3e9f856ffd7fac0372d72e3ba90d539d14bc9fd6e5",
+      "sizeBytes": 7092
+    },
+    "release-storage.d.ts": {
+      "sha256": "a9b1955cbfc712a1996d2d6a5417437d0e7ed46243cac78aae8758099630edd0",
+      "sizeBytes": 1216
+    }
+  },
+  "completedAtUtc": "2026-09-13T04:14:11.317Z"
+}
