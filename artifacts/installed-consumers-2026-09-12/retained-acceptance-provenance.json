@@ -1,0 +1,52 @@
+{
+  "sha256:4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2": {
+    "decision": {
+      "schema": "doppler.capsule-retained-local-use/v1",
+      "capsule": {
+        "schema": "doppler.capsule/v3",
+        "semanticRoot": "sha256:4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "envelopeDigest": "sha256:bdaa28c214bd5ae65bb04945eb3aa07a0937f2c3fa81cf54de39b5fc2d21876a"
+      },
+      "releaseEventDigest": "sha256:3ea8d0c1dc7f03f56442029e752195523045f47c49f634f67fe7398505796424",
+      "applicationDigest": "sha256:c18f0a399966eed977229fb2efa8c6c804d6423cefe981e10e5236490427e133",
+      "acknowledgeUnseenRevocations": true,
+      "acceptedAtUtc": "2026-09-07T17:30:26.821Z"
+    },
+    "source": "/var/tmp/doppler-retention-campaign/browser-qualification-bounded/profile/Default/File System/000/t/01/00000189",
+    "sourceSha256": "c275b58287612c474a11eeb007cae9719b670228849929c8bea96187f71009ab",
+    "jsonPath": "$.options.releasePolicy.retainedLocalUse"
+  },
+  "sha256:4ecc046b2d589b64cf16668009d3ed64f82ca8ca490bd0e5ee207ec380dbcaa6": {
+    "decision": {
+      "schema": "doppler.capsule-retained-local-use/v1",
+      "capsule": {
+        "schema": "doppler.capsule/v3",
+        "semanticRoot": "sha256:4ecc046b2d589b64cf16668009d3ed64f82ca8ca490bd0e5ee207ec380dbcaa6",
+        "envelopeDigest": "sha256:e58c4711d4d1eddb891f41c834662658093a40ea643f702fc043a6a8764e206f"
+      },
+      "releaseEventDigest": "sha256:9cea2ee357ffc68714298a6ce58e56e78e22b339f6bb92ac985b5f161777cb1f",
+      "applicationDigest": "sha256:3b114c44032154bd532998f72e559d5c280868b3d8ad4eff211929522564da51",
+      "acceptedAtUtc": "2026-09-07T15:10:01.337Z",
+      "acknowledgeUnseenRevocations": true
+    },
+    "source": "/var/tmp/doppler-retention-campaign/node-experiment-03/heldout-0da1a6ffa3e20b3a75f92fde63d490235f3ed369dbde818d0fb6833235dc3433/measurement.json",
+    "jsonPath": "$.receipt.releaseAuthorization.retainedLocalUse"
+  },
+  "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd": {
+    "decision": {
+      "schema": "doppler.capsule-retained-local-use/v1",
+      "capsule": {
+        "schema": "doppler.capsule/v3",
+        "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "envelopeDigest": "sha256:32503db6b070ac78d0355bc6d9538bcd0a660543f1867f754543013b5de0f86e"
+      },
+      "releaseEventDigest": "sha256:0fd8ab37bba5d810b1560b334cd8d158d3527edaaab7416fde60e329f8d3e021",
+      "applicationDigest": "sha256:3171510bbb2ce5642549a1d62475cd80343745f09fc59a55903b6f0606e3e895",
+      "acknowledgeUnseenRevocations": true,
+      "acceptedAtUtc": "2026-09-07T17:28:42.184Z"
+    },
+    "source": "/var/tmp/doppler-retention-campaign/browser-qualification-bounded/profile/Default/File System/000/t/01/00000187",
+    "sourceSha256": "6c3b55c62ab4cda59b8933072325e0609f878048116a6748231e1efdc42d6ab4",
+    "jsonPath": "$.options.releasePolicy.retainedLocalUse"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "commit": "6734945b60f9f943194ef21fec6cf93e32f6cded",
+  "status": " M tests/fixtures/packed-embedding-consumer.js\n M tests/helpers/capsule-v2-fixture.js\n M tests/tooling/packed-package-options.test.js\n M tools/check-packed-package.js\n?? .github/workflows/installed-consumers.yml\n?? examples/capsule-capabilities/\n?? node_modules\n?? tests/fixtures/consumer-evidence.js\n?? tests/fixtures/packed-generation-consumer.js\n?? tests/helpers/installed-adapter-fixture.js\n",
+  "runnerSha256": "e08c9c2ac489d0e28c69eca50c7a5e68f6bbc62423ca227782528c2ff0e2e8e7"
+}

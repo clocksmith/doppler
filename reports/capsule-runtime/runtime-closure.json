@@ -2,7 +2,7 @@
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
   "fileCount": 62,
-  "sourceBytes": 588780,
+  "sourceBytes": 589016,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -272,8 +272,8 @@
     },
     {
       "path": "src/debug/stats.js",
-      "sizeBytes": 4162,
-      "hash": "sha256:9232b05830093f27b9ad129fccddc69db071ca1be6f2e2a9f2781ecf6276e7a5"
+      "sizeBytes": 4398,
+      "hash": "sha256:d41d4c21fe45c3425bb34f1509bbaab44097ddf4168277e4173c4e8ccaadf2d5"
     },
     {
       "path": "src/debug/tensor.js",

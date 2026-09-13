@@ -1,0 +1,105 @@
+#!/usr/bin/env node
+// Physical consumer acceptance; models/descriptors are explicit inputs, never source defaults.
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { chromium } from 'playwright';
+import { createStaticFileServer } from '../src/tooling/node-browser-command-runner.js';
+
+const read = async file => JSON.parse(await fs.readFile(file, 'utf8'));
+const config = await read(process.argv[2]);
+assert.equal(config.schema, 'doppler.installed-capabilities-acceptance/v1');
+assert(config.requiredVendor && Number.isSafeInteger(config.timeoutMs) && config.timeoutMs > 0);
+const operations = config.models.map(row => row.descriptor.request.operation.name);
+assert(operations.length > 0 && new Set(operations).size === operations.length);
+assert(operations.every(name => ['embed', 'generate', 'rerank'].includes(name)));
+const bundle = await read(path.join(config.bundleRoot, 'receipt.json'));
+assert(bundle.passed);
+assert.equal(createHash('sha256').update(await fs.readFile(path.join(config.bundleRoot, bundle.package.filename))).digest('hex'), bundle.package.sha256);
+const consumer = path.join(config.bundleRoot, 'consumer');
+const metadata = await read(path.join(consumer, 'node_modules/doppler-gpu/package.json'));
+const publicExports = ['doppler-gpu/host', 'doppler-gpu'];
+const imports = Object.fromEntries(publicExports.map(specifier => {
+  const entry = metadata.exports[specifier === 'doppler-gpu' ? '.' : './host'];
+  return [specifier, `/node_modules/doppler-gpu/${(entry.browser ?? entry.import).replace(/^\.\//, '')}`];
+}));
+await fs.copyFile(new URL('../examples/capsule-capabilities/app.js', import.meta.url), path.join(consumer, 'capabilities-app.js'));
+await fs.writeFile(path.join(consumer, 'capabilities.html'), `<!doctype html><title>Installed Capsule capabilities</title><script type="importmap">${JSON.stringify({ imports })}</script>`);
+await fs.mkdir(config.outputDir);
+const report = { schema: 'doppler.installed-capabilities-acceptance-result/v1', passed: false,
+  startedAtUtc: new Date().toISOString(), package: bundle.package, config, results: [], logs: [],
+  scope: 'Physical local browser execution of retained models; no new model or fleet qualification.' };
+let server, browser;
+try {
+  server = await createStaticFileServer({ rootDir: consumer, host: '127.0.0.1', port: 0,
+    staticMounts: config.models.map((row, index) => ({ urlPrefix: `/models/${index}`, rootDir: row.capsuleRoot })) });
+  browser = await chromium.launch({ channel: config.channel, headless: true, args: config.launchArgs,
+    env: { ...process.env, TMPDIR: config.temporaryDirectory } });
+  report.browserVersion = browser.version();
+  for (const [index, row] of config.models.entries()) {
+    const page = await browser.newPage();
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      void page.close().catch(error => report.logs.push({ type: 'cleanup', text: error.message }));
+    }, config.timeoutMs);
+    try {
+      page.setDefaultTimeout(config.timeoutMs);
+      page.on('console', message => report.logs.push({ type: message.type(), text: message.text() }));
+      page.on('pageerror', error => report.logs.push({ type: 'pageerror', text: error.message }));
+      await page.goto(`${server.baseUrl}/capabilities.html`);
+      const hardware = await page.evaluate(async () => {
+        const adapter = await navigator.gpu.requestAdapter();
+        return { vendor: adapter.info.vendor, architecture: adapter.info.architecture, isFallbackAdapter: adapter.info.isFallbackAdapter };
+      });
+      assert.equal(hardware.vendor, config.requiredVendor);
+      assert.equal(hardware.isFallbackAdapter, false);
+      const descriptor = structuredClone(row.descriptor);
+      descriptor.capsuleUrl = `${server.baseUrl}/models/${index}/${row.capsuleFile}`;
+      if (descriptor.openOptions.releasePolicy) descriptor.openOptions.releasePolicy.now = new Date().toISOString();
+      console.log(JSON.stringify({ stage: 'open-and-execute', operation: descriptor.request.operation.name, hardware }));
+      await page.exposeFunction('reportCapabilityProgress', progress => {
+        console.log(JSON.stringify({ operation: descriptor.request.operation.name, progress }));
+      });
+      await page.exposeFunction('persistCapabilityCheckpoint', async checkpoint => {
+        await fs.writeFile(path.join(config.outputDir, `${descriptor.request.operation.name}-checkpoint.json`), JSON.stringify(checkpoint, null, 2));
+      });
+      const result = await page.evaluate(async descriptor => {
+        const { runCapability } = await import('/capabilities-app.js');
+        const { DOPPLER_VERSION } = await import('doppler-gpu');
+        let partials = 0;
+        const completed = await runCapability(descriptor, {
+          onProgress: globalThis.reportCapabilityProgress,
+          persistReleaseCheckpoint: globalThis.persistCapabilityCheckpoint,
+          onEvent: event => { if (event.status === 'partial') partials++; },
+        });
+        return { completed, partials, runtimeVersion: DOPPLER_VERSION };
+      }, descriptor);
+      assert.equal(result.runtimeVersion, bundle.package.version);
+      assert.equal(result.completed.status, 'completed');
+      if (row.expectedTokenIds) assert.deepEqual(result.completed.output.tokenIds, row.expectedTokenIds);
+      if (descriptor.request.operation.name === 'embed') {
+        assert(result.completed.output.embeddings.every(item => item.embedding.length === row.expectedDimension && item.embedding.every(Number.isFinite)));
+      }
+      report.results.push({ passed: true, operation: descriptor.request.operation.name, hardware, ...result });
+    } catch (error) {
+      report.results.push({ passed: false, operation: row.descriptor.request.operation.name,
+        error: { message: timedOut ? `Consumer exceeded ${config.timeoutMs}ms: ${error.message}` : error.message, stack: error.stack } });
+    } finally {
+      clearTimeout(timeout);
+      await page.close();
+      await fs.writeFile(path.join(config.outputDir, 'progress.json'), JSON.stringify(report.results, null, 2));
+    }
+  }
+  report.passed = report.results.length === config.models.length && report.results.every(row => row.passed);
+} catch (error) { report.error = { message: error.message, stack: error.stack }; }
+finally {
+  const cleanup = await Promise.allSettled([browser?.close(), server?.close()]);
+  report.cleanupErrors = cleanup.filter(row => row.status === 'rejected').map(row => row.reason.message);
+  report.passed &&= report.cleanupErrors.length === 0;
+  report.completedAtUtc = new Date().toISOString();
+  await fs.writeFile(path.join(config.outputDir, 'receipt.json'), JSON.stringify(report, null, 2));
+}
+console.log(JSON.stringify({ passed: report.passed, outputDir: config.outputDir, error: report.error }));
+if (!report.passed) process.exitCode = 1;

@@ -68,7 +68,11 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Sequence classification, public OPFS, retention, and device recovery: measured npm 9 archive.
   // GPU logits probe forwarding and failure cleanup add 192 bytes, no files.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/probe-package-audit.json.
-  maxUnpackedSize: 10_883_449,
+  // Baseline 6734945b: 1,784 files / 10,885,029 unpacked bytes. Existing stats
+  // and benchmark-observation changes preceded installed-consumer work; its
+  // application fixtures remain outside the package. The archive inventory is
+  // retained in artifacts/installed-consumers-2026-09-12/candidate/npm-pack.json.
+  maxUnpackedSize: 10_885_029,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
