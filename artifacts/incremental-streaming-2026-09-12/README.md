@@ -120,10 +120,19 @@ Earlier archives and failures remain historical. In particular, the generation
 device-loss attempt, passing v1 control, missing browser export, package-size
 failure and initial shared-session failure do not disappear when a later check passes.
 
-Reploid's full CI separately has 60 failures in seven files, reproduced on
+Reploid's original full CI baseline has 60 failures in seven files, reproduced on
 unchanged upstream `2cbe2fc85d8fc4e5a5ba652f962219566c951fed`.
 [The paired Reploid record](https://github.com/clocksmith/reploid/blob/codex/consumer-streaming-closure/artifacts/incremental-streaming-2026-09-12/README.md#preserved-failures)
 retains that baseline; the installed-consumer pass does not imply full Reploid CI passes.
+
+The September 13 follow-up pins Reploid
+`2aac9a2d5595b79ba0e03a16b12f5c1646c549eb`, which repairs the peer-transport
+close regression and uses that public transport in the installed browser fixture.
+Pending browser setup no longer delays cancellation or connection deadlines;
+cleanup is performed once and late callbacks cannot revive closed connections.
+Its [57 focused regressions, Verification Worker and installed browser replay](https://github.com/clocksmith/reploid/blob/2aac9a2d5595b79ba0e03a16b12f5c1646c549eb/artifacts/incremental-streaming-2026-09-12/README.md#september-13-transport-recovery-follow-up)
+pass. Doppler runtime bytes and the physical receipts above are unchanged; the
+other Reploid baseline failures are not claimed resolved.
 
 Component: doppler.runtime-source.client, doppler.runtime-source.gpu,
 doppler.tests, doppler.repository-tooling, doppler.docs.
