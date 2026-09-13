@@ -134,6 +134,16 @@ Its [57 focused regressions, Verification Worker and installed browser replay](h
 pass. Doppler runtime bytes and the physical receipts above are unchanged; the
 other Reploid baseline failures are not claimed resolved.
 
+[The updated required job passes](https://github.com/clocksmith/doppler/actions/runs/34738987245).
+The [retained CI record](peer-transport-ci-record.json) verifies that its tarball
+is byte-for-byte identical to the physical candidate and binds its new fixture
+revision. [The browser receipt](peer-transport-ci-browser.json) includes the
+public transport's connected-state diagnostics and successful native replay.
+The [paired full-suite comparison](peer-transport-ci-failure-comparison.json)
+confirms 59 remaining Reploid failures in six files, all from the original
+upstream baseline, with the peer-transport close failure removed and no new
+failure identities.
+
 Component: doppler.runtime-source.client, doppler.runtime-source.gpu,
 doppler.tests, doppler.repository-tooling, doppler.docs.
 Intent: preserved.
