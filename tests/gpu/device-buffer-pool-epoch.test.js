@@ -25,6 +25,7 @@ const {
   getBufferPool,
   releaseBuffer,
 } = await import('../../src/memory/buffer-pool.js');
+const { applyPipelineContexts, restorePipelineContexts } = await import('../../src/inference/pipelines/context.js');
 
 function createDeferred() {
   let resolve;
@@ -92,6 +93,33 @@ function createFakeDevice(label, options = {}) {
 async function flushMicrotasks() {
   await Promise.resolve();
   await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+{
+  destroyBufferPool();
+  setDevice(null);
+  const device = createFakeDevice('shared-session-device');
+  setDevice(device, { platformConfig: null });
+  const epoch = getDeviceEpoch();
+  const firstSession = {}, secondSession = {};
+  applyPipelineContexts(firstSession);
+  applyPipelineContexts(secondSession);
+  const pool = getBufferPool();
+  const first = acquireBuffer(64, BufferUsage.STORAGE, 'first-session');
+  const second = acquireBuffer(64, BufferUsage.STORAGE, 'second-session');
+
+  releaseBuffer(first);
+  restorePipelineContexts(firstSession);
+  const remainingPool = getBufferPool();
+  await flushMicrotasks();
+  assert.equal(second.destroyed, false, 'restoring one session must not destroy another session\'s live buffer');
+  assert.equal(getDeviceEpoch(), epoch, 'rebinding the same physical device preserves its generation');
+  assert.equal(remainingPool, pool);
+  assert.equal(remainingPool.isActiveBuffer(second), true);
+
+  releaseBuffer(second);
+  restorePipelineContexts(secondSession);
+  assert.equal(getDeviceEpoch(), epoch);
 }
 
 {

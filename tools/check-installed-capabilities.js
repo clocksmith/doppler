@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { chromium } from 'playwright';
 import { createStaticFileServer } from '../src/tooling/node-browser-command-runner.js';
 
@@ -36,9 +37,11 @@ await fs.writeFile(path.join(consumer, 'capabilities.html'), `<!doctype html><ti
 await fs.mkdir(config.outputDir);
 const report = { schema: 'doppler.installed-capabilities-acceptance-result/v1', passed: false,
   startedAtUtc: new Date().toISOString(), package: bundle.package, config, results: [], logs: [],
+  fixtureSource: await read(path.join(config.bundleRoot, 'source-state.json')),
+  runnerRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: new URL('..', import.meta.url), encoding: 'utf8' }).trim(),
+  runnerSha256: createHash('sha256').update(await fs.readFile(new URL(import.meta.url))).digest('hex'),
   scope: 'Physical local browser execution of retained models; no new model or fleet qualification.' };
 if (config.reploidRoot) {
-  const { execFileSync } = await import('node:child_process');
   report.reploidRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: config.reploidRoot, encoding: 'utf8' }).trim();
 }
 let server, browser;
@@ -52,6 +55,7 @@ try {
   for (const [index, row] of config.models.entries()) {
     const page = await browser.newPage();
     let timedOut = false;
+    let hardware = null;
     const timeout = setTimeout(() => {
       timedOut = true;
       void page.close().catch(error => report.logs.push({ type: 'cleanup', text: error.message }));
@@ -61,7 +65,7 @@ try {
       page.on('console', message => report.logs.push({ type: message.type(), text: message.text() }));
       page.on('pageerror', error => report.logs.push({ type: 'pageerror', text: error.message }));
       await page.goto(`${server.baseUrl}/capabilities.html`);
-      const hardware = await page.evaluate(async probe => {
+      hardware = await page.evaluate(async probe => {
         const observations = [];
         for (let index = 0; index < (probe?.attempts ?? 1); index++) {
           const adapter = await navigator.gpu.requestAdapter();
@@ -95,11 +99,28 @@ try {
           const api = { ...host, DOPPLER_VERSION };
           const service = createReploidDopplerRuntimeService({ loadModule: async () => api, expectedVersion: DOPPLER_VERSION });
           const devices = [];
+          const observedAdapters = new WeakSet();
+          const observedDevices = new WeakMap();
+          let executionScope = null;
           const originalRequestAdapter = navigator.gpu.requestAdapter.bind(navigator.gpu);
           navigator.gpu.requestAdapter = async (...args) => {
             const adapter = await originalRequestAdapter(...args);
+            if (!adapter || observedAdapters.has(adapter)) return adapter;
+            observedAdapters.add(adapter);
             const originalRequestDevice = adapter.requestDevice.bind(adapter);
-            adapter.requestDevice = async (...args) => { const device = await originalRequestDevice(...args); devices.push(device); return device; };
+            adapter.requestDevice = async (...args) => {
+              const device = await originalRequestDevice(...args);
+              if (!observedDevices.has(device)) {
+                const observation = { id: devices.length, executions: [] };
+                devices.push(observation); observedDevices.set(device, observation);
+                const submit = device.queue.submit.bind(device.queue);
+                device.queue.submit = (...args) => {
+                  if (executionScope && !observation.executions.includes(executionScope)) observation.executions.push(executionScope);
+                  return submit(...args);
+                };
+              }
+              return device;
+            };
             return adapter;
           };
           try {
@@ -110,19 +131,27 @@ try {
             const capsule = await (await fetch(descriptor.capsuleUrl)).json();
             const binding = { ...first.capsuleIdentity, artifacts: capsule.artifacts, requiredOperation: descriptor.request.operation.name,
               acceptedTargetPlanDigests: [first.selectedTargetPlanDigest] };
-            const execute = session => runPackOperation({ binding, session, runtimeVersion: DOPPLER_VERSION, runtimeService: service,
+            const execute = session => {
+              executionScope = session === first ? 'first' : 'second';
+              return runPackOperation({ binding, session, runtimeVersion: DOPPLER_VERSION, runtimeService: service,
               request: { ...descriptor.request, limits: { ...descriptor.request.limits, deadlineAt: Date.now() + descriptor.maxDurationMs } },
               onPartial: () => { partials++; } });
+            };
             const execution = await execute(first);
             await service.close('physical-first');
             let sharedSessions = null;
             if (second) {
               const afterClose = await execute(second);
-              sharedSessions = { deviceRequests: devices.length, firstClosed: first.closed,
+              const firstDevices = devices.filter(device => device.executions.includes('first'));
+              const secondDevices = devices.filter(device => device.executions.includes('second'));
+              sharedSessions = { deviceRequests: devices.length, devices, firstClosed: first.closed,
+                sameExecutionDevice: firstDevices.length === 1 && secondDevices.length === 1 && firstDevices[0].id === secondDevices[0].id,
                 secondOutputIdentical: JSON.stringify(afterClose.output) === JSON.stringify(execution.output),
                 secondReceipt: afterClose.receipt };
-              if (devices.length !== 1 || !sharedSessions.firstClosed || !sharedSessions.secondOutputIdentical) {
-                throw new Error('Shared physical device session isolation failed');
+              if (!sharedSessions.sameExecutionDevice || !sharedSessions.firstClosed || !sharedSessions.secondOutputIdentical) {
+                throw new Error(`Shared physical device session isolation failed: ${JSON.stringify({
+                  ...sharedSessions, firstOutput: execution.output, secondOutput: afterClose.output,
+                })}`);
               }
             }
             return { completed: { status: 'completed', output: execution.output, receipt: execution.receipt,
@@ -140,11 +169,12 @@ try {
       assert.equal(result.completed.status, 'completed');
       if (row.expectedTokenIds) assert.deepEqual(result.completed.output.tokenIds, row.expectedTokenIds);
       if (descriptor.request.operation.name === 'embed') {
+        assert.equal(result.completed.output.embeddings.length, descriptor.request.input.texts.length);
         assert(result.completed.output.embeddings.every(item => item.embedding.length === row.expectedDimension && item.embedding.every(Number.isFinite)));
       }
       report.results.push({ passed: true, operation: descriptor.request.operation.name, hardware, ...result });
     } catch (error) {
-      report.results.push({ passed: false, operation: row.descriptor.request.operation.name,
+      report.results.push({ passed: false, operation: row.descriptor.request.operation.name, hardware,
         error: { message: timedOut ? `Consumer exceeded ${config.timeoutMs}ms: ${error.message}` : error.message, stack: error.stack } });
     } finally {
       clearTimeout(timeout);
