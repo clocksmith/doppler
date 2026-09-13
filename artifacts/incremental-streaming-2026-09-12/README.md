@@ -122,7 +122,7 @@ failure and initial shared-session failure do not disappear when a later check p
 
 Reploid's original full CI baseline has 60 failures in seven files, reproduced on
 unchanged upstream `2cbe2fc85d8fc4e5a5ba652f962219566c951fed`.
-[The paired Reploid record](https://github.com/clocksmith/reploid/blob/codex/consumer-streaming-closure/artifacts/incremental-streaming-2026-09-12/README.md#preserved-failures)
+[The paired Reploid record](https://github.com/clocksmith/reploid/blob/822ee2220bbe49af87b9fbe733dac8d90637695e/artifacts/incremental-streaming-2026-09-12/README.md#preserved-failures)
 retains that baseline; the installed-consumer pass does not imply full Reploid CI passes.
 
 The September 13 follow-up pins Reploid
@@ -143,6 +143,32 @@ The [paired full-suite comparison](peer-transport-ci-failure-comparison.json)
 confirms 59 remaining Reploid failures in six files, all from the original
 upstream baseline, with the peer-transport close failure removed and no new
 failure identities.
+
+
+## September 13 consumer storage readiness
+
+The installed-consumer workflow now pins Reploid
+`173f1e8ec16426dbda0658077bc34bdc0a82edb5`. Its VFS waits for IndexedDB readiness
+and preserves connection failures, transaction commit boundaries and the
+existing inline-key database format. The application verifier recognizes the
+exact extracted storage owner without granting privilege to neighboring files.
+The candidate remains an isolated draft; verification is not runtime activation.
+
+[Required remote installed acceptance](https://github.com/clocksmith/doppler/actions/runs/34739953850)
+passes standalone and Reploid contracts, public transport streaming, cancellation,
+adapters and native journal replay. The [downloaded archive comparison](vfs-ci-record.json)
+confirms byte equality with the unchanged physical candidate
+`c21230a20471c8beb9fa414a326b7a2da889a4ef9d07c13f3f23e8db9a1ca962`.
+Physical receipts retain their original model, source and environment scope.
+No runtime file changed in this Doppler follow-up.
+
+The [Reploid repair record](https://github.com/clocksmith/reploid/blob/822ee2220bbe49af87b9fbe733dac8d90637695e/artifacts/incremental-streaming-2026-09-12/README.md)
+retains two failing native readiness probes, all 36 passing VFS integration
+tests and six passing native browser/Verification Worker checks. The
+[full-suite comparison](vfs-full-suite-comparison.json) records 34 resolved
+failures and no new failure identities locally or in remote Reploid CI:
+2,505 tests pass, 36 skip and 25 remain failed across five upstream files.
+Full Reploid CI remains unaccepted.
 
 Component: doppler.runtime-source.client, doppler.runtime-source.gpu,
 doppler.tests, doppler.repository-tooling, doppler.docs.
