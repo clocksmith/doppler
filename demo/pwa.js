@@ -94,6 +94,7 @@ async function registerDemoServiceWorker() {
     await navigator.serviceWorker.register(DEMO_SW_URL, {
       scope: DEMO_SCOPE,
       type: 'module',
+      updateViaCache: 'none',
     });
   } catch (error) {
     console.warn(`DemoPwa: service worker registration failed: ${error?.message ?? error}`);

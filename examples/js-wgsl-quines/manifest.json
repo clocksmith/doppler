@@ -48,18 +48,18 @@
     },
     {
       "path": "quines/05-compiler.js",
-      "bytes": 71257,
-      "sha256": "e5dda07a6b42bb9f761fc48f92f7cffa4eb79963ddd521100c9873ce99ee16b4"
+      "bytes": 48337,
+      "sha256": "c94ef264771889b3954f3352c38436a3981a8c55598d633b6f1f15e9f44f9aed"
     },
     {
       "path": "quines/05-compiler.wasm",
-      "bytes": 68871,
-      "sha256": "5faf71c6ea748c4b1a59adf6df627b4904777fac32cda6b5d36751a7f78d7ea4"
+      "bytes": 70657,
+      "sha256": "bc7e203087ae483d74a36fd875772cb5ce7d7ae59d3e031cc060297635719267"
     },
     {
       "path": "quines/05-compiler.wgsl",
-      "bytes": 63724,
-      "sha256": "a907e6cb9ed4c5b99c660855218d0450e5d92eae8b6f2c74801846526b9b5daf"
+      "bytes": 65386,
+      "sha256": "9530c0d8774e2df01ccea3c174e6b6c85caa5186420b3767a128060aae504a45"
     }
   ]
 }
