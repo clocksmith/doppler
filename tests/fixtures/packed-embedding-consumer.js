@@ -4,7 +4,7 @@ import http from 'node:http';
 import { once } from 'node:events';
 import { createDopplerRuntime } from 'doppler-gpu';
 import { createCapsuleServeHandler } from 'doppler-gpu/serve';
-import { computeCanonicalSha256 } from './node_modules/doppler-gpu/src/formats/canonical-hash.js';
+import { computeCanonicalSha256 } from './consumer-evidence.js';
 
 // Installed public API contract, with synthetic device and execution components.
 const fixture = JSON.parse(await fs.readFile(new URL('./embedding-fixture.json', import.meta.url)));
