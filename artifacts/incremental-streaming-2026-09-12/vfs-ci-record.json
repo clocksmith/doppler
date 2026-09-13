@@ -1,0 +1,13 @@
+{
+  "schema": "doppler.shared-archive-ci-record/v1",
+  "passed": true,
+  "archiveSha256": "c21230a20471c8beb9fa414a326b7a2da889a4ef9d07c13f3f23e8db9a1ca962",
+  "localAndRemoteTarballsIdentical": true,
+  "sourceRevision": "0caf576a9001d1fc781d5bd346d5a9e17f873b8b",
+  "ciFixtureRevision": "3d5d1db962eaa04fb4546e5a8dc86aaa9f64bf84",
+  "reploidRevision": "173f1e8ec16426dbda0658077bc34bdc0a82edb5",
+  "runUrl": "https://github.com/clocksmith/doppler/actions/runs/34739953850",
+  "artifactId": 10312023460,
+  "artifactZipSha256": "0067cb03a360774876300445c24f88ecc23f1dd3acd89c41d0e25106bc38fa44",
+  "scope": "Installed standalone and Reploid contracts, public transport WebRTC and native journal replay. Injected model programs. Local native VFS and Verification Worker evidence is recorded separately. Physical receipts retain their original Reploid revisions."
+}
