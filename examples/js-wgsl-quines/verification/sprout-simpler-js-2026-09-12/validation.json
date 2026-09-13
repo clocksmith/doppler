@@ -1,0 +1,39 @@
+{
+  "started": "2026-09-12T21:57:53.040Z",
+  "checks": [
+    {
+      "script": "tests/wasm.js",
+      "exitCode": 0,
+      "signal": null,
+      "status": "passed"
+    },
+    {
+      "script": "tests/cpu.mjs",
+      "exitCode": 0,
+      "signal": null,
+      "status": "passed"
+    },
+    {
+      "script": "tests/browser.js",
+      "exitCode": 0,
+      "signal": null,
+      "status": "passed"
+    }
+  ],
+  "status": "passed",
+  "sources": {
+    "js": {
+      "bytes": 48337,
+      "sha256": "c94ef264771889b3954f3352c38436a3981a8c55598d633b6f1f15e9f44f9aed"
+    },
+    "wgsl": {
+      "bytes": 65386,
+      "sha256": "9530c0d8774e2df01ccea3c174e6b6c85caa5186420b3767a128060aae504a45"
+    },
+    "wasm": {
+      "bytes": 70657,
+      "sha256": "bc7e203087ae483d74a36fd875772cb5ce7d7ae59d3e031cc060297635719267"
+    }
+  },
+  "finished": "2026-09-12T21:57:56.314Z"
+}

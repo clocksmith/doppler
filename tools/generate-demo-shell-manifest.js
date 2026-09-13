@@ -43,6 +43,9 @@ const OPTIONS = parseOptions(process.argv.slice(2));
 const ROOT = OPTIONS.root;
 const OUTPUT = path.join(ROOT, 'demo', 'generated-shell-manifest.js');
 const BUDGET_OUTPUT = path.join(ROOT, 'demo', 'generated-shell-budget.json');
+const WORKER_OUTPUT = path.join(ROOT, 'demo', 'sw.js');
+const WORKER_SHELL_START = '// BEGIN GENERATED DEMO SHELL';
+const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
 const MAX_MODULES = 700;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
@@ -50,6 +53,7 @@ const MODULE_ROOTS = [
   'demo/sw.js',
 ];
 const DECLARED_ASSETS = [
+  'demo/generated-shell-manifest.js',
   'demo/index.html',
   'demo/pwa-manifest.json',
   'demo/favicon.svg',
@@ -140,6 +144,20 @@ async function collectModules() {
   return seen;
 }
 
+function replaceWorkerShell(source, manifestSource) {
+  const start = source.indexOf(WORKER_SHELL_START);
+  const end = source.indexOf(WORKER_SHELL_END);
+  if (start < 0 || end < start
+    || source.indexOf(WORKER_SHELL_START, start + WORKER_SHELL_START.length) >= 0
+    || source.indexOf(WORKER_SHELL_END, end + WORKER_SHELL_END.length) >= 0) {
+    throw new Error('Service worker must contain exactly one generated shell block.');
+  }
+  // The same declarations work without ESM syntax in a legacy classic worker.
+  const declarations = manifestSource.replace(/^export /gm, '');
+  return source.slice(0, start) + WORKER_SHELL_START + '\n'
+    + declarations + WORKER_SHELL_END + source.slice(end + WORKER_SHELL_END.length);
+}
+
 function renderManifest(files, digest) {
   const urls = files.map((file) => `${OPTIONS.urlPrefix}/${file}`);
   return [
@@ -153,6 +171,7 @@ function renderManifest(files, digest) {
 
 async function main() {
   const checkOnly = OPTIONS.checkOnly;
+  const currentWorker = await fs.readFile(WORKER_OUTPUT, 'utf8');
   const modules = await collectModules();
   const files = [...new Set([...modules, ...DECLARED_ASSETS])].sort();
   for (const file of files) {
@@ -165,7 +184,11 @@ async function main() {
       .filter((file) => file !== 'demo/generated-shell-manifest.js')
       .map(async (file) => ({
         path: file,
-        digest: hashBytesSha256(await fs.readFile(path.join(ROOT, file))),
+        // Exclude the generated block from its own digest, not the worker's
+        // executable behavior. This keeps generation deterministic and acyclic.
+        digest: hashBytesSha256(file === 'demo/sw.js'
+          ? Buffer.from(replaceWorkerShell(currentWorker, ''))
+          : await fs.readFile(path.join(ROOT, file))),
       }))
   );
   const digest = computeCanonicalSha256({
@@ -174,10 +197,13 @@ async function main() {
   });
   const moduleCount = files.filter((file) => file.endsWith('.js')).length;
   const manifestSource = renderManifest(files, digest);
+  const workerSource = replaceWorkerShell(currentWorker, manifestSource);
   const totalBytes = (await Promise.all(
     files.map(async (file) => (
       file === 'demo/generated-shell-manifest.js'
         ? Buffer.byteLength(manifestSource)
+        : file === 'demo/sw.js'
+          ? Buffer.byteLength(workerSource)
         : (await fs.stat(path.join(ROOT, file))).size
     ))
   )).reduce((sum, size) => sum + size, 0);
@@ -204,10 +230,11 @@ async function main() {
       fs.readFile(OUTPUT, 'utf8'),
       fs.readFile(BUDGET_OUTPUT, 'utf8'),
     ]);
-    if (currentManifest !== manifestSource || currentBudget !== budgetSource) {
+    if (currentManifest !== manifestSource || currentBudget !== budgetSource || currentWorker !== workerSource) {
       throw new Error('Generated demo shell evidence is stale; run npm run demo:shell:generate.');
     }
   } else {
+    await fs.writeFile(WORKER_OUTPUT, workerSource, 'utf8');
     await fs.writeFile(OUTPUT, manifestSource, 'utf8');
     await fs.writeFile(BUDGET_OUTPUT, budgetSource, 'utf8');
   }
