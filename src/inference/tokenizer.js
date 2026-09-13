@@ -429,6 +429,13 @@ export class Tokenizer {
   }
 
   
+  createIncrementalDecoder() {
+    if (typeof this.backend?.createIncrementalDecoder !== 'function') {
+      throw new Error('This tokenizer does not support incremental decoding; use operation request v1.');
+    }
+    return this.backend.createIncrementalDecoder();
+  }
+
   decode(ids, skipSpecialTokens = true, trim = true) {
     if (!this.backend) {
       throw new Error('Tokenizer not initialized');

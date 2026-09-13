@@ -1,0 +1,9 @@
+{
+  "lengths": [1024, 2048, 4096],
+  "repetitions": 3,
+  "samplingInterval": 32768,
+  "deadlineMs": 600000,
+  "maxInputBytes": 10000,
+  "maxOutputBytes": 1000000,
+  "byteGrowthTolerance": 1.1
+}

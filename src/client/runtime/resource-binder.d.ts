@@ -22,3 +22,4 @@ export interface ResourceBinder {
 
 export declare function evaluateMemoryExpression(expression: TargetPlanMemoryExpression, dimensions: Record<string, number>): number;
 export declare function createResourceBinder(device: unknown, program?: unknown): ResourceBinder;
+export declare function createDeviceAvailabilityCheck(device: unknown): () => void;

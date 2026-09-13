@@ -476,6 +476,9 @@ export function createModelHandle(pipeline, resolved) {
       tokenizePrompt(prompt, options = {}) {
         return tokenizePrompt(pipeline, prompt, options);
       },
+      createIncrementalDecoder() {
+        return pipeline.tokenizer.createIncrementalDecoder();
+      },
       decodeTokenIds(tokenIds) {
         if (!Array.isArray(tokenIds)) {
           throw new Error('Doppler advanced.decodeTokenIds requires an array.');

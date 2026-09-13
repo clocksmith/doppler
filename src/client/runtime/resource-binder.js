@@ -25,6 +25,11 @@ function resolveGpuDevice(devicePort) {
   return device;
 }
 
+export function createDeviceAvailabilityCheck(devicePort) {
+  const loss = observeDeviceLoss(resolveGpuDevice(devicePort));
+  return () => { if (loss.error) throw loss.error; };
+}
+
 function align(value, alignment) {
   return Math.ceil(value / alignment) * alignment;
 }
@@ -66,16 +71,23 @@ function resolveUsage(slot) {
 
 export function createResourceBinder(devicePort, program = null) {
   const device = resolveGpuDevice(devicePort);
-  const loss = observeDeviceLoss(device);
+  const assertDeviceAvailable = createDeviceAvailabilityCheck(device);
   const boundSlots = new Map();
-
-  function assertDeviceAvailable() {
-    if (loss.error) throw loss.error;
-  }
 
   function destroyRecord(record) {
     if (record.owner === 'runtime') record.buffer?.destroy?.();
     if (record.owner === 'program') program?.releaseProgramSlot?.(record.slotId, record.resource);
+  }
+
+  function releaseSlots(shouldRelease) {
+    const errors = [];
+    for (const [slotId, record] of boundSlots) {
+      if (!shouldRelease(record)) continue;
+      boundSlots.delete(slotId);
+      try { destroyRecord(record); } catch (error) { errors.push(error); }
+    }
+    if (errors.length === 1) throw errors[0];
+    if (errors.length) throw new AggregateError(errors, 'Capsule GPU slot cleanup failed.', { cause: errors[0] });
   }
 
   return {
@@ -90,7 +102,7 @@ export function createResourceBinder(devicePort, program = null) {
         const sizeBytes = evaluateMemoryExpression(slot.size, dynamicDimensions);
         const existing = boundSlots.get(slot.slotId);
         if (existing && existing.sizeBytes === sizeBytes) continue;
-        if (existing) destroyRecord(existing);
+        if (existing) { boundSlots.delete(slot.slotId); destroyRecord(existing); }
         if (slot.owner === 'program') {
           const resource = program?.bindProgramSlot?.(slot, sizeBytes, dynamicDimensions) ?? null;
           boundSlots.set(slot.slotId, { ...slot, sizeBytes, dimensions: { ...dynamicDimensions }, resource });
@@ -119,17 +131,11 @@ export function createResourceBinder(devicePort, program = null) {
     },
 
     releaseTransient() {
-      for (const [slotId, record] of boundSlots) {
-        if (record.scope === 'transient' || record.scope === 'layer-recycled') {
-          destroyRecord(record);
-          boundSlots.delete(slotId);
-        }
-      }
+      releaseSlots(record => record.scope === 'transient' || record.scope === 'layer-recycled');
     },
 
     releaseAll() {
-      for (const record of boundSlots.values()) destroyRecord(record);
-      boundSlots.clear();
+      releaseSlots(() => true);
     },
   };
 }

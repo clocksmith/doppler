@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: clocksmith/reploid
-          ref: 477670567d13df536157815560baf8c987948331
+          ref: 0271c417dbb825da9b28bb1277eb58459b91ff70
           path: .consumer-reploid
       - name: Require Reploid acceptance of the same installed archive
         env:

@@ -25,3 +25,4 @@ export type {
   SequenceEncodeResult,
 } from './client/doppler-api.js';
 export { createDopplerProvider } from './client/provider.js';
+export { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from './client/runtime/capsule-operation-stream.js';
