@@ -1,7 +1,19 @@
 (() => {
 "use strict";
 const PROGRAM_LENGTH = 55;
-const P = Object.freeze([21331,0,52,1,2,20,0,1,3,0,0,1,4,1,0,1,5,1,0,14,2,0,0,3,6,3,4,2,3,4,0,2,4,6,0,4,2,2,5,15,0,0,0,13,3,0,0,1,7,10,0,12,7,0,0]);
+const P = Object.freeze(unpack("dkD0e112D0130014101510>2003634234024604225?000=30017:0<700"));
+function unpack(text) {
+  const words = [];
+  let word = 0, place = 1;
+  for (const ch of text) {
+    let digit = ch.charCodeAt(0) - 48;
+    if (digit > 43) digit--;
+    word += (digit & 31) * place;
+    if (digit < 32) { words.push(word); word = 0; place = 1; }
+    else place *= 32;
+  }
+  return words;
+}
 function at(a, i) { return i < a.length ? a[i] : 0; }
 function validateProgram(p) {
   if (!p || p.length < 3 || p.length > 60000 || p[0] !== 21331 || p[2] % 4 || p.length !== 3+p[1]+p[2]) throw new Error("Invalid Sprout header.");

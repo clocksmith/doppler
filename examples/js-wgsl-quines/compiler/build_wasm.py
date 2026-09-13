@@ -41,6 +41,24 @@ JS_PARTS[2] = replace_once(
 JS_PARTS[2] = JS_PARTS[2].replace('Use target 0 (JS) or 1 (WGSL).',
                                       'Use target 0 (JS), 1 (WGSL), or 2 (Wasm).')
 JS_PARTS[2] = replace_once(r'c\s*>\s*127', 'c>255', JS_PARTS[2])
+# Quote Sprout words, not compiled code, with five payload bits per character.
+# ASCII 48..112 excluding backslash needs no escaping in a JS string. The high
+# half of the alphabet continues a word. Keep the complete launcher in the seed.
+JS_PARTS[1] = ';\nconst P = Object.freeze(unpack("'
+assert JS_PARTS[2].startswith(']);\n')
+JS_PARTS[2] = '"));\n' + r'''function unpack(text) {
+  const words = [];
+  let word = 0, place = 1;
+  for (const ch of text) {
+    let digit = ch.charCodeAt(0) - 48;
+    if (digit > 43) digit--;
+    word += (digit & 31) * place;
+    if (digit < 32) { words.push(word); word = 0; place = 1; }
+    else place *= 32;
+  }
+  return words;
+}
+''' + JS_PARTS[2][4:]
 JS_PARTS[3] = r'''
   return Uint8Array.from(output);
 }
@@ -367,14 +385,37 @@ ins('add', 12, 12, 11)
 emit_piece(0)
 ins('decimal', 1)
 emit_piece(1)
+ins('set', 50, 32)
+ins('set', 51, 44)
+ins('set', 52, 48)
 ins('set', 8, 0)
 ins('lt', 9, 8, 1)
 ins('while', 9)
+ins('if', 0)
 ins('if', 8)
 literal([44])
 ins('fi')
 ins('input', 10, 8)
 ins('decimal', 10)
+ins('else')
+ins('input', 47, 8)
+ins('set', 48, 1)
+ins('while', 48)
+ins('mod', 49, 47, 50)
+ins('div', 47, 47, 50)
+ins('if', 47)
+ins('add', 49, 49, 50)
+ins('fi')
+ins('lt', 48, 49, 51)
+ins('eq', 48, 48, 2)
+ins('if', 48)
+ins('add', 49, 49, 3)
+ins('fi')
+ins('add', 49, 49, 52)
+ins('put', 49)
+ins('mov', 48, 47)
+ins('end')
+ins('fi')
 ins('add', 8, 8, 3)
 ins('lt', 9, 8, 1)
 ins('end')
@@ -486,6 +527,20 @@ PROGRAM = [21331, len(data), len(code)] + data + code
 assert len(PROGRAM) <= 60000
 
 
+def packed_words(words):
+    result = []
+    for word in words:
+        while True:
+            digit = word % 32
+            word //= 32
+            if word:
+                digit += 32
+            result.append(chr(48 + digit + (digit >= 44)))
+            if not word:
+                break
+    return ''.join(result)
+
+
 def bootstrap_compile(p, target):
     instructions = [p[i:i + 4] for i in range(3 + p[1], len(p), 4)]
     if target == 2:
@@ -499,7 +554,8 @@ def bootstrap_compile(p, target):
     parts, templates = (JS_PARTS, JS_OP) if target == 0 else (WG_PARTS, WG_OP)
     body = ''.join(templates[op].replace('~a', str(a)).replace('~b', str(b)).replace('~c', str(c))
                    for op, a, b, c in instructions)
-    return parts[0] + str(len(p)) + parts[1] + numbers(p) + parts[2] + body + parts[3]
+    quoted = packed_words(p) if target == 0 else numbers(p)
+    return parts[0] + str(len(p)) + parts[1] + quoted + parts[2] + body + parts[3]
 
 
 def write_program(stem, p, assembly=None):
@@ -559,6 +615,7 @@ measurements = {
     'instructions': len(code) // 4, 'dataWords': len(data), 'programWords': len(PROGRAM),
     'measurement': 'Byte counts and deterministic gzip, not Kolmogorov complexity.',
     'encoding': 'Five-byte LEB128 for dynamic sizes and i32 constants; direct native instructions.',
+    'jsQuotation': 'Printable five-bit word encoding; full compiler and launcher remain in the seed.',
     'files': {},
 }
 for relative in ('compiler/compiler.sprout', 'compiler/compiler-program.json',
