@@ -29,13 +29,19 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: clocksmith/reploid
-          ref: 81f5daeffd528a44e538160c2a14eaddf2aced3c
+          ref: 46a27ee175086e68fbf2603a13a3bc7f534609e6
           path: .consumer-reploid
       - name: Require Reploid acceptance of the same installed archive
         env:
           DOPPLER_TEST_REQUIRED: '1'
           DOPPLER_TEST_CONSUMER: ${{ runner.temp }}/doppler-candidate/consumer
         run: node .consumer-reploid/tests/fixtures/doppler-installed-generation.js > "$RUNNER_TEMP/doppler-candidate/reploid-receipt.json"
+      - name: Install browser for transport and native storage acceptance
+        run: npx playwright install --with-deps chromium
+      - name: Require installed v2 streaming over WebRTC and native replay
+        env:
+          DOPPLER_TEST_CONSUMER: ${{ runner.temp }}/doppler-candidate/consumer
+        run: node .consumer-reploid/tests/fixtures/doppler-installed-peer-browser-check.js > "$RUNNER_TEMP/doppler-candidate/reploid-browser-receipt.json"
       - name: Preserve exact archive and portable consumer evidence
         if: always()
         uses: actions/upload-artifact@v6
