@@ -610,13 +610,16 @@ export function setDevice(device, options = {}) {
     return;
   }
 
+  const deviceChanged = gpuDevice !== device;
   gpuDevice = device;
   lastDeviceLossInfo = null;
   ensureGpuBufferConstructor(gpuDevice);
   wrapDeviceCreateBuffer(gpuDevice);
   wrapDeviceCreateBindGroup(gpuDevice);
   registerDeviceLostHandler(gpuDevice);
-  advanceDeviceEpoch();
+  // Session context restoration can rebind the same shared device. Advancing
+  // its generation would make the global pool destroy other sessions' buffers.
+  if (deviceChanged) advanceDeviceEpoch();
   wrapQueueForTracking(gpuDevice.queue);
 
   const adapterInfo = options.adapterInfo ?? {

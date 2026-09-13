@@ -1,0 +1,18 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: restoring one session must not destroy another session's live buffer
+
+true !== false
+
+    at file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/gpu/device-buffer-pool-epoch.test.js:115:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: true,
+  expected: false,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

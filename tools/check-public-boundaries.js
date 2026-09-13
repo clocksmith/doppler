@@ -66,7 +66,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Before browser-export repair, remote Node 22/npm 10 packed 2,118,944 bytes.
   // The repaired archive measures 2,115,842 on npm 9 and 2,118,939 on Node
   // 22.23.2/npm 10.9.8. Both inventories and the initial failure are retained.
-  maxPackedSize: 2_118_944,
+  // The shared-device generation guard adds 223 bytes in the existing GPU module.
+  // Node 22.23.2/npm 10.9.8: artifacts/incremental-streaming-2026-09-12/shared-pool-package.json.
+  maxPackedSize: 2_119_045,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -77,7 +79,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // and benchmark-observation changes preceded installed-consumer work; its
   // application fixtures remain outside the package. The archive inventory is
   // retained in artifacts/installed-consumers-2026-09-12/candidate/npm-pack.json.
-  maxUnpackedSize: 10_906_521,
+  maxUnpackedSize: 10_906_744,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

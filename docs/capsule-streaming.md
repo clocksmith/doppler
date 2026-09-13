@@ -113,6 +113,23 @@ node tools/measure-capsule-streaming.js tests/fixtures/capsule-streaming-measure
 node tools/check-packed-package.js --retain /path/to/new-candidate-directory
 ```
 
+Run Reploid against that retained installation, including the signed browser
+transport and native replay check:
+
+```sh
+export DOPPLER_TEST_CONSUMER=/path/to/new-candidate-directory/consumer
+node /path/to/reploid/tests/fixtures/doppler-installed-generation.js
+node /path/to/reploid/tests/fixtures/doppler-installed-peer-browser-check.js
+```
+
+The designated cross-repository workflow requires both checks and installs its
+Chromium dependency. Missing installation or fixtures fail the job. The browser
+check uses an injected model program, real WebRTC between browser contexts and
+native IndexedDB. It drops completion, replaces the provider and requires saved
+responses to replay without another model execution. Physical model checks are
+separate: `tools/check-installed-capabilities.js` consumes an explicit descriptor
+config and records the archive, model identities, environment and failures.
+
 The measurement uses synthetic ASCII IDs and the actual bundled decoder,
 operation adapters, executor, JSON transport and consumer reconstruction. It
 records producer CPU, serialization CPU, consumer parsing/verification CPU,
