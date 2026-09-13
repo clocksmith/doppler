@@ -6,18 +6,18 @@ export async function runCapability(descriptor, { signal, onProgress, onEvent, p
   if (descriptor.schema !== 'doppler.capability-example/v1') {
     throw new Error('Expected a doppler.capability-example/v1 model descriptor.');
   }
-  const request = { ...descriptor.request, limits: { ...descriptor.request.limits,
-    deadlineAt: Date.now() + descriptor.maxDurationMs } };
-  const incremental = request.schema === 'doppler.capsule-operation-request/v2';
+  const incremental = descriptor.request.schema === 'doppler.capsule-operation-request/v2';
   if (incremental && typeof host.createCapsuleStreamAccumulator !== 'function') {
     throw new Error('This installed Doppler archive does not support operation request v2.');
   }
-  const stream = incremental ? host.createCapsuleStreamAccumulator(request) : null;
   const session = await host.openCapsule(descriptor.capsuleUrl, {
     ...descriptor.openOptions, signal, persistReleaseCheckpoint,
     observer: onProgress ? { observe: onProgress } : undefined,
   });
   try {
+    const request = { ...descriptor.request, limits: { ...descriptor.request.limits,
+      deadlineAt: Date.now() + descriptor.maxDurationMs } };
+    const stream = incremental ? host.createCapsuleStreamAccumulator(request) : null;
     let completed;
     for await (const event of session.executeOperation(request, { signal })) {
       stream?.accept(event);
