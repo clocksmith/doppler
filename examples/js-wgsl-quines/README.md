@@ -44,6 +44,40 @@ without passing it a source-file path, and compares the complete bytes.
 the source hash, environment, and checked generations. This addition does not
 change the original gallery's generated JS/WGSL programs or their manifest.
 
+## A small, GPU-built JavaScript quine
+
+[`quines/gpu-quine.js`](quines/gpu-quine.js) preserves the supplied standalone
+program, including its final newline. Its first line quotes the executable body;
+WGSL constructs both that declaration and the complete executable JavaScript.
+JavaScript builds the shader and decodes its mapped output, but does not assemble
+the finished descendant from the stored body. There is no source-file reading,
+`eval()`, or `toString()` in the quine. Each execution prints one generation and
+stops. This is a GPU-assisted JavaScript quine, not a standalone WGSL quine.
+
+Serve this gallery with `npm run serve`, then open
+[`quines/index.html`](quines/index.html) and inspect the developer console.
+The launcher does not require the larger gallery's `Quine` interface.
+
+```sh
+npm run test:gpu-quine
+```
+
+The browser test first runs the uninstrumented launch page, then runs eight
+generations in fresh workers. An observer delegates every WebGPU call to the
+browser and captures actual compilation diagnostics, dispatches, mapped ASCII
+bytes, and cleanup. Each mapped output becomes the next executable program.
+Complete bytes must match the starting file, including the final newline;
+the separately captured console string plus one LF must match that readback.
+Only the external harness reads files for loading and comparison.
+
+Set `CHROME_BIN` to choose Chrome. `GPU_QUINE_BACKEND=swiftshader` explicitly
+selects software WebGPU; it is never a silent retry or hardware-GPU claim.
+Every attempt writes its own adapter details, source/harness hashes, returned
+programs, and pass/failure receipt under `verification/gpu-quine/`. Software or
+unknown adapter identity is kept distinct from hardware-reported execution.
+These checks do not establish performance or cryptographic GPU provenance.
+The original generated constructions and their manifest remain unchanged.
+
 ## Construction notes
 
 Five complete constructions, not pseudocode. Generated programs are under
