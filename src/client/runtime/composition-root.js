@@ -104,9 +104,9 @@ export function createDopplerRuntime(ports) {
               maxBufferSize: Number(device.maxBufferSize || 0),
             };
         assertCapsuleLoadActive(options.signal);
+        const selectedPlan = selectTargetPlan(capsule.targetPlans, deviceProfile, selectionPolicy);
         const assertDeviceAvailable = createDeviceAvailabilityCheck(device);
         assertDeviceAvailable();
-        const selectedPlan = selectTargetPlan(capsule.targetPlans, deviceProfile, selectionPolicy);
         const targetPlanDigest = hashTargetPlan(selectedPlan);
         emit(observer, { type: 'target-selected', capsuleId: capsule.capsuleId, targetId: selectedPlan.targetId, targetPlanDigest });
         verifiedStore = createVerifiedCapsuleArtifactStore(capsule, artifactStore, options);
