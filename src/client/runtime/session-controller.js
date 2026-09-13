@@ -11,14 +11,14 @@ export function sampleCapsuleLogits(sourceLogits, contextTokens, options, tokenC
   return sample(logits, { ...options, padTokenId: tokenContract.padTokenId });
 }
 
-function stoppingReason(tokenId, generatedTokens, options, tokenContract, program) {
+function stoppingReason(tokenId, generatedCount, options, tokenContract, getText) {
   if (tokenId === tokenContract.eosTokenId) return 'eos-token';
   if (tokenContract.stopTokenIds?.includes(tokenId)) return 'stop-token';
   if (options.stopSequences.length > 0) {
-    const text = program.decodeTokens(generatedTokens);
+    const text = getText();
     if (options.stopSequences.some(sequence => text.endsWith(sequence))) return 'stop-sequence';
   }
-  return generatedTokens.length >= options.maxTokens ? 'max-tokens' : null;
+  return generatedCount >= options.maxTokens ? 'max-tokens' : null;
 }
 
 export function createSessionController(commandExecutor, resourceBinder, program) {
@@ -28,7 +28,7 @@ export function createSessionController(commandExecutor, resourceBinder, program
   let closed = false;
 
   return {
-    async *generateTokens(targetPlan, request = {}) {
+    async *generateTokens(targetPlan, request = {}, { incremental = false } = {}) {
       if (closed) throw new Error('Capsule runtime session is closed.');
       const { prompt, promptTokens: inputTokens, signal, modules, ...requestedSampling } = request;
       const input = Object.fromEntries(Object.entries({ prompt, promptTokens: inputTokens }).filter(([, value]) => value !== undefined));
@@ -43,7 +43,10 @@ export function createSessionController(commandExecutor, resourceBinder, program
         throw new GenerationError('invalidRequest', 'Capsule generation requires maxSeqLen large enough for prompt and generated tokens.');
       }
       const contextTokens = [...promptTokens];
-      const generatedTokens = [];
+      const generatedTokens = !incremental && sampling.stopSequences.length ? [] : null;
+      const stopDecoder = incremental && sampling.stopSequences.length ? program.createIncrementalDecoder() : null;
+      const stopLength = sampling.stopSequences.reduce((length, sequence) => Math.max(length, sequence.length), 0);
+      let stopTail = '';
       const tokenContract = program.getTokenContract();
       let stepResult = null;
       try {
@@ -56,19 +59,23 @@ export function createSessionController(commandExecutor, resourceBinder, program
         stepResult = prefill.results.at(-1);
         for (let step = 0; step < sampling.maxTokens; step += 1) {
           if (signal?.aborted) throw new GenerationError('aborted', 'Generation aborted during decode.', { cause: signal.reason });
+          resourceBinder.assertDeviceAvailable();
           const tokenId = sampleCapsuleLogits(stepResult?.logits, contextTokens, sampling, tokenContract);
           program.releaseStepResult(stepResult);
           stepResult = null;
-          generatedTokens.push(tokenId);
+          generatedTokens?.push(tokenId);
           contextTokens.push(tokenId);
-          const stopReason = stoppingReason(tokenId, generatedTokens, sampling, tokenContract, program);
+          if (stopDecoder) stopTail = (stopTail + stopDecoder.push(tokenId)).slice(-stopLength);
+          const stopText = () => stopDecoder ? stopTail + stopDecoder.pendingText()
+            : generatedTokens ? program.decodeTokens(generatedTokens) : '';
+          const stopReason = stoppingReason(tokenId, step + 1, sampling, tokenContract, stopText);
           yield tokenId;
           if (signal?.aborted) throw new GenerationError('aborted', 'Generation aborted after token delivery.', { cause: signal.reason });
           if (stopReason) return {
             sampling,
             completion: {
               schema: GENERATION_CONTRACT.completionSchema, stopReason,
-              promptTokenCount: promptTokens.length, generatedTokenCount: generatedTokens.length,
+              promptTokenCount: promptTokens.length, generatedTokenCount: step + 1,
             },
           };
           const decode = await commandExecutor.executePhase('decode', targetPlan.phases.decode, {
@@ -77,16 +84,19 @@ export function createSessionController(commandExecutor, resourceBinder, program
           stepResult = decode.results.at(-1);
         }
       } finally {
-        program.releaseStepResult(stepResult);
-        resourceBinder.releaseTransient();
+        try { program.releaseStepResult(stepResult); }
+        finally { resourceBinder.releaseTransient(); }
       }
     },
 
     async close() {
       if (closed) return;
       closed = true;
-      resourceBinder.releaseAll();
-      await program.close();
+      const errors = [];
+      try { resourceBinder.releaseAll(); } catch (error) { errors.push(error); }
+      try { await program.close(); } catch (error) { errors.push(error); }
+      if (errors.length === 1) throw errors[0];
+      if (errors.length) throw new AggregateError(errors, 'Capsule session cleanup failed.', { cause: errors[0] });
     },
   };
 }

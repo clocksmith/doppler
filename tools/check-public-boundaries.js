@@ -43,7 +43,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Exporting the existing OPFS backend adds its declaration to the public closure.
   // Public generation contract and shared scalar sampler: measured 1784 files.
   // Evidence: artifacts/generation-contract-2026-09-08/package-audit.json.
-  maxEntryCount: 1784,
+  // Versioned incremental streaming adds five shipped files. Exact candidate
+  // inventory: artifacts/incremental-streaming-2026-09-12/current-package-audit.json.
+  maxEntryCount: 1789,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -61,7 +63,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Independent full-prompt reset adds 86 bytes in the existing decode runtime.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/prompt-reset-package-audit.json.
   // Measured npm 9: 2,112,518 packed; retain the observed 2,158-byte npm allowance.
-  maxPackedSize: 2_114_676,
+  // Streaming/lifecycle candidate: 2,115,845 bytes plus the same npm allowance.
+  maxPackedSize: 2_118_003,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -72,7 +75,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // and benchmark-observation changes preceded installed-consumer work; its
   // application fixtures remain outside the package. The archive inventory is
   // retained in artifacts/installed-consumers-2026-09-12/candidate/npm-pack.json.
-  maxUnpackedSize: 10_885_029,
+  maxUnpackedSize: 10_906_406,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -99,6 +102,7 @@ const FILE_RULES = [
       './client/runtime/composition-root.js',
       './client/runtime/fetch-capsule-artifact-store.js',
       './client/runtime/capsule-forecast-program.js',
+      './client/runtime/capsule-operation-stream.js',
     ]),
     forbidden: [
       'export * from',
@@ -120,10 +124,13 @@ const FILE_RULES = [
       './version.js',
       './config/generation-contract.js',
       './config/capsule.js',
+      './config/capsule-operation.js',
       './client/runtime/composition-root.js',
       './client/runtime/fetch-capsule-artifact-store.js',
       './client/runtime/capsule-forecast-program.js',
       './client/runtime/capsule-rerank.js',
+      './client/runtime/capsule-operation-stream.js',
+      './client/runtime/capsule-operation-executor.js',
     ]),
     forbidden: [
       'export * from',
@@ -141,7 +148,7 @@ const FILE_RULES = [
   },
   {
     file: 'src/index.js',
-    allowed: new Set(['./version.js', './client/doppler-api.js', './client/provider.js', './config/generation-contract.js']),
+    allowed: new Set(['./version.js', './client/doppler-api.js', './client/provider.js', './config/generation-contract.js', './client/runtime/capsule-operation-stream.js']),
     forbidden: [
       'export * from',
       './tooling-exports',
@@ -158,7 +165,7 @@ const FILE_RULES = [
   },
   {
     file: 'src/index.d.ts',
-    allowed: new Set(['./version.js', './client/doppler-api.js', './client/provider.js', './config/generation-contract.js']),
+    allowed: new Set(['./version.js', './client/doppler-api.js', './client/provider.js', './config/generation-contract.js', './client/runtime/capsule-operation-stream.js']),
     forbidden: [
       'export * from',
       './tooling-exports',

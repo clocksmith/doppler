@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import http from 'node:http';
 import { once } from 'node:events';
-import { createDopplerRuntime } from 'doppler-gpu';
+import { createDopplerRuntime, createCapsuleStreamAccumulator } from 'doppler-gpu';
 import { createCapsuleServeHandler } from 'doppler-gpu/serve';
 import { computeCanonicalSha256 } from './consumer-evidence.js';
 
@@ -80,6 +80,20 @@ try {
     const served = (await response.text()).trim().split('\n').map(line => JSON.parse(line));
     assert.deepEqual(served, direct, 'installed HTTP and direct Capsule execution retain identical events');
     assert.equal(executions, 4);
+    const incrementalJob = { ...localJob, schema: 'doppler.capsule-operation-request/v2',
+      input: { ...localJob.input, texts: ['First incremental item.', 'Second incremental item.'] } };
+    const incremental = await fetch(`http://127.0.0.1:${server.address().port}/v1/operations`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer installed-contract-test-token' },
+      body: JSON.stringify(incrementalJob),
+    });
+    assert.equal(incremental.status, 200);
+    const accumulator = createCapsuleStreamAccumulator(incrementalJob);
+    const deltas = (await incremental.text()).trim().split('\n').map(JSON.parse);
+    deltas.forEach(event => accumulator.accept(event));
+    assert.equal(accumulator.finish().output.embeddings.length, 2);
+    assert.deepEqual(deltas.slice(0, -1).map(event => event.delta.itemIndex), [0, 1]);
+    assert(deltas.slice(0, -1).every(event => !Object.hasOwn(event, 'output')));
+    assert.equal(executions, 6);
   } finally {
     await handler.close();
     await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));

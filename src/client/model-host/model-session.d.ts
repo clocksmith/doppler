@@ -250,6 +250,7 @@ export interface DopplerModelHandle {
   readonly advanced: {
   tokenizeText(text: string): number[];
   tokenizePrompt(prompt: unknown, options?: { useChatTemplate?: boolean }): number[];
+    createIncrementalDecoder(): import('../../inference/tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder;
     decodeTokenIds(tokenIds: number[]): string;
     getSpecialTokens(): Record<string, number | undefined>;
     getStopTokenIds(): number[];

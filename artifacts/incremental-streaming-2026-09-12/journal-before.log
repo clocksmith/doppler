@@ -1,0 +1,38 @@
+
+Running 1 test using 1 worker
+
+[1A[2K(node:1521285) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:1521285) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] [chromium] › tests/e2e/peer-pack-jobs.spec.js:453:1 › journal delta appends transfer approximately linear bytes
+[1A[2K[chromium] › tests/e2e/peer-pack-jobs.spec.js:453:1 › journal delta appends transfer approximately linear bytes
+{"journalCopyVolume":[{"count":64,"writes":971507,"reads":943032},{"count":128,"writes":3778377,"reads":3721330},{"count":256,"writes":14908169,"reads":14793906}]}
+
+[1A[2K  1) [chromium] › tests/e2e/peer-pack-jobs.spec.js:453:1 › journal delta appends transfer approximately linear bytes 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: < [32m2.3[39m
+    Received:   [31m3.889191740255088[39m
+
+      492 |   console.log(JSON.stringify({ journalCopyVolume: results }));
+      493 |   for (let i = 1; i < results.length; i++) {
+    > 494 |     expect(results[i].writes / results[i - 1].writes).toBeLessThan(2.3);
+          |                                                       ^
+      495 |     expect(results[i].reads / results[i - 1].reads).toBeLessThan(2.3);
+      496 |   }
+      497 | });
+        at /home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/peer-pack-jobs.spec.js:494:55
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../../../dev/shm/doppler-consumer-streaming-20260912/journal-baseline-test/peer-pack-jobs-journal-del-0c050--approximately-linear-bytes-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  1 failed
+    [chromium] › tests/e2e/peer-pack-jobs.spec.js:453:1 › journal delta appends transfer approximately linear bytes 

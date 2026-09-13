@@ -26,6 +26,7 @@ client/fault-injection.d.ts
 client/model-host/model-evidence.d.ts
 client/receipt.d.ts
 client/runtime/capsule-artifact-source.d.ts
+client/runtime/capsule-operation-deltas.d.ts
 client/runtime/capsule-program-adapter.d.ts
 client/runtime/capsule-release-authorization.d.ts
 client/runtime/capsule-session-execution.d.ts

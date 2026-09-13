@@ -61,6 +61,7 @@ export declare class BundledTokenizer extends BaseTokenizer {
 
   encode(text: string): number[];
 
+  createIncrementalDecoder(): import('./bundled/incremental-decoder.js').IncrementalTokenDecoder;
   decode(ids: number[], skipSpecialTokens?: boolean, trim?: boolean): string;
 
   getHotTokenIds(limit: number): number[] | null;
