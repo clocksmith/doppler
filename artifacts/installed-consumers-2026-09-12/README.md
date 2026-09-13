@@ -54,3 +54,24 @@ Component: doppler.repository-tooling; doppler.tests; doppler
 Intent: preserved
 Acceptance evidence: retained receipts; check-packed-package.js; Reploid test:doppler-consumer; physical receipts
 Boundary effects: Reploid installed-consumer tests; public host example
+
+
+Frozen baseline completion: both remote workflows passed at
+`e42be484375e83b00427fe7f8aed275f997c2e94`:
+[installed consumers](https://github.com/clocksmith/doppler/actions/runs/34732609129)
+and [repository green chain](https://github.com/clocksmith/doppler/actions/runs/34732609067).
+The shared remote archive SHA-256 is
+`aa33664e8b9e251935f703057dbee3b151f6091bafc0f48ab59d5aa601595438`.
+Its fixture generation revision is recorded in remote-passed/source-state.json;
+Reploid remains the pinned `477670567d13df536157815560baf8c987948331`.
+All archive/consumer receipts and artifact ZIP identity are retained in
+remote-passed/. This third archive is distinct from the two local test archives.
+
+The corrected application checkpoint callback enabled physical embedding and
+reranking with the published npm archive. Both completed; embedding produced two
+finite 1,024-dimensional vectors. The reranker returned completion evidence;
+this runner did not impose an additional ranking-quality oracle. Physical
+receipts and persisted release checkpoints are retained alongside this record.
+Generation's repeat matched the 16 frozen source-reference token IDs. These
+physical passes do not erase the earlier device-loss or short-prompt closure
+failure, and do not qualify later streaming changes.
