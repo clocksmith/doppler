@@ -14,6 +14,10 @@ assert(config.requiredVendor && Number.isSafeInteger(config.timeoutMs) && config
 assert(config.consumer === undefined || ['standalone', 'reploid'].includes(config.consumer));
 if (config.consumer === 'reploid') assert(typeof config.reploidRoot === 'string');
 if (config.sharedSessionOperation !== undefined) assert.equal(config.consumer, 'reploid');
+if (config.adapterProbe) {
+  assert(Number.isSafeInteger(config.adapterProbe.attempts) && config.adapterProbe.attempts > 0);
+  assert(Number.isSafeInteger(config.adapterProbe.retryDelayMs) && config.adapterProbe.retryDelayMs >= 0);
+}
 const operations = config.models.map(row => row.descriptor.request.operation.name);
 assert(operations.length > 0 && new Set(operations).size === operations.length);
 assert(operations.every(name => ['embed', 'generate', 'rerank'].includes(name)));
@@ -57,11 +61,17 @@ try {
       page.on('console', message => report.logs.push({ type: message.type(), text: message.text() }));
       page.on('pageerror', error => report.logs.push({ type: 'pageerror', text: error.message }));
       await page.goto(`${server.baseUrl}/capabilities.html`);
-      const hardware = await page.evaluate(async () => {
-        const adapter = await navigator.gpu.requestAdapter();
-        if (!adapter) throw new Error('Physical WebGPU adapter unavailable; no fallback is permitted.');
-        return { vendor: adapter.info.vendor, architecture: adapter.info.architecture, isFallbackAdapter: adapter.info.isFallbackAdapter };
-      });
+      const hardware = await page.evaluate(async probe => {
+        const observations = [];
+        for (let index = 0; index < (probe?.attempts ?? 1); index++) {
+          const adapter = await navigator.gpu.requestAdapter();
+          observations.push({ available: adapter !== null });
+          if (adapter) return { vendor: adapter.info.vendor, architecture: adapter.info.architecture,
+            isFallbackAdapter: adapter.info.isFallbackAdapter, probe: observations };
+          if (probe && index + 1 < probe.attempts) await new Promise(resolve => setTimeout(resolve, probe.retryDelayMs));
+        }
+        throw new Error(`Physical WebGPU adapter unavailable after ${observations.length} recorded attempts; no fallback is permitted.`);
+      }, config.adapterProbe);
       assert.equal(hardware.vendor, config.requiredVendor);
       assert.equal(hardware.isFallbackAdapter, false);
       const descriptor = structuredClone(row.descriptor);
