@@ -2,36 +2,37 @@
   "schema": "sprout-size-v1",
   "opcodes": 19,
   "registers": 64,
-  "instructions": 412,
-  "dataWords": 14459,
-  "programWords": 16110,
+  "instructions": 435,
+  "dataWords": 14774,
+  "programWords": 16517,
   "measurement": "Byte counts and deterministic gzip, not Kolmogorov complexity.",
   "encoding": "Five-byte LEB128 for dynamic sizes and i32 constants; direct native instructions.",
+  "jsQuotation": "Printable five-bit word encoding; full compiler and launcher remain in the seed.",
   "files": {
     "compiler/compiler.sprout": {
-      "bytes": 55184,
-      "gzipBytes": 9043,
-      "sha256": "2cfd21216ec9790594546c6f02902888283f635d4803f32cead864cc673d44d5"
+      "bytes": 56531,
+      "gzipBytes": 9277,
+      "sha256": "aba8228fb4f756fd483245faf465f8ee81a0f546d2573c315f726552d5893ede"
     },
     "compiler/compiler-program.json": {
-      "bytes": 70383,
-      "gzipBytes": 7930,
-      "sha256": "f2ae44169c39cb4e8f9018ac6c91b7b6c5f4199e5cb48190f8682de9878a8b17"
+      "bytes": 72105,
+      "gzipBytes": 8160,
+      "sha256": "f1df13ed7b56fa488f9fd47ea68fb5d1ca6b545815ca0e90936e1a60ea42065b"
     },
     "quines/05-compiler.js": {
-      "bytes": 71257,
-      "gzipBytes": 12396,
-      "sha256": "e5dda07a6b42bb9f761fc48f92f7cffa4eb79963ddd521100c9873ce99ee16b4"
+      "bytes": 48337,
+      "gzipBytes": 11825,
+      "sha256": "c94ef264771889b3954f3352c38436a3981a8c55598d633b6f1f15e9f44f9aed"
     },
     "quines/05-compiler.wgsl": {
-      "bytes": 63724,
-      "gzipBytes": 9429,
-      "sha256": "a907e6cb9ed4c5b99c660855218d0450e5d92eae8b6f2c74801846526b9b5daf"
+      "bytes": 65386,
+      "gzipBytes": 9751,
+      "sha256": "9530c0d8774e2df01ccea3c174e6b6c85caa5186420b3767a128060aae504a45"
     },
     "quines/05-compiler.wasm": {
-      "bytes": 68871,
-      "gzipBytes": 8829,
-      "sha256": "5faf71c6ea748c4b1a59adf6df627b4904777fac32cda6b5d36751a7f78d7ea4"
+      "bytes": 70657,
+      "gzipBytes": 9160,
+      "sha256": "bc7e203087ae483d74a36fd875772cb5ce7d7ae59d3e031cc060297635719267"
     }
   }
 }
