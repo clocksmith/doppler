@@ -9,10 +9,16 @@ const workflowFiles = readdirSync(workflowDirectory)
 assert.deepEqual(workflowFiles, [
   'check-green.yml',
   'doppler-release.yml',
+  'installed-consumers.yml',
   'manual-runtime-validation.yml',
 ]);
 
 const automaticCi = readFileSync(new URL('check-green.yml', workflowDirectory), 'utf8');
+const installedConsumers = readFileSync(new URL('installed-consumers.yml', workflowDirectory), 'utf8');
+assert.match(installedConsumers, /check-packed-package\.js --retain/);
+assert.match(installedConsumers, /DOPPLER_TEST_REQUIRED: '1'/);
+assert.match(installedConsumers, /doppler-installed-generation\.js/);
+assert.doesNotMatch(installedConsumers, /continue-on-error|DOPPLER_TEST_CHECKOUT/);
 assert.match(automaticCi, /^name: Default Green Chain$/m);
 assert.match(automaticCi, /^  check-green:$/m);
 assert.match(automaticCi, /pull_request:/);

@@ -20,6 +20,9 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+        env:
+          # These public-package contracts do not execute the ONNX reference backend.
+          ONNXRUNTIME_NODE_INSTALL: skip
       - name: Build one archive and accept its standalone consumer
         run: node tools/check-packed-package.js --retain "$RUNNER_TEMP/doppler-candidate"
       - name: Checkout the reviewed Reploid consumer
