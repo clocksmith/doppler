@@ -11,6 +11,9 @@ const read = async file => JSON.parse(await fs.readFile(file, 'utf8'));
 const config = await read(process.argv[2]);
 assert.equal(config.schema, 'doppler.installed-capabilities-acceptance/v1');
 assert(config.requiredVendor && Number.isSafeInteger(config.timeoutMs) && config.timeoutMs > 0);
+assert(config.consumer === undefined || ['standalone', 'reploid'].includes(config.consumer));
+if (config.consumer === 'reploid') assert(typeof config.reploidRoot === 'string');
+if (config.sharedSessionOperation !== undefined) assert.equal(config.consumer, 'reploid');
 const operations = config.models.map(row => row.descriptor.request.operation.name);
 assert(operations.length > 0 && new Set(operations).size === operations.length);
 assert(operations.every(name => ['embed', 'generate', 'rerank'].includes(name)));
@@ -30,10 +33,15 @@ await fs.mkdir(config.outputDir);
 const report = { schema: 'doppler.installed-capabilities-acceptance-result/v1', passed: false,
   startedAtUtc: new Date().toISOString(), package: bundle.package, config, results: [], logs: [],
   scope: 'Physical local browser execution of retained models; no new model or fleet qualification.' };
+if (config.reploidRoot) {
+  const { execFileSync } = await import('node:child_process');
+  report.reploidRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: config.reploidRoot, encoding: 'utf8' }).trim();
+}
 let server, browser;
 try {
   server = await createStaticFileServer({ rootDir: consumer, host: '127.0.0.1', port: 0,
-    staticMounts: config.models.map((row, index) => ({ urlPrefix: `/models/${index}`, rootDir: row.capsuleRoot })) });
+    staticMounts: [...config.models.map((row, index) => ({ urlPrefix: `/models/${index}`, rootDir: row.capsuleRoot })),
+      ...(config.reploidRoot ? [{ urlPrefix: '/reploid', rootDir: config.reploidRoot }] : [])] });
   browser = await chromium.launch({ channel: config.channel, headless: true, args: config.launchArgs,
     env: { ...process.env, TMPDIR: config.temporaryDirectory } });
   report.browserVersion = browser.version();
@@ -51,6 +59,7 @@ try {
       await page.goto(`${server.baseUrl}/capabilities.html`);
       const hardware = await page.evaluate(async () => {
         const adapter = await navigator.gpu.requestAdapter();
+        if (!adapter) throw new Error('Physical WebGPU adapter unavailable; no fallback is permitted.');
         return { vendor: adapter.info.vendor, architecture: adapter.info.architecture, isFallbackAdapter: adapter.info.isFallbackAdapter };
       });
       assert.equal(hardware.vendor, config.requiredVendor);
@@ -65,17 +74,58 @@ try {
       await page.exposeFunction('persistCapabilityCheckpoint', async checkpoint => {
         await fs.writeFile(path.join(config.outputDir, `${descriptor.request.operation.name}-checkpoint.json`), JSON.stringify(checkpoint, null, 2));
       });
-      const result = await page.evaluate(async descriptor => {
+      const result = await page.evaluate(async ({ descriptor, consumer, shared }) => {
         const { runCapability } = await import('/capabilities-app.js');
         const { DOPPLER_VERSION } = await import('doppler-gpu');
         let partials = 0;
+        if (consumer === 'reploid') {
+          const host = await import('doppler-gpu/host');
+          const { createReploidDopplerRuntimeService } = await import('/reploid/self/infrastructure/doppler-runtime-service.js');
+          const { runPackOperation } = await import('/reploid/self/pool/pack-operation.js');
+          const api = { ...host, DOPPLER_VERSION };
+          const service = createReploidDopplerRuntimeService({ loadModule: async () => api, expectedVersion: DOPPLER_VERSION });
+          const devices = [];
+          const originalRequestAdapter = navigator.gpu.requestAdapter.bind(navigator.gpu);
+          navigator.gpu.requestAdapter = async (...args) => {
+            const adapter = await originalRequestAdapter(...args);
+            const originalRequestDevice = adapter.requestDevice.bind(adapter);
+            adapter.requestDevice = async (...args) => { const device = await originalRequestDevice(...args); devices.push(device); return device; };
+            return adapter;
+          };
+          try {
+            const openOptions = { ...descriptor.openOptions, persistReleaseCheckpoint: globalThis.persistCapabilityCheckpoint,
+              observer: { observe: globalThis.reportCapabilityProgress } };
+            const first = await service.openCapsule({ scope: 'physical-first', source: descriptor.capsuleUrl, options: openOptions });
+            const second = shared ? await service.openCapsule({ scope: 'physical-second', source: descriptor.capsuleUrl, options: openOptions }) : null;
+            const capsule = await (await fetch(descriptor.capsuleUrl)).json();
+            const binding = { ...first.capsuleIdentity, artifacts: capsule.artifacts, requiredOperation: descriptor.request.operation.name,
+              acceptedTargetPlanDigests: [first.selectedTargetPlanDigest] };
+            const execute = session => runPackOperation({ binding, session, runtimeVersion: DOPPLER_VERSION, runtimeService: service,
+              request: { ...descriptor.request, limits: { ...descriptor.request.limits, deadlineAt: Date.now() + descriptor.maxDurationMs } },
+              onPartial: () => { partials++; } });
+            const execution = await execute(first);
+            await service.close('physical-first');
+            let sharedSessions = null;
+            if (second) {
+              const afterClose = await execute(second);
+              sharedSessions = { deviceRequests: devices.length, firstClosed: first.closed,
+                secondOutputIdentical: JSON.stringify(afterClose.output) === JSON.stringify(execution.output),
+                secondReceipt: afterClose.receipt };
+              if (devices.length !== 1 || !sharedSessions.firstClosed || !sharedSessions.secondOutputIdentical) {
+                throw new Error('Shared physical device session isolation failed');
+              }
+            }
+            return { completed: { status: 'completed', output: execution.output, receipt: execution.receipt,
+              eventDigest: execution.finalEventDigest }, partials, runtimeVersion: DOPPLER_VERSION, sharedSessions };
+          } finally { await service.closeAll(); navigator.gpu.requestAdapter = originalRequestAdapter; }
+        }
         const completed = await runCapability(descriptor, {
           onProgress: globalThis.reportCapabilityProgress,
           persistReleaseCheckpoint: globalThis.persistCapabilityCheckpoint,
           onEvent: event => { if (event.status === 'partial') partials++; },
         });
         return { completed, partials, runtimeVersion: DOPPLER_VERSION };
-      }, descriptor);
+      }, { descriptor, consumer: config.consumer, shared: config.sharedSessionOperation === descriptor.request.operation.name });
       assert.equal(result.runtimeVersion, bundle.package.version);
       assert.equal(result.completed.status, 'completed');
       if (row.expectedTokenIds) assert.deepEqual(result.completed.output.tokenIds, row.expectedTokenIds);

@@ -63,8 +63,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Independent full-prompt reset adds 86 bytes in the existing decode runtime.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/prompt-reset-package-audit.json.
   // Measured npm 9: 2,112,518 packed; retain the observed 2,158-byte npm allowance.
-  // Streaming/lifecycle candidate: 2,115,845 bytes plus the same npm allowance.
-  maxPackedSize: 2_118_003,
+  // Before browser-export repair, remote Node 22/npm 10 packed 2,118,944 bytes.
+  // The repaired archive measures 2,115,842 on npm 9 and 2,118,939 on Node
+  // 22.23.2/npm 10.9.8. Both inventories and the initial failure are retained.
+  maxPackedSize: 2_118_944,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -75,7 +77,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // and benchmark-observation changes preceded installed-consumer work; its
   // application fixtures remain outside the package. The archive inventory is
   // retained in artifacts/installed-consumers-2026-09-12/candidate/npm-pack.json.
-  maxUnpackedSize: 10_906_406,
+  maxUnpackedSize: 10_906_521,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

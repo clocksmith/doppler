@@ -236,6 +236,9 @@ async function runGenerationCapsuleSmoke(consumerDir) {
   await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-generation-consumer.js'),
     path.join(consumerDir, 'generation-smoke.js'));
   process.stdout.write(run(process.execPath, ['generation-smoke.js'], { cwd: consumerDir }));
+  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-browser-host-consumer.js'),
+    path.join(consumerDir, 'browser-host-smoke.js'));
+  process.stdout.write(run(process.execPath, ['--conditions=browser', 'browser-host-smoke.js'], { cwd: consumerDir }));
   await fs.writeFile(path.join(consumerDir, 'adapter-fixture.json'), JSON.stringify(await createInstalledAdapterFixture()));
 }
 

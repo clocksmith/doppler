@@ -88,7 +88,7 @@
     {
       "path": "src/client/runtime/composition-root.js",
       "sizeBytes": 20339,
-      "hash": "sha256:b7b32196e0388de1194891ea3bcef662810e3fae095e48327c34092ba196371e"
+      "hash": "sha256:b85186bca0d0c64120a4cd9dd852166091ff393bf2c11b8e595f053dc1ad89e6"
     },
     {
       "path": "src/client/runtime/fetch-capsule-artifact-store.js",

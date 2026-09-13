@@ -5,9 +5,12 @@ import { createSessionController } from '../../src/client/runtime/session-contro
 import { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from '../../src/client/runtime/capsule-operation-stream.js';
 import { hashCapsuleObservation } from '../../src/config/capsule-operation.js';
 import { createCapsuleDeltaBudget } from '../../src/client/runtime/capsule-operation-deltas.js';
+import * as browserHost from '../../src/client/capsule-host.browser.js';
 import { BundledTokenizer } from '../../src/inference/tokenizers/bundled.js';
 
 const tokenizer = new BundledTokenizer({ vocabSize: 0, deferSpecialTokens: true, addBosToken: false, addEosToken: false });
+assert.equal(browserHost.createCapsuleStreamAccumulator, createCapsuleStreamAccumulator);
+assert.equal(browserHost.capsuleOperationSnapshots, capsuleOperationSnapshots);
 tokenizer.load({ model: { type: 'BPE', vocab: { ...Object.fromEntries(Array.from({ length: 256 }, (_, i) => [`<0x${i.toString(16).padStart(2, '0')}>`, i])), '<eos>': 256 }, merges: [], byte_fallback: true }, pre_tokenizer: { type: 'ByteLevel', add_prefix_space: false }, added_tokens: [{ id: 256, content: '<eos>', special: true }] });
 const options = { maxTokens: 6, maxSeqLen: 100, temperature: 0, topP: 1, topK: 1, repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false, stopSequences: [] };
 const request = (version, overrides = {}) => ({ schema: `doppler.capsule-operation-request/v${version}`, operation: { name: 'generate', version: 1 }, input: { promptTokens: [1] }, options: { ...options, ...overrides }, assignment: null, limits: { maxInputBytes: 10000, maxOutputBytes: 10000, deadlineAt: Date.now() + 60000 } });
