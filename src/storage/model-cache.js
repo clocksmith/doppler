@@ -4,14 +4,17 @@ import {
   loadManifestFromStore,
   saveManifest,
   deleteModel,
-  verifyIntegrity,
+  getFileStoredSize,
+  loadFileFromStore,
+  computeHash,
   computeSHA256,
 } from './shard-manager.js';
+import { requireManifestHashAlgorithm } from './shards/integrity.js';
 import { createOpfsArtifactStorageContext } from './artifact-storage-context.js';
 import { downloadModel, estimateTimeRemaining, formatSpeed } from './downloader.js';
 import { createAbortError } from './download/retry.js';
 import { isOPFSAvailable, formatBytes } from './quota.js';
-import { parseManifest, getManifestUrl } from '../formats/rdrr/index.js';
+import { parseManifest, getManifestUrl, getExpectedShardHash } from '../formats/rdrr/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
 import { cloneJsonValue } from '../formats/clone-json.js';
 import { log } from '../debug/index.js';
@@ -66,11 +69,11 @@ async function sha256Text(text) {
   return computeSHA256(new TextEncoder().encode(String(text || '')));
 }
 
-function normalizeShardDescriptor(shard) {
+function normalizeShardDescriptor(shard, hashAlgorithm = null) {
   return {
-    filename: typeof shard?.filename === 'string' ? shard.filename : null,
+    filename: shard?.filename || shard?.fileName || null,
     size: Number.isFinite(shard?.size) ? shard.size : null,
-    hash: typeof shard?.hash === 'string' ? shard.hash : null,
+    hash: getExpectedShardHash(shard, hashAlgorithm) || null,
   };
 }
 
@@ -81,8 +84,8 @@ function hasSameShardSet(aManifest, bManifest) {
     return false;
   }
   for (let i = 0; i < aShards.length; i += 1) {
-    const a = normalizeShardDescriptor(aShards[i]);
-    const b = normalizeShardDescriptor(bShards[i]);
+    const a = normalizeShardDescriptor(aShards[i], aManifest?.hashAlgorithm);
+    const b = normalizeShardDescriptor(bShards[i], bManifest?.hashAlgorithm);
     if (a.filename !== b.filename || a.size !== b.size || a.hash !== b.hash) {
       return false;
     }
@@ -153,7 +156,7 @@ function buildManifestFingerprint(manifest) {
   const layerPattern = inference?.layerPattern ?? {};
   const quantizationInfo = manifest?.quantizationInfo ?? {};
   const shards = Array.isArray(manifest?.shards)
-    ? manifest.shards.map(normalizeShardDescriptor)
+    ? manifest.shards.map((shard) => normalizeShardDescriptor(shard, manifest.hashAlgorithm))
     : [];
   return JSON.stringify({
     modelId: manifest?.modelId ?? null,
@@ -199,7 +202,26 @@ async function loadCachedManifest(modelId) {
   if (!text) {
     return { text: null, manifest: null };
   }
-  return { text, manifest: parseManifest(text) };
+  try {
+    return { text, manifest: parseManifest(text) };
+  } catch (error) {
+    // Legacy metadata may describe reusable bytes, but is never an execution
+    // manifest. Only a separately validated source can authorize cache refresh.
+    let unvalidatedManifest = null;
+    try {
+      const metadata = JSON.parse(text);
+      if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+        unvalidatedManifest = metadata;
+      }
+    } catch {
+      // Malformed JSON cannot even supply shard-comparison metadata.
+    }
+    log.warn(
+      MODULE,
+      `Cached manifest for "${modelId}" is not executable; source refresh required: ${toErrorMessage(error)}`
+    );
+    return { text, manifest: null, unvalidatedManifest };
+  }
 }
 
 async function verifyCachedArtifact(manifest) {
@@ -210,7 +232,37 @@ async function verifyCachedArtifact(manifest) {
   // length do not establish that the bytes still match the immutable model
   // contract. Verify the manifest-declared shard digests before exposing OPFS
   // bytes to a runtime load or calling the cache a verified hit.
-  return verifyIntegrity({ checkHashes: true });
+  // Use this validated manifest, not the parser's process-global current
+  // manifest, which another remote or cached parse may have replaced.
+  const algorithm = requireManifestHashAlgorithm(manifest, 'cache integrity check');
+  const missingShards = [];
+  const corruptShards = [];
+  for (let i = 0; i < manifest.shards.length; i += 1) {
+    const shard = manifest.shards[i];
+    const storedSize = await getFileStoredSize(shard.filename);
+    if (storedSize == null) {
+      missingShards.push(i);
+      continue;
+    }
+    if (storedSize !== shard.size) {
+      corruptShards.push(i);
+      continue;
+    }
+    const expectedHash = getExpectedShardHash(shard, algorithm);
+    if (!expectedHash) {
+      corruptShards.push(i);
+      continue;
+    }
+    const bytes = await loadFileFromStore(shard.filename);
+    if (await computeHash(bytes, algorithm) !== expectedHash) {
+      corruptShards.push(i);
+    }
+  }
+  return {
+    valid: missingShards.length === 0 && corruptShards.length === 0,
+    missingShards,
+    corruptShards,
+  };
 }
 
 async function resolvePinnedCacheHit(modelId, expectedManifestHash, onProgress, signal = null) {
@@ -296,6 +348,7 @@ function buildDownloadStatusLine(progress, speed, remainingBytes) {
 
 async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = null, options = {}) {
   const signal = options?.signal || null;
+  const expectedManifestHash = normalizeExpectedManifestHash(options.expectedManifestHash);
   throwIfAborted(signal);
   if (!modelId || !modelBaseUrl) {
     return {
@@ -325,11 +378,17 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
     throwIfAborted(signal);
     if (exists) {
       try {
-        const [{ text: remoteManifestText, manifest: remoteManifest }, { text: cachedManifestText, manifest: cachedManifest }] = await Promise.all([
+        const [{ text: remoteManifestText, manifest: remoteManifest }, cachedPayload] = await Promise.all([
           fetchRemoteManifest(modelBaseUrl, signal),
           loadCachedManifest(modelId),
         ]);
         throwIfAborted(signal);
+        if (expectedManifestHash && await sha256Text(remoteManifestText) !== expectedManifestHash) {
+          throw new Error(`Remote manifest hash mismatch for "${modelId}"; cached model left unchanged.`);
+        }
+        const cachedManifestText = cachedPayload.text;
+        // Raw legacy metadata participates only in comparison, never execution.
+        const cachedManifest = cachedPayload.manifest ?? cachedPayload.unvalidatedManifest;
 
         if (!cachedManifestText || !cachedManifest) {
           log.warn(MODULE, `Cache miss: "${modelId}" has no readable manifest in OPFS; re-importing`);
@@ -337,7 +396,7 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
         } else {
           const cachedSourceArtifact = resolveSourceArtifact(cachedManifest);
           const sourceIntegrity = cachedSourceArtifact
-            ? await verifyStoredSourceArtifact(cachedManifest, { checkHashes: false })
+            ? await verifyStoredSourceArtifact(cachedManifest, { checkHashes: true })
             : null;
           const sourceIntegrityValid = !sourceIntegrity || sourceIntegrity.valid;
           if (sourceIntegrity && !sourceIntegrity.valid) {
@@ -349,7 +408,7 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
           const cachedFingerprint = buildManifestFingerprint(cachedManifest);
           const remoteFingerprint = buildManifestFingerprint(remoteManifest);
           const manifestTextMatches = cachedManifestText === remoteManifestText;
-          if (sourceIntegrityValid && manifestTextMatches && cachedFingerprint === remoteFingerprint) {
+          if (cachedPayload.manifest && sourceIntegrityValid && manifestTextMatches && cachedFingerprint === remoteFingerprint) {
             const shardIntegrity = cachedSourceArtifact
               ? sourceIntegrity
               : await verifyCachedArtifact(cachedManifest);
@@ -375,24 +434,36 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
             const sameShards = hasSameShardSet(cachedManifest, remoteManifest);
             const sameHashAlgorithm = (cachedManifest?.hashAlgorithm ?? null) === (remoteManifest?.hashAlgorithm ?? null);
             if (sourceIntegrityValid && sameShards && sameHashAlgorithm) {
-              const preservedManifest = preserveCachedSourceRuntimeMetadata(remoteManifest, cachedManifest);
+              // A pinned manifest must retain its exact bytes. Invalid cached
+              // metadata must not contribute runtime configuration either.
+              const preservedManifest = expectedManifestHash || !cachedPayload.manifest
+                ? { manifest: remoteManifest, changed: false }
+                : preserveCachedSourceRuntimeMetadata(remoteManifest, cachedManifest);
               const manifestTextToSave = preservedManifest.changed
                 ? JSON.stringify(preservedManifest.manifest)
                 : remoteManifestText;
-              await openModelStore(modelId);
-              await saveManifest(manifestTextToSave);
-              const refreshMessage = preservedManifest.changed
-                ? `Manifest refreshed: ${modelId} (shards unchanged, preserved direct-source metadata)`
-                : `Manifest refreshed: ${modelId} (shards unchanged)`;
-              log.info(MODULE, `Cache manifest refreshed: "${modelId}"${preservedManifest.changed ? ' (preserved direct-source metadata)' : ' (shards unchanged)'}`);
-              onProgress?.({ stage: 'cache-refresh', modelId, message: refreshMessage, percent: 100 });
-              return {
-                cached: true,
-                fromCache: false,
-                cacheState: 'manifest-refresh',
-                modelId,
-                error: null,
-              };
+              const refreshManifest = preservedManifest.changed
+                ? parseManifest(manifestTextToSave)
+                : remoteManifest;
+              const integrity = await verifyCachedArtifact(refreshManifest);
+              throwIfAborted(signal);
+              if (integrity.valid) {
+                await openModelStore(modelId);
+                await saveManifest(manifestTextToSave);
+                const refreshMessage = preservedManifest.changed
+                  ? `Manifest refreshed: ${modelId} (verified shards unchanged, preserved direct-source metadata)`
+                  : `Manifest refreshed: ${modelId} (verified shards unchanged)`;
+                log.info(MODULE, `Cache manifest refreshed: "${modelId}" (cached bytes verified)`);
+                onProgress?.({ stage: 'cache-refresh', modelId, message: refreshMessage, percent: 100 });
+                return {
+                  cached: true,
+                  fromCache: false,
+                  cacheState: 'manifest-refresh',
+                  modelId,
+                  error: null,
+                };
+              }
+              log.warn(MODULE, `Cache integrity failed for "${modelId}"; metadata-only refresh refused`);
             }
           }
 
@@ -506,7 +577,7 @@ export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null
       modelId,
       modelBaseUrl,
       onProgress,
-      { signal },
+      { signal, expectedManifestHash },
     );
     throwIfAborted(signal);
     if (!cache.cached) {
