@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 import { DEFAULT_KVCACHE_CONFIG, DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 import { setRuntimeConfig, resetRuntimeConfig } from '../../src/config/runtime.js';
-import { cleanup, loadManifestFromStore, openModelStore, saveManifest } from '../../src/storage/shard-manager.js';
+import { cleanup, computeSHA256, createFileWriter, loadManifestFromStore, openModelStore, saveManifest } from '../../src/storage/shard-manager.js';
 import { ensureModelCached } from '../../src/tooling/opfs-cache.js';
 
 function clone(value) {
@@ -129,6 +129,12 @@ try {
   assert.match(String(failed.error || ''), /network unavailable/);
 
   const cachedManifest = createManifest('opfs-cache-contract-model');
+  // Metadata refresh can reuse only bytes present in the cache with a valid digest.
+  const shardBytes = new Uint8Array([7]);
+  cachedManifest.shards[0].hash = await computeSHA256(shardBytes);
+  const shard = await createFileWriter(cachedManifest.shards[0].filename);
+  await shard.write(shardBytes);
+  await shard.close();
   const remoteManifest = clone(cachedManifest);
   remoteManifest.inference.attention.valueNorm = true;
   remoteManifest.inference.ffn.useDoubleWideMlp = true;
