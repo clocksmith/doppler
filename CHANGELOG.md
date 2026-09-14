@@ -8,6 +8,24 @@ budget.
 
 ## [Unreleased]
 
+### 0.6.2 candidate
+
+- Add explicitly selected operation stream v2 with stable Unicode text additions,
+  incremental token and embedding events, hash chaining, final reconstruction
+  verification and public accumulators. Operation v1 remains available unchanged.
+- Preserve shared device resources when another session binds the same physical
+  GPU; retain cleanup and device-generation regression coverage.
+- Test one installed archive through standalone capabilities and the reconciled
+  Reploid library provider, including cancellation and request-bound adapters.
+- Version 0.6.2 identifies new candidate bytes. Published 0.6.1 and earlier
+  unpublished 0.6.1 candidates remain distinct historical artifacts. This entry
+  is not publication or physical qualification evidence for the new archive.
+- Migration: explicitly send `doppler.capsule-operation-request/v2`, consume
+  additions with `createCapsuleStreamAccumulator()`, and require `finish()` before
+  accepting completion. Calling `snapshot()` after every event deliberately
+  recreates cumulative copying. Capsule/model identities do not change merely
+  because an application adopts a different transport format.
+
 ### Breaking: Capsule naming (0.6.0)
 
 - Replace the Pack product name with Capsule throughout the public API,

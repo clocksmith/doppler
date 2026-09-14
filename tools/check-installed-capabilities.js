@@ -12,8 +12,9 @@ const read = async file => JSON.parse(await fs.readFile(file, 'utf8'));
 const config = await read(process.argv[2]);
 assert.equal(config.schema, 'doppler.installed-capabilities-acceptance/v1');
 assert(config.requiredVendor && Number.isSafeInteger(config.timeoutMs) && config.timeoutMs > 0);
-assert(config.consumer === undefined || ['standalone', 'reploid'].includes(config.consumer));
+assert(config.consumer === undefined || ['standalone', 'reploid', 'reploid-library'].includes(config.consumer));
 if (config.consumer === 'reploid') assert(typeof config.reploidRoot === 'string');
+if (config.consumer === 'reploid-library') assert(typeof config.libraryArchive === 'string');
 if (config.sharedSessionOperation !== undefined) assert.equal(config.consumer, 'reploid');
 if (config.adapterProbe) {
   assert(Number.isSafeInteger(config.adapterProbe.attempts) && config.adapterProbe.attempts > 0);
@@ -22,6 +23,7 @@ if (config.adapterProbe) {
 const operations = config.models.map(row => row.descriptor.request.operation.name);
 assert(operations.length > 0 && new Set(operations).size === operations.length);
 assert(operations.every(name => ['embed', 'generate', 'rerank'].includes(name)));
+if (config.consumer === 'reploid-library') assert.deepEqual(operations, ['generate'], 'The Reploid provider exposes generation only');
 const bundle = await read(path.join(config.bundleRoot, 'receipt.json'));
 assert(bundle.passed);
 assert.equal(createHash('sha256').update(await fs.readFile(path.join(config.bundleRoot, bundle.package.filename))).digest('hex'), bundle.package.sha256);
@@ -32,6 +34,11 @@ const imports = Object.fromEntries(publicExports.map(specifier => {
   const entry = metadata.exports[specifier === 'doppler-gpu' ? '.' : './host'];
   return [specifier, `/node_modules/doppler-gpu/${(entry.browser ?? entry.import).replace(/^\.\//, '')}`];
 }));
+if (config.consumer === 'reploid-library') {
+  const library = await read(path.join(consumer, 'node_modules/reploid/package.json'));
+  for (const entry of ['./doppler', './config']) imports[`reploid/${entry.slice(2)}`]
+    = `/node_modules/reploid/${library.exports[entry].import.replace(/^\.\//, '')}`;
+}
 await fs.copyFile(new URL('../examples/capsule-capabilities/app.js', import.meta.url), path.join(consumer, 'capabilities-app.js'));
 await fs.writeFile(path.join(consumer, 'capabilities.html'), `<!doctype html><title>Installed Capsule capabilities</title><script type="importmap">${JSON.stringify({ imports })}</script>`);
 await fs.mkdir(config.outputDir);
@@ -44,6 +51,10 @@ const report = { schema: 'doppler.installed-capabilities-acceptance-result/v1', 
 if (config.reploidRoot) {
   report.reploidRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: config.reploidRoot, encoding: 'utf8' }).trim();
 }
+if (config.consumer === 'reploid-library') report.libraryArchive = {
+  path: config.libraryArchive,
+  sha256: createHash('sha256').update(await fs.readFile(config.libraryArchive)).digest('hex'),
+};
 let server, browser;
 try {
   server = await createStaticFileServer({ rootDir: consumer, host: '127.0.0.1', port: 0,
@@ -92,6 +103,31 @@ try {
         const { runCapability } = await import('/capabilities-app.js');
         const { DOPPLER_VERSION } = await import('doppler-gpu');
         let partials = 0;
+        if (consumer === 'reploid-library') {
+          const runtime = { ...await import('doppler-gpu'), ...await import('doppler-gpu/host') };
+          const { createDopplerProvider } = await import('reploid/doppler');
+          const { resolveConfig } = await import('reploid/config');
+          const session = await runtime.openCapsule(descriptor.capsuleUrl, {
+            ...descriptor.openOptions, persistReleaseCheckpoint: globalThis.persistCapabilityCheckpoint,
+            observer: { observe: globalThis.reportCapabilityProgress },
+          });
+          let provider;
+          try {
+            const contract = Object.fromEntries(['modelId', 'capsuleId', 'semanticRoot', 'selectedTargetPlanDigest']
+              .map(key => [key, session[key]]));
+            contract.runtimeVersion = DOPPLER_VERSION;
+            const config = resolveConfig({ overrides: { models: { providerId: 'doppler', contract } } });
+            provider = createDopplerProvider({ config, session, runtime, ownership: 'borrowed',
+              toOperationRequest: () => ({ ...descriptor.request, limits: { ...descriptor.request.limits,
+                deadlineAt: Date.now() + descriptor.maxDurationMs } }) });
+            const additions = [];
+            const result = await provider.generate([{ role: 'user', content: 'Execute the retained descriptor request.' }],
+              addition => { partials++; additions.push(addition); });
+            if (additions.join('') !== result.content) throw new Error('Displayed additions differ from accepted completion');
+            return { completed: result.evidence, partials, runtimeVersion: DOPPLER_VERSION,
+              library: { entry: 'reploid/doppler', displayMatchesCompletion: true } };
+          } finally { await provider?.close(); await session.close(); }
+        }
         if (consumer === 'reploid') {
           const host = await import('doppler-gpu/host');
           const { createReploidDopplerRuntimeService } = await import('/reploid/self/infrastructure/doppler-runtime-service.js');
