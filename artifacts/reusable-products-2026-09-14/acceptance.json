@@ -1,0 +1,116 @@
+{
+  "recordVersion": 1,
+  "date": "2026-09-14",
+  "status": "installed-and-physical-candidate-accepted; unpublished",
+  "dopplerSourceRevision": "1af9af2e0c6f378a00d659c444178ac9e6726d51",
+  "dopplerBaseRevision": "086b49dd6ea562ef7cdd6bc14af5eb10efeaefc9",
+  "reploidLibrarySourceRevision": "775a7ae0c024a4777349bad83ced6576cc1ab538",
+  "reploidBaseRevision": "df5c188e9502c84f877aa0c95cefa733d8161fd0",
+  "reploidLocalRunnerRevision": "a3bf49af2e4831152fc2689bc0f69206344d4de4",
+  "fixtureGenerationSource": {
+    "commit": "7965d41d99df93242acc03361100919724571605",
+    "status": "",
+    "runnerSha256": "ea0350d806aafa055138f816eddc56b32ca7c2d21e0a56112ad7cc71e8d47771"
+  },
+  "runtimeArchive": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-Tvedjt9mJWka08GBAsvxtdR2H6YEOxG8yePJdOEBnXI/ez+ygyOiShA7L4eipSlqo/X7Gi6MEiofHeA7XRyANw==",
+    "sizeBytes": 2118879,
+    "source": "local-npm-pack",
+    "sha256": "4f9689b173ab80f2d664e7006f99dea98e37eb16e6e9d5b831e2902aee6b91b7"
+  },
+  "libraryArchive": {
+    "filename": "reploid-0.1.0.tgz",
+    "sha256": "6f12af6f5d7ea31b23917d35eccc2aceacb29416a07af6441b58048d591f7a46",
+    "integrity": "sha512-IgfY15xKEIuJLgERXRGHpAWjeWGznKHh786OZQ5yilzdiG9ejS+7knIf65KzP1Vh40rWVHI7YPEEkRs5Oqvk/w==",
+    "sizeBytes": 104556
+  },
+  "artifact": {
+    "workflowRunId": 34897549251,
+    "artifactId": 10369517086,
+    "url": "https://github.com/clocksmith/doppler/actions/runs/34897549251/artifacts/10369517086",
+    "zipSha256": "dcb47264d0e8bd2a927209492b50d7dcfca7c85a474c32fddc12a5018442cb32"
+  },
+  "localDurableArchiveDirectory": "/home/x/deco/releases/doppler-0.6.2-candidate",
+  "publishedRuntime": {
+    "version": "0.6.1",
+    "sha256": "96d2699a3e677815890f804459c023bea4fb2e2a1a59d157b5b6a04c9e573d5f"
+  },
+  "verification": {
+    "byteReproduction": true,
+    "standaloneInstalled": true,
+    "reploidInstalledLibraryV1AndV2": true,
+    "publishedV1Compatibility": true,
+    "nativeWebRtcAndIndexedDbReplay": true,
+    "localAndRemoteDopplerFullChecks": true,
+    "detachedLibraryBrowserChecks": 15,
+    "libraryBrowserArchiveNote": "Separate npm 9 tarball; all package file contents equal the exact CI library. Exact CI library separately passes installed provider and physical tests.",
+    "reploidFullApplication": false
+  },
+  "physical": {
+    "browserVersion": "146.0.7680.177",
+    "platform": "Linux-7.0.0-29-generic-x86_64-with-glibc2.43",
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "isFallbackAdapter": false,
+      "probe": [
+        {
+          "available": true
+        }
+      ]
+    },
+    "scope": "Physical local browser execution of retained models; no new model or fleet qualification.",
+    "generation": {
+      "referenceTokensMatched": 16,
+      "promptTokens": 319,
+      "stopReason": "max-tokens",
+      "standaloneAndReploidFullOutputEqual": true,
+      "outputHash": "sha256:41301ea8d392ffb18a447d3f5e6503b7860568601b71f5a8d8362bc3ce308311",
+      "reploidDisplayMatchesVerifiedCompletion": true,
+      "identityNote": "Each consumer verifies its own completion record. Independently assigned deadlines produce different request and receipt hashes; output hashes agree."
+    },
+    "embedding": {
+      "consumer": "standalone",
+      "items": 2,
+      "dimensions": 1024,
+      "finite": true
+    },
+    "reranking": {
+      "consumer": "standalone",
+      "documents": 2,
+      "evidence": "Physical operation completion; no new semantic ranking quality claim."
+    },
+    "newSharedDevicePhysicalRun": false
+  },
+  "releaseState": {
+    "published": false,
+    "deployed": false,
+    "merged": false,
+    "npmAuthentication": "npm whoami returned E401 in this session; authentication must be restored before publication."
+  },
+  "unclaimed": [
+    "Independent application adoption",
+    "Provider superiority or GPU throughput improvement",
+    "Full Reploid application acceptance",
+    "Production signing, fleet qualification, revocation currency, deployment or promotion"
+  ],
+  "superseded": [
+    {
+      "runtimeSha256": "1214e9ef28f457a71f0275e3e27087480bd21ba1bd40adff83f9149edfbe2bd4",
+      "status": "Earlier installed and physical acceptance passed; package release prose exceeded the existing unpacked-size ceiling."
+    },
+    {
+      "runtimeSha256": "20ae12325dbedf3aeec42b656110b5ba2326e1def1b3fba8cea6767aa7b27950",
+      "status": "Earlier CI archive, different packaging bytes; installed contracts passed. Full CI exposed stale current runtime closure, then package budget failure."
+    },
+    {
+      "runtimeSha256": "755d0ed7ceffcecad76cd3d6cb17cc5a4a6fa827394245280364f584421d3e44",
+      "status": "Identical final package file contents packed with npm 9. Installed checks passed; later physical run interrupted intentionally after two completed capabilities to rerun the exact CI archive."
+    }
+  ],
+  "component": "doppler; reploid",
+  "intent": "preserved",
+  "boundaryEffects": "Reploid optional public provider consumes Doppler public operation contracts; repository harness records installed library identity. No new execution engine or component authority."
+}
