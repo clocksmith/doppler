@@ -333,7 +333,7 @@
     {
       "path": "src/version.js",
       "sizeBytes": 97,
-      "hash": "sha256:ae275b8cd1d0acb15e09e1cab6e5b4cfa0838902adb8709af860d08efa6e55f0"
+      "hash": "sha256:da2df095d5ba3dd4ef7f5597080760c3ad2e58f28982003af1f33949fb6ecc06"
     }
   ],
   "passed": true
