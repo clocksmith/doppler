@@ -11,6 +11,7 @@
     "build": "python3 build.py",
     "serve": "python3 -m http.server 8000 --bind 127.0.0.1",
     "test:wasm": "node tests/wasm.js",
-    "test:browser": "node tests/browser.js"
+    "test:browser": "node tests/browser.js",
+    "test:gpu-quine": "node tests/gpu-quine-browser.js"
   }
 }
