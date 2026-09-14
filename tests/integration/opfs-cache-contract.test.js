@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 
 import { DEFAULT_KVCACHE_CONFIG, DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
 import { setRuntimeConfig, resetRuntimeConfig } from '../../src/config/runtime.js';
-import { cleanup, computeSHA256, createFileWriter, loadManifestFromStore, openModelStore, saveManifest } from '../../src/storage/shard-manager.js';
+import { cleanup, computeSHA256, loadManifestFromStore, openModelStore, saveAuxFile, saveManifest } from '../../src/storage/shard-manager.js';
+import { parseManifest } from '../../src/formats/rdrr/index.js';
 import { ensureModelCached } from '../../src/tooling/opfs-cache.js';
 
 function clone(value) {
@@ -14,6 +15,8 @@ function clone(value) {
 
 const originalNavigator = globalThis.navigator;
 const originalFetch = globalThis.fetch;
+const shardBytes = new Uint8Array([42]);
+const shardHash = await computeSHA256(shardBytes);
 
 function createManifest(modelId) {
   return {
@@ -74,7 +77,7 @@ function createManifest(modelId) {
         index: 0,
         filename: 'model-00001-of-00001.bin',
         size: 1,
-        hash: '0'.repeat(64),
+        hash: shardHash,
         offset: 0,
       },
     ],
@@ -129,18 +132,13 @@ try {
   assert.match(String(failed.error || ''), /network unavailable/);
 
   const cachedManifest = createManifest('opfs-cache-contract-model');
-  // Metadata refresh can reuse only bytes present in the cache with a valid digest.
-  const shardBytes = new Uint8Array([7]);
-  cachedManifest.shards[0].hash = await computeSHA256(shardBytes);
-  const shard = await createFileWriter(cachedManifest.shards[0].filename);
-  await shard.write(shardBytes);
-  await shard.close();
   const remoteManifest = clone(cachedManifest);
   remoteManifest.inference.attention.valueNorm = true;
   remoteManifest.inference.ffn.useDoubleWideMlp = true;
   const remoteManifestText = JSON.stringify(remoteManifest);
 
   await saveManifest(JSON.stringify(cachedManifest));
+  await saveAuxFile(cachedManifest.shards[0].filename, shardBytes);
   globalThis.fetch = async () => new Response(remoteManifestText, { status: 200 });
 
   const refreshed = await ensureModelCached(
@@ -153,6 +151,30 @@ try {
 
   const storedManifestText = await loadManifestFromStore();
   assert.equal(storedManifestText, remoteManifestText);
+
+  // Obsolete metadata may describe reusable bytes, but must never execute.
+  const legacyManifest = clone(cachedManifest);
+  legacyManifest.inference = null;
+  const legacyManifestText = JSON.stringify(legacyManifest);
+  assert.throws(() => parseManifest(legacyManifestText));
+  await saveManifest(legacyManifestText);
+  const recovered = await ensureModelCached(
+    'opfs-cache-contract-model',
+    'https://example.test/model'
+  );
+  assert.equal(recovered.cached, true);
+  assert.equal(recovered.cacheState, 'manifest-refresh');
+  assert.equal(await loadManifestFromStore(), remoteManifestText);
+
+  // A same-size corrupt shard must not qualify for metadata-only recovery.
+  await saveManifest(legacyManifestText);
+  await saveAuxFile(cachedManifest.shards[0].filename, new Uint8Array([43]));
+  const corrupt = await ensureModelCached(
+    'opfs-cache-contract-model',
+    'https://example.test/model'
+  );
+  assert.equal(corrupt.cached, false);
+  assert.notEqual(corrupt.cacheState, 'manifest-refresh');
 } finally {
   globalThis.fetch = originalFetch;
   if (originalNavigator === undefined) {
