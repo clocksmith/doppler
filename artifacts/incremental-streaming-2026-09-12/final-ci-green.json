@@ -1,0 +1,32 @@
+{
+  "schema": "doppler.remote-green-result/v1",
+  "passed": true,
+  "runUrl": "https://github.com/clocksmith/doppler/actions/runs/34737393794",
+  "jobId": 103671083853,
+  "sourceRevision": "54299e47484a71faeebdbb6bbd7a07a363157816",
+  "fixtureRevision": "96776029b91895eba882c7803ba50b0fb58ebfbf",
+  "steps": [
+    "repository acceptance checks",
+    "browser WebGPU kernel contract",
+    "demo UI and offline PWA contract"
+  ],
+  "scope": "Hosted CI with explicit skipped or simulated hardware/model-local scopes; physical model receipts are separate.",
+  "excerpts": [
+    "2026-09-13T04:14:03.5149726Z HEAD is now at 96776029 Merge 54299e47484a71faeebdbb6bbd7a07a363157816 into 291541f646d7addf573dff2066735055cbcd391b",
+    "2026-09-13T04:14:48.7355055Z [node-tests] ok: 9 files",
+    "2026-09-13T04:14:50.3906495Z [node-tests] ok: 1 files",
+    "2026-09-13T04:14:53.2801318Z [node-tests] ok: 8 files",
+    "2026-09-13T04:14:53.4496345Z [node-tests] ok: 1 files",
+    "2026-09-13T04:14:53.6043244Z [node-tests] ok: 1 files",
+    "2026-09-13T04:14:53.9663126Z [node-tests] ok: 1 files",
+    "2026-09-13T04:14:54.9763153Z [node-tests] ok: 3 files",
+    "2026-09-13T04:14:55.4665111Z [node-tests] ok: 2 files",
+    "2026-09-13T04:14:56.0951946Z [node-tests] ok: 3 files",
+    "2026-09-13T04:14:56.5680368Z [node-tests] ok: 2 files",
+    "2026-09-13T04:14:57.2502306Z [node-tests] ok: 3 files",
+    "2026-09-13T04:15:23.4837700Z [node-tests] ok: 3 files",
+    "2026-09-13T04:15:23.9261284Z [node-tests] ok: 2 files",
+    "2026-09-13T04:20:45.6092198Z [node-tests] ok: 802 files",
+    "2026-09-13T04:20:59.6022403Z Demo controls: sampling, profiles, diagnostics, keyboard, stop, receipts, removal, install handoff, contrast and responsive layouts passed (mocked execution)."
+  ]
+}

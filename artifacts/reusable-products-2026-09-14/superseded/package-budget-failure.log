@@ -1,0 +1,526 @@
+
+> doppler-gpu@0.6.2 check:green
+> node tools/run-node-tests.js --scripts agents:verify catscan:check goals:check model-family:intake:check model-release:check product:portfolio:check product:prospects:check product:readiness:check revocations:check revocations:authority:check product:integrations:check provider:conformance:check runtime:ownership:check runtime:closure:check public:boundaries:check package:smoke commands:surface:check api:docs:check config:single-source:check rules:bundle:check routing:audit:check negative-results:check evidence:workflows:check optimization:control:check promotion:monitoring:check inference:boundaries:check source:style:check source:architecture:check capability-policy:check imports:check:browser pending:check exports:parity:check typecheck:source artifact:contract:check adapter-artifacts:check claims:evidence:check release-claims:check support:matrix:check support:subsystems:check policy:schemas:check program-bundle:schema:check program-bundle:check test:unit capsule-v2:check
+
+[node-tests] script: agents:verify
+agent parity check passed
+- policy: tools/policies/agent-parity-policy.json
+- instruction aliases: CLAUDE.md -> AGENTS.md, GEMINI.md -> AGENTS.md
+- skill aliases: .agents/skills -> ../skills, .claude/skills -> ../skills, .gemini/skills -> ../skills, .codex/skills -> ../skills
+- skills verified: doppler-debug, doppler-bench, doppler-perf, doppler-convert, doppler-kernel-reviewer
+- AGENTS markers verified: 6
+[node-tests] script: catscan:check
+catscan: current docs/component-index.md (30 components)
+[node-tests] script: goals:check
+goal-completion: matrix ok (4 goals, 43 rows)
+[node-tests] script: model-family:intake:check
+model family intake check passed: authority=maintainer, base=HEAD, families=14, newFamilies=0
+[node-tests] script: model-release:check
+model-release-platform: contract ok; 0 partial requirements, 3 migration surfaces, commercial=unestablished
+TAP version 13
+# model-release-platform.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.628624
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 251.935885
+[node-tests] ok: tests/config/model-release-platform.test.js
+[node-tests] ok: 1 files
+[node-tests] script: production-release:check
+TAP version 13
+# electron-capsule-runtime.test: ok (signed fixture; synthetic execution)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.714596
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 388.45478
+[node-tests] ok: tests/client/electron-capsule-runtime.test.js
+TAP version 13
+# electron-release-adapter.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.928716
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 135.134201
+[node-tests] ok: tests/client/electron-release-adapter.test.js
+TAP version 13
+# electron-release-episode.test: ok (durable local files and signatures; synthetic execution and IPC)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.779557
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 377.299804
+[node-tests] ok: tests/client/electron-release-episode.test.js
+TAP version 13
+# github-release-action.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.99011
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 103.274512
+[node-tests] ok: tests/config/github-release-action.test.js
+TAP version 13
+# production-release.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.063778
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 110.23468
+[node-tests] ok: tests/config/production-release.test.js
+TAP version 13
+# command-api-release.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.034674
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 332.41672
+[node-tests] ok: tests/tooling/command-api-release.test.js
+TAP version 13
+# ✔ forge-model-capsule.test.js: all tests passed
+# forge-model-capsule: embedding qualification passed (synthetic reference)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.103953
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 315.782883
+[node-tests] ok: tests/tooling/forge-model-capsule.test.js
+TAP version 13
+# production-release.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.809492
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 356.053516
+[node-tests] ok: tests/tooling/production-release.test.js
+[node-tests] ok: 8 files
+[node-tests] script: product:portfolio:check
+product-portfolio-coherence: ok (3 workloads across 4 gates)
+TAP version 13
+# product-portfolio-coherence.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.636679
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 104.947414
+[node-tests] ok: tests/config/product-portfolio-coherence.test.js
+[node-tests] ok: 1 files
+[node-tests] script: product:prospects:check
+# Doppler Electron Design Partner Pipeline
+
+- contract: valid
+- researched prospects: 5
+- primary wave: 3
+- qualified customers represented here: 0
+
+This register is a researched outreach pipeline. A listed application is not a customer, design partner, authorized workload, qualified integration, production release, revenue source, or evidence of demand until separately retained customer authority and qualification evidence establish that state.
+
+## Ordered targets
+
+1. **AnythingLLM** — primary; research-candidate
+   Pilot: Qualify one planned local-model release and its subsequent upgrade across the customer-declared AnythingLLM desktop provider and hardware matrix.
+   Open gates: outreach-not-authorized, customer-relationship-unestablished, application-revision-not-pinned, acceptance-suite-not-authorized, paid-production-release-unestablished, customer-fleet-receipts-missing, subsequent-upgrade-unestablished
+2. **Joplin** — primary; research-candidate
+   Pilot: Turn one planned Joplin semantic-search model release into an externally maintained embedding Capsule with index-compatible upgrade and rollback.
+   Open gates: outreach-not-authorized, customer-relationship-unestablished, application-revision-not-pinned, acceptance-suite-not-authorized, paid-production-release-unestablished, customer-fleet-receipts-missing, subsequent-upgrade-unestablished
+3. **Cherry Studio** — primary; research-candidate
+   Pilot: Qualify one local generation release, one embedding release, and their provider metadata for a customer-declared Cherry Studio desktop matrix.
+   Open gates: outreach-not-authorized, customer-relationship-unestablished, application-revision-not-pinned, acceptance-suite-not-authorized, paid-production-release-unestablished, customer-fleet-receipts-missing, subsequent-upgrade-unestablished
+4. **Chatbox** — backup; research-candidate
+   Pilot: Qualify one knowledge-base release with authentic embedding, reranking, and provider declarations in the Chatbox desktop application.
+   Open gates: outreach-not-authorized, customer-relationship-unestablished, application-revision-not-pinned, acceptance-suite-not-authorized, paid-production-release-unestablished, customer-fleet-receipts-missing, subsequent-upgrade-unestablished
+5. **AFFiNE** — later; research-candidate
+   Pilot: Hold AFFiNE as a later document-intelligence prospect until a consequential local-model release and its application acceptance boundary are confirmed by the application owner.
+   Open gates: outreach-not-authorized, consequential-local-model-release-not-confirmed, customer-relationship-unestablished, application-revision-not-pinned, acceptance-suite-not-authorized, paid-production-release-unestablished, customer-fleet-receipts-missing, subsequent-upgrade-unestablished
+TAP version 13
+# electron-design-partner-prospects.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.986133
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 97.105608
+[node-tests] ok: tests/config/electron-design-partner-prospects.test.js
+[node-tests] ok: 1 files
+[node-tests] script: product:readiness:check
+TAP version 13
+# product-readiness-report.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.121426
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 229.970547
+[node-tests] ok: tests/tooling/product-readiness-report.test.js
+[node-tests] ok: 1 files
+[node-tests] script: revocations:check
+[revocations] valid (0 active; signature verification unavailable)
+TAP version 13
+# quickstart-registry-sync.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.061634
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 114.006189
+[node-tests] ok: tests/config/quickstart-registry-sync.test.js
+TAP version 13
+# revocation-policy.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.710157
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 261.049537
+[node-tests] ok: tests/config/revocation-policy.test.js
+TAP version 13
+# signed-revocation-updates.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.068157
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 332.997986
+[node-tests] ok: tests/config/signed-revocation-updates.test.js
+[node-tests] ok: 3 files
+[node-tests] script: revocations:authority:check
+signed-revocation-authority: contract ok (0 qualified, 1 candidates)
+TAP version 13
+# signed-revocation-authority-qualification.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.134811
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 133.070344
+[node-tests] ok: tests/config/signed-revocation-authority-qualification.test.js
+TAP version 13
+# record-signed-revocation-authority-evaluation.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.106408
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 164.806525
+[node-tests] ok: tests/tooling/record-signed-revocation-authority-evaluation.test.js
+[node-tests] ok: 2 files
+[node-tests] script: product:integrations:check
+product-integration-qualification: contract ok, gate satisfied (3/3 qualified; 0 candidates; missing none)
+TAP version 13
+# product-integration-qualification.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.138297
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 141.550326
+[node-tests] ok: tests/config/product-integration-qualification.test.js
+TAP version 13
+# product-integration-evidence.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.954474
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 101.961553
+[node-tests] ok: tests/tooling/product-integration-evidence.test.js
+TAP version 13
+# record-product-integration-evaluation.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.139139
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 170.930867
+[node-tests] ok: tests/tooling/record-product-integration-evaluation.test.js
+[node-tests] ok: 3 files
+[node-tests] script: provider:conformance:check
+provider-conformance: contract ok, gate incomplete (0/3 qualified; 3 candidates; missing generation, embedding, reranking)
+TAP version 13
+# provider-conformance.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.136675
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 153.217268
+[node-tests] ok: tests/config/provider-conformance.test.js
+TAP version 13
+# record-provider-conformance.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.13412
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 149.970239
+[node-tests] ok: tests/tooling/record-provider-conformance.test.js
+[node-tests] ok: 2 files
+[node-tests] script: runtime:ownership:check
+runtime-ownership: contract ok, gate incomplete (0/3 qualified; 3 candidates; missing generation, embedding, reranking)
+TAP version 13
+# runtime-ownership-decisions.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.298708
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 183.36908
+[node-tests] ok: tests/config/runtime-ownership-decisions.test.js
+TAP version 13
+# record-runtime-ownership-evaluation.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.189383
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 179.049155
+[node-tests] ok: tests/tooling/record-runtime-ownership-evaluation.test.js
+TAP version 13
+# runtime-ownership-execution-evidence.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.44993
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 107.455197
+[node-tests] ok: tests/tooling/runtime-ownership-execution-evidence.test.js
+[node-tests] ok: 3 files
+[node-tests] script: runtime:closure:check
+Capsule runtime closure passed: 64 files, 600766 source bytes.
+[node-tests] script: public:boundaries:check
+npm package unpacked-size budget exceeded: 10907921 > 10906744
+[node-tests] public:boundaries:check failed: exit 1

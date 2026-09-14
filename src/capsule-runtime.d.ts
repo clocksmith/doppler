@@ -3,6 +3,9 @@ export { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validat
 export type { GenerationInput, GenerationOptions, ResolvedGenerationOptions, GenerationOutput, GenerationCompletion } from './config/generation-contract.js';
 export { createDopplerRuntime, createForecastProgramFactory, RUNTIME_CORE_VERSION } from './client/runtime/composition-root.js';
 export { createFetchCapsuleArtifactStore } from './client/runtime/fetch-capsule-artifact-store.js';
+export { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from './client/runtime/capsule-operation-stream.js';
+export type { CapsuleOperationRequest } from './config/capsule-operation.js';
+export type { CapsuleOperationEvent } from './client/runtime/capsule-operation-executor.js';
 
 import type { DopplerCapsule } from './config/capsule.js';
 import type {

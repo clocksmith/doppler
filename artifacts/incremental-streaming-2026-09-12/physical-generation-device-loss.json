@@ -1,0 +1,840 @@
+{
+  "schema": "doppler.installed-capabilities-acceptance-result/v1",
+  "passed": false,
+  "startedAtUtc": "2026-09-13T03:43:10.944Z",
+  "package": {
+    "filename": "doppler-gpu-0.6.1.tgz",
+    "version": "0.6.1",
+    "integrity": "sha512-kbG1aE2ze+K8CcjTJnYHs9t9dDq8yGaNUW2Bemei7Ic7aUsOAYDfPXMv4SEYy2o8eNhzBxEMEOtJpGtdOrYxLg==",
+    "sizeBytes": 2115842,
+    "source": "local-npm-pack",
+    "sha256": "fc84bf3f6cd97d197d0e14be7a606bb1b5165ab98852b13f4c29d5569bcdf33c"
+  },
+  "config": {
+    "schema": "doppler.installed-capabilities-acceptance/v1",
+    "bundleRoot": "/dev/shm/doppler-consumer-streaming-20260912/streaming-candidate-4",
+    "outputDir": "/dev/shm/doppler-consumer-streaming-20260912/physical-streaming-generation-3",
+    "requiredVendor": "amd",
+    "timeoutMs": 300000,
+    "channel": "chrome",
+    "temporaryDirectory": "/dev/shm/doppler-consumer-streaming-20260912",
+    "launchArgs": [
+      "--enable-unsafe-webgpu",
+      "--enable-webgpu-developer-features",
+      "--disable-dawn-features=disallow_unsafe_apis",
+      "--ignore-gpu-blocklist",
+      "--use-angle=vulkan",
+      "--enable-features=Vulkan",
+      "--disable-vulkan-surface",
+      "--enable-precise-memory-info"
+    ],
+    "models": [
+      {
+        "capsuleRoot": "/var/tmp/reploid-qwen4b-source-20260908/capsule-evidence-closed-development/distribution",
+        "capsuleFile": "capsule.json",
+        "descriptor": {
+          "schema": "doppler.capability-example/v1",
+          "openOptions": {
+            "trustedSigners": {
+              "reploid-local-document-development-2026-09": {
+                "crv": "Ed25519",
+                "x": "Do-kZ0thJNiifDklaYkfV1pse44FaBrdtBcDpKBMAdA",
+                "kty": "OKP"
+              }
+            },
+            "acceptedTargetPlanDigests": [
+              "sha256:60711a3c83b882d015343cc07f5a942825456acc93ad0d15dddf6877c8b9a5e6"
+            ]
+          },
+          "maxDurationMs": 300000,
+          "request": {
+            "schema": "doppler.capsule-operation-request/v2",
+            "operation": {
+              "name": "generate",
+              "version": 1
+            },
+            "input": {
+              "promptTokens": [
+                151644,
+                872,
+                198,
+                28959,
+                279,
+                5904,
+                4362,
+                311,
+                4226,
+                1449,
+                949,
+                315,
+                279,
+                3405,
+                13,
+                5443,
+                19119,
+                4128,
+                8660,
+                323,
+                8830,
+                15057,
+                504,
+                279,
+                17221,
+                2266,
+                26,
+                458,
+                4734,
+                3409,
+                2432,
+                1948,
+                279,
+                3405,
+                323,
+                5904,
+                374,
+                537,
+                2567,
+                13,
+                5443,
+                1172,
+                279,
+                48826,
+                46769,
+                11,
+                26625,
+                1105,
+                438,
+                23237,
+                821,
+                4751,
+                1091,
+                11221,
+                624,
+                5598,
+                825,
+                4718,
+                1633,
+                448,
+                6896,
+                825,
+                330,
+                18252,
+                1,
+                1334,
+                13,
+                8886,
+                949,
+                702,
+                6896,
+                1493,
+                5043,
+                510,
+                12,
+                330,
+                7841,
+                788,
+                279,
+                949,
+                315,
+                279,
+                4024,
+                3405,
+                1660,
+                18577,
+                624,
+                12,
+                330,
+                68,
+                27480,
+                788,
+                458,
+                1334,
+                315,
+                6171,
+                448,
+                330,
+                6385,
+                424,
+                1,
+                320,
+                64,
+                21085,
+                1372,
+                8,
+                323,
+                330,
+                2949,
+                1,
+                320,
+                603,
+                476,
+                803,
+                4583,
+                22870,
+                21774,
+                6896,
+                504,
+                429,
+                21085,
+                4292,
+                12,
+                330,
+                2829,
+                788,
+                6896,
+                825,
+                315,
+                330,
+                18216,
+                497,
+                330,
+                16088,
+                497,
+                476,
+                330,
+                6135,
+                21242,
+                3263,
+                5443,
+                330,
+                16088,
+                1,
+                1172,
+                421,
+                902,
+                21085,
+                11253,
+                429,
+                949,
+                11,
+                448,
+                4287,
+                5904,
+                13,
+                5443,
+                330,
+                6135,
+                21242,
+                1,
+                421,
+                279,
+                46769,
+                2968,
+                52824,
+                11253,
+                311,
+                429,
+                949,
+                11,
+                2670,
+                1817,
+                51033,
+                4226,
+                448,
+                1181,
+                1828,
+                5904,
+                2041,
+                18774,
+                264,
+                13632,
+                13,
+                18214,
+                990,
+                330,
+                18216,
+                497,
+                448,
+                2477,
+                3194,
+                5904,
+                624,
+                22283,
+                678,
+                7248,
+                5479,
+                1496,
+                421,
+                1008,
+                5479,
+                525,
+                9788,
+                13,
+                29734,
+                279,
+                5904,
+                369,
+                1449,
+                2567,
+                1917,
+                476,
+                2971,
+                11,
+                537,
+                1101,
+                458,
+                2856,
+                28674,
+                624,
+                785,
+                3766,
+                686,
+                3042,
+                279,
+                4091,
+                2530,
+                22870,
+                448,
+                862,
+                21085,
+                51846,
+                11,
+                20975,
+                1895,
+                264,
+                12055,
+                979,
+                2639,
+                374,
+                330,
+                6135,
+                21242,
+                497,
+                323,
+                1473,
+                279,
+                4734,
+                9788,
+                476,
+                62844,
+                2939,
+                1943,
+                13,
+                3155,
+                537,
+                3270,
+                264,
+                8651,
+                1590,
+                4226,
+                13,
+                3411,
+                1172,
+                4718,
+                11,
+                2041,
+                50494,
+                69155,
+                382,
+                12187,
+                1134,
+                510,
+                58,
+                16,
+                60,
+                63169,
+                1614,
+                26757,
+                525,
+                9768,
+                304,
+                279,
+                6929,
+                594,
+                6238,
+                65277,
+                1034,
+                1849,
+                13,
+                74205,
+                26757,
+                525,
+                10067,
+                1573,
+                25978,
+                382,
+                14582,
+                25,
+                10967,
+                525,
+                20579,
+                26757,
+                9768,
+                11,
+                323,
+                1246,
+                1753,
+                13364,
+                3550,
+                374,
+                19323,
+                30,
+                151645,
+                198,
+                151644,
+                77091,
+                198
+              ]
+            },
+            "options": {
+              "maxTokens": 16,
+              "maxSeqLen": 4096,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "repetitionPenalty": 1,
+              "repetitionPenaltyWindow": 0,
+              "presencePenalty": 0,
+              "useChatTemplate": false,
+              "seed": 0
+            },
+            "assignment": null,
+            "limits": {
+              "maxInputBytes": 100000,
+              "maxOutputBytes": 1000000
+            }
+          }
+        },
+        "expectedTokenIds": [
+          515,
+          220,
+          330,
+          18252,
+          788,
+          2278,
+          262,
+          341,
+          414,
+          330,
+          7841,
+          788,
+          330,
+          9064,
+          525,
+          20579
+        ]
+      }
+    ],
+    "consumer": "standalone",
+    "adapterProbe": {
+      "attempts": 3,
+      "retryDelayMs": 100
+    }
+  },
+  "results": [
+    {
+      "passed": false,
+      "operation": "generate",
+      "error": {
+        "message": "page.evaluate: Error: [DOPPLER_GPU_DEVICE_LOST] Capsule session GPU device lost (unknown): vkQueueSubmit failed with VK_ERROR_DEVICE_LOST\n    at CheckVkSuccessImpl (../../third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:104)\n. Close this session and explicitly reopen on a new device.\n    at CheckVkSuccessImpl (../../third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:104)\n. Close this session and explicitly reopen on a new device.\n    at createDopplerError (http://127.0.0.1:46815/node_modules/doppler-gpu/src/errors/doppler-error.js:54:17)\n    at lost (http://127.0.0.1:46815/node_modules/doppler-gpu/src/client/runtime/resource-binder.js:11:19)",
+        "stack": "page.evaluate: Error: [DOPPLER_GPU_DEVICE_LOST] Capsule session GPU device lost (unknown): vkQueueSubmit failed with VK_ERROR_DEVICE_LOST\n    at CheckVkSuccessImpl (../../third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:104)\n. Close this session and explicitly reopen on a new device.\n    at CheckVkSuccessImpl (../../third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:104)\n. Close this session and explicitly reopen on a new device.\n    at createDopplerError (http://127.0.0.1:46815/node_modules/doppler-gpu/src/errors/doppler-error.js:54:17)\n    at lost (http://127.0.0.1:46815/node_modules/doppler-gpu/src/client/runtime/resource-binder.js:11:19)\n    at /home/x/deco/worktrees/doppler-consumer-streaming/tools/check-installed-capabilities.js:87:33"
+      }
+    }
+  ],
+  "logs": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "log",
+      "text": "[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 1.3ms"
+    },
+    {
+      "type": "log",
+      "text": "[150720.0ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)"
+    },
+    {
+      "type": "log",
+      "text": "[150720.4ms][Config] Using manifest-first config (source of truth)"
+    },
+    {
+      "type": "log",
+      "text": "[150724.7ms][Pipeline] Resolved session applied (qwen-3-4b-instruct-2507-f16-af32-closed-development): batchSize=4, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false"
+    },
+    {
+      "type": "log",
+      "text": "[150725.4ms][Pipeline] KernelPath: qwen-3-4b-instruct-2507-f16-af32-closed-development-execution-inline (15 decode steps, 10 kernels, source=execution-v1)"
+    },
+    {
+      "type": "log",
+      "text": "[150725.6ms][Pipeline] 36L/2560H/32heads (128dim), kernelPath=qwen-3-4b-instruct-2507-f16-af32-closed-development-execution-inline"
+    },
+    {
+      "type": "log",
+      "text": "[150726.0ms][Tokenizer] Loading bundled tokenizer from tokenizer.json"
+    },
+    {
+      "type": "log",
+      "text": "[150788.5ms][Tokenizer] HuggingFace model.type=\"BPE\", using type=\"bpe\""
+    },
+    {
+      "type": "log",
+      "text": "[150841.8ms][Tokenizer] Loaded HuggingFace 151669 tokens (bpe), 26 special patterns, 151387 merges"
+    },
+    {
+      "type": "log",
+      "text": "[150842.0ms][Pipeline] Tokenizer vocabSize=151669 differs from model=151936, using model size"
+    },
+    {
+      "type": "log",
+      "text": "[150842.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=8192"
+    },
+    {
+      "type": "log",
+      "text": "[150843.2ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-4b-instruct-2507-f16-af32-closed-development-execution-inline"
+    },
+    {
+      "type": "log",
+      "text": "[150860.3ms][ShardCache] Custom shard loader configured"
+    },
+    {
+      "type": "log",
+      "text": "[150860.7ms][Loader] Initializing..."
+    },
+    {
+      "type": "log",
+      "text": "[150919.5ms][HeapManager] Allocated segment 0: 1024MB"
+    },
+    {
+      "type": "log",
+      "text": "[150919.8ms][HeapManager] Segmented heap: 1GB per segment"
+    },
+    {
+      "type": "log",
+      "text": "[150919.8ms][HeapManager] Initialized with strategy: SEGMENTED"
+    },
+    {
+      "type": "log",
+      "text": "[150920.0ms][Loader] Initialized (f16, subgroups)"
+    },
+    {
+      "type": "log",
+      "text": "[150920.4ms][Loader] Loading: qwen-3-4b-instruct-2507-f16-af32-closed-development"
+    },
+    {
+      "type": "log",
+      "text": "[150921.2ms][Loader] [0.0s] Memory (start): | Heap=9.53 GB/9.53 GB (limit=4.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "type": "warning",
+      "text": "[150921.8ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model."
+    },
+    {
+      "type": "log",
+      "text": "[150923.9ms][Loader] Embedding \"model.embed_tokens.weight\" GPU-resident: shouldStreamLargeWeight returned false."
+    },
+    {
+      "type": "log",
+      "text": "[152470.8ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[151936,2560], isWeightBuffer=true"
+    },
+    {
+      "type": "log",
+      "text": "[152471.2ms][Loader] Layers: 0-35"
+    },
+    {
+      "type": "log",
+      "text": "[168753.6ms][Loader] Layers: 36 complete (16.28s)"
+    },
+    {
+      "type": "log",
+      "text": "[168754.8ms][Loader] Complete: 7.49 GB in 17.83s (430.29 MB/s)"
+    },
+    {
+      "type": "log",
+      "text": "[168755.1ms][Loader] [17.8s] Memory (complete): | Heap=8.59 GB/8.59 GB (limit=4.00 GB) | GPU=7.49 GB (434 active, 0 pooled, peak=7.49 GB) | ShardCache=0 B (0 shards) | Layers=36, GPUBuffers=434"
+    },
+    {
+      "type": "log",
+      "text": "[168834.0ms][Pipeline] Model loaded successfully (18116ms)"
+    },
+    {
+      "type": "log",
+      "text": "[168922.6ms][KernelSelect] matmul variant=f16w_f32a reason=path_override"
+    },
+    {
+      "type": "log",
+      "text": "[168938.8ms][KernelSelect] attention variant=prefill_streaming_f16kv reason=path_override:streaming"
+    },
+    {
+      "type": "warning",
+      "text": "vkQueueSubmit failed with VK_ERROR_DEVICE_LOST\n    at CheckVkSuccessImpl (../../third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:104)\n"
+    },
+    {
+      "type": "error",
+      "text": "[171047.0ms][GPU] Device lost: vkQueueSubmit failed with VK_ERROR_DEVICE_LOST\n    at CheckVkSuccessImpl (../../third_party/dawn/src/dawn/native/vulkan/VulkanError.cpp:104)\n, Reason: unknown"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.0ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.0ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.0ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.0ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.0ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.0ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.0ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.0ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.1ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.1ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.2ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.2ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.2ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.2ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.2ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.2ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.3ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.3ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.3ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.3ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.3ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.3ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.3ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.3ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.4ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.4ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.4ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.4ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.4ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.4ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.4ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.4ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.4ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.5ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.5ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.5ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.5ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.5ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.5ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.5ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.5ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.6ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.6ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.6ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.6ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.6ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.6ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.6ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.6ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.6ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.6ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.6ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.7ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.7ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.7ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.7ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.7ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.8ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.8ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.8ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.8ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.8ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.8ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.8ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "warning",
+      "text": "[171048.8ms][BufferPool] Releasing buffer not tracked as active"
+    },
+    {
+      "type": "log",
+      "text": "[171050.8ms][ExpertCache] Cache cleared"
+    },
+    {
+      "type": "log",
+      "text": "[171052.2ms][Pipeline] Unloaded"
+    }
+  ],
+  "scope": "Physical local browser execution of retained models; no new model or fleet qualification.",
+  "browserVersion": "146.0.7680.177",
+  "cleanupErrors": [],
+  "completedAtUtc": "2026-09-13T03:46:02.468Z"
+}

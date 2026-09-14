@@ -1,0 +1,3 @@
+[95.0ms][GPU] Device lost: current device lost, Reason: destroyed
+[98.2ms][GPU] Device lost: current device lost, Reason: destroyed
+device-buffer-pool-epoch.test: ok

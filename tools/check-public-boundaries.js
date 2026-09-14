@@ -43,7 +43,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Exporting the existing OPFS backend adds its declaration to the public closure.
   // Public generation contract and shared scalar sampler: measured 1784 files.
   // Evidence: artifacts/generation-contract-2026-09-08/package-audit.json.
-  maxEntryCount: 1784,
+  // Versioned incremental streaming adds five shipped files. Exact candidate
+  // inventory: artifacts/incremental-streaming-2026-09-12/current-package-audit.json.
+  maxEntryCount: 1789,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -61,14 +63,23 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Independent full-prompt reset adds 86 bytes in the existing decode runtime.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/prompt-reset-package-audit.json.
   // Measured npm 9: 2,112,518 packed; retain the observed 2,158-byte npm allowance.
-  maxPackedSize: 2_114_676,
+  // Before browser-export repair, remote Node 22/npm 10 packed 2,118,944 bytes.
+  // The repaired archive measures 2,115,842 on npm 9 and 2,118,939 on Node
+  // 22.23.2/npm 10.9.8. Both inventories and the initial failure are retained.
+  // The shared-device generation guard adds 223 bytes in the existing GPU module.
+  // Node 22.23.2/npm 10.9.8: artifacts/incremental-streaming-2026-09-12/shared-pool-package.json.
+  maxPackedSize: 2_119_045,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
   // Sequence classification, public OPFS, retention, and device recovery: measured npm 9 archive.
   // GPU logits probe forwarding and failure cleanup add 192 bytes, no files.
   // Evidence: artifacts/f16-conversion-rounding-2026-09-07/probe-package-audit.json.
-  maxUnpackedSize: 10_883_449,
+  // Baseline 6734945b: 1,784 files / 10,885,029 unpacked bytes. Existing stats
+  // and benchmark-observation changes preceded installed-consumer work; its
+  // application fixtures remain outside the package. The archive inventory is
+  // retained in artifacts/installed-consumers-2026-09-12/candidate/npm-pack.json.
+  maxUnpackedSize: 10_906_744,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -95,6 +106,7 @@ const FILE_RULES = [
       './client/runtime/composition-root.js',
       './client/runtime/fetch-capsule-artifact-store.js',
       './client/runtime/capsule-forecast-program.js',
+      './client/runtime/capsule-operation-stream.js',
     ]),
     forbidden: [
       'export * from',
@@ -116,10 +128,13 @@ const FILE_RULES = [
       './version.js',
       './config/generation-contract.js',
       './config/capsule.js',
+      './config/capsule-operation.js',
       './client/runtime/composition-root.js',
       './client/runtime/fetch-capsule-artifact-store.js',
       './client/runtime/capsule-forecast-program.js',
       './client/runtime/capsule-rerank.js',
+      './client/runtime/capsule-operation-stream.js',
+      './client/runtime/capsule-operation-executor.js',
     ]),
     forbidden: [
       'export * from',
@@ -137,7 +152,7 @@ const FILE_RULES = [
   },
   {
     file: 'src/index.js',
-    allowed: new Set(['./version.js', './client/doppler-api.js', './client/provider.js', './config/generation-contract.js']),
+    allowed: new Set(['./version.js', './client/doppler-api.js', './client/provider.js', './config/generation-contract.js', './client/runtime/capsule-operation-stream.js']),
     forbidden: [
       'export * from',
       './tooling-exports',
@@ -154,7 +169,7 @@ const FILE_RULES = [
   },
   {
     file: 'src/index.d.ts',
-    allowed: new Set(['./version.js', './client/doppler-api.js', './client/provider.js', './config/generation-contract.js']),
+    allowed: new Set(['./version.js', './client/doppler-api.js', './client/provider.js', './config/generation-contract.js', './client/runtime/capsule-operation-stream.js']),
     forbidden: [
       'export * from',
       './tooling-exports',

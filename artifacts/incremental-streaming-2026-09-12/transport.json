@@ -1,0 +1,381 @@
+{
+  "schema": "doppler.stream-transport-experiment/v1",
+  "createdAt": "2026-09-13T03:09:37.366Z",
+  "sourceRevision": "67b3053bb4ee19075447382e5714fb86df34fe20",
+  "sourceStatus": "M src/.npmignore\n M src/capsule-runtime.d.ts\n M src/capsule-runtime.js\n M src/client/capsule-host.d.ts\n M src/client/capsule-host.js\n M src/client/model-host/model-session.d.ts\n M src/client/model-host/model-session.js\n M src/client/runtime/capsule-operation-adapters.d.ts\n M src/client/runtime/capsule-operation-adapters.js\n M src/client/runtime/capsule-operation-executor.d.ts\n M src/client/runtime/capsule-operation-executor.js\n M src/client/runtime/capsule-program-adapter.d.ts\n M src/client/runtime/capsule-program-adapter.js\n M src/client/runtime/composition-root.js\n M src/client/runtime/session-controller.d.ts\n M src/client/runtime/session-controller.js\n M src/config/capsule-operation.d.ts\n M src/config/capsule-operation.js\n M src/config/capsule-operations.json\n M src/index.d.ts\n M src/index.js\n M src/inference/tokenizer.d.ts\n M src/inference/tokenizer.js\n M src/inference/tokenizers/bundled.d.ts\n M src/inference/tokenizers/bundled.js\n M tests/fixtures/packed-embedding-consumer.js\n M tests/fixtures/packed-generation-consumer.js\n?? node_modules\n?? src/client/runtime/capsule-operation-deltas.d.ts\n?? src/client/runtime/capsule-operation-deltas.js\n?? src/client/runtime/capsule-operation-stream.d.ts\n?? src/client/runtime/capsule-operation-stream.js\n?? src/inference/tokenizers/bundled/incremental-decoder.d.ts\n?? src/inference/tokenizers/bundled/incremental-decoder.js\n?? tests/fixtures/capsule-streaming-measurement.json\n?? tests/inference/tokenizer-incremental-decode.test.js\n?? tests/runtime/capsule-incremental-stream.test.js\n?? tools/measure-capsule-streaming.js",
+  "environment": {
+    "node": "v22.22.1",
+    "platform": "linux",
+    "arch": "x64"
+  },
+  "config": {
+    "lengths": [
+      1024,
+      2048,
+      4096
+    ],
+    "repetitions": 3,
+    "samplingInterval": 32768,
+    "deadlineMs": 600000,
+    "maxInputBytes": 10000,
+    "maxOutputBytes": 1000000,
+    "byteGrowthTolerance": 1.1
+  },
+  "semantics": {
+    "workload": "Synthetic ASCII token IDs; actual bundled decoding, operation adapters/executor, JSON wire, integrity and reconstruction helper. No GPU work.",
+    "copiedVolume": "Partial token-ID elements and UTF-8 text bytes carried by output snapshots or deltas; logical payload counts, not total engine memory copies.",
+    "allocations": "Separate V8 sampling estimates include temporary and collected allocations. Producer includes serialization; consumer includes parsing. Noisy estimates, not exact allocated bytes.",
+    "cpu": "Process CPU medians; producer execution, JSON serialization and parsing plus consumer verification measured separately. v1 verifier checks chain/final hashes; v2 additionally reconstructs deltas.",
+    "transport": "In-process JSON transfer, no HTTP, WebRTC, signing or durable storage timing."
+  },
+  "results": [
+    {
+      "version": 1,
+      "length": 1024,
+      "runs": [
+        {
+          "producerCpuMs": 142.014,
+          "serializationCpuMs": 11.761,
+          "consumerCpuMs": 95.86999999999998,
+          "emittedBytes": 2066994,
+          "partialTokenIdElements": 524800,
+          "partialTextUtf8Bytes": 524800,
+          "eventCount": 1025,
+          "elapsedMs": 237.011347,
+          "canonicalDecodeIds": 525824,
+          "incrementalDecodeIds": 0
+        },
+        {
+          "producerCpuMs": 136.58300000000006,
+          "serializationCpuMs": 12.636000000000017,
+          "consumerCpuMs": 97.12800000000023,
+          "emittedBytes": 2066994,
+          "partialTokenIdElements": 524800,
+          "partialTextUtf8Bytes": 524800,
+          "eventCount": 1025,
+          "elapsedMs": 235.75050299999998,
+          "canonicalDecodeIds": 525824,
+          "incrementalDecodeIds": 0
+        },
+        {
+          "producerCpuMs": 138.38800000000012,
+          "serializationCpuMs": 15.044999999999998,
+          "consumerCpuMs": 97.86900000000004,
+          "emittedBytes": 2066994,
+          "partialTokenIdElements": 524800,
+          "partialTextUtf8Bytes": 524800,
+          "eventCount": 1025,
+          "elapsedMs": 235.10552700000005,
+          "canonicalDecodeIds": 525824,
+          "incrementalDecodeIds": 0
+        }
+      ],
+      "medians": {
+        "producerCpuMs": 138.38800000000012,
+        "serializationCpuMs": 12.636000000000017,
+        "consumerCpuMs": 97.12800000000023,
+        "emittedBytes": 2066994,
+        "partialTokenIdElements": 524800,
+        "partialTextUtf8Bytes": 524800,
+        "eventCount": 1025,
+        "elapsedMs": 235.75050299999998,
+        "canonicalDecodeIds": 525824,
+        "incrementalDecodeIds": 0
+      },
+      "sampledAllocationBytes": {
+        "producerIncludingSerialization": 307105752,
+        "consumerIncludingParsing": 213017832
+      }
+    },
+    {
+      "version": 1,
+      "length": 2048,
+      "runs": [
+        {
+          "producerCpuMs": 487.5669999999995,
+          "serializationCpuMs": 43.638999999999584,
+          "consumerCpuMs": 350.39199999999994,
+          "emittedBytes": 7279666,
+          "partialTokenIdElements": 2098176,
+          "partialTextUtf8Bytes": 2098176,
+          "eventCount": 2049,
+          "elapsedMs": 858.7761260000002,
+          "canonicalDecodeIds": 2100224,
+          "incrementalDecodeIds": 0
+        },
+        {
+          "producerCpuMs": 484.5039999999999,
+          "serializationCpuMs": 45.64799999999965,
+          "consumerCpuMs": 352.7960000000006,
+          "emittedBytes": 7279666,
+          "partialTokenIdElements": 2098176,
+          "partialTextUtf8Bytes": 2098176,
+          "eventCount": 2049,
+          "elapsedMs": 867.968367,
+          "canonicalDecodeIds": 2100224,
+          "incrementalDecodeIds": 0
+        },
+        {
+          "producerCpuMs": 474.3690000000006,
+          "serializationCpuMs": 43.23399999999964,
+          "consumerCpuMs": 348.1420000000002,
+          "emittedBytes": 7279666,
+          "partialTokenIdElements": 2098176,
+          "partialTextUtf8Bytes": 2098176,
+          "eventCount": 2049,
+          "elapsedMs": 856.501393,
+          "canonicalDecodeIds": 2100224,
+          "incrementalDecodeIds": 0
+        }
+      ],
+      "medians": {
+        "producerCpuMs": 484.5039999999999,
+        "serializationCpuMs": 43.638999999999584,
+        "consumerCpuMs": 350.39199999999994,
+        "emittedBytes": 7279666,
+        "partialTokenIdElements": 2098176,
+        "partialTextUtf8Bytes": 2098176,
+        "eventCount": 2049,
+        "elapsedMs": 858.7761260000002,
+        "canonicalDecodeIds": 2100224,
+        "incrementalDecodeIds": 0
+      },
+      "sampledAllocationBytes": {
+        "producerIncludingSerialization": 1173736488,
+        "consumerIncludingParsing": 768421640
+      }
+    },
+    {
+      "version": 1,
+      "length": 4096,
+      "runs": [
+        {
+          "producerCpuMs": 1820.800999999997,
+          "serializationCpuMs": 170.81600000000032,
+          "consumerCpuMs": 1385.5010000000018,
+          "emittedBytes": 27142194,
+          "partialTokenIdElements": 8390656,
+          "partialTextUtf8Bytes": 8390656,
+          "eventCount": 4097,
+          "elapsedMs": 3323.693263,
+          "canonicalDecodeIds": 8394752,
+          "incrementalDecodeIds": 0
+        },
+        {
+          "producerCpuMs": 1781.0520000000029,
+          "serializationCpuMs": 165.83599999999916,
+          "consumerCpuMs": 1355.5169999999976,
+          "emittedBytes": 27142194,
+          "partialTokenIdElements": 8390656,
+          "partialTextUtf8Bytes": 8390656,
+          "eventCount": 4097,
+          "elapsedMs": 3275.9615009999998,
+          "canonicalDecodeIds": 8394752,
+          "incrementalDecodeIds": 0
+        },
+        {
+          "producerCpuMs": 1795.745999999995,
+          "serializationCpuMs": 171.12300000000042,
+          "consumerCpuMs": 1364.348999999997,
+          "emittedBytes": 27142194,
+          "partialTokenIdElements": 8390656,
+          "partialTextUtf8Bytes": 8390656,
+          "eventCount": 4097,
+          "elapsedMs": 3300.686748,
+          "canonicalDecodeIds": 8394752,
+          "incrementalDecodeIds": 0
+        }
+      ],
+      "medians": {
+        "producerCpuMs": 1795.745999999995,
+        "serializationCpuMs": 170.81600000000032,
+        "consumerCpuMs": 1364.348999999997,
+        "emittedBytes": 27142194,
+        "partialTokenIdElements": 8390656,
+        "partialTextUtf8Bytes": 8390656,
+        "eventCount": 4097,
+        "elapsedMs": 3300.686748,
+        "canonicalDecodeIds": 8394752,
+        "incrementalDecodeIds": 0
+      },
+      "sampledAllocationBytes": {
+        "producerIncludingSerialization": 4614512744,
+        "consumerIncludingParsing": 2993374656
+      }
+    },
+    {
+      "version": 2,
+      "length": 1024,
+      "runs": [
+        {
+          "producerCpuMs": 37.87099999999961,
+          "serializationCpuMs": 5.335999999999864,
+          "consumerCpuMs": 46.98500000000048,
+          "emittedBytes": 472285,
+          "partialTokenIdElements": 1024,
+          "partialTextUtf8Bytes": 1024,
+          "eventCount": 1025,
+          "elapsedMs": 57.56874299999981,
+          "canonicalDecodeIds": 0,
+          "incrementalDecodeIds": 1024
+        },
+        {
+          "producerCpuMs": 33.09500000000006,
+          "serializationCpuMs": 3.3789999999998823,
+          "consumerCpuMs": 31.5980000000001,
+          "emittedBytes": 472285,
+          "partialTokenIdElements": 1024,
+          "partialTextUtf8Bytes": 1024,
+          "eventCount": 1025,
+          "elapsedMs": 46.43983500000104,
+          "canonicalDecodeIds": 0,
+          "incrementalDecodeIds": 1024
+        },
+        {
+          "producerCpuMs": 25.317000000000178,
+          "serializationCpuMs": 3.140999999999989,
+          "consumerCpuMs": 20.118000000000098,
+          "emittedBytes": 472285,
+          "partialTokenIdElements": 1024,
+          "partialTextUtf8Bytes": 1024,
+          "eventCount": 1025,
+          "elapsedMs": 45.58352300000115,
+          "canonicalDecodeIds": 0,
+          "incrementalDecodeIds": 1024
+        }
+      ],
+      "medians": {
+        "producerCpuMs": 33.09500000000006,
+        "serializationCpuMs": 3.3789999999998823,
+        "consumerCpuMs": 31.5980000000001,
+        "emittedBytes": 472285,
+        "partialTokenIdElements": 1024,
+        "partialTextUtf8Bytes": 1024,
+        "eventCount": 1025,
+        "elapsedMs": 46.43983500000104,
+        "canonicalDecodeIds": 0,
+        "incrementalDecodeIds": 1024
+      },
+      "sampledAllocationBytes": {
+        "producerIncludingSerialization": 30828392,
+        "consumerIncludingParsing": 30249016
+      }
+    },
+    {
+      "version": 2,
+      "length": 2048,
+      "runs": [
+        {
+          "producerCpuMs": 78.76600000000094,
+          "serializationCpuMs": 9.860000000000037,
+          "consumerCpuMs": 64.72500000000068,
+          "emittedBytes": 944349,
+          "partialTokenIdElements": 2048,
+          "partialTextUtf8Bytes": 2048,
+          "eventCount": 2049,
+          "elapsedMs": 96.70659800000067,
+          "canonicalDecodeIds": 0,
+          "incrementalDecodeIds": 2048
+        },
+        {
+          "producerCpuMs": 50.73300000000037,
+          "serializationCpuMs": 6.183999999999739,
+          "consumerCpuMs": 42.34200000000039,
+          "emittedBytes": 944349,
+          "partialTokenIdElements": 2048,
+          "partialTextUtf8Bytes": 2048,
+          "eventCount": 2049,
+          "elapsedMs": 92.91890399999829,
+          "canonicalDecodeIds": 0,
+          "incrementalDecodeIds": 2048
+        },
+        {
+          "producerCpuMs": 51.912000000000006,
+          "serializationCpuMs": 5.788999999999795,
+          "consumerCpuMs": 45.83200000000113,
+          "emittedBytes": 944349,
+          "partialTokenIdElements": 2048,
+          "partialTextUtf8Bytes": 2048,
+          "eventCount": 2049,
+          "elapsedMs": 92.4816920000012,
+          "canonicalDecodeIds": 0,
+          "incrementalDecodeIds": 2048
+        }
+      ],
+      "medians": {
+        "producerCpuMs": 51.912000000000006,
+        "serializationCpuMs": 6.183999999999739,
+        "consumerCpuMs": 45.83200000000113,
+        "emittedBytes": 944349,
+        "partialTokenIdElements": 2048,
+        "partialTextUtf8Bytes": 2048,
+        "eventCount": 2049,
+        "elapsedMs": 92.91890399999829,
+        "canonicalDecodeIds": 0,
+        "incrementalDecodeIds": 2048
+      },
+      "sampledAllocationBytes": {
+        "producerIncludingSerialization": 62956088,
+        "consumerIncludingParsing": 60180648
+      }
+    },
+    {
+      "version": 2,
+      "length": 4096,
+      "runs": [
+        {
+          "producerCpuMs": 120.95300000000199,
+          "serializationCpuMs": 11.30100000000043,
+          "consumerCpuMs": 100.25600000000001,
+          "emittedBytes": 1888477,
+          "partialTokenIdElements": 4096,
+          "partialTextUtf8Bytes": 4096,
+          "eventCount": 4097,
+          "elapsedMs": 182.67677600000025,
+          "canonicalDecodeIds": 0,
+          "incrementalDecodeIds": 4096
+        },
+        {
+          "producerCpuMs": 93.49300000000243,
+          "serializationCpuMs": 10.143000000000043,
+          "consumerCpuMs": 79.40000000000177,
+          "emittedBytes": 1888477,
+          "partialTokenIdElements": 4096,
+          "partialTextUtf8Bytes": 4096,
+          "eventCount": 4097,
+          "elapsedMs": 178.42730400000073,
+          "canonicalDecodeIds": 0,
+          "incrementalDecodeIds": 4096
+        },
+        {
+          "producerCpuMs": 100.48600000000161,
+          "serializationCpuMs": 9.858999999999964,
+          "consumerCpuMs": 86.0330000000014,
+          "emittedBytes": 1888477,
+          "partialTokenIdElements": 4096,
+          "partialTextUtf8Bytes": 4096,
+          "eventCount": 4097,
+          "elapsedMs": 177.5081420000024,
+          "canonicalDecodeIds": 0,
+          "incrementalDecodeIds": 4096
+        }
+      ],
+      "medians": {
+        "producerCpuMs": 100.48600000000161,
+        "serializationCpuMs": 10.143000000000043,
+        "consumerCpuMs": 86.0330000000014,
+        "emittedBytes": 1888477,
+        "partialTokenIdElements": 4096,
+        "partialTextUtf8Bytes": 4096,
+        "eventCount": 4097,
+        "elapsedMs": 178.42730400000073,
+        "canonicalDecodeIds": 0,
+        "incrementalDecodeIds": 4096
+      },
+      "sampledAllocationBytes": {
+        "producerIncludingSerialization": 124692296,
+        "consumerIncludingParsing": 121840648
+      }
+    }
+  ]
+}

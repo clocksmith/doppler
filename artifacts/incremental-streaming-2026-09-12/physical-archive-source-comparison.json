@@ -1,0 +1,10 @@
+{
+  "schema": "doppler.archive-source-comparison/v1",
+  "archiveSha256": "fc84bf3f6cd97d197d0e14be7a606bb1b5165ab98852b13f4c29d5569bcdf33c",
+  "sourceRevision": "d3ab2c571cab0d93d1ea49709035028fe4c1d595",
+  "fileCount": 1789,
+  "matchedFileCount": 1789,
+  "mismatches": [],
+  "fileInventorySha256": "94a3becc358bce74ced2c818371e4ac67a61f285cbc44037217d3b03a286be09",
+  "scope": "All regular archive payload files compared byte-for-byte with this source revision."
+}

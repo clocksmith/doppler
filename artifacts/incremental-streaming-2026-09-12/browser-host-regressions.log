@@ -1,0 +1,104 @@
+TAP version 13
+# [265.5ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [266.6ms][Tokenizer] Loaded HuggingFace 257 tokens (bpe), 1 special patterns, 0 merges
+# capsule-incremental-stream.test: Unicode, stop boundaries, reconstruction, integrity, backpressure, cancellation, limits and embedding deltas passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.672004
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 366.561379
+[node-tests] ok: tests/runtime/capsule-incremental-stream.test.js
+TAP version 13
+# capsule-loading-http.test: ok (real HTTP and signed Capsule; synthetic GPU)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.615187
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 798.551032
+[node-tests] ok: tests/runtime/capsule-loading-http.test.js
+TAP version 13
+# capsule-loading.test: ok (signed metadata; synthetic device)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.727839
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 167.780546
+[node-tests] ok: tests/runtime/capsule-loading.test.js
+TAP version 13
+# Subtest: closing a session waits for its pending readback and preserves another session on the same device
+ok 1 - closing a session waits for its pending readback and preserves another session on the same device
+  ---
+  duration_ms: 35.660014
+  type: 'test'
+  ...
+# Subtest: device loss during readback prevents token delivery and invalidates both sessions
+ok 2 - device loss during readback prevents token delivery and invalidates both sessions
+  ---
+  duration_ms: 8.574641
+  type: 'test'
+  ...
+# Subtest: device loss while a program is being constructed rejects opening and closes the late program
+ok 3 - device loss while a program is being constructed rejects opening and closes the late program
+  ---
+  duration_ms: 4.052774
+  type: 'test'
+  ...
+# Subtest: failed buffer replacement cannot resurrect the released slot
+ok 4 - failed buffer replacement cannot resurrect the released slot
+  ---
+  duration_ms: 0.335982
+  type: 'test'
+  ...
+# Subtest: a failed program-slot release still cleans other slots and closes the program
+ok 5 - a failed program-slot release still cleans other slots and closes the program
+  ---
+  duration_ms: 0.220956
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 6 - test module initialization completed
+  ---
+  duration_ms: 0.039445
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 210.442251
+[node-tests] ok: tests/runtime/capsule-shared-device.test.js
+[node-tests] ok: 4 files

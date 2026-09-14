@@ -1,0 +1,28 @@
+{
+  "runUrl": "https://github.com/clocksmith/doppler/actions/runs/34736606257",
+  "description": "Selected successful gate lines from hosted CI; full log remains at the run.",
+  "lines": [
+    "2026-09-13T03:55:07.4477055Z [node-tests] ok: 9 files",
+    "2026-09-13T03:55:08.4575761Z agent parity check passed",
+    "2026-09-13T03:55:08.6737920Z model family intake check passed: authority=maintainer, base=2b442b52317f6ae27be60cd6c82596cbeda6b264, families=14, newFamilies=0",
+    "2026-09-13T03:55:09.3705036Z [node-tests] ok: 1 files",
+    "2026-09-13T03:55:12.7347245Z [node-tests] ok: 8 files",
+    "2026-09-13T03:55:12.9190851Z [node-tests] ok: 1 files",
+    "2026-09-13T03:55:13.0951146Z [node-tests] ok: 1 files",
+    "2026-09-13T03:55:13.5252410Z [node-tests] ok: 1 files",
+    "2026-09-13T03:55:14.8198011Z [node-tests] ok: 3 files",
+    "2026-09-13T03:55:15.3776659Z [node-tests] ok: 2 files",
+    "2026-09-13T03:55:16.0887647Z [node-tests] ok: 3 files",
+    "2026-09-13T03:55:16.6266875Z [node-tests] ok: 2 files",
+    "2026-09-13T03:55:17.3912715Z [node-tests] ok: 3 files",
+    "2026-09-13T03:55:27.2585807Z public boundary check passed (npm package: 1789 files, 2118939 bytes packed, 10906521 bytes unpacked)",
+    "2026-09-13T03:55:49.1822130Z [node-tests] ok: 3 files",
+    "2026-09-13T03:55:49.6598739Z [node-tests] ok: 2 files",
+    "2026-09-13T03:55:49.6961129Z inference boundary check passed",
+    "2026-09-13T03:55:53.9393736Z source architecture check passed: 21 owners, 2667 files, 0 governed oversize files, 52 reviewed soft-limit files, 25 reviewed generic modules (6 semantic owners, 19 facades, 0 legacy debt)",
+    "2026-09-13T03:55:54.4282019Z browser import graph check passed (src/index-browser.js)",
+    "2026-09-13T03:55:54.8351609Z browser import graph check passed (src/tooling-exports.browser.js)",
+    "2026-09-13T04:02:02.2036787Z [node-tests] ok: 802 files",
+    "2026-09-13T04:02:17.0257751Z Demo controls: sampling, profiles, diagnostics, keyboard, stop, receipts, removal, install handoff, contrast and responsive layouts passed (mocked execution)."
+  ]
+}

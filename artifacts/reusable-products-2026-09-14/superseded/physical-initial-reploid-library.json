@@ -1,0 +1,1430 @@
+{
+  "schema": "doppler.installed-capabilities-acceptance-result/v1",
+  "passed": true,
+  "startedAtUtc": "2026-09-14T21:07:59.921Z",
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-8EtgLQ2pofKjP5RuXX+HeUUZAs8CEnjQmrZ5/tsejzW8jQMP5chGlm3mOOVLifg6cxVuFeCQD2VNU2c70Mi9cA==",
+    "sizeBytes": 2116390,
+    "source": "local-npm-pack",
+    "sha256": "1214e9ef28f457a71f0275e3e27087480bd21ba1bd40adff83f9149edfbe2bd4"
+  },
+  "config": {
+    "schema": "doppler.installed-capabilities-acceptance/v1",
+    "bundleRoot": "/dev/shm/reusable-products-20260914/doppler-062-candidate",
+    "outputDir": "/dev/shm/reusable-products-20260914/physical-062-library",
+    "requiredVendor": "amd",
+    "timeoutMs": 600000,
+    "channel": "chrome",
+    "temporaryDirectory": "/dev/shm/reusable-products-20260914/",
+    "launchArgs": [
+      "--enable-unsafe-webgpu",
+      "--enable-webgpu-developer-features",
+      "--disable-dawn-features=disallow_unsafe_apis",
+      "--ignore-gpu-blocklist",
+      "--use-angle=vulkan",
+      "--enable-features=Vulkan",
+      "--disable-vulkan-surface",
+      "--enable-precise-memory-info"
+    ],
+    "models": [
+      {
+        "capsuleRoot": "/var/tmp/reploid-qwen4b-source-20260908/capsule-evidence-closed-development/distribution",
+        "capsuleFile": "capsule.json",
+        "descriptor": {
+          "schema": "doppler.capability-example/v1",
+          "openOptions": {
+            "trustedSigners": {
+              "reploid-local-document-development-2026-09": {
+                "crv": "Ed25519",
+                "x": "Do-kZ0thJNiifDklaYkfV1pse44FaBrdtBcDpKBMAdA",
+                "kty": "OKP"
+              }
+            },
+            "acceptedTargetPlanDigests": [
+              "sha256:60711a3c83b882d015343cc07f5a942825456acc93ad0d15dddf6877c8b9a5e6"
+            ]
+          },
+          "maxDurationMs": 300000,
+          "request": {
+            "schema": "doppler.capsule-operation-request/v2",
+            "operation": {
+              "name": "generate",
+              "version": 1
+            },
+            "input": {
+              "promptTokens": [
+                151644,
+                872,
+                198,
+                28959,
+                279,
+                5904,
+                4362,
+                311,
+                4226,
+                1449,
+                949,
+                315,
+                279,
+                3405,
+                13,
+                5443,
+                19119,
+                4128,
+                8660,
+                323,
+                8830,
+                15057,
+                504,
+                279,
+                17221,
+                2266,
+                26,
+                458,
+                4734,
+                3409,
+                2432,
+                1948,
+                279,
+                3405,
+                323,
+                5904,
+                374,
+                537,
+                2567,
+                13,
+                5443,
+                1172,
+                279,
+                48826,
+                46769,
+                11,
+                26625,
+                1105,
+                438,
+                23237,
+                821,
+                4751,
+                1091,
+                11221,
+                624,
+                5598,
+                825,
+                4718,
+                1633,
+                448,
+                6896,
+                825,
+                330,
+                18252,
+                1,
+                1334,
+                13,
+                8886,
+                949,
+                702,
+                6896,
+                1493,
+                5043,
+                510,
+                12,
+                330,
+                7841,
+                788,
+                279,
+                949,
+                315,
+                279,
+                4024,
+                3405,
+                1660,
+                18577,
+                624,
+                12,
+                330,
+                68,
+                27480,
+                788,
+                458,
+                1334,
+                315,
+                6171,
+                448,
+                330,
+                6385,
+                424,
+                1,
+                320,
+                64,
+                21085,
+                1372,
+                8,
+                323,
+                330,
+                2949,
+                1,
+                320,
+                603,
+                476,
+                803,
+                4583,
+                22870,
+                21774,
+                6896,
+                504,
+                429,
+                21085,
+                4292,
+                12,
+                330,
+                2829,
+                788,
+                6896,
+                825,
+                315,
+                330,
+                18216,
+                497,
+                330,
+                16088,
+                497,
+                476,
+                330,
+                6135,
+                21242,
+                3263,
+                5443,
+                330,
+                16088,
+                1,
+                1172,
+                421,
+                902,
+                21085,
+                11253,
+                429,
+                949,
+                11,
+                448,
+                4287,
+                5904,
+                13,
+                5443,
+                330,
+                6135,
+                21242,
+                1,
+                421,
+                279,
+                46769,
+                2968,
+                52824,
+                11253,
+                311,
+                429,
+                949,
+                11,
+                2670,
+                1817,
+                51033,
+                4226,
+                448,
+                1181,
+                1828,
+                5904,
+                2041,
+                18774,
+                264,
+                13632,
+                13,
+                18214,
+                990,
+                330,
+                18216,
+                497,
+                448,
+                2477,
+                3194,
+                5904,
+                624,
+                22283,
+                678,
+                7248,
+                5479,
+                1496,
+                421,
+                1008,
+                5479,
+                525,
+                9788,
+                13,
+                29734,
+                279,
+                5904,
+                369,
+                1449,
+                2567,
+                1917,
+                476,
+                2971,
+                11,
+                537,
+                1101,
+                458,
+                2856,
+                28674,
+                624,
+                785,
+                3766,
+                686,
+                3042,
+                279,
+                4091,
+                2530,
+                22870,
+                448,
+                862,
+                21085,
+                51846,
+                11,
+                20975,
+                1895,
+                264,
+                12055,
+                979,
+                2639,
+                374,
+                330,
+                6135,
+                21242,
+                497,
+                323,
+                1473,
+                279,
+                4734,
+                9788,
+                476,
+                62844,
+                2939,
+                1943,
+                13,
+                3155,
+                537,
+                3270,
+                264,
+                8651,
+                1590,
+                4226,
+                13,
+                3411,
+                1172,
+                4718,
+                11,
+                2041,
+                50494,
+                69155,
+                382,
+                12187,
+                1134,
+                510,
+                58,
+                16,
+                60,
+                63169,
+                1614,
+                26757,
+                525,
+                9768,
+                304,
+                279,
+                6929,
+                594,
+                6238,
+                65277,
+                1034,
+                1849,
+                13,
+                74205,
+                26757,
+                525,
+                10067,
+                1573,
+                25978,
+                382,
+                14582,
+                25,
+                10967,
+                525,
+                20579,
+                26757,
+                9768,
+                11,
+                323,
+                1246,
+                1753,
+                13364,
+                3550,
+                374,
+                19323,
+                30,
+                151645,
+                198,
+                151644,
+                77091,
+                198
+              ]
+            },
+            "options": {
+              "maxTokens": 16,
+              "maxSeqLen": 4096,
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "repetitionPenalty": 1,
+              "repetitionPenaltyWindow": 0,
+              "presencePenalty": 0,
+              "useChatTemplate": false,
+              "seed": 0
+            },
+            "assignment": null,
+            "limits": {
+              "maxInputBytes": 100000,
+              "maxOutputBytes": 1000000
+            }
+          }
+        },
+        "expectedTokenIds": [
+          515,
+          220,
+          330,
+          18252,
+          788,
+          2278,
+          262,
+          341,
+          414,
+          330,
+          7841,
+          788,
+          330,
+          9064,
+          525,
+          20579
+        ]
+      }
+    ],
+    "consumer": "reploid-library",
+    "adapterProbe": {
+      "attempts": 3,
+      "retryDelayMs": 100
+    },
+    "libraryArchive": "/dev/shm/reusable-products-20260914/doppler-062-candidate/reploid-library/reploid-0.1.0.tgz",
+    "reploidRoot": "/home/x/deco/worktrees/reploid-consumer-streaming"
+  },
+  "results": [
+    {
+      "passed": true,
+      "operation": "generate",
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": true
+          }
+        ]
+      },
+      "completed": {
+        "schema": "doppler.capsule-operation-event/v2",
+        "operation": {
+          "name": "generate",
+          "version": 1
+        },
+        "requestHash": "sha256:971e9b3e76e204196966aaa7b3fa2cbcb3644a3f926b75f9a667d70f5d32503b",
+        "assignmentHash": null,
+        "eventIndex": 16,
+        "previousEventDigest": "sha256:08cf67337289c9946a291f0f91a83ebde92b7fd4e0ef09a947c69c57e667cadc",
+        "status": "completed",
+        "output": {
+          "text": "{\n  \"parts\": [\n    {\n      \"question\": \"Where are cached",
+          "tokenIds": [
+            515,
+            220,
+            330,
+            18252,
+            788,
+            2278,
+            262,
+            341,
+            414,
+            330,
+            7841,
+            788,
+            330,
+            9064,
+            525,
+            20579
+          ],
+          "sampling": {
+            "maxTokens": 16,
+            "maxSeqLen": 4096,
+            "temperature": 0,
+            "topP": 1,
+            "topK": 1,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 0,
+            "presencePenalty": 0,
+            "useChatTemplate": false,
+            "seed": 0,
+            "suppressTokenIds": [],
+            "stopSequences": []
+          },
+          "completion": {
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "max-tokens",
+            "promptTokenCount": 319,
+            "generatedTokenCount": 16
+          }
+        },
+        "receipt": {
+          "schema": "doppler.capsule-operation-receipt/v2",
+          "capsule": {
+            "schema": "doppler.capsule/v2",
+            "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d07241fd196a5617",
+            "semanticRoot": "sha256:d07241fd196a5617144b2d7719848d8c993c0490f1b318c72baf0b12fe072756",
+            "envelopeDigest": "sha256:2e2aefb45c2878bfd04c9ad388903cd88416061bd63159caec0591f4aba285ff",
+            "artifactClosureDigest": "sha256:6f9b10b2955d7dde62465e01b72ac5df61f3778829592edad190c3914e7f8446"
+          },
+          "modelId": "qwen-3-4b-instruct-2507-f16-af32-closed-development",
+          "targetId": "webgpu-f32-f16-subgroups",
+          "targetPlanDigest": "sha256:60711a3c83b882d015343cc07f5a942825456acc93ad0d15dddf6877c8b9a5e6",
+          "artifactReceipts": [
+            {
+              "artifactId": "conversion-config:converter-closed-config.json:1e689ce405a9",
+              "hash": "sha256:1e689ce405a97c383d7772f80b2abbde507b4463ceb0bf98d9c8f4051dd7fe89",
+              "sizeBytes": 11955
+            },
+            {
+              "artifactId": "host-source:text-generation-d7abaa224ec64128.js:d7abaa224ec6",
+              "hash": "sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15",
+              "sizeBytes": 1096
+            },
+            {
+              "artifactId": "manifest:manifest.json:f475fb61b976",
+              "hash": "sha256:f475fb61b976a3eee15fcdfdd42e5d2a2befbaf5c14c1eb0c3cf137da1525d85",
+              "sizeBytes": 215961
+            },
+            {
+              "artifactId": "reference-report:qualification.json:aff5f4f3e00c",
+              "hash": "sha256:aff5f4f3e00c15e5f83a823550b83f30b69a5772971908ca6d4b9a634b3d2a2f",
+              "sizeBytes": 53039
+            },
+            {
+              "artifactId": "tokenizer:tokenizer.json:4dae0c382163",
+              "hash": "sha256:4dae0c382163323e93f51d37f4c27d96c74f6be94b231289c24da71dfa3f7dc6",
+              "sizeBytes": 5363085
+            },
+            {
+              "artifactId": "weight-shard:shard_00000.bin:854fc0dbbf2c",
+              "hash": "sha256:854fc0dbbf2c2e3149f8e7749fa4f3e01209ed362630f1cad711edce32204eb3",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00001.bin:d3efd3b2dedd",
+              "hash": "sha256:d3efd3b2dedd1c7e7f2aaa6e6c9bdd802f07ac70cad282675f74f49e310774b8",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00002.bin:a3bb8a0ec90e",
+              "hash": "sha256:a3bb8a0ec90e83d7c3e6dd004a56161934fe9ec21a5a9b5973fc089e5b760e6a",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00003.bin:b2e59bb5b33f",
+              "hash": "sha256:b2e59bb5b33fbc96495dbf8f214eea9d7a9cc4fc1dc727d2134791d15c5fb668",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00004.bin:1018d77a73d2",
+              "hash": "sha256:1018d77a73d245ddab4e711653fcadd8f83f83479b2b91c8bfabd4f466676079",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00005.bin:a25a98bf55c6",
+              "hash": "sha256:a25a98bf55c693057d1f64551f4dbe7fde78509bfc38909acc5b322c2405047e",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00006.bin:d964967b7b44",
+              "hash": "sha256:d964967b7b4450cd1a7f84de7947ab4d12b803e9df8eecd2a17310bf2cf33c62",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00007.bin:2f0f94b2b0c0",
+              "hash": "sha256:2f0f94b2b0c091590a2ba67d22a573c3a107e42e0752f4df14d6ba5ce12075b4",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00008.bin:3c4b6f372523",
+              "hash": "sha256:3c4b6f3725238901498c0d5b8d5f6efce3ef4aadbce44285b9b93acdf723f9b1",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00009.bin:1a9ddb2fe433",
+              "hash": "sha256:1a9ddb2fe4331fb05ee62cfde27c34b1a07d01b304cab8aa713da30246eb8b1a",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00010.bin:af70faea4fbf",
+              "hash": "sha256:af70faea4fbf48c06e6fe16f11229498ff592ee4a21501d8544a0350129eb3e6",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00011.bin:186594362851",
+              "hash": "sha256:186594362851891dc011a0ff9f5198d3607f764f35969416c4f1f716ffa3a682",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00012.bin:b2f9b95a9f5d",
+              "hash": "sha256:b2f9b95a9f5db028ccecbc5b552822d360553c2771fd5c60fe15854e190a9b19",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00013.bin:c7197c8522f8",
+              "hash": "sha256:c7197c8522f89a32359ab4625414b2fa355279136ebdc5f5a6cbb0d9c99cb78a",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00014.bin:1f213577be7d",
+              "hash": "sha256:1f213577be7d4f009ea8095452885d66145f35e89ccdbc03e2f85f5e4793231c",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00015.bin:dc3864a13ea0",
+              "hash": "sha256:dc3864a13ea065d65ad07fabef6eafb69f564fcea951078afcca6ea2a9f4074c",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00016.bin:55619a5d9ae5",
+              "hash": "sha256:55619a5d9ae5a50f8e839fd2de4c434fb639958dee8edd3d18da46a0021af466",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00017.bin:2fc60cae02f8",
+              "hash": "sha256:2fc60cae02f8b6616238f6823fb22be83a7cdaf53296b6305f10a3e90bdf6b65",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00018.bin:27bc93f438d8",
+              "hash": "sha256:27bc93f438d8268afa23adf003e0edee257d7535288ba65db0eb486cc8add3c3",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00019.bin:76c2cd48b978",
+              "hash": "sha256:76c2cd48b97811ff00bbd9da92784f59f088ca8c9c84a096fd007df9872d5234",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00020.bin:b7aa69da0b1f",
+              "hash": "sha256:b7aa69da0b1f1d97b6f7ede46b29dc9c3f97f5fc925cf831b9ad398412057049",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00021.bin:fc300a43ebb0",
+              "hash": "sha256:fc300a43ebb00abe1f3c52f62bbc8ba5fb40ce0420dd5d258e2656d8eab4e8ad",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00022.bin:d9f75b71e0c0",
+              "hash": "sha256:d9f75b71e0c0a32c6c295ca1a3fe27f579ff706e22bde01766ab0ba8f2f9ed89",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00023.bin:f14ec0f7e565",
+              "hash": "sha256:f14ec0f7e5650d6e76b4fc327dce44ea7717667c802044cd969d335ceca8bda1",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00024.bin:932a61b7e767",
+              "hash": "sha256:932a61b7e7678fc99f3fb420efcad6e0386b93d784fc569041679fadc384d3f8",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00025.bin:35bed3831a16",
+              "hash": "sha256:35bed3831a1620848c60c8a94a73df67bf506ad8695208865e70d1d14ef8a702",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00026.bin:e8464e814028",
+              "hash": "sha256:e8464e814028168475d8c72858a796281f347e9c6d16d7ae7b34cab2ba1031f4",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00027.bin:fbde5ccd9ba9",
+              "hash": "sha256:fbde5ccd9ba9dd2489dc4537c5a2e1b4fe272fdfd4c23472e5722c93ceb99599",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00028.bin:617e50aca5b5",
+              "hash": "sha256:617e50aca5b54386e66b96f63eccde543380494ee3ba395d33a75a9f4d0eb40c",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00029.bin:9324967ebbdf",
+              "hash": "sha256:9324967ebbdf31e54ff69bf94398a667d1fbe1cbcde122bb840cd1f0cc4faa0c",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00030.bin:63ece4fbcac6",
+              "hash": "sha256:63ece4fbcac61aa49f4df6aa1a30e55701aa161485759b7dfb50e123cc85574b",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00031.bin:0cc310861e93",
+              "hash": "sha256:0cc310861e9313854c2305c203ee022d7a160e4a6a9349e455de0884f484bd3c",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00032.bin:506b922c77b9",
+              "hash": "sha256:506b922c77b9ecdf034f4229025a985f1aac86e77c8590a53daf166a63a791d4",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00033.bin:02e82861593d",
+              "hash": "sha256:02e82861593d9ff349f8551aee64812614261dfc463ade9f748ec35899d416f3",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00034.bin:2bac7871aff5",
+              "hash": "sha256:2bac7871aff593ef9d7a17afd979e2d1d704cc1602ecddf0b27424aa9efca600",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00035.bin:bcc6a404c34d",
+              "hash": "sha256:bcc6a404c34dee059d85ad628f30459efc72af9429b17aa82e2a848d66eccd3d",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00036.bin:8b8ed493fbd5",
+              "hash": "sha256:8b8ed493fbd59b9541c82256bb146ec19526221e37e0448d7264f2bae94d45c7",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00037.bin:803cd030ba1d",
+              "hash": "sha256:803cd030ba1d5e9ecff90be6968a58d88b1d9b492204b05bdf77fdae073623b7",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00038.bin:7dfc295f6131",
+              "hash": "sha256:7dfc295f6131ec4c5d83a8f6c4507155b3444b4889d9a92916cb8297d32ff1f7",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00039.bin:9063866bc8ba",
+              "hash": "sha256:9063866bc8bae6fa0d22de82877a119b4fa47461b16da7e01df479818645863d",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00040.bin:e8a8ecd37851",
+              "hash": "sha256:e8a8ecd37851636c71b3562511bc707d4c57228dd08971634573b49c0162e917",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00041.bin:8304b7d02af2",
+              "hash": "sha256:8304b7d02af2d82615cad6d06160128dacde81a7188f86af0d6697e66c4d04ad",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00042.bin:939f3899403c",
+              "hash": "sha256:939f3899403cd2a2b8f689ebea8924a8765c881e533df139afdac9d750074d71",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00043.bin:79eae4cc0d5c",
+              "hash": "sha256:79eae4cc0d5c571157f500bf9b52e4fd1a30a1f8b201eb63fda2b9b44067914d",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00044.bin:fb09c137e3b0",
+              "hash": "sha256:fb09c137e3b0336c01dea1d62901c204098329c23ef331b761a937c3a23a7999",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00045.bin:caf73b75c10b",
+              "hash": "sha256:caf73b75c10b71e7109262868ab449cebf6fa8d68793e12b5977f3ea2db9be65",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00046.bin:af2829465ffb",
+              "hash": "sha256:af2829465ffbaa2a46c23bf5540a12d2ce17b6fdf4d1e4cf287124863c8fc8cb",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00047.bin:3998e0f2b9dd",
+              "hash": "sha256:3998e0f2b9dd9b6096d99467d783b7f22b19dd967441d123f3bb63af05d5ba75",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00048.bin:3e0261a3c7a6",
+              "hash": "sha256:3e0261a3c7a664c83a93a77ea4aad2ea732a9e885136d53eaeb43b93081a5f61",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00049.bin:59943ecc713a",
+              "hash": "sha256:59943ecc713ad6c98d884e5057ae3106447761f4866ff99c339277d253ccf42e",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00050.bin:74768f23cea0",
+              "hash": "sha256:74768f23cea061e3f8ab8dd1d714cff90f0446d3e8f2b9384137ef4329c06fb2",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00051.bin:537ff4bd5238",
+              "hash": "sha256:537ff4bd5238a0a917f940269d3a5e21829a410239f9ebe2063d6e58a355300f",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00052.bin:bfe067410389",
+              "hash": "sha256:bfe067410389eaaa0d299371d331642f34082f70b83b2de03ea08bcf1f1e2ce2",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00053.bin:f2dac75da1cd",
+              "hash": "sha256:f2dac75da1cd86a2e4ae86de82a9d567384b075059e29238d1a305b7e04585f7",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00054.bin:81917329256d",
+              "hash": "sha256:81917329256d9eb827936fd635eaeabf6f971353cc4d9e75a5f211ab245f51cb",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00055.bin:4fd26cb2a468",
+              "hash": "sha256:4fd26cb2a4683250bf6f2c3d25a3ca2c5d16e8b64a3a53d29ceb14c88c0882fe",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00056.bin:632b86555963",
+              "hash": "sha256:632b86555963567bba7d903d78a542685a25564ee14b0837a22d5526f37245e5",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00057.bin:5d588cb90595",
+              "hash": "sha256:5d588cb90595aa540004f566603d5707e079163f712df1b04370c09df01bc2a8",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00058.bin:7c4dd2b57258",
+              "hash": "sha256:7c4dd2b57258090a4e06751187f5701b1b51270b44edef5744a41a493716bf2b",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00059.bin:0bfa1a25007a",
+              "hash": "sha256:0bfa1a25007af16129dc3a9e15101f7a212c0cf54f8f622a073d152cfa0f4d04",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00060.bin:afd8403c8f73",
+              "hash": "sha256:afd8403c8f73cb792deed3e0b4be0c88415bd7cd466b2b135cacbada35045e59",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00061.bin:32cd40e53fb3",
+              "hash": "sha256:32cd40e53fb384861adda0a7a465c6af4e568559a8a63e60dd74a2ea3a3ba59e",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00062.bin:3ff9198a486b",
+              "hash": "sha256:3ff9198a486b772c167d33f1d48fe77f88b3ba744570e8e4d521b48687bb09f7",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00063.bin:ce0374cc4a18",
+              "hash": "sha256:ce0374cc4a18267f6fb85e096dc200d1e4390accd3ac91ca288a52455f012c49",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00064.bin:9232a9fbb55a",
+              "hash": "sha256:9232a9fbb55acffa21519597e7d5eedaf54c4874fe44ed6f734f3147935b0a72",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00065.bin:8959fbd03bf9",
+              "hash": "sha256:8959fbd03bf9db18871b8fa6cab9d609d3f678eae05ed67c044042a34bbce5e4",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00066.bin:ffe100c72bc4",
+              "hash": "sha256:ffe100c72bc4d8c4f0faa60e7ad09d459e07638ba8357e3467ab324ae871c838",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00067.bin:f8943c22eff3",
+              "hash": "sha256:f8943c22eff3f8e8dfcea6984e9ebbcc0e397ad04d838936eafbbb72b72f400c",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00068.bin:dd81a54419ed",
+              "hash": "sha256:dd81a54419edacbfe87554acc073a446a1c5ec3d7f7e36c5c664225e880cae13",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00069.bin:baa6bad801f9",
+              "hash": "sha256:baa6bad801f9ae00b36e5ddd9d89dced93e3f53acdc4f420434ca97e308578e0",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00070.bin:26a962236aec",
+              "hash": "sha256:26a962236aecb117bdbdd331459c6279516bc69bbda7ee5ce029692449f090ba",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00071.bin:eb29d3bf9e3a",
+              "hash": "sha256:eb29d3bf9e3a99ccbb741fce6a9eea6640fae9905508ac49835cdfac0fe22129",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00072.bin:fd13c3155ebe",
+              "hash": "sha256:fd13c3155ebe4bdc65ae3c4b3847861ddeeacdf6e5c76e9b62a7fda2d7e89809",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00073.bin:00efbdc51629",
+              "hash": "sha256:00efbdc51629b67bde7028214f79064c0f2e85844deb90d814ded42cd4b2658b",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00074.bin:f446cdd14f23",
+              "hash": "sha256:f446cdd14f232883e0b6417b84c58d47be9e971ceafee526d1a5356f2e924a47",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00075.bin:b84ddcace517",
+              "hash": "sha256:b84ddcace5178037bc2b509dea20da8f8f8f025046432c55951afd2b392d8cb5",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00076.bin:ae355ff018a1",
+              "hash": "sha256:ae355ff018a1b9f25e15f33194dbbc12e517a5382fa31f681b359cd171439ed6",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00077.bin:d94d18c5fada",
+              "hash": "sha256:d94d18c5fada8c1898a441d4d453beaada00d78008367167b1584b47cfe1bda8",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00078.bin:7d0a43e4df9c",
+              "hash": "sha256:7d0a43e4df9c6a17776a5b70dfbc1b44c4e657ed81721c05d3af88260192f81b",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00079.bin:62e80b9fdd07",
+              "hash": "sha256:62e80b9fdd076d48d6e6bc735cad3f10a2c585907ba16b7f0c6c6b84c7c35944",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00080.bin:3da72316d7fb",
+              "hash": "sha256:3da72316d7fbe5779bb34e9af219e72961be87e0deaee01d1734810839ffe2c6",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00081.bin:f5597613e8b4",
+              "hash": "sha256:f5597613e8b4357f269c78208f9ea89b661003b1ef1177857993f12a3b476fca",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00082.bin:7a0d339667f4",
+              "hash": "sha256:7a0d339667f406fdd1ed0cd210e996fe821884a73ee7c4ea7cf163a0e3b0861a",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00083.bin:36b20cea9b28",
+              "hash": "sha256:36b20cea9b28aaa8a0f41cd799283557fa8c1c79a27e2c5b22247e86c58b2b5f",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00084.bin:4ad2f36a8007",
+              "hash": "sha256:4ad2f36a8007aff5577b58bbf5d7801a77a5578d03df4a99066710e9d8fec235",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00085.bin:6b7447ecb411",
+              "hash": "sha256:6b7447ecb41172384ac4df955eefea1f2ece544ce286cdac48cbce7cc349ed2b",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00086.bin:298802119a86",
+              "hash": "sha256:298802119a86715557bd36c49784f288be553668e3bb00166ada7dd1eddfe610",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00087.bin:ed153bdaad7c",
+              "hash": "sha256:ed153bdaad7c5bf38a9ca7438fe0d25a685cba839e8e46b9e2f1cec5592d3c5f",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00088.bin:2d26d83c02bb",
+              "hash": "sha256:2d26d83c02bb7cb3b5c5128141588c3770c94860f6df44485952f1f56336361f",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00089.bin:af86683d29ef",
+              "hash": "sha256:af86683d29ef5a26f49e004f4b3c21f48070a0c4079f2bb0821ca84ee42a999c",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00090.bin:d47311318f39",
+              "hash": "sha256:d47311318f3985eff69350212d49c1a48f5722b7ee6f808bea4b993c6cf05269",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00091.bin:048d2bb32d27",
+              "hash": "sha256:048d2bb32d2747019dcb244f45731570280f5314058d91e9572a1992f260a7aa",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00092.bin:3d1eb5bbf1d4",
+              "hash": "sha256:3d1eb5bbf1d48504c2a3e2a407669a09bc860f1614239c208cdd5bc535a3aaf1",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00093.bin:78c3a5e9552f",
+              "hash": "sha256:78c3a5e9552fe10d9487d39f5b17aef33c44d95f3e35a451e51ec59b0805de8e",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00094.bin:a16474a74366",
+              "hash": "sha256:a16474a7436672cf530f5f6f38bfb87769ed6c1ba6f17d2db1418d07e03fdeb2",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00095.bin:aaceff3d33fe",
+              "hash": "sha256:aaceff3d33fea15b54522d7fbce47d1088d1f40aa2efb0f016c9331f904e23ab",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00096.bin:068fd89dc6d6",
+              "hash": "sha256:068fd89dc6d6ef29e936055cbe68fb24a3c37f6866c08abb4b32404c1e499618",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00097.bin:d29a22a91197",
+              "hash": "sha256:d29a22a91197babf6b6a78ed087a02d499e196e52c741afd30868849a4a0c3e9",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00098.bin:9bae2ce391db",
+              "hash": "sha256:9bae2ce391dbc9cc325c44b77f1ca40dab21d84a092b45f8ea05a8be6dde5518",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00099.bin:aa3c26b9589f",
+              "hash": "sha256:aa3c26b9589f1c108349f16670d6376321050ae144aa6840e7a9a2184bc3cab2",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00100.bin:816675b435aa",
+              "hash": "sha256:816675b435aa590837c9344ff26c657fbb8dfc6225f1017f8a8be9473b85f5e5",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00101.bin:eee1e3d12b82",
+              "hash": "sha256:eee1e3d12b82ba6397d68ba70dd4c6e8d4c411a99a823e4da4f18a06b306473c",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00102.bin:7c98d443b2fa",
+              "hash": "sha256:7c98d443b2fa796e1c9e4c87ec90f24f82a0f3186f37b976b2a745689f10be16",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00103.bin:f0da477f2d7e",
+              "hash": "sha256:f0da477f2d7ee10333d8f1ab9bfbaf1d677bccde14232678f0f6a00a8016e2c3",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00104.bin:f30773fb9bab",
+              "hash": "sha256:f30773fb9bab9504233de7131fbe8c731629aaea9c899945257a1fdd74430a61",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00105.bin:779b83a4417a",
+              "hash": "sha256:779b83a4417a10ab9a70c4d5b215f0894efd0f7253611cc4635ffcf3f1e7ea3c",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00106.bin:152eb64f98fb",
+              "hash": "sha256:152eb64f98fbc136223244c221e06d7f4314e9792156193abe9abe287053c9ad",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00107.bin:81080a8059a3",
+              "hash": "sha256:81080a8059a37125f5247416066ee599379dbf25b7ad80df8987c21471821975",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00108.bin:b8db4c1bbbae",
+              "hash": "sha256:b8db4c1bbbaeb5fb1f30680ca8129aa48211f629d3be929d6518939a28881bab",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00109.bin:48c7f3a7c4c1",
+              "hash": "sha256:48c7f3a7c4c1897d55d425251d8b1c003edb11a24abd121265e5a3b32ace9c7f",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00110.bin:03b3a367e55a",
+              "hash": "sha256:03b3a367e55a8c52894bc73cb1b8c4f3a0fd1373fb7ef31e167c73a5665e5c0d",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00111.bin:791f77ea030b",
+              "hash": "sha256:791f77ea030ba6ef61a7c5deb362441d54ef058c0fe26c34d6335dea4455b799",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00112.bin:b36f09881073",
+              "hash": "sha256:b36f09881073d59ee721d639cf5f25e342ee72e12a38fc47191717a74def0326",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00113.bin:adafb81795fd",
+              "hash": "sha256:adafb81795fd7b6cacf2cdce25983ca791d89226a79d416e0822f8f03c7817a3",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00114.bin:93a42f426aac",
+              "hash": "sha256:93a42f426aacc527ef66aa0ee8e975e50fa0156e1b74fd45cc5d81977132e887",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00115.bin:b167b26daeeb",
+              "hash": "sha256:b167b26daeeb5d4e141446df3d5a2014ce54803c5089fd9191cc6c36c1bc76a5",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00116.bin:6691e14d6b9a",
+              "hash": "sha256:6691e14d6b9a13e61eb73ee3930927225803e0c36949a3377aac4fddadf66a99",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00117.bin:591d77eeae15",
+              "hash": "sha256:591d77eeae1512b5768c137378333e4361bac06a95e907cdbb5e5029d3af8fa1",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00118.bin:16f52e7e6006",
+              "hash": "sha256:16f52e7e6006121394ebdb053d72b7e3014aa9d87ead1f784fb5542b7d1c0adf",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00119.bin:0f62a9e48713",
+              "hash": "sha256:0f62a9e48713d8d44b4ce0b9a2953ec7a4bfa8c00793b0a651b3c10d873e6a03",
+              "sizeBytes": 58981376
+            },
+            {
+              "artifactId": "wgsl-source:attn_decode-4feba111cc381d0a.wgsl:4feba111cc38",
+              "hash": "sha256:4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035",
+              "sizeBytes": 7779
+            },
+            {
+              "artifactId": "wgsl-source:attn_stream-d34e8bbe9bbaed91.wgsl:d34e8bbe9bba",
+              "hash": "sha256:d34e8bbe9bbaed91c8d6beacde896538e14ec222ebae8eec8a195944cde87b8a",
+              "sizeBytes": 5743
+            },
+            {
+              "artifactId": "wgsl-source:embed-838e3c69451d02fe.wgsl:838e3c69451d",
+              "hash": "sha256:838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15",
+              "sizeBytes": 2538
+            },
+            {
+              "artifactId": "wgsl-source:fused_ffn_f16-e452843b9bd52b3a.wgsl:e452843b9bd5",
+              "hash": "sha256:e452843b9bd52b3ad2307a3cb8de38005c497e6af60580903ead0774a3252f3b",
+              "sizeBytes": 13698
+            },
+            {
+              "artifactId": "wgsl-source:gather_vec4-a500eb8ca2a1ff7d.wgsl:a500eb8ca2a1",
+              "hash": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+              "sizeBytes": 2810
+            },
+            {
+              "artifactId": "wgsl-source:gemv_residual-9bd0786cb9d8d259.wgsl:9bd0786cb9d8",
+              "hash": "sha256:9bd0786cb9d8d2591d5fa8110dbaada6a18c2181898abc722360967a5aadfeb9",
+              "sizeBytes": 3757
+            },
+            {
+              "artifactId": "wgsl-source:gemv-04db4c712bc4f88c.wgsl:04db4c712bc4",
+              "hash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+              "sizeBytes": 16657
+            },
+            {
+              "artifactId": "wgsl-source:kv_write_f32_f16-fdba1f04c135d44d.wgsl:fdba1f04c135",
+              "hash": "sha256:fdba1f04c135d44d67fdc160b59e5a243abd0d47e54fa928c7cc115ed2f15afd",
+              "sizeBytes": 861
+            },
+            {
+              "artifactId": "wgsl-source:lm_head_gemv-04db4c712bc4f88c.wgsl:04db4c712bc4",
+              "hash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+              "sizeBytes": 16657
+            },
+            {
+              "artifactId": "wgsl-source:logit_finalize-b20df676b5813f25.wgsl:b20df676b581",
+              "hash": "sha256:b20df676b5813f258a5e32eb11cb34ce4e5c2aafc7e4b1e469c07bb861e7522f",
+              "sizeBytes": 1139
+            },
+            {
+              "artifactId": "wgsl-source:residual_vec4-04781252bb73f1a2.wgsl:04781252bb73",
+              "hash": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb",
+              "sizeBytes": 1366
+            },
+            {
+              "artifactId": "wgsl-source:residual-e5d606c42ae57cb7.wgsl:e5d606c42ae5",
+              "hash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698",
+              "sizeBytes": 1712
+            },
+            {
+              "artifactId": "wgsl-source:rmsnorm_qk-954bd142119d8583.wgsl:954bd142119d",
+              "hash": "sha256:954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3",
+              "sizeBytes": 3462
+            },
+            {
+              "artifactId": "wgsl-source:rmsnorm-57c810ce293ec2ae.wgsl:57c810ce293e",
+              "hash": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+              "sizeBytes": 15770
+            },
+            {
+              "artifactId": "wgsl-source:rope_precompute-e1dd6c1bf96da50a.wgsl:e1dd6c1bf96d",
+              "hash": "sha256:e1dd6c1bf96da50a94be5f0b487474314547928b3b7e002c6e271625ccac942b",
+              "sizeBytes": 2812
+            },
+            {
+              "artifactId": "wgsl-source:rope_qk-fe7f16a865b94ce0.wgsl:fe7f16a865b9",
+              "hash": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c",
+              "sizeBytes": 3259
+            },
+            {
+              "artifactId": "wgsl-source:rope-a4472c7134a08c77.wgsl:a4472c7134a0",
+              "hash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d",
+              "sizeBytes": 12251
+            },
+            {
+              "artifactId": "wgsl-source:sample-36437b17a1a7f624.wgsl:36437b17a1a7",
+              "hash": "sha256:36437b17a1a7f624ae31d3420ed8142df194b7b8ca800d30a1855fc52e754cd4",
+              "sizeBytes": 13789
+            },
+            {
+              "artifactId": "wgsl-source:silu-e14958d8bd06dd50.wgsl:e14958d8bd06",
+              "hash": "sha256:e14958d8bd06dd50596fef718ca5731366d24ee78f13c547c600cac4723cd1b8",
+              "sizeBytes": 3390
+            },
+            {
+              "artifactId": "wgsl-source:split_qkv-f65c37cee36ee2b2.wgsl:f65c37cee36e",
+              "hash": "sha256:f65c37cee36ee2b213d5377d2aa5c5a2d2e20c7b6d1f162e112efd388599ec23",
+              "sizeBytes": 2058
+            },
+            {
+              "artifactId": "wgsl-source:tiled-78b78ec9a73766b5.wgsl:78b78ec9a737",
+              "hash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+              "sizeBytes": 2558
+            },
+            {
+              "artifactId": "program-bundle:program-bundle.json:43d4dfec67a9",
+              "hash": "sha256:43d4dfec67a9e8f712869fbdaf2665c0943bc07406c26a018ee0631e92072feb",
+              "sizeBytes": 163740
+            }
+          ],
+          "releaseEventDigest": null,
+          "runtimeVersion": "0.6.2",
+          "stream": {
+            "schema": "doppler.capsule-operation-event/v2",
+            "partialCount": 16,
+            "lastPartialDigest": "sha256:08cf67337289c9946a291f0f91a83ebde92b7fd4e0ef09a947c69c57e667cadc"
+          },
+          "operation": {
+            "name": "generate",
+            "version": 1
+          },
+          "requestHash": "sha256:971e9b3e76e204196966aaa7b3fa2cbcb3644a3f926b75f9a667d70f5d32503b",
+          "assignmentHash": null,
+          "inputHash": "sha256:9f0eb3f5dfffab6fbe1f89a430c0a7f2eb23e63df4f3e79b7d2d1094536425ab",
+          "outputHash": "sha256:41301ea8d392ffb18a447d3f5e6503b7860568601b71f5a8d8362bc3ce308311",
+          "receiptDigest": "sha256:6fdfe24a71bb3a303044f18841723e46855953e6655cafa271e27f6e06e6b659"
+        },
+        "eventDigest": "sha256:ec79c400b3d2bcd98b4106e11670e3bee3910d4c000d7f3cd74716c436146ee5"
+      },
+      "partials": 16,
+      "runtimeVersion": "0.6.2",
+      "library": {
+        "entry": "reploid/doppler",
+        "displayMatchesCompletion": true
+      }
+    }
+  ],
+  "logs": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "log",
+      "text": "[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 1.1ms"
+    },
+    {
+      "type": "log",
+      "text": "[142825.9ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)"
+    },
+    {
+      "type": "log",
+      "text": "[142826.8ms][Config] Using manifest-first config (source of truth)"
+    },
+    {
+      "type": "log",
+      "text": "[142829.3ms][Pipeline] Resolved session applied (qwen-3-4b-instruct-2507-f16-af32-closed-development): batchSize=4, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false"
+    },
+    {
+      "type": "log",
+      "text": "[142829.9ms][Pipeline] KernelPath: qwen-3-4b-instruct-2507-f16-af32-closed-development-execution-inline (15 decode steps, 10 kernels, source=execution-v1)"
+    },
+    {
+      "type": "log",
+      "text": "[142830.2ms][Pipeline] 36L/2560H/32heads (128dim), kernelPath=qwen-3-4b-instruct-2507-f16-af32-closed-development-execution-inline"
+    },
+    {
+      "type": "log",
+      "text": "[142830.7ms][Tokenizer] Loading bundled tokenizer from tokenizer.json"
+    },
+    {
+      "type": "log",
+      "text": "[142908.6ms][Tokenizer] HuggingFace model.type=\"BPE\", using type=\"bpe\""
+    },
+    {
+      "type": "log",
+      "text": "[142959.2ms][Tokenizer] Loaded HuggingFace 151669 tokens (bpe), 26 special patterns, 151387 merges"
+    },
+    {
+      "type": "log",
+      "text": "[142959.5ms][Pipeline] Tokenizer vocabSize=151669 differs from model=151936, using model size"
+    },
+    {
+      "type": "log",
+      "text": "[142960.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=8192"
+    },
+    {
+      "type": "log",
+      "text": "[142960.6ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-4b-instruct-2507-f16-af32-closed-development-execution-inline"
+    },
+    {
+      "type": "log",
+      "text": "[142978.2ms][ShardCache] Custom shard loader configured"
+    },
+    {
+      "type": "log",
+      "text": "[142978.6ms][Loader] Initializing..."
+    },
+    {
+      "type": "log",
+      "text": "[143037.3ms][HeapManager] Allocated segment 0: 1024MB"
+    },
+    {
+      "type": "log",
+      "text": "[143037.6ms][HeapManager] Segmented heap: 1GB per segment"
+    },
+    {
+      "type": "log",
+      "text": "[143037.6ms][HeapManager] Initialized with strategy: SEGMENTED"
+    },
+    {
+      "type": "log",
+      "text": "[143037.7ms][Loader] Initialized (f16, subgroups)"
+    },
+    {
+      "type": "log",
+      "text": "[143038.1ms][Loader] Loading: qwen-3-4b-instruct-2507-f16-af32-closed-development"
+    },
+    {
+      "type": "log",
+      "text": "[143038.9ms][Loader] [0.0s] Memory (start): | Heap=9.53 GB/9.53 GB (limit=4.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "type": "warning",
+      "text": "[143039.4ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model."
+    },
+    {
+      "type": "log",
+      "text": "[143041.5ms][Loader] Embedding \"model.embed_tokens.weight\" GPU-resident: shouldStreamLargeWeight returned false."
+    },
+    {
+      "type": "log",
+      "text": "[144531.1ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[151936,2560], isWeightBuffer=true"
+    },
+    {
+      "type": "log",
+      "text": "[144531.4ms][Loader] Layers: 0-35"
+    },
+    {
+      "type": "log",
+      "text": "[158745.6ms][Loader] Layers: 36 complete (14.21s)"
+    },
+    {
+      "type": "log",
+      "text": "[158746.6ms][Loader] Complete: 7.49 GB in 15.71s (488.50 MB/s)"
+    },
+    {
+      "type": "log",
+      "text": "[158746.9ms][Loader] [15.7s] Memory (complete): | Heap=8.62 GB/8.62 GB (limit=4.00 GB) | GPU=7.49 GB (434 active, 0 pooled, peak=7.49 GB) | ShardCache=0 B (0 shards) | Layers=36, GPUBuffers=434"
+    },
+    {
+      "type": "log",
+      "text": "[158818.4ms][Pipeline] Model loaded successfully (15997ms)"
+    },
+    {
+      "type": "log",
+      "text": "[158901.6ms][KernelSelect] matmul variant=f16w_f32a reason=path_override"
+    },
+    {
+      "type": "log",
+      "text": "[158921.7ms][KernelSelect] attention variant=prefill_streaming_f16kv reason=path_override:streaming"
+    },
+    {
+      "type": "log",
+      "text": "[171863.5ms][KernelSelect] matmul variant=gemv_subgroup_vec4 reason=path_override"
+    },
+    {
+      "type": "log",
+      "text": "[171879.8ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup"
+    },
+    {
+      "type": "log",
+      "text": "[171971.6ms][KernelSelect] matmul variant=gemv_subgroup_multicol reason=path_override"
+    },
+    {
+      "type": "log",
+      "text": "[173472.7ms][ExpertCache] Cache cleared"
+    },
+    {
+      "type": "log",
+      "text": "[173474.4ms][Pipeline] Unloaded"
+    }
+  ],
+  "fixtureSource": {
+    "commit": "13b9b94aa0d5eff2faa263723f0d2f2f00f7f9ba",
+    "status": " M CHANGELOG.md\n M package-lock.json\n M package.json\n M src/version.js\n",
+    "runnerSha256": "ea0350d806aafa055138f816eddc56b32ca7c2d21e0a56112ad7cc71e8d47771"
+  },
+  "runnerRevision": "c51754819796156631a76e2df46df5e376c97b95",
+  "runnerSha256": "71c45473b1fe771017238cc943e31f5d530a8286449229e51a3564c0989ef08d",
+  "scope": "Physical local browser execution of retained models; no new model or fleet qualification.",
+  "reploidRevision": "150fc4f59bb7383b24e379b2bd7c92e901ed7a08",
+  "libraryArchive": {
+    "path": "/dev/shm/reusable-products-20260914/doppler-062-candidate/reploid-library/reploid-0.1.0.tgz",
+    "sha256": "9ff1d0b0309d1e4233304508715365b8c4ced1fc460f13bcfdf38ee334466c5e"
+  },
+  "browserVersion": "146.0.7680.177",
+  "cleanupErrors": [],
+  "completedAtUtc": "2026-09-14T21:10:53.963Z"
+}

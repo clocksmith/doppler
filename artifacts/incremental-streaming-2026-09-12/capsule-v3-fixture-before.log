@@ -1,0 +1,24 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The input did not match the regular expression /hash or size mismatch/. Input:
+
+'Error: ResourceBinder requires a physical GPUDevice with createBuffer().'
+
+    at async file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/capsule/capsule-v3.test.js:94:1 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: Error: ResourceBinder requires a physical GPUDevice with createBuffer().
+      at resolveGpuDevice (file:///home/x/deco/worktrees/doppler-consumer-streaming/src/client/runtime/resource-binder.js:23:11)
+      at createDeviceAvailabilityCheck (file:///home/x/deco/worktrees/doppler-consumer-streaming/src/client/runtime/resource-binder.js:29:34)
+      at Object.openCapsule (file:///home/x/deco/worktrees/doppler-consumer-streaming/src/client/runtime/composition-root.js:108:39)
+      at async waitForActual (node:assert:644:5)
+      at async Function.rejects (node:assert:767:25)
+      at async file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/capsule/capsule-v3.test.js:94:1,
+  expected: /hash or size mismatch/,
+  operator: 'rejects',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

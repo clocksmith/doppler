@@ -1,0 +1,640 @@
+{
+  "passed": true,
+  "schema": "reploid.installed-peer-browser/v1",
+  "package": {
+    "filename": "doppler-gpu-0.6.1.tgz",
+    "version": "0.6.1",
+    "integrity": "sha512-kbG1aE2ze+K8CcjTJnYHs9t9dDq8yGaNUW2Bemei7Ic7aUsOAYDfPXMv4SEYy2o8eNhzBxEMEOtJpGtdOrYxLg==",
+    "sizeBytes": 2115842,
+    "source": "local-npm-pack",
+    "sha256": "fc84bf3f6cd97d197d0e14be7a606bb1b5165ab98852b13f4c29d5569bcdf33c"
+  },
+  "reploidRevision": "46a27ee175086e68fbf2603a13a3bc7f534609e6",
+  "sourceStatus": "?? node_modules",
+  "executionClass": "installed-doppler-injected-program-real-webrtc-native-indexeddb",
+  "operatorCount": 1,
+  "logs": [],
+  "startedAtUtc": "2026-09-13T03:57:24.649Z",
+  "browserVersion": "145.0.7632.6",
+  "requester": {
+    "execution": {
+      "request": {
+        "schema": "doppler.capsule-operation-request/v2",
+        "operation": {
+          "name": "generate",
+          "version": 1
+        },
+        "input": {
+          "promptTokens": [
+            0,
+            2
+          ]
+        },
+        "options": {
+          "maxTokens": 3,
+          "maxSeqLen": 16,
+          "temperature": 0,
+          "topP": 1,
+          "topK": 0,
+          "repetitionPenalty": 1,
+          "repetitionPenaltyWindow": 1,
+          "presencePenalty": 2,
+          "useChatTemplate": false,
+          "seed": 0
+        },
+        "assignment": {
+          "schema": "reploid.peer.assignment/v1",
+          "assignmentHash": "sha256:35d79de838f071f5ce92dad54c87e8276b7fce82af1bfe4609f3e5191dabbafc",
+          "assignmentId": "peer_assignment_35d79de838f071f5",
+          "jobId": "88a1ddba-88e7-478a-910b-a3c96a5c2a4d",
+          "requesterId": "sha256:78587bb0df7618cce8f55bf5014672449b14adeee39cff5b3c2a3e985488e549",
+          "providerId": "sha256:d00a888b5624721875b24940211572dc6dd304982576eb2bef7ad7a927968db7",
+          "providerPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEa3ulzCYO9s6jJf2uw67HkjsE5hPl24Vyp6oHMIx9hnpRq+Q6o2Y6WGQzKuMYFiKaGZ7+dMll9feGgqanhHyQfA==",
+          "intentHash": "sha256:87f1f688b67ec928a217e2cf0b0c663211376458ec19944030007f70cfa09f6a",
+          "routeDecisionHash": "sha256:8975e1d0550aad3606643b7c3b90db4e06c2e4aa89f5bb5f1564e342ffcfb892",
+          "providerAdvertHash": "sha256:ff9cc5ffbc4d8d9e675c26695ba314dc477cfe9badadf5f7ccf88b8179fbf852",
+          "providerParticipationProfileHash": null,
+          "providerLimits": {
+            "maxInputBytes": 10000,
+            "maxOutputBytes": 10000,
+            "maxStreamBytes": 200000,
+            "maxEvents": 32,
+            "maxJobMs": 30000
+          },
+          "assignmentAttemptId": "a3d0ba3f-7bac-44c2-af3e-9dca47343f3d",
+          "comparisonPolicyDigest": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+          "inputHash": "sha256:111941377d9a3a4a6438bd2128d1495205b9e428f05e1d1a34e4e54748e75a31",
+          "model": {
+            "modelId": "capsule-test-model",
+            "modelHash": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+            "manifestHash": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+            "runtime": "doppler",
+            "backend": "browser-webgpu",
+            "executionMode": "complete_pack_browser",
+            "workload": "text-generation",
+            "runtimeVersion": "0.6.1",
+            "executablePack": {
+              "schema": "doppler.capsule/v2",
+              "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+              "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+              "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+              "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7",
+              "artifacts": [
+                {
+                  "artifactId": "manifest",
+                  "role": "manifest",
+                  "path": "manifest.json",
+                  "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+                  "sizeBytes": 33
+                },
+                {
+                  "artifactId": "tokenizer",
+                  "role": "tokenizer",
+                  "path": "tokenizer.json",
+                  "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+                  "sizeBytes": 16
+                },
+                {
+                  "artifactId": "weights",
+                  "role": "weight-shard",
+                  "path": "weights.bin",
+                  "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+                  "sizeBytes": 4
+                },
+                {
+                  "artifactId": "wgsl",
+                  "role": "wgsl-source",
+                  "path": "main.wgsl",
+                  "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+                  "sizeBytes": 41
+                },
+                {
+                  "artifactId": "evidence",
+                  "role": "reference-report",
+                  "path": "reference.json",
+                  "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+                  "sizeBytes": 16
+                },
+                {
+                  "artifactId": "program-bundle",
+                  "role": "program-bundle",
+                  "path": "program-bundle.json",
+                  "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+                  "sizeBytes": 39
+                }
+              ],
+              "requiredOperation": "generate",
+              "acceptedTargetPlanDigests": [
+                "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9"
+              ]
+            }
+          },
+          "expiresAt": "2026-09-13T03:57:55.130Z",
+          "acceptancePolicyDigest": "sha256:a646c4606e9283a1c0dc4a1e708c5e6831fccdb603effdab8f4885a3465284f8",
+          "attemptNumber": 1,
+          "inputClass": "public_text",
+          "operationPolicyDigest": "sha256:7f8c47bcf84bf2fdf82833f9a0125151bf9957cce1da6c07c650b07911a17569",
+          "jobPolicyDigest": "sha256:0405f98c013a52d93e2cf3942d18cb680bb79da7863a519387309d442389ddb7",
+          "adapterSet": []
+        },
+        "limits": {
+          "maxInputBytes": 10000,
+          "maxOutputBytes": 10000,
+          "deadlineAt": 1789271875130
+        }
+      },
+      "output": {
+        "text": "0,1,0",
+        "tokenIds": [
+          0,
+          1,
+          0
+        ],
+        "sampling": {
+          "maxTokens": 3,
+          "maxSeqLen": 16,
+          "temperature": 0,
+          "topP": 1,
+          "topK": 0,
+          "repetitionPenalty": 1,
+          "repetitionPenaltyWindow": 1,
+          "presencePenalty": 2,
+          "useChatTemplate": false,
+          "seed": 0,
+          "suppressTokenIds": [],
+          "stopSequences": []
+        },
+        "completion": {
+          "schema": "doppler.generation-completion/v1",
+          "stopReason": "max-tokens",
+          "promptTokenCount": 2,
+          "generatedTokenCount": 3
+        }
+      },
+      "receipt": {
+        "schema": "doppler.capsule-operation-receipt/v2",
+        "capsule": {
+          "schema": "doppler.capsule/v2",
+          "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+          "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+          "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+          "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7"
+        },
+        "modelId": "capsule-test-model",
+        "targetId": "webgpu-f32-portable",
+        "targetPlanDigest": "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9",
+        "artifactReceipts": [
+          {
+            "artifactId": "manifest",
+            "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+            "sizeBytes": 33
+          },
+          {
+            "artifactId": "tokenizer",
+            "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+            "sizeBytes": 16
+          },
+          {
+            "artifactId": "weights",
+            "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+            "sizeBytes": 4
+          },
+          {
+            "artifactId": "wgsl",
+            "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+            "sizeBytes": 41
+          },
+          {
+            "artifactId": "evidence",
+            "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+            "sizeBytes": 16
+          },
+          {
+            "artifactId": "program-bundle",
+            "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+            "sizeBytes": 39
+          }
+        ],
+        "releaseEventDigest": null,
+        "runtimeVersion": "0.6.1",
+        "stream": {
+          "schema": "doppler.capsule-operation-event/v2",
+          "partialCount": 3,
+          "lastPartialDigest": "sha256:b3332a34b8b9cf49c92804e7b1c7a8acaa2abd9badb3904ce31c534c0e3a66c9"
+        },
+        "operation": {
+          "name": "generate",
+          "version": 1
+        },
+        "requestHash": "sha256:bc5b7cef7eff51e0aa118f9694f8f9e826318efcc4999118a1b4b4631da10a90",
+        "assignmentHash": "sha256:d01509dc9745ecfd6088f17b981b249a19e062ec5cd2da9a0954b3e408f3acff",
+        "inputHash": "sha256:111941377d9a3a4a6438bd2128d1495205b9e428f05e1d1a34e4e54748e75a31",
+        "outputHash": "sha256:93309f013ecfe284d849ef6f9526017850d6626fdab502ba4229e1ee018c0817",
+        "receiptDigest": "sha256:85957a5ccd90009ab98be531d224037447c4f68ff999ba071ddbb28a977b43fb"
+      },
+      "completion": {
+        "schema": "doppler.capsule-operation-event/v2",
+        "operation": {
+          "name": "generate",
+          "version": 1
+        },
+        "requestHash": "sha256:bc5b7cef7eff51e0aa118f9694f8f9e826318efcc4999118a1b4b4631da10a90",
+        "assignmentHash": "sha256:d01509dc9745ecfd6088f17b981b249a19e062ec5cd2da9a0954b3e408f3acff",
+        "eventIndex": 3,
+        "previousEventDigest": "sha256:b3332a34b8b9cf49c92804e7b1c7a8acaa2abd9badb3904ce31c534c0e3a66c9",
+        "status": "completed",
+        "output": {
+          "text": "0,1,0",
+          "tokenIds": [
+            0,
+            1,
+            0
+          ],
+          "sampling": {
+            "maxTokens": 3,
+            "maxSeqLen": 16,
+            "temperature": 0,
+            "topP": 1,
+            "topK": 0,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 1,
+            "presencePenalty": 2,
+            "useChatTemplate": false,
+            "seed": 0,
+            "suppressTokenIds": [],
+            "stopSequences": []
+          },
+          "completion": {
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "max-tokens",
+            "promptTokenCount": 2,
+            "generatedTokenCount": 3
+          }
+        },
+        "receipt": {
+          "schema": "doppler.capsule-operation-receipt/v2",
+          "capsule": {
+            "schema": "doppler.capsule/v2",
+            "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+            "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+            "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+            "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7"
+          },
+          "modelId": "capsule-test-model",
+          "targetId": "webgpu-f32-portable",
+          "targetPlanDigest": "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9",
+          "artifactReceipts": [
+            {
+              "artifactId": "manifest",
+              "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+              "sizeBytes": 33
+            },
+            {
+              "artifactId": "tokenizer",
+              "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+              "sizeBytes": 16
+            },
+            {
+              "artifactId": "weights",
+              "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+              "sizeBytes": 4
+            },
+            {
+              "artifactId": "wgsl",
+              "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+              "sizeBytes": 41
+            },
+            {
+              "artifactId": "evidence",
+              "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+              "sizeBytes": 16
+            },
+            {
+              "artifactId": "program-bundle",
+              "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+              "sizeBytes": 39
+            }
+          ],
+          "releaseEventDigest": null,
+          "runtimeVersion": "0.6.1",
+          "stream": {
+            "schema": "doppler.capsule-operation-event/v2",
+            "partialCount": 3,
+            "lastPartialDigest": "sha256:b3332a34b8b9cf49c92804e7b1c7a8acaa2abd9badb3904ce31c534c0e3a66c9"
+          },
+          "operation": {
+            "name": "generate",
+            "version": 1
+          },
+          "requestHash": "sha256:bc5b7cef7eff51e0aa118f9694f8f9e826318efcc4999118a1b4b4631da10a90",
+          "assignmentHash": "sha256:d01509dc9745ecfd6088f17b981b249a19e062ec5cd2da9a0954b3e408f3acff",
+          "inputHash": "sha256:111941377d9a3a4a6438bd2128d1495205b9e428f05e1d1a34e4e54748e75a31",
+          "outputHash": "sha256:93309f013ecfe284d849ef6f9526017850d6626fdab502ba4229e1ee018c0817",
+          "receiptDigest": "sha256:85957a5ccd90009ab98be531d224037447c4f68ff999ba071ddbb28a977b43fb"
+        },
+        "eventDigest": "sha256:78d362aed9f7dd4f7d8efb02d666d6a3368edb4c803ad3085298f83a3f48a536"
+      },
+      "eventCount": 4,
+      "finalEventDigest": "sha256:78d362aed9f7dd4f7d8efb02d666d6a3368edb4c803ad3085298f83a3f48a536"
+    },
+    "partials": [
+      {
+        "tokenIds": [
+          0
+        ],
+        "text": "0"
+      },
+      {
+        "tokenIds": [
+          1
+        ],
+        "text": ",1"
+      },
+      {
+        "tokenIds": [
+          0
+        ],
+        "text": ",0"
+      }
+    ],
+    "accounting": {
+      "deliveries": 2,
+      "sentBytes": 46926,
+      "receivedBytes": 13488
+    },
+    "replay": {
+      "accepted": true,
+      "acceptedAt": "2026-09-13T03:57:27.153Z",
+      "execution": {
+        "request": {
+          "schema": "doppler.capsule-operation-request/v2",
+          "operation": {
+            "name": "generate",
+            "version": 1
+          },
+          "input": {
+            "promptTokens": [
+              0,
+              2
+            ]
+          },
+          "options": {
+            "maxTokens": 3,
+            "maxSeqLen": 16,
+            "temperature": 0,
+            "topP": 1,
+            "topK": 0,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 1,
+            "presencePenalty": 2,
+            "useChatTemplate": false,
+            "seed": 0
+          },
+          "assignment": {
+            "schema": "reploid.peer.assignment/v1",
+            "assignmentHash": "sha256:35d79de838f071f5ce92dad54c87e8276b7fce82af1bfe4609f3e5191dabbafc",
+            "assignmentId": "peer_assignment_35d79de838f071f5",
+            "jobId": "88a1ddba-88e7-478a-910b-a3c96a5c2a4d",
+            "requesterId": "sha256:78587bb0df7618cce8f55bf5014672449b14adeee39cff5b3c2a3e985488e549",
+            "providerId": "sha256:d00a888b5624721875b24940211572dc6dd304982576eb2bef7ad7a927968db7",
+            "providerPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEa3ulzCYO9s6jJf2uw67HkjsE5hPl24Vyp6oHMIx9hnpRq+Q6o2Y6WGQzKuMYFiKaGZ7+dMll9feGgqanhHyQfA==",
+            "intentHash": "sha256:87f1f688b67ec928a217e2cf0b0c663211376458ec19944030007f70cfa09f6a",
+            "routeDecisionHash": "sha256:8975e1d0550aad3606643b7c3b90db4e06c2e4aa89f5bb5f1564e342ffcfb892",
+            "providerAdvertHash": "sha256:ff9cc5ffbc4d8d9e675c26695ba314dc477cfe9badadf5f7ccf88b8179fbf852",
+            "providerParticipationProfileHash": null,
+            "providerLimits": {
+              "maxInputBytes": 10000,
+              "maxOutputBytes": 10000,
+              "maxStreamBytes": 200000,
+              "maxEvents": 32,
+              "maxJobMs": 30000
+            },
+            "assignmentAttemptId": "a3d0ba3f-7bac-44c2-af3e-9dca47343f3d",
+            "comparisonPolicyDigest": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "inputHash": "sha256:111941377d9a3a4a6438bd2128d1495205b9e428f05e1d1a34e4e54748e75a31",
+            "model": {
+              "modelId": "capsule-test-model",
+              "modelHash": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+              "manifestHash": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+              "runtime": "doppler",
+              "backend": "browser-webgpu",
+              "executionMode": "complete_pack_browser",
+              "workload": "text-generation",
+              "runtimeVersion": "0.6.1",
+              "executablePack": {
+                "schema": "doppler.capsule/v2",
+                "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+                "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+                "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+                "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7",
+                "artifacts": [
+                  {
+                    "artifactId": "manifest",
+                    "role": "manifest",
+                    "path": "manifest.json",
+                    "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+                    "sizeBytes": 33
+                  },
+                  {
+                    "artifactId": "tokenizer",
+                    "role": "tokenizer",
+                    "path": "tokenizer.json",
+                    "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+                    "sizeBytes": 16
+                  },
+                  {
+                    "artifactId": "weights",
+                    "role": "weight-shard",
+                    "path": "weights.bin",
+                    "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+                    "sizeBytes": 4
+                  },
+                  {
+                    "artifactId": "wgsl",
+                    "role": "wgsl-source",
+                    "path": "main.wgsl",
+                    "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+                    "sizeBytes": 41
+                  },
+                  {
+                    "artifactId": "evidence",
+                    "role": "reference-report",
+                    "path": "reference.json",
+                    "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+                    "sizeBytes": 16
+                  },
+                  {
+                    "artifactId": "program-bundle",
+                    "role": "program-bundle",
+                    "path": "program-bundle.json",
+                    "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+                    "sizeBytes": 39
+                  }
+                ],
+                "requiredOperation": "generate",
+                "acceptedTargetPlanDigests": [
+                  "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9"
+                ]
+              }
+            },
+            "expiresAt": "2026-09-13T03:57:55.130Z",
+            "acceptancePolicyDigest": "sha256:a646c4606e9283a1c0dc4a1e708c5e6831fccdb603effdab8f4885a3465284f8",
+            "attemptNumber": 1,
+            "inputClass": "public_text",
+            "operationPolicyDigest": "sha256:7f8c47bcf84bf2fdf82833f9a0125151bf9957cce1da6c07c650b07911a17569",
+            "jobPolicyDigest": "sha256:0405f98c013a52d93e2cf3942d18cb680bb79da7863a519387309d442389ddb7",
+            "adapterSet": []
+          },
+          "limits": {
+            "maxInputBytes": 10000,
+            "maxOutputBytes": 10000,
+            "deadlineAt": 1789271875130
+          }
+        },
+        "output": {
+          "text": "0,1,0",
+          "tokenIds": [
+            0,
+            1,
+            0
+          ],
+          "sampling": {
+            "maxTokens": 3,
+            "maxSeqLen": 16,
+            "temperature": 0,
+            "topP": 1,
+            "topK": 0,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 1,
+            "presencePenalty": 2,
+            "useChatTemplate": false,
+            "seed": 0,
+            "suppressTokenIds": [],
+            "stopSequences": []
+          },
+          "completion": {
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "max-tokens",
+            "promptTokenCount": 2,
+            "generatedTokenCount": 3
+          }
+        },
+        "receipt": {
+          "schema": "doppler.capsule-operation-receipt/v2",
+          "capsule": {
+            "schema": "doppler.capsule/v2",
+            "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+            "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+            "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+            "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7"
+          },
+          "modelId": "capsule-test-model",
+          "targetId": "webgpu-f32-portable",
+          "targetPlanDigest": "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9",
+          "artifactReceipts": [
+            {
+              "artifactId": "manifest",
+              "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+              "sizeBytes": 33
+            },
+            {
+              "artifactId": "tokenizer",
+              "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+              "sizeBytes": 16
+            },
+            {
+              "artifactId": "weights",
+              "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+              "sizeBytes": 4
+            },
+            {
+              "artifactId": "wgsl",
+              "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+              "sizeBytes": 41
+            },
+            {
+              "artifactId": "evidence",
+              "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+              "sizeBytes": 16
+            },
+            {
+              "artifactId": "program-bundle",
+              "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+              "sizeBytes": 39
+            }
+          ],
+          "releaseEventDigest": null,
+          "runtimeVersion": "0.6.1",
+          "stream": {
+            "schema": "doppler.capsule-operation-event/v2",
+            "partialCount": 3,
+            "lastPartialDigest": "sha256:b3332a34b8b9cf49c92804e7b1c7a8acaa2abd9badb3904ce31c534c0e3a66c9"
+          },
+          "operation": {
+            "name": "generate",
+            "version": 1
+          },
+          "requestHash": "sha256:bc5b7cef7eff51e0aa118f9694f8f9e826318efcc4999118a1b4b4631da10a90",
+          "assignmentHash": "sha256:d01509dc9745ecfd6088f17b981b249a19e062ec5cd2da9a0954b3e408f3acff",
+          "inputHash": "sha256:111941377d9a3a4a6438bd2128d1495205b9e428f05e1d1a34e4e54748e75a31",
+          "outputHash": "sha256:93309f013ecfe284d849ef6f9526017850d6626fdab502ba4229e1ee018c0817",
+          "receiptDigest": "sha256:85957a5ccd90009ab98be531d224037447c4f68ff999ba071ddbb28a977b43fb"
+        }
+      },
+      "assessment": {
+        "schema": "poolday.operation-assessment/v2",
+        "accepted": true,
+        "policyDigest": "sha256:a646c4606e9283a1c0dc4a1e708c5e6831fccdb603effdab8f4885a3465284f8",
+        "receiptDigest": "sha256:85957a5ccd90009ab98be531d224037447c4f68ff999ba071ddbb28a977b43fb",
+        "claim": "execution-identity-only"
+      },
+      "acceptanceHash": "sha256:2e5f0f3d2fc9e4fcb7cf7fd11dc329554ca4ba73d63d7b322728ee0b53208881"
+    },
+    "transport": {
+      "closed": false,
+      "pendingBytes": 0,
+      "pendingMessages": 0,
+      "sentFrameBytes": 47070,
+      "receivedFrameBytes": 13957,
+      "sentMessages": 2,
+      "receivedMessages": 7,
+      "wireBytes": null
+    },
+    "errors": []
+  },
+  "provider": {
+    "calls": 1,
+    "replacements": 1,
+    "dropped": true,
+    "journal": {
+      "attempts": 1,
+      "storedBytes": 13145,
+      "states": {
+        "accepted": 0,
+        "running": 0,
+        "completed": 1,
+        "cancelled": 0,
+        "interrupted": 0,
+        "expired": 0
+      },
+      "maxAttempts": 128,
+      "maxBytes": 67108864,
+      "retentionMs": 300000,
+      "storage": "indexeddb",
+      "persistence": "browser-managed"
+    },
+    "transport": {
+      "closed": false,
+      "pendingBytes": 0,
+      "pendingMessages": 0,
+      "sentFrameBytes": 13957,
+      "receivedFrameBytes": 47070,
+      "sentMessages": 7,
+      "receivedMessages": 2,
+      "wireBytes": null
+    },
+    "errors": []
+  },
+  "cleanupErrors": [],
+  "completedAtUtc": "2026-09-13T03:57:27.187Z"
+}

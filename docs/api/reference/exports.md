@@ -15,9 +15,13 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Exported symbols:
   - `CapsuleEmbeddingRequest`
   - `CapsuleEmbeddingResult`
+  - `CapsuleOperationEvent`
+  - `CapsuleOperationRequest`
+  - `capsuleOperationSnapshots`
   - `CapsuleRerankApplicationBinding`
   - `CapsuleRerankReceipt`
   - `CapsuleRerankRequest`
+  - `createCapsuleStreamAccumulator`
   - `createDopplerRuntime`
   - `createFetchCapsuleArtifactStore`
   - `createForecastProgramFactory`
@@ -48,9 +52,13 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Exported symbols:
   - `CapsuleEmbeddingRequest`
   - `CapsuleEmbeddingResult`
+  - `CapsuleOperationEvent`
+  - `CapsuleOperationRequest`
+  - `capsuleOperationSnapshots`
   - `CapsuleRerankApplicationBinding`
   - `CapsuleRerankReceipt`
   - `CapsuleRerankRequest`
+  - `createCapsuleStreamAccumulator`
   - `createDopplerRuntime`
   - `createFetchCapsuleArtifactStore`
   - `createForecastProgramFactory`
@@ -94,6 +102,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Implementation: [src/client/capsule-host.js](../../../src/client/capsule-host.js)
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
+  - `capsuleOperationSnapshots`
+  - `createCapsuleStreamAccumulator`
   - `DopplerCapsuleOpenOptions`
   - `DopplerRuntimeSession`
   - `GENERATION_CONTRACT`
@@ -168,6 +178,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Notes: Explicit legacy manifest-loading facade; new production integrations should use signed Capsules.
 - Support tier source: `src/config/support-tiers/subsystems.json` (api.compat-facade)
 - Exported symbols:
+  - `capsuleOperationSnapshots`
+  - `createCapsuleStreamAccumulator`
   - `createDopplerProvider`
   - `doppler`
   - `DOPPLER_VERSION`

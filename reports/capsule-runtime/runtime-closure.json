@@ -1,8 +1,8 @@
 {
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
-  "fileCount": 62,
-  "sourceBytes": 588780,
+  "fileCount": 64,
+  "sourceBytes": 600766,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -17,8 +17,8 @@
   "files": [
     {
       "path": "src/capsule-runtime.js",
-      "sizeBytes": 1249,
-      "hash": "sha256:51a01e4219412df4e497556cdd9c7e8711644533d47547e6ef318ba9f8a7b7e6"
+      "sizeBytes": 1371,
+      "hash": "sha256:7c62a1a8aad8b5d398e534495703269c257bbcb31a29439ebd4954b21a6935eb"
     },
     {
       "path": "src/client/runtime/capsule-acquisition.js",
@@ -47,13 +47,23 @@
     },
     {
       "path": "src/client/runtime/capsule-operation-adapters.js",
-      "sizeBytes": 3534,
-      "hash": "sha256:6a9823bd4f579cf38584b7173f527ab6b74379dec195e8418e1c5c71d3961da1"
+      "sizeBytes": 4672,
+      "hash": "sha256:f818df7de41a0ffb9385b73aa884f0d2c6e5bca94a938d930f3ae44139ad3400"
+    },
+    {
+      "path": "src/client/runtime/capsule-operation-deltas.js",
+      "sizeBytes": 2751,
+      "hash": "sha256:e7b58193175460b93a5c08430d7d61551eea590e5f70fc4c0829e1219133dfbe"
     },
     {
       "path": "src/client/runtime/capsule-operation-executor.js",
-      "sizeBytes": 5627,
-      "hash": "sha256:7b0002701b29d2359926dff3b6cb6a72679a8936449c9a1a74e38a63ae102bcd"
+      "sizeBytes": 6061,
+      "hash": "sha256:1c1546e31eecadf57f2c114d3b697d31f3d5438bb545e1b28b92263a39fa0e95"
+    },
+    {
+      "path": "src/client/runtime/capsule-operation-stream.js",
+      "sizeBytes": 5080,
+      "hash": "sha256:7a346de8789fece43e375ade36bcfb77740c7a8e97d5a6101f6f3f4f53a85901"
     },
     {
       "path": "src/client/runtime/capsule-release-authorization.js",
@@ -77,8 +87,8 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 20096,
-      "hash": "sha256:3da8fbef2b43427991441d9501f9477f37afc1e0866ab63fabc1ea1ea3845b70"
+      "sizeBytes": 20339,
+      "hash": "sha256:b85186bca0d0c64120a4cd9dd852166091ff393bf2c11b8e595f053dc1ad89e6"
     },
     {
       "path": "src/client/runtime/fetch-capsule-artifact-store.js",
@@ -87,13 +97,13 @@
     },
     {
       "path": "src/client/runtime/resource-binder.js",
-      "sizeBytes": 5310,
-      "hash": "sha256:cc3efb557852436e22b7070b7f4a32d6cb25f95a49a07ce8dc606aca9c6e9803"
+      "sizeBytes": 5725,
+      "hash": "sha256:e9ef873b34446168621b0e2b58ecddb0084cd4c769608d2955560408a11d4ef8"
     },
     {
       "path": "src/client/runtime/session-controller.js",
-      "sizeBytes": 5059,
-      "hash": "sha256:6c5fef50fcb28bc125b4a0e6b93706b1bb437af1081aa4caec7c4028ac0cb618"
+      "sizeBytes": 5953,
+      "hash": "sha256:622eb1a0f57c9c4220b837b1b5ff0931089e9ee9c995e480d453bf89c5d25fe2"
     },
     {
       "path": "src/client/runtime/target-selector.js",
@@ -132,13 +142,13 @@
     },
     {
       "path": "src/config/capsule-operation.js",
-      "sizeBytes": 4117,
-      "hash": "sha256:072a884384465728a069a861f835347d3feed54b34453b97bcb23d4f54a84336"
+      "sizeBytes": 4362,
+      "hash": "sha256:ae8452d84b2588ace687f60699b8a14c920f5ab3e7fcded2c86ba2cdaadd2792"
     },
     {
       "path": "src/config/capsule-operations.json",
-      "sizeBytes": 552,
-      "hash": "sha256:2bbb4c36591d1d1a1e5a614dcdf3dc59410f6bebd602ccc34b8c51643dbdf18b"
+      "sizeBytes": 980,
+      "hash": "sha256:47c07a45e614d30b4ef8447c52f844808677db2c5a5754776e6b951233367ab4"
     },
     {
       "path": "src/config/capsule-release-contract.js",
@@ -272,8 +282,8 @@
     },
     {
       "path": "src/debug/stats.js",
-      "sizeBytes": 4162,
-      "hash": "sha256:9232b05830093f27b9ad129fccddc69db071ca1be6f2e2a9f2781ecf6276e7a5"
+      "sizeBytes": 4398,
+      "hash": "sha256:d41d4c21fe45c3425bb34f1509bbaab44097ddf4168277e4173c4e8ccaadf2d5"
     },
     {
       "path": "src/debug/tensor.js",
@@ -323,7 +333,7 @@
     {
       "path": "src/version.js",
       "sizeBytes": 97,
-      "hash": "sha256:ae275b8cd1d0acb15e09e1cab6e5b4cfa0838902adb8709af860d08efa6e55f0"
+      "hash": "sha256:da2df095d5ba3dd4ef7f5597080760c3ad2e58f28982003af1f33949fb6ecc06"
     }
   ],
   "passed": true

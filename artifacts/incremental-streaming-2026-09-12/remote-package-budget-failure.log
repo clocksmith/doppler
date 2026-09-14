@@ -1,0 +1,1310 @@
+﻿2026-09-13T03:25:05.0750604Z Current runner version: '2.337.0'
+2026-09-13T03:25:05.0770114Z ##[group]Runner Image Provisioner
+2026-09-13T03:25:05.0771002Z Hosted Compute Agent
+2026-09-13T03:25:05.0771547Z Version: 20260828.587
+2026-09-13T03:25:05.0772084Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-13T03:25:05.0772673Z Build Date: 2026-08-28T16:44:25Z
+2026-09-13T03:25:05.0773268Z Worker ID: {7f6df3e0-73c1-453b-8b09-db40291211fa}
+2026-09-13T03:25:05.0773881Z Azure Region: westus3
+2026-09-13T03:25:05.0774415Z ##[endgroup]
+2026-09-13T03:25:05.0775461Z ##[group]Operating System
+2026-09-13T03:25:05.0775970Z Ubuntu
+2026-09-13T03:25:05.0776462Z 24.04.5
+2026-09-13T03:25:05.0776924Z LTS
+2026-09-13T03:25:05.0777339Z ##[endgroup]
+2026-09-13T03:25:05.0777845Z ##[group]Runner Image
+2026-09-13T03:25:05.0778339Z Image: ubuntu-24.04
+2026-09-13T03:25:05.0778829Z Version: 20260907.300.1
+2026-09-13T03:25:05.0779881Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260907.300/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-13T03:25:05.0781497Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260907.300
+2026-09-13T03:25:05.0782282Z ##[endgroup]
+2026-09-13T03:25:05.0783248Z ##[group]GITHUB_TOKEN Permissions
+2026-09-13T03:25:05.0784767Z Contents: read
+2026-09-13T03:25:05.0785361Z Metadata: read
+2026-09-13T03:25:05.0785824Z ##[endgroup]
+2026-09-13T03:25:05.0787425Z Secret source: Actions
+2026-09-13T03:25:05.0788283Z Cache mode: write
+2026-09-13T03:25:05.0788832Z Prepare workflow directory
+2026-09-13T03:25:05.1208864Z Prepare all required actions
+2026-09-13T03:25:05.1248400Z Getting action download info
+2026-09-13T03:25:05.4094697Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-09-13T03:25:05.5200480Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+2026-09-13T03:25:05.7186249Z Complete job name: check-green
+2026-09-13T03:25:05.7724431Z ##[group]Run actions/checkout@v7
+2026-09-13T03:25:05.7725103Z with:
+2026-09-13T03:25:05.7725457Z   fetch-depth: 0
+2026-09-13T03:25:05.7725817Z   repository: clocksmith/doppler
+2026-09-13T03:25:05.7728754Z   token: ***
+2026-09-13T03:25:05.7729092Z   ssh-strict: true
+2026-09-13T03:25:05.7729434Z   ssh-user: git
+2026-09-13T03:25:05.7729778Z   persist-credentials: true
+2026-09-13T03:25:05.7730156Z   clean: true
+2026-09-13T03:25:05.7730826Z   sparse-checkout-cone-mode: true
+2026-09-13T03:25:05.7731237Z   fetch-tags: false
+2026-09-13T03:25:05.7731589Z   show-progress: true
+2026-09-13T03:25:05.7731960Z   lfs: false
+2026-09-13T03:25:05.7732280Z   submodules: false
+2026-09-13T03:25:05.7732625Z   set-safe-directory: true
+2026-09-13T03:25:05.7733019Z   allow-unsafe-pr-checkout: false
+2026-09-13T03:25:05.7733658Z env:
+2026-09-13T03:25:05.7734097Z   DOPPLER_POLICY_BASE_REF: 2b442b52317f6ae27be60cd6c82596cbeda6b264
+2026-09-13T03:25:05.7734665Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION:
+2026-09-13T03:25:05.7735151Z   DOPPLER_MODEL_FAMILY_AUTHORIZATION:
+2026-09-13T03:25:05.7735565Z ##[endgroup]
+2026-09-13T03:25:05.8542060Z Syncing repository: clocksmith/doppler
+2026-09-13T03:25:05.8544585Z ##[group]Getting Git version info
+2026-09-13T03:25:05.8545427Z Working directory is '/home/runner/work/doppler/doppler'
+2026-09-13T03:25:05.8546645Z [command]/usr/bin/git version
+2026-09-13T03:25:05.8640807Z git version 2.55.0
+2026-09-13T03:25:05.8659149Z ##[endgroup]
+2026-09-13T03:25:05.8668355Z Temporarily overriding HOME='/home/runner/work/_temp/d99447be-2f0d-4042-aa65-4e01e9b609d0' before making global git config changes
+2026-09-13T03:25:05.8669769Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-13T03:25:05.8673153Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/doppler/doppler
+2026-09-13T03:25:05.8713324Z Deleting the contents of '/home/runner/work/doppler/doppler'
+2026-09-13T03:25:05.8716338Z ##[group]Determining repository object format
+2026-09-13T03:25:05.8717640Z ##[endgroup]
+2026-09-13T03:25:05.8718277Z ##[group]Initializing the repository
+2026-09-13T03:25:05.8721638Z [command]/usr/bin/git init /home/runner/work/doppler/doppler
+2026-09-13T03:25:05.8838722Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-13T03:25:05.8840644Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-13T03:25:05.8842003Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-13T03:25:05.8842961Z hint: call:
+2026-09-13T03:25:05.8843540Z hint:
+2026-09-13T03:25:05.8844429Z hint: 	git config --global init.defaultBranch <name>
+2026-09-13T03:25:05.8845173Z hint:
+2026-09-13T03:25:05.8845854Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-13T03:25:05.8847154Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-13T03:25:05.8847953Z hint:
+2026-09-13T03:25:05.8848285Z hint: 	git branch -m <name>
+2026-09-13T03:25:05.8848694Z hint:
+2026-09-13T03:25:05.8849177Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-13T03:25:05.8850242Z Initialized empty Git repository in /home/runner/work/doppler/doppler/.git/
+2026-09-13T03:25:05.8852470Z [command]/usr/bin/git remote add origin https://github.com/clocksmith/doppler
+2026-09-13T03:25:05.8888180Z ##[endgroup]
+2026-09-13T03:25:05.8889071Z ##[group]Disabling automatic garbage collection
+2026-09-13T03:25:05.8891088Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-13T03:25:05.8918627Z ##[endgroup]
+2026-09-13T03:25:05.8919455Z ##[group]Setting up auth
+2026-09-13T03:25:05.8920080Z Removing SSH command configuration
+2026-09-13T03:25:05.8924455Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-13T03:25:05.8952784Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-13T03:25:05.9261186Z Removing HTTP extra header
+2026-09-13T03:25:05.9266211Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-13T03:25:05.9297524Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-13T03:25:05.9479748Z Removing includeIf entries pointing to credentials config files
+2026-09-13T03:25:05.9484094Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-13T03:25:05.9519520Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-13T03:25:05.9708040Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-be41352d-a0dd-4e16-ae6b-a3e52f9a1b51.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-13T03:25:05.9741831Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/doppler/doppler/.git.path /home/runner/work/_temp/git-credentials-be41352d-a0dd-4e16-ae6b-a3e52f9a1b51.config
+2026-09-13T03:25:05.9769158Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/doppler/doppler/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-be41352d-a0dd-4e16-ae6b-a3e52f9a1b51.config
+2026-09-13T03:25:05.9800018Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-be41352d-a0dd-4e16-ae6b-a3e52f9a1b51.config
+2026-09-13T03:25:05.9828717Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-be41352d-a0dd-4e16-ae6b-a3e52f9a1b51.config
+2026-09-13T03:25:05.9854158Z ##[endgroup]
+2026-09-13T03:25:05.9854746Z ##[group]Fetching the repository
+2026-09-13T03:25:05.9859637Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/* +06b210149fb4491a57d05385facadb36062680dc:refs/remotes/pull/10/merge
+2026-09-13T03:25:13.5090720Z From https://github.com/clocksmith/doppler
+2026-09-13T03:25:13.5092135Z  * [new branch]        agent/publication-hygiene                -> origin/agent/publication-hygiene
+2026-09-13T03:25:13.5093477Z  * [new branch]        agent/vulkan-tier-evidence               -> origin/agent/vulkan-tier-evidence
+2026-09-13T03:25:13.5094959Z  * [new branch]        codex/consumer-streaming-closure         -> origin/codex/consumer-streaming-closure
+2026-09-13T03:25:13.5096408Z  * [new branch]        codex/progress-overlay-polish            -> origin/codex/progress-overlay-polish
+2026-09-13T03:25:13.5098035Z  * [new branch]        codex/qwen-gemma-runtime-fixes           -> origin/codex/qwen-gemma-runtime-fixes
+2026-09-13T03:25:13.5100604Z  * [new branch]        codex/runtime-contract-gemma4-bench      -> origin/codex/runtime-contract-gemma4-bench
+2026-09-13T03:25:13.5102314Z  * [new branch]        entire/checkpoints/v1                    -> origin/entire/checkpoints/v1
+2026-09-13T03:25:13.5103881Z  * [new branch]        feat/capsule-remote-adapters             -> origin/feat/capsule-remote-adapters
+2026-09-13T03:25:13.5105561Z  * [new branch]        feat/qwen-3-6-bringup                    -> origin/feat/qwen-3-6-bringup
+2026-09-13T03:25:13.5107439Z  * [new branch]        fix/peft-runtime-layout                  -> origin/fix/peft-runtime-layout
+2026-09-13T03:25:13.5108918Z  * [new branch]        main                                     -> origin/main
+2026-09-13T03:25:13.5110823Z  * [new branch]        publish-gemma4-amd-replay-evidence       -> origin/publish-gemma4-amd-replay-evidence
+2026-09-13T03:25:13.5112823Z  * [new branch]        release/0.6.0                            -> origin/release/0.6.0
+2026-09-13T03:25:13.5114748Z  * [new branch]        release/060-product-closure              -> origin/release/060-product-closure
+2026-09-13T03:25:13.5117216Z  * [new tag]           pack-runtime-v0-gemma3-270m-golden       -> pack-runtime-v0-gemma3-270m-golden
+2026-09-13T03:25:13.5118955Z  * [new tag]           v0.1.0                                   -> v0.1.0
+2026-09-13T03:25:13.5120174Z  * [new tag]           v0.1.1                                   -> v0.1.1
+2026-09-13T03:25:13.5121545Z  * [new tag]           v0.1.2                                   -> v0.1.2
+2026-09-13T03:25:13.5122777Z  * [new tag]           v0.1.3                                   -> v0.1.3
+2026-09-13T03:25:13.5123996Z  * [new tag]           v0.1.4                                   -> v0.1.4
+2026-09-13T03:25:13.5125243Z  * [new tag]           v0.1.5                                   -> v0.1.5
+2026-09-13T03:25:13.5126614Z  * [new tag]           v0.1.6                                   -> v0.1.6
+2026-09-13T03:25:13.5127967Z  * [new tag]           v0.1.7                                   -> v0.1.7
+2026-09-13T03:25:13.5129308Z  * [new tag]           v0.1.8                                   -> v0.1.8
+2026-09-13T03:25:13.5130836Z  * [new tag]           v0.2.0                                   -> v0.2.0
+2026-09-13T03:25:13.5132213Z  * [new tag]           v0.4.11                                  -> v0.4.11
+2026-09-13T03:25:13.5133560Z  * [new tag]           v0.4.12                                  -> v0.4.12
+2026-09-13T03:25:13.5134917Z  * [new tag]           v0.4.13                                  -> v0.4.13
+2026-09-13T03:25:13.5136447Z  * [new tag]           v0.4.15                                  -> v0.4.15
+2026-09-13T03:25:13.5137886Z  * [new tag]           v0.4.16                                  -> v0.4.16
+2026-09-13T03:25:13.5139319Z  * [new tag]           v0.4.8                                   -> v0.4.8
+2026-09-13T03:25:13.5140865Z  * [new tag]           v0.4.9                                   -> v0.4.9
+2026-09-13T03:25:13.5142231Z  * [new tag]           v0.5.0                                   -> v0.5.0
+2026-09-13T03:25:13.5143800Z  * [new tag]           v0.5.1                                   -> v0.5.1
+2026-09-13T03:25:13.5145326Z  * [new ref]           06b210149fb4491a57d05385facadb36062680dc -> pull/10/merge
+2026-09-13T03:25:13.5149137Z ##[endgroup]
+2026-09-13T03:25:13.5150701Z ##[group]Determining the checkout info
+2026-09-13T03:25:13.5152335Z ##[endgroup]
+2026-09-13T03:25:13.5153186Z [command]/usr/bin/git sparse-checkout disable
+2026-09-13T03:25:13.5155581Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-13T03:25:13.5179631Z ##[group]Checking out the ref
+2026-09-13T03:25:13.5182779Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/10/merge
+2026-09-13T03:25:14.6988096Z Updating files:  15% (1143/7285)
+2026-09-13T03:25:14.7265105Z Updating files:  16% (1166/7285)
+2026-09-13T03:25:14.7291466Z Updating files:  17% (1239/7285)
+2026-09-13T03:25:14.7556445Z Updating files:  18% (1312/7285)
+2026-09-13T03:25:14.7586824Z Updating files:  19% (1385/7285)
+2026-09-13T03:25:14.7614311Z Updating files:  20% (1457/7285)
+2026-09-13T03:25:14.7652856Z Updating files:  21% (1530/7285)
+2026-09-13T03:25:14.7689622Z Updating files:  22% (1603/7285)
+2026-09-13T03:25:14.7716013Z Updating files:  23% (1676/7285)
+2026-09-13T03:25:14.7740909Z Updating files:  24% (1749/7285)
+2026-09-13T03:25:14.7775277Z Updating files:  25% (1822/7285)
+2026-09-13T03:25:14.7807011Z Updating files:  26% (1895/7285)
+2026-09-13T03:25:14.7846550Z Updating files:  27% (1967/7285)
+2026-09-13T03:25:14.7878457Z Updating files:  28% (2040/7285)
+2026-09-13T03:25:14.7911763Z Updating files:  29% (2113/7285)
+2026-09-13T03:25:14.7941197Z Updating files:  30% (2186/7285)
+2026-09-13T03:25:14.7976956Z Updating files:  31% (2259/7285)
+2026-09-13T03:25:14.8004344Z Updating files:  32% (2332/7285)
+2026-09-13T03:25:14.8034684Z Updating files:  33% (2405/7285)
+2026-09-13T03:25:14.8062820Z Updating files:  34% (2477/7285)
+2026-09-13T03:25:14.8089756Z Updating files:  35% (2550/7285)
+2026-09-13T03:25:14.8120938Z Updating files:  36% (2623/7285)
+2026-09-13T03:25:14.8152685Z Updating files:  37% (2696/7285)
+2026-09-13T03:25:14.8184301Z Updating files:  38% (2769/7285)
+2026-09-13T03:25:14.8213084Z Updating files:  39% (2842/7285)
+2026-09-13T03:25:14.8241051Z Updating files:  40% (2914/7285)
+2026-09-13T03:25:14.8277662Z Updating files:  41% (2987/7285)
+2026-09-13T03:25:14.8311947Z Updating files:  42% (3060/7285)
+2026-09-13T03:25:14.8341926Z Updating files:  43% (3133/7285)
+2026-09-13T03:25:14.8372217Z Updating files:  44% (3206/7285)
+2026-09-13T03:25:14.8407309Z Updating files:  45% (3279/7285)
+2026-09-13T03:25:14.8444817Z Updating files:  46% (3352/7285)
+2026-09-13T03:25:14.8478825Z Updating files:  47% (3424/7285)
+2026-09-13T03:25:14.8512103Z Updating files:  48% (3497/7285)
+2026-09-13T03:25:14.8543399Z Updating files:  49% (3570/7285)
+2026-09-13T03:25:14.8567647Z Updating files:  50% (3643/7285)
+2026-09-13T03:25:14.8598423Z Updating files:  51% (3716/7285)
+2026-09-13T03:25:14.8624281Z Updating files:  52% (3789/7285)
+2026-09-13T03:25:14.8682285Z Updating files:  53% (3862/7285)
+2026-09-13T03:25:14.8700113Z Updating files:  54% (3934/7285)
+2026-09-13T03:25:14.8725509Z Updating files:  55% (4007/7285)
+2026-09-13T03:25:14.8758562Z Updating files:  56% (4080/7285)
+2026-09-13T03:25:14.8791323Z Updating files:  57% (4153/7285)
+2026-09-13T03:25:14.8825877Z Updating files:  58% (4226/7285)
+2026-09-13T03:25:14.8853987Z Updating files:  59% (4299/7285)
+2026-09-13T03:25:14.8876259Z Updating files:  60% (4371/7285)
+2026-09-13T03:25:14.8898300Z Updating files:  61% (4444/7285)
+2026-09-13T03:25:14.8921133Z Updating files:  62% (4517/7285)
+2026-09-13T03:25:14.8945180Z Updating files:  63% (4590/7285)
+2026-09-13T03:25:14.8968455Z Updating files:  64% (4663/7285)
+2026-09-13T03:25:14.9002215Z Updating files:  65% (4736/7285)
+2026-09-13T03:25:14.9021835Z Updating files:  66% (4809/7285)
+2026-09-13T03:25:14.9049698Z Updating files:  67% (4881/7285)
+2026-09-13T03:25:14.9071880Z Updating files:  68% (4954/7285)
+2026-09-13T03:25:14.9095982Z Updating files:  69% (5027/7285)
+2026-09-13T03:25:14.9119235Z Updating files:  70% (5100/7285)
+2026-09-13T03:25:14.9142996Z Updating files:  71% (5173/7285)
+2026-09-13T03:25:14.9175032Z Updating files:  72% (5246/7285)
+2026-09-13T03:25:14.9196769Z Updating files:  73% (5319/7285)
+2026-09-13T03:25:14.9220224Z Updating files:  74% (5391/7285)
+2026-09-13T03:25:14.9246397Z Updating files:  75% (5464/7285)
+2026-09-13T03:25:14.9268852Z Updating files:  76% (5537/7285)
+2026-09-13T03:25:14.9291524Z Updating files:  77% (5610/7285)
+2026-09-13T03:25:14.9315378Z Updating files:  78% (5683/7285)
+2026-09-13T03:25:14.9336040Z Updating files:  79% (5756/7285)
+2026-09-13T03:25:14.9360787Z Updating files:  80% (5828/7285)
+2026-09-13T03:25:14.9394168Z Updating files:  81% (5901/7285)
+2026-09-13T03:25:14.9426162Z Updating files:  82% (5974/7285)
+2026-09-13T03:25:14.9447937Z Updating files:  83% (6047/7285)
+2026-09-13T03:25:14.9470703Z Updating files:  84% (6120/7285)
+2026-09-13T03:25:14.9498160Z Updating files:  85% (6193/7285)
+2026-09-13T03:25:14.9529527Z Updating files:  86% (6266/7285)
+2026-09-13T03:25:14.9561283Z Updating files:  87% (6338/7285)
+2026-09-13T03:25:14.9594436Z Updating files:  88% (6411/7285)
+2026-09-13T03:25:14.9629104Z Updating files:  89% (6484/7285)
+2026-09-13T03:25:14.9662894Z Updating files:  90% (6557/7285)
+2026-09-13T03:25:14.9693989Z Updating files:  91% (6630/7285)
+2026-09-13T03:25:14.9724831Z Updating files:  92% (6703/7285)
+2026-09-13T03:25:14.9757217Z Updating files:  93% (6776/7285)
+2026-09-13T03:25:14.9797633Z Updating files:  94% (6848/7285)
+2026-09-13T03:25:15.0301505Z Updating files:  95% (6921/7285)
+2026-09-13T03:25:15.0343673Z Updating files:  96% (6994/7285)
+2026-09-13T03:25:15.0391401Z Updating files:  97% (7067/7285)
+2026-09-13T03:25:15.0433284Z Updating files:  98% (7140/7285)
+2026-09-13T03:25:15.0485229Z Updating files:  99% (7213/7285)
+2026-09-13T03:25:15.0485672Z Updating files: 100% (7285/7285)
+2026-09-13T03:25:15.0486165Z Updating files: 100% (7285/7285), done.
+2026-09-13T03:25:15.0548243Z Note: switching to 'refs/remotes/pull/10/merge'.
+2026-09-13T03:25:15.0548827Z
+2026-09-13T03:25:15.0549059Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-13T03:25:15.0549459Z changes and commit them, and you can discard any commits you make in this
+2026-09-13T03:25:15.0549991Z state without impacting any branches by switching back to a branch.
+2026-09-13T03:25:15.0550464Z
+2026-09-13T03:25:15.0550699Z If you want to create a new branch to retain commits you create, you may
+2026-09-13T03:25:15.0551243Z do so (now or later) by using -c with the switch command. Example:
+2026-09-13T03:25:15.0551556Z
+2026-09-13T03:25:15.0551692Z   git switch -c <new-branch-name>
+2026-09-13T03:25:15.0551903Z
+2026-09-13T03:25:15.0552032Z Or undo this operation with:
+2026-09-13T03:25:15.0552231Z
+2026-09-13T03:25:15.0552336Z   git switch -
+2026-09-13T03:25:15.0552490Z
+2026-09-13T03:25:15.0552738Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-13T03:25:15.0553112Z
+2026-09-13T03:25:15.0553532Z HEAD is now at 06b21014 Merge 1c6c08f603fafc59fba0b88ab4d8e76794fe5e1b into 291541f646d7addf573dff2066735055cbcd391b
+2026-09-13T03:25:15.1006676Z ##[endgroup]
+2026-09-13T03:25:15.1048447Z [command]/usr/bin/git log -1 --format=%H
+2026-09-13T03:25:15.1073194Z 06b210149fb4491a57d05385facadb36062680dc
+2026-09-13T03:25:15.1265337Z ##[group]Run actions/setup-node@v6
+2026-09-13T03:25:15.1265565Z with:
+2026-09-13T03:25:15.1265728Z   node-version: 22
+2026-09-13T03:25:15.1265896Z   cache: npm
+2026-09-13T03:25:15.1266062Z   check-latest: false
+2026-09-13T03:25:15.1267937Z   token: ***
+2026-09-13T03:25:15.1268119Z   package-manager-cache: true
+2026-09-13T03:25:15.1268319Z env:
+2026-09-13T03:25:15.1268551Z   DOPPLER_POLICY_BASE_REF: 2b442b52317f6ae27be60cd6c82596cbeda6b264
+2026-09-13T03:25:15.1268851Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION:
+2026-09-13T03:25:15.1269100Z   DOPPLER_MODEL_FAMILY_AUTHORIZATION:
+2026-09-13T03:25:15.1269309Z ##[endgroup]
+2026-09-13T03:25:15.2359942Z Found in cache @ /opt/hostedtoolcache/node/22.23.2/x64
+2026-09-13T03:25:15.2363300Z ##[group]Environment details
+2026-09-13T03:25:15.5670882Z node: v22.23.2
+2026-09-13T03:25:15.5671366Z npm: 10.9.8
+2026-09-13T03:25:15.5671543Z yarn: 1.22.22
+2026-09-13T03:25:15.5672317Z ##[endgroup]
+2026-09-13T03:25:15.5686519Z [command]/opt/hostedtoolcache/node/22.23.2/x64/bin/npm config get cache
+2026-09-13T03:25:15.6752868Z /home/runner/.npm
+2026-09-13T03:25:15.8823189Z Cache hit for: node-cache-Linux-x64-npm-3630544eff7653cf182eb6704fb9169b23b36db950209dae2a52ef6460e202b3
+2026-09-13T03:25:17.1138513Z Received 33554432 of 215938881 (15.5%), 32.0 MBs/sec
+2026-09-13T03:25:18.1205958Z Received 171966464 of 215938881 (79.6%), 81.9 MBs/sec
+2026-09-13T03:25:18.3139624Z Received 215938881 of 215938881 (100.0%), 93.6 MBs/sec
+2026-09-13T03:25:18.3140688Z Cache Size: ~206 MB (215938881 B)
+2026-09-13T03:25:18.3166196Z [command]/usr/bin/tar -xf /home/runner/work/_temp/e51af1c5-7b11-446b-b8d4-e06f471bb4a6/cache.tzst -P -C /home/runner/work/doppler/doppler --use-compress-program unzstd
+2026-09-13T03:25:18.5930938Z Cache restored successfully
+2026-09-13T03:25:18.6018474Z Cache restored from key: node-cache-Linux-x64-npm-3630544eff7653cf182eb6704fb9169b23b36db950209dae2a52ef6460e202b3
+2026-09-13T03:25:18.6178923Z ##[group]Run npm ci
+2026-09-13T03:25:18.6179216Z [36;1mnpm ci[0m
+2026-09-13T03:25:18.6222237Z shell: /usr/bin/bash -e {0}
+2026-09-13T03:25:18.6222480Z env:
+2026-09-13T03:25:18.6222730Z   DOPPLER_POLICY_BASE_REF: 2b442b52317f6ae27be60cd6c82596cbeda6b264
+2026-09-13T03:25:18.6223047Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION:
+2026-09-13T03:25:18.6223298Z   DOPPLER_MODEL_FAMILY_AUTHORIZATION:
+2026-09-13T03:25:18.6223520Z ##[endgroup]
+2026-09-13T03:25:22.4057816Z npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+2026-09-13T03:25:31.7586349Z
+2026-09-13T03:25:31.7587160Z added 325 packages, and audited 326 packages in 13s
+2026-09-13T03:25:31.7587526Z
+2026-09-13T03:25:31.7587763Z 49 packages are looking for funding
+2026-09-13T03:25:31.7588156Z   run `npm fund` for details
+2026-09-13T03:25:31.7648205Z
+2026-09-13T03:25:31.7648865Z 6 vulnerabilities (2 moderate, 4 high)
+2026-09-13T03:25:31.7649442Z
+2026-09-13T03:25:31.7652140Z To address issues that do not require attention, run:
+2026-09-13T03:25:31.7652880Z   npm audit fix
+2026-09-13T03:25:31.7654467Z
+2026-09-13T03:25:31.7654949Z Some issues need review, and may require choosing
+2026-09-13T03:25:31.7655579Z a different dependency.
+2026-09-13T03:25:31.7655963Z
+2026-09-13T03:25:31.7656292Z Run `npm audit` for details.
+2026-09-13T03:25:31.8468087Z ##[group]Run npx playwright install --with-deps chromium
+2026-09-13T03:25:31.8468444Z [36;1mnpx playwright install --with-deps chromium[0m
+2026-09-13T03:25:31.8507832Z shell: /usr/bin/bash -e {0}
+2026-09-13T03:25:31.8508143Z env:
+2026-09-13T03:25:31.8508507Z   DOPPLER_POLICY_BASE_REF: 2b442b52317f6ae27be60cd6c82596cbeda6b264
+2026-09-13T03:25:31.8509003Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION:
+2026-09-13T03:25:31.8509381Z   DOPPLER_MODEL_FAMILY_AUTHORIZATION:
+2026-09-13T03:25:31.8509709Z ##[endgroup]
+2026-09-13T03:25:32.7050918Z Installing dependencies...
+2026-09-13T03:25:32.7129662Z Switching to root user to install dependencies...
+2026-09-13T03:25:32.7995600Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-09-13T03:25:32.8604733Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-09-13T03:25:32.8618043Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-09-13T03:25:32.8619503Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-09-13T03:25:32.8733872Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-09-13T03:25:32.9141905Z Get:7 https://dl.google.com/linux/chrome-stable/deb stable InRelease [2548 B]
+2026-09-13T03:25:32.9637960Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-09-13T03:25:32.9792712Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [463 kB]
+2026-09-13T03:25:32.9933984Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [414 kB]
+2026-09-13T03:25:33.0153096Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1263 kB]
+2026-09-13T03:25:33.0253251Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [292 kB]
+2026-09-13T03:25:33.0342617Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Components [180 kB]
+2026-09-13T03:25:33.0641473Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1690 kB]
+2026-09-13T03:25:33.1035728Z Get:20 https://dl.google.com/linux/chrome-stable/deb stable/main amd64 Packages [1409 B]
+2026-09-13T03:25:33.1037196Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Components [388 kB]
+2026-09-13T03:25:33.1653677Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1544 kB]
+2026-09-13T03:25:33.2746146Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [354 kB]
+2026-09-13T03:25:33.2751603Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Components [940 B]
+2026-09-13T03:25:33.3109456Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-backports/main amd64 Components [5748 B]
+2026-09-13T03:25:33.3116172Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Components [12.6 kB]
+2026-09-13T03:25:33.3637594Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1006 kB]
+2026-09-13T03:25:33.4321983Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [213 kB]
+2026-09-13T03:25:33.4323159Z Get:23 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Components [46.4 kB]
+2026-09-13T03:25:33.4332213Z Get:24 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1206 kB]
+2026-09-13T03:25:33.4701492Z Get:25 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Components [76.3 kB]
+2026-09-13T03:25:33.4714906Z Get:26 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1445 kB]
+2026-09-13T03:25:33.4900101Z Get:27 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [336 kB]
+2026-09-13T03:25:37.7530720Z Fetched 11.3 MB in 1s (10.4 MB/s)
+2026-09-13T03:25:38.3476049Z Reading package lists...
+2026-09-13T03:25:38.3685289Z Reading package lists...
+2026-09-13T03:25:38.5122094Z Building dependency tree...
+2026-09-13T03:25:38.5128396Z Reading state information...
+2026-09-13T03:25:38.6348183Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-09-13T03:25:38.6348877Z libasound2t64 set to manually installed.
+2026-09-13T03:25:38.6349519Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-09-13T03:25:38.6350139Z libatk-bridge2.0-0t64 set to manually installed.
+2026-09-13T03:25:38.6350885Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-09-13T03:25:38.6351357Z libatk1.0-0t64 set to manually installed.
+2026-09-13T03:25:38.6351839Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-09-13T03:25:38.6352300Z libatspi2.0-0t64 set to manually installed.
+2026-09-13T03:25:38.6352622Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-09-13T03:25:38.6352934Z libcairo2 set to manually installed.
+2026-09-13T03:25:38.6353294Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-09-13T03:25:38.6353613Z libcups2t64 set to manually installed.
+2026-09-13T03:25:38.6353999Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-09-13T03:25:38.6354313Z libdbus-1-3 set to manually installed.
+2026-09-13T03:25:38.6354644Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-09-13T03:25:38.6355139Z libdrm2 set to manually installed.
+2026-09-13T03:25:38.6355534Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.2).
+2026-09-13T03:25:38.6355838Z libgbm1 set to manually installed.
+2026-09-13T03:25:38.6356168Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.8).
+2026-09-13T03:25:38.6356871Z libglib2.0-0t64 set to manually installed.
+2026-09-13T03:25:38.6357207Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-09-13T03:25:38.6357522Z libnspr4 set to manually installed.
+2026-09-13T03:25:38.6357897Z libnss3 is already the newest version (2:3.98-1ubuntu0.2).
+2026-09-13T03:25:38.6358223Z libnss3 set to manually installed.
+2026-09-13T03:25:38.6358554Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-09-13T03:25:38.6358888Z libpango-1.0-0 set to manually installed.
+2026-09-13T03:25:38.6359201Z libx11-6 is already the newest version (2:1.8.7-1build1).
+2026-09-13T03:25:38.6359498Z libx11-6 set to manually installed.
+2026-09-13T03:25:38.6359801Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-09-13T03:25:38.6360086Z libxcb1 set to manually installed.
+2026-09-13T03:25:38.6360645Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-09-13T03:25:38.6361183Z libxcomposite1 set to manually installed.
+2026-09-13T03:25:38.6361678Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-09-13T03:25:38.6361989Z libxdamage1 set to manually installed.
+2026-09-13T03:25:38.6362332Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-09-13T03:25:38.6362622Z libxext6 set to manually installed.
+2026-09-13T03:25:38.6362927Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-09-13T03:25:38.6363236Z libxfixes3 set to manually installed.
+2026-09-13T03:25:38.6363556Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-09-13T03:25:38.6363863Z libxkbcommon0 set to manually installed.
+2026-09-13T03:25:38.6364176Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-09-13T03:25:38.6364477Z libxrandr2 set to manually installed.
+2026-09-13T03:25:38.6364795Z xvfb is already the newest version (2:21.1.12-1ubuntu1.6).
+2026-09-13T03:25:38.6365226Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-09-13T03:25:38.6365670Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-09-13T03:25:38.6366006Z libfontconfig1 set to manually installed.
+2026-09-13T03:25:38.6366363Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.1).
+2026-09-13T03:25:38.6366700Z libfreetype6 set to manually installed.
+2026-09-13T03:25:38.6367029Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-09-13T03:25:38.6367351Z fonts-liberation set to manually installed.
+2026-09-13T03:25:38.6367836Z The following additional packages will be installed:
+2026-09-13T03:25:38.6368135Z   xfonts-encodings xfonts-utils
+2026-09-13T03:25:38.6368360Z Recommended packages:
+2026-09-13T03:25:38.6368593Z   fonts-ipafont-mincho fonts-tlwg-loma
+2026-09-13T03:25:38.6549275Z The following NEW packages will be installed:
+2026-09-13T03:25:38.6549912Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-09-13T03:25:38.6554619Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-09-13T03:25:38.6555185Z   xfonts-utils
+2026-09-13T03:25:38.6700626Z 0 upgraded, 9 newly installed, 0 to remove and 50 not upgraded.
+2026-09-13T03:25:38.6700989Z Need to get 21.1 MB of archives.
+2026-09-13T03:25:38.6701354Z After this operation, 79.5 MB of additional disk space will be used.
+2026-09-13T03:25:38.6701981Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-09-13T03:25:38.7348577Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-09-13T03:25:38.8306663Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-09-13T03:25:38.9575640Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-09-13T03:25:39.0038392Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-09-13T03:25:39.0915739Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-09-13T03:25:39.2444091Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+2026-09-13T03:25:39.3053039Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-09-13T03:25:39.3515318Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+2026-09-13T03:25:39.4019117Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-09-13T03:25:39.6101076Z Fetched 21.1 MB in 1s (28.4 MB/s)
+2026-09-13T03:25:39.6293657Z Selecting previously unselected package fonts-ipafont-gothic.
+2026-09-13T03:25:39.6525514Z (Reading database ...
+2026-09-13T03:25:39.6526056Z (Reading database ... 5%
+2026-09-13T03:25:39.6526665Z (Reading database ... 10%
+2026-09-13T03:25:39.6526924Z (Reading database ... 15%
+2026-09-13T03:25:39.6527149Z (Reading database ... 20%
+2026-09-13T03:25:39.6527354Z (Reading database ... 25%
+2026-09-13T03:25:39.6527573Z (Reading database ... 30%
+2026-09-13T03:25:39.6527775Z (Reading database ... 35%
+2026-09-13T03:25:39.6527974Z (Reading database ... 40%
+2026-09-13T03:25:39.6528169Z (Reading database ... 45%
+2026-09-13T03:25:39.6528368Z (Reading database ... 50%
+2026-09-13T03:25:39.6569377Z (Reading database ... 55%
+2026-09-13T03:25:39.7716738Z (Reading database ... 60%
+2026-09-13T03:25:39.9699598Z (Reading database ... 65%
+2026-09-13T03:25:40.1198587Z (Reading database ... 70%
+2026-09-13T03:25:40.2736687Z (Reading database ... 75%
+2026-09-13T03:25:40.4313146Z (Reading database ... 80%
+2026-09-13T03:25:40.5626990Z (Reading database ... 85%
+2026-09-13T03:25:40.7165138Z (Reading database ... 90%
+2026-09-13T03:25:40.8079804Z (Reading database ... 95%
+2026-09-13T03:25:40.8080183Z (Reading database ... 100%
+2026-09-13T03:25:40.8080746Z (Reading database ... 201818 files and directories currently installed.)
+2026-09-13T03:25:40.8115506Z Preparing to unpack .../0-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+2026-09-13T03:25:40.8301334Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-09-13T03:25:41.0607658Z Selecting previously unselected package fonts-freefont-ttf.
+2026-09-13T03:25:41.0716874Z Preparing to unpack .../1-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+2026-09-13T03:25:41.0725386Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-09-13T03:25:41.1597049Z Selecting previously unselected package fonts-tlwg-loma-otf.
+2026-09-13T03:25:41.1705637Z Preparing to unpack .../2-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+2026-09-13T03:25:41.1713653Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-09-13T03:25:41.1889655Z Selecting previously unselected package fonts-unifont.
+2026-09-13T03:25:41.1993009Z Preparing to unpack .../3-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+2026-09-13T03:25:41.2001342Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+2026-09-13T03:25:41.3911073Z Selecting previously unselected package fonts-wqy-zenhei.
+2026-09-13T03:25:41.4020789Z Preparing to unpack .../4-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+2026-09-13T03:25:41.4105478Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+2026-09-13T03:25:41.8566704Z Selecting previously unselected package xfonts-encodings.
+2026-09-13T03:25:41.8679341Z Preparing to unpack .../5-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+2026-09-13T03:25:41.8687984Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-09-13T03:25:41.8953182Z Selecting previously unselected package xfonts-utils.
+2026-09-13T03:25:41.9058223Z Preparing to unpack .../6-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+2026-09-13T03:25:41.9067631Z Unpacking xfonts-utils (1:7.7+6build3) ...
+2026-09-13T03:25:41.9388331Z Selecting previously unselected package xfonts-cyrillic.
+2026-09-13T03:25:41.9491524Z Preparing to unpack .../7-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+2026-09-13T03:25:41.9500602Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-09-13T03:25:41.9816067Z Selecting previously unselected package xfonts-scalable.
+2026-09-13T03:25:41.9918678Z Preparing to unpack .../8-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+2026-09-13T03:25:41.9926962Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+2026-09-13T03:25:42.0273783Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+2026-09-13T03:25:42.0383909Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+2026-09-13T03:25:42.0405066Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+2026-09-13T03:25:42.0424538Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+2026-09-13T03:25:42.0443919Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+2026-09-13T03:25:42.0503981Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+2026-09-13T03:25:42.0519188Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+2026-09-13T03:25:42.0538774Z Setting up xfonts-utils (1:7.7+6build3) ...
+2026-09-13T03:25:42.0723415Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+2026-09-13T03:25:42.0975884Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+2026-09-13T03:25:42.1214306Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-09-13T03:25:42.1235229Z Not building database; man-db/auto-update is not 'true'.
+2026-09-13T03:25:42.1247252Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-09-13T03:25:42.6994846Z
+2026-09-13T03:25:42.6995400Z Running kernel seems to be up-to-date.
+2026-09-13T03:25:42.6995709Z
+2026-09-13T03:25:42.6995921Z No services need to be restarted.
+2026-09-13T03:25:42.6996155Z
+2026-09-13T03:25:42.6996337Z No containers need to be restarted.
+2026-09-13T03:25:42.6996578Z
+2026-09-13T03:25:42.6996793Z No user sessions are running outdated binaries.
+2026-09-13T03:25:42.6997058Z
+2026-09-13T03:25:42.6997418Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-09-13T03:25:43.4054698Z Downloading Chrome for Testing 145.0.7632.6 (playwright chromium v1208) from https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+2026-09-13T03:25:43.5984843Z |                                                                                |   0% of 167.3 MiB
+2026-09-13T03:25:43.8005558Z |■■■■■■■■                                                                        |  10% of 167.3 MiB
+2026-09-13T03:25:43.9367199Z |■■■■■■■■■■■■■■■■                                                                |  20% of 167.3 MiB
+2026-09-13T03:25:44.0665231Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 167.3 MiB
+2026-09-13T03:25:44.1513256Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 167.3 MiB
+2026-09-13T03:25:44.2855028Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 167.3 MiB
+2026-09-13T03:25:44.4518629Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 167.3 MiB
+2026-09-13T03:25:44.5875140Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 167.3 MiB
+2026-09-13T03:25:44.6677010Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 167.3 MiB
+2026-09-13T03:25:44.7933353Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 167.3 MiB
+2026-09-13T03:25:44.8919778Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 167.3 MiB
+2026-09-13T03:25:46.7922543Z Chrome for Testing 145.0.7632.6 (playwright chromium v1208) downloaded to /home/runner/.cache/ms-playwright/chromium-1208
+2026-09-13T03:25:46.7924904Z Downloading FFmpeg (playwright ffmpeg v1011) from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+2026-09-13T03:25:46.9133116Z |                                                                                |   0% of 2.3 MiB
+2026-09-13T03:25:46.9372521Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+2026-09-13T03:25:46.9476092Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+2026-09-13T03:25:46.9553964Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+2026-09-13T03:25:46.9588661Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+2026-09-13T03:25:46.9657788Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+2026-09-13T03:25:46.9721242Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+2026-09-13T03:25:46.9737355Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+2026-09-13T03:25:46.9750088Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+2026-09-13T03:25:46.9804506Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+2026-09-13T03:25:46.9817295Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+2026-09-13T03:25:47.0227297Z FFmpeg (playwright ffmpeg v1011) downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+2026-09-13T03:25:47.0230167Z Downloading Chrome Headless Shell 145.0.7632.6 (playwright chromium-headless-shell v1208) from https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-headless-shell-linux64.zip
+2026-09-13T03:25:47.2075407Z |                                                                                |   0% of 110.9 MiB
+2026-09-13T03:25:47.3476501Z |■■■■■■■■                                                                        |  10% of 110.9 MiB
+2026-09-13T03:25:47.4482697Z |■■■■■■■■■■■■■■■■                                                                |  20% of 110.9 MiB
+2026-09-13T03:25:47.5421983Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 110.9 MiB
+2026-09-13T03:25:47.7077009Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 110.9 MiB
+2026-09-13T03:25:47.7759824Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 110.9 MiB
+2026-09-13T03:25:47.9180949Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 110.9 MiB
+2026-09-13T03:25:48.0958100Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 110.9 MiB
+2026-09-13T03:25:48.2480878Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 110.9 MiB
+2026-09-13T03:25:48.3266282Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 110.9 MiB
+2026-09-13T03:25:48.4086854Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 110.9 MiB
+2026-09-13T03:25:49.8301134Z Chrome Headless Shell 145.0.7632.6 (playwright chromium-headless-shell v1208) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1208
+2026-09-13T03:25:49.8514548Z ##[group]Run npm run package:closure:sync
+2026-09-13T03:25:49.8514969Z [36;1mnpm run package:closure:sync[0m
+2026-09-13T03:25:49.8546818Z shell: /usr/bin/bash -e {0}
+2026-09-13T03:25:49.8547043Z env:
+2026-09-13T03:25:49.8547286Z   DOPPLER_POLICY_BASE_REF: 2b442b52317f6ae27be60cd6c82596cbeda6b264
+2026-09-13T03:25:49.8547602Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION:
+2026-09-13T03:25:49.8547843Z   DOPPLER_MODEL_FAMILY_AUTHORIZATION:
+2026-09-13T03:25:49.8548071Z ##[endgroup]
+2026-09-13T03:25:49.9336732Z
+2026-09-13T03:25:49.9337123Z > doppler-gpu@0.6.1 package:closure:sync
+2026-09-13T03:25:49.9337484Z > node tools/package-source-closure.js --write
+2026-09-13T03:25:49.9337675Z
+2026-09-13T03:25:50.5594378Z package source closure synced (896 runtime JS, 438 declarations, 450 resources)
+2026-09-13T03:25:50.5729812Z ##[group]Run npm run ci:check
+2026-09-13T03:25:50.5730064Z [36;1mnpm run ci:check[0m
+2026-09-13T03:25:50.5762784Z shell: /usr/bin/bash -e {0}
+2026-09-13T03:25:50.5763000Z env:
+2026-09-13T03:25:50.5763247Z   DOPPLER_POLICY_BASE_REF: 2b442b52317f6ae27be60cd6c82596cbeda6b264
+2026-09-13T03:25:50.5763570Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION:
+2026-09-13T03:25:50.5763813Z   DOPPLER_MODEL_FAMILY_AUTHORIZATION:
+2026-09-13T03:25:50.5764028Z ##[endgroup]
+2026-09-13T03:25:50.6526515Z
+2026-09-13T03:25:50.6526835Z > doppler-gpu@0.6.1 ci:check
+2026-09-13T03:25:50.6527248Z > npm run test:ci && npm run kernels:check && npm run check:green
+2026-09-13T03:25:50.6527469Z
+2026-09-13T03:25:50.7275343Z
+2026-09-13T03:25:50.7275671Z > doppler-gpu@0.6.1 test:ci
+2026-09-13T03:25:50.7277636Z > node tools/run-node-tests.js tests/config/ci-workflow-local-model-contract.test.js tests/config/tracked-benchmark-evidence-contract.test.js tests/converter/quantizer.test.js tests/inference/attention-softmax-stability.test.js tests/inference/bdpa-steamroller.test.js tests/inference/generate-token-ids-behavioral-parity.test.js tests/integration/command-api.test.js tests/integration/doppler-provider-contract.test.js tests/tooling/workflow-surface-contract.test.js
+2026-09-13T03:25:50.7279018Z
+2026-09-13T03:25:50.8565239Z TAP version 13
+2026-09-13T03:25:50.8565669Z # ci-workflow-local-model-contract.test: ok
+2026-09-13T03:25:50.8566144Z # Subtest: test module initialization completed
+2026-09-13T03:25:50.8566620Z ok 1 - test module initialization completed
+2026-09-13T03:25:50.8566929Z   ---
+2026-09-13T03:25:50.8567139Z   duration_ms: 0.737401
+2026-09-13T03:25:50.8567335Z   type: 'test'
+2026-09-13T03:25:50.8567509Z   ...
+2026-09-13T03:25:50.8567668Z 1..1
+2026-09-13T03:25:50.8567823Z # tests 1
+2026-09-13T03:25:50.8567987Z # suites 0
+2026-09-13T03:25:50.8568146Z # pass 1
+2026-09-13T03:25:50.8568306Z # fail 0
+2026-09-13T03:25:50.8568462Z # cancelled 0
+2026-09-13T03:25:50.8568634Z # skipped 0
+2026-09-13T03:25:50.8568834Z # todo 0
+2026-09-13T03:25:50.8569009Z # duration_ms 46.374532
+2026-09-13T03:25:50.8569369Z [node-tests] ok: tests/config/ci-workflow-local-model-contract.test.js
+2026-09-13T03:25:51.1067965Z TAP version 13
+2026-09-13T03:25:51.1068443Z # tracked-benchmark-evidence-contract.test: ok
+2026-09-13T03:25:51.1069089Z # Subtest: test module initialization completed
+2026-09-13T03:25:51.1069424Z ok 1 - test module initialization completed
+2026-09-13T03:25:51.1069660Z   ---
+2026-09-13T03:25:51.1069843Z   duration_ms: 0.845755
+2026-09-13T03:25:51.1070037Z   type: 'test'
+2026-09-13T03:25:51.1070202Z   ...
+2026-09-13T03:25:51.1070522Z 1..1
+2026-09-13T03:25:51.1070752Z # tests 1
+2026-09-13T03:25:51.1070916Z # suites 0
+2026-09-13T03:25:51.1071079Z # pass 1
+2026-09-13T03:25:51.1071244Z # fail 0
+2026-09-13T03:25:51.1071429Z # cancelled 0
+2026-09-13T03:25:51.1071592Z # skipped 0
+2026-09-13T03:25:51.1071753Z # todo 0
+2026-09-13T03:25:51.1071939Z # duration_ms 199.361611
+2026-09-13T03:25:51.1072305Z [node-tests] ok: tests/config/tracked-benchmark-evidence-contract.test.js
+2026-09-13T03:25:51.2998127Z TAP version 13
+2026-09-13T03:25:51.2998504Z # quantizer.test: ok
+2026-09-13T03:25:51.2998936Z # Subtest: test module initialization completed
+2026-09-13T03:25:51.2999432Z ok 1 - test module initialization completed
+2026-09-13T03:25:51.2999829Z   ---
+2026-09-13T03:25:51.3000078Z   duration_ms: 0.777462
+2026-09-13T03:25:51.3000476Z   type: 'test'
+2026-09-13T03:25:51.3000717Z   ...
+2026-09-13T03:25:51.3000938Z 1..1
+2026-09-13T03:25:51.3001094Z # tests 1
+2026-09-13T03:25:51.3001251Z # suites 0
+2026-09-13T03:25:51.3001418Z # pass 1
+2026-09-13T03:25:51.3001589Z # fail 0
+2026-09-13T03:25:51.3001760Z # cancelled 0
+2026-09-13T03:25:51.3001934Z # skipped 0
+2026-09-13T03:25:51.3002104Z # todo 0
+2026-09-13T03:25:51.3002279Z # duration_ms 141.466101
+2026-09-13T03:25:51.3002560Z [node-tests] ok: tests/converter/quantizer.test.js
+2026-09-13T03:25:51.4045402Z TAP version 13
+2026-09-13T03:25:51.4045837Z # attention-softmax-stability.test: ok
+2026-09-13T03:25:51.4046698Z # Subtest: test module initialization completed
+2026-09-13T03:25:51.4047162Z ok 1 - test module initialization completed
+2026-09-13T03:25:51.4047494Z   ---
+2026-09-13T03:25:51.4047734Z   duration_ms: 0.70369
+2026-09-13T03:25:51.4048022Z   type: 'test'
+2026-09-13T03:25:51.4048273Z   ...
+2026-09-13T03:25:51.4048478Z 1..1
+2026-09-13T03:25:51.4048681Z # tests 1
+2026-09-13T03:25:51.4048911Z # suites 0
+2026-09-13T03:25:51.4049078Z # pass 1
+2026-09-13T03:25:51.4049234Z # fail 0
+2026-09-13T03:25:51.4049395Z # cancelled 0
+2026-09-13T03:25:51.4049566Z # skipped 0
+2026-09-13T03:25:51.4049726Z # todo 0
+2026-09-13T03:25:51.4049895Z # duration_ms 52.974973
+2026-09-13T03:25:51.4050254Z [node-tests] ok: tests/inference/attention-softmax-stability.test.js
+2026-09-13T03:25:51.5055720Z TAP version 13
+2026-09-13T03:25:51.5056071Z # bdpa-steamroller.test: ok
+2026-09-13T03:25:51.5056543Z # Subtest: test module initialization completed
+2026-09-13T03:25:51.5057041Z ok 1 - test module initialization completed
+2026-09-13T03:25:51.5057411Z   ---
+2026-09-13T03:25:51.5057668Z   duration_ms: 0.664251
+2026-09-13T03:25:51.5057964Z   type: 'test'
+2026-09-13T03:25:51.5058212Z   ...
+2026-09-13T03:25:51.5058442Z 1..1
+2026-09-13T03:25:51.5058663Z # tests 1
+2026-09-13T03:25:51.5058909Z # suites 0
+2026-09-13T03:25:51.5059154Z # pass 1
+2026-09-13T03:25:51.5059391Z # fail 0
+2026-09-13T03:25:51.5059633Z # cancelled 0
+2026-09-13T03:25:51.5059885Z # skipped 0
+2026-09-13T03:25:51.5060137Z # todo 0
+2026-09-13T03:25:51.5060707Z # duration_ms 47.255234
+2026-09-13T03:25:51.5061182Z [node-tests] ok: tests/inference/bdpa-steamroller.test.js
+2026-09-13T03:25:51.8745504Z TAP version 13
+2026-09-13T03:25:51.8745831Z #   ok: generateTokenIds diagnostics
+2026-09-13T03:25:51.8746262Z # [284.8ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (2 tokens @ 25413.6 tok/s)
+2026-09-13T03:25:51.8746610Z #   ok: EOS stop parity
+2026-09-13T03:25:51.8746970Z # [286.1ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+2026-09-13T03:25:51.8747353Z #   ok: immediate EOS first-token parity
+2026-09-13T03:25:51.8747733Z # [287.9ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (4 tokens @ 32031.0 tok/s)
+2026-09-13T03:25:51.8748070Z #   ok: maxTokens cap parity
+2026-09-13T03:25:51.8748427Z # [289.3ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (3 tokens @ 15026.2 tok/s)
+2026-09-13T03:25:51.8749352Z #   ok: abort signal parity
+2026-09-13T03:25:51.8749685Z # [290.6ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (2 tokens @ 36341.8 tok/s)
+2026-09-13T03:25:51.8750004Z #   ok: stop sequence parity
+2026-09-13T03:25:51.8750212Z #   ok: stats fields
+2026-09-13T03:25:51.8750705Z #   ok: self-speculation burst honors configured tokens
+2026-09-13T03:25:51.8751018Z #   ok: cleanup on success and throw
+2026-09-13T03:25:51.8751272Z #   ok: double-generation guard
+2026-09-13T03:25:51.8751555Z # generate-token-ids-behavioral-parity.test: ok
+2026-09-13T03:25:51.8751877Z # Subtest: test module initialization completed
+2026-09-13T03:25:51.8752171Z ok 1 - test module initialization completed
+2026-09-13T03:25:51.8752420Z   ---
+2026-09-13T03:25:51.8752612Z   duration_ms: 0.666604
+2026-09-13T03:25:51.8752866Z   type: 'test'
+2026-09-13T03:25:51.8753072Z   ...
+2026-09-13T03:25:51.8753227Z 1..1
+2026-09-13T03:25:51.8753384Z # tests 1
+2026-09-13T03:25:51.8753565Z # suites 0
+2026-09-13T03:25:51.8753736Z # pass 1
+2026-09-13T03:25:51.8753902Z # fail 0
+2026-09-13T03:25:51.8754061Z # cancelled 0
+2026-09-13T03:25:51.8754225Z # skipped 0
+2026-09-13T03:25:51.8754381Z # todo 0
+2026-09-13T03:25:51.8754555Z # duration_ms 317.478962
+2026-09-13T03:25:51.8754918Z [node-tests] ok: tests/inference/generate-token-ids-behavioral-parity.test.js
+2026-09-13T03:25:51.9891853Z TAP version 13
+2026-09-13T03:25:51.9892152Z # command-api.test: ok
+2026-09-13T03:25:51.9892465Z # Subtest: test module initialization completed
+2026-09-13T03:25:51.9892815Z ok 1 - test module initialization completed
+2026-09-13T03:25:51.9893066Z   ---
+2026-09-13T03:25:51.9893244Z   duration_ms: 0.613124
+2026-09-13T03:25:51.9893780Z   type: 'test'
+2026-09-13T03:25:51.9893956Z   ...
+2026-09-13T03:25:51.9894113Z 1..1
+2026-09-13T03:25:51.9894270Z # tests 1
+2026-09-13T03:25:51.9894427Z # suites 0
+2026-09-13T03:25:51.9894587Z # pass 1
+2026-09-13T03:25:51.9894735Z # fail 0
+2026-09-13T03:25:51.9894911Z # cancelled 0
+2026-09-13T03:25:51.9895079Z # skipped 0
+2026-09-13T03:25:51.9895235Z # todo 0
+2026-09-13T03:25:51.9895412Z # duration_ms 63.621462
+2026-09-13T03:25:51.9895704Z [node-tests] ok: tests/integration/command-api.test.js
+2026-09-13T03:25:52.3817566Z TAP version 13
+2026-09-13T03:25:52.3818014Z # doppler-provider-contract.test: ok
+2026-09-13T03:25:52.3818529Z # Subtest: test module initialization completed
+2026-09-13T03:25:52.3819013Z ok 1 - test module initialization completed
+2026-09-13T03:25:52.3819372Z   ---
+2026-09-13T03:25:52.3819627Z   duration_ms: 0.721898
+2026-09-13T03:25:52.3819908Z   type: 'test'
+2026-09-13T03:25:52.3820158Z   ...
+2026-09-13T03:25:52.3820486Z 1..1
+2026-09-13T03:25:52.3820650Z # tests 1
+2026-09-13T03:25:52.3820838Z # suites 0
+2026-09-13T03:25:52.3821013Z # pass 1
+2026-09-13T03:25:52.3821175Z # fail 0
+2026-09-13T03:25:52.3821331Z # cancelled 0
+2026-09-13T03:25:52.3821503Z # skipped 0
+2026-09-13T03:25:52.3821662Z # todo 0
+2026-09-13T03:25:52.3821842Z # duration_ms 341.36722
+2026-09-13T03:25:52.3822201Z [node-tests] ok: tests/integration/doppler-provider-contract.test.js
+2026-09-13T03:25:52.4817219Z TAP version 13
+2026-09-13T03:25:52.4817652Z # workflow-surface-contract.test: ok
+2026-09-13T03:25:52.4818128Z # Subtest: test module initialization completed
+2026-09-13T03:25:52.4818496Z ok 1 - test module initialization completed
+2026-09-13T03:25:52.4818742Z   ---
+2026-09-13T03:25:52.4818926Z   duration_ms: 0.653525
+2026-09-13T03:25:52.4819122Z   type: 'test'
+2026-09-13T03:25:52.4819290Z   ...
+2026-09-13T03:25:52.4819452Z 1..1
+2026-09-13T03:25:52.4819608Z # tests 1
+2026-09-13T03:25:52.4819769Z # suites 0
+2026-09-13T03:25:52.4819928Z # pass 1
+2026-09-13T03:25:52.4820118Z # fail 0
+2026-09-13T03:25:52.4820275Z # cancelled 0
+2026-09-13T03:25:52.4820687Z # skipped 0
+2026-09-13T03:25:52.4820856Z # todo 0
+2026-09-13T03:25:52.4821038Z # duration_ms 47.833655
+2026-09-13T03:25:52.4821372Z [node-tests] ok: tests/tooling/workflow-surface-contract.test.js
+2026-09-13T03:25:52.4821692Z [node-tests] ok: 9 files
+2026-09-13T03:25:52.5644523Z
+2026-09-13T03:25:52.5645185Z > doppler-gpu@0.6.1 kernels:check
+2026-09-13T03:25:52.5645670Z > node tools/check-kernels.js
+2026-09-13T03:25:52.5645909Z
+2026-09-13T03:25:52.5897193Z [kernels:check] codegen
+2026-09-13T03:25:52.6341268Z [wgsl:check] variants=42 changed=0 unchanged=42
+2026-09-13T03:25:52.6366481Z [kernels:check] registry
+2026-09-13T03:25:52.9494906Z [kernels:registry:check] registry.json reachability is up to date (350 variants)
+2026-09-13T03:25:52.9541763Z [kernels:check] digests
+2026-09-13T03:25:53.1281981Z [kernels:digests:check] kernel-ref-digests.js is up to date
+2026-09-13T03:25:53.1313775Z [kernels:check] all checks passed
+2026-09-13T03:25:53.2109220Z
+2026-09-13T03:25:53.2109747Z > doppler-gpu@0.6.1 check:green
+2026-09-13T03:25:53.2113759Z > node tools/run-node-tests.js --scripts agents:verify catscan:check goals:check model-family:intake:check model-release:check product:portfolio:check product:prospects:check product:readiness:check revocations:check revocations:authority:check product:integrations:check provider:conformance:check runtime:ownership:check runtime:closure:check public:boundaries:check package:smoke commands:surface:check api:docs:check config:single-source:check rules:bundle:check routing:audit:check negative-results:check evidence:workflows:check optimization:control:check promotion:monitoring:check inference:boundaries:check source:style:check source:architecture:check capability-policy:check imports:check:browser pending:check exports:parity:check typecheck:source artifact:contract:check adapter-artifacts:check claims:evidence:check release-claims:check support:matrix:check support:subsystems:check policy:schemas:check program-bundle:schema:check program-bundle:check test:unit capsule-v2:check
+2026-09-13T03:25:53.2116421Z
+2026-09-13T03:25:53.2370614Z [node-tests] script: agents:verify
+2026-09-13T03:25:53.2660694Z agent parity check passed
+2026-09-13T03:25:53.2662393Z - policy: tools/policies/agent-parity-policy.json
+2026-09-13T03:25:53.2663073Z - instruction aliases: CLAUDE.md -> AGENTS.md, GEMINI.md -> AGENTS.md
+2026-09-13T03:25:53.2664099Z - skill aliases: .agents/skills -> ../skills, .claude/skills -> ../skills, .gemini/skills -> ../skills, .codex/skills -> ../skills
+2026-09-13T03:25:53.2664988Z - skills verified: doppler-debug, doppler-bench, doppler-perf, doppler-convert, doppler-kernel-reviewer
+2026-09-13T03:25:53.2665423Z - AGENTS markers verified: 6
+2026-09-13T03:25:53.2692736Z [node-tests] script: catscan:check
+2026-09-13T03:25:53.3378835Z catscan: current docs/component-index.md (30 components)
+2026-09-13T03:25:53.3413318Z [node-tests] script: goals:check
+2026-09-13T03:25:53.3840532Z goal-completion: matrix ok (4 goals, 43 rows)
+2026-09-13T03:25:53.3871761Z [node-tests] script: model-family:intake:check
+2026-09-13T03:25:53.4181637Z model family intake check passed: authority=maintainer, base=2b442b52317f6ae27be60cd6c82596cbeda6b264, families=14, newFamilies=0
+2026-09-13T03:25:53.4211493Z [node-tests] script: model-release:check
+2026-09-13T03:25:53.4577572Z model-release-platform: contract ok; 0 partial requirements, 3 migration surfaces, commercial=unestablished
+2026-09-13T03:25:53.8795485Z TAP version 13
+2026-09-13T03:25:53.8795932Z # model-release-platform.test: ok
+2026-09-13T03:25:53.8796421Z # Subtest: test module initialization completed
+2026-09-13T03:25:53.8796944Z ok 1 - test module initialization completed
+2026-09-13T03:25:53.8797311Z   ---
+2026-09-13T03:25:53.8797566Z   duration_ms: 0.899967
+2026-09-13T03:25:53.8797849Z   type: 'test'
+2026-09-13T03:25:53.8798113Z   ...
+2026-09-13T03:25:53.8798343Z 1..1
+2026-09-13T03:25:53.8798569Z # tests 1
+2026-09-13T03:25:53.8798802Z # suites 0
+2026-09-13T03:25:53.8799020Z # pass 1
+2026-09-13T03:25:53.8799245Z # fail 0
+2026-09-13T03:25:53.8799522Z # cancelled 0
+2026-09-13T03:25:53.8799785Z # skipped 0
+2026-09-13T03:25:53.8800027Z # todo 0
+2026-09-13T03:25:53.8800472Z # duration_ms 368.495895
+2026-09-13T03:25:53.8800975Z [node-tests] ok: tests/config/model-release-platform.test.js
+2026-09-13T03:25:53.8801862Z [node-tests] ok: 1 files
+2026-09-13T03:25:53.8802268Z [node-tests] script: production-release:check
+2026-09-13T03:25:54.3972541Z TAP version 13
+2026-09-13T03:25:54.3973052Z # electron-capsule-runtime.test: ok (signed fixture; synthetic execution)
+2026-09-13T03:25:54.3973469Z # Subtest: test module initialization completed
+2026-09-13T03:25:54.3973798Z ok 1 - test module initialization completed
+2026-09-13T03:25:54.3974040Z   ---
+2026-09-13T03:25:54.3974216Z   duration_ms: 0.86909
+2026-09-13T03:25:54.3974414Z   type: 'test'
+2026-09-13T03:25:54.3974581Z   ...
+2026-09-13T03:25:54.3974741Z 1..1
+2026-09-13T03:25:54.3974900Z # tests 1
+2026-09-13T03:25:54.3975068Z # suites 0
+2026-09-13T03:25:54.3975228Z # pass 1
+2026-09-13T03:25:54.3975415Z # fail 0
+2026-09-13T03:25:54.3975582Z # cancelled 0
+2026-09-13T03:25:54.3975759Z # skipped 0
+2026-09-13T03:25:54.3975923Z # todo 0
+2026-09-13T03:25:54.3976098Z # duration_ms 462.84094
+2026-09-13T03:25:54.3976543Z [node-tests] ok: tests/client/electron-capsule-runtime.test.js
+2026-09-13T03:25:54.5321177Z TAP version 13
+2026-09-13T03:25:54.5321606Z # electron-release-adapter.test: ok
+2026-09-13T03:25:54.5322099Z # Subtest: test module initialization completed
+2026-09-13T03:25:54.5322584Z ok 1 - test module initialization completed
+2026-09-13T03:25:54.5322835Z   ---
+2026-09-13T03:25:54.5323014Z   duration_ms: 0.694156
+2026-09-13T03:25:54.5323208Z   type: 'test'
+2026-09-13T03:25:54.5323379Z   ...
+2026-09-13T03:25:54.5323532Z 1..1
+2026-09-13T03:25:54.5323684Z # tests 1
+2026-09-13T03:25:54.5323847Z # suites 0
+2026-09-13T03:25:54.5324024Z # pass 1
+2026-09-13T03:25:54.5324182Z # fail 0
+2026-09-13T03:25:54.5324341Z # cancelled 0
+2026-09-13T03:25:54.5324515Z # skipped 0
+2026-09-13T03:25:54.5324676Z # todo 0
+2026-09-13T03:25:54.5325214Z # duration_ms 81.573013
+2026-09-13T03:25:54.5325542Z [node-tests] ok: tests/client/electron-release-adapter.test.js
+2026-09-13T03:25:55.0598355Z TAP version 13
+2026-09-13T03:25:55.0599046Z # electron-release-episode.test: ok (durable local files and signatures; synthetic execution and IPC)
+2026-09-13T03:25:55.0599569Z # Subtest: test module initialization completed
+2026-09-13T03:25:55.0599894Z ok 1 - test module initialization completed
+2026-09-13T03:25:55.0600130Z   ---
+2026-09-13T03:25:55.0600962Z   duration_ms: 0.629739
+2026-09-13T03:25:55.0601172Z   type: 'test'
+2026-09-13T03:25:55.0601346Z   ...
+2026-09-13T03:25:55.0601504Z 1..1
+2026-09-13T03:25:55.0601658Z # tests 1
+2026-09-13T03:25:55.0601824Z # suites 0
+2026-09-13T03:25:55.0601991Z # pass 1
+2026-09-13T03:25:55.0602147Z # fail 0
+2026-09-13T03:25:55.0602313Z # cancelled 0
+2026-09-13T03:25:55.0602479Z # skipped 0
+2026-09-13T03:25:55.0602638Z # todo 0
+2026-09-13T03:25:55.0602814Z # duration_ms 475.85865
+2026-09-13T03:25:55.0603152Z [node-tests] ok: tests/client/electron-release-episode.test.js
+2026-09-13T03:25:55.1571201Z TAP version 13
+2026-09-13T03:25:55.1571652Z # github-release-action.test: ok
+2026-09-13T03:25:55.1572158Z # Subtest: test module initialization completed
+2026-09-13T03:25:55.1572696Z ok 1 - test module initialization completed
+2026-09-13T03:25:55.1573078Z   ---
+2026-09-13T03:25:55.1573337Z   duration_ms: 0.793206
+2026-09-13T03:25:55.1573633Z   type: 'test'
+2026-09-13T03:25:55.1573896Z   ...
+2026-09-13T03:25:55.1574125Z 1..1
+2026-09-13T03:25:55.1574356Z # tests 1
+2026-09-13T03:25:55.1574588Z # suites 0
+2026-09-13T03:25:55.1574836Z # pass 1
+2026-09-13T03:25:55.1575050Z # fail 0
+2026-09-13T03:25:55.1575270Z # cancelled 0
+2026-09-13T03:25:55.1575531Z # skipped 0
+2026-09-13T03:25:55.1575765Z # todo 0
+2026-09-13T03:25:55.1576011Z # duration_ms 46.401474
+2026-09-13T03:25:55.1576543Z [node-tests] ok: tests/config/github-release-action.test.js
+2026-09-13T03:25:55.2864142Z TAP version 13
+2026-09-13T03:25:55.2864533Z # production-release.test: ok
+2026-09-13T03:25:55.2864877Z # Subtest: test module initialization completed
+2026-09-13T03:25:55.2865212Z ok 1 - test module initialization completed
+2026-09-13T03:25:55.2865453Z   ---
+2026-09-13T03:25:55.2865637Z   duration_ms: 1.032707
+2026-09-13T03:25:55.2866146Z   type: 'test'
+2026-09-13T03:25:55.2866316Z   ...
+2026-09-13T03:25:55.2866478Z 1..1
+2026-09-13T03:25:55.2866632Z # tests 1
+2026-09-13T03:25:55.2866788Z # suites 0
+2026-09-13T03:25:55.2866945Z # pass 1
+2026-09-13T03:25:55.2867107Z # fail 0
+2026-09-13T03:25:55.2867267Z # cancelled 0
+2026-09-13T03:25:55.2867438Z # skipped 0
+2026-09-13T03:25:55.2867604Z # todo 0
+2026-09-13T03:25:55.2867772Z # duration_ms 76.141216
+2026-09-13T03:25:55.2868059Z [node-tests] ok: tests/config/production-release.test.js
+2026-09-13T03:25:55.7106535Z TAP version 13
+2026-09-13T03:25:55.7107027Z # command-api-release.test: ok
+2026-09-13T03:25:55.7107449Z # Subtest: test module initialization completed
+2026-09-13T03:25:55.7107998Z ok 1 - test module initialization completed
+2026-09-13T03:25:55.7108355Z   ---
+2026-09-13T03:25:55.7108670Z   duration_ms: 0.777532
+2026-09-13T03:25:55.7109040Z   type: 'test'
+2026-09-13T03:25:55.7109310Z   ...
+2026-09-13T03:25:55.7109587Z 1..1
+2026-09-13T03:25:55.7109855Z # tests 1
+2026-09-13T03:25:55.7110176Z # suites 0
+2026-09-13T03:25:55.7119678Z # pass 1
+2026-09-13T03:25:55.7119948Z # fail 0
+2026-09-13T03:25:55.7120177Z # cancelled 0
+2026-09-13T03:25:55.7120880Z # skipped 0
+2026-09-13T03:25:55.7121086Z # todo 0
+2026-09-13T03:25:55.7121367Z # duration_ms 371.450461
+2026-09-13T03:25:55.7121687Z [node-tests] ok: tests/tooling/command-api-release.test.js
+2026-09-13T03:25:56.0993755Z TAP version 13
+2026-09-13T03:25:56.0994528Z # ✔ forge-model-capsule.test.js: all tests passed
+2026-09-13T03:25:56.0995243Z # forge-model-capsule: embedding qualification passed (synthetic reference)
+2026-09-13T03:25:56.0995873Z # Subtest: test module initialization completed
+2026-09-13T03:25:56.0996343Z ok 1 - test module initialization completed
+2026-09-13T03:25:56.0996992Z   ---
+2026-09-13T03:25:56.0997173Z   duration_ms: 0.753475
+2026-09-13T03:25:56.0997373Z   type: 'test'
+2026-09-13T03:25:56.0997550Z   ...
+2026-09-13T03:25:56.0997712Z 1..1
+2026-09-13T03:25:56.0997870Z # tests 1
+2026-09-13T03:25:56.0998044Z # suites 0
+2026-09-13T03:25:56.0998209Z # pass 1
+2026-09-13T03:25:56.0998364Z # fail 0
+2026-09-13T03:25:56.0998529Z # cancelled 0
+2026-09-13T03:25:56.0998699Z # skipped 0
+2026-09-13T03:25:56.0998867Z # todo 0
+2026-09-13T03:25:56.0999046Z # duration_ms 335.683705
+2026-09-13T03:25:56.0999344Z [node-tests] ok: tests/tooling/forge-model-capsule.test.js
+2026-09-13T03:25:56.7853364Z TAP version 13
+2026-09-13T03:25:56.7853755Z # production-release.test: ok
+2026-09-13T03:25:56.7854176Z # Subtest: test module initialization completed
+2026-09-13T03:25:56.7854673Z ok 1 - test module initialization completed
+2026-09-13T03:25:56.7855021Z   ---
+2026-09-13T03:25:56.7855199Z   duration_ms: 1.12801
+2026-09-13T03:25:56.7855396Z   type: 'test'
+2026-09-13T03:25:56.7855612Z   ...
+2026-09-13T03:25:56.7855775Z 1..1
+2026-09-13T03:25:56.7855931Z # tests 1
+2026-09-13T03:25:56.7856100Z # suites 0
+2026-09-13T03:25:56.7856259Z # pass 1
+2026-09-13T03:25:56.7856413Z # fail 0
+2026-09-13T03:25:56.7856576Z # cancelled 0
+2026-09-13T03:25:56.7856769Z # skipped 0
+2026-09-13T03:25:56.7856935Z # todo 0
+2026-09-13T03:25:56.7857108Z # duration_ms 634.76819
+2026-09-13T03:25:56.7857418Z [node-tests] ok: tests/tooling/production-release.test.js
+2026-09-13T03:25:56.7857711Z [node-tests] ok: 8 files
+2026-09-13T03:25:56.7857981Z [node-tests] script: product:portfolio:check
+2026-09-13T03:25:56.8137720Z product-portfolio-coherence: ok (3 workloads across 4 gates)
+2026-09-13T03:25:56.9276093Z TAP version 13
+2026-09-13T03:25:56.9276512Z # product-portfolio-coherence.test: ok
+2026-09-13T03:25:56.9277022Z # Subtest: test module initialization completed
+2026-09-13T03:25:56.9277533Z ok 1 - test module initialization completed
+2026-09-13T03:25:56.9277891Z   ---
+2026-09-13T03:25:56.9278168Z   duration_ms: 0.797632
+2026-09-13T03:25:56.9278464Z   type: 'test'
+2026-09-13T03:25:56.9278708Z   ...
+2026-09-13T03:25:56.9278936Z 1..1
+2026-09-13T03:25:56.9279162Z # tests 1
+2026-09-13T03:25:56.9279340Z # suites 0
+2026-09-13T03:25:56.9279503Z # pass 1
+2026-09-13T03:25:56.9279970Z # fail 0
+2026-09-13T03:25:56.9280134Z # cancelled 0
+2026-09-13T03:25:56.9280455Z # skipped 0
+2026-09-13T03:25:56.9280633Z # todo 0
+2026-09-13T03:25:56.9280805Z # duration_ms 59.014083
+2026-09-13T03:25:56.9281154Z [node-tests] ok: tests/config/product-portfolio-coherence.test.js
+2026-09-13T03:25:56.9281485Z [node-tests] ok: 1 files
+2026-09-13T03:25:56.9281749Z [node-tests] script: product:prospects:check
+2026-09-13T03:25:56.9533036Z # Doppler Electron Design Partner Pipeline
+2026-09-13T03:25:56.9533344Z
+2026-09-13T03:25:56.9533476Z - contract: valid
+2026-09-13T03:25:56.9533794Z - researched prospects: 5
+2026-09-13T03:25:56.9534033Z - primary wave: 3
+2026-09-13T03:25:56.9534283Z - qualified customers represented here: 0
+2026-09-13T03:25:56.9534457Z
+2026-09-13T03:25:56.9535467Z This register is a researched outreach pipeline. A listed application is not a customer, design partner, authorized workload, qualified integration, production release, revenue source, or evidence of demand until separately retained customer authority and qualification evidence establish that state.
+2026-09-13T03:25:56.9536796Z
+2026-09-13T03:25:56.9536937Z ## Ordered targets
+2026-09-13T03:25:56.9537108Z
+2026-09-13T03:25:56.9537645Z 1. **AnythingLLM** — primary; research-candidate
+2026-09-13T03:25:56.9538712Z    Pilot: Qualify one planned local-model release and its subsequent upgrade across the customer-declared AnythingLLM desktop provider and hardware matrix.
+2026-09-13T03:25:56.9540582Z    Open gates: outreach-not-authorized, customer-relationship-unestablished, application-revision-not-pinned, acceptance-suite-not-authorized, paid-production-release-unestablished, customer-fleet-receipts-missing, subsequent-upgrade-unestablished
+2026-09-13T03:25:56.9541860Z 2. **Joplin** — primary; research-candidate
+2026-09-13T03:25:56.9542547Z    Pilot: Turn one planned Joplin semantic-search model release into an externally maintained embedding Capsule with index-compatible upgrade and rollback.
+2026-09-13T03:25:56.9543899Z    Open gates: outreach-not-authorized, customer-relationship-unestablished, application-revision-not-pinned, acceptance-suite-not-authorized, paid-production-release-unestablished, customer-fleet-receipts-missing, subsequent-upgrade-unestablished
+2026-09-13T03:25:56.9544943Z 3. **Cherry Studio** — primary; research-candidate
+2026-09-13T03:25:56.9545626Z    Pilot: Qualify one local generation release, one embedding release, and their provider metadata for a customer-declared Cherry Studio desktop matrix.
+2026-09-13T03:25:56.9546870Z    Open gates: outreach-not-authorized, customer-relationship-unestablished, application-revision-not-pinned, acceptance-suite-not-authorized, paid-production-release-unestablished, customer-fleet-receipts-missing, subsequent-upgrade-unestablished
+2026-09-13T03:25:56.9548082Z 4. **Chatbox** — backup; research-candidate
+2026-09-13T03:25:56.9548994Z    Pilot: Qualify one knowledge-base release with authentic embedding, reranking, and provider declarations in the Chatbox desktop application.
+2026-09-13T03:25:56.9551152Z    Open gates: outreach-not-authorized, customer-relationship-unestablished, application-revision-not-pinned, acceptance-suite-not-authorized, paid-production-release-unestablished, customer-fleet-receipts-missing, subsequent-upgrade-unestablished
+2026-09-13T03:25:56.9552679Z 5. **AFFiNE** — later; research-candidate
+2026-09-13T03:25:56.9553771Z    Pilot: Hold AFFiNE as a later document-intelligence prospect until a consequential local-model release and its application acceptance boundary are confirmed by the application owner.
+2026-09-13T03:25:56.9556442Z    Open gates: outreach-not-authorized, consequential-local-model-release-not-confirmed, customer-relationship-unestablished, application-revision-not-pinned, acceptance-suite-not-authorized, paid-production-release-unestablished, customer-fleet-receipts-missing, subsequent-upgrade-unestablished
+2026-09-13T03:25:57.0615302Z TAP version 13
+2026-09-13T03:25:57.0615726Z # electron-design-partner-prospects.test: ok
+2026-09-13T03:25:57.0616586Z # Subtest: test module initialization completed
+2026-09-13T03:25:57.0617072Z ok 1 - test module initialization completed
+2026-09-13T03:25:57.0617317Z   ---
+2026-09-13T03:25:57.0617497Z   duration_ms: 0.745544
+2026-09-13T03:25:57.0617703Z   type: 'test'
+2026-09-13T03:25:57.0617869Z   ...
+2026-09-13T03:25:57.0618031Z 1..1
+2026-09-13T03:25:57.0618187Z # tests 1
+2026-09-13T03:25:57.0618340Z # suites 0
+2026-09-13T03:25:57.0618511Z # pass 1
+2026-09-13T03:25:57.0618668Z # fail 0
+2026-09-13T03:25:57.0618829Z # cancelled 0
+2026-09-13T03:25:57.0619004Z # skipped 0
+2026-09-13T03:25:57.0619175Z # todo 0
+2026-09-13T03:25:57.0619356Z # duration_ms 52.649986
+2026-09-13T03:25:57.0619719Z [node-tests] ok: tests/config/electron-design-partner-prospects.test.js
+2026-09-13T03:25:57.0620073Z [node-tests] ok: 1 files
+2026-09-13T03:25:57.0620514Z [node-tests] script: product:readiness:check
+2026-09-13T03:25:57.3647917Z TAP version 13
+2026-09-13T03:25:57.3648365Z # product-readiness-report.test: ok
+2026-09-13T03:25:57.3648873Z # Subtest: test module initialization completed
+2026-09-13T03:25:57.3649393Z ok 1 - test module initialization completed
+2026-09-13T03:25:57.3649753Z   ---
+2026-09-13T03:25:57.3650001Z   duration_ms: 0.762029
+2026-09-13T03:25:57.3650403Z   type: 'test'
+2026-09-13T03:25:57.3650658Z   ...
+2026-09-13T03:25:57.3650822Z 1..1
+2026-09-13T03:25:57.3650977Z # tests 1
+2026-09-13T03:25:57.3651135Z # suites 0
+2026-09-13T03:25:57.3651299Z # pass 1
+2026-09-13T03:25:57.3651458Z # fail 0
+2026-09-13T03:25:57.3651614Z # cancelled 0
+2026-09-13T03:25:57.3651787Z # skipped 0
+2026-09-13T03:25:57.3651943Z # todo 0
+2026-09-13T03:25:57.3652116Z # duration_ms 251.897237
+2026-09-13T03:25:57.3652437Z [node-tests] ok: tests/tooling/product-readiness-report.test.js
+2026-09-13T03:25:57.3653104Z [node-tests] ok: 1 files
+2026-09-13T03:25:57.3653353Z [node-tests] script: revocations:check
+2026-09-13T03:25:57.3959606Z [revocations] valid (0 active; signature verification unavailable)
+2026-09-13T03:25:57.5101961Z TAP version 13
+2026-09-13T03:25:57.5102427Z # quickstart-registry-sync.test: ok
+2026-09-13T03:25:57.5102946Z # Subtest: test module initialization completed
+2026-09-13T03:25:57.5103426Z ok 1 - test module initialization completed
+2026-09-13T03:25:57.5103788Z   ---
+2026-09-13T03:25:57.5104035Z   duration_ms: 0.85594
+2026-09-13T03:25:57.5104315Z   type: 'test'
+2026-09-13T03:25:57.5104557Z   ...
+2026-09-13T03:25:57.5104755Z 1..1
+2026-09-13T03:25:57.5104908Z # tests 1
+2026-09-13T03:25:57.5105064Z # suites 0
+2026-09-13T03:25:57.5105232Z # pass 1
+2026-09-13T03:25:57.5105387Z # fail 0
+2026-09-13T03:25:57.5105548Z # cancelled 0
+2026-09-13T03:25:57.5105716Z # skipped 0
+2026-09-13T03:25:57.5105879Z # todo 0
+2026-09-13T03:25:57.5106053Z # duration_ms 60.253661
+2026-09-13T03:25:57.5106384Z [node-tests] ok: tests/config/quickstart-registry-sync.test.js
+2026-09-13T03:25:57.8829727Z TAP version 13
+2026-09-13T03:25:57.8830114Z # revocation-policy.test: ok
+2026-09-13T03:25:57.8830801Z # Subtest: test module initialization completed
+2026-09-13T03:25:57.8831161Z ok 1 - test module initialization completed
+2026-09-13T03:25:57.8831395Z   ---
+2026-09-13T03:25:57.8831574Z   duration_ms: 0.749099
+2026-09-13T03:25:57.8831766Z   type: 'test'
+2026-09-13T03:25:57.8831933Z   ...
+2026-09-13T03:25:57.8832082Z 1..1
+2026-09-13T03:25:57.8832241Z # tests 1
+2026-09-13T03:25:57.8832398Z # suites 0
+2026-09-13T03:25:57.8832556Z # pass 1
+2026-09-13T03:25:57.8832718Z # fail 0
+2026-09-13T03:25:57.8832891Z # cancelled 0
+2026-09-13T03:25:57.8833061Z # skipped 0
+2026-09-13T03:25:57.8833220Z # todo 0
+2026-09-13T03:25:57.8833396Z # duration_ms 320.315368
+2026-09-13T03:25:57.8833692Z [node-tests] ok: tests/config/revocation-policy.test.js
+2026-09-13T03:25:58.3090270Z TAP version 13
+2026-09-13T03:25:58.3090870Z # signed-revocation-updates.test: ok
+2026-09-13T03:25:58.3091390Z # Subtest: test module initialization completed
+2026-09-13T03:25:58.3091880Z ok 1 - test module initialization completed
+2026-09-13T03:25:58.3092232Z   ---
+2026-09-13T03:25:58.3092487Z   duration_ms: 0.759895
+2026-09-13T03:25:58.3093121Z   type: 'test'
+2026-09-13T03:25:58.3093294Z   ...
+2026-09-13T03:25:58.3093457Z 1..1
+2026-09-13T03:25:58.3093612Z # tests 1
+2026-09-13T03:25:58.3093774Z # suites 0
+2026-09-13T03:25:58.3093930Z # pass 1
+2026-09-13T03:25:58.3094089Z # fail 0
+2026-09-13T03:25:58.3094250Z # cancelled 0
+2026-09-13T03:25:58.3094425Z # skipped 0
+2026-09-13T03:25:58.3094614Z # todo 0
+2026-09-13T03:25:58.3094790Z # duration_ms 372.792984
+2026-09-13T03:25:58.3095135Z [node-tests] ok: tests/config/signed-revocation-updates.test.js
+2026-09-13T03:25:58.3095454Z [node-tests] ok: 3 files
+2026-09-13T03:25:58.3095733Z [node-tests] script: revocations:authority:check
+2026-09-13T03:25:58.3392387Z signed-revocation-authority: contract ok (0 qualified, 1 candidates)
+2026-09-13T03:25:58.5214294Z TAP version 13
+2026-09-13T03:25:58.5214684Z # signed-revocation-authority-qualification.test: ok
+2026-09-13T03:25:58.5215058Z # Subtest: test module initialization completed
+2026-09-13T03:25:58.5215376Z ok 1 - test module initialization completed
+2026-09-13T03:25:58.5215628Z   ---
+2026-09-13T03:25:58.5215807Z   duration_ms: 0.78922
+2026-09-13T03:25:58.5215998Z   type: 'test'
+2026-09-13T03:25:58.5216161Z   ...
+2026-09-13T03:25:58.5216318Z 1..1
+2026-09-13T03:25:58.5216474Z # tests 1
+2026-09-13T03:25:58.5216639Z # suites 0
+2026-09-13T03:25:58.5216804Z # pass 1
+2026-09-13T03:25:58.5216959Z # fail 0
+2026-09-13T03:25:58.5217114Z # cancelled 0
+2026-09-13T03:25:58.5217279Z # skipped 0
+2026-09-13T03:25:58.5217445Z # todo 0
+2026-09-13T03:25:58.5217620Z # duration_ms 125.305143
+2026-09-13T03:25:58.5218004Z [node-tests] ok: tests/config/signed-revocation-authority-qualification.test.js
+2026-09-13T03:25:58.7271603Z TAP version 13
+2026-09-13T03:25:58.7272478Z # record-signed-revocation-authority-evaluation.test: ok
+2026-09-13T03:25:58.7273110Z # Subtest: test module initialization completed
+2026-09-13T03:25:58.7273614Z ok 1 - test module initialization completed
+2026-09-13T03:25:58.7273976Z   ---
+2026-09-13T03:25:58.7274227Z   duration_ms: 0.74317
+2026-09-13T03:25:58.7274540Z   type: 'test'
+2026-09-13T03:25:58.7274793Z   ...
+2026-09-13T03:25:58.7275021Z 1..1
+2026-09-13T03:25:58.7275252Z # tests 1
+2026-09-13T03:25:58.7275493Z # suites 0
+2026-09-13T03:25:58.7275720Z # pass 1
+2026-09-13T03:25:58.7275953Z # fail 0
+2026-09-13T03:25:58.7276196Z # cancelled 0
+2026-09-13T03:25:58.7276437Z # skipped 0
+2026-09-13T03:25:58.7276667Z # todo 0
+2026-09-13T03:25:58.7276921Z # duration_ms 152.529935
+2026-09-13T03:25:58.7277571Z [node-tests] ok: tests/tooling/record-signed-revocation-authority-evaluation.test.js
+2026-09-13T03:25:58.7278135Z [node-tests] ok: 2 files
+2026-09-13T03:25:58.7278537Z [node-tests] script: product:integrations:check
+2026-09-13T03:25:58.7668062Z product-integration-qualification: contract ok, gate satisfied (3/3 qualified; 0 candidates; missing none)
+2026-09-13T03:25:58.9572932Z TAP version 13
+2026-09-13T03:25:58.9573370Z # product-integration-qualification.test: ok
+2026-09-13T03:25:58.9573730Z # Subtest: test module initialization completed
+2026-09-13T03:25:58.9574085Z ok 1 - test module initialization completed
+2026-09-13T03:25:58.9574318Z   ---
+2026-09-13T03:25:58.9574490Z   duration_ms: 0.790692
+2026-09-13T03:25:58.9574686Z   type: 'test'
+2026-09-13T03:25:58.9574851Z   ...
+2026-09-13T03:25:58.9575003Z 1..1
+2026-09-13T03:25:58.9575159Z # tests 1
+2026-09-13T03:25:58.9575325Z # suites 0
+2026-09-13T03:25:58.9575490Z # pass 1
+2026-09-13T03:25:58.9575646Z # fail 0
+2026-09-13T03:25:58.9575815Z # cancelled 0
+2026-09-13T03:25:58.9575985Z # skipped 0
+2026-09-13T03:25:58.9576144Z # todo 0
+2026-09-13T03:25:58.9576313Z # duration_ms 136.981452
+2026-09-13T03:25:58.9576677Z [node-tests] ok: tests/config/product-integration-qualification.test.js
+2026-09-13T03:25:59.0639578Z TAP version 13
+2026-09-13T03:25:59.0639943Z # product-integration-evidence.test: ok
+2026-09-13T03:25:59.0640456Z # Subtest: test module initialization completed
+2026-09-13T03:25:59.0640813Z ok 1 - test module initialization completed
+2026-09-13T03:25:59.0641060Z   ---
+2026-09-13T03:25:59.0641237Z   duration_ms: 0.706585
+2026-09-13T03:25:59.0641925Z   type: 'test'
+2026-09-13T03:25:59.0642140Z   ...
+2026-09-13T03:25:59.0642338Z 1..1
+2026-09-13T03:25:59.0642544Z # tests 1
+2026-09-13T03:25:59.0642771Z # suites 0
+2026-09-13T03:25:59.0642985Z # pass 1
+2026-09-13T03:25:59.0643195Z # fail 0
+2026-09-13T03:25:59.0643413Z # cancelled 0
+2026-09-13T03:25:59.0643652Z # skipped 0
+2026-09-13T03:25:59.0643874Z # todo 0
+2026-09-13T03:25:59.0644098Z # duration_ms 52.581718
+2026-09-13T03:25:59.0644592Z [node-tests] ok: tests/tooling/product-integration-evidence.test.js
+2026-09-13T03:25:59.2615330Z TAP version 13
+2026-09-13T03:25:59.2615753Z # record-product-integration-evaluation.test: ok
+2026-09-13T03:25:59.2616127Z # Subtest: test module initialization completed
+2026-09-13T03:25:59.2616479Z ok 1 - test module initialization completed
+2026-09-13T03:25:59.2616731Z   ---
+2026-09-13T03:25:59.2616907Z   duration_ms: 0.78937
+2026-09-13T03:25:59.2617099Z   type: 'test'
+2026-09-13T03:25:59.2617277Z   ...
+2026-09-13T03:25:59.2617442Z 1..1
+2026-09-13T03:25:59.2617608Z # tests 1
+2026-09-13T03:25:59.2617775Z # suites 0
+2026-09-13T03:25:59.2617940Z # pass 1
+2026-09-13T03:25:59.2618095Z # fail 0
+2026-09-13T03:25:59.2618253Z # cancelled 0
+2026-09-13T03:25:59.2618420Z # skipped 0
+2026-09-13T03:25:59.2618586Z # todo 0
+2026-09-13T03:25:59.2618764Z # duration_ms 145.651388
+2026-09-13T03:25:59.2619178Z [node-tests] ok: tests/tooling/record-product-integration-evaluation.test.js
+2026-09-13T03:25:59.2619588Z [node-tests] ok: 3 files
+2026-09-13T03:25:59.2619880Z [node-tests] script: provider:conformance:check
+2026-09-13T03:25:59.2942311Z provider-conformance: contract ok, gate incomplete (0/3 qualified; 3 candidates; missing generation, embedding, reranking)
+2026-09-13T03:25:59.4828594Z TAP version 13
+2026-09-13T03:25:59.4829040Z # provider-conformance.test: ok
+2026-09-13T03:25:59.4829515Z # Subtest: test module initialization completed
+2026-09-13T03:25:59.4830030Z ok 1 - test module initialization completed
+2026-09-13T03:25:59.4830757Z   ---
+2026-09-13T03:25:59.4831027Z   duration_ms: 0.792474
+2026-09-13T03:25:59.4831335Z   type: 'test'
+2026-09-13T03:25:59.4831586Z   ...
+2026-09-13T03:25:59.4831818Z 1..1
+2026-09-13T03:25:59.4832050Z # tests 1
+2026-09-13T03:25:59.4832292Z # suites 0
+2026-09-13T03:25:59.4832525Z # pass 1
+2026-09-13T03:25:59.4832745Z # fail 0
+2026-09-13T03:25:59.4832984Z # cancelled 0
+2026-09-13T03:25:59.4833228Z # skipped 0
+2026-09-13T03:25:59.4833466Z # todo 0
+2026-09-13T03:25:59.4833717Z # duration_ms 128.098714
+2026-09-13T03:25:59.4834176Z [node-tests] ok: tests/config/provider-conformance.test.js
+2026-09-13T03:25:59.6587451Z TAP version 13
+2026-09-13T03:25:59.6587794Z # record-provider-conformance.test: ok
+2026-09-13T03:25:59.6588133Z # Subtest: test module initialization completed
+2026-09-13T03:25:59.6588488Z ok 1 - test module initialization completed
+2026-09-13T03:25:59.6588726Z   ---
+2026-09-13T03:25:59.6588908Z   duration_ms: 0.790291
+2026-09-13T03:25:59.6589109Z   type: 'test'
+2026-09-13T03:25:59.6589281Z   ...
+2026-09-13T03:25:59.6589456Z 1..1
+2026-09-13T03:25:59.6589609Z # tests 1
+2026-09-13T03:25:59.6589762Z # suites 0
+2026-09-13T03:25:59.6589920Z # pass 1
+2026-09-13T03:25:59.6590079Z # fail 0
+2026-09-13T03:25:59.6590233Z # cancelled 0
+2026-09-13T03:25:59.6590607Z # skipped 0
+2026-09-13T03:25:59.6590768Z # todo 0
+2026-09-13T03:25:59.6590945Z # duration_ms 123.878634
+2026-09-13T03:25:59.6591283Z [node-tests] ok: tests/tooling/record-provider-conformance.test.js
+2026-09-13T03:25:59.6591594Z [node-tests] ok: 2 files
+2026-09-13T03:25:59.6591859Z [node-tests] script: runtime:ownership:check
+2026-09-13T03:25:59.6904098Z runtime-ownership: contract ok, gate incomplete (0/3 qualified; 3 candidates; missing generation, embedding, reranking)
+2026-09-13T03:25:59.9119501Z TAP version 13
+2026-09-13T03:25:59.9119970Z # runtime-ownership-decisions.test: ok
+2026-09-13T03:25:59.9120467Z # Subtest: test module initialization completed
+2026-09-13T03:25:59.9120793Z ok 1 - test module initialization completed
+2026-09-13T03:25:59.9121033Z   ---
+2026-09-13T03:25:59.9121505Z   duration_ms: 0.788559
+2026-09-13T03:25:59.9121700Z   type: 'test'
+2026-09-13T03:25:59.9121875Z   ...
+2026-09-13T03:25:59.9122036Z 1..1
+2026-09-13T03:25:59.9122189Z # tests 1
+2026-09-13T03:25:59.9122343Z # suites 0
+2026-09-13T03:25:59.9122499Z # pass 1
+2026-09-13T03:25:59.9122656Z # fail 0
+2026-09-13T03:25:59.9122814Z # cancelled 0
+2026-09-13T03:25:59.9122983Z # skipped 0
+2026-09-13T03:25:59.9123147Z # todo 0
+2026-09-13T03:25:59.9123319Z # duration_ms 164.353535
+2026-09-13T03:25:59.9123661Z [node-tests] ok: tests/config/runtime-ownership-decisions.test.js
+2026-09-13T03:26:00.1238538Z TAP version 13
+2026-09-13T03:26:00.1239027Z # record-runtime-ownership-evaluation.test: ok
+2026-09-13T03:26:00.1239434Z # Subtest: test module initialization completed
+2026-09-13T03:26:00.1239769Z ok 1 - test module initialization completed
+2026-09-13T03:26:00.1240026Z   ---
+2026-09-13T03:26:00.1240208Z   duration_ms: 0.772464
+2026-09-13T03:26:00.1240630Z   type: 'test'
+2026-09-13T03:26:00.1240802Z   ...
+2026-09-13T03:26:00.1241021Z 1..1
+2026-09-13T03:26:00.1241222Z # tests 1
+2026-09-13T03:26:00.1241383Z # suites 0
+2026-09-13T03:26:00.1241551Z # pass 1
+2026-09-13T03:26:00.1241707Z # fail 0
+2026-09-13T03:26:00.1241863Z # cancelled 0
+2026-09-13T03:26:00.1242032Z # skipped 0
+2026-09-13T03:26:00.1242204Z # todo 0
+2026-09-13T03:26:00.1242383Z # duration_ms 156.589293
+2026-09-13T03:26:00.1242747Z [node-tests] ok: tests/tooling/record-runtime-ownership-evaluation.test.js
+2026-09-13T03:26:00.2308632Z TAP version 13
+2026-09-13T03:26:00.2309116Z # runtime-ownership-execution-evidence.test: ok
+2026-09-13T03:26:00.2309488Z # Subtest: test module initialization completed
+2026-09-13T03:26:00.2309824Z ok 1 - test module initialization completed
+2026-09-13T03:26:00.2310963Z   ---
+2026-09-13T03:26:00.2311190Z   duration_ms: 0.865414
+2026-09-13T03:26:00.2311388Z   type: 'test'
+2026-09-13T03:26:00.2311557Z   ...
+2026-09-13T03:26:00.2311710Z 1..1
+2026-09-13T03:26:00.2311875Z # tests 1
+2026-09-13T03:26:00.2312032Z # suites 0
+2026-09-13T03:26:00.2312210Z # pass 1
+2026-09-13T03:26:00.2312367Z # fail 0
+2026-09-13T03:26:00.2312529Z # cancelled 0
+2026-09-13T03:26:00.2312699Z # skipped 0
+2026-09-13T03:26:00.2312855Z # todo 0
+2026-09-13T03:26:00.2313027Z # duration_ms 55.992999
+2026-09-13T03:26:00.2313396Z [node-tests] ok: tests/tooling/runtime-ownership-execution-evidence.test.js
+2026-09-13T03:26:00.2313731Z [node-tests] ok: 3 files
+2026-09-13T03:26:00.2313981Z [node-tests] script: runtime:closure:check
+2026-09-13T03:26:00.3229111Z Capsule runtime closure passed: 64 files, 600766 source bytes.
+2026-09-13T03:26:00.3264136Z [node-tests] script: public:boundaries:check
+2026-09-13T03:26:07.2134615Z npm package packed-size budget exceeded: 2118944 > 2118003
+2026-09-13T03:26:07.2179226Z [node-tests] public:boundaries:check failed: exit 1
+2026-09-13T03:26:07.2328863Z ##[error]Process completed with exit code 1.
+2026-09-13T03:26:07.2446727Z Post job cleanup.
+2026-09-13T03:26:07.3086509Z [command]/usr/bin/git version
+2026-09-13T03:26:07.3130124Z git version 2.55.0
+2026-09-13T03:26:07.3160397Z Temporarily overriding HOME='/home/runner/work/_temp/89bb6ace-5934-490d-8cac-e88f8fb0a070' before making global git config changes
+2026-09-13T03:26:07.3161211Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-13T03:26:07.3164589Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/doppler/doppler
+2026-09-13T03:26:07.3191044Z Removing SSH command configuration
+2026-09-13T03:26:07.3195852Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-13T03:26:07.3224767Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-13T03:26:07.3436537Z Removing HTTP extra header
+2026-09-13T03:26:07.3441292Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-13T03:26:07.3472049Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-13T03:26:07.3681155Z Removing includeIf entries pointing to credentials config files
+2026-09-13T03:26:07.3691996Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-13T03:26:07.3718661Z includeif.gitdir:/home/runner/work/doppler/doppler/.git.path
+2026-09-13T03:26:07.3719135Z includeif.gitdir:/home/runner/work/doppler/doppler/.git/worktrees/*.path
+2026-09-13T03:26:07.3719549Z includeif.gitdir:/github/workspace/.git.path
+2026-09-13T03:26:07.3719890Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-13T03:26:07.3727548Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/doppler/doppler/.git.path
+2026-09-13T03:26:07.3750982Z /home/runner/work/_temp/git-credentials-be41352d-a0dd-4e16-ae6b-a3e52f9a1b51.config
+2026-09-13T03:26:07.3760027Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/doppler/doppler/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-be41352d\-a0dd\-4e16\-ae6b\-a3e52f9a1b51\.config
+2026-09-13T03:26:07.3790718Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/doppler/doppler/.git/worktrees/*.path
+2026-09-13T03:26:07.3817307Z /home/runner/work/_temp/git-credentials-be41352d-a0dd-4e16-ae6b-a3e52f9a1b51.config
+2026-09-13T03:26:07.3825264Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/doppler/doppler/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-be41352d\-a0dd\-4e16\-ae6b\-a3e52f9a1b51\.config
+2026-09-13T03:26:07.3856120Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-09-13T03:26:07.3880122Z /github/runner_temp/git-credentials-be41352d-a0dd-4e16-ae6b-a3e52f9a1b51.config
+2026-09-13T03:26:07.3887317Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-be41352d\-a0dd\-4e16\-ae6b\-a3e52f9a1b51\.config
+2026-09-13T03:26:07.3919456Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-13T03:26:07.3942391Z /github/runner_temp/git-credentials-be41352d-a0dd-4e16-ae6b-a3e52f9a1b51.config
+2026-09-13T03:26:07.3948977Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-be41352d\-a0dd\-4e16\-ae6b\-a3e52f9a1b51\.config
+2026-09-13T03:26:07.3979442Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-13T03:26:07.4171846Z Removing credentials config '/home/runner/work/_temp/git-credentials-be41352d-a0dd-4e16-ae6b-a3e52f9a1b51.config'
+2026-09-13T03:26:07.4306211Z Cleaning up orphan processes
