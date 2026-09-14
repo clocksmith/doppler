@@ -1,0 +1,201 @@
+{
+  "schema": "gpu-quine-browser/v1",
+  "started": "2026-09-14T15:09:03.803Z",
+  "backend": "swiftshader",
+  "requestedGenerations": 8,
+  "status": "passed",
+  "source": {
+    "path": "quines/gpu-quine.js",
+    "bytes": 5893,
+    "sha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7"
+  },
+  "harness": {
+    "sha256": "3ac96336017fb3c0200d3ec5892a3545b35d80bf4a25e55ec163f929c660abb7",
+    "probeSha256": "afdc84554c9539884e711691ab8b938ef0a87f2cbfb624e428232ed2f5e9d027"
+  },
+  "scope": "Real browser WebGPU compilation, dispatch, and mapped bytes; no GPU mocks or CPU reproduction.",
+  "instrumentation": "Fresh worker prepends an observer that delegates native calls; descendant bytes are unchanged.",
+  "consoleContract": "The captured console string plus one LF must equal the complete mapped source bytes.",
+  "environment": {
+    "node": "v22.22.1",
+    "platform": "linux",
+    "arch": "x64"
+  },
+  "generations": [
+    {
+      "generation": 1,
+      "status": "passed",
+      "inputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "outputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "shaderSha256": "3cf45aa7644ee5d1994654fcff35157ca59fcb377cdbe8ac7c5bfd97c7b5f21f",
+      "bytes": 5893,
+      "adapter": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": true
+      },
+      "adapterClass": "software",
+      "compilation": [],
+      "artifact": "generation-01.js"
+    },
+    {
+      "generation": 2,
+      "status": "passed",
+      "inputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "outputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "shaderSha256": "3cf45aa7644ee5d1994654fcff35157ca59fcb377cdbe8ac7c5bfd97c7b5f21f",
+      "bytes": 5893,
+      "adapter": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": true
+      },
+      "adapterClass": "software",
+      "compilation": [],
+      "artifact": "generation-02.js"
+    },
+    {
+      "generation": 3,
+      "status": "passed",
+      "inputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "outputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "shaderSha256": "3cf45aa7644ee5d1994654fcff35157ca59fcb377cdbe8ac7c5bfd97c7b5f21f",
+      "bytes": 5893,
+      "adapter": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": true
+      },
+      "adapterClass": "software",
+      "compilation": [],
+      "artifact": "generation-03.js"
+    },
+    {
+      "generation": 4,
+      "status": "passed",
+      "inputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "outputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "shaderSha256": "3cf45aa7644ee5d1994654fcff35157ca59fcb377cdbe8ac7c5bfd97c7b5f21f",
+      "bytes": 5893,
+      "adapter": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": true
+      },
+      "adapterClass": "software",
+      "compilation": [],
+      "artifact": "generation-04.js"
+    },
+    {
+      "generation": 5,
+      "status": "passed",
+      "inputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "outputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "shaderSha256": "3cf45aa7644ee5d1994654fcff35157ca59fcb377cdbe8ac7c5bfd97c7b5f21f",
+      "bytes": 5893,
+      "adapter": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": true
+      },
+      "adapterClass": "software",
+      "compilation": [],
+      "artifact": "generation-05.js"
+    },
+    {
+      "generation": 6,
+      "status": "passed",
+      "inputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "outputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "shaderSha256": "3cf45aa7644ee5d1994654fcff35157ca59fcb377cdbe8ac7c5bfd97c7b5f21f",
+      "bytes": 5893,
+      "adapter": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": true
+      },
+      "adapterClass": "software",
+      "compilation": [],
+      "artifact": "generation-06.js"
+    },
+    {
+      "generation": 7,
+      "status": "passed",
+      "inputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "outputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "shaderSha256": "3cf45aa7644ee5d1994654fcff35157ca59fcb377cdbe8ac7c5bfd97c7b5f21f",
+      "bytes": 5893,
+      "adapter": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": true
+      },
+      "adapterClass": "software",
+      "compilation": [],
+      "artifact": "generation-07.js"
+    },
+    {
+      "generation": 8,
+      "status": "passed",
+      "inputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "outputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7",
+      "shaderSha256": "3cf45aa7644ee5d1994654fcff35157ca59fcb377cdbe8ac7c5bfd97c7b5f21f",
+      "bytes": 5893,
+      "adapter": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": true
+      },
+      "adapterClass": "software",
+      "compilation": [],
+      "artifact": "generation-08.js"
+    }
+  ],
+  "launch": {
+    "executable": "/usr/bin/google-chrome",
+    "flags": [
+      "--headless=new",
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--enable-unsafe-webgpu",
+      "--remote-debugging-port=0",
+      "--enable-unsafe-swiftshader",
+      "--use-angle=vulkan",
+      "--enable-features=Vulkan",
+      "--use-vulkan=swiftshader",
+      "--use-webgpu-adapter=swiftshader",
+      "--disable-vulkan-surface"
+    ]
+  },
+  "browser": {
+    "Browser": "Chrome/146.0.7680.177",
+    "Protocol-Version": "1.3",
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36",
+    "V8-Version": "14.6.202.31",
+    "WebKit-Version": "537.36 (@ae03f7fb2cf1215853896d6a4c15fdceee2badb7)"
+  },
+  "launchPage": {
+    "status": "passed",
+    "outputSha256": "b20bbe85721894429f903ac321b8a7146da65d62024cfb6eb73fd30315e489d7"
+  },
+  "finished": "2026-09-14T15:09:05.294Z"
+}
