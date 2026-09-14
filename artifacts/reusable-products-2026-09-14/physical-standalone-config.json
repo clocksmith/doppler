@@ -1,0 +1,777 @@
+{
+  "schema": "doppler.installed-capabilities-acceptance/v1",
+  "bundleRoot": "/dev/shm/reusable-products-20260914/ci-final/doppler-candidate",
+  "outputDir": "/dev/shm/reusable-products-20260914/physical-ci-standalone",
+  "requiredVendor": "amd",
+  "timeoutMs": 600000,
+  "channel": "chrome",
+  "temporaryDirectory": "/dev/shm/reusable-products-20260914/",
+  "launchArgs": [
+    "--enable-unsafe-webgpu",
+    "--enable-webgpu-developer-features",
+    "--disable-dawn-features=disallow_unsafe_apis",
+    "--ignore-gpu-blocklist",
+    "--use-angle=vulkan",
+    "--enable-features=Vulkan",
+    "--disable-vulkan-surface",
+    "--enable-precise-memory-info"
+  ],
+  "models": [
+    {
+      "capsuleRoot": "/var/tmp/doppler-retention-campaign/browser-app-bounded/capsules/embedding",
+      "capsuleFile": "capsule-v3.json",
+      "descriptor": {
+        "schema": "doppler.capability-example/v1",
+        "openOptions": {
+          "trustedSigners": {
+            "local-document-search-embedding-20260907": {
+              "crv": "Ed25519",
+              "x": "bSm4qBBrqrMONIwxP1_ufXhisd4Zs5sO5bWYZbA3KoQ",
+              "kty": "OKP"
+            }
+          },
+          "acceptedTargetPlanDigests": [
+            "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c"
+          ],
+          "loadTimeoutMs": null,
+          "maxMetadataBytes": 16777216,
+          "maxRetainedArtifactBytes": 134217728,
+          "releaseEvents": [
+            {
+              "capsule": {
+                "schema": "doppler.capsule/v3",
+                "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+                "envelopeDigest": "sha256:32503db6b070ac78d0355bc6d9538bcd0a660543f1867f754543013b5de0f86e"
+              },
+              "sequence": 1,
+              "previousEventDigest": null,
+              "issuedAtUtc": "2026-09-07T13:29:51.355Z",
+              "expiresAtUtc": "2026-09-08T13:29:51.355Z",
+              "action": "eligible",
+              "release": {
+                "application": {
+                  "applicationId": "doppler-offline-document-search",
+                  "applicationRevision": "sha256:7284579e0a1f651661886ba39a47070a4984866f04a387241cd6db30392b5dd5",
+                  "applicationRevisionDigest": "sha256:7284579e0a1f651661886ba39a47070a4984866f04a387241cd6db30392b5dd5",
+                  "oracle": {
+                    "digest": "sha256:be4ed910a95a6e7ed26cfe7ce39d539760187698d7f8703a106afbabcdc46772",
+                    "id": "pinned-hf-source-comparison"
+                  },
+                  "workload": {
+                    "digest": "sha256:38d49f303b5cafda471742b9ab6461e6b17c4f65dad58dcaf5f9a1312c9e462c",
+                    "id": "frozen-document-embedding"
+                  }
+                },
+                "exclusions": {
+                  "known": [
+                    {
+                      "code": "unsupported-device",
+                      "evidenceDigest": "sha256:dac89baf692c4db2b43330164f1b3086be38fb9e568d3f6c9fb9c0b22c43b16c",
+                      "reason": "Internal physical evaluation only; other hosts, fleet support and adoption are unestablished.",
+                      "scope": "outside-the-observed-browser-webgpu-tuple"
+                    }
+                  ],
+                  "rejectionTypes": [
+                    "acceptance-failed",
+                    "application-gate-failed",
+                    "artifact-invalid",
+                    "evidence-expired",
+                    "migration-required",
+                    "revoked",
+                    "unsupported-device"
+                  ]
+                },
+                "lifecycle": {
+                  "failedUpgrade": {
+                    "preservePrevious": true,
+                    "previousCapsuleId": null,
+                    "previousSemanticRoot": null
+                  },
+                  "migration": null,
+                  "releaseVersion": "1.0.0",
+                  "supersedes": null
+                },
+                "revocation": {
+                  "authorityId": "local-document-search-embedding-20260907",
+                  "failClosedAfterExpiry": true,
+                  "offlineExpirySeconds": 86400,
+                  "policyDigest": "sha256:b68f2c695f9e43f5b0750ba3e7be3c061e64105f4943177c69ceacaacf9fc9ab"
+                },
+                "schema": "doppler.capsule-release/v1",
+                "source": {
+                  "license": {
+                    "name": "Apache License 2.0",
+                    "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+                    "spdxId": "Apache-2.0",
+                    "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+                  },
+                  "provenanceDigest": "sha256:88cab0ff9897c733ec9fd3a31f95c8e328b85447021ea91a3d355568b9b49319",
+                  "repository": "Qwen/Qwen3-Embedding-0.6B",
+                  "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+                  "revisionDigest": "sha256:1958ae3fd828762e7ddc22de18c4f3cea1b0db49f819a04210a7346d534d0ea8"
+                },
+                "stateSnapshot": {
+                  "format": "canonical-json",
+                  "identityDigest": "sha256:ec06ced745ce3fc85330a83068361e67f52e6c578526ce17ede70787fad692d1",
+                  "portableAcrossTargetIds": [
+                    "webgpu-f32-f16-subgroups"
+                  ],
+                  "schema": "doppler.capsule-state-snapshot/v1"
+                }
+              },
+              "migratedFrom": {
+                "schema": "doppler.capsule/v2",
+                "semanticRoot": "sha256:2ea7393f53318339de904730fc249cfbed996208dc72c2344d51a0e938a008e0",
+                "envelopeDigest": "sha256:5e6569857669785e3f437aa2b627dc74ed4ae2434714c643d3ab54ea7bef8a30"
+              },
+              "nextSigner": null,
+              "schema": "doppler.capsule-release-event/v1",
+              "digest": "sha256:0fd8ab37bba5d810b1560b334cd8d158d3527edaaab7416fde60e329f8d3e021",
+              "signature": {
+                "authority": "local-document-search-embedding-20260907",
+                "algorithm": "Ed25519",
+                "publicKeyDigest": "sha256:6a1511ab1938292a1f0a0cf8616cf7ec719fa20e0565348c6a0f9e34b1032501",
+                "signatureHex": "77279992b0e94d6c86da3728b10f052939438a6cbaf840659b59443f677b256a7874fba0ef73cf84e20f5e8b5e8b1e0d4ba854d284a2b1d072f9296000eca90a",
+                "signedDigest": "sha256:0fd8ab37bba5d810b1560b334cd8d158d3527edaaab7416fde60e329f8d3e021"
+              }
+            }
+          ],
+          "releaseTrustedSigners": {
+            "local-document-search-embedding-20260907": {
+              "crv": "Ed25519",
+              "x": "bSm4qBBrqrMONIwxP1_ufXhisd4Zs5sO5bWYZbA3KoQ",
+              "kty": "OKP"
+            }
+          },
+          "releasePolicy": {
+            "now": "2026-09-07T15:43:14.870Z",
+            "minimumSequence": 1,
+            "checkpoint": {
+              "sequence": 1,
+              "digest": "sha256:0fd8ab37bba5d810b1560b334cd8d158d3527edaaab7416fde60e329f8d3e021"
+            },
+            "retainedLocalUse": {
+              "schema": "doppler.capsule-retained-local-use/v1",
+              "capsule": {
+                "schema": "doppler.capsule/v3",
+                "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+                "envelopeDigest": "sha256:32503db6b070ac78d0355bc6d9538bcd0a660543f1867f754543013b5de0f86e"
+              },
+              "releaseEventDigest": "sha256:0fd8ab37bba5d810b1560b334cd8d158d3527edaaab7416fde60e329f8d3e021",
+              "applicationDigest": "sha256:3171510bbb2ce5642549a1d62475cd80343745f09fc59a55903b6f0606e3e895",
+              "acknowledgeUnseenRevocations": true,
+              "acceptedAtUtc": "2026-09-07T17:28:42.184Z"
+            }
+          }
+        },
+        "maxDurationMs": 300000,
+        "request": {
+          "schema": "doppler.capsule-operation-request/v2",
+          "operation": {
+            "name": "embed",
+            "version": 1
+          },
+          "input": {
+            "application": {
+              "applicationId": "doppler-offline-document-search",
+              "applicationRevision": "sha256:7284579e0a1f651661886ba39a47070a4984866f04a387241cd6db30392b5dd5",
+              "applicationRevisionDigest": "sha256:7284579e0a1f651661886ba39a47070a4984866f04a387241cd6db30392b5dd5",
+              "oracle": {
+                "digest": "sha256:be4ed910a95a6e7ed26cfe7ce39d539760187698d7f8703a106afbabcdc46772",
+                "id": "pinned-hf-source-comparison"
+              },
+              "workload": {
+                "digest": "sha256:38d49f303b5cafda471742b9ab6461e6b17c4f65dad58dcaf5f9a1312c9e462c",
+                "id": "frozen-document-embedding"
+              }
+            },
+            "texts": [
+              "Where are model chunks stored?",
+              "Verified model chunks are stored in the browser origin-private file system."
+            ]
+          },
+          "options": {},
+          "assignment": null,
+          "limits": {
+            "maxInputBytes": 100000,
+            "maxOutputBytes": 1000000
+          }
+        }
+      },
+      "expectedDimension": 1024
+    },
+    {
+      "capsuleRoot": "/var/tmp/doppler-retention-campaign/browser-app-bounded/capsules/reranker",
+      "capsuleFile": "capsule-v3.json",
+      "descriptor": {
+        "schema": "doppler.capability-example/v1",
+        "openOptions": {
+          "trustedSigners": {
+            "local-browser-capsule-baseline-20260906": {
+              "crv": "Ed25519",
+              "x": "c8dlGM2sqhrMHysF2xXc5MZvyX6tPMrU4pWAMHkGe2I",
+              "kty": "OKP"
+            }
+          },
+          "acceptedTargetPlanDigests": [
+            "sha256:b900f8b3ab71bb6600687d71a919881f402f42ff076fb37524b67b0b4981c661"
+          ],
+          "loadTimeoutMs": null,
+          "maxMetadataBytes": 16777216,
+          "maxRetainedArtifactBytes": 134217728,
+          "releaseEvents": [
+            {
+              "capsule": {
+                "schema": "doppler.capsule/v3",
+                "semanticRoot": "sha256:4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+                "envelopeDigest": "sha256:bdaa28c214bd5ae65bb04945eb3aa07a0937f2c3fa81cf54de39b5fc2d21876a"
+              },
+              "sequence": 1,
+              "previousEventDigest": null,
+              "issuedAtUtc": "2026-09-07T13:29:51.828Z",
+              "expiresAtUtc": "2026-09-08T13:29:51.828Z",
+              "action": "eligible",
+              "release": {
+                "application": {
+                  "applicationId": "doppler-offline-document-search",
+                  "applicationRevision": "sha256:7284579e0a1f651661886ba39a47070a4984866f04a387241cd6db30392b5dd5",
+                  "applicationRevisionDigest": "sha256:7284579e0a1f651661886ba39a47070a4984866f04a387241cd6db30392b5dd5",
+                  "oracle": {
+                    "digest": "sha256:185678eabefe54ed01ddc88a5d764900d03ebda2d68e5580240f1e53553ad3d3",
+                    "id": "pinned-hf-source-comparison"
+                  },
+                  "workload": {
+                    "digest": "sha256:014e2ee04f8c93e26334b16b484367eaeca90741e4c663810b452c7369e954dc",
+                    "id": "frozen-document-reranking"
+                  }
+                },
+                "exclusions": {
+                  "known": [
+                    {
+                      "code": "unsupported-device",
+                      "evidenceDigest": "sha256:a55826eba19f404f4776e3379d83c5f2dc471135f1ab7d98f7bfb90358d23773",
+                      "reason": "Internal physical evaluation only; other hosts, fleet support and adoption are unestablished.",
+                      "scope": "outside-the-observed-browser-webgpu-tuple"
+                    }
+                  ],
+                  "rejectionTypes": [
+                    "acceptance-failed",
+                    "application-gate-failed",
+                    "artifact-invalid",
+                    "evidence-expired",
+                    "migration-required",
+                    "revoked",
+                    "unsupported-device"
+                  ]
+                },
+                "lifecycle": {
+                  "failedUpgrade": {
+                    "preservePrevious": true,
+                    "previousCapsuleId": null,
+                    "previousSemanticRoot": null
+                  },
+                  "migration": null,
+                  "releaseVersion": "1.0.0",
+                  "supersedes": null
+                },
+                "revocation": {
+                  "authorityId": "local-browser-capsule-baseline-20260906",
+                  "failClosedAfterExpiry": true,
+                  "offlineExpirySeconds": 86400,
+                  "policyDigest": "sha256:ea3f7db84a9a5850221fe0bec2747b5bb9ba9da27cbbf045acca3f2cd4125b84"
+                },
+                "schema": "doppler.capsule-release/v1",
+                "source": {
+                  "license": {
+                    "name": "Apache License 2.0",
+                    "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+                    "spdxId": "Apache-2.0",
+                    "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+                  },
+                  "provenanceDigest": "sha256:aacdcfd75829ce612f2452f766a7aacb8c5d24549147fda794b7ad9e3dc43e5c",
+                  "repository": "Qwen/Qwen3-Reranker-0.6B",
+                  "revision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+                  "revisionDigest": "sha256:88937c5b60524174b2140957a1027f4ba2bc7e086ce24c524cc8b6d991d29f47"
+                },
+                "stateSnapshot": {
+                  "format": "canonical-json",
+                  "identityDigest": "sha256:9fae1a2062639f0e14b0913d77df6cdc28d8ac831db3c5f67a54945b1102a707",
+                  "portableAcrossTargetIds": [
+                    "webgpu-f32-f16-subgroups"
+                  ],
+                  "schema": "doppler.capsule-state-snapshot/v1"
+                }
+              },
+              "migratedFrom": {
+                "schema": "doppler.capsule/v2",
+                "semanticRoot": "sha256:e7a24dd98c424dc3beb5f426a36988615828a006ed74bffca3c02d7a8ef949f8",
+                "envelopeDigest": "sha256:4616ca330da2c25794e3855402e2e3c8c5ab9afd4b16ac7073804ddc481ab28f"
+              },
+              "nextSigner": null,
+              "schema": "doppler.capsule-release-event/v1",
+              "digest": "sha256:3ea8d0c1dc7f03f56442029e752195523045f47c49f634f67fe7398505796424",
+              "signature": {
+                "authority": "local-browser-capsule-baseline-20260906",
+                "algorithm": "Ed25519",
+                "publicKeyDigest": "sha256:3e66a2c5eed5b3833033cffe7de1ef546ee4c408876dbf2cd5d297c9d2fa2182",
+                "signatureHex": "9d50159b5f098ae70c5df0ddb9101f76f7eb81b630acf5120672de28f4f00c2fda4308445328d3bd3b5efb0a8cd40c8cfe4d690fd2d8fef5f826c87e2fd9000d",
+                "signedDigest": "sha256:3ea8d0c1dc7f03f56442029e752195523045f47c49f634f67fe7398505796424"
+              }
+            }
+          ],
+          "releaseTrustedSigners": {
+            "local-browser-capsule-baseline-20260906": {
+              "crv": "Ed25519",
+              "x": "c8dlGM2sqhrMHysF2xXc5MZvyX6tPMrU4pWAMHkGe2I",
+              "kty": "OKP"
+            }
+          },
+          "releasePolicy": {
+            "now": "2026-09-07T15:43:15.381Z",
+            "minimumSequence": 1,
+            "checkpoint": {
+              "sequence": 1,
+              "digest": "sha256:3ea8d0c1dc7f03f56442029e752195523045f47c49f634f67fe7398505796424"
+            },
+            "retainedLocalUse": {
+              "schema": "doppler.capsule-retained-local-use/v1",
+              "capsule": {
+                "schema": "doppler.capsule/v3",
+                "semanticRoot": "sha256:4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+                "envelopeDigest": "sha256:bdaa28c214bd5ae65bb04945eb3aa07a0937f2c3fa81cf54de39b5fc2d21876a"
+              },
+              "releaseEventDigest": "sha256:3ea8d0c1dc7f03f56442029e752195523045f47c49f634f67fe7398505796424",
+              "applicationDigest": "sha256:c18f0a399966eed977229fb2efa8c6c804d6423cefe981e10e5236490427e133",
+              "acknowledgeUnseenRevocations": true,
+              "acceptedAtUtc": "2026-09-07T17:30:26.821Z"
+            }
+          }
+        },
+        "maxDurationMs": 300000,
+        "request": {
+          "schema": "doppler.capsule-operation-request/v2",
+          "operation": {
+            "name": "rerank",
+            "version": 1
+          },
+          "input": {
+            "application": {
+              "applicationId": "doppler-offline-document-search",
+              "applicationRevision": "sha256:7284579e0a1f651661886ba39a47070a4984866f04a387241cd6db30392b5dd5",
+              "applicationRevisionDigest": "sha256:7284579e0a1f651661886ba39a47070a4984866f04a387241cd6db30392b5dd5",
+              "oracle": {
+                "digest": "sha256:185678eabefe54ed01ddc88a5d764900d03ebda2d68e5580240f1e53553ad3d3",
+                "id": "pinned-hf-source-comparison"
+              },
+              "workload": {
+                "digest": "sha256:014e2ee04f8c93e26334b16b484367eaeca90741e4c663810b452c7369e954dc",
+                "id": "frozen-document-reranking"
+              }
+            },
+            "query": "Where are model chunks stored?",
+            "documents": [
+              "Verified model chunks are stored in the browser origin-private file system.",
+              "Pasta cooks in boiling water."
+            ]
+          },
+          "options": {},
+          "assignment": null,
+          "limits": {
+            "maxInputBytes": 100000,
+            "maxOutputBytes": 1000000
+          }
+        }
+      }
+    },
+    {
+      "capsuleRoot": "/var/tmp/reploid-qwen4b-source-20260908/capsule-evidence-closed-development/distribution",
+      "capsuleFile": "capsule.json",
+      "descriptor": {
+        "schema": "doppler.capability-example/v1",
+        "openOptions": {
+          "trustedSigners": {
+            "reploid-local-document-development-2026-09": {
+              "crv": "Ed25519",
+              "x": "Do-kZ0thJNiifDklaYkfV1pse44FaBrdtBcDpKBMAdA",
+              "kty": "OKP"
+            }
+          },
+          "acceptedTargetPlanDigests": [
+            "sha256:60711a3c83b882d015343cc07f5a942825456acc93ad0d15dddf6877c8b9a5e6"
+          ]
+        },
+        "maxDurationMs": 300000,
+        "request": {
+          "schema": "doppler.capsule-operation-request/v2",
+          "operation": {
+            "name": "generate",
+            "version": 1
+          },
+          "input": {
+            "promptTokens": [
+              151644,
+              872,
+              198,
+              28959,
+              279,
+              5904,
+              4362,
+              311,
+              4226,
+              1449,
+              949,
+              315,
+              279,
+              3405,
+              13,
+              5443,
+              19119,
+              4128,
+              8660,
+              323,
+              8830,
+              15057,
+              504,
+              279,
+              17221,
+              2266,
+              26,
+              458,
+              4734,
+              3409,
+              2432,
+              1948,
+              279,
+              3405,
+              323,
+              5904,
+              374,
+              537,
+              2567,
+              13,
+              5443,
+              1172,
+              279,
+              48826,
+              46769,
+              11,
+              26625,
+              1105,
+              438,
+              23237,
+              821,
+              4751,
+              1091,
+              11221,
+              624,
+              5598,
+              825,
+              4718,
+              1633,
+              448,
+              6896,
+              825,
+              330,
+              18252,
+              1,
+              1334,
+              13,
+              8886,
+              949,
+              702,
+              6896,
+              1493,
+              5043,
+              510,
+              12,
+              330,
+              7841,
+              788,
+              279,
+              949,
+              315,
+              279,
+              4024,
+              3405,
+              1660,
+              18577,
+              624,
+              12,
+              330,
+              68,
+              27480,
+              788,
+              458,
+              1334,
+              315,
+              6171,
+              448,
+              330,
+              6385,
+              424,
+              1,
+              320,
+              64,
+              21085,
+              1372,
+              8,
+              323,
+              330,
+              2949,
+              1,
+              320,
+              603,
+              476,
+              803,
+              4583,
+              22870,
+              21774,
+              6896,
+              504,
+              429,
+              21085,
+              4292,
+              12,
+              330,
+              2829,
+              788,
+              6896,
+              825,
+              315,
+              330,
+              18216,
+              497,
+              330,
+              16088,
+              497,
+              476,
+              330,
+              6135,
+              21242,
+              3263,
+              5443,
+              330,
+              16088,
+              1,
+              1172,
+              421,
+              902,
+              21085,
+              11253,
+              429,
+              949,
+              11,
+              448,
+              4287,
+              5904,
+              13,
+              5443,
+              330,
+              6135,
+              21242,
+              1,
+              421,
+              279,
+              46769,
+              2968,
+              52824,
+              11253,
+              311,
+              429,
+              949,
+              11,
+              2670,
+              1817,
+              51033,
+              4226,
+              448,
+              1181,
+              1828,
+              5904,
+              2041,
+              18774,
+              264,
+              13632,
+              13,
+              18214,
+              990,
+              330,
+              18216,
+              497,
+              448,
+              2477,
+              3194,
+              5904,
+              624,
+              22283,
+              678,
+              7248,
+              5479,
+              1496,
+              421,
+              1008,
+              5479,
+              525,
+              9788,
+              13,
+              29734,
+              279,
+              5904,
+              369,
+              1449,
+              2567,
+              1917,
+              476,
+              2971,
+              11,
+              537,
+              1101,
+              458,
+              2856,
+              28674,
+              624,
+              785,
+              3766,
+              686,
+              3042,
+              279,
+              4091,
+              2530,
+              22870,
+              448,
+              862,
+              21085,
+              51846,
+              11,
+              20975,
+              1895,
+              264,
+              12055,
+              979,
+              2639,
+              374,
+              330,
+              6135,
+              21242,
+              497,
+              323,
+              1473,
+              279,
+              4734,
+              9788,
+              476,
+              62844,
+              2939,
+              1943,
+              13,
+              3155,
+              537,
+              3270,
+              264,
+              8651,
+              1590,
+              4226,
+              13,
+              3411,
+              1172,
+              4718,
+              11,
+              2041,
+              50494,
+              69155,
+              382,
+              12187,
+              1134,
+              510,
+              58,
+              16,
+              60,
+              63169,
+              1614,
+              26757,
+              525,
+              9768,
+              304,
+              279,
+              6929,
+              594,
+              6238,
+              65277,
+              1034,
+              1849,
+              13,
+              74205,
+              26757,
+              525,
+              10067,
+              1573,
+              25978,
+              382,
+              14582,
+              25,
+              10967,
+              525,
+              20579,
+              26757,
+              9768,
+              11,
+              323,
+              1246,
+              1753,
+              13364,
+              3550,
+              374,
+              19323,
+              30,
+              151645,
+              198,
+              151644,
+              77091,
+              198
+            ]
+          },
+          "options": {
+            "maxTokens": 16,
+            "maxSeqLen": 4096,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 0,
+            "presencePenalty": 0,
+            "useChatTemplate": false,
+            "seed": 0
+          },
+          "assignment": null,
+          "limits": {
+            "maxInputBytes": 100000,
+            "maxOutputBytes": 1000000
+          }
+        }
+      },
+      "expectedTokenIds": [
+        515,
+        220,
+        330,
+        18252,
+        788,
+        2278,
+        262,
+        341,
+        414,
+        330,
+        7841,
+        788,
+        330,
+        9064,
+        525,
+        20579
+      ]
+    }
+  ],
+  "consumer": "standalone",
+  "adapterProbe": {
+    "attempts": 3,
+    "retryDelayMs": 100
+  }
+}

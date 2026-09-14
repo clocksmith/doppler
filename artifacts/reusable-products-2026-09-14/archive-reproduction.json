@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "nodeVersion": "v22.23.2",
+  "npmVersion": "10.9.8",
+  "doppler": {
+    "ciSha256": "4f9689b173ab80f2d664e7006f99dea98e37eb16e6e9d5b831e2902aee6b91b7",
+    "reproducedSha256": "4f9689b173ab80f2d664e7006f99dea98e37eb16e6e9d5b831e2902aee6b91b7",
+    "fileCount": 1789
+  },
+  "reploid": {
+    "ciSha256": "6f12af6f5d7ea31b23917d35eccc2aceacb29416a07af6441b58048d591f7a46",
+    "reproducedSha256": "6f12af6f5d7ea31b23917d35eccc2aceacb29416a07af6441b58048d591f7a46",
+    "fileCount": 64
+  },
+  "otherPackagingEnvironment": {
+    "nodeVersion": "v22.22.1",
+    "npmVersion": "9.2.0",
+    "dopplerSha256": "755d0ed7ceffcecad76cd3d6cb17cc5a4a6fa827394245280364f584421d3e44",
+    "reploidSha256": "b92d6ac8a88740aebe82745d7b2e67afd9eb6c8f676efc9bed675f1cad35a250",
+    "allFileContentsMatchCandidate": true,
+    "sameTarballBytes": false
+  },
+  "commands": [
+    "npm exec --yes --package=node@22.23.2 --package=npm@10.9.8 -- npm pack --ignore-scripts --json --pack-destination /absolute/output",
+    "npm exec --yes --package=node@22.23.2 --package=npm@10.9.8 -- npm pack ./packages/reploid --ignore-scripts --json --pack-destination /absolute/output"
+  ],
+  "sourceRevisions": {
+    "doppler": "1af9af2e0c6f378a00d659c444178ac9e6726d51",
+    "reploid": "775a7ae0c024a4777349bad83ced6576cc1ab538",
+    "localReploidRunner": "a3bf49af2e4831152fc2689bc0f69206344d4de4"
+  },
+  "note": "The later Reploid commit only extends the repository test helper. The installed library is byte-identical."
+}
