@@ -1,7 +1,7 @@
 {
   "README.md": {
-    "sha256": "e62ccc1878a78906f6df4f53a05d5ad6ca9480b9d95b8435d32c66b22e837d64",
-    "sizeBytes": 9126
+    "sha256": "f36a33eaed4cbe0ac89a5e2494246e52b4ad84c67ab61baaf422eeece88c9bc5",
+    "sizeBytes": 9413
   },
   "acceptance.json": {
     "sha256": "056f85bfd4b97f8049128e8f2802162b94d1067319afbf7e8cbb638f3e278b45",
@@ -98,6 +98,66 @@
   "physical-standalone.log": {
     "sha256": "228dcb81a9a1a7667ab5aa4c1cb2fe3c02c0f6ecf46d70ec0973438c6e826018",
     "sizeBytes": 7218
+  },
+  "reconciliation/README.md": {
+    "sha256": "932ed31f5e124da1c241556c734117e5c887ea1c6da92ab689493986c6e0e58a",
+    "sizeBytes": 3605
+  },
+  "reconciliation/acceptance.json": {
+    "sha256": "5ed6770ca806bd595e1fb1ac0cf6d7b90b4b5b449be8903e565956452ca56206",
+    "sizeBytes": 3591
+  },
+  "reconciliation/browser-boot-peer.log": {
+    "sha256": "0ecbcddf174c6bab249a0a7996a563874d194214dc2c8d942297d2f0d0c09a60",
+    "sizeBytes": 11551
+  },
+  "reconciliation/browser-relay-recovery.log": {
+    "sha256": "e655bc976d88a08df37ca8ebf9088bca0a20faac0c42985ec2f2eea835737497",
+    "sizeBytes": 2601
+  },
+  "reconciliation/ci-final-application-run.json": {
+    "sha256": "077b8f3083a49781bf1b8b3cfd0d212a03af8f897744def4d0003cc50166dfa8",
+    "sizeBytes": 318
+  },
+  "reconciliation/ci-final-doppler-run.json": {
+    "sha256": "06c3df907f340642324eefd3e63b3a096d0f8bd68e4a6e3d542f8fef1b90f6a0",
+    "sizeBytes": 327
+  },
+  "reconciliation/ci-first-application-run.json": {
+    "sha256": "31861dd282cbacf6bd874d7e6cf057f971a8e3a02489306f9961fdef4df5488b",
+    "sizeBytes": 318
+  },
+  "reconciliation/ci-first-contract-failure.log": {
+    "sha256": "39ee5baa3a88e604bbd0bdcd2ac4646e24427ccc52106655f69321aaed524392",
+    "sizeBytes": 698
+  },
+  "reconciliation/ci-fixture-source.json": {
+    "sha256": "74630150c2e48a26bac32936091de0b2b40358f05744c8298f45f1dd275d798f",
+    "sizeBytes": 160
+  },
+  "reconciliation/ci-installed-run.json": {
+    "sha256": "ed66a9cae6cff4fabd8b4a7896fbafbdd235eb0ccd9a54d75a5958c09d3c2f50",
+    "sizeBytes": 350
+  },
+  "reconciliation/ci-library.json": {
+    "sha256": "e430190e69007aec05d1b0a2cfaa223b295c527414bbb0ee2aa40eb1356d71fb",
+    "sizeBytes": 3997
+  },
+  "reconciliation/ci-standalone.json": {
+    "sha256": "62650d2dbaee75c60ef35524d14b7d290979aa5e3a54a7d85c289ef5f793e577",
+    "sizeBytes": 1828
+  },
+  "reconciliation/ci-webrtc.json": {
+    "sha256": "27eea30eab7f380df58b7445619ef7cbb6009cdec2386112b0be9aa64a685894",
+    "sizeBytes": 26647
+  },
+  "reconciliation/local-unit.log": {
+    "sha256": "a75f84c153e84656ae8fb7895630546880166de5ff323c1da1c5def9b509da4f",
+    "sizeBytes": 90051
+  },
+  "reconciliation/sdk-tests.log": {
+    "sha256": "e5462172f2a798989a57d19547b2b908e172231bea4193b33b6e8f143e985bda",
+    "sizeBytes": 289
   },
   "reploid-application-comparison.json": {
     "sha256": "7bdd08235fec78c5b8a757c0934f404baf63e09a7357d36f76a5d1321d543cd1",

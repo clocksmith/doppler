@@ -1,5 +1,10 @@
 # Reconciled installed consumers: Doppler 0.6.2 candidate
 
+**Later current-main reconciliation:** [The follow-up](reconciliation/README.md)
+records the upstream Zero repair, passing Reploid full CI, 59 browser checks,
+and identical accepted package bytes. The original observations below remain
+historical evidence for their recorded revisions.
+
 The reconciled Doppler candidate passes standalone installed contracts, the
 installed Reploid library provider, remote Doppler CI, and the physical operations
 listed below. It remains unpublished. Reploid's complete application suite still
