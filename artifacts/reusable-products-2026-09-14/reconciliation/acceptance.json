@@ -1,0 +1,75 @@
+{
+  "date": "2026-09-14",
+  "reploidMergedMain": "e4c12cee5bd1c7be1f58edc1b0d2c80af1e2acaf",
+  "reploidMergedSource": "7b0258a37d90ff35ca3c42758d0ff432c2db0989",
+  "reploidGeneratedArtifactRepair": "0c1faa033efa1b02b14fb7f5b2f9cad4e6ada3f0",
+  "dopplerSource": "16f201afd4d9be464d597ae3ffff4249cdf7582f",
+  "installedConsumerWorkflowRun": 34900241483,
+  "artifactId": 10370796246,
+  "artifactZipSha256": "bb04d187410b6a715ec2e23124fe422519f4f13d9ec07fc57ee87b7c8b38de7b",
+  "runtimeArchiveSha256": "4f9689b173ab80f2d664e7006f99dea98e37eb16e6e9d5b831e2902aee6b91b7",
+  "libraryArchiveSha256": "6f12af6f5d7ea31b23917d35eccc2aceacb29416a07af6441b58048d591f7a46",
+  "packageBytesUnchanged": true,
+  "packageSourceComparisonCommand": "git diff --exit-code 775a7ae0c024a4777349bad83ced6576cc1ab538 0c1faa033efa1b02b14fb7f5b2f9cad4e6ada3f0 -- packages/reploid self/vendor/reploid",
+  "packageSourceComparisonExitCode": 0,
+  "localUnits": {
+    "numPassedTests": 2546,
+    "numFailedTests": 0,
+    "numPendingTests": 36
+  },
+  "browserBootAndPeer": {
+    "startTime": "2026-09-14T21:41:50.484Z",
+    "duration": 56124.623999999996,
+    "expected": 55,
+    "skipped": 5,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "browserServerRelayRecovery": {
+    "startTime": "2026-09-14T21:43:15.998Z",
+    "duration": 31279.222999999998,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "browserScope": "SwiftShader browser application tests with synthetic model receipts; no additional physical inference claim. The fifth initial skip is the optional twelve-provider scenario.",
+  "upstreamFixes": [
+    "Zero boot preserves its existing 69-file bound and resolves hosted library dependency URLs",
+    "Metadata resolver retains forwarded dependency arrays",
+    "WebRTC fixtures set immutable flags at construction and close owned instances"
+  ],
+  "generatedRepairs": [
+    "VFS manifest includes vendor/reploid/adapters/doppler-stream.js",
+    "Change Passport SDK bundle rebuilt from extracted canonical owners; declarations unchanged"
+  ],
+  "localRemainingContractChecks": "module system, registry, runtime config, browser manifest, SDK, pilot structural validation, SDK types and Pool production config verification passed",
+  "limitations": [
+    "Earlier reveal-phase failure remains historical unresolved intermittency; one local and one remote unit-suite pass do not prove a root-cause repair",
+    "No production publication, deployment, independent adoption, or new physical qualification"
+  ],
+  "component": "reploid; doppler.repository-tooling",
+  "intent": "preserved",
+  "boundaryEffects": "Current main application repairs reconciled; public library and Doppler runtime bytes unchanged",
+  "finalReploidWorkflow": {
+    "id": 34900703396,
+    "name": "Test Suite",
+    "head_sha": "0c1faa033efa1b02b14fb7f5b2f9cad4e6ada3f0",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-09-14T21:47:09Z",
+    "updated_at": "2026-09-14T21:48:50Z",
+    "html_url": "https://github.com/clocksmith/reploid/actions/runs/34900703396"
+  },
+  "finalDopplerWorkflow": {
+    "id": 34900241482,
+    "name": "Default Green Chain",
+    "head_sha": "16f201afd4d9be464d597ae3ffff4249cdf7582f",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-09-14T21:41:57Z",
+    "updated_at": "2026-09-14T21:50:14Z",
+    "html_url": "https://github.com/clocksmith/doppler/actions/runs/34900241482"
+  },
+  "logFormatting": "SDK test log omits extra trailing blank lines; CI excerpts remove terminal color escapes and trailing whitespace."
+}

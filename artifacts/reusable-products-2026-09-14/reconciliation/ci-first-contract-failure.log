@@ -1,0 +1,11 @@
+0273639Z > node scripts/verify-layers.js
+2026-09-14T21:43:16.0273870Z
+2026-09-14T21:43:16.1191714Z Layer verification passed.
+2026-09-14T21:43:16.2233894Z
+2026-09-14T21:43:16.2234623Z > reploid@0.1.0 verify:module-system
+2026-09-14T21:43:16.2235229Z > node scripts/verify-module-system.js
+2026-09-14T21:43:16.2235476Z
+2026-09-14T21:43:16.5607002Z [verify-module-system] Errors:
+2026-09-14T21:43:16.5608537Z - VFS manifest missing: vendor/reploid/adapters/doppler-stream.js
+2026-09-14T21:43:16.5771758Z ##[error]Process completed with exit code 1.
+2026-09-14T21:43:16.5859199Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, yo
