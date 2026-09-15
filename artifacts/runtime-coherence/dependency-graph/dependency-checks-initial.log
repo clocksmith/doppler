@@ -1,0 +1,12 @@
+[node-tests] script: runtime:closure:sync
+Capsule runtime closure passed: 66 files, 606148 source bytes.
+[node-tests] script: package:closure:check
+package source closure check passed (897 runtime JS, 438 declarations, 450 resources)
+[node-tests] script: imports:check:browser
+browser import graph check passed (src/index-browser.js)
+browser import graph check passed (src/tooling-exports.browser.js)
+[node-tests] script: source:architecture:check
+source architecture check passed: 21 owners, 2669 files, 0 governed oversize files, 52 reviewed soft-limit files, 25 reviewed generic modules (6 semantic owners, 19 facades, 0 legacy debt)
+[node-tests] script: public:boundaries:check
+npm package file budget exceeded: 1790 > 1789
+[node-tests] public:boundaries:check failed: exit 1

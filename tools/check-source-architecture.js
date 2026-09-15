@@ -6,11 +6,10 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { readJsonAtGitRef, resolvePolicyBaseRef } from './lib/policy-base.js';
 import { validateArchitecturePolicyDelta } from './lib/source-architecture-debt.js';
+import { moduleSpecifiers } from './lib/javascript-dependency-graph.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const policyPath = path.join(repoRoot, 'tools/policies/source-architecture-policy.json');
-const importPattern = /\b(?:import|export)\s+(?:[^'\"]*?\sfrom\s*)?['\"]([^'\"]+)['\"]/g;
-const dynamicImportPattern = /\bimport\s*\(\s*['\"]([^'\"]+)['\"]\s*\)/g;
 const facadeImplementationPattern = /^\s*(?:export\s+)?(?:async\s+)?(?:function|class|const|let|var)\b/m;
 const genericModulePattern = /(?:^|\/)(?:utils|helpers)\.js$|-(?:utils|helpers|shared)\.js$|\.shared\.js$|(?:^|\/)shared-runtime\.schema\.js$/;
 const governedExtensions = new Set(['.js', '.d.ts', '.wgsl']);
@@ -40,18 +39,6 @@ async function walk(directory) {
   return files;
 }
 
-function collectSpecifiers(source) {
-  const values = [];
-  for (const pattern of [importPattern, dynamicImportPattern]) {
-    pattern.lastIndex = 0;
-    for (;;) {
-      const match = pattern.exec(source);
-      if (!match) break;
-      values.push(match[1]);
-    }
-  }
-  return values;
-}
 
 function ownerFor(sourceRoot, targetPath) {
   const relative = path.relative(sourceRoot, targetPath);
@@ -166,7 +153,7 @@ async function collectExternalSourceRoots(policy, sourceRoot, sourceFiles) {
     for (const filePath of externalFiles) {
       if (path.extname(filePath) !== '.js') continue;
       const source = await fs.readFile(filePath, 'utf8');
-      for (const specifier of collectSpecifiers(source)) {
+      for (const specifier of moduleSpecifiers(source, filePath)) {
         const imported = resolveSourceImport(filePath, specifier, sourceFiles);
         if (imported) roots.add(imported);
       }
@@ -186,7 +173,7 @@ async function validateProductionGraph(policy, sourceRoot, files, facadePaths, e
     const relative = toPosix(path.relative(sourceRoot, filePath));
     const source = await fs.readFile(filePath, 'utf8');
     const dependencies = [];
-    for (const specifier of collectSpecifiers(source)) {
+    for (const specifier of moduleSpecifiers(source, filePath)) {
       if (!specifier.startsWith('.')) continue;
       const imported = resolveSourceImport(filePath, specifier, sourceFiles);
       if (!imported) {
@@ -305,7 +292,7 @@ async function validateConstitutionalDomains(policy, sourceRoot, files, errors) 
         }
       }
       const source = await fs.readFile(filePath, 'utf8');
-      for (const specifier of collectSpecifiers(source)) {
+      for (const specifier of moduleSpecifiers(source, filePath)) {
         const imported = resolveSourceImport(filePath, specifier, sourceFiles);
         if (imported && !visited.has(imported)) pending.push(imported);
       }
@@ -414,7 +401,7 @@ async function main() {
       errors.push(`${relative}: owner ${String(fromOwner)} lacks an allowed dependency policy`);
       continue;
     }
-    for (const specifier of collectSpecifiers(source)) {
+    for (const specifier of moduleSpecifiers(source, filePath)) {
       if (!specifier.startsWith('.')) continue;
       const sourceFiles = new Set(files.filter((candidate) => path.extname(candidate) === '.js'));
       const imported = resolveSourceImport(filePath, specifier, sourceFiles);

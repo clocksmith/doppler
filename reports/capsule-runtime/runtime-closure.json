@@ -1,8 +1,8 @@
 {
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
-  "fileCount": 65,
-  "sourceBytes": 605878,
+  "fileCount": 66,
+  "sourceBytes": 606148,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -12,6 +12,22 @@
     "/src/cli/",
     "/src/client/provider.js",
     "/src/config/conversion/"
+  ],
+  "dynamicImports": [
+    {
+      "path": "src/formats/load-json.js",
+      "expression": "nodeModule('fs/promises')",
+      "line": 12,
+      "specifier": "node:fs/promises",
+      "environment": "node"
+    },
+    {
+      "path": "src/formats/load-json.js",
+      "expression": "nodeModule('url')",
+      "line": 13,
+      "specifier": "node:url",
+      "environment": "node"
+    }
   ],
   "forbiddenFiles": [],
   "files": [
@@ -239,6 +255,11 @@
       "path": "src/config/revocation-policy.js",
       "sizeBytes": 10773,
       "hash": "sha256:0e2ee4c9a9f711da2e7a2d2b4a3963573d5478ff07cc45ef969e0d6e3cdf7d89"
+    },
+    {
+      "path": "src/config/revocation-registry.json",
+      "sizeBytes": 270,
+      "hash": "sha256:55923af9620bd85335672067f55fa87b42ce2bd718bda2e33ac64a79734b569f"
     },
     {
       "path": "src/config/schema/debug.schema.js",
