@@ -1,0 +1,19 @@
+{
+  "probePath": "/dev/shm/doppler-runtime-coherence/gpu-selection-raw-3/receipt.json",
+  "previousQualificationPath": "/var/tmp/reploid-qwen4b-source-20260908/capsule-evidence-closed-development/qualification.json",
+  "sourceTranscriptPath": "/var/tmp/reploid-qwen4b-source-20260908/capsule-evidence-closed-development/source-transcript.json",
+  "previousReleasePath": "/var/tmp/reploid-qwen4b-source-20260908/capsule-evidence-closed-development/release.json",
+  "outputDir": "/var/tmp/doppler-capsule-gpu-selection-20260915/qualified",
+  "authority": "doppler-local-gpu-selection-evaluation-20260915",
+  "createdAtUtc": "2026-09-15T00:00:00.000Z",
+  "tokenSelection": {
+    "schema": "doppler.capsule-token-selection/v1",
+    "generationContract": "doppler.generation-contract/v1",
+    "logitsDtype": "f32",
+    "kernelModules": [
+      "sample",
+      "rep_penalty",
+      "logit_suppress"
+    ]
+  }
+}

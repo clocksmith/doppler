@@ -1,0 +1,26 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ []
+- [
+-   {
+-     __dopplerFakeGPUBuffer: true,
+-     size: 16,
+-     usage: 0
+-   }
+- ]
+
+    at file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/inference/decode-output-ownership.test.js:33:12 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [],
+  expected: [ { __dopplerFakeGPUBuffer: true, size: 16, usage: 0 } ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

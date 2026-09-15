@@ -1,0 +1,85 @@
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# {"test":"capsule-token-selection-physical","cases":129,"readbacks":131,"readbackBytesPerSelection":4,"adapter":{"vendor":"amd","architecture":"rdna-3","device":"radeon-8060s-graphics-radv-strix-halo-","description":"radv: Mesa 26.0.3-1ubuntu1"},"scope":"Operator and cancellation checks; not model or performance qualification."}
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.028759
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7541.542811
+[node-tests] ok: tests/kernels/capsule-token-selection-physical.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+# {"test":"sampling-distribution-physical","cases":540,"adapter":{"vendor":"amd","architecture":"rdna-3","device":"radeon-8060s-graphics-radv-strix-halo-","description":"radv: Mesa 26.0.3-1ubuntu1"},"evidence":"operator parity only; not application/model qualification or a performance comparison"}
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.332432
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2259.740323
+[node-tests] ok: tests/kernels/sampling-distribution-physical.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+# {"schema":"doppler.sampling-nonfinite-diagnostic/v1","adapter":{"vendor":"amd","architecture":"rdna-3","device":"radeon-8060s-graphics-radv-strix-halo-","description":"radv: Mesa 26.0.3-1ubuntu1"},"rows":[{"size":5,"inputPrefixBits":[2143289344,2139095040,4286578688,1073741824,1073741824],"temperature":0,"expected":4,"actual":4},{"size":5,"inputPrefixBits":[2143289344,2139095040,4286578688,1073741824,1073741824],"temperature":1,"expected":4,"actual":4},{"size":5,"inputPrefixBits":[4286578688,4286578688,4286578688,4286578688,4286578688],"temperature":0,"expected":"no-finite-candidate","actual":"no-finite-candidate"},{"size":5,"inputPrefixBits":[4286578688,4286578688,4286578688,4286578688,4286578688],"temperature":1,"expected":"no-finite-candidate","actual":"no-finite-candidate"},{"size":5,"inputPrefixBits":[4286578687,4286578687,4286578688,2143289344,2139095040],"temperature":0,"expected":0,"actual":0},{"size":5,"inputPrefixBits":[4286578687,4286578687,4286578688,2143289344,2139095040],"temperature":1,"expected":1,"actual":1},{"size":131075,"inputPrefixBits":[2143289344,2139095040,4286578688,1073741824,1073741824],"temperature":0,"expected":4,"actual":4},{"size":131075,"inputPrefixBits":[2143289344,2139095040,4286578688,1073741824,1073741824],"temperature":1,"expected":4,"actual":4},{"size":131075,"inputPrefixBits":[4286578688,4286578688,4286578688,4286578688,4286578688],"temperature":0,"expected":"no-finite-candidate","actual":"no-finite-candidate"},{"size":131075,"inputPrefixBits":[4286578688,4286578688,4286578688,4286578688,4286578688],"temperature":1,"expected":"no-finite-candidate","actual":"no-finite-candidate"},{"size":131075,"inputPrefixBits":[4286578687,4286578687,4286578688,2143289344,2139095040],"temperature":0,"expected":0,"actual":0},{"size":131075,"inputPrefixBits":[4286578687,4286578687,4286578688,2143289344,2139095040],"temperature":1,"expected":1,"actual":1}]}
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.195174
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 227.653165
+[node-tests] ok: tests/kernels/sampling-nonfinite-physical.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# {"test":"sampling-penalties-physical","cases":96,"adapter":{"vendor":"amd","architecture":"rdna-3","device":"radeon-8060s-graphics-radv-strix-halo-","description":"radv: Mesa 26.0.3-1ubuntu1"},"evidence":"operator parity only; not application or model qualification"}
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.209971
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 237.093394
+[node-tests] ok: tests/kernels/sampling-penalties-physical.test.js
+[node-tests] ok: 4 files
