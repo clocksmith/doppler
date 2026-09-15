@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.installed-output-regression/v1",
+  "passed": true,
+  "tolerance": {
+    "rtol": 0.00001,
+    "atol": 0.000001
+  },
+  "baselineArchive": "4f9689b173ab80f2d664e7006f99dea98e37eb16e6e9d5b831e2902aee6b91b7",
+  "candidateArchive": "852b858a1d1f5d42a951f1bed747b8e45d63c3bfad95f4e8c2e186a6d1affbd2",
+  "baselineReceipt": "5d054800dc40d9a5d45cd98cf39e63445b3c9594ad95f642471ecdddf03fa8a8",
+  "candidateReceipt": "8883ebdcf525b196649fd265e5e2e4efcb8b0138e8dbe2beadb7a956e5d220c5",
+  "results": [
+    {
+      "operation": "embed",
+      "passed": true,
+      "comparedNumbers": 2048,
+      "maxAbsoluteError": 0
+    },
+    {
+      "operation": "rerank",
+      "passed": true,
+      "comparedNumbers": 185,
+      "maxAbsoluteError": 0
+    },
+    {
+      "operation": "generate",
+      "passed": true,
+      "comparedNumbers": 0,
+      "maxAbsoluteError": 0
+    }
+  ],
+  "scope": "Regression against accepted Doppler outputs on the same browser/GPU class. No new source-model or reranker task-quality qualification."
+}

@@ -11,6 +11,16 @@ import {
 } from '../../src/gpu/kernels/matmul-selection.js';
 
 import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
+import { KERNEL_CONFIGS } from '../../src/config/kernel-registry-contract.js';
+
+// Renaming a variant or changing legacy routing flags cannot change geometry.
+for (const [variant, config] of Object.entries(KERNEL_CONFIGS.matmul)) {
+  const original = calculateMatmulDispatch(variant, false, false, false, 19, 517, config);
+  assert.deepEqual(calculateMatmulDispatch('renamed', true, true, true, 19, 517, config, true), original);
+  const missing = { ...config, variantMetadata: { ...config.variantMetadata } };
+  delete missing.variantMetadata.dispatchGeometry;
+  assert.throws(() => calculateMatmulDispatch(variant, false, false, false, 19, 517, missing), /dispatchGeometry/);
+}
 
 // === validateMatmulDimensions: positive dimensions ===
 {
@@ -85,7 +95,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const N = 2048;
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: null,
+    variantMetadata: { dispatchGeometry: 'column' },
   };
 
   const result = calculateMatmulDispatch('gemv', false, true, M, N, config);
@@ -96,12 +106,12 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
 {
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: null,
+    variantMetadata: { dispatchGeometry: 'linear-column-block' },
   };
 
   assert.throws(
     () => calculateMatmulDispatch('gemv_subgroup', false, true, 1, 2048, config),
-    /missing variantMetadata.colsPerWg/
+    /missing positive variantMetadata.colsPerWg/
   );
 }
 
@@ -112,7 +122,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const colsPerWg = 4;
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: { colsPerWg },
+    variantMetadata: { dispatchGeometry: 'linear-column-block', colsPerWg },
   };
 
   const result = calculateMatmulDispatch('gemv_subgroup', false, true, M, N, config);
@@ -128,7 +138,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const colsPerWg = 4;
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: { colsPerWg },
+    variantMetadata: { dispatchGeometry: 'linear-column-block', colsPerWg },
   };
 
   const result = calculateMatmulDispatch('gemv_subgroup_f16a', false, true, M, N, config);
@@ -142,7 +152,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const N = 1024;
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: null,
+    variantMetadata: { dispatchGeometry: 'column' },
   };
 
   const result = calculateMatmulDispatch('q4_fused', true, false, M, N, config);
@@ -153,12 +163,12 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
 {
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: null,
+    variantMetadata: { dispatchGeometry: 'column-block' },
   };
 
   assert.throws(
     () => calculateMatmulDispatch('q4_fused_multicol', true, false, 1, 2048, config),
-    /missing variantMetadata.colsPerWg/
+    /missing positive variantMetadata.colsPerWg/
   );
 }
 
@@ -169,7 +179,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const colsPerWg = 8;
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: { colsPerWg },
+    variantMetadata: { dispatchGeometry: 'column-block', colsPerWg },
   };
 
   const result = calculateMatmulDispatch('q4_fused_multicol', true, false, M, N, config);
@@ -183,7 +193,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const colsPerWg = 4;
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: { colsPerWg },
+    variantMetadata: { dispatchGeometry: 'column-block', colsPerWg },
   };
 
   const result = calculateMatmulDispatch('q4_fused_multicol_f16', true, false, M, N, config);
@@ -197,7 +207,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const colsPerWg = 4;
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: { colsPerWg },
+    variantMetadata: { dispatchGeometry: 'column-block', colsPerWg },
   };
 
   const result = calculateMatmulDispatch('q4_fused_multicol_f16a', true, false, M, N, config);
@@ -208,12 +218,12 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
 {
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: null,
+    variantMetadata: { dispatchGeometry: 'column-row-tile' },
   };
 
   assert.throws(
     () => calculateMatmulDispatch('q4_fused_batched', true, false, 8, 2048, config),
-    /missing variantMetadata.tileM/
+    /missing positive variantMetadata.tileM/
   );
 }
 
@@ -224,7 +234,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const tileM = 4;
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: { tileM },
+    variantMetadata: { dispatchGeometry: 'column-row-tile', tileM },
   };
 
   const result = calculateMatmulDispatch('q4_fused_batched', true, false, M, N, config);
@@ -238,7 +248,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const tileM = 4;
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: { tileM },
+    variantMetadata: { dispatchGeometry: 'column-row-tile', tileM },
   };
 
   const result = calculateMatmulDispatch('q4_fused_batched_f16a', true, false, M, N, config);
@@ -253,7 +263,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const colsPerWg = 8;
   const config = {
     workgroupSize: [32, 4, 1],
-    variantMetadata: { tileM, colsPerWg },
+    variantMetadata: { dispatchGeometry: 'row-column-tile', tileM, colsPerWg },
   };
 
   const result = calculateMatmulDispatch('q4_fused_batched_multicol_shared', true, false, M, N, config);
@@ -268,7 +278,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const tileN = 64;
   const config = {
     workgroupSize: [16, 16, 1],
-    variantMetadata: { tileM, tileN },
+    variantMetadata: { dispatchGeometry: 'matrix-tile', tileM, tileN },
   };
 
   const result = calculateMatmulDispatch('f16_tiled', false, false, M, N, config);
@@ -283,7 +293,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const tileN = 64;
   const config = {
     workgroupSize: [16, 16, 1],
-    variantMetadata: { tileM, tileN },
+    variantMetadata: { dispatchGeometry: 'matrix-tile', tileM, tileN },
   };
 
   const result = calculateMatmulDispatch('f16w_f32a_tiled', false, false, M, N, config);
@@ -298,7 +308,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const wgY = 16;
   const config = {
     workgroupSize: [wgX, wgY, 1],
-    variantMetadata: null,
+    variantMetadata: { dispatchGeometry: 'matrix-workgroup', colsPerThread: 1 },
   };
 
   const result = calculateMatmulDispatch('f32', false, false, M, N, config);
@@ -313,7 +323,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const wgY = 16;
   const config = {
     workgroupSize: [wgX, wgY, 1],
-    variantMetadata: null,
+    variantMetadata: { dispatchGeometry: 'matrix-workgroup', colsPerThread: 1 },
   };
 
   const result = calculateMatmulDispatch('f16', false, false, M, N, config);
@@ -330,7 +340,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   // GEMV variant
   const gemvConfig = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: null,
+    variantMetadata: { dispatchGeometry: 'column' },
   };
   const gemvResult = calculateMatmulDispatch('gemv', false, true, M, N, gemvConfig);
   assert.equal(gemvResult.workgroups[0], N, 'GEMV dispatch X must cover all N columns');
@@ -347,7 +357,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const tileN = 64;
   const config = {
     workgroupSize: [16, 16, 1],
-    variantMetadata: { tileM, tileN },
+    variantMetadata: { dispatchGeometry: 'matrix-tile', tileM, tileN },
   };
 
   const result = calculateMatmulDispatch('f16_tiled', false, false, M, N, config);
@@ -363,7 +373,7 @@ import { TILE_SIZES } from '../../src/gpu/kernels/constants.js';
   const colsPerWg = 4;
   const config = {
     workgroupSize: [256, 1, 1],
-    variantMetadata: { colsPerWg },
+    variantMetadata: { dispatchGeometry: 'linear-column-block', colsPerWg },
   };
 
   const result = calculateMatmulDispatch('gemv_subgroup', false, true, M, N, config);

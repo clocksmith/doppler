@@ -1,7 +1,8 @@
+import { createKernelBindingEntries } from './kernel-bindings.js';
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor } from '../tensor.js';
-import { createUniformBufferWithView } from './uniform-utils.js';
+import { createKernelUniformBuffer } from './uniform-utils.js';
 import { getPipelineBindGroupLayout, getPipelineFast } from './pipeline-cache.js';
 import { recordDispatch } from './dispatch.js';
 import { planRMSNormDispatch } from './rmsnorm.js';
@@ -9,23 +10,23 @@ import { getKernelConfig } from './kernel-configs.js';
 import { hasRequiredFeatures, getKernelWgslRequirements } from './feature-check.js';
 import { selectRuleValue } from './rule-registry.js';
 
-function getPipeline(device) {
+function getConfig(device) {
   if (device !== getDevice()) throw new Error('RMSNorm stats device differs from the active execution device.');
   const config = getKernelConfig('rmsnorm_stats', 'subgroups');
   const canUseSubgroups = hasRequiredFeatures(config.requires, getKernelCapabilities(), getKernelWgslRequirements(config));
   const variant = selectRuleValue('rmsnorm', 'statsVariant', { canUseSubgroups });
-  return getPipelineFast('rmsnorm_stats', variant);
+  return getKernelConfig('rmsnorm_stats', variant);
 }
 
-function createStatsUniform(device, recorder, options) {
-  return createUniformBufferWithView(
+function createStatsUniform(device, recorder, config, options) {
+  return createKernelUniformBuffer(
     'rmsnorm_stats_uniforms',
-    16,
-    (view) => {
-      view.setUint32(0, options.hiddenSize, true);
-      view.setUint32(4, options.batchSize, true);
-      view.setFloat32(8, options.eps, true);
-      view.setUint32(12, options.tokenStride, true);
+    config,
+    {
+      hidden_size: options.hiddenSize,
+      num_tokens: options.batchSize,
+      eps: options.eps,
+      token_stride: options.tokenStride,
     },
     recorder,
     device
@@ -47,17 +48,17 @@ function validateStatsInputs(input, residual, options) {
   return { batchSize, hiddenSize };
 }
 
-function createBindGroup(device, pipeline, uniformBuffer, input, residual, prenormBuffer, invRmsBuffer) {
+function createBindGroup(device, pipeline, config, uniformBuffer, input, residual, prenormBuffer, invRmsBuffer) {
   return device.createBindGroup({
     label: 'rmsnorm_stats_bind_group',
     layout: getPipelineBindGroupLayout(pipeline, 0),
-    entries: [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: input.buffer } },
-      { binding: 2, resource: { buffer: residual.buffer } },
-      { binding: 3, resource: { buffer: prenormBuffer } },
-      { binding: 4, resource: { buffer: invRmsBuffer } },
-    ],
+    entries: createKernelBindingEntries(config, {
+      uniforms: { buffer: uniformBuffer },
+      input: { buffer: input.buffer },
+      residual: { buffer: residual.buffer },
+      prenorm_sum: { buffer: prenormBuffer },
+      inv_rms: { buffer: invRmsBuffer },
+    }),
   });
 }
 
@@ -72,14 +73,15 @@ export async function runRMSNormStats(input, residual, eps, options = {}) {
     ownedPrenorm = options.outputBuffer ? null : acquireBuffer(outputSize, undefined, 'rmsnorm_stats_prenorm_sum');
     const prenormBuffer = options.outputBuffer || ownedPrenorm;
     invRmsBuffer = acquireBuffer(batchSize * 4, undefined, 'rmsnorm_stats_inv_rms');
-    uniformBuffer = createStatsUniform(device, null, {
+    const config = getConfig(device);
+    uniformBuffer = createStatsUniform(device, null, config, {
       batchSize,
       hiddenSize,
       eps,
       tokenStride: dispatchPlan.tokenStride,
     });
-    const pipeline = await getPipeline(device);
-    const bindGroup = createBindGroup(device, pipeline, uniformBuffer, input, residual, prenormBuffer, invRmsBuffer);
+    const pipeline = await getPipelineFast('rmsnorm_stats', config.variant);
+    const bindGroup = createBindGroup(device, pipeline, config, uniformBuffer, input, residual, prenormBuffer, invRmsBuffer);
     const encoder = device.createCommandEncoder({ label: 'rmsnorm_stats_encoder' });
     const pass = encoder.beginComputePass({ label: options.label ?? 'rmsnorm_stats' });
     pass.setPipeline(pipeline);
@@ -111,14 +113,15 @@ export async function recordRMSNormStats(recorder, input, residual, eps, options
     ownedPrenorm = options.outputBuffer ? null : acquireBuffer(outputSize, undefined, 'rmsnorm_stats_prenorm_sum');
     const prenormBuffer = options.outputBuffer || ownedPrenorm;
     invRmsBuffer = acquireBuffer(batchSize * 4, undefined, 'rmsnorm_stats_inv_rms');
-    uniformBuffer = createStatsUniform(recorder.device, recorder, {
+    const config = getConfig(recorder.device);
+    uniformBuffer = createStatsUniform(recorder.device, recorder, config, {
       batchSize,
       hiddenSize,
       eps,
       tokenStride: dispatchPlan.tokenStride,
     });
-    const pipeline = await getPipeline(recorder.device);
-    const bindGroup = createBindGroup(recorder.device, pipeline, uniformBuffer, input, residual, prenormBuffer, invRmsBuffer);
+    const pipeline = await getPipelineFast('rmsnorm_stats', config.variant);
+    const bindGroup = createBindGroup(recorder.device, pipeline, config, uniformBuffer, input, residual, prenormBuffer, invRmsBuffer);
     recordDispatch(recorder, pipeline, bindGroup, dispatchPlan.workgroups, options.label ?? 'rmsnorm_stats');
     return {
       prenormSum: createTensor(prenormBuffer, 'f32', [batchSize, hiddenSize], 'rmsnorm_stats_prenorm_sum'),

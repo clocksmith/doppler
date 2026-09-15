@@ -1,5 +1,7 @@
 
 
+import { UNIFORM_WRITERS } from './generated/uniform-writers.js';
+import { getKernelConfig } from '../../config/kernel-registry-contract.js';
 import { getDevice } from '../device.js';
 import { getUniformCache, toUniformArrayBuffer } from '../uniform-cache.js';
 
@@ -7,63 +9,38 @@ import { getUniformCache, toUniformArrayBuffer } from '../uniform-cache.js';
 // Uniform Buffer Creation
 // ============================================================================
 
+function getUniformWriter(config) {
+  const kernel = `${config?.operation}/${config?.variant}`;
+  const writer = UNIFORM_WRITERS[kernel];
+  if (!writer) throw new Error(`Kernel "${kernel}" has no generated uniform layout.`);
+  if (config.uniforms !== getKernelConfig(config.operation, config.variant).uniforms) {
+    throw new Error(`Kernel "${kernel}" must use its immutable registry uniform layout.`);
+  }
+  return { kernel, writer };
+}
+
 export function writeUniformsFromObject(view, config, values) {
-  const uniforms = config?.uniforms;
-  const op = config?.operation ?? 'unknown';
-  const variant = config?.variant ?? 'unknown';
-  if (!uniforms) {
-    throw new Error(`Kernel "${op}/${variant}" has no uniforms defined in registry.`);
+  const { kernel, writer } = getUniformWriter(config);
+  if (!(view instanceof DataView) || view.byteLength < writer.size) {
+    throw new Error(`Kernel "${kernel}" requires a ${writer.size}-byte uniform view.`);
   }
-
-  for (const field of uniforms.fields) {
-    const value = values[field.name];
-    if (value === undefined) {
-      // Optional fields or internal padding can be 0
-      continue;
-    }
-
-    switch (field.type) {
-      case 'u32':
-        view.setUint32(field.offset, value, true);
-        break;
-      case 'i32':
-        view.setInt32(field.offset, value, true);
-        break;
-      case 'f32':
-        view.setFloat32(field.offset, value, true);
-        break;
-      default:
-        throw new Error(
-          `Unsupported uniform type "${field.type}" for field "${field.name}" in kernel "${op}/${variant}"`
-        );
-    }
-  }
+  if (!values || typeof values !== 'object') throw new Error(`Kernel "${kernel}" requires uniform values.`);
+  writer.write(view, values, kernel);
 }
 
 export function getUniformByteLength(config) {
-  const uniforms = config?.uniforms;
-  if (!uniforms) {
-    return 0;
-  }
+  if (config?.uniforms === null) return 0;
+  return getUniformWriter(config).writer.size;
+}
 
-  const declaredSize = Number.isFinite(uniforms.size) ? uniforms.size : 0;
-  let requiredSize = 0;
-  for (const field of uniforms.fields ?? []) {
-    if (!Number.isFinite(field?.offset)) {
-      continue;
-    }
-    switch (field.type) {
-      case 'u32':
-      case 'i32':
-      case 'f32':
-        requiredSize = Math.max(requiredSize, field.offset + 4);
-        break;
-      default:
-        break;
-    }
-  }
-
-  return Math.max(declaredSize, requiredSize);
+export function createKernelUniformBuffer(label, config, values, recorder, deviceOverride) {
+  return createUniformBufferWithView(
+    label,
+    getUniformByteLength(config),
+    (view) => writeUniformsFromObject(view, config, values),
+    recorder,
+    deviceOverride
+  );
 }
 
 

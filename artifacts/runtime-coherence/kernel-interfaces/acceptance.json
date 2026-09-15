@@ -1,0 +1,185 @@
+{
+  "schema": "doppler.kernel-interface-acceptance/v1",
+  "passed": true,
+  "runtimeArchiveSha256": "852b858a1d1f5d42a951f1bed747b8e45d63c3bfad95f4e8c2e186a6d1affbd2",
+  "uniformVariants": 343,
+  "uniqueLayouts": 124,
+  "structuralFieldChecks": 2894,
+  "physicalFieldsPerRequest": 976,
+  "requestsPerPhysicalLayout": 2,
+  "physicalWrapperCases": 17,
+  "physicalSamplingCases": 540,
+  "focusedFiles": 39,
+  "inferenceFilesBeforeFinalRefinements": 176,
+  "installedConsumers": [
+    "standalone",
+    "reploid/doppler"
+  ],
+  "physicalOperations": {
+    "standalone": [
+      "generate",
+      "embed",
+      "rerank"
+    ],
+    "reploid": [
+      "generate"
+    ]
+  },
+  "fullSuiteRerun": false,
+  "published": false,
+  "deployed": false,
+  "evidence": [
+    {
+      "path": "README.md",
+      "sha256": "3d7e5186f5e05ab88f8b7e84191d7448a7f8fd7de913014d419deb67040bba74"
+    },
+    {
+      "path": "archive-reproduction.json",
+      "sha256": "6fff70bb21aaee6b01a64be7b302a1d8cd16ad22c87da177df07be18f5cf50ff"
+    },
+    {
+      "path": "baseline-binding-drift.json",
+      "sha256": "ed18561669acfb632bd46c8dbeb30e38391eac92b2ae2c99a92da72e8a7385f0"
+    },
+    {
+      "path": "baseline-uniform-drift.json",
+      "sha256": "7ed671ef7789f6af0190216b71deb5e4614423e795c6328af8e1388fdb08d8c8"
+    },
+    {
+      "path": "compare-model-outputs.js",
+      "sha256": "3154988493f6c922a01c6cbd20b9cd6f2bc236bdaa9805c006b7176eac69de76"
+    },
+    {
+      "path": "matmul-geometry-comparison.json",
+      "sha256": "48c7f850405f2f8c2c617dbde549a6475882437789a0b3e8f6089ad3b9bb39af"
+    },
+    {
+      "path": "model-output-regression.json",
+      "sha256": "a3ecc49fa3baeb907bba47ef2a111ead713b8013fd23d804ff7538cea3a66072"
+    },
+    {
+      "path": "physical-reploid-config.json",
+      "sha256": "646d083f8dbdb486c954103a4b71b0f485a362394cbf94624eb598c929745c7d"
+    },
+    {
+      "path": "physical-reploid.json",
+      "sha256": "b488e28cfb1c4821da046f7f55dd4e8e71bce50f112fa7bab50fb5a7edc986da"
+    },
+    {
+      "path": "physical-reploid.log",
+      "sha256": "de5da8ab1008ade1e03d924183e8f934bb59b916dc0302287485652ac56faec0"
+    },
+    {
+      "path": "physical-standalone-config.json",
+      "sha256": "e82723c443205d32a324e9b7d5f9787d975d521fc543e8ed57455669a44700f8"
+    },
+    {
+      "path": "physical-standalone.json",
+      "sha256": "8883ebdcf525b196649fd265e5e2e4efcb8b0138e8dbe2beadb7a956e5d220c5"
+    },
+    {
+      "path": "reploid-installed.json",
+      "sha256": "2e5ee99feddcadfaf305509a5f42c1973f0f0d9b66e59eb58bd968fde07b949b"
+    },
+    {
+      "path": "source-files.json",
+      "sha256": "aa13660c8de544e521c4ef4e8778189a64addfc839f6a60ba71cded7b87356ac"
+    },
+    {
+      "path": "standalone-npm-pack.json",
+      "sha256": "055b79ca0b22a702159d7e970344e2196b6af9dacbb0ad5163d6fe4c8fc5f84e"
+    },
+    {
+      "path": "standalone-receipt.json",
+      "sha256": "8ec41c22b61c62694c8794104bc172983322777ceb92f31e9cc457f6df515e1c"
+    },
+    {
+      "path": "standalone-source-state.json",
+      "sha256": "9b3accc8fc82fe2c63d92d7d9f268f415ee39159538b0904d3fd994a3bf8f5d1"
+    },
+    {
+      "path": "uniform-architecture-final.log",
+      "sha256": "25701afc733b8783e958e314ae6c4eccd0dc9d8d039eeeb7962fa31a13e8a3cd"
+    },
+    {
+      "path": "uniform-browser-imports.log",
+      "sha256": "51453363e37e90da5b2504867583ec23767d36d546a551c8de66e3920d6cb55c"
+    },
+    {
+      "path": "uniform-closure-final.log",
+      "sha256": "3688a65dddfb8db3686112ec2e8b8da11670ed15ffff23234749ff7b5cd09029"
+    },
+    {
+      "path": "uniform-closure.log",
+      "sha256": "c2af0ef1f0a7f85c32368885dbaa32aa02ae1863704c4f24dd59e6cec7548d74"
+    },
+    {
+      "path": "uniform-config.log",
+      "sha256": "e3a7394b4e59ef545c3738c6cf7ff157c2676f3a842cf43311d2f357e3a6c2e5"
+    },
+    {
+      "path": "uniform-final-additional.log",
+      "sha256": "b25484bac2c2161640b52c08ad42ef29f411960e55508d85d33e86d98a614e7c"
+    },
+    {
+      "path": "uniform-gpu-final.log",
+      "sha256": "e0a937935d2db8718185739cb865afe616cc3b6c239fd2a87bddb77ab11889f2"
+    },
+    {
+      "path": "uniform-gpu-rerun.log",
+      "sha256": "bff41a2f6e84c5e07d44f2a9a49217d9805ac0c1fe599030947910acdcbbe2e6"
+    },
+    {
+      "path": "uniform-gpu-unit.log",
+      "sha256": "34557be3815ed3448b1b1ccf9b836c3de3e5b46d38c17db94b2cb1dddb37720d"
+    },
+    {
+      "path": "uniform-inference.log",
+      "sha256": "3c810f4119ce3329d2e2312df5fad6e217cb4d64114c40e18741b76c0321e6a3"
+    },
+    {
+      "path": "uniform-kernels-final.log",
+      "sha256": "779707d8034fa1298c7c9d64808bdb456a9d6d5d6e82b451950d921209de95b6"
+    },
+    {
+      "path": "uniform-model-standalone.log",
+      "sha256": "84459a146241b70b70e2c5e60282d4988237f2e522b6cd635db77da084655404"
+    },
+    {
+      "path": "uniform-package-final.log",
+      "sha256": "ca59e43fb5fc22a7f929cbcdd9e7c3dcd607c8e750ad8040a2bd77ded717e023"
+    },
+    {
+      "path": "uniform-package.log",
+      "sha256": "aa49d05cf0e5d4a9347a9d33e6ff92d3f1007736fce55ec39609d68a30770e41"
+    },
+    {
+      "path": "uniform-physical-echo-reuse.log",
+      "sha256": "9f06893749b6514c761be1dcc6593cb3e49dcfc8e066251c0a525e772deaa83b"
+    },
+    {
+      "path": "uniform-public-final.log",
+      "sha256": "ce5805a6cf9dd18a63c58ad388cd085ad278d884c362357aede29fd92219f8e7"
+    },
+    {
+      "path": "uniform-public.log",
+      "sha256": "077a869a5d52b27622166e3bb3a183ef5fd62e29ffd40797cbc8c59448363451"
+    },
+    {
+      "path": "uniform-sampling-physical-final.log",
+      "sha256": "288cf61bd5a3e7aa991bf77006a2f820c02ea84591eaa7956e418bf6b46e8514"
+    },
+    {
+      "path": "uniform-style-final.log",
+      "sha256": "742a9f015ae42ec337ce3423d9dd3ff36d6a7a78ca8d569905ea99e9a126c9b7"
+    },
+    {
+      "path": "uniform-types-final.log",
+      "sha256": "cfa5ebfa923bc1270deb6a718fd183d883b521f0fe6b4bb6bc2949cb03c65aed"
+    },
+    {
+      "path": "uniform-wrappers-physical-final.log",
+      "sha256": "f5ec59396f9c8735da93e2bf6c1694551cf714d3694d21be4772b8f540f8c033"
+    }
+  ]
+}

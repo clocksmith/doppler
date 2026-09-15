@@ -1,0 +1,13 @@
+
+> doppler-gpu@0.6.2 runtime:closure:check
+> node tools/check-capsule-runtime-closure.js
+
+file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tools/check-capsule-runtime-closure.js:61
+      throw new Error('Capsule runtime closure receipt is stale. Run npm run runtime:closure:sync.');
+            ^
+
+Error: Capsule runtime closure receipt is stale. Run npm run runtime:closure:sync.
+    at main (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tools/check-capsule-runtime-closure.js:61:13)
+    at async file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tools/check-capsule-runtime-closure.js:68:90
+
+Node.js v22.22.1

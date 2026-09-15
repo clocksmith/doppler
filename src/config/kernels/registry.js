@@ -1,3 +1,5 @@
+import { resolveKernelConfig as resolveSchema } from '../schema/kernel-registry.schema.js';
+export { mergeBindings } from '../schema/kernel-registry.schema.js';
 import { loadJson } from '../../formats/load-json.js';
 
 let cachedRegistry = null;
@@ -70,24 +72,6 @@ function isVariantAvailable(operation, variant, capabilities) {
   return true;
 }
 
-export function mergeBindings(base, override) {
-  if (!override || override.length === 0) {
-    return [...base];
-  }
-
-  const result = [...base];
-  for (const binding of override) {
-    const existingIdx = result.findIndex(b => b.index === binding.index);
-    if (existingIdx >= 0) {
-      result[existingIdx] = binding;
-    } else {
-      result.push(binding);
-    }
-  }
-
-  return result.sort((a, b) => a.index - b.index);
-}
-
 export function resolveKernelConfig(operation, variant) {
   const opSchema = getOperation(operation);
   const variantSchema = getVariant(operation, variant);
@@ -96,16 +80,5 @@ export function resolveKernelConfig(operation, variant) {
     return null;
   }
 
-  return {
-    operation,
-    variant,
-    wgsl: variantSchema.wgsl,
-    entryPoint: variantSchema.entryPoint,
-    workgroup: variantSchema.workgroup,
-    requires: variantSchema.requires ?? [],
-    bindings: mergeBindings(opSchema.baseBindings, variantSchema.bindingsOverride),
-    uniforms: variantSchema.uniformsOverride ?? opSchema.baseUniforms,
-    wgslOverrides: variantSchema.wgslOverrides ?? {},
-    sharedMemory: variantSchema.sharedMemory ?? 0,
-  };
+  return resolveSchema(operation, variant, opSchema, variantSchema);
 }
