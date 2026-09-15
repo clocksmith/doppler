@@ -1,0 +1,27 @@
+package import smoke passed (29 exports + browser condition)
+Installed standalone Node provider smoke passed (synthetic; Doe absent).
+package training API smoke passed
+package CLI smoke passed (doppler)
+package CLI smoke passed (doppler-gpu)
+package CLI smoke passed (doppler-serve)
+installed Electron Capsule contract passed (synthetic device/program, no repository imports)
+Installed Capsule HTTP/direct parity passed (synthetic).
+Installed Capsule embedding smoke passed (synthetic; no physical qualification).
+Installed Capsule generation passed (injected logits; no physical qualification).
+Installed browser-conditioned host stream exports passed.
+Package evidence retained: /dev/shm/doppler-runtime-coherence/gpu-selection-candidate-2
+Error: /usr/bin/node token-selection-smoke.js failed:
+file:///dev/shm/doppler-runtime-coherence/gpu-selection-candidate-2/consumer/node_modules/doppler-gpu/src/config/capsule-operation.js:62
+    if (!Number.isSafeInteger(request.limits[key]) || request.limits[key] <= 0) throw new Error(`Capsule operation requires positive ${key}.`);
+                                                                                      ^
+
+Error: Capsule operation requires positive deadlineAt.
+    at snapshotCapsuleOperationRequest (file:///dev/shm/doppler-runtime-coherence/gpu-selection-candidate-2/consumer/node_modules/doppler-gpu/src/config/capsule-operation.js:62:87)
+    at Module.createCapsuleStreamAccumulator (file:///dev/shm/doppler-runtime-coherence/gpu-selection-candidate-2/consumer/node_modules/doppler-gpu/src/client/runtime/capsule-operation-stream.js:10:19)
+    at file:///dev/shm/doppler-runtime-coherence/gpu-selection-candidate-2/consumer/token-selection-smoke.js:46:33
+
+Node.js v22.22.1
+
+    at run (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tools/check-packed-package.js:26:11)
+    at runGenerationCapsuleSmoke (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tools/check-packed-package.js:246:24)
+    at async main (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tools/check-packed-package.js:360:5)

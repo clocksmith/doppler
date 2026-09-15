@@ -1,0 +1,92 @@
+{
+  "result": {
+    "ok": true,
+    "forgeVersion": "2.0.0",
+    "outputPath": "../../../../../var/tmp/doppler-capsule-gpu-selection-20260915/qualified/distribution/capsule.json",
+    "absoluteOutputPath": "/var/tmp/doppler-capsule-gpu-selection-20260915/qualified/distribution/capsule.json",
+    "modelId": "qwen-3-4b-instruct-2507-f16-af32-closed-development",
+    "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-081a4e03adbdc572",
+    "semanticRoot": "sha256:081a4e03adbdc572d778cb9ba4470989bb5d5b2e9e638c49db2a390460449516",
+    "envelopeHash": "sha256:0d992c5d3df163139ce51bb75fddaafcdb720a171d3e632a743c3b521b5ffee5",
+    "schema": "doppler.capsule/v2",
+    "schemaVersion": 2,
+    "createdAtUtc": "2026-09-15T00:00:00.000Z",
+    "sourceBundleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-069de226ba7f",
+    "programBundlePath": "/var/tmp/doppler-capsule-gpu-selection-20260915/qualified/build/program-bundle.json",
+    "executionGraphHash": "sha256:069de226ba7fa3ece3ea7f66ebf391d897c66d236e0286732ae35b65d6c3913b",
+    "artifactCount": 148,
+    "wgslModuleCount": 23,
+    "targetPlanDigests": [
+      "sha256:2983e5f3b9a9c2e03825ba0168c5c8272788a30e1879fcfd67d0836ed5b5b496"
+    ],
+    "stages": [
+      {
+        "stage": "inspect",
+        "ok": true
+      },
+      {
+        "stage": "normalize",
+        "ok": true
+      },
+      {
+        "stage": "analyze",
+        "ok": true
+      },
+      {
+        "stage": "lower",
+        "ok": true
+      },
+      {
+        "stage": "specialize",
+        "ok": true
+      },
+      {
+        "stage": "search",
+        "ok": true
+      },
+      {
+        "stage": "verify",
+        "ok": true
+      },
+      {
+        "stage": "qualify",
+        "ok": true
+      },
+      {
+        "stage": "package",
+        "ok": true
+      },
+      {
+        "stage": "sign",
+        "ok": true
+      }
+    ],
+    "searchReceipt": {
+      "candidateTargetPlanHashes": [
+        "sha256:2983e5f3b9a9c2e03825ba0168c5c8272788a30e1879fcfd67d0836ed5b5b496"
+      ],
+      "selectedTargetPlanHashes": [
+        "sha256:2983e5f3b9a9c2e03825ba0168c5c8272788a30e1879fcfd67d0836ed5b5b496"
+      ],
+      "policy": "closed-program-source-plan",
+      "evaluationReceipt": null
+    },
+    "candidateEvaluation": null
+  },
+  "physicalCapsuleExecution": false,
+  "publication": false,
+  "sourceProbe": {
+    "probePath": "/dev/shm/doppler-runtime-coherence/gpu-selection-raw-3/receipt.json",
+    "probeHash": "sha256:8a778961c4c9ad9dd8009bfaeecc5c97192387b2bbbafda323110051b96f72f6",
+    "runtimeArchive": {
+      "filename": "doppler-gpu-0.6.2.tgz",
+      "version": "0.6.2",
+      "integrity": "sha512-ymN+CzYNbhrgpJZ7UzrUYsE9m9W9pUlElr30wFKBdjgudntde4J/kmzSoKUdffGsXBdWDryIOwX0Pb4Imiowig==",
+      "sizeBytes": 2134638,
+      "source": "local-npm-pack",
+      "sha256": "bf935f56d56f04085d5bd3473fb3dfdce1a08e809488844ee3d1dbb4b79077b4"
+    },
+    "referenceRendering": "Identical token IDs and tokenizer; text retained from the reference.",
+    "scope": "Internal AMD Chrome greedy source parity and frozen workload equivalence; no publication, fleet qualification or external adoption."
+  }
+}

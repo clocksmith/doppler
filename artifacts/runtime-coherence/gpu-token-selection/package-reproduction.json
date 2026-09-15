@@ -1,0 +1,13 @@
+{
+  "schema": "doppler.package-reproduction-observation/v1",
+  "runtimeRevision": "eaea457ef793f5846f8603bf35af832e54a0e4f0",
+  "command": "npm pack --json --pack-destination /dev/shm/doppler-runtime-coherence/gpu-selection-reproduction",
+  "nodeVersion": "22.22.1",
+  "npmVersion": "9.2.0",
+  "zlibVersion": "1.3.1",
+  "originalArchiveSha256": "9c574a03500e137e44184cc1827339ca4b4ee6e60597351999d5f9d0679c06af",
+  "reproducedArchiveSha256": "9c574a03500e137e44184cc1827339ca4b4ee6e60597351999d5f9d0679c06af",
+  "sizeBytes": 2117296,
+  "passed": true,
+  "scope": "Repacked committed implementation with the same local packaging toolchain; not a cross-toolchain gzip byte identity claim."
+}
