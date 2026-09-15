@@ -1,0 +1,33 @@
+{
+  "baseRevision": "3074add11a6e9e007efd5418a93a5a2cc483bafd",
+  "files": [
+    {
+      "path": "src/client/runtime/composition-root.js",
+      "sha256": "3348101ff214ebb30167f196c77b3cc3ee71ebd5cb2bafa41b1161abbc236b1f"
+    },
+    {
+      "path": "tests/runtime/initial-execution-identity.test.js",
+      "sha256": "fa325f00f0742dfb29a61ffb8ba14869e3b887aa0a3e6c17fd9d08b757ea6591"
+    },
+    {
+      "path": "docs/architecture.md",
+      "sha256": "3dec96b97c504be15fd320a0291e940e8cb2c8ca52d1759687c17359aab8328f"
+    },
+    {
+      "path": "reports/capsule-runtime/runtime-closure.json",
+      "sha256": "adcbd843f3c8123069c471b70533121edd0d6a7ec3ecb2ac1262f1bad780d44e"
+    },
+    {
+      "path": "benchmarks/kernels/execution-routing-audit.json",
+      "sha256": "1d8474eefcb0ab507f2ff7bd61adeb93171105976e9e17bd8d5d3a743fda59e9"
+    },
+    {
+      "path": "tools/profile-installed-capsule.js",
+      "sha256": "54bfb4422a144786404d6f30e2475032e5f644ad4599d2a5f69fa0bab392b5fe"
+    },
+    {
+      "path": "tools/lib/installed-gpu-observation.js",
+      "sha256": "288a90329b2cb0bcf12521cccfd899252dd4d2c7c46af4e613f43b9da09bd916"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
   "fileCount": 66,
-  "sourceBytes": 729810,
+  "sourceBytes": 729560,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -103,8 +103,8 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 21029,
-      "hash": "sha256:be4bee43b909a81f7cdbe58a5f179e4aa37dfce5c2d71c740443101674b880e0"
+      "sizeBytes": 20779,
+      "hash": "sha256:3348101ff214ebb30167f196c77b3cc3ee71ebd5cb2bafa41b1161abbc236b1f"
     },
     {
       "path": "src/client/runtime/fetch-capsule-artifact-store.js",

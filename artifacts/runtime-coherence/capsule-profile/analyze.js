@@ -68,5 +68,5 @@ const summary = { schema: 'doppler.installed-capsule-profile-summary/v1', passed
   runtimeArchiveSha256: receipt.package.sha256, hardware: receipt.hardware,
   load: receipt.load, runs: results,
   scope: 'One local diagnostic population, cold first request and warm repeated requests. No baseline/candidate speedup comparison. Readback bytes count API copies, not measured bus throughput. Queue and map waits overlap; use fence union, not their sum.' };
-await fs.writeFile(new URL('./summary.json', import.meta.url), JSON.stringify(summary, null, 2) + '\n');
+await fs.writeFile(process.argv[3] ?? new URL('./summary.json', import.meta.url), JSON.stringify(summary, null, 2) + '\n');
 console.log(JSON.stringify(summary, null, 2));
