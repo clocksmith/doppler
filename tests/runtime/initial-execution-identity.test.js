@@ -104,14 +104,34 @@ const baseProgram = {
   tokenize() { return [1]; }, decodeTokens() { return ''; }, getTokenContract() { return {}; }, reset() {},
   executePhase() { throw new Error('not reached'); }, releaseStepResult() {}, close() {},
 };
+let ownedCapsule, ownedPlan;
 const runtime = createDopplerRuntime({
   device,
   artifactStore: fixture.artifactStore,
   trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
   observer: { observe(event) { events.push(event.type); } },
-  async programFactory() { return baseProgram; },
+  async programFactory({ capsule, targetPlan }) {
+    ownedCapsule = capsule; ownedPlan = targetPlan;
+    return baseProgram;
+  },
 });
-const session = await runtime.openCapsule(fixture.capsule);
+const callerCapsule = structuredClone(fixture.capsule);
+const session = await runtime.openCapsule(callerCapsule);
+const assertDeepFrozen = value => {
+  if (!value || typeof value !== 'object') return;
+  assert(Object.isFrozen(value));
+  for (const child of Object.values(value)) assertDeepFrozen(child);
+};
+assertDeepFrozen(ownedCapsule);
+assert.equal(ownedPlan, session.selectedPlan);
+assert(ownedCapsule.targetPlans.includes(ownedPlan));
+assert.throws(() => { ownedCapsule.artifacts[0].hash = digest('f'); }, TypeError);
+assert.throws(() => { ownedPlan.phases.decode.push({ op: 'undeclared' }); }, TypeError);
+assert.throws(() => Object.setPrototypeOf(ownedPlan, { phases: {} }), TypeError);
+callerCapsule.artifacts[0].hash = digest('f');
+callerCapsule.targetPlans.length = 0;
+assert.equal(ownedCapsule.artifacts[0].hash, fixture.capsule.artifacts[0].hash);
+assert.equal(ownedCapsule.targetPlans.length, fixture.capsule.targetPlans.length);
 assert.equal(session.observedInitialExecutionIdentity.digest, expectedIdentityV2.digest);
 assertInitialExecutionIdentity(expectedIdentity, session.observedInitialExecutionIdentity);
 assert.deepEqual(resolveProgramLoadRuntimeConfig(expectedIdentityV2), {
@@ -130,6 +150,35 @@ const mismatch = createInitialExecutionIdentityV2({
   dtypeLane: { ...fields.dtypeLane, activation: 'f16' },
   programLoadPolicy: expectedIdentityV2.programLoadPolicy,
 });
+// Frozen declared metadata does not make the live program immutable. A change
+// while the consumer pauses must reject before another decode phase executes.
+const generationFixture = await createSignedCapsuleFixture({ initialExecutionIdentity: expectedIdentity });
+let liveIdentity = expectedIdentityV2, phases = 0;
+const generationRuntime = createDopplerRuntime({
+  device, artifactStore: generationFixture.artifactStore,
+  trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
+  async programFactory() {
+    return { ...baseProgram,
+      executionGraphHash: generationFixture.capsule.program.executionGraphHash,
+      getInitialExecutionIdentity() { return liveIdentity; },
+      getTokenContract() { return { padTokenId: null, eosTokenId: null, stopTokenIds: [] }; },
+      createIncrementalDecoder() { return { push: token => String(token), finish: () => '' }; },
+      async executePhase() { phases++; return { logits: new Float32Array([0, 10]) }; },
+    };
+  },
+});
+const generationSession = await generationRuntime.openCapsule(generationFixture.capsule);
+try {
+  const stream = generationSession.executeOperation({ schema: 'doppler.capsule-operation-request/v2',
+    operation: { name: 'generate', version: 1 }, input: { promptTokens: [1] },
+    options: { maxTokens: 2, maxSeqLen: 16, temperature: 0, topK: 1, topP: 1,
+      repetitionPenalty: 1, repetitionPenaltyWindow: 0, seed: 0, useChatTemplate: false },
+    assignment: null, limits: { maxInputBytes: 10000, maxOutputBytes: 100000, deadlineAt: Date.now() + 60000 } });
+  assert.equal((await stream.next()).value.status, 'partial');
+  liveIdentity = mismatch;
+  await assert.rejects(stream.next(), /dtypeLane/);
+  assert.equal(phases, 1, 'changed live identity must fail before the next phase');
+} finally { await generationSession.close(); }
 buffersCreated = 0;
 let mismatchProgramClosed = false;
 const mismatchedRuntime = createDopplerRuntime({

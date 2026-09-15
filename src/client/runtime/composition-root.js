@@ -3,7 +3,7 @@ import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import { getRequiredWgslFeatures, assertWgslFeaturesSupported } from '../../config/wgsl-language-contract.js';
 import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import { freezeCapsuleV2, verifyCapsuleV2Artifacts } from '../../config/capsule-v2.js';
-import { verifyCapsuleMetadata, getCapsuleIdentity } from '../../config/capsule.js';
+import { verifyCapsuleMetadata } from '../../config/capsule.js';
 import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
 import { hashCapsuleSequenceInput, hashCapsuleSequenceOutput } from '../../config/capsule-sequence-receipt.js';
 import { createVerifiedCapsuleArtifactStore } from './verified-capsule-artifact-store.js';
@@ -158,14 +158,12 @@ export function createDopplerRuntime(ports) {
         const execution = createCapsuleSessionExecution();
         let closed = false;
 
-        async function assertPlanUnchanged(observeProgram = true) {
-          if (observeProgram) resourceBinder.assertDeviceAvailable();
-          const observed = hashTargetPlan(selectedPlan);
-          if (observed !== targetPlanDigest) {
-            throw new Error(`Capsule Runtime mutated TargetPlan "${selectedPlan.targetId}" during execution.`);
-          }
-          if (getCapsuleIdentity(capsule).envelopeDigest !== verification.identity.envelopeDigest) throw new Error('Capsule Runtime mutated its executable closure.');
-          if (observeProgram && selectedPlan.schema === 'doppler.target-plan/v2') {
+        async function assertExecutionCurrent() {
+          resourceBinder.assertDeviceAvailable();
+          // Capsule and selectedPlan belong to the deeply frozen clone verified
+          // at load. Rehashing that immutable closure per token cannot reveal a
+          // change. The live program and device still require observation.
+          if (selectedPlan.schema === 'doppler.target-plan/v2') {
             assertInitialExecutionIdentity(selectedPlan.initialExecutionIdentity, await program.getInitialExecutionIdentity());
           }
         }
@@ -192,7 +190,7 @@ export function createDopplerRuntime(ports) {
           async forecast(request) {
             if (closed) throw new Error('Capsule runtime session is closed.');
             releaseAuthorization.assertAssignment(request?.assignmentHash);
-            await assertPlanUnchanged();
+            await assertExecutionCurrent();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'forecast');
             try {
               return releaseAuthorization.bindResult(await executeCapsuleForecast({ identity: verification.identity,
@@ -200,12 +198,12 @@ export function createDopplerRuntime(ports) {
                 targetPlan: selectedPlan, targetPlanDigest, program, request,
                 artifactReceipts: verification.artifactReceipts,
                 releaseEventDigest: verification.lifecycle?.event.digest ?? null }));
-            } finally { await assertPlanUnchanged(); }
+            } finally { await assertExecutionCurrent(); }
           },
 
           async embed(request) {
             if (closed) throw new Error('Capsule runtime session is closed.');
-            await assertPlanUnchanged();
+            await assertExecutionCurrent();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'embed');
             try {
               return releaseAuthorization.bindResult(await executeCapsuleEmbedding({ identity: verification.identity,
@@ -214,7 +212,7 @@ export function createDopplerRuntime(ports) {
                 targetPlan: selectedPlan, targetPlanDigest, program, request,
                 artifactReceipts: verification.artifactReceipts,
                 releaseEventDigest: verification.lifecycle?.event.digest ?? null }));
-            } finally { await assertPlanUnchanged(); }
+            } finally { await assertExecutionCurrent(); }
           },
 
           async encodeSequence(sequence, sequenceOptions = {}) {
@@ -223,7 +221,7 @@ export function createDopplerRuntime(ports) {
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'encodeSequence');
             if (typeof program.encodeSequence !== 'function') throw new Error('Selected Capsule program does not implement sequence execution.');
             if (sequenceOptions.signal?.aborted) throw sequenceOptions.signal.reason ?? new Error('Sequence execution cancelled.');
-            await assertPlanUnchanged();
+            await assertExecutionCurrent();
             const { signal, ...requestOptions } = sequenceOptions;
             const executionOptions = { ...freezeCapsuleV2(structuredClone(requestOptions)), signal };
             const inputHash = hashCapsuleSequenceInput(sequence, executionOptions);
@@ -244,7 +242,7 @@ export function createDopplerRuntime(ports) {
                 outputHash: hashCapsuleSequenceOutput(result),
               };
               return { ...result, receipt: releaseAuthorization.bindReceipt(freezeCapsuleV2({ ...payload, receiptDigest: computeCanonicalSha256(payload) })) };
-            } finally { await assertPlanUnchanged(); }
+            } finally { await assertExecutionCurrent(); }
           },
 
           resetGenerationState() {
@@ -255,12 +253,12 @@ export function createDopplerRuntime(ports) {
 
           async *generate(generationOptions = {}, control) {
             if (closed) throw new Error('Capsule runtime session is closed.');
-            await assertPlanUnchanged();
+            await assertExecutionCurrent();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'generate');
             try {
               return yield* sessionController.generateTokens(selectedPlan, { ...generationOptions, modules }, control);
             } finally {
-              await assertPlanUnchanged();
+              await assertExecutionCurrent();
             }
           },
 
@@ -278,7 +276,7 @@ export function createDopplerRuntime(ports) {
 
           async rerank(request) {
             if (closed) throw new Error('Capsule runtime session is closed.');
-            await assertPlanUnchanged();
+            await assertExecutionCurrent();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'rerank');
             try {
               const receipt = releaseAuthorization.bindReceipt(await executeCapsuleRerank({
@@ -296,7 +294,7 @@ export function createDopplerRuntime(ports) {
               });
               return receipt;
             } finally {
-              await assertPlanUnchanged();
+              await assertExecutionCurrent();
             }
           },
 
@@ -308,7 +306,6 @@ export function createDopplerRuntime(ports) {
               } finally {
                 commandExecutor.clearPipelineCache();
                 verifiedStore.close();
-                await assertPlanUnchanged(false);
               }
               emit(observer, { type: 'capsule-session-closed', capsuleId: capsule.capsuleId, targetPlanDigest });
             });
@@ -337,7 +334,7 @@ export function createDopplerRuntime(ports) {
             async assertCurrent(request) {
               if (closed) throw new Error('Capsule runtime session is closed.');
               releaseAuthorization.assertAssignment(request.assignment);
-              await assertPlanUnchanged();
+              await assertExecutionCurrent();
             },
           });
         return Object.assign(session, {

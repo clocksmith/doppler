@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "files": 1796,
+  "changed": [
+    {
+      "path": "package/src/client/runtime/composition-root.js",
+      "before": "be4bee43b909a81f7cdbe58a5f179e4aa37dfce5c2d71c740443101674b880e0",
+      "after": "3348101ff214ebb30167f196c77b3cc3ee71ebd5cb2bafa41b1161abbc236b1f"
+    }
+  ]
+}

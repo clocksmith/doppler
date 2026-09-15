@@ -74,6 +74,13 @@ inclusion also follows declared JSON and WGSL resources.
 
 ### GPU preparation and submission
 
+Capsule loading clones and deeply freezes declared metadata before signature,
+artifact and plan verification. The selected TargetPlan belongs to that private
+snapshot. Its identity is computed during loading; request checks do not rehash
+the immutable metadata for each token. Device availability, release authority
+and the live program's execution identity remain checked at execution boundaries,
+including after a consumer resumes an operation stream.
+
 GPU labels are diagnostic only. Bind-group layouts are cached by their normalized
 WebGPU descriptors and device; pipeline layouts by their ordered layout objects.
 Compute pipelines bind shader content, entry point, specialization constants,
