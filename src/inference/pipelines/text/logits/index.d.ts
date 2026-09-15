@@ -28,6 +28,8 @@ export { readBufferWithCleanup } from './readback.js';
 
 export interface ComputeLogitsOptions {
   lastPositionOnly?: boolean;
+  selectedTokenIds?: number[] | null;
+  returnGpuBuffer?: boolean;
 }
 
 export interface ResolvedLmHeadMatmulConfig {
@@ -70,5 +72,15 @@ export function computeLogits(
   getNormWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
   debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
   debugProbes?: ProbeConfigSchema[] | null,
-  options?: ComputeLogitsOptions
+  options?: ComputeLogitsOptions & { returnGpuBuffer?: false },
+  operatorDiagnostics?: unknown
 ): Promise<Float32Array>;
+
+export function computeLogits(
+  hiddenStates: GPUBuffer | Float32Array, numTokens: number, weights: LogitsWeights,
+  config: LogitsConfig, useGPU: boolean, debugFlags: LogitsDebugFlags | undefined,
+  getNormWeightBuffer: ((weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer) | undefined,
+  debugCheckBuffer: ((buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>) | undefined,
+  debugProbes: ProbeConfigSchema[] | null | undefined,
+  options: ComputeLogitsOptions & { returnGpuBuffer: true }, operatorDiagnostics?: unknown
+): Promise<import('../generator/token-selection.js').GpuLogitsResult & { rawVocabSize: number }>;

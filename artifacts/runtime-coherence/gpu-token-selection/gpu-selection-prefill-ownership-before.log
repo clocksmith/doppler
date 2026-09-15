@@ -1,0 +1,26 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: layer failure releases the owned hidden buffer once
++ actual - expected
+
++ []
+- [
+-   {
+-     __dopplerFakeGPUBuffer: true,
+-     size: 32,
+-     usage: 0
+-   }
+- ]
+
+    at file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/inference/prefill-output-ownership.test.js:37:12 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [],
+  expected: [ { __dopplerFakeGPUBuffer: true, size: 32, usage: 0 } ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

@@ -18,7 +18,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Node 22.23.2 gzip is larger for identical tar bytes (see the retained
   // capsule-profile/package-toolchains.json comparison). Keep 2,158 bytes of
   // compression allowance above the largest reproduced archive.
-  maxEntryCount: 1796,
+  // GPU selection adds nine reachable source, declaration and shader assets;
+  // source-byte Forge hashing removes the unused shipped digest registry.
+  maxEntryCount: 1804,
   maxPackedSize: 2_136_228,
   maxUnpackedSize: 11_133_861,
 });

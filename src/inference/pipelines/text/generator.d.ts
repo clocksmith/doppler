@@ -97,6 +97,8 @@ export declare class PipelineGenerator {
     phase?: WorkloadPhaseTiming | null;
   }>;
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
+  prefillWithToken(prompt: PromptInput, options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('./generator/token-selection.js').SelectedTokenResult>;
+  decodeStepWithToken(currentIds: number[], options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('./generator/token-selection.js').SelectedTokenResult>;
   advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;
   advanceWithTokenAndEmbedding(tokenId: number, options?: GenerateOptions): Promise<AdvanceEmbeddingResult>;
   generateWithPrefixKV(
