@@ -63,6 +63,15 @@ rules. Forwarding modules such as `generation/index.js` preserve interfaces;
 they are not duplicate engines. Retained report paths describe their original
 source revision and are not rewritten after moves.
 
+Runtime closure, package inclusion, browser imports and source ownership use
+the shared JavaScript syntax inventory in `tools/lib/javascript-dependency-graph.js`.
+It distinguishes module imports, type imports, resource literals and unresolved
+dynamic expressions; comments and inert strings are not imports. Closed Capsule
+runtime checks reject unresolved expressions unless their exact source and Node
+built-in dependency are covered by `tools/policies/runtime-closure-policy.json`.
+The browser view retains its explicit Node bridge exclusions, while package
+inclusion also follows declared JSON and WGSL resources.
+
 ### GPU preparation and submission
 
 GPU labels are diagnostic only. Bind-group layouts are cached by their normalized

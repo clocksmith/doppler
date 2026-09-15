@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { createJavaScriptDependencyGraph } from './lib/javascript-dependency-graph.js';
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE_DIR = path.join(ROOT_DIR, 'src');
@@ -29,11 +30,6 @@ const ALWAYS_IGNORED_SOURCE_PREFIXES = Object.freeze([
   'debug/reference/',
   'gpu/kernels/codegen/',
 ]);
-const MODULE_SPECIFIER_PATTERNS = Object.freeze([
-  /\b(?:import|export)\s+(?:type\s+)?(?:[^'";]*?\sfrom\s*)?['"]([^'"]+)['"]/gu,
-  /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/gu,
-]);
-const RELATIVE_FILE_LITERAL_PATTERN = /['"`]((?:\.\.\/|\.\/)[^'"`\n]+\.(?:d\.ts|js|json|html|wgsl))['"`]/gu;
 
 function normalizePath(filePath) {
   return path.relative(ROOT_DIR, filePath).split(path.sep).join('/');
@@ -106,29 +102,6 @@ function collectEntrypoints(packageJson) {
   return { runtime, types };
 }
 
-function collectModuleSpecifiers(source) {
-  const output = new Set();
-  for (const pattern of MODULE_SPECIFIER_PATTERNS) {
-    pattern.lastIndex = 0;
-    for (;;) {
-      const match = pattern.exec(source);
-      if (!match) break;
-      output.add(match[1]);
-    }
-  }
-  return output;
-}
-
-function collectRelativeFileLiterals(source) {
-  const output = new Set();
-  RELATIVE_FILE_LITERAL_PATTERN.lastIndex = 0;
-  for (;;) {
-    const match = RELATIVE_FILE_LITERAL_PATTERN.exec(source);
-    if (!match) break;
-    output.add(match[1]);
-  }
-  return output;
-}
 
 async function resolveRuntimeDependency(importerPath, rawSpecifier) {
   const specifier = stripQueryAndHash(rawSpecifier);
@@ -167,6 +140,7 @@ function isPackagedRuntimePath(repoPath) {
 }
 
 async function scanRuntimeGraph(entrypoints) {
+  const graph = createJavaScriptDependencyGraph();
   const pending = [...entrypoints].map((entry) => path.join(ROOT_DIR, entry));
   const runtimeFiles = new Set();
   const resourceFiles = new Set(REQUIRED_RESOURCE_FILES);
@@ -185,9 +159,9 @@ async function scanRuntimeGraph(entrypoints) {
       continue;
     }
     runtimeFiles.add(currentRepoPath);
-    const source = await fs.readFile(currentPath, 'utf8');
+    const node = await graph.read(currentPath);
 
-    for (const specifier of collectModuleSpecifiers(source)) {
+    for (const { specifier } of node.edges.filter(edge => edge.kind !== 'resource')) {
       if (!isLocalSpecifier(specifier)) continue;
       const resolved = await resolveRuntimeDependency(currentPath, specifier);
       if (!resolved) {
@@ -202,7 +176,7 @@ async function scanRuntimeGraph(entrypoints) {
       }
     }
 
-    for (const specifier of collectRelativeFileLiterals(source)) {
+    for (const { specifier } of node.edges.filter(edge => edge.kind === 'resource')) {
       const resolved = await resolveRuntimeDependency(currentPath, specifier);
       if (!resolved) continue;
       const resolvedRepoPath = normalizePath(resolved);
@@ -218,6 +192,7 @@ async function scanRuntimeGraph(entrypoints) {
 }
 
 async function scanTypeGraph(entrypoints) {
+  const graph = createJavaScriptDependencyGraph();
   const pending = [...entrypoints].map((entry) => path.join(ROOT_DIR, entry));
   const typeFiles = new Set();
   const issues = [];
@@ -231,8 +206,8 @@ async function scanTypeGraph(entrypoints) {
       continue;
     }
     typeFiles.add(currentRepoPath);
-    const source = await fs.readFile(currentPath, 'utf8');
-    for (const specifier of collectModuleSpecifiers(source)) {
+    const node = await graph.read(currentPath);
+    for (const { specifier } of node.edges.filter(edge => edge.kind !== 'resource')) {
       if (!isLocalSpecifier(specifier)) continue;
       const resolved = await resolveTypeDependency(currentPath, specifier);
       if (!resolved) {

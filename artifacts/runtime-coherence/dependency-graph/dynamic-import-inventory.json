@@ -1,0 +1,77 @@
+[
+  {
+    "file": "src/bootstrap.js",
+    "line": 25,
+    "expression": "APP_ENTRY_URL"
+  },
+  {
+    "file": "src/experimental/training/lora/recovery.js",
+    "line": 283,
+    "expression": "pathToFileURL(absoluteModulePath).href"
+  },
+  {
+    "file": "src/formats/load-json.js",
+    "line": 12,
+    "expression": "nodeModule('fs/promises')"
+  },
+  {
+    "file": "src/formats/load-json.js",
+    "line": 13,
+    "expression": "nodeModule('url')"
+  },
+  {
+    "file": "src/gpu/kernels/shader-cache.js",
+    "line": 104,
+    "expression": "nodeModule('fs/promises')"
+  },
+  {
+    "file": "src/inference/browser-harness/benchmark-execution.js",
+    "line": 64,
+    "expression": "TRAINING_SUITE_MODULE_PATH"
+  },
+  {
+    "file": "src/inference/browser-harness/model-initialization.js",
+    "line": 111,
+    "expression": "NODE_SOURCE_RUNTIME_MODULE_PATH"
+  },
+  {
+    "file": "src/inference/pipelines/structured/json-head-pipeline.js",
+    "line": 42,
+    "expression": "nodeModule('crypto')"
+  },
+  {
+    "file": "src/inference/pipelines/text/init.js",
+    "line": 906,
+    "expression": "simulatorEnvSpecifier"
+  },
+  {
+    "file": "src/inference/pipelines/text/init.js",
+    "line": 910,
+    "expression": "simulatorIndexSpecifier"
+  },
+  {
+    "file": "src/inference/pipelines/text.js",
+    "line": 607,
+    "expression": "modulePath"
+  },
+  {
+    "file": "src/storage/reports.js",
+    "line": 82,
+    "expression": "nodeModule('fs/promises')"
+  },
+  {
+    "file": "src/storage/reports.js",
+    "line": 83,
+    "expression": "nodeModule('path')"
+  },
+  {
+    "file": "src/tooling/node-webgpu.js",
+    "line": 61,
+    "expression": "specifier"
+  },
+  {
+    "file": "src/tooling/provider-v1-contract.js",
+    "line": 146,
+    "expression": "provider.module"
+  }
+]

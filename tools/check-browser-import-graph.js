@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { createJavaScriptDependencyGraph } from './lib/javascript-dependency-graph.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
@@ -12,8 +13,6 @@ const DEFAULT_ENTRIES = Object.freeze([
   'src/tooling-exports.browser.js',
 ]);
 const LOCAL_EXTENSIONS = Object.freeze(['.js', '.cjs']);
-const IMPORT_EXPORT_REGEX = /\b(?:import|export)\s+(?:[^'"]*?\sfrom\s*)?['"]([^'"]+)['"]/g;
-const DYNAMIC_IMPORT_REGEX = /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
 
 // Modules intentionally loaded only on Node via dynamic import (guarded by
 // isNodeRuntime() / process.versions?.node). Their own node:* imports are
@@ -87,33 +86,9 @@ async function resolveLocalPath(importerPath, rawSpecifier) {
 // ALLOWED_NODE_GATED_MODULES — those are the runtime-guarded Node bridges
 // (isNodeRuntime() / process.versions?.node) whose node:* imports are
 // intentionally unreachable from browser code at runtime.
-function collectStaticSpecifiers(source) {
-  const specifiers = [];
-  IMPORT_EXPORT_REGEX.lastIndex = 0;
-  for (;;) {
-    const match = IMPORT_EXPORT_REGEX.exec(source);
-    if (!match) break;
-    if (typeof match[1] === 'string' && match[1].length > 0) {
-      specifiers.push(match[1]);
-    }
-  }
-  return specifiers;
-}
-
-function collectDynamicSpecifiers(source) {
-  const specifiers = [];
-  DYNAMIC_IMPORT_REGEX.lastIndex = 0;
-  for (;;) {
-    const match = DYNAMIC_IMPORT_REGEX.exec(source);
-    if (!match) break;
-    if (typeof match[1] === 'string' && match[1].length > 0) {
-      specifiers.push(match[1]);
-    }
-  }
-  return specifiers;
-}
 
 async function scanImportGraph(entryFile) {
+  const graph = createJavaScriptDependencyGraph();
   const entryAbsolute = path.resolve(ROOT_DIR, entryFile);
   const pending = [entryAbsolute];
   const seen = new Set();
@@ -124,15 +99,15 @@ async function scanImportGraph(entryFile) {
     if (!currentFile || seen.has(currentFile)) continue;
     seen.add(currentFile);
 
-    let source = '';
+    let node;
     try {
-      source = await fs.readFile(currentFile, 'utf-8');
+      node = await graph.read(currentFile);
     } catch (error) {
       issues.push(`unreadable module: ${toRepoPath(currentFile)} (${error?.message || 'unknown error'})`);
       continue;
     }
 
-    const staticSpecs = collectStaticSpecifiers(source);
+    const staticSpecs = node.edges.filter(edge => edge.kind === 'static').map(edge => edge.specifier);
     for (const specifier of staticSpecs) {
       if (specifier.startsWith('node:')) {
         issues.push(`node:* specifier found: ${toRepoPath(currentFile)} -> ${specifier}`);
@@ -147,11 +122,14 @@ async function scanImportGraph(entryFile) {
       if (!seen.has(resolved)) pending.push(resolved);
     }
 
-    const dynamicSpecs = collectDynamicSpecifiers(source);
+    const dynamicSpecs = node.edges.filter(edge => edge.kind === 'dynamic').map(edge => edge.specifier);
     for (const specifier of dynamicSpecs) {
       if (!isLocalSpecifier(specifier)) continue;
       const resolved = await resolveLocalPath(currentFile, specifier);
-      if (!resolved) continue;
+      if (!resolved) {
+        issues.push(`unresolved dynamic import: ${toRepoPath(currentFile)} -> ${specifier}`);
+        continue;
+      }
       const repoPath = toRepoPath(resolved);
       if (ALLOWED_NODE_GATED_MODULES.has(repoPath)) continue;
       if (!seen.has(resolved)) pending.push(resolved);
