@@ -15,6 +15,10 @@ const checks = [
     name: 'digests',
     command: ['node', 'tools/sync-kernel-ref-digests.js', '--check'],
   },
+  {
+    name: 'language-contract',
+    command: ['node', 'tests/config/kernel-language-contract.test.js'],
+  },
 ];
 
 const failures = [];

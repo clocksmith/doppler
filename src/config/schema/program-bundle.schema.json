@@ -627,6 +627,14 @@
             },
             "requiresSubgroups": {
               "type": "boolean"
+            },
+            "requiredWgslFeatures": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              }
             }
           }
         }

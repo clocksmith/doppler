@@ -11,6 +11,7 @@ export interface KernelConfig {
   entryPoint: string;
   workgroupSize: [number, number, number];
   requires: string[];
+  requiredWgslFeatures: string[];
   bindings?: ReadonlyArray<Record<string, unknown>>;
   uniforms?: ReadonlyArray<Record<string, unknown>>;
   wgslOverrides?: Record<string, unknown>;

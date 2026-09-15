@@ -1,5 +1,6 @@
 import { hashTargetPlan, assertQualifiedTargetOperation, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
+import { getRequiredWgslFeatures, assertWgslFeaturesSupported } from '../../config/wgsl-language-contract.js';
 import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 import { freezeCapsuleV2, verifyCapsuleV2Artifacts } from '../../config/capsule-v2.js';
 import { verifyCapsuleMetadata, getCapsuleIdentity } from '../../config/capsule.js';
@@ -101,6 +102,7 @@ export function createDopplerRuntime(ports) {
           : {
               hasF16: Boolean(device.hasF16),
               hasSubgroups: Boolean(device.hasSubgroups),
+              wgslLanguageFeatures: device.wgslLanguageFeatures,
               maxBufferSize: Number(device.maxBufferSize || 0),
             };
         assertCapsuleLoadActive(options.signal);
@@ -120,6 +122,13 @@ export function createDopplerRuntime(ports) {
         emit(observer, { type: 'capsule-validation-complete', capsuleId: capsule.capsuleId, semanticRoot: capsule.semanticRoot,
           artifactMetrics: verifiedStore.getMetrics() });
         const modules = await loadModuleSources(capsule, verifiedStore);
+        for (const ref of selectedPlan.kernelClosure) {
+          const module = modules.get(ref.moduleId);
+          const required = getRequiredWgslFeatures(module.source);
+          assertWgslFeaturesSupported(required, selectedPlan.capabilityPredicate.requiredWgslFeatures,
+            `WGSL module "${module.id}" outside TargetPlan "${selectedPlan.targetId}" language declarations`);
+          assertWgslFeaturesSupported(required, deviceProfile.wgslLanguageFeatures, `WGSL module "${module.id}"`);
+        }
         const manifestArtifact = capsule.artifacts.find((artifact) => artifact.artifactId === capsule.program.manifestArtifactId);
         const manifest = freezeCapsuleV2(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await verifiedStore.readArtifact(manifestArtifact))));
         if (manifest.modelId !== capsule.modelId) throw new Error('Signed manifest model identity mismatch.');

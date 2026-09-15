@@ -3,21 +3,26 @@
 import { getDeviceLimits } from '../device.js';
 import { TILE_SIZES } from './constants.js';
 import { log } from '../../debug/index.js';
+import { getScopedWgslRequirements } from './shader-source-scope.js';
 
 // ============================================================================
 // Feature Checking
 // ============================================================================
 
+export function getKernelWgslRequirements(config) {
+  return getScopedWgslRequirements(config.shaderFile) ?? config.requiredWgslFeatures;
+}
 
 export function hasRequiredFeatures(
   required,
-  capabilities
+  capabilities,
+  requiredWgslFeatures = []
 ) {
   for (const feature of required) {
     if (feature === 'shader-f16' && !capabilities.hasF16) return false;
     if (feature === 'subgroups' && !capabilities.hasSubgroups) return false;
   }
-  return true;
+  return requiredWgslFeatures.every(feature => capabilities.wgslLanguageFeatures?.includes(feature));
 }
 
 // ============================================================================

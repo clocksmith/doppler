@@ -36,6 +36,7 @@ export function resolveKernelConfig(
     entryPoint: variantSchema.entryPoint,
     workgroup: variantSchema.workgroup,
     requires: variantSchema.requires ?? [],
+    requiredWgslFeatures: variantSchema.requiredWgslFeatures ?? [],
     bindings: mergeBindings(opSchema.baseBindings, variantSchema.bindingsOverride),
     uniforms: variantSchema.uniformsOverride ?? opSchema.baseUniforms,
     wgslOverrides: variantSchema.wgslOverrides ?? {},

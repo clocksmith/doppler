@@ -87,6 +87,7 @@ export interface KernelVariantSchema {
 
   /** GPU features required to use this variant */
   requires?: GpuFeature[];
+  requiredWgslFeatures?: string[];
 
   /** Estimated shared memory usage in bytes */
   sharedMemory?: number;
@@ -159,6 +160,7 @@ export interface ResolvedKernelConfig {
 
   /** GPU features required */
   requires: GpuFeature[];
+  requiredWgslFeatures: string[];
 
   /** All bindings (base + override merged) */
   bindings: BindingSchema[];

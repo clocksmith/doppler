@@ -82,6 +82,25 @@ submission boundary. Cancellation after submission suppresses successful
 completion but does not interrupt submitted GPU commands. Dispatch borrows slot
 buffers; the resource binder retains their cleanup ownership.
 
+WGSL language features are distinct from GPU device features. Kernels using
+`subgroup_id` or `num_subgroups` require the WGSL `subgroup_id` extension;
+`hasSubgroups` alone cannot qualify them. The registry records
+`requiredWgslFeatures`; `kernels:check` compares those requirements with shader
+sources. Forge carries source requirements into module metadata and the signed
+TargetPlan capability predicate. Runtime rejects missing plan declarations or
+unsupported features before creating the model program. An absent optional
+`requiredWgslFeatures` field retains its historical meaning of no additional
+language requirements. Existing signed shader sources and their identities are
+preserved; adopting repaired sources requires a new qualified plan.
+
+Subgroup reduction slots use actual subgroup identity and count, with storage
+bounded by the declared workgroup size. Local invocation indices do not define
+subgroup membership ([WGSL specification](https://www.w3.org/TR/WGSL/#subgroups)).
+The RMSNorm stats wrapper selects the separate portable workgroup reduction when
+its declared selection policy cannot use the subgroup implementation. A pinned
+unsupported Capsule plan is rejected or another accepted, qualified plan is
+selected; runtime does not substitute a shader inside a signed plan.
+
 ![Doppler architecture overview](architecture-overview.svg)
 
 ## Verification Sources

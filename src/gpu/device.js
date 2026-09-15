@@ -543,6 +543,7 @@ async function initializeDevice() {
 
   kernelCapabilities = {
     hasSubgroups,
+    wgslLanguageFeatures: [...(globalThis.navigator?.gpu?.wgslLanguageFeatures ?? [])],
     // This is a derived compatibility bit, not a distinct WebGPU feature.
     hasSubgroupsF16: hasSubgroups && hasF16,
     hasF16,
@@ -636,6 +637,7 @@ export function setDevice(device, options = {}) {
 
   kernelCapabilities = {
     hasSubgroups: setDeviceHasSubgroups,
+    wgslLanguageFeatures: [...(globalThis.navigator?.gpu?.wgslLanguageFeatures ?? [])],
     hasSubgroupsF16: setDeviceHasSubgroups && setDeviceHasF16,
     hasF16: setDeviceHasF16,
     hasTimestampQuery: gpuDevice.features.has(FEATURES.TIMESTAMP_QUERY),

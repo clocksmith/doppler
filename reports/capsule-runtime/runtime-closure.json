@@ -1,8 +1,8 @@
 {
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
-  "fileCount": 64,
-  "sourceBytes": 602419,
+  "fileCount": 65,
+  "sourceBytes": 605878,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -87,8 +87,8 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 20339,
-      "hash": "sha256:b85186bca0d0c64120a4cd9dd852166091ff393bf2c11b8e595f053dc1ad89e6"
+      "sizeBytes": 21029,
+      "hash": "sha256:be4bee43b909a81f7cdbe58a5f179e4aa37dfce5c2d71c740443101674b880e0"
     },
     {
       "path": "src/client/runtime/fetch-capsule-artifact-store.js",
@@ -212,8 +212,8 @@
     },
     {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 298251,
-      "hash": "sha256:530c756239fd9274a2a200e8b221f19d2f7f4dd7efb8d1186269264bdea8e636"
+      "sizeBytes": 298343,
+      "hash": "sha256:b75008f9f67073fe84a9bf25b51effd699e7b0029a08355f890e0fa50ec2dc52"
     },
     {
       "path": "src/config/lora-layouts.js",
@@ -247,8 +247,13 @@
     },
     {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 20237,
-      "hash": "sha256:3d0cb6094ab694ed27297dfcb263ec5adc54f33e21ecfc5291fa8dc6170724cc"
+      "sizeBytes": 20813,
+      "hash": "sha256:04e56c6f222717065b5d74135647636b0c30734450e1bf4dd74f3c5cf32adc12"
+    },
+    {
+      "path": "src/config/wgsl-language-contract.js",
+      "sizeBytes": 2101,
+      "hash": "sha256:3d0c959cfe7d934fcb48763eab16cfa072cd802e7ca935f5936c62f628fd4007"
     },
     {
       "path": "src/debug/capture-policy.js",

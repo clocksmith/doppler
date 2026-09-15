@@ -5,7 +5,7 @@ import { getKernelConfig } from './kernel-configs.js';
 import { getShaderModule, getShaderSourceIdentity, getShaderModuleIdentity } from './shader-cache.js';
 import { isDeviceLost } from '../device-state.js';
 import { canonicalizeJson } from '../../formats/canonical-hash.js';
-import { hasRequiredFeatures } from './feature-check.js';
+import { hasRequiredFeatures, getKernelWgslRequirements } from './feature-check.js';
 import { trace } from '../../debug/index.js';
 
 // ============================================================================
@@ -303,9 +303,9 @@ export async function createPipeline(
   const capabilities = getKernelCapabilities();
 
   // Verify requirements
-  if (!hasRequiredFeatures(config.requires, capabilities)) {
+  if (!hasRequiredFeatures(config.requires, capabilities, getKernelWgslRequirements(config))) {
     throw new Error(
-      `Kernel ${operation}/${variant} requires features: ${config.requires.join(', ')}`
+      `Kernel ${operation}/${variant} requires features: ${[...config.requires, ...getKernelWgslRequirements(config)].join(', ')}`
     );
   }
 

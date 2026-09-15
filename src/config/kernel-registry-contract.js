@@ -23,6 +23,7 @@ export const KERNEL_CONFIGS = Object.fromEntries(
           entryPoint: resolved.entryPoint,
           workgroupSize: resolved.workgroup,
           requires: resolved.requires,
+          requiredWgslFeatures: resolved.requiredWgslFeatures,
           bindings: resolved.bindings,
           uniforms: resolved.uniforms,
           wgslOverrides: resolved.wgslOverrides,

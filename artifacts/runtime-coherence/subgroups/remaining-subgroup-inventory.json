@@ -1,0 +1,391 @@
+{
+  "scope": "Source inventory requiring algorithm-specific follow-up; matches are not physical failures.",
+  "files": [
+    {
+      "path": "src/gpu/kernels/attention_decode_online_f16.wgsl",
+      "sha256": "2f3941f26c5992fc7cf9999ecd174d8e355aeb2ddfc14738c9f663cf9d3f0bc3",
+      "matches": [
+        {
+          "line": 116,
+          "source": "let subgroup_id = tid / subgroup_size;"
+        },
+        {
+          "line": 117,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/attention_decode_online_f16kv.wgsl",
+      "sha256": "4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035",
+      "matches": [
+        {
+          "line": 115,
+          "source": "let subgroup_id = tid / subgroup_size;"
+        },
+        {
+          "line": 116,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/attention_decode_online_head256_f16kv.wgsl",
+      "sha256": "1cc3ee644b5a87cf21c94590edc98980af8779d9eb92d0ece086546dfcd2630c",
+      "matches": [
+        {
+          "line": 104,
+          "source": "let subgroup_id = tid / subgroup_size;"
+        },
+        {
+          "line": 105,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/attention_decode_online_head256_f16kv_output_gate.wgsl",
+      "sha256": "116919cd609d44cfcd1178057f3496dc7d42fdd47c2258106e72ee1ffc400956",
+      "matches": [
+        {
+          "line": 115,
+          "source": "let subgroup_id = tid / subgroup_size;"
+        },
+        {
+          "line": 116,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/fused_ffn.wgsl",
+      "sha256": "e452843b9bd52b3ad2307a3cb8de38005c497e6af60580903ead0774a3252f3b",
+      "matches": [
+        {
+          "line": 97,
+          "source": "let subgroup_id = tid / sg_size;"
+        },
+        {
+          "line": 98,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 217,
+          "source": "let local_sg_id = tid_in_out / sg_size;"
+        },
+        {
+          "line": 268,
+          "source": "let subgroup_id = tid / sg_size;"
+        },
+        {
+          "line": 269,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 361,
+          "source": "let subgroup_id = tid / sg_size;"
+        },
+        {
+          "line": 362,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/fused_ffn_f16.wgsl",
+      "sha256": "ee2a37c1b1c9deee7f9cda2d27111602f939038e059e1f32663dcf1be9b98a02",
+      "matches": [
+        {
+          "line": 78,
+          "source": "let subgroup_id = tid / sg_size;"
+        },
+        {
+          "line": 79,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 155,
+          "source": "let subgroup_id = tid / sg_size;"
+        },
+        {
+          "line": 156,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/fused_ffn_f16w_f32a_batched.wgsl",
+      "sha256": "f4dfed27828f8f625f3652c1ac542e64e29fdb0c7061dcfcc2ef3a23e7386b75",
+      "matches": [
+        {
+          "line": 66,
+          "source": "let subgroup_id = tid / sg_size;"
+        },
+        {
+          "line": 67,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/fused_ffn_q4k_metal_simd16.wgsl",
+      "sha256": "127e1ff0ad2f275c68699455150bf9d58cf3b2b9422008f84edeb1b98d55b387",
+      "matches": [
+        {
+          "line": 121,
+          "source": "let rows_per_subgroup = subgroup_size / LANES_PER_ROW;"
+        },
+        {
+          "line": 122,
+          "source": "let subgroup_id = local_id.x / subgroup_size;"
+        },
+        {
+          "line": 123,
+          "source": "let row_in_subgroup = lane_id / LANES_PER_ROW;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_q4_batched.wgsl",
+      "sha256": "de6f69ef4410829e3371ebeb1db7175734293fe0353832a9fa0916f31668a82c",
+      "matches": [
+        {
+          "line": 177,
+          "source": "let num_subgroups = (THREADS_PER_COL + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 180,
+          "source": "let sg_idx = local_id / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_q4_batched_f16.wgsl",
+      "sha256": "cccbbdbac80b4367c965b25ddc691df9a85d5344d86f1256b10816cc6bf0b4e7",
+      "matches": [
+        {
+          "line": 154,
+          "source": "let num_subgroups = (THREADS_PER_COL + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 157,
+          "source": "let sg_idx = local_id / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_q4_batched_f16a.wgsl",
+      "sha256": "3d62812d6a77128533ecad4e40216b95523225699cf0a8e0caf85dde47ccb7e9",
+      "matches": [
+        {
+          "line": 137,
+          "source": "let num_subgroups = (THREADS_PER_COL + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 140,
+          "source": "let sg_idx = local_id / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_q4_batched_f16acc_f16a.wgsl",
+      "sha256": "d4f12c4ba3403b87d0fcd5f7348d4fb353d004a10f8575f37d6a6eb51a4069e4",
+      "matches": [
+        {
+          "line": 142,
+          "source": "let num_subgroups = (THREADS_PER_COL + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 145,
+          "source": "let sg_idx = local_id / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_q4_f16a.wgsl",
+      "sha256": "fd5669fae71bfebc790f3341ff2e90a09f709269839702a429368362eccf5f7d",
+      "matches": [
+        {
+          "line": 202,
+          "source": "let subgroup_id = local_id / sg_size;"
+        },
+        {
+          "line": 203,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_q4_metal_simd16.wgsl",
+      "sha256": "f9e51e19712254526dd2ae94b9ccfc0937d9e05e828cba34dddf34e9c2c04c43",
+      "matches": [
+        {
+          "line": 103,
+          "source": "let rows_per_subgroup = subgroup_size / LANES_PER_ROW;"
+        },
+        {
+          "line": 104,
+          "source": "let subgroup_id = local_id.x / subgroup_size;"
+        },
+        {
+          "line": 105,
+          "source": "let row_in_subgroup = lane_id / LANES_PER_ROW;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/matmul_gemv_subgroup.wgsl",
+      "sha256": "04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+      "matches": [
+        {
+          "line": 124,
+          "source": "let num_subgroups_per_col = (THREADS_PER_COL + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 127,
+          "source": "let sg_idx_in_col = thread_in_col / sg_size;"
+        },
+        {
+          "line": 326,
+          "source": "let num_subgroups_per_col = (THREADS_PER_COL + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 329,
+          "source": "let sg_idx_in_col = thread_in_col / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/matmul_gemv_subgroup_bf16w.wgsl",
+      "sha256": "b2f2c23adb7f7678d287c1cdb58fafae085b13f0423a55a35230ef9c964992d6",
+      "matches": [
+        {
+          "line": 129,
+          "source": "let num_subgroups_per_col = (THREADS_PER_COL + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 132,
+          "source": "let sg_idx_in_col = thread_in_col / sg_size;"
+        },
+        {
+          "line": 331,
+          "source": "let num_subgroups_per_col = (THREADS_PER_COL + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 334,
+          "source": "let sg_idx_in_col = thread_in_col / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/matmul_gemv_subgroup_f16a.wgsl",
+      "sha256": "911dcd0f1ec5bbda5468fa3af70f6e7711026fad44ad0e03cfc946fbf26017fc",
+      "matches": [
+        {
+          "line": 138,
+          "source": "let num_subgroups_per_col = (THREADS_PER_COL + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 141,
+          "source": "let sg_idx_in_col = thread_in_col / sg_size;"
+        },
+        {
+          "line": 331,
+          "source": "let num_subgroups_per_col = (THREADS_PER_COL + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 334,
+          "source": "let sg_idx_in_col = thread_in_col / sg_size;"
+        },
+        {
+          "line": 418,
+          "source": "let num_subgroups_per_col = (THREADS_PER_COL_COLS8 + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 421,
+          "source": "let sg_idx_in_col = thread_in_col / sg_size;"
+        },
+        {
+          "line": 657,
+          "source": "let num_subgroups_per_col = (THREADS_PER_COL_COLS8 + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 660,
+          "source": "let sg_idx_in_col = thread_in_col / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/residual_rmsnorm_pair.wgsl",
+      "sha256": "33c3ecc909d53c609440b161af185a029bad2fedd2cb35cdc01c5defa4d6b688",
+      "matches": [
+        {
+          "line": 58,
+          "source": "let subgroup_id = thread_idx / sg_size;"
+        },
+        {
+          "line": 59,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/rmsnorm.wgsl",
+      "sha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+      "matches": [
+        {
+          "line": 333,
+          "source": "let subgroup_id = thread_idx / sg_size;"
+        },
+        {
+          "line": 334,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 408,
+          "source": "let subgroup_id = thread_idx / sg_size;"
+        },
+        {
+          "line": 409,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/rmsnorm_pair.wgsl",
+      "sha256": "67d7ca90070c2a89584a4f74ecc3821618e4769969cc9c2c713f1005d27fed0d",
+      "matches": [
+        {
+          "line": 88,
+          "source": "let subgroup_id = thread_idx / sg_size;"
+        },
+        {
+          "line": 89,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        }
+      ]
+    },
+    {
+      "path": "src/gpu/kernels/softmax_subgroup.wgsl",
+      "sha256": "9a1d0bf7398f1c2d99bd0f212b8281933dc65f9698e9ee8b7b4395c7131588c0",
+      "matches": [
+        {
+          "line": 41,
+          "source": "let subgroup_id = thread_idx / sg_size;"
+        },
+        {
+          "line": 42,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        },
+        {
+          "line": 126,
+          "source": "let subgroup_id = thread_idx / sg_size;"
+        },
+        {
+          "line": 127,
+          "source": "let num_subgroups = (WORKGROUP_SIZE + sg_size - 1u) / sg_size;"
+        }
+      ]
+    }
+  ]
+}
