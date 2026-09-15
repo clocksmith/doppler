@@ -1,8 +1,8 @@
 {
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
-  "fileCount": 66,
-  "sourceBytes": 729560,
+  "fileCount": 70,
+  "sourceBytes": 738608,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -118,8 +118,8 @@
     },
     {
       "path": "src/client/runtime/session-controller.js",
-      "sizeBytes": 5953,
-      "hash": "sha256:622eb1a0f57c9c4220b837b1b5ff0931089e9ee9c995e480d453bf89c5d25fe2"
+      "sizeBytes": 6343,
+      "hash": "sha256:0fc3adfc2082fc621264dabd5dc41699a3738ada9af6e69b9dae7d2d3bb57973"
     },
     {
       "path": "src/client/runtime/target-selector.js",
@@ -187,9 +187,19 @@
       "hash": "sha256:7468fbe5b96ab3f2275b9ca0c43a9849d90cb5ff22dfc0386aef6595d72f4057"
     },
     {
+      "path": "src/config/capsule-token-selection.js",
+      "sizeBytes": 2711,
+      "hash": "sha256:a66302a574c4f9c8832c4db14b0417fbd5b9ee3a20a75261ffc47fa6880a4567"
+    },
+    {
+      "path": "src/config/capsule-token-selection.json",
+      "sizeBytes": 399,
+      "hash": "sha256:2b5f496ee8768df816c0ca441ddc5ab9d501fddb91a8bd3616483033ff9c6746"
+    },
+    {
       "path": "src/config/capsule-v2.js",
-      "sizeBytes": 19940,
-      "hash": "sha256:2d96838e538f2e576cb600272efa8dde15a734f5a2a608166076d6bfa3cdcc1f"
+      "sizeBytes": 20230,
+      "hash": "sha256:3f3a577484eff9c1d92c5fcd3be45b52717b8e3f4792cea29829e106bd050ee8"
     },
     {
       "path": "src/config/capsule-v3.js",
@@ -227,9 +237,14 @@
       "hash": "sha256:df1adc683da57e50488c7290c9918bebebc53d1ca000253b391e505f0ab19246"
     },
     {
+      "path": "src/config/kernel-registry-contract.js",
+      "sizeBytes": 2341,
+      "hash": "sha256:d0f2cf0f6ce8efc99697e497c55dd10f401214239a9eaab38430289eb4ee3387"
+    },
+    {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 422005,
-      "hash": "sha256:c98fa26216272b37317a6efac834d2f0754e8bc0f8908a24938d1922e2403c48"
+      "sizeBytes": 422924,
+      "hash": "sha256:d4876fff9c8c795380298726fad65b2f176da10cc75636fda53b5b76616f1e58"
     },
     {
       "path": "src/config/lora-layouts.js",
@@ -267,9 +282,14 @@
       "hash": "sha256:2e93df23cf8dbc54f3548cb38a5cba00bd1e96b3827de29ae409038f8992c59f"
     },
     {
+      "path": "src/config/schema/kernel-registry.schema.js",
+      "sizeBytes": 1682,
+      "hash": "sha256:c32d842c7db094cb88a6484876edb5bd449b7c181be4454ca941124556354210"
+    },
+    {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 20813,
-      "hash": "sha256:04e56c6f222717065b5d74135647636b0c30734450e1bf4dd74f3c5cf32adc12"
+      "sizeBytes": 21129,
+      "hash": "sha256:9c7ea4756145e1921cc79b64b6509ef5bcf5ba27f777e618cb68ecbe8803d0e2"
     },
     {
       "path": "src/config/wgsl-language-contract.js",
