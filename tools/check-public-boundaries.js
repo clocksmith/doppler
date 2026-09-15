@@ -15,9 +15,11 @@ const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Registry-driven interfaces: exact installed inventory retained in
   // artifacts/runtime-coherence/kernel-interfaces/standalone-npm-pack.json.
-  // Keep the existing observed 2,158-byte cross-toolchain compression allowance.
+  // Node 22.23.2 gzip is larger for identical tar bytes (see the retained
+  // capsule-profile/package-toolchains.json comparison). Keep 2,158 bytes of
+  // compression allowance above the largest reproduced archive.
   maxEntryCount: 1796,
-  maxPackedSize: 2_133_074,
+  maxPackedSize: 2_136_228,
   maxUnpackedSize: 11_133_861,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
