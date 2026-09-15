@@ -52,6 +52,8 @@ npm use `npx --package doppler-gpu doppler release`. It consumes a pinned
 deploys the customer application. See the [release platform contract](docs/model-release-platform.md)
 and [CLI reference](docs/cli.md).
 
+Generation can explicitly adopt [plan-bound GPU token selection](docs/integration/capsule-token-selection.md) while retaining the same public operation and stream contracts.
+
 ### Capsule Runtime API
 
 ```js

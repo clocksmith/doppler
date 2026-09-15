@@ -1,5 +1,4 @@
 import path from 'node:path';
-import { KERNEL_REF_CONTENT_DIGESTS } from '../../config/kernels/kernel-ref-digests.js';
 import { sha256Hex } from '../../formats/sha256.js';
 import {
   createPackageSourceFile,
@@ -113,16 +112,8 @@ export function buildExecutionStepMetadata(execution, expandedSteps, modules) {
 }
 
 async function resolveKernelSourceDigest(kernel, entry, kernelSourceRoot) {
-  const registryDigest = KERNEL_REF_CONTENT_DIGESTS[`${kernel}#${entry}`];
   const kernelPath = path.resolve(kernelSourceRoot, kernel);
   const source = await tryReadTextFile(kernelPath);
-  if (registryDigest) {
-    return {
-      digest: `sha256:${registryDigest}`,
-      sourcePath: normalizeSlash(path.join(kernelSourceRoot, kernel)),
-      sourceText: source,
-    };
-  }
   if (source != null) {
     const normalizedSource = source.replace(/\r\n/g, '\n');
     return {

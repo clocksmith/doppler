@@ -36,6 +36,8 @@ jobs:
           DOPPLER_TEST_REQUIRED: '1'
           DOPPLER_TEST_CONSUMER: ${{ runner.temp }}/doppler-candidate/consumer
         run: node .consumer-reploid/tests/fixtures/doppler-installed-generation.js > "$RUNNER_TEMP/doppler-candidate/reploid-receipt.json"
+      - name: Require GPU-selection contract through the installed Reploid library
+        run: node "$RUNNER_TEMP/doppler-candidate/consumer/token-selection-smoke.js" --reploid > "$RUNNER_TEMP/doppler-candidate/reploid-token-selection.json"
       - name: Require published 0.6.1 compatibility through the installed library
         env:
           DOPPLER_TEST_CONSUMER: ${{ runner.temp }}/doppler-published/consumer

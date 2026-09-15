@@ -252,6 +252,16 @@ export class InferencePipeline extends PipelineState {
     return this.generator.decodeStepLogits(currentIds, options);
   }
 
+  prefillWithToken(prompt, options, tokenContract) {
+    assertNotAborted(options?.signal);
+    return this.generator.prefillWithToken(prompt, options, tokenContract);
+  }
+
+  decodeStepWithToken(currentIds, options, tokenContract) {
+    assertNotAborted(options?.signal);
+    return this.generator.decodeStepWithToken(currentIds, options, tokenContract);
+  }
+
   advanceWithToken(tokenId, options = {}) {
     assertNotAborted(options?.signal);
     return this.generator.advanceWithToken(tokenId, options);

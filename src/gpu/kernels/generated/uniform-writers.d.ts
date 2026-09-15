@@ -348,5 +348,6 @@ export interface KernelUniformValues {
   "logit_scatter/f16": Parameters<typeof writers2.write_logit_scatter_f32>[1];
   "rope_precompute/f32": Parameters<typeof writers2.write_rope_precompute_f32>[1];
   "forecast_output/f32": Parameters<typeof writers2.write_forecast_output_f32>[1];
+  "logit_suppress/f32": Parameters<typeof writers2.write_logit_suppress_f32>[1];
 }
 export declare const UNIFORM_WRITERS: { readonly [K in keyof KernelUniformValues]: { readonly size: number; readonly write: (view: DataView, values: KernelUniformValues[K], kernel: string) => void } };

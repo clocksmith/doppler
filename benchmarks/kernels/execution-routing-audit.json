@@ -1,6 +1,6 @@
 {
   "schema": "doppler.execution-routing-audit-index/v1",
-  "registryDigest": "sha256:0cefa130dbc09080a9058d23d4e84f3227c8014b8eaa9f9ec67324d00d125ee6",
+  "registryDigest": "sha256:05cd14cd25d952d8e1ec2e05c8696bacbf89654873a20dd8c824deb53cb7e355",
   "manifestCount": 30,
   "integrityFailures": [
     {
@@ -51,6 +51,11 @@
     {
       "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
       "kernelId": "gelu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "sample",
       "status": "digest-mismatch"
     },
     {
@@ -508,7 +513,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -655,7 +660,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:f5a53bcca8ca2cefd27fa2943a1522f2564ea0ac6d10866dd22dfc8bbbcff8f0"
+      "digest": "sha256:dcdc53110b18e4086cceda8bc3283ee3196249eff6e655c8eae3fee798438fed"
     },
     {
       "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
@@ -860,7 +865,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -878,7 +883,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:a5a9999eaac8d306509b3389bb9ae9b55a01260a95ddc662f564ce333fa101e8"
+      "digest": "sha256:7abaa5b20f1ed873a77f8deb9418543bf00e03b6b58792d9ceb9fc5ea038270d"
     },
     {
       "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json",
@@ -1002,7 +1007,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -1149,7 +1154,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:f5a53bcca8ca2cefd27fa2943a1522f2564ea0ac6d10866dd22dfc8bbbcff8f0"
+      "digest": "sha256:dcdc53110b18e4086cceda8bc3283ee3196249eff6e655c8eae3fee798438fed"
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json",
@@ -1263,7 +1268,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -1380,7 +1385,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:6e84266587885b9dc6c146293362cff0d416b2d34ea4b41adf5d68fb87eb8e9c"
+      "digest": "sha256:ea009bc0bbee4b99ac5b32f49ec035508a11d7deae914d66df41ea042d239a9b"
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
@@ -1494,11 +1499,11 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "tiled",
@@ -1611,7 +1616,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:f1ef8f81a332513ab00586095d3077ef8242db2e17f5d33e138e8e722321505a"
+      "digest": "sha256:c2f874904ced625fd51098bcd858e8cf3410bc83b774b7ded18c0fd9593bc1a0"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af16/manifest.json",
@@ -1806,7 +1811,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -1824,7 +1829,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:deb30427ae18ddfd05462e1e31188d051523de5cc920e95461bb8bbae585ef9c"
+      "digest": "sha256:7b2bdba0cbe311c22e259f2d9490e1334544c2b1e47200a88f2c1a463273a8e7"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af32/manifest.json",
@@ -2019,7 +2024,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -2131,7 +2136,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:fde25a3f37c454a880186dde7520f2f03b638569582f0d66fab7fdaf897ffc4f"
+      "digest": "sha256:b14c4dfc81cbf8b66772a4761fb02033ba9a5d1183f3e0dec17c9bfe921604f7"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/manifest.json",
@@ -2297,7 +2302,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -2315,7 +2320,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:fea4930bee25f7df95b896507f9f253afde677c9b0d821c639b1bdde3b8e4c3b"
+      "digest": "sha256:4a91d0186ce0005aa032469a3a81bc4c820c60f6616202ada78036d4e0a46fb4"
     },
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json",
@@ -2510,7 +2515,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -2528,7 +2533,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:cd0f220733edf261e79fbca2d8ac5d4770f26e3348f202434abf55932203a39a"
+      "digest": "sha256:86b5481340a4eacf2af86811e83fea0442c5b0ff545fc9a084416084e806c5d1"
     },
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json",
@@ -2723,7 +2728,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -2835,7 +2840,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:35fc47d123d7bc4850d84ec3a858d7fd01bc20a4042778fb0da2275584b76984"
+      "digest": "sha256:0f46930f7e4e4a5f2213a662192097801704e75665948714392ab7adbef34a63"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
@@ -3030,7 +3035,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -3048,7 +3053,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:a6c79e3af781329da967a5313c32d8e6a0b40c2345332c5a4dbe96db837e7e8e"
+      "digest": "sha256:0b3acea4ae48c9b9c3ee58f648872f0466f5ce5dc7dd89f0c02ce5156fc9a2a1"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
@@ -3223,7 +3228,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -3333,7 +3338,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:c966f86201d1ccd0f9306c59e0a92c9b5645131f7d0c2b4a4eb504ffdbd7d4a6"
+      "digest": "sha256:7dac3bb92fa481dcd22d1c49bc181b0b5a0393030f6de90d3e0a1aa7eef96f0c"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
@@ -3508,7 +3513,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -3618,7 +3623,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:2ec89c1c19e5653873bde15f0b55170ec0513d11497752531e4ef6067b034d93"
+      "digest": "sha256:c201c606af5c88cf3150a57d463bb553b3717b7bd44fd6685ad17e383439a0b9"
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32-pad-token-v1/manifest.json",
@@ -3711,7 +3716,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -3862,7 +3867,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:f99a44ab80fb4728659fe85f62df47371356a8106dd8ecb17f058670de3dc596"
+      "digest": "sha256:4056fa07c567238cadc8928422276365a9677cde4acec4dccb30772b6f48ab29"
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
@@ -3955,7 +3960,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -4134,7 +4139,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:950d8556572068e74e87a5a0f38867ef18b4b3e53b1c1c94fca6409a7554c026"
+      "digest": "sha256:c71216dd3d86067429bd636359a6aeb3039183b8592325a76aee7632aae81a99"
     },
     {
       "manifestPath": "models/local/google-embeddinggemma-300m-q4k-ehf16-af32/manifest.json",
@@ -4423,7 +4428,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -4626,7 +4631,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:d181466a678f7e7606944528097fa1981daa9b95b0ad5f14ef5a419556124921"
+      "digest": "sha256:3b911de97fd08765b1b653c97792351860f87231e6e5101b6c5e42bb7e81b8ab"
     },
     {
       "manifestPath": "models/local/minicpm4-0-5b-f16-af32/manifest.json",
@@ -4720,7 +4725,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -4967,7 +4972,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:5ad95ddc17c302324766ee0b3048ee157a7e26412da7c6052ee13f575a45052a"
+      "digest": "sha256:584e8e855fc2e6ef53efaf81775a5f1d16eef6f6126988848fa900f2fe01b966"
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-bf16-af32/manifest.json",
@@ -5071,7 +5076,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -5242,7 +5247,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:94ce55cee6f746081af5f776e3f4f76ab28b7f7bb23cee268dd461341869cc16"
+      "digest": "sha256:46506f42ea23c393625ba8fbd3ab27b7b9f9699942c1009844789a98dbb42c1b"
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
@@ -5346,7 +5351,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -5649,7 +5654,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:839329b3624d93927de53932ee647e1cbdf2363235cec5fbc89997734b0abb2c"
+      "digest": "sha256:8cd2cc1987c2af792ce186f68b6310154c7480883c5c3fbe1fe8f642c5d8329f"
     },
     {
       "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
@@ -5793,7 +5798,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -5950,7 +5955,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:223f07f197c4536f107fec46f48259cb04ca95548cfb89a1424642940a4cece8"
+      "digest": "sha256:e0b0cc348e59145a05bcf6cee320993e6b35c43a1db51e58a078b80d95a4ca25"
     },
     {
       "manifestPath": "models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json",
@@ -6094,7 +6099,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -6251,7 +6256,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:56e4b4b335a56075f905f30cc44fc9fb937a915f1c635ef269e820b3a8115805"
+      "digest": "sha256:7730e82342a36cbc4c2c0db5737a7fe7c3671f731315256256a2eb64585fa2f1"
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-eaf16/manifest.json",
@@ -6395,7 +6400,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -6423,7 +6428,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:f858ea6336d5154647cd059e049cde2b87ed06446157253d30624ec96b821047"
+      "digest": "sha256:2192182a7fd86c8333ae6ae8d367b3e0d9d851752d31b98abbd114561586d9b7"
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-ehaf16/manifest.json",
@@ -6567,7 +6572,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -6724,7 +6729,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:cab8f5092f14f344700be23faaf070012b6e7b735abc51c1026d1e363603d02c"
+      "digest": "sha256:f4a47b8435eaf77fabd570b23e64bd438ee7bfca6936275c93229947b4a1b399"
     },
     {
       "manifestPath": "models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json",
@@ -7132,7 +7137,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -7435,7 +7440,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:d900f520ee93b0ec27323dd0d8793bcb4c70cd69ffafe4d38c111b3559332818"
+      "digest": "sha256:a92d3addceed48c7adb32894043782ee963949d54cd4cb6662f143a422af53bf"
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
@@ -7580,7 +7585,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -7934,7 +7939,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:30573d79ac4b0137e6a97a50a27e4c6c44d5aa63cfaf57f6f125c08e55446474"
+      "digest": "sha256:f4674023a72df66823af1116d4c82cb0164af57510dbd11f3446ec4944b87b63"
     },
     {
       "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
@@ -8118,7 +8123,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -8310,7 +8315,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:85cb5578cbd96e034b9aed656db3d9eb3724cf7823794ee8489954c985c118bc"
+      "digest": "sha256:494ed40ab1a9e59b02671aef0b3a5bbf0db4ed25d98c2c6d251e4ee851113ad4"
     },
     {
       "manifestPath": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32/manifest.json",
@@ -8414,7 +8419,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -8879,7 +8884,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:4f5253def8538aed6d64febc21cf75dc7d2e21a69fabee3a310fb662a127f213"
+      "digest": "sha256:3efd4aac6dc596cb2165b372f47a7d5bb48ccd0af6e03ed756ca0f7f2c41ac31"
     },
     {
       "manifestPath": "models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json",
@@ -8993,7 +8998,7 @@
           "kernelId": "sample",
           "key": "sample.wgsl#sample_single_pass",
           "declaredDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
-          "expectedDigest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b",
+          "expectedDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef",
           "registeredVariants": [
             "sample/single_pass"
           ],
@@ -9354,8 +9359,8 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:d0d83e607ddad0305104d776730886b442ad82ac0191ee2e6485721f13d4bac4"
+      "digest": "sha256:ff6ec31ede58274e5ef7eef001af31c6fc5e4b8b07686ef0a2c1067354033d04"
     }
   ],
-  "digest": "sha256:ab6af371e0e3a0720994cd2dbab0d5ed55f61bf296a7c372d31d4487d22ab98e"
+  "digest": "sha256:ba1cfe0be2150d7a4165fdbee431f5a7956b4a7d6a43f40f861ff9adb762002d"
 }

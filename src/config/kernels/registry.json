@@ -20446,6 +20446,56 @@
     }
    },
    "baseUniforms": null
+  },
+  "logit_suppress": {
+   "description": "Mask explicitly suppressed token IDs in f32 logits on the device.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "wgslName": "u",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "token_ids",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "logits",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 8,
+    "fields": [
+     {
+      "name": "vocab_size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "token_count",
+      "type": "u32",
+      "offset": 4
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "logit_suppress.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
   }
  }
 }

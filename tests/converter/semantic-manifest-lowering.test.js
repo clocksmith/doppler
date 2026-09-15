@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import { registerHooks } from 'node:module';
+import { sha256Hex } from '../../src/formats/sha256.js';
 import { auditEntryPointLowerability } from '../../src/converter/execution-candidate-forge.js';
 import { materializeSemanticManifestCandidate } from '../../src/converter/semantic-manifest-lowering.js';
 
@@ -14,13 +16,38 @@ const vocabulary = await readJson('src/config/forge/lowering-vocabularies/hetero
 const checkedInReceipt = await readJson(recipe.receiptOutput);
 const checkedInConfig = await readJson(recipe.output);
 
-const receipt = materializeSemanticManifestCandidate({
-  modelIR: sourceReceipt.modelIR,
-  template,
-  recipe,
-});
-assert.deepEqual(receipt, checkedInReceipt, 'semantic lowering receipt must be deterministic');
-assert.deepEqual(receipt.conversionConfig, checkedInConfig, 'semantic lowering config must be deterministic');
+// Historical evidence includes historical kernel bytes. Reproduce its complete
+// receipt with that exact imported digest inventory; never repin retained results
+// merely because a current shader changed.
+const historicalDigests = Object.fromEntries(checkedInReceipt.dispositions
+  .filter(row => row.kind === 'kernel-digest-binding').map(row => [row.kernelRef, row.digest.slice(7)]));
+const historicalUrl = new URL('../../src/converter/semantic-manifest-lowering.js?historical-receipt', import.meta.url).href;
+const hooks = registerHooks({ resolve(specifier, context, next) {
+  if (context.parentURL === historicalUrl && specifier.endsWith('/kernel-ref-digests.js')) {
+    return { url: `data:text/javascript,${encodeURIComponent(`export const KERNEL_REF_CONTENT_DIGESTS = ${JSON.stringify(historicalDigests)};`)}`, shortCircuit: true };
+  }
+  return next(specifier, context);
+} });
+try {
+  const historical = await import(historicalUrl);
+  assert.deepEqual(historical.materializeSemanticManifestCandidate({ modelIR: sourceReceipt.modelIR, template, recipe }),
+    checkedInReceipt, 'historical semantic lowering must reproduce with its recorded kernel identities');
+} finally { hooks.deregister(); }
+assert.deepEqual(checkedInReceipt.conversionConfig, checkedInConfig);
+const receipt = materializeSemanticManifestCandidate({ modelIR: sourceReceipt.modelIR, template, recipe });
+assert.deepEqual(materializeSemanticManifestCandidate({ modelIR: sourceReceipt.modelIR, template, recipe }), receipt,
+  'current source lowering is deterministic');
+for (const kernel of Object.values(receipt.conversionConfig.execution.kernels)) {
+  const source = (await fs.readFile(`src/gpu/kernels/${kernel.kernel}`, 'utf8')).replace(/\r\n/g, '\n');
+  assert.equal(kernel.digest, `sha256:${sha256Hex(`${source}\n@@entry:${kernel.entry}`)}`, 'current candidate binds actual shader bytes');
+}
+const withoutKernelDigests = value => {
+  const copy = structuredClone(value);
+  for (const kernel of Object.values(copy.execution.kernels)) delete kernel.digest;
+  return copy;
+};
+assert.deepEqual(withoutKernelDigests(receipt.conversionConfig), withoutKernelDigests(checkedInConfig),
+  'new shader bytes must not rewrite source model semantics');
 
 const sourceText = sourceReceipt.modelIR.entryPoints.find((entryPoint) => entryPoint.id === 'text.generate');
 const capsuleText = receipt.modelIR.entryPoints.find((entryPoint) => entryPoint.id === 'text.generate');

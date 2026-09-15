@@ -66,6 +66,7 @@ config/forge/tensor-role-closure/glimmer-30b-text.json
 config/goal-completion-matrix.json
 config/heterogeneous-attention-contract.d.ts
 config/kernels/kernel-ref-digests.d.ts
+config/kernels/kernel-ref-digests.js
 config/kernels/moe/gpt-oss.paths.json
 config/kernels/moe/mixtral.paths.json
 config/kernels/registry.d.ts
@@ -560,6 +561,7 @@ inference/pipelines/text/generator-prefill-helpers.js
 inference/pipelines/text/generator-runtime.d.ts
 inference/pipelines/text/generator-steps.d.ts
 inference/pipelines/text/generator/attention-lifecycle.d.ts
+inference/pipelines/text/generator/capsule-generation.d.ts
 inference/pipelines/text/generator/decode-runtime.d.ts
 inference/pipelines/text/generator/decode.d.ts
 inference/pipelines/text/generator/diffusion.d.ts
