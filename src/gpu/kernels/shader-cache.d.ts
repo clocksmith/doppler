@@ -16,6 +16,12 @@
  */
 export declare function loadShaderSource(filename: string): Promise<string>;
 
+/** Content identity of a loaded or preseeded source; null before loading. */
+export declare function getShaderSourceIdentity(filename: string): string | null;
+
+/** Content identity captured when this cached shader module was compiled. */
+export declare function getShaderModuleIdentity(module: GPUShaderModule): string | undefined;
+
 // ============================================================================
 // Shader Compilation
 // ============================================================================

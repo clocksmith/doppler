@@ -3,6 +3,7 @@
 import { log } from '../../debug/index.js';
 import { getSharedDeviceEpoch } from '../device-state.js';
 import { getScopedShaderSource } from './shader-source-scope.js';
+import { hashBytesSha256 } from '../../formats/canonical-hash.js';
 
 // ============================================================================
 // Caches
@@ -15,6 +16,28 @@ const MAX_SHADER_MODULE_CACHE_SIZE = 256;
 const shaderSourceCache = new Map();
 
 const shaderModuleCache = new Map();
+const sourceIdentities = new Map();
+const moduleIdentities = new WeakMap();
+
+function sourceIdentity(filename, source) {
+  const cached = sourceIdentities.get(filename);
+  if (cached?.source === source) return cached.digest;
+  const digest = hashBytesSha256(new TextEncoder().encode(source));
+  sourceIdentities.set(filename, { source, digest });
+  evictOldest(sourceIdentities, MAX_SHADER_SOURCE_CACHE_SIZE);
+  return digest;
+}
+
+export function getShaderSourceIdentity(filename) {
+  const scoped = getScopedShaderSource(filename);
+  if (scoped) return scoped.digest;
+  const source = shaderSourceCache.get(filename) ?? shaderSourcePreseeds.get(filename);
+  return source === undefined ? null : sourceIdentity(filename, source);
+}
+
+export function getShaderModuleIdentity(module) {
+  return moduleIdentities.get(module);
+}
 
 function evictOldest(map, maxSize) {
   while (map.size > maxSize) {
@@ -106,6 +129,7 @@ export function registerShaderSources(map) {
     const filename = String(key).split('/').pop();
     if (!filename) continue;
     shaderSourcePreseeds.set(filename, value);
+    shaderSourceCache.delete(filename);
   }
 }
 
@@ -201,8 +225,9 @@ export async function getShaderModule(
   label
 ) {
   ensureModuleCacheEpoch();
-  const scoped = getScopedShaderSource(shaderFile);
-  const cacheKey = `${getDeviceId(device)}:${shaderFile}:${scoped?.digest ?? 'runtime'}`;
+  const shaderSource = await loadShaderSource(shaderFile);
+  const digest = sourceIdentity(shaderFile, shaderSource);
+  const cacheKey = `${getDeviceId(device)}:${digest}`;
   const cached = shaderModuleCache.get(cacheKey);
   if (cached) {
     touchCacheEntry(shaderModuleCache, cacheKey, cached);
@@ -210,8 +235,9 @@ export async function getShaderModule(
   }
 
   const compilePromise = (async () => {
-    const shaderSource = await loadShaderSource(shaderFile);
-    return compileShader(device, shaderSource, label);
+    const module = await compileShader(device, shaderSource, label);
+    moduleIdentities.set(module, digest);
+    return module;
   })();
 
   shaderModuleCache.set(cacheKey, compilePromise);
@@ -220,7 +246,7 @@ export async function getShaderModule(
   try {
     return await compilePromise;
   } catch (err) {
-    shaderModuleCache.delete(cacheKey);
+    if (shaderModuleCache.get(cacheKey) === compilePromise) shaderModuleCache.delete(cacheKey);
     throw err;
   }
 }
@@ -232,6 +258,7 @@ export async function getShaderModule(
 
 export function clearShaderCaches() {
   shaderSourceCache.clear();
+  sourceIdentities.clear();
   shaderModuleCache.clear();
   moduleCacheEpoch = getSharedDeviceEpoch();
 }

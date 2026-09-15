@@ -63,6 +63,25 @@ rules. Forwarding modules such as `generation/index.js` preserve interfaces;
 they are not duplicate engines. Retained report paths describe their original
 source revision and are not rewritten after moves.
 
+### GPU preparation and submission
+
+GPU labels are diagnostic only. Bind-group layouts are cached by their normalized
+WebGPU descriptors and device; pipeline layouts by their ordered layout objects.
+Compute pipelines bind shader content, entry point, specialization constants,
+device, and explicit layout identity. Concurrent compilation shares a pending
+task; failed compilation is evicted so a subsequent request can retry. Synchronous
+cache lookup returns only completed pipelines. Device replacement or loss
+invalidates pending preparation, and a cache reset prevents late publication.
+
+Direct Capsule dispatch rechecks cancellation and device ownership after
+compilation, after binding preparation, and immediately before submission.
+Its result distinguishes `submitted` from `completed` (observed queue completion).
+Cancellation throws `COMMAND_ABORTED` with `submission: "not-submitted"` or
+`"submitted"`; device loss/replacement throws `COMMAND_DEVICE_LOST` with the same
+submission boundary. Cancellation after submission suppresses successful
+completion but does not interrupt submitted GPU commands. Dispatch borrows slot
+buffers; the resource binder retains their cleanup ownership.
+
 ![Doppler architecture overview](architecture-overview.svg)
 
 ## Verification Sources

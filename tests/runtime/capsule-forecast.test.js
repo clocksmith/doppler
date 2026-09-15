@@ -9,6 +9,7 @@ import { validateTargetPlan } from '../../src/config/target-plan.js';
 // Same shader/entry, different overrides: must create distinct pipelines.
 const pipelines = [];
 const device = {
+  createBuffer: value => value,
   createShaderModule: value => value,
   async createComputePipelineAsync(descriptor) {
     pipelines.push(descriptor.compute.constants);

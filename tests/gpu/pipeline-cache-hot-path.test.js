@@ -153,8 +153,8 @@ try {
   assert.equal(device.pipelineCount, 2);
 
   const noConstants = await getPipelineFast('scale', 'default');
-  assert.notEqual(noConstants, emptyConstants);
-  assert.equal(device.pipelineCount, 3);
+  assert.equal(noConstants, emptyConstants);
+  assert.equal(device.pipelineCount, 2);
 
   const autoLayoutA = getPipelineBindGroupLayout(first, 0);
   const autoLayoutB = getPipelineBindGroupLayout(first, 0);
