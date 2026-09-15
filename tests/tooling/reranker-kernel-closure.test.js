@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { sha256Hex } from '../../src/formats/sha256.js';
 import { fileURLToPath } from 'node:url';
 import { buildWgslClosure } from '../../src/tooling/program-bundle/wgsl-closure.js';
 import { createShaderSourceScope, getScopedShaderSource, runWithShaderSourceScope } from '../../src/gpu/kernels/shader-source-scope.js';
@@ -19,6 +20,14 @@ const required = ['dequant_f16_out_vec4.wgsl', 'rope_precompute.wgsl', 'gather_f
 const f16Recipe = JSON.parse(await fs.readFile(path.join(repoRoot,
   'src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json')));
 assert.deepEqual(f16Recipe.inference.rerank, recipe.inference.rerank, 'precision variants preserve the scoring contract');
+// Construct current-source structural fixtures in memory. Retained conversion
+// configs and physical receipts keep their original execution identities.
+for (const candidate of [recipe, f16Recipe]) {
+  for (const kernel of Object.values(candidate.execution.kernels)) {
+    const source = (await fs.readFile(path.join(repoRoot, 'src/gpu/kernels', kernel.kernel), 'utf8')).replace(/\r\n/g, '\n');
+    kernel.digest = `sha256:${sha256Hex(`${source}\n@@entry:${kernel.entry}`)}`;
+  }
+}
 const f16Closure = await buildWgslClosure(f16Recipe.execution, [], { repoRoot });
 for (const file of [...required.slice(1), 'split_qkv.wgsl']) {
   assert(f16Closure.modules.some(module => module.file === file), `F16 Capsule must seal ${file}`);

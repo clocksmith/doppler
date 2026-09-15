@@ -1,4 +1,5 @@
 import { validateCapsuleAdapterExecution } from './capsule-adapter-policy.js';
+import { validateCapsuleTokenSelection } from './capsule-token-selection.js';
 
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
@@ -90,6 +91,9 @@ function validateCommand(command, phase, label, errors) {
 
 export function validateTargetPlan(plan) {
   const errors = [];
+  if (plan?.tokenSelection !== undefined) {
+    try { validateCapsuleTokenSelection(plan); } catch (error) { errors.push(error.message); }
+  }
   if (plan?.adapterExecution !== undefined) {
     try { validateCapsuleAdapterExecution(plan); } catch (error) { errors.push(error.message); }
   }
@@ -409,6 +413,7 @@ export function createTargetPlanV2(params) {
     qualification: params.qualification,
     initialExecutionIdentity: params.initialExecutionIdentity,
     ...(params.adapterExecution !== undefined ? { adapterExecution: params.adapterExecution } : {}),
+    ...(params.tokenSelection !== undefined ? { tokenSelection: params.tokenSelection } : {}),
   };
   const validation = validateTargetPlan(plan);
   if (!validation.ok) {

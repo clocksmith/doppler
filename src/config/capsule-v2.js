@@ -2,6 +2,7 @@
 import { hashModelIR, validateModelIR } from './model-ir.js';
 import { validateCapsuleReleaseContract } from './capsule-release-contract.js';
 import { hashTargetPlan, validateTargetPlan } from './target-plan.js';
+import { validateCapsuleTokenSelection } from './capsule-token-selection.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
 
@@ -240,6 +241,10 @@ export function validateCapsuleExecutable(capsule) {
     for (const [index, plan] of capsule.targetPlans.entries()) {
       const validation = validateTargetPlan(plan);
       if (!validation.ok) errors.push(...validation.errors.map((error) => `targetPlans[${index}]: ${error}`));
+      if (plan?.tokenSelection !== undefined) {
+        try { validateCapsuleTokenSelection(plan, capsule.wgslModules); }
+        catch (error) { errors.push(`targetPlans[${index}]: ${error.message}`); }
+      }
       if (plan?.modelId !== capsule.modelId) errors.push(`targetPlans[${index}].modelId must equal capsule.modelId.`);
       if (modelIRHash && plan?.modelIRHash !== modelIRHash) errors.push(`targetPlans[${index}] does not bind the Capsule ModelIR digest.`);
       if (plan?.programBundleHash !== capsule.program?.programBundleHash) errors.push(`targetPlans[${index}] does not bind the Capsule Program Bundle digest.`);

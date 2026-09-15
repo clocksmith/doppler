@@ -8,6 +8,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } from '../tests/helpers/capsule-v2-fixture.js';
+import { createInstalledTokenSelectionFixture } from '../tests/helpers/installed-token-selection-fixture.js';
 import { createInstalledAdapterFixture } from '../tests/helpers/installed-adapter-fixture.js';
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -240,6 +241,9 @@ async function runGenerationCapsuleSmoke(consumerDir) {
     path.join(consumerDir, 'browser-host-smoke.js'));
   process.stdout.write(run(process.execPath, ['--conditions=browser', 'browser-host-smoke.js'], { cwd: consumerDir }));
   await fs.writeFile(path.join(consumerDir, 'adapter-fixture.json'), JSON.stringify(await createInstalledAdapterFixture()));
+  await fs.writeFile(path.join(consumerDir, 'gpu-generation-fixture.json'), JSON.stringify(await createInstalledTokenSelectionFixture()));
+  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-token-selection-consumer.js'), path.join(consumerDir, 'token-selection-smoke.js'));
+  process.stdout.write(run(process.execPath, ['token-selection-smoke.js'], { cwd: consumerDir }));
 }
 
 async function runCliSmokes(consumerDir, packageJson) {

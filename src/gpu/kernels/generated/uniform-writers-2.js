@@ -161,3 +161,8 @@ export function write_forecast_output_f32(view, values, kernel) {
   view.setUint32(8, 0, true);
   view.setUint32(12, 0, true);
 }
+
+export function write_logit_suppress_f32(view, values, kernel) {
+  writeU32(view, 0, values["vocab_size"], kernel, "vocab_size");
+  writeU32(view, 4, values["token_count"], kernel, "token_count");
+}

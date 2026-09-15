@@ -515,3 +515,4 @@ export {
 } from './backward/index.js';
 
 // Re-export profiling utilities
+export { recordSuppressLogits } from './logit-suppress.js';

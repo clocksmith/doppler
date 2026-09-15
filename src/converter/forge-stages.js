@@ -220,6 +220,7 @@ export async function stageInspect(input) {
       modelIREvidence: input.modelIREvidence ?? null,
       initialExecutionIdentity: input.initialExecutionIdentity ?? null,
       ...(input.adapterExecution !== undefined ? { adapterExecution: input.adapterExecution } : {}),
+      ...(input.tokenSelection !== undefined ? { tokenSelection: input.tokenSelection } : {}),
       release: requireObject(input.release, 'Capsule release contract'),
     },
   };
@@ -658,8 +659,10 @@ export function stageSpecialize(lowered) {
       ...targetPlanFields,
       initialExecutionIdentity: normalized.initialExecutionIdentity,
       ...(normalized.adapterExecution !== undefined ? { adapterExecution: normalized.adapterExecution } : {}),
+      ...(normalized.tokenSelection !== undefined ? { tokenSelection: normalized.tokenSelection } : {}),
     });
   } else {
+    if (normalized.tokenSelection !== undefined) throw new Error('GPU token selection requires an exact initial execution identity.');
     if (normalized.adapterExecution !== undefined) throw new Error('Adapter execution requires an exact initial execution identity.');
     targetPlan = createTargetPlan(targetPlanFields);
   }

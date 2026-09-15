@@ -348,4 +348,5 @@ export const UNIFORM_WRITERS = Object.freeze({
   "logit_scatter/f16": { size: 16, write: writers2.write_logit_scatter_f32 },
   "rope_precompute/f32": { size: 64, write: writers2.write_rope_precompute_f32 },
   "forecast_output/f32": { size: 16, write: writers2.write_forecast_output_f32 },
+  "logit_suppress/f32": { size: 8, write: writers2.write_logit_suppress_f32 },
 });
