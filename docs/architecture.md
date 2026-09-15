@@ -63,6 +63,60 @@ rules. Forwarding modules such as `generation/index.js` preserve interfaces;
 they are not duplicate engines. Retained report paths describe their original
 source revision and are not rewritten after moves.
 
+Runtime closure, package inclusion, browser imports and source ownership use
+the shared JavaScript syntax inventory in `tools/lib/javascript-dependency-graph.js`.
+It distinguishes module imports, type imports, resource literals and unresolved
+dynamic expressions; comments and inert strings are not imports. Closed Capsule
+runtime checks reject unresolved expressions unless their exact source and Node
+built-in dependency are covered by `tools/policies/runtime-closure-policy.json`.
+The browser view retains its explicit Node bridge exclusions, while package
+inclusion also follows declared JSON and WGSL resources.
+
+### GPU preparation and submission
+
+Capsule loading clones and deeply freezes declared metadata before signature,
+artifact and plan verification. The selected TargetPlan belongs to that private
+snapshot. Its identity is computed during loading; request checks do not rehash
+the immutable metadata for each token. Device availability, release authority
+and the live program's execution identity remain checked at execution boundaries,
+including after a consumer resumes an operation stream.
+
+GPU labels are diagnostic only. Bind-group layouts are cached by their normalized
+WebGPU descriptors and device; pipeline layouts by their ordered layout objects.
+Compute pipelines bind shader content, entry point, specialization constants,
+device, and explicit layout identity. Concurrent compilation shares a pending
+task; failed compilation is evicted so a subsequent request can retry. Synchronous
+cache lookup returns only completed pipelines. Device replacement or loss
+invalidates pending preparation, and a cache reset prevents late publication.
+
+Direct Capsule dispatch rechecks cancellation and device ownership after
+compilation, after binding preparation, and immediately before submission.
+Its result distinguishes `submitted` from `completed` (observed queue completion).
+Cancellation throws `COMMAND_ABORTED` with `submission: "not-submitted"` or
+`"submitted"`; device loss/replacement throws `COMMAND_DEVICE_LOST` with the same
+submission boundary. Cancellation after submission suppresses successful
+completion but does not interrupt submitted GPU commands. Dispatch borrows slot
+buffers; the resource binder retains their cleanup ownership.
+
+WGSL language features are distinct from GPU device features. Kernels using
+`subgroup_id` or `num_subgroups` require the WGSL `subgroup_id` extension;
+`hasSubgroups` alone cannot qualify them. The registry records
+`requiredWgslFeatures`; `kernels:check` compares those requirements with shader
+sources. Forge carries source requirements into module metadata and the signed
+TargetPlan capability predicate. Runtime rejects missing plan declarations or
+unsupported features before creating the model program. An absent optional
+`requiredWgslFeatures` field retains its historical meaning of no additional
+language requirements. Existing signed shader sources and their identities are
+preserved; adopting repaired sources requires a new qualified plan.
+
+Subgroup reduction slots use actual subgroup identity and count, with storage
+bounded by the declared workgroup size. Local invocation indices do not define
+subgroup membership ([WGSL specification](https://www.w3.org/TR/WGSL/#subgroups)).
+The RMSNorm stats wrapper selects the separate portable workgroup reduction when
+its declared selection policy cannot use the subgroup implementation. A pinned
+unsupported Capsule plan is rejected or another accepted, qualified plan is
+selected; runtime does not substitute a shader inside a signed plan.
+
 ![Doppler architecture overview](architecture-overview.svg)
 
 ## Verification Sources

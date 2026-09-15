@@ -42,5 +42,17 @@
       "match": {},
       "value": "default"
     }
+  ],
+  "statsVariant": [
+    {
+      "match": {
+        "canUseSubgroups": true
+      },
+      "value": "subgroups"
+    },
+    {
+      "match": {},
+      "value": "workgroup"
+    }
   ]
 }

@@ -1,0 +1,5 @@
+{
+  "commit": "a5d7a7d2f7df72994794e473a071aa290f51d450",
+  "status": " M docs/architecture.md\n M reports/capsule-runtime/runtime-closure.json\n M src/client/runtime/command-executor.d.ts\n M src/client/runtime/command-executor.js\n M src/gpu/kernels/pipeline-cache.js\n M src/gpu/kernels/shader-cache.d.ts\n M src/gpu/kernels/shader-cache.js\n M tests/gpu/pipeline-cache-hot-path.test.js\n M tests/runtime/capsule-forecast.test.js\n M tests/tooling/shader-cache-scopes.test.js\n M tools/check-shader-cache-scopes.js\n?? tests/gpu/pipeline-cache-identity.test.js\n?? tests/runtime/command-executor-cancellation.test.js\n",
+  "runnerSha256": "ea0350d806aafa055138f816eddc56b32ca7c2d21e0a56112ad7cc71e8d47771"
+}

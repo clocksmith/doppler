@@ -23,6 +23,7 @@ const { runPixelShuffle } = await import('../../src/gpu/kernels/pixel_shuffle.js
 const { runConv2D } = await import('../../src/gpu/kernels/conv2d.js');
 const { runDepthwiseConv2D } = await import('../../src/gpu/kernels/depthwise_conv2d.js');
 const { runGroupedPointwiseConv2D } = await import('../../src/gpu/kernels/grouped_pointwise_conv2d.js');
+const { unifiedKernelWrapper } = await import('../../src/gpu/kernels/kernel-execution.js');
 
 class FakeBuffer {
   constructor({ size, usage }) {
@@ -41,8 +42,10 @@ globalThis.GPUBuffer = FakeBuffer;
 
 function createFakeDevice({ createBindGroupThrowAt = null } = {}) {
   let createBindGroupCount = 0;
+  const createdBuffers = [];
 
   return {
+    createdBuffers,
     queue: {
       submit() {},
       writeBuffer() {},
@@ -64,7 +67,9 @@ function createFakeDevice({ createBindGroupThrowAt = null } = {}) {
       maxComputeWorkgroupsPerDimension: 65535,
     },
     createBuffer({ size, usage }) {
-      return new FakeBuffer({ size, usage });
+      const buffer = new FakeBuffer({ size, usage });
+      createdBuffers.push(buffer);
+      return buffer;
     },
     createBindGroup() {
       createBindGroupCount += 1;
@@ -194,6 +199,22 @@ async function assertCleanupOnThrow(run) {
     width: 3,
     groups: 1,
   }));
+}
+
+{
+  const device = createFakeDevice();
+  resetRuntimeState(device);
+  const borrowed = new FakeBuffer({ size: 16, usage: GPUBufferUsage.STORAGE });
+  for (const [bindings, uniforms, error] of [
+    [[], { count: 4, scale: 0.5 }, /expected 2 bindings/],
+    [[borrowed, null], { count: 4, scale: 0.5 }, /requires a GPUBuffer/],
+    [[borrowed, borrowed], { count: 4 }, /scale.*requires/],
+  ]) {
+    await assert.rejects(unifiedKernelWrapper('scale', null, 'default', bindings, uniforms, 1), error);
+    assert.equal(device.createdBuffers.length, 0, 'invalid preparation never allocates a GPU uniform');
+    assert.equal(borrowed.destroyed, false);
+  }
+  resetRuntimeState();
 }
 
 console.log('unified-wrapper-cleanup.test: ok');

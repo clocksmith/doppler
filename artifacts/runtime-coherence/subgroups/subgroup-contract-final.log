@@ -1,0 +1,73 @@
+TAP version 13
+# wgsl-language-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.925893
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 90.916892
+[node-tests] ok: tests/config/wgsl-language-contract.test.js
+TAP version 13
+# ✔ forge-stages.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.844092
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 278.683112
+[node-tests] ok: tests/converter/forge-stages.test.js
+TAP version 13
+# capsule-wgsl-language.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.702851
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 183.08578
+[node-tests] ok: tests/runtime/capsule-wgsl-language.test.js
+TAP version 13
+# wgsl-language-export.test: source requirements are bound by metadata identity
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.054416
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 118.507627
+[node-tests] ok: tests/tooling/wgsl-language-export.test.js
+[node-tests] ok: 4 files

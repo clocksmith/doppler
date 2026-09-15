@@ -1,0 +1,265 @@
+TAP version 13
+# [285.4ms][NodeSourceRuntime] Source runtime ready: node-source-runtime-test (safetensors, 3 tensors)
+# [291.9ms][NodeSourceRuntime] Source runtime ready: node-source-runtime-test-tflite (tflite, 2 tensors)
+# [339.3ms][NodeSourceRuntime] Mixed litert-task tensor dtypes detected (F16, F32). Using F32 source quantization for direct-source parity.
+# [439.9ms][NodeSourceRuntime] Source runtime ready: node-source-runtime-test-litert-task (litert-task, 12 tensors)
+# [445.1ms][NodeSourceRuntime] Mixed litert-task tensor dtypes detected (F16, F32). Using F32 source quantization for direct-source parity.
+# [536.3ms][NodeSourceRuntime] Source runtime ready: node-source-runtime-test-litert-task-cached (litert-task, 12 tensors)
+# [618.8ms][NodeSourceRuntime] Mixed litertlm tensor dtypes detected (F16, F32). Using F32 source quantization for direct-source parity.
+# [706.3ms][NodeSourceRuntime] Source runtime ready: node-source-runtime-test-litertlm (litertlm, 12 tensors)
+# node-source-runtime.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.207494
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 776.904465
+[node-tests] ok: tests/tooling/node-source-runtime.test.js
+TAP version 13
+# node:internal/test_runner/harness:99
+#       throw err;
+#       ^
+# AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+# + actual - expected
+# + [
+# +   {
+# +     guarded: false,
+# +     path: 'src/gpu/kernels/pipeline-cache.js'
+# +   }
+# + ]
+# - []
+#     at file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/tooling/shader-cache-scopes.test.js:12:8 {
+#   generatedMessage: true,
+#   code: 'ERR_ASSERTION',
+#   actual: [ { path: 'src/gpu/kernels/pipeline-cache.js', guarded: false } ],
+#   expected: [],
+#   operator: 'deepStrictEqual',
+#   diff: 'simple'
+# }
+# Node.js v22.22.1
+# Subtest: /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/tooling/shader-cache-scopes.test.js
+not ok 1 - /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/tooling/shader-cache-scopes.test.js
+  ---
+  duration_ms: 934.855175
+  type: 'test'
+  location: '/home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/tooling/shader-cache-scopes.test.js:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 7
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 941.059867
+[node-tests] fail: tests/tooling/shader-cache-scopes.test.js
+TAP version 13
+# node:internal/test_runner/harness:99
+#       throw err;
+#       ^
+# Error: Host teacher node_modules source must be a directory.
+#     at createHostTeacherWorkspace (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tools/lib/host-teacher-workspace.js:121:13)
+#     at async file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/training/host-teacher-qualification.test.js:18:24
+# Node.js v22.22.1
+# Subtest: /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/training/host-teacher-qualification.test.js
+not ok 1 - /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/training/host-teacher-qualification.test.js
+  ---
+  duration_ms: 3552.715495
+  type: 'test'
+  location: '/home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/training/host-teacher-qualification.test.js:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 7
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3559.614554
+[node-tests] fail: tests/training/host-teacher-qualification.test.js
+TAP version 13
+# lora-causal-lm-provider-runner.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.072128
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 379.650189
+[node-tests] ok: tests/training/lora-causal-lm-provider-runner.test.js
+TAP version 13
+# node:internal/test_runner/harness:99
+#       throw err;
+#       ^
+# AssertionError [ERR_ASSERTION]: js-holdout-optional-boolean-gate: prompt rendering failed: Host teacher node_modules source must be a directory.
+# js-holdout-positive-integer-gate: prompt rendering failed: Host teacher node_modules source must be a directory.
+# wgsl-holdout-clamp-tail-guard: prompt rendering failed: Host teacher node_modules source must be a directory.
+# wgsl-holdout-softmax-row-guards: prompt rendering failed: Host teacher node_modules source must be a directory.
+# false !== true
+#     at file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/training/student-code-experiment.test.js:23:8 {
+#   generatedMessage: false,
+#   code: 'ERR_ASSERTION',
+#   actual: false,
+#   expected: true,
+#   operator: 'strictEqual',
+#   diff: 'simple'
+# }
+# Node.js v22.22.1
+# Subtest: /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/training/student-code-experiment.test.js
+not ok 1 - /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/training/student-code-experiment.test.js
+  ---
+  duration_ms: 13179.794628
+  type: 'test'
+  location: '/home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/training/student-code-experiment.test.js:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 7
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13188.564388
+[node-tests] fail: tests/training/student-code-experiment.test.js
+TAP version 13
+# teacher-trace-dataset.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.121191
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 99.092758
+[node-tests] ok: tests/training/teacher-trace-dataset.test.js
+TAP version 13
+# wgsl-repair-v11-policy.test: ok
+# Subtest: retained V11 corpus has frozen hashes and disjoint families
+ok 1 - retained V11 corpus has frozen hashes and disjoint families # SKIP Local evidence unavailable: reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1
+  ---
+  duration_ms: 0.890357
+  type: 'test'
+  ...
+# Subtest: rollout task custody rejects changed bytes, row counts and undeclared task sets
+ok 2 - rollout task custody rejects changed bytes, row counts and undeclared task sets
+  ---
+  duration_ms: 6.6928
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 3 - test module initialization completed
+  ---
+  duration_ms: 0.102653
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 287.338892
+[node-tests] ok: tests/training/wgsl-repair-v11-policy.test.js
+TAP version 13
+# wgsl-sequence-kd-materialization.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.241086
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 97.703212
+[node-tests] ok: tests/training/wgsl-sequence-kd-materialization.test.js
+TAP version 13
+# Subtest: WGSL writer V3 confirmation halts before hashing nonfinite evidence
+ok 1 - WGSL writer V3 confirmation halts before hashing nonfinite evidence
+  ---
+  duration_ms: 6.989148
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 2 - test module initialization completed
+  ---
+  duration_ms: 0.209925
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 117.564724
+[node-tests] ok: tests/training/wgsl-writer-v3-confirmation-finiteness.test.js
+TAP version 13
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.036551
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 117.299756
+[node-tests] ok: tests/training/wgsl-writer-v3-reconciliation.test.js
+[node-tests] failed 3/10

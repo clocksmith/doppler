@@ -1,8 +1,8 @@
 {
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
-  "fileCount": 64,
-  "sourceBytes": 600766,
+  "fileCount": 66,
+  "sourceBytes": 729560,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -12,6 +12,22 @@
     "/src/cli/",
     "/src/client/provider.js",
     "/src/config/conversion/"
+  ],
+  "dynamicImports": [
+    {
+      "path": "src/formats/load-json.js",
+      "expression": "nodeModule('fs/promises')",
+      "line": 12,
+      "specifier": "node:fs/promises",
+      "environment": "node"
+    },
+    {
+      "path": "src/formats/load-json.js",
+      "expression": "nodeModule('url')",
+      "line": 13,
+      "specifier": "node:url",
+      "environment": "node"
+    }
   ],
   "forbiddenFiles": [],
   "files": [
@@ -82,13 +98,13 @@
     },
     {
       "path": "src/client/runtime/command-executor.js",
-      "sizeBytes": 5303,
-      "hash": "sha256:29ce64a8d64eb27b4a075183728d25f5bf9d4a9ec5a7b71fec0791b560923469"
+      "sizeBytes": 6956,
+      "hash": "sha256:ef02519d18ac42e3dfc831ee3d100e68feca7817883d47fa747be842982d1e36"
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 20339,
-      "hash": "sha256:b85186bca0d0c64120a4cd9dd852166091ff393bf2c11b8e595f053dc1ad89e6"
+      "sizeBytes": 20779,
+      "hash": "sha256:3348101ff214ebb30167f196c77b3cc3ee71ebd5cb2bafa41b1161abbc236b1f"
     },
     {
       "path": "src/client/runtime/fetch-capsule-artifact-store.js",
@@ -212,8 +228,8 @@
     },
     {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 298251,
-      "hash": "sha256:530c756239fd9274a2a200e8b221f19d2f7f4dd7efb8d1186269264bdea8e636"
+      "sizeBytes": 422005,
+      "hash": "sha256:c98fa26216272b37317a6efac834d2f0754e8bc0f8908a24938d1922e2403c48"
     },
     {
       "path": "src/config/lora-layouts.js",
@@ -241,14 +257,24 @@
       "hash": "sha256:0e2ee4c9a9f711da2e7a2d2b4a3963573d5478ff07cc45ef969e0d6e3cdf7d89"
     },
     {
+      "path": "src/config/revocation-registry.json",
+      "sizeBytes": 270,
+      "hash": "sha256:55923af9620bd85335672067f55fa87b42ce2bd718bda2e33ac64a79734b569f"
+    },
+    {
       "path": "src/config/schema/debug.schema.js",
       "sizeBytes": 4207,
       "hash": "sha256:2e93df23cf8dbc54f3548cb38a5cba00bd1e96b3827de29ae409038f8992c59f"
     },
     {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 20237,
-      "hash": "sha256:3d0cb6094ab694ed27297dfcb263ec5adc54f33e21ecfc5291fa8dc6170724cc"
+      "sizeBytes": 20813,
+      "hash": "sha256:04e56c6f222717065b5d74135647636b0c30734450e1bf4dd74f3c5cf32adc12"
+    },
+    {
+      "path": "src/config/wgsl-language-contract.js",
+      "sizeBytes": 2101,
+      "hash": "sha256:3d0c959cfe7d934fcb48763eab16cfa072cd802e7ca935f5936c62f628fd4007"
     },
     {
       "path": "src/debug/capture-policy.js",

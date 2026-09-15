@@ -8,6 +8,7 @@ import {
   tryReadTextFile,
 } from './materialize.js';
 import { normalizeDigest, requireString } from './validation.js';
+import { getRequiredWgslFeatures } from '../../config/wgsl-language-contract.js';
 
 function collectKernelRefsFromEntries(entries, section, refs) {
   if (!Array.isArray(entries)) return;
@@ -173,6 +174,7 @@ function parseWgslOverrides(sourceText) {
 }
 
 function buildWgslMetadata(sourceText, entry) {
+  const requiredWgslFeatures = getRequiredWgslFeatures(sourceText);
   const workgroupMatch = typeof sourceText === 'string'
     ? /@workgroup_size\(([^)]*)\)/.exec(sourceText)
     : null;
@@ -184,6 +186,7 @@ function buildWgslMetadata(sourceText, entry) {
       ? workgroupMatch[1].split(',').map((part) => part.trim()).filter(Boolean)
       : [],
     requiresSubgroups: typeof sourceText === 'string' && /\b(subgroup|enable\s+subgroups)\b/.test(sourceText),
+    ...(requiredWgslFeatures.length ? { requiredWgslFeatures } : {}),
   };
   return { ...metadata, sourceMetadataHash: hashStableJson(metadata) };
 }

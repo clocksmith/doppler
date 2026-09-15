@@ -1,4 +1,6 @@
+import { createKernelBindingEntries } from './kernel-bindings.js';
 import { getDevice, getKernelCapabilities } from '../device.js';
+import { getKernelConfig } from './kernel-configs.js';
 import { createTensor } from '../tensor.js';
 import {
   getBuffer,
@@ -113,102 +115,17 @@ function resolveW4A16ScaleDtypeConstant(scaleDtype) {
   throw new Error(`[Matmul] unsupported W4A16 scale dtype "${scaleDtype}".`);
 }
 
-function assertBindGroupBuffer(kernelName, variant, bindingIndex, bindingLabel, buffer, details = []) {
-  const isGpuBuffer = buffer && (
-    typeof GPUBuffer === 'undefined'
-      ? true
-      : buffer instanceof GPUBuffer
-  );
-  if (isGpuBuffer) {
-    return;
-  }
-  const detailText = details.filter(Boolean).join(', ');
-  throw new Error(
-    `[${kernelName}] variant="${variant}" binding ${bindingIndex} "${bindingLabel}" requires a GPUBuffer` +
-    (detailText ? ` (${detailText})` : '') +
-    '.'
-  );
-}
-
 function createMatmulBindGroupEntries(variant, uniformBuffer, matmulInput, bBuffer, outputBuffer, offsets, bindingSizes, residualBuffer = null, normWeightBuffer = null, scaleBuffer = null) {
-  const isQ4KF16 = variant === 'q4_fused_multicol_f16'
-    || variant === 'q4_fused_f16a'
-    || variant === 'q4_fused_batched_f16'
-    || variant === 'q4_fused_multicol_f16a'
-    || variant === 'q4_fused_multicol_f16a_f32acc'
-    || variant === 'q4_fused_batched_f16a'
-    || variant === 'q4_fused_batched_f16acc_f16a'
-    || variant === 'q4_fused_prefill_tiled_f16'
-    || variant === 'q4_fused_widetile_f16'
-    || variant === 'q4_fused_widetile_f16a';
-  // 5-entry Q4K epilogue/prologue variants: output at binding 3 + one
-  // extra read-only buffer at binding 4 (residual for _residual, norm weight
-  // for _rmsnorm). Distinct from isQ4KF16 (which puts output at binding 4).
-  const isQ4KResidual = variant === 'q4_fused_widetile_residual';
-  const isWideTileRmsnorm = variant === 'q4_fused_rmsnorm_widetile';
-  const isW4A16 = variant.startsWith('w4a16_');
-
-  assertBindGroupBuffer('matmul', variant, 0, 'uniforms', uniformBuffer);
-  assertBindGroupBuffer('matmul', variant, 1, 'input', matmulInput?.buffer, [
-    `inputLabel=${matmulInput?.label ?? 'unknown'}`,
-    `inputDtype=${matmulInput?.dtype ?? 'unknown'}`,
-  ]);
-  assertBindGroupBuffer('matmul', variant, 2, 'weights', bBuffer);
-  if (isW4A16) {
-    assertBindGroupBuffer('matmul', variant, 3, 'scales', scaleBuffer);
-  }
-  assertBindGroupBuffer('matmul', variant, (isQ4KF16 || isW4A16) ? 4 : 3, 'output', outputBuffer);
-  if (isQ4KResidual) {
-    if (!residualBuffer) {
-      throw new Error(`[Matmul] variant "${variant}" requires a residual buffer but none was provided.`);
-    }
-    assertBindGroupBuffer('matmul', variant, 4, 'residual', residualBuffer);
-  }
-  if (isWideTileRmsnorm) {
-    if (!normWeightBuffer) {
-      throw new Error(`[Matmul] variant "${variant}" requires a norm weight buffer but none was provided.`);
-    }
-    assertBindGroupBuffer('matmul', variant, 4, 'norm_weight', normWeightBuffer);
-  }
-
-  const entries = [
-    { binding: 0, resource: { buffer: uniformBuffer } },
-    { binding: 1, resource: { buffer: matmulInput.buffer, offset: offsets.aOffset, size: bindingSizes.aBindingSize } },
-    { binding: 2, resource: { buffer: bBuffer, offset: offsets.bOffset, size: bindingSizes.bBindingSize } },
-  ];
-
-  if (isW4A16) {
-    entries.push({
-      binding: 3,
-      resource: { buffer: scaleBuffer },
-    });
-    entries.push({
-      binding: 4,
-      resource: { buffer: outputBuffer, offset: offsets.cOffset, size: bindingSizes.cBindingSize },
-    });
-  } else if (isQ4KF16) {
-    entries.push({
-      binding: 4,
-      resource: { buffer: outputBuffer, offset: offsets.cOffset, size: bindingSizes.cBindingSize },
-    });
-  } else {
-    entries.push({
-      binding: 3,
-      resource: { buffer: outputBuffer, offset: offsets.cOffset, size: bindingSizes.cBindingSize },
-    });
-    if (isQ4KResidual) {
-      entries.push({
-        binding: 4,
-        resource: { buffer: residualBuffer },
-      });
-    }
-    if (isWideTileRmsnorm) {
-      entries.push({
-        binding: 4,
-        resource: { buffer: normWeightBuffer },
-      });
-    }
-  }
+  const resources = {
+    uniforms: { buffer: uniformBuffer },
+    input: { buffer: matmulInput?.buffer, offset: offsets.aOffset, size: bindingSizes.aBindingSize },
+    weights: { buffer: bBuffer, offset: offsets.bOffset, size: bindingSizes.bBindingSize },
+    scales: { buffer: scaleBuffer },
+    output: { buffer: outputBuffer, offset: offsets.cOffset, size: bindingSizes.cBindingSize },
+    residual: { buffer: residualBuffer },
+    norm_weight: { buffer: normWeightBuffer },
+  };
+  const entries = createKernelBindingEntries(getKernelConfig('matmul', variant), resources);
 
   return entries;
 }
@@ -592,11 +509,10 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
   let uniformBuffer = null;
   let completed = false;
   try {
-    const uniformExtras = variant === 'q4_fused_rmsnorm_widetile' && Number.isFinite(options.rmsNormEps)
-      ? { eps: options.rmsNormEps }
-      : null;
+    const uniformExtras = { eps: options.rmsNormEps };
     uniformBuffer = createMatmulUniformBuffer(
       'matmul_uniforms',
+      config,
       M,
       N,
       K,

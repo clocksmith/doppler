@@ -173,6 +173,7 @@ config/transforms/execution-graph-transforms.d.ts
 config/transforms/execution-graph/dtype.d.ts
 config/transforms/execution-graph/fusion.d.ts
 config/transforms/execution-graph/validation.d.ts
+config/wgsl-language-contract.d.ts
 converter/artifact-identity.d.ts
 converter/chronos-bolt-graph.d.ts
 converter/chronos-bolt-graph.js
@@ -397,7 +398,12 @@ gpu/kernels/dispatch.d.ts
 gpu/kernels/embedding-pool.d.ts
 gpu/kernels/fused-gate-up-gelu.d.ts
 gpu/kernels/gated-short-conv.d.ts
+gpu/kernels/generated/uniform-writers-0.d.ts
+gpu/kernels/generated/uniform-writers-1.d.ts
+gpu/kernels/generated/uniform-writers-2.d.ts
+gpu/kernels/generated/uniform-writers.d.ts
 gpu/kernels/kernel-base.d.ts
+gpu/kernels/kernel-bindings.d.ts
 gpu/kernels/kernel-execution.d.ts
 gpu/kernels/l2-normalize.d.ts
 gpu/kernels/linear-attention-core.d.ts
@@ -413,6 +419,7 @@ gpu/kernels/rule-registry.d.ts
 gpu/kernels/shader-source-scope.d.ts
 gpu/kernels/turboquant-codebook.d.ts
 gpu/kernels/types.js
+gpu/kernels/uniform-encoding.d.ts
 gpu/kernels/uniform-utils.d.ts
 gpu/kernels/utils.d.ts
 gpu/perf-guards.d.ts

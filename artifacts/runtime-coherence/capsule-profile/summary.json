@@ -1,0 +1,240 @@
+{
+  "schema": "doppler.installed-capsule-profile-summary/v1",
+  "passed": true,
+  "receiptSha256": "b078ab17f9f11faeda39fc5f42f066e7384cbc8c48d3426427c5f636ba0336dd",
+  "runtimeArchiveSha256": "852b858a1d1f5d42a951f1bed747b8e45d63c3bfad95f4e8c2e186a6d1affbd2",
+  "hardware": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "0x1586",
+    "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+    "isFallbackAdapter": false
+  },
+  "load": {
+    "elapsedMs": 158761.5,
+    "modelId": "qwen-3-4b-instruct-2507-f16-af32-closed-development",
+    "selectedTargetPlanDigest": "sha256:60711a3c83b882d015343cc07f5a942825456acc93ad0d15dddf6877c8b9a5e6",
+    "semanticRoot": "sha256:d07241fd196a5617144b2d7719848d8c993c0490f1b318c72baf0b12fe072756"
+  },
+  "runs": [
+    {
+      "label": "first-request",
+      "instrumented": false,
+      "tokenCount": 107,
+      "elapsedMs": 22774.800000190735,
+      "firstTokenMs": 12850.10000038147,
+      "decodeTokenLatencyMs": {
+        "mean": 92.98018867564652,
+        "median": 90.69999980926514,
+        "min": 87.40000009536743,
+        "max": 166.59999990463257,
+        "p95": 110.32500004768372,
+        "p99": 116.15999982357026,
+        "stdDev": 9.202209041345851,
+        "ci95": 1.7518432066858218,
+        "samples": 106,
+        "samplesAfterOutlierRemoval": 106,
+        "outliersRemoved": 0
+      },
+      "stopReason": "eos-token"
+    },
+    {
+      "label": "observed-repeated-request",
+      "instrumented": true,
+      "tokenCount": 107,
+      "elapsedMs": 22704.800000190735,
+      "firstTokenMs": 12747.800000190735,
+      "decodeTokenLatencyMs": {
+        "mean": 93.28396226325125,
+        "median": 90.90000009536743,
+        "min": 86.80000019073486,
+        "max": 112.90000009536743,
+        "p95": 107.89999997615814,
+        "p99": 111.76499972343446,
+        "stdDev": 6.385998628024988,
+        "ci95": 1.215715516148977,
+        "samples": 106,
+        "samplesAfterOutlierRemoval": 106,
+        "outliersRemoved": 0
+      },
+      "stopReason": "eos-token",
+      "firstTokenGpu": {
+        "readbacks": {
+          "finiteness_status": {
+            "calls": 1,
+            "bytes": 16
+          },
+          "matmul_output_655360": {
+            "calls": 1,
+            "bytes": 607744
+          }
+        },
+        "fenceUnionMs": 12663.000000953674,
+        "queueWaitMs": 12663.600000858307,
+        "mapWaitMs": 20.40000009536743,
+        "counts": {
+          "dispatches": 508,
+          "dispatchesCpuMs": 0.3000001907348633,
+          "submissions": 51,
+          "submissionsCpuMs": 0.40000009536743164
+        }
+      },
+      "decodeGpu": {
+        "readbacks": {
+          "logit_finalize_output_655360": {
+            "calls": 53,
+            "bytes": 32210432
+          },
+          "matmul_output_655360": {
+            "calls": 53,
+            "bytes": 32210432
+          }
+        },
+        "fenceUnionMs": 6635.999999046326,
+        "queueWaitMs": 6831.399998188019,
+        "mapWaitMs": 506.49999713897705,
+        "counts": {
+          "dispatches": 46216,
+          "dispatchesCpuMs": 13.300003051757812,
+          "submissions": 636,
+          "submissionsCpuMs": 4.7000017166137695
+        }
+      },
+      "cpuProfile": {
+        "sampleCount": 149358,
+        "durationMs": 22814.837,
+        "inclusiveEstimatedMs": {
+          "sampleCapsuleLogits": 93.77600000000035,
+          "sample": 80.40600000000033,
+          "applyRepetitionPenalty": 0,
+          "applyPresencePenalty": 0
+        },
+        "largestSelfSamples": [
+          {
+            "frame": "(idle) (:0)",
+            "estimatedMs": 17497.19900000725
+          },
+          {
+            "frame": "sha256PaddedBytesHex (http://127.0.0.1:42459/node_modules/doppler-gpu/src/formats/sha256.js:82)",
+            "estimatedMs": 2513.635000000218
+          },
+          {
+            "frame": "(garbage collector) (:0)",
+            "estimatedMs": 453.5539999999977
+          },
+          {
+            "frame": "(program) (:0)",
+            "estimatedMs": 301.58299999999616
+          },
+          {
+            "frame": "stableSortObject (http://127.0.0.1:42459/node_modules/doppler-gpu/src/formats/stable-sort-object.js:1)",
+            "estimatedMs": 272.1959999999937
+          },
+          {
+            "frame": "sha256Hex (http://127.0.0.1:42459/node_modules/doppler-gpu/src/formats/sha256.js:70)",
+            "estimatedMs": 143.65299999999976
+          },
+          {
+            "frame": "encode (:0)",
+            "estimatedMs": 124.8320000000008
+          },
+          {
+            "frame": "createBindGroup (:0)",
+            "estimatedMs": 84.59400000000024
+          },
+          {
+            "frame": "canonicalizeValue (http://127.0.0.1:42459/node_modules/doppler-gpu/src/formats/canonical-hash.js:11)",
+            "estimatedMs": 60.40300000000006
+          },
+          {
+            "frame": "canonicalJson (http://127.0.0.1:42459/node_modules/doppler-gpu/src/config/capsule-v2.js:32)",
+            "estimatedMs": 51.14600000000008
+          },
+          {
+            "frame": "hashValue (http://127.0.0.1:42459/node_modules/doppler-gpu/src/config/initial-execution-identity.js:15)",
+            "estimatedMs": 50.45200000000008
+          },
+          {
+            "frame": "sample (http://127.0.0.1:42459/node_modules/doppler-gpu/src/inference/token-sampling.js:269)",
+            "estimatedMs": 46.48400000000005
+          },
+          {
+            "frame": "getKernelPathMatmulStep (http://127.0.0.1:42459/node_modules/doppler-gpu/src/config/kernel-path-loader.js:450)",
+            "estimatedMs": 41.49300000000003
+          },
+          {
+            "frame": "selectRMSNormKernel (http://127.0.0.1:42459/node_modules/doppler-gpu/src/gpu/kernels/rmsnorm.js:128)",
+            "estimatedMs": 40.32100000000001
+          },
+          {
+            "frame": "createBuffer (:0)",
+            "estimatedMs": 37.41800000000002
+          },
+          {
+            "frame": "interpretAttentionWithRecorder (http://127.0.0.1:42459/node_modules/doppler-gpu/src/inference/pipelines/text/attention/interpreter.js:78)",
+            "estimatedMs": 35.77700000000003
+          },
+          {
+            "frame": "summarizeLogitHealth (http://127.0.0.1:42459/node_modules/doppler-gpu/src/inference/token-sampling.js:67)",
+            "estimatedMs": 33.92200000000003
+          },
+          {
+            "frame": "device.createBindGroup (http://127.0.0.1:42459/node_modules/doppler-gpu/src/gpu/device.js:227)",
+            "estimatedMs": 33.74500000000001
+          },
+          {
+            "frame": "toSha256PaddedBytesFromData (http://127.0.0.1:42459/node_modules/doppler-gpu/src/formats/sha256.js:35)",
+            "estimatedMs": 32.307999999999964
+          },
+          {
+            "frame": "matchesRule (http://127.0.0.1:42459/node_modules/doppler-gpu/src/rules/rule-matcher.js:1)",
+            "estimatedMs": 30.75699999999998
+          },
+          {
+            "frame": "validateAttentionVariant (http://127.0.0.1:42459/node_modules/doppler-gpu/src/gpu/kernels/attention/plan.js:204)",
+            "estimatedMs": 21.60599999999999
+          },
+          {
+            "frame": "acquire (http://127.0.0.1:42459/node_modules/doppler-gpu/src/memory/buffer-pool.js:229)",
+            "estimatedMs": 20.99399999999999
+          },
+          {
+            "frame": "extractLastPositionLogits (http://127.0.0.1:42459/node_modules/doppler-gpu/src/experimental/logits/cpu-output.js:5)",
+            "estimatedMs": 19.374999999999975
+          },
+          {
+            "frame": "hashUniformBytes (http://127.0.0.1:42459/node_modules/doppler-gpu/src/gpu/uniform-cache.js:7)",
+            "estimatedMs": 19.189999999999973
+          },
+          {
+            "frame": "structuredClone (:0)",
+            "estimatedMs": 18.34099999999998
+          }
+        ],
+        "caveat": "Statistical stack samples including observation overhead, not exact timers or independent additive costs."
+      }
+    },
+    {
+      "label": "unobserved-repeated-request",
+      "instrumented": false,
+      "tokenCount": 107,
+      "elapsedMs": 22439.300000190735,
+      "firstTokenMs": 12744.199999809265,
+      "decodeTokenLatencyMs": {
+        "mean": 90.81037735939026,
+        "median": 89.10000014305115,
+        "min": 86.30000019073486,
+        "max": 108.60000038146973,
+        "p95": 102.87500011920929,
+        "p99": 105.39500007629394,
+        "stdDev": 4.834418855200028,
+        "ci95": 0.9203381266067585,
+        "samples": 106,
+        "samplesAfterOutlierRemoval": 106,
+        "outliersRemoved": 0
+      },
+      "stopReason": "eos-token"
+    }
+  ],
+  "scope": "One local diagnostic population, cold first request and warm repeated requests. No baseline/candidate speedup comparison. Readback bytes count API copies, not measured bus throughput. Queue and map waits overlap; use fence union, not their sum."
+}

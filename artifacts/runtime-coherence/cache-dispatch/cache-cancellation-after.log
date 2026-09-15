@@ -1,0 +1,71 @@
+TAP version 13
+# Subtest: layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+ok 1 - layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+  ---
+  duration_ms: 8.476937
+  type: 'test'
+  ...
+# Subtest: compute cache distinguishes actual layouts and shader bytes
+ok 2 - compute cache distinguishes actual layouts and shader bytes
+  ---
+  duration_ms: 1.94055
+  type: 'test'
+  ...
+# [119.7ms][GPU] Device lost: injected loss, Reason: unknown
+# Subtest: concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+ok 3 - concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+  ---
+  duration_ms: 3.851886
+  type: 'test'
+  ...
+# Subtest: device loss during compilation rejects the result and cannot populate the cache
+ok 4 - device loss during compilation rejects the result and cannot populate the cache
+  ---
+  duration_ms: 2.78028
+  type: 'test'
+  ...
+# Subtest: abort during compilation rejects without submitting or destroying borrowed buffers
+ok 5 - abort during compilation rejects without submitting or destroying borrowed buffers
+  ---
+  duration_ms: 8.631848
+  type: 'test'
+  ...
+# Subtest: abort during binding preparation cannot submit
+ok 6 - abort during binding preparation cannot submit
+  ---
+  duration_ms: 0.501123
+  type: 'test'
+  ...
+# Subtest: device loss during compilation cannot submit
+ok 7 - device loss during compilation cannot submit
+  ---
+  duration_ms: 0.666423
+  type: 'test'
+  ...
+# Subtest: post-submission cancellation reports submitted work rather than successful completion
+ok 8 - post-submission cancellation reports submitted work rather than successful completion
+  ---
+  duration_ms: 3.65144
+  type: 'test'
+  ...
+# Subtest: successful dispatch distinguishes submission from observed completion
+ok 9 - successful dispatch distinguishes submission from observed completion
+  ---
+  duration_ms: 0.550456
+  type: 'test'
+  ...
+# Subtest: failed compilation can be retried
+ok 10 - failed compilation can be retried
+  ---
+  duration_ms: 0.707201
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 157.103633

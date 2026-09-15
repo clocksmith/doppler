@@ -28,7 +28,7 @@ async function _scale(target, input, scale, options = {}) {
       target,
       variant,
       bindings,
-      { size: inferredCount, scale },
+      { count: inferredCount, scale },
       Math.ceil(inferredCount / WORKGROUP_SIZES.DEFAULT)
     );
     return createTensor(outputBuf, input.dtype, [...input.shape], 'scale_output');

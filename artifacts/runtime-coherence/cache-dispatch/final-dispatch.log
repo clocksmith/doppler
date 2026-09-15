@@ -1,0 +1,111 @@
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# capsule-command-executor-physical.test.js: physical WebGPU dispatch/readback passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.986136
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 162.963911
+[node-tests] ok: tests/kernels/capsule-command-executor-physical.test.js
+TAP version 13
+# ✔ capsule-forecast.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.843207
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 133.122345
+[node-tests] ok: tests/runtime/capsule-forecast.test.js
+TAP version 13
+# ✔ capsule-operation.test.js passed (injected program; contract evidence only)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.776071
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 223.624721
+[node-tests] ok: tests/runtime/capsule-operation.test.js
+TAP version 13
+# Subtest: abort during compilation rejects without submitting or destroying borrowed buffers
+ok 1 - abort during compilation rejects without submitting or destroying borrowed buffers
+  ---
+  duration_ms: 7.271989
+  type: 'test'
+  ...
+# Subtest: abort during binding preparation cannot submit
+ok 2 - abort during binding preparation cannot submit
+  ---
+  duration_ms: 0.654963
+  type: 'test'
+  ...
+# Subtest: device loss during compilation cannot submit
+ok 3 - device loss during compilation cannot submit
+  ---
+  duration_ms: 0.393501
+  type: 'test'
+  ...
+# Subtest: post-submission cancellation reports submitted work rather than successful completion
+ok 4 - post-submission cancellation reports submitted work rather than successful completion
+  ---
+  duration_ms: 3.38388
+  type: 'test'
+  ...
+# Subtest: successful dispatch distinguishes submission from observed completion
+ok 5 - successful dispatch distinguishes submission from observed completion
+  ---
+  duration_ms: 0.417346
+  type: 'test'
+  ...
+# Subtest: failed compilation can be retried
+ok 6 - failed compilation can be retried
+  ---
+  duration_ms: 0.533885
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 7 - test module initialization completed
+  ---
+  duration_ms: 0.1171
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 109.347241
+[node-tests] ok: tests/runtime/command-executor-cancellation.test.js
+[node-tests] ok: 4 files

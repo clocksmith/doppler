@@ -1,0 +1,32 @@
+{
+  "schema": "doppler.runtime-closure-policy/v1",
+  "entrypoint": "src/capsule-runtime.js",
+  "forbiddenPatterns": [
+    "/src/converter/",
+    "/src/training/",
+    "/src/experimental/",
+    "/src/models/",
+    "/src/tooling/",
+    "/src/cli/",
+    "/src/client/provider.js",
+    "/src/config/conversion/"
+  ],
+  "dynamicImports": [
+    {
+      "path": "src/formats/load-json.js",
+      "expression": "nodeModule('fs/promises')",
+      "specifier": "node:fs/promises",
+      "environment": "node",
+      "sourceHash": "sha256:71761a83b6d7a0e89962592f6d3181f9524eb6784bafb1879dcd4316b936ed5f",
+      "reason": "Reviewed file-URL branch uses Node built-ins; browser branch fetches the declared JSON resource."
+    },
+    {
+      "path": "src/formats/load-json.js",
+      "expression": "nodeModule('url')",
+      "specifier": "node:url",
+      "environment": "node",
+      "sourceHash": "sha256:71761a83b6d7a0e89962592f6d3181f9524eb6784bafb1879dcd4316b936ed5f",
+      "reason": "Reviewed file-URL branch uses Node built-ins; browser branch fetches the declared JSON resource."
+    }
+  ]
+}

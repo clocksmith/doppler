@@ -1,0 +1,8 @@
+{
+  "schema": "doppler.matmul-geometry-regression/v1",
+  "baselineRevision": "5a176f9c",
+  "method": "Verbatim previous dispatch function; control geometry only, no numerical GPU claim",
+  "equal": 740,
+  "rejectedBeforeInvalidDispatch": 28,
+  "errors": []
+}

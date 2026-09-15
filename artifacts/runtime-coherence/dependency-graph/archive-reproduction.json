@@ -1,0 +1,8 @@
+{
+  "baseRevision": "4de1a21f3281b1fa8af22d5a992954febf243133",
+  "sha256": "068b2bbfb3b0568bb54eface1fee61809a703a3ec8cf4d49b6ecb8879900d490",
+  "sizeBytes": 2118763,
+  "node": "v22.22.1",
+  "npm": "9.2.0",
+  "acceptedReceipt": "../subgroups/standalone-receipt.json"
+}
