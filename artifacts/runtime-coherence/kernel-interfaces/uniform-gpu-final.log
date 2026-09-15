@@ -1,0 +1,741 @@
+TAP version 13
+# kernel-registry-loader.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.195772
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 108.977111
+[node-tests] ok: tests/config/kernel-registry-loader.test.js
+TAP version 13
+# adam-logical-shape-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.178639
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 106.877729
+[node-tests] ok: tests/gpu/adam-logical-shape-contract.test.js
+TAP version 13
+# [111.4ms][KernelSelect] attention variant=decode_online_f16kv reason=subgroup_capable
+# [120.3ms][KernelSelect] attention variant=decode_online_head256_f16kv_output_gate reason=path_override:subgroup
+# attention-online-constants.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.238051
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 157.140202
+[node-tests] ok: tests/gpu/attention-online-constants.test.js
+TAP version 13
+# cast-large-dispatch-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.08361
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 88.894657
+[node-tests] ok: tests/gpu/cast-large-dispatch-contract.test.js
+TAP version 13
+# check-stop-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.114439
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 131.532904
+[node-tests] ok: tests/gpu/check-stop-cleanup.test.js
+TAP version 13
+# [83.2ms][CommandRecorder] Deferred cleanup failed: device lost
+# [96.6ms][CommandRecorder] Failed to initialize profiling: Error: createBuffer failed at 2
+# command-recorder-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.167148
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 131.988071
+[node-tests] ok: tests/gpu/command-recorder-cleanup.test.js
+TAP version 13
+# cross-entropy-ignore-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.046321
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 94.573671
+[node-tests] ok: tests/gpu/cross-entropy-ignore-contract.test.js
+TAP version 13
+# dequant-numeric.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.176325
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 139.501399
+[node-tests] ok: tests/gpu/dequant-numeric.test.js
+TAP version 13
+# [104.7ms][GPU] Device lost: current device lost, Reason: destroyed
+# [107.6ms][GPU] Device lost: current device lost, Reason: destroyed
+# device-buffer-pool-epoch.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.194228
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 148.815136
+[node-tests] ok: tests/gpu/device-buffer-pool-epoch.test.js
+TAP version 13
+# [86.1ms][Platform] No specific platform matched for adapter (vendor=unit, arch=feature-retry), falling back to generic
+# [93.1ms][GPU] Failed to request device with features [shader-f16, subgroups, timestamp-query]: timestamp-query denied in this context
+# [GPU] unit feature-retry, f16/subgroups, 0.0GB, submit probe: 0.0ms
+# device-feature-retry.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.224416
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 135.596206
+[node-tests] ok: tests/gpu/device-feature-retry.test.js
+TAP version 13
+# device-gpubuffer-constructor.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.084151
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 116.893128
+[node-tests] ok: tests/gpu/device-gpubuffer-constructor.test.js
+TAP version 13
+# [97.5ms][Platform] No specific platform matched for adapter (vendor=unit, arch=device-ownership), falling back to generic
+# [GPU] unit device-ownership, basic, 0.0GB
+# [106.2ms][Platform] No specific platform matched for adapter (vendor=unit, arch=device-ownership), falling back to generic
+# [GPU] unit device-ownership, basic, 0.0GB
+# device-ownership-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.137341
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 141.041308
+[node-tests] ok: tests/gpu/device-ownership-contract.test.js
+TAP version 13
+# dispatch-device-loss-context.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.185031
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 116.531516
+[node-tests] ok: tests/gpu/dispatch-device-loss-context.test.js
+TAP version 13
+# energy-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.137332
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 144.20772
+[node-tests] ok: tests/gpu/energy-cleanup.test.js
+TAP version 13
+# gather-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.192305
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 144.977009
+[node-tests] ok: tests/gpu/gather-contract.test.js
+TAP version 13
+# [162.2ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+# kernel-contract-regressions.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.140798
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 204.236604
+[node-tests] ok: tests/gpu/kernel-contract-regressions.test.js
+TAP version 13
+# kernel-language-selection.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.161117
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 132.257208
+[node-tests] ok: tests/gpu/kernel-language-selection.test.js
+TAP version 13
+# kernel-uniform-writers.test: 343 variants, 2894 fields passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.177638
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 518.641494
+[node-tests] ok: tests/gpu/kernel-uniform-writers.test.js
+TAP version 13
+# [145.6ms][KernelSelect] matmul variant=gemv_subgroup_vec4 reason=gemv
+# [146.5ms][KernelSelect] matmul variant=f32 reason=default
+# kernel-wrapper-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.148673
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 187.868293
+[node-tests] ok: tests/gpu/kernel-wrapper-cleanup.test.js
+TAP version 13
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.043135
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 166.616145
+[node-tests] ok: tests/gpu/lm-head-argmax-recorder.test.js
+TAP version 13
+# [81.4ms][LogitMerge] Kernel initialized
+# [83.6ms][LogitMerge] Kernel initialized
+# [84.8ms][LogitMerge] Kernel initialized
+# [85.9ms][LogitMerge] Kernel initialized
+# [86.9ms][LogitMerge] Kernel initialized
+# logit-merge-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.084893
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 124.999121
+[node-tests] ok: tests/gpu/logit-merge-cleanup.test.js
+TAP version 13
+# matmul-backward-transpose-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.049847
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 163.314739
+[node-tests] ok: tests/gpu/matmul-backward-transpose-contract.test.js
+TAP version 13
+# matmul-dispatch-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.20023
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 132.252369
+[node-tests] ok: tests/gpu/matmul-dispatch-contract.test.js
+TAP version 13
+# pipeline-cache-hot-path.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.055257
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 133.619374
+[node-tests] ok: tests/gpu/pipeline-cache-hot-path.test.js
+TAP version 13
+# Subtest: layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+ok 1 - layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+  ---
+  duration_ms: 7.310716
+  type: 'test'
+  ...
+# Subtest: compute cache distinguishes actual layouts and shader bytes
+ok 2 - compute cache distinguishes actual layouts and shader bytes
+  ---
+  duration_ms: 1.559196
+  type: 'test'
+  ...
+# [104.7ms][GPU] Device lost: injected loss, Reason: unknown
+# Subtest: concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+ok 3 - concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+  ---
+  duration_ms: 2.680667
+  type: 'test'
+  ...
+# Subtest: device loss during compilation rejects the result and cannot populate the cache
+ok 4 - device loss during compilation rejects the result and cannot populate the cache
+  ---
+  duration_ms: 2.646844
+  type: 'test'
+  ...
+# Subtest: device replacement while shader diagnostics are pending cannot compile a pipeline
+ok 5 - device replacement while shader diagnostics are pending cannot compile a pipeline
+  ---
+  duration_ms: 1.116012
+  type: 'test'
+  ...
+# Subtest: clearing caches during compilation prevents late cache publication
+ok 6 - clearing caches during compilation prevents late cache publication
+  ---
+  duration_ms: 0.553152
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 7 - test module initialization completed
+  ---
+  duration_ms: 0.112541
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 140.445217
+[node-tests] ok: tests/gpu/pipeline-cache-identity.test.js
+TAP version 13
+# readback-utils.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.948857
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 95.852929
+[node-tests] ok: tests/gpu/readback-utils.test.js
+TAP version 13
+# rep-penalty-rules.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.001225
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 131.436173
+[node-tests] ok: tests/gpu/rep-penalty-rules.test.js
+TAP version 13
+# rmsnorm-stats-ownership.test: 24 allocation/compilation/dispatch/ownership cases passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.101945
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 141.789908
+[node-tests] ok: tests/gpu/rmsnorm-stats-ownership.test.js
+TAP version 13
+# rope-precompute-dispatch-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.995234
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 134.335572
+[node-tests] ok: tests/gpu/rope-precompute-dispatch-contract.test.js
+TAP version 13
+# rule-matcher.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.865951
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 109.099754
+[node-tests] ok: tests/gpu/rule-matcher.test.js
+TAP version 13
+# runtime-infra-regressions.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.972812
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 124.400504
+[node-tests] ok: tests/gpu/runtime-infra-regressions.test.js
+TAP version 13
+# sample-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.000554
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 164.185349
+[node-tests] ok: tests/gpu/sample-cleanup.test.js
+TAP version 13
+# shader-source-scope.test: ok (contract doubles, not GPU execution)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.84412
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 111.358165
+[node-tests] ok: tests/gpu/shader-source-scope.test.js
+TAP version 13
+# unified-wrapper-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.044386
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 161.572247
+[node-tests] ok: tests/gpu/unified-wrapper-cleanup.test.js
+TAP version 13
+# uniform-array-buffer.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.979264
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113.789945
+[node-tests] ok: tests/gpu/uniform-array-buffer.test.js
+TAP version 13
+# weight-buffer-provider-buffer.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.876861
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100.541368
+[node-tests] ok: tests/gpu/weight-buffer-provider-buffer.test.js
+TAP version 13
+# kernel-uniform-generation.test: changed layout, incompatible wrapper, reuse, deterministic generation, padding authority passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.031802
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 125.507839
+[node-tests] ok: tests/tooling/kernel-uniform-generation.test.js
+TAP version 13
+# wgsl-interface.test: passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.891759
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 107.114966
+[node-tests] ok: tests/tooling/wgsl-interface.test.js
+[node-tests] ok: 38 files

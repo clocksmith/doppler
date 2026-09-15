@@ -1,0 +1,3006 @@
+{
+  "sourceRevision": "5a176f9c",
+  "method": "Whole-module declarations, including resources unused by a selected entry point; not all differences are defects",
+  "diffs": [
+    {
+      "kernel": "matmul/q4_fused_f16a",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/w4a16_multicol_f16a",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_words",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "S_words",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/w4a16_multicol_f16a_f32out",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_words",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "S_words",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C_f32",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/w4a16_batched_f16a",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_words",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "S_words",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/w4a16_batched_f16a_f32out",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_words",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "S_words",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C_f32",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/q4_fused_multicol_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/q4_fused_multicol_f16a",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/q4_fused_multicol_f16a_f32acc",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/q4_fused_batched_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/q4_fused_batched_f16a",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/q4_fused_batched_f16acc_f16a",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/q4_fused_prefill_tiled_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/q4_fused_widetile_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/q4_fused_widetile_f16a",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/q4_fused_rmsnorm_widetile",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "norm_weight",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "matmul/q4_fused_widetile_residual",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "A",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "B_q4k",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "C",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "dequant/mxfp4",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "blocks",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "scales",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "dequant/mxfp4_expert",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "bindings": [
+        {
+          "name": "eu",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "expert_blocks",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "expert_scales",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "expert_output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "dequant/mxfp4_expert_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "bindings": [
+        {
+          "name": "eu",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "expert_blocks",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "expert_scales",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "expert_output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "dequant/mxfp4_expert_fused_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "bindings": [
+        {
+          "name": "eu",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "expert_blocks",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "expert_scales",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "expert_output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "attention/prefill_flash_head256_f16kv",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage",
+        "5:read-only-storage",
+        "6:read-only-storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage",
+        "5:storage",
+        "6:storage",
+        "7:read-only-storage",
+        "8:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "Q",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "K",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "V",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "partial_acc",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "partial_m",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        },
+        {
+          "name": "partial_l",
+          "group": 0,
+          "index": 6,
+          "type": "storage"
+        },
+        {
+          "name": "kv_len_buffer",
+          "group": 0,
+          "index": 7,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "page_table",
+          "group": 0,
+          "index": 8,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "attention/prefill_flash_reduce",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage",
+        "5:read-only-storage",
+        "6:read-only-storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "partial_acc",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "partial_m",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "partial_l",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "attention/decode_online_head256_f16kv_output_gate",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage",
+        "5:read-only-storage",
+        "6:read-only-storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage",
+        "5:read-only-storage",
+        "6:read-only-storage",
+        "7:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "Q",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "K",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "V",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "kv_len_buffer",
+          "group": 0,
+          "index": 5,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "page_table",
+          "group": 0,
+          "index": 6,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output_gate",
+          "group": 0,
+          "index": 7,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "attention_tiered_quant/decode_tiered_turboquant_f16kv",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:read-only-storage",
+        "5:read-only-storage",
+        "6:read-only-storage",
+        "7:read-only-storage",
+        "8:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "10:read-only-storage",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:read-only-storage",
+        "5:read-only-storage",
+        "6:read-only-storage",
+        "7:read-only-storage",
+        "8:storage",
+        "9:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "Q",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "K_hot",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "V_hot",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "K_cold",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "V_cold",
+          "group": 0,
+          "index": 5,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "scales_k",
+          "group": 0,
+          "index": 6,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "scales_v",
+          "group": 0,
+          "index": 7,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 8,
+          "type": "storage"
+        },
+        {
+          "name": "rotation_matrix",
+          "group": 0,
+          "index": 9,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "codebook_centroids",
+          "group": 0,
+          "index": 10,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "attention_tiered_quant/decode_tiered_turboquant_prod_f16kv",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:read-only-storage",
+        "5:read-only-storage",
+        "6:read-only-storage",
+        "7:read-only-storage",
+        "8:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "10:read-only-storage",
+        "11:read-only-storage",
+        "12:storage",
+        "13:read-only-storage",
+        "14:read-only-storage",
+        "15:read-only-storage",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:read-only-storage",
+        "5:read-only-storage",
+        "6:read-only-storage",
+        "7:read-only-storage",
+        "8:read-only-storage",
+        "9:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "Q",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "K_hot",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "V_hot",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "K_cold_mse",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "V_cold_mse",
+          "group": 0,
+          "index": 5,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "scales_k",
+          "group": 0,
+          "index": 6,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "scales_v",
+          "group": 0,
+          "index": 7,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_k",
+          "group": 0,
+          "index": 8,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_v",
+          "group": 0,
+          "index": 9,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_norms_k",
+          "group": 0,
+          "index": 10,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_norms_v",
+          "group": 0,
+          "index": 11,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 12,
+          "type": "storage"
+        },
+        {
+          "name": "rotation_matrix",
+          "group": 0,
+          "index": 13,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "codebook_centroids",
+          "group": 0,
+          "index": 14,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "qjl_matrix",
+          "group": 0,
+          "index": 15,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "attention_contiguous_quant/decode_contiguous_turboquant_prod_f16kv",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:read-only-storage",
+        "5:read-only-storage",
+        "6:storage",
+        "7:read-only-storage",
+        "8:read-only-storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "10:storage",
+        "11:read-only-storage",
+        "12:read-only-storage",
+        "13:read-only-storage",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:read-only-storage",
+        "5:read-only-storage",
+        "6:read-only-storage",
+        "7:read-only-storage",
+        "8:read-only-storage",
+        "9:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "Q",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "K_packed_mse",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "V_packed_mse",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "scales_k",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "scales_v",
+          "group": 0,
+          "index": 5,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_k",
+          "group": 0,
+          "index": 6,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_v",
+          "group": 0,
+          "index": 7,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_norms_k",
+          "group": 0,
+          "index": 8,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_norms_v",
+          "group": 0,
+          "index": 9,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 10,
+          "type": "storage"
+        },
+        {
+          "name": "rotation_matrix",
+          "group": 0,
+          "index": 11,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "codebook_centroids",
+          "group": 0,
+          "index": 12,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "qjl_matrix",
+          "group": 0,
+          "index": 13,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "kv_quantize/turboquant",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:storage",
+        "5:storage",
+        "6:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:storage",
+        "5:storage",
+        "6:storage",
+        "7:read-only-storage",
+        "8:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input_k",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "input_v",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output_k",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "output_v",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "scales_k",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        },
+        {
+          "name": "scales_v",
+          "group": 0,
+          "index": 6,
+          "type": "storage"
+        },
+        {
+          "name": "rotation_matrix",
+          "group": 0,
+          "index": 7,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "codebook_boundaries",
+          "group": 0,
+          "index": 8,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "kv_quantize/turboquant_prod",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:storage",
+        "5:storage",
+        "6:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "10:storage",
+        "11:read-only-storage",
+        "12:read-only-storage",
+        "13:read-only-storage",
+        "14:read-only-storage",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:storage",
+        "5:storage",
+        "6:storage",
+        "7:storage",
+        "8:storage",
+        "9:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input_k",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "input_v",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output_k_mse",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "output_v_mse",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "scales_k",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        },
+        {
+          "name": "scales_v",
+          "group": 0,
+          "index": 6,
+          "type": "storage"
+        },
+        {
+          "name": "residual_k",
+          "group": 0,
+          "index": 7,
+          "type": "storage"
+        },
+        {
+          "name": "residual_v",
+          "group": 0,
+          "index": 8,
+          "type": "storage"
+        },
+        {
+          "name": "residual_norms_k",
+          "group": 0,
+          "index": 9,
+          "type": "storage"
+        },
+        {
+          "name": "residual_norms_v",
+          "group": 0,
+          "index": 10,
+          "type": "storage"
+        },
+        {
+          "name": "rotation_matrix",
+          "group": 0,
+          "index": 11,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "codebook_centroids",
+          "group": 0,
+          "index": 12,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "codebook_boundaries",
+          "group": 0,
+          "index": 13,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "qjl_matrix",
+          "group": 0,
+          "index": 14,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "rmsnorm/default",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_sum_output",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "rmsnorm/small",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_sum_output",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "rmsnorm/residual",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_sum_output",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "rmsnorm/subgroup",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_sum_output",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "rmsnorm/small_subgroup",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_sum_output",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "rmsnorm/default_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_sum_output",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "rmsnorm/small_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:read-only-storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 4,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "residual_sum_output",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "fused_matmul_rmsnorm/small",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage",
+        "5:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "norm_weight",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 5,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "fused_matmul_rmsnorm/medium",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage",
+        "5:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "norm_weight",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 5,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "fused_matmul_rmsnorm/phase1",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage",
+        "5:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "norm_weight",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 5,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "fused_matmul_rmsnorm/small_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage",
+        "5:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "norm_weight",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 5,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "fused_matmul_rmsnorm/medium_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage",
+        "5:read-only-storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "weight",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "norm_weight",
+          "group": 0,
+          "index": 3,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "residual",
+          "group": 0,
+          "index": 5,
+          "type": "read-only-storage"
+        }
+      ]
+    },
+    {
+      "kernel": "soft_embedding/logits_norm_stats",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:storage",
+        "3:storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "logits",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "row_max",
+          "group": 0,
+          "index": 2,
+          "type": "storage"
+        },
+        {
+          "name": "row_sum",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "probabilities",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "gather/f16_out",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "indices",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "embeddings",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "gather/vec4_f16_out",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "indices",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "embeddings",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "gather/f16_f16_out",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "indices",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "embeddings",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "gather/f16_vec4_f16_out",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "indices",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "embeddings",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "gather/litert_int4_vec4_f16_out",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "indices",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "embeddings_words",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output_f16",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "gather/litert_int4_vec4_f32_out",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "4:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "indices",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "embeddings_words",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output_f32",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "moe_gather/count",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "hidden_states",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "expert_indices",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "gathered",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "token_counts",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "token_map",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "moe_gather/count_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "hidden_states",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "expert_indices",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "gathered",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "token_counts",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "token_map",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "moe_gather/gather",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "hidden_states",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "expert_indices",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "gathered",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "token_counts",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "token_map",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "moe_gather/gather_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "hidden_states",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "expert_indices",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "gathered",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "token_counts",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "token_map",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "moe_gather/single_pass",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage",
+        "4:storage",
+        "5:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "hidden_states",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "expert_indices",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "gathered",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        },
+        {
+          "name": "token_counts",
+          "group": 0,
+          "index": 4,
+          "type": "storage"
+        },
+        {
+          "name": "token_map",
+          "group": 0,
+          "index": 5,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "swiglu/rowsplit_bias",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "bias",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "swiglu/rowsplit_bias_f16",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:read-only-storage",
+        "4:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "bias",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "silu_backward/default",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "input",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "grad_output",
+          "group": 0,
+          "index": 2,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 3,
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "kernel": "scale_backward/default",
+      "declared": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:read-only-storage",
+        "3:storage"
+      ],
+      "actual": [
+        "0:uniform",
+        "1:read-only-storage",
+        "2:storage"
+      ],
+      "bindings": [
+        {
+          "name": "u",
+          "group": 0,
+          "index": 0,
+          "type": "uniform"
+        },
+        {
+          "name": "grad_output",
+          "group": 0,
+          "index": 1,
+          "type": "read-only-storage"
+        },
+        {
+          "name": "output",
+          "group": 0,
+          "index": 2,
+          "type": "storage"
+        }
+      ]
+    }
+  ]
+}

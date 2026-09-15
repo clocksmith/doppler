@@ -13,12 +13,12 @@ import { moduleSpecifiers } from './lib/javascript-dependency-graph.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGE_CONTENT_LIMITS = Object.freeze({
-  // Cache/cancellation and subgroup contract repairs: exact installed inventory
-  // artifacts/runtime-coherence/subgroups/standalone-npm-pack.json.
+  // Registry-driven interfaces: exact installed inventory retained in
+  // artifacts/runtime-coherence/kernel-interfaces/standalone-npm-pack.json.
   // Keep the existing observed 2,158-byte cross-toolchain compression allowance.
-  maxEntryCount: 1790,
-  maxPackedSize: 2_120_921,
-  maxUnpackedSize: 10_917_992,
+  maxEntryCount: 1796,
+  maxPackedSize: 2_133_074,
+  maxUnpackedSize: 11_133_861,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

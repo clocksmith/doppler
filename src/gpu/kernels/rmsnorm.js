@@ -189,7 +189,7 @@ export async function runRMSNorm(
       variant,
       kernelBindings,
       {
-        hidden_size: inferredHiddenSize,
+        size: inferredHiddenSize,
         num_tokens: batchSize,
         eps,
         has_residual: residual ? 1 : 0,
@@ -265,7 +265,7 @@ export async function recordRMSNorm(
       variant,
       kernelBindings,
       {
-        hidden_size: inferredHiddenSize,
+        size: inferredHiddenSize,
         num_tokens: batchSize,
         eps,
         has_residual: residual ? 1 : 0,

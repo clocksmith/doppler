@@ -1,0 +1,256 @@
+{
+  "schema": "doppler.changed-source-inventory/v1",
+  "baseRevision": "5a176f9c507fe718ce78fcac9c97153c58bbc3b6",
+  "files": [
+    {
+      "path": "docs/developer-guides/11-wgsl-kernel.md",
+      "sha256": "947f7c5138c66f21cbb55babf09b49b1d791099e121756c6a8a725e01d77e8c8",
+      "bytes": 4412
+    },
+    {
+      "path": "docs/style/config-style-guide.md",
+      "sha256": "b36678287388e291eb9f16ab70e20e5580259506172653826087aa9cdc46dcbb",
+      "bytes": 12912
+    },
+    {
+      "path": "docs/style/wgsl-style-guide.md",
+      "sha256": "3bfbb3682ca858e3275854090cae5e341d05ccf49c9c99af2d29406b8040a0bf",
+      "bytes": 21884
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "07c43756b32d845688e7cd7216e877f273e2ab2fa4a7e074863e5b66d39cbe35",
+      "bytes": 185967
+    },
+    {
+      "path": "package.json",
+      "sha256": "b996d818b74c3d23df73073376abe71ac9c396e5eaea3247314ac7982b7c2417",
+      "bytes": 30112
+    },
+    {
+      "path": "reports/capsule-runtime/runtime-closure.json",
+      "sha256": "a1fd5f2d305161b5cd9a49fb6a305d52d3ec1975d13c158c6034a3932e07740b",
+      "bytes": 12439
+    },
+    {
+      "path": "src/.npmignore",
+      "sha256": "36905c570e461c892ddf30f67b398e145be19a369e5ee03b0aa31d00c21f0ec1",
+      "bytes": 36541
+    },
+    {
+      "path": "src/config/kernel-registry-contract.d.ts",
+      "sha256": "abcd3c739eb8cc7b01638d0485d21ad298f4f6d65e0d6d4e50400ecf4ab52f09",
+      "bytes": 924
+    },
+    {
+      "path": "src/config/kernel-registry-contract.js",
+      "sha256": "d0f2cf0f6ce8efc99697e497c55dd10f401214239a9eaab38430289eb4ee3387",
+      "bytes": 2341
+    },
+    {
+      "path": "src/config/kernels/registry.js",
+      "sha256": "5370bf22394dd13a172139f00d05b86fe53ca0872868f3ca991e41183adacac4",
+      "bytes": 2196
+    },
+    {
+      "path": "src/config/kernels/registry.json",
+      "sha256": "c98fa26216272b37317a6efac834d2f0754e8bc0f8908a24938d1922e2403c48",
+      "bytes": 422005
+    },
+    {
+      "path": "src/config/schema/kernel-registry.schema.d.ts",
+      "sha256": "aa7800987952b4c6a5d4f7971e5cd9958bb21747e183ee47849b8acd9e869751",
+      "bytes": 5265
+    },
+    {
+      "path": "src/config/schema/kernel-registry.schema.js",
+      "sha256": "c32d842c7db094cb88a6484876edb5bd449b7c181be4454ca941124556354210",
+      "bytes": 1682
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-0.d.ts",
+      "sha256": "0c0f20eff7c4174e89b5bad767c411dd9840d9ac7fb956fa989b421fcc08d41c",
+      "bytes": 13124
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-0.js",
+      "sha256": "c9f3f6d79075a59b5a0e443fc7dee7130b2cd2b11cda531e83eb9cf20a69e252",
+      "bytes": 29604
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-1.d.ts",
+      "sha256": "e0bd5a9a893a1e6b7505baa749a2619457de9472f8d183b510b066be9d53c9cf",
+      "bytes": 13186
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-1.js",
+      "sha256": "724accd31397b788d34bddb1f20011a52a1ac6b5a395eba012ef0b1de7cd0d5d",
+      "bytes": 28440
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-2.d.ts",
+      "sha256": "45797a08abffe973f003cabba925452a7d3ada1b12c5de7c875e127887abe675",
+      "bytes": 3761
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-2.js",
+      "sha256": "57ef8de17a5a6b39315c5fd913b364df884ec3f70a99135569cb1a87d5f12ac3",
+      "bytes": 7715
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers.d.ts",
+      "sha256": "e935059fe3d63de1c7a1ad162cdcd723c2537bbe5fb4a88ab7fb2e9b939aa1af",
+      "bytes": 31247
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers.js",
+      "sha256": "08a0366b608024514c74290c9f490eebe6955a2c9001b486675af0410359155c",
+      "bytes": 30712
+    },
+    {
+      "path": "src/gpu/kernels/kernel-bindings.d.ts",
+      "sha256": "c0eadb5e174dae1815f3558929f2fc0f3ee4a4380a0237923677d5d62278f96b",
+      "bytes": 349
+    },
+    {
+      "path": "src/gpu/kernels/kernel-bindings.js",
+      "sha256": "969d658be4095a858fa7ffd8790c514bbc5aab9e224f2ef1ea13a7ffb5fa72bd",
+      "bytes": 962
+    },
+    {
+      "path": "src/gpu/kernels/kernel-execution.js",
+      "sha256": "0d8edb189a0bd12af496a58a890d919ae31660348aa6cc41038e0134d00d9682",
+      "bytes": 4489
+    },
+    {
+      "path": "src/gpu/kernels/layernorm.js",
+      "sha256": "b9df47b849b8ee7ae048f5ad71f42ab86f49d5c166f997376e252d540b16f99e",
+      "bytes": 4180
+    },
+    {
+      "path": "src/gpu/kernels/matmul-dispatch.d.ts",
+      "sha256": "98c6c96f02a8f637a926781a385ac8ca69ededdc06fc8b17972a5e631b3e8732",
+      "bytes": 1547
+    },
+    {
+      "path": "src/gpu/kernels/matmul-dispatch.js",
+      "sha256": "1c2aca5199d7d8064def24e9f3e6b75da12a5b6f64f40fa6e4acd5fd57d0fb23",
+      "bytes": 3908
+    },
+    {
+      "path": "src/gpu/kernels/matmul.js",
+      "sha256": "0cf830bb8ea451d11ecfd880e8c417d916be23820a693a07e3850c5d7b3c2cb4",
+      "bytes": 20976
+    },
+    {
+      "path": "src/gpu/kernels/rmsnorm-pair.js",
+      "sha256": "471fce0f8fdd6d26b91783af132b5abd9414625e8a1f9c261a60096c06739aa6",
+      "bytes": 8275
+    },
+    {
+      "path": "src/gpu/kernels/rmsnorm-stats.js",
+      "sha256": "b048f240ecb5be4e8309807ed5c6b6e4ba55a328115111c565eda015fa8e439a",
+      "bytes": 6127
+    },
+    {
+      "path": "src/gpu/kernels/rmsnorm.js",
+      "sha256": "2b8207523047decb9f3e7be41a495c1d1d454646d6958a7ffb5f66a096f9b049",
+      "bytes": 11005
+    },
+    {
+      "path": "src/gpu/kernels/sample.js",
+      "sha256": "370ee35bc2f7402ae5d7d02c776eda6d5d7a13ad0b6dd9cdf517266b451d9b6b",
+      "bytes": 19360
+    },
+    {
+      "path": "src/gpu/kernels/scale.js",
+      "sha256": "598a6f4709847bef3890269918c6cd6975026d8e7e64a912fc399da8ce57eb44",
+      "bytes": 1732
+    },
+    {
+      "path": "src/gpu/kernels/split_qkv.js",
+      "sha256": "be660b8aa8220d57c8b418cbccfd558f72c3eb9cba5841c30cf8423ed9d88440",
+      "bytes": 2604
+    },
+    {
+      "path": "src/gpu/kernels/uniform-encoding.d.ts",
+      "sha256": "313b47966ca23c0ad637fe0bc18b5494037d3c5bf5b32ca1e362a92d18c9bc6c",
+      "bytes": 354
+    },
+    {
+      "path": "src/gpu/kernels/uniform-encoding.js",
+      "sha256": "ad59e6b06afd3fd29fd0a4930f71856c80e7d3ad2c5e12b654ae7ee70831cd41",
+      "bytes": 884
+    },
+    {
+      "path": "src/gpu/kernels/uniform-utils.d.ts",
+      "sha256": "d5be7dd9c5135cc31f85f8001f1dba1fdd4f2c7a0c6298ecfa1b3a5230fc0211",
+      "bytes": 2449
+    },
+    {
+      "path": "src/gpu/kernels/uniform-utils.js",
+      "sha256": "9b945d872fb76f9a3942556fcc98dc1a5edfa9edfac16aa693d47e8c9365c06b",
+      "bytes": 2987
+    },
+    {
+      "path": "tests/gpu/kernel-binding-contract.test.js",
+      "sha256": "1270f3e7fe478ff291df44888c88544e533c72018cbd322388df3318033127b3",
+      "bytes": 1977
+    },
+    {
+      "path": "tests/gpu/kernel-uniform-writers.test.js",
+      "sha256": "ddd78c7c9869e67e42f5e465bf3042d837a860a698af90ce212c3c154f122648",
+      "bytes": 3758
+    },
+    {
+      "path": "tests/gpu/matmul-dispatch-contract.test.js",
+      "sha256": "331128ec80ad4b1985dac4621b2c4fe52b0f9aa19cd89bab682c1cd94bffbed3",
+      "bytes": 12901
+    },
+    {
+      "path": "tests/gpu/unified-wrapper-cleanup.test.js",
+      "sha256": "c21e1ffac2e32a7eaaff6dc72bcaaceeea9ad4c38d55fbda78182620187d0d9b",
+      "bytes": 6402
+    },
+    {
+      "path": "tests/kernels/kernel-uniform-echo-physical.test.js",
+      "sha256": "9a0e569c32bb14621e6009cf16b9492a5a016aa627e13ac91dd05c642d3893be",
+      "bytes": 6279
+    },
+    {
+      "path": "tests/kernels/registry-wrapper-physical.test.js",
+      "sha256": "9a27856eb2fc1818a159d8071b091f4873a6d97bb864ddbe819ab84ea290773f",
+      "bytes": 5551
+    },
+    {
+      "path": "tests/tooling/kernel-uniform-generation.test.js",
+      "sha256": "ed74ed096d264ecd7186baaf7c3aa18d189098e9ded9d6083661eaf3e54a4c8f",
+      "bytes": 3860
+    },
+    {
+      "path": "tests/tooling/wgsl-interface.test.js",
+      "sha256": "f4926fd8f3887cc9b985d9d775518e97a521557a0c8673359d20133c8bd8a8a9",
+      "bytes": 1704
+    },
+    {
+      "path": "tools/check-kernels.js",
+      "sha256": "48527144273e43597f34c845612b14a005c5dc9ced4131e41c3d3d22f1028843",
+      "bytes": 1057
+    },
+    {
+      "path": "tools/check-public-boundaries.js",
+      "sha256": "a94ec0e1aec2d19ff78745177c95ad5da2e5ff8852273fa5b232d4d34a773920",
+      "bytes": 16407
+    },
+    {
+      "path": "tools/generate-kernel-uniforms.js",
+      "sha256": "e8effe2c656870b45680ccc8727e66270c8cbfc8ab3b3d48a84ec7817a090974",
+      "bytes": 7606
+    },
+    {
+      "path": "tools/lib/wgsl-interface.js",
+      "sha256": "0d35ab4cd0ff78e13a4b801e49911c4b994168e32573542db176ede4aeb5993c",
+      "bytes": 3611
+    }
+  ]
+}

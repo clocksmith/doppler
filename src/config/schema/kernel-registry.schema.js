@@ -29,6 +29,9 @@ export function resolveKernelConfig(
   opSchema,
   variantSchema
 ) {
+  if (variantSchema.bindings !== undefined && variantSchema.bindingsOverride !== undefined) {
+    throw new Error(`Kernel "${operation}/${variant}" cannot declare both bindings and bindingsOverride.`);
+  }
   return {
     operation,
     variant,
@@ -37,8 +40,8 @@ export function resolveKernelConfig(
     workgroup: variantSchema.workgroup,
     requires: variantSchema.requires ?? [],
     requiredWgslFeatures: variantSchema.requiredWgslFeatures ?? [],
-    bindings: mergeBindings(opSchema.baseBindings, variantSchema.bindingsOverride),
-    uniforms: variantSchema.uniformsOverride ?? opSchema.baseUniforms,
+    bindings: variantSchema.bindings ?? mergeBindings(opSchema.baseBindings, variantSchema.bindingsOverride),
+    uniforms: variantSchema.uniformsOverride !== undefined ? variantSchema.uniformsOverride : opSchema.baseUniforms,
     wgslOverrides: variantSchema.wgslOverrides ?? {},
     sharedMemory: variantSchema.sharedMemory ?? 0,
     outputDtype: variantSchema.outputDtype ?? null,

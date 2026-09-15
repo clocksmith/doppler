@@ -1,0 +1,15 @@
+
+> doppler-gpu@0.6.2 kernels:check
+> node tools/check-kernels.js
+
+[kernels:check] uniform-interfaces
+[kernels:uniforms] 343 variants, 284 WGSL modules, 124 shared layouts; checked.
+[kernels:check] codegen
+[wgsl:check] variants=42 changed=0 unchanged=42
+[kernels:check] registry
+[kernels:registry:check] registry.json reachability is up to date (350 variants)
+[kernels:check] digests
+[kernels:digests:check] kernel-ref-digests.js is up to date
+[kernels:check] language-contract
+kernel-language-contract.test: 350 variants, 284 modules agree
+[kernels:check] all checks passed

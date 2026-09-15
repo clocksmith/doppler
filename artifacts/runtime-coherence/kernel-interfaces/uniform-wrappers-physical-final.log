@@ -1,0 +1,7 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+[175.8ms][KernelSelect] matmul variant=f32 reason=default
+[181.8ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[195.5ms][KernelSelect] matmul variant=f16w_f32a reason=default
+{"test":"registry-wrapper-physical","passed":true,"cases":17,"adapter":{"vendor":"amd","architecture":"rdna-3","device":"radeon-8060s-graphics-radv-strix-halo-","description":"radv: Mesa 26.0.3-1ubuntu1"},"evidence":"Actual wrapper dispatch and CPU-reference operator parity; not model qualification or cross-hardware coverage."}
