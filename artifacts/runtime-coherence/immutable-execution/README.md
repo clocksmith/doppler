@@ -46,6 +46,17 @@ cancellation and ownership pass. Public boundaries, source architecture/style,
 declarations and current runtime closure pass. Physical standalone results and
 raw profiles are retained here and in `../capsule-profile/`.
 
+The final candidate also passes physical generation through the unchanged
+installed Reploid provider: 16 frozen reference tokens, matching streamed display
+and verified completion, with no cleanup errors. `physical-reploid.json` binds
+that result to the same `f9758530…` archive used by the standalone comparison.
+
+At runtime code revision `0e97ee91`, [full remote CI](https://github.com/clocksmith/doppler/actions/runs/34926891639)
+passes 818 unit test files, repository checks, browser WebGPU kernels, and demo
+controls/offline behavior. [Installed standalone/Reploid CI](https://github.com/clocksmith/doppler/actions/runs/34926891634)
+also passes. The remote browser checks are separate from the physical AMD
+qualification above. `remote-ci.json` preserves the run identities.
+
 The registry routing audit was also regenerated after the interface repair:
 30 manifests and 136 opportunities remain, and all 76 previously surfaced
 integrity failures are unchanged. Updated descriptor digests identify current
