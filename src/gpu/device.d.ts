@@ -31,6 +31,7 @@ export interface AdapterInfo {
  * Extended kernel capabilities with adapter info
  */
 export interface KernelCapabilities {
+  wgslLanguageFeatures?: string[];
   hasSubgroups: boolean;
   /** Derived convenience bit: true when both `subgroups` and `shader-f16` are available. */
   hasSubgroupsF16: boolean;

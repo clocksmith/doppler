@@ -173,6 +173,7 @@ config/transforms/execution-graph-transforms.d.ts
 config/transforms/execution-graph/dtype.d.ts
 config/transforms/execution-graph/fusion.d.ts
 config/transforms/execution-graph/validation.d.ts
+config/wgsl-language-contract.d.ts
 converter/artifact-identity.d.ts
 converter/chronos-bolt-graph.d.ts
 converter/chronos-bolt-graph.js

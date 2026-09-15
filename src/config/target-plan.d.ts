@@ -39,6 +39,7 @@ export interface TargetPlanV1 {
   capabilityPredicate: {
     requiresF16: boolean;
     requiresSubgroups: boolean;
+    requiredWgslFeatures?: string[];
     minBufferSize: number;
     supportedVendors?: string[];
   };
@@ -75,6 +76,7 @@ export interface TargetPlanDeviceProfile {
   surface: string;
   hasF16?: boolean;
   hasSubgroups?: boolean;
+  wgslLanguageFeatures?: string[];
   maxBufferSize?: number;
   adapter?: {
     vendor?: string | null;

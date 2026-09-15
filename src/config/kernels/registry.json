@@ -2469,6 +2469,7 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": ["subgroups"],
+     "requiredWgslFeatures": ["subgroup_id"],
      "outputDtype": "f32",
      "variantMetadata": {
       "tier": "subgroup"
@@ -13041,6 +13042,7 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": ["subgroups"],
+     "requiredWgslFeatures": ["subgroup_id"],
      "reachability": {
       "status": "unused",
       "inlineConfigs": [],

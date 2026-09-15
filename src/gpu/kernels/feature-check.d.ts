@@ -12,6 +12,7 @@
 
 /** Minimum capabilities interface for feature checking */
 export interface FeatureCapabilities {
+  wgslLanguageFeatures?: readonly string[];
   hasF16: boolean;
   hasSubgroups: boolean;
 }
@@ -23,9 +24,12 @@ export interface FeatureCapabilities {
 /**
  * Check if all required features are available
  */
+export declare function getKernelWgslRequirements(config: { shaderFile: string; requiredWgslFeatures: readonly string[] }): readonly string[];
+
 export declare function hasRequiredFeatures(
   required: string[],
-  capabilities: FeatureCapabilities
+  capabilities: FeatureCapabilities,
+  requiredWgslFeatures?: readonly string[]
 ): boolean;
 
 // ============================================================================

@@ -107,6 +107,15 @@ assert.equal(result.capsule.schema, 'doppler.capsule/v2');
 assert.equal(result.capsule.signature.authority, TEST_CAPSULE_AUTHORITY);
 assert.equal(result.capsule.modelIR.hiddenSize, 4);
 assert.equal(result.capsule.targetPlans.length, 1, 'Forge must not invent unsupported target variants');
+assert.equal(Object.hasOwn(result.capsule.targetPlans[0].capabilityPredicate, 'requiredWgslFeatures'), false);
+const languageBundle = structuredClone(programBundle);
+languageBundle.wgslModules[0].metadata.requiredWgslFeatures = ['subgroup_id'];
+const languageResult = await runForgePipeline({ manifest, manifestRaw, programBundle: languageBundle,
+  programBundleRaw: `${JSON.stringify(languageBundle)}\n`, programBundlePath: '/tmp/program-bundle.json',
+  repoRoot: '/tmp', outputPath: '/tmp/model.capsule.json', release,
+}, { authority: TEST_CAPSULE_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY });
+assert.deepEqual(languageResult.capsule.targetPlans[0].capabilityPredicate.requiredWgslFeatures, ['subgroup_id'],
+  'Forge preserves source language requirements in the signed execution recipe');
 const candidateEvaluation = createForgeEvaluationFixture(result.capsule.targetPlans[0].modelIRHash,
   result.capsule.targetPlans.map(hashTargetPlan));
 const evaluatedCapsule = await runForgePipeline({ manifest, manifestRaw, programBundle, programBundleRaw,

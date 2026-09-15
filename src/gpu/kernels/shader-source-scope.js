@@ -1,5 +1,6 @@
 import { hashBytesSha256 } from '../../formats/canonical-hash.js';
 import { getSharedDeviceEpoch } from '../device-state.js';
+import { getRequiredWgslFeatures } from '../../config/wgsl-language-contract.js';
 
 const scopes = new WeakMap();
 const scopeIds = new WeakMap();
@@ -15,7 +16,8 @@ export function createShaderSourceScope(sources) {
     if (typeof filename !== 'string' || !/^[\w.-]+\.wgsl$/.test(filename) || typeof source !== 'string') {
       throw new Error('Shader source scope requires exact WGSL filenames and source text.');
     }
-    copied.set(filename, Object.freeze({ source, digest: hashBytesSha256(new TextEncoder().encode(source)) }));
+    copied.set(filename, Object.freeze({ source, digest: hashBytesSha256(new TextEncoder().encode(source)),
+      requiredWgslFeatures: Object.freeze(getRequiredWgslFeatures(source)) }));
   }
   const scope = Object.freeze({});
   scopes.set(scope, copied);
@@ -38,6 +40,12 @@ export function getScopedShaderSource(filename) {
   const entry = scopes.get(activeScope).get(filename);
   if (!entry) throw new Error(`Shader ${filename} is outside the verified Capsule source closure.`);
   return entry;
+}
+
+export function getScopedWgslRequirements(filename) {
+  // Selection may inspect variants outside the closure. Actual source loading
+  // still rejects them. An old signed shader keeps its own language contract.
+  return activeScope === null ? null : scopes.get(activeScope).get(filename)?.requiredWgslFeatures ?? null;
 }
 
 export function getShaderScopeCacheKey() {

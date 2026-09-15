@@ -580,6 +580,7 @@ export function stageSpecialize(lowered) {
     );
   }
   const requiresSubgroups = wgslModules.some((module) => module.metadata?.requiresSubgroups === true);
+  const requiredWgslFeatures = [...new Set(wgslModules.flatMap(module => module.metadata?.requiredWgslFeatures ?? []))].sort();
   const bytesPerActivation = activationDtype === 'f16' ? 2 : 4;
   const bytesPerKv = kvDtype === 'f16' ? 2 : 4;
   const bufferSlots = [
@@ -630,6 +631,7 @@ export function stageSpecialize(lowered) {
     capabilityPredicate: {
       requiresF16: activationDtype === 'f16' || kvDtype === 'f16',
       requiresSubgroups,
+      ...(requiredWgslFeatures.length ? { requiredWgslFeatures } : {}),
       minBufferSize: Math.max(...manifest.shards.map((shard) => requirePositiveInteger(shard.size, 'manifest.shards[].size'))),
     },
     dtypes: { activation: activationDtype, kv: kvDtype, weight: weightDtype },

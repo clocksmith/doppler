@@ -118,6 +118,12 @@ export function validateTargetPlan(plan) {
         errors.push(`capabilityPredicate.${field} must be boolean.`);
       }
     }
+    const languageFeatures = plan.capabilityPredicate.requiredWgslFeatures;
+    if (languageFeatures !== undefined && (!Array.isArray(languageFeatures)
+      || languageFeatures.some(feature => typeof feature !== 'string' || !/^[a-z][a-z0-9_]*$/.test(feature))
+      || new Set(languageFeatures).size !== languageFeatures.length)) {
+      errors.push('capabilityPredicate.requiredWgslFeatures must contain unique WGSL language feature names.');
+    }
     if (!Number.isInteger(plan.capabilityPredicate.minBufferSize) || plan.capabilityPredicate.minBufferSize < 0) {
       errors.push('capabilityPredicate.minBufferSize must be a non-negative integer.');
     }
@@ -269,6 +275,7 @@ export function matchesDeviceCapability(targetPlan, deviceProfile) {
   const predicate = targetPlan.capabilityPredicate;
   if (predicate.requiresF16 && !deviceProfile.hasF16) return false;
   if (predicate.requiresSubgroups && !deviceProfile.hasSubgroups) return false;
+  if (predicate.requiredWgslFeatures?.some(feature => !deviceProfile.wgslLanguageFeatures?.includes(feature))) return false;
   if ((deviceProfile.maxBufferSize || 0) < predicate.minBufferSize) return false;
   if (Array.isArray(predicate.supportedVendors) && predicate.supportedVendors.length > 0) {
     const vendor = String(deviceProfile.adapter?.vendor || '').toLowerCase();

@@ -1,0 +1,12 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Error: Physical WebGPU adapter required.
+    at eval (eval at evaluate (:311:30), <anonymous>:4:25)
+    at async <anonymous>:337:30
+    at /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/kernels/subgroup-portability-browser.test.js:14:29 {
+  log: []
+}
+
+Node.js v22.22.1

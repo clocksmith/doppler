@@ -287,6 +287,8 @@ export const PROGRAM_BUNDLE_JSON_SCHEMA = Object.freeze({
             overrides: { type: 'array', items: { type: 'object' } },
             workgroupSize: { type: 'array', items: { type: 'string' } },
             requiresSubgroups: { type: 'boolean' },
+            requiredWgslFeatures: { type: 'array', uniqueItems: true,
+              items: { type: 'string', pattern: '^[a-z][a-z0-9_]*$' } },
           },
         },
       },

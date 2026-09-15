@@ -1,7 +1,7 @@
 // Attention Decode Kernel - Subgroup Optimized
 //
 // Optimized for seqLen=1 (decode) using subgroup operations.
-// Requires headDim <= subgroup_size for correct operation.
+// Requires headDim <= WORKGROUP_SIZE and the subgroup_id language feature.
 //
 // Architecture:
 // - One workgroup per head
@@ -9,11 +9,11 @@
 // - Uses subgroup operations for fast reductions
 
 enable subgroups;
+requires subgroup_id;
 
 // Workgroup size for decode
 override WORKGROUP_SIZE: u32 = 256u;
 const MAX_KV_LEN: u32 = 2048u;
-const MAX_SUBGROUPS: u32 = 256u;
 
 // Uniforms must match JavaScript createAttentionUniformBuffer() layout exactly:
 // offset 0: numHeads, offset 4: numKVHeads, offset 8: headDim,
@@ -46,7 +46,7 @@ struct Uniforms {
 
 // Shared memory for attention scores and cross-subgroup reduction
 var<workgroup> scores: array<f32, MAX_KV_LEN>;
-var<workgroup> subgroup_sums: array<f32, MAX_SUBGROUPS>;
+var<workgroup> subgroup_sums: array<f32, WORKGROUP_SIZE>;
 var<workgroup> shared_max: f32;
 var<workgroup> shared_sum: f32;
 
@@ -89,7 +89,8 @@ fn get_kv_len() -> u32 {
 fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
     @builtin(workgroup_id) workgroup_id: vec3<u32>,
-    @builtin(subgroup_size) subgroup_size: u32,
+    @builtin(subgroup_id) subgroup_id: u32,
+    @builtin(num_subgroups) num_subgroups: u32,
     @builtin(subgroup_invocation_id) subgroup_tid: u32,
 ) {
     let head_idx = workgroup_id.x;
@@ -100,8 +101,6 @@ fn main(
         return;
     }
     let valid_thread = tid < head_dim;
-    let subgroup_id = tid / subgroup_size;
-    let num_subgroups = (head_dim + subgroup_size - 1u) / subgroup_size;
 
     // GQA: map query head to KV head
     let kv_head_idx = head_idx / (u.num_heads / u.num_kv_heads);
