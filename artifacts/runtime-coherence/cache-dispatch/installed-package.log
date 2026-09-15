@@ -1,0 +1,28 @@
+package import smoke passed (29 exports + browser condition)
+Installed standalone Node provider smoke passed (synthetic; Doe absent).
+package training API smoke passed
+package CLI smoke passed (doppler)
+package CLI smoke passed (doppler-gpu)
+package CLI smoke passed (doppler-serve)
+Package evidence retained: /dev/shm/doppler-runtime-coherence/candidate
+Error: /usr/bin/node electron-smoke.js failed:
+node:internal/fs/promises:741
+      (await PromisePrototypeThen(
+       ^
+
+Error: Unknown system error -122: Unknown system error -122, write
+    at async write (node:internal/fs/promises:741:8)
+    at async writeFileHandle (node:internal/fs/promises:498:7)
+    at async fsCall (node:internal/fs/promises:463:12)
+    at async Object.compareAndSwap (file:///dev/shm/doppler-runtime-coherence/candidate/consumer/release-storage.js:78:9)
+    at async file:///dev/shm/doppler-runtime-coherence/candidate/consumer/electron-smoke.js:48:16 {
+  errno: -122,
+  code: 'Unknown system error -122',
+  syscall: 'write'
+}
+
+Node.js v22.22.1
+
+    at run (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tools/check-packed-package.js:25:11)
+    at runElectronCapsuleSmoke (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tools/check-packed-package.js:186:18)
+    at async main (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tools/check-packed-package.js:354:32)

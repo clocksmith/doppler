@@ -1,4 +1,5 @@
-import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
+import { computeCanonicalSha256, hashBytesSha256 } from '../../formats/canonical-hash.js';
+import { createDeviceAvailabilityCheck } from './resource-binder.js';
 function resolveGpuDevice(devicePort) {
   const device = typeof devicePort?.getDevice === 'function' ? devicePort.getDevice() : devicePort?.gpuDevice ?? devicePort;
   if (!device || typeof device.createCommandEncoder !== 'function') {
@@ -18,14 +19,43 @@ function normalizeWorkgroups(value) {
   return result;
 }
 
+function assertNotAborted(signal, submission = 'not-submitted') {
+  if (signal?.aborted) {
+    throw Object.assign(new Error('Command execution aborted.', { cause: signal.reason }), {
+      name: 'AbortError', code: 'COMMAND_ABORTED', submission,
+    });
+  }
+}
+
 export function createCommandExecutor(devicePort, resourceBinder, program = null) {
   const device = resolveGpuDevice(devicePort);
   const pipelineTasks = new Map();
+  const moduleIdentities = new WeakMap();
+  const assertDeviceAvailable = createDeviceAvailabilityCheck(device);
+
+  function assertExecutable(signal, submission = 'not-submitted') {
+    assertNotAborted(signal, submission);
+    try {
+      assertDeviceAvailable();
+      if (resolveGpuDevice(devicePort) !== device) throw new Error('GPU device replaced.');
+    } catch (cause) {
+      pipelineTasks.clear();
+      throw Object.assign(new Error('Command execution GPU device lost or replaced.', { cause }), {
+        code: 'COMMAND_DEVICE_LOST', submission,
+      });
+    }
+  }
 
   async function resolvePipeline(command, module) {
+    let identity = moduleIdentities.get(module);
+    if (identity?.source !== module.source) {
+      identity = { source: module.source, digest: hashBytesSha256(new TextEncoder().encode(module.source)) };
+      moduleIdentities.set(module, identity);
+    }
     const key = computeCanonicalSha256({
       moduleId: module.id,
       sourceHash: module.sourceHash,
+      sourceDigest: identity.digest,
       entry: command.entry ?? module.entry,
       constants: command.constants ?? {},
     });
@@ -43,20 +73,26 @@ export function createCommandExecutor(devicePort, resourceBinder, program = null
           constants: command.constants ?? {},
         },
       };
-      pipelineTasks.set(
-        key,
-        typeof device.createComputePipelineAsync === 'function'
+      const task = Promise.resolve().then(() => {
+        assertExecutable(null);
+        return typeof device.createComputePipelineAsync === 'function'
           ? device.createComputePipelineAsync(descriptor)
-          : Promise.resolve(device.createComputePipeline(descriptor))
-      );
+          : device.createComputePipeline(descriptor);
+      }).catch(error => {
+        if (pipelineTasks.get(key) === task) pipelineTasks.delete(key);
+        throw error;
+      });
+      pipelineTasks.set(key, task);
     }
     return pipelineTasks.get(key);
   }
 
-  async function executeDispatch(command, modules) {
+  async function executeDispatch(command, modules, signal) {
+    assertExecutable(signal);
     const module = modules.get(command.moduleId);
     if (!module?.source) throw new Error(`Dispatch command references unavailable WGSL module "${command.moduleId}".`);
     const pipeline = await resolvePipeline(command, module);
+    assertExecutable(signal);
     const entries = (command.bindings || []).map((binding) => {
       const slot = resourceBinder.getSlot(binding.slotId);
       const buffer = slot?.buffer ?? slot?.resource?.buffer ?? slot?.resource;
@@ -70,6 +106,7 @@ export function createCommandExecutor(devicePort, resourceBinder, program = null
         },
       };
     });
+    assertExecutable(signal);
     const bindGroup = device.createBindGroup({
       label: `doppler-capsule:${command.id ?? command.moduleId}:bindings`,
       layout: pipeline.getBindGroupLayout(command.group ?? 0),
@@ -82,9 +119,15 @@ export function createCommandExecutor(devicePort, resourceBinder, program = null
     const [x, y, z] = normalizeWorkgroups(command.workgroups);
     pass.dispatchWorkgroups(x, y, z);
     pass.end();
-    device.queue.submit([encoder.finish()]);
+    const commands = encoder.finish();
+    assertExecutable(signal);
+    device.queue.submit([commands]);
     if (command.waitForCompletion === true) await device.queue.onSubmittedWorkDone();
-    return { kind: 'dispatch', moduleId: module.id, workgroups: [x, y, z] };
+    assertExecutable(signal, 'submitted');
+    return {
+      kind: 'dispatch', moduleId: module.id, workgroups: [x, y, z],
+      outcome: command.waitForCompletion === true ? 'completed' : 'submitted',
+    };
   }
 
   async function executeProgramPhase(phase, command, options) {
@@ -109,9 +152,9 @@ export function createCommandExecutor(devicePort, resourceBinder, program = null
       }
       const results = [];
       for (const command of commands) {
-        if (options.signal?.aborted) throw new Error(`Command execution aborted during phase "${phase}".`);
+        assertNotAborted(options.signal);
         if (command.kind === 'dispatch') {
-          results.push(await executeDispatch(command, options.modules ?? new Map()));
+          results.push(await executeDispatch(command, options.modules ?? new Map(), options.signal));
         } else if (command.kind === 'program-phase') {
           results.push(await executeProgramPhase(phase, command, options));
         } else {

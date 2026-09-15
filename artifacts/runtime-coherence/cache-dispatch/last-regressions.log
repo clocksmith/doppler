@@ -1,0 +1,162 @@
+TAP version 13
+# Subtest: layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+ok 1 - layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+  ---
+  duration_ms: 9.004592
+  type: 'test'
+  ...
+# Subtest: compute cache distinguishes actual layouts and shader bytes
+ok 2 - compute cache distinguishes actual layouts and shader bytes
+  ---
+  duration_ms: 1.905598
+  type: 'test'
+  ...
+# [129.0ms][GPU] Device lost: injected loss, Reason: unknown
+# Subtest: concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+ok 3 - concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+  ---
+  duration_ms: 3.148798
+  type: 'test'
+  ...
+# Subtest: device loss during compilation rejects the result and cannot populate the cache
+ok 4 - device loss during compilation rejects the result and cannot populate the cache
+  ---
+  duration_ms: 2.701326
+  type: 'test'
+  ...
+# Subtest: device replacement while shader diagnostics are pending cannot compile a pipeline
+ok 5 - device replacement while shader diagnostics are pending cannot compile a pipeline
+  ---
+  duration_ms: 1.00941
+  type: 'test'
+  ...
+# Subtest: clearing caches during compilation prevents late cache publication
+ok 6 - clearing caches during compilation prevents late cache publication
+  ---
+  duration_ms: 0.636839
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 7 - test module initialization completed
+  ---
+  duration_ms: 0.051166
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 171.230044
+[node-tests] ok: tests/gpu/pipeline-cache-identity.test.js
+TAP version 13
+# ✔ capsule-forecast.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.055627
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 146.984942
+[node-tests] ok: tests/runtime/capsule-forecast.test.js
+TAP version 13
+# ✔ capsule-operation.test.js passed (injected program; contract evidence only)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.969535
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 283.658362
+[node-tests] ok: tests/runtime/capsule-operation.test.js
+TAP version 13
+# Subtest: abort during compilation rejects without submitting or destroying borrowed buffers
+ok 1 - abort during compilation rejects without submitting or destroying borrowed buffers
+  ---
+  duration_ms: 9.385318
+  type: 'test'
+  ...
+# Subtest: abort during binding preparation cannot submit
+ok 2 - abort during binding preparation cannot submit
+  ---
+  duration_ms: 0.862824
+  type: 'test'
+  ...
+# Subtest: device loss during compilation cannot submit
+ok 3 - device loss during compilation cannot submit
+  ---
+  duration_ms: 0.518416
+  type: 'test'
+  ...
+# Subtest: post-submission cancellation reports submitted work rather than successful completion
+ok 4 - post-submission cancellation reports submitted work rather than successful completion
+  ---
+  duration_ms: 4.47242
+  type: 'test'
+  ...
+# Subtest: successful dispatch distinguishes submission from observed completion
+ok 5 - successful dispatch distinguishes submission from observed completion
+  ---
+  duration_ms: 0.576144
+  type: 'test'
+  ...
+# Subtest: failed compilation can be retried
+ok 6 - failed compilation can be retried
+  ---
+  duration_ms: 0.75999
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 7 - test module initialization completed
+  ---
+  duration_ms: 0.167135
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 141.519633
+[node-tests] ok: tests/runtime/command-executor-cancellation.test.js
+TAP version 13
+# shader-cache-scopes.test: ok (10 source owners)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.728223
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 904.354893
+[node-tests] ok: tests/tooling/shader-cache-scopes.test.js
+[node-tests] ok: 5 files

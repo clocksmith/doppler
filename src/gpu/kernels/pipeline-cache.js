@@ -2,8 +2,9 @@
 
 import { getDevice, getDeviceEpoch, getKernelCapabilities } from '../device.js';
 import { getKernelConfig } from './kernel-configs.js';
-import { getShaderModule } from './shader-cache.js';
-import { getScopedShaderSource } from './shader-source-scope.js';
+import { getShaderModule, getShaderSourceIdentity, getShaderModuleIdentity } from './shader-cache.js';
+import { isDeviceLost } from '../device-state.js';
+import { canonicalizeJson } from '../../formats/canonical-hash.js';
 import { hasRequiredFeatures } from './feature-check.js';
 import { trace } from '../../debug/index.js';
 
@@ -13,6 +14,7 @@ import { trace } from '../../debug/index.js';
 
 
 const pipelineCache = new Map();
+const pipelineTasks = new Map();
 
 
 const bindGroupLayoutCache = new Map();
@@ -23,8 +25,32 @@ const pipelineLayoutCache = new Map();
 let pipelineBindGroupLayoutCache = new WeakMap();
 
 let pipelineCacheEpoch = -1;
+let cacheGeneration = 0;
 const deviceIds = new WeakMap();
+const layoutIds = new WeakMap();
+let nextLayoutId = 1;
 let nextDeviceId = 1;
+
+function getLayoutId(layout) {
+  if (!layoutIds.has(layout)) layoutIds.set(layout, nextLayoutId++);
+  return layoutIds.get(layout);
+}
+
+function normalizeLayoutEntry(entry) {
+  const normalized = { ...entry };
+  // These are WebGPU descriptor defaults, not model or execution policy.
+  if (entry.buffer) normalized.buffer = { type: 'uniform', hasDynamicOffset: false, minBindingSize: 0, ...entry.buffer };
+  if (entry.sampler) normalized.sampler = { type: 'filtering', ...entry.sampler };
+  if (entry.texture) normalized.texture = { sampleType: 'float', viewDimension: '2d', multisampled: false, ...entry.texture };
+  if (entry.storageTexture) normalized.storageTexture = { access: 'write-only', viewDimension: '2d', ...entry.storageTexture };
+  return normalized;
+}
+
+function assertDeviceValid(device, epoch) {
+  if (isDeviceLost(device) || getDevice() !== device || getDeviceEpoch() !== epoch) {
+    throw new Error('Pipeline preparation invalidated: GPU device lost or changed.');
+  }
+}
 
 function getDeviceId(device) {
   let id = deviceIds.get(device);
@@ -38,7 +64,9 @@ function getDeviceId(device) {
 function ensureCacheEpoch() {
   const epoch = getDeviceEpoch();
   if (epoch !== pipelineCacheEpoch) {
+    cacheGeneration++;
     pipelineCache.clear();
+    pipelineTasks.clear();
     bindGroupLayoutCache.clear();
     pipelineLayoutCache.clear();
     pipelineBindGroupLayoutCache = new WeakMap();
@@ -62,7 +90,9 @@ export function getOrCreateBindGroupLayout(
   if (!device) {
     throw new Error('Device not initialized');
   }
-  const scopedLabel = `${getDeviceId(device)}:${label}`;
+  if (isDeviceLost(device)) throw new Error('Cannot create a layout on a lost GPU device.');
+  const descriptor = entries.map(normalizeLayoutEntry).sort((a, b) => a.binding - b.binding);
+  const scopedLabel = `${getDeviceId(device)}:${canonicalizeJson(descriptor)}`;
   const cached = bindGroupLayoutCache.get(scopedLabel);
   if (cached) {
     return cached;
@@ -89,7 +119,8 @@ export function getOrCreatePipelineLayout(
   if (!device) {
     throw new Error('Device not initialized');
   }
-  const scopedLabel = `${getDeviceId(device)}:${label}`;
+  if (isDeviceLost(device)) throw new Error('Cannot create a layout on a lost GPU device.');
+  const scopedLabel = `${getDeviceId(device)}:${JSON.stringify(bindGroupLayouts.map(getLayoutId))}`;
   const cached = pipelineLayoutCache.get(scopedLabel);
   if (cached) {
     return cached;
@@ -129,14 +160,14 @@ export function getPipelineBindGroupLayout(pipeline, index = 0) {
 // ============================================================================
 
 
-function buildPipelineCacheKey(operation, variant, constants, bindGroupLayout, device) {
-  const constantsKey = constants
-    ? Object.entries(constants).sort().map(([k, v]) => `${k}=${v}`).join('|')
-    : '';
-  const layoutKey = bindGroupLayout ? `:${bindGroupLayout.label || 'layout'}` : '';
-  const deviceKey = `dev:${getDeviceId(device)}`;
-  const source = getScopedShaderSource(getKernelConfig(operation, variant).shaderFile);
-  return `${deviceKey}:${source?.digest ?? 'runtime'}:${operation}:${variant}${constants ? ':' + constantsKey : ''}${layoutKey}`;
+function buildPipelineCacheKey(operation, variant, constants, bindGroupLayout, device, sourceIdentity) {
+  const config = getKernelConfig(operation, variant);
+  const source = sourceIdentity ?? getShaderSourceIdentity(config.shaderFile);
+  if (source === null) return null;
+  return canonicalizeJson([
+    getDeviceId(device), source, config.entryPoint, constants ?? {},
+    bindGroupLayout ? getLayoutId(bindGroupLayout) : 'auto',
+  ]);
 }
 
 function resolveConstants(operation, variant, constants) {
@@ -254,13 +285,16 @@ export async function createPipeline(
   }
 
   const config = getKernelConfig(operation, variant);
+  const epoch = getDeviceEpoch();
+  const generation = cacheGeneration;
+  assertDeviceValid(device, epoch);
   const resolvedConstants = normalizePipelineConstants(
     resolveConstants(operation, variant, constants)
   );
   const constantsKey = resolvedConstants
     ? Object.entries(resolvedConstants).sort().map(([k, v]) => `${k}=${v}`).join('|')
     : '';
-  const cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout, device);
+  let cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout, device);
 
   // Return cached pipeline if available
   if (pipelineCache.has(cacheKey)) {
@@ -286,6 +320,11 @@ export async function createPipeline(
 
   // Compile or reuse shader module
   const shaderModule = await getShaderModule(device, config.shaderFile, `${operation}_${variant}`);
+  assertDeviceValid(device, epoch);
+  if (generation !== cacheGeneration) throw new Error('Pipeline preparation invalidated by cache reset.');
+  cacheKey = buildPipelineCacheKey(operation, variant, resolvedConstants, bindGroupLayout, device, getShaderModuleIdentity(shaderModule));
+  if (pipelineCache.has(cacheKey)) return pipelineCache.get(cacheKey);
+  if (pipelineTasks.has(cacheKey)) return pipelineTasks.get(cacheKey);
 
   // Create pipeline
   const layoutLabel = bindGroupLayout?.label || `${operation}_${variant}_layout`;
@@ -302,10 +341,19 @@ export async function createPipeline(
     },
   };
 
-  const pipeline = await device.createComputePipelineAsync(pipelineDescriptor);
-  pipelineCache.set(cacheKey, pipeline);
-
-  return pipeline;
+  const task = Promise.resolve().then(async () => {
+    assertDeviceValid(device, epoch);
+    const pipeline = await device.createComputePipelineAsync(pipelineDescriptor);
+    assertDeviceValid(device, epoch);
+    if (pipelineTasks.get(cacheKey) === task) pipelineCache.set(cacheKey, pipeline);
+    return pipeline;
+  });
+  pipelineTasks.set(cacheKey, task);
+  try {
+    return await task;
+  } finally {
+    if (pipelineTasks.get(cacheKey) === task) pipelineTasks.delete(cacheKey);
+  }
 }
 
 // ============================================================================
@@ -314,7 +362,9 @@ export async function createPipeline(
 
 
 export function clearPipelineCaches() {
+  cacheGeneration++;
   pipelineCache.clear();
+  pipelineTasks.clear();
   bindGroupLayoutCache.clear();
   pipelineLayoutCache.clear();
   pipelineBindGroupLayoutCache = new WeakMap();

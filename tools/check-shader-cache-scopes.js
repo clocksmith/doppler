@@ -18,10 +18,14 @@ export function inspectShaderCacheOwner(source, path) {
     const bindings = node.importClause?.namedBindings;
     if (module.endsWith('/shader-cache.js') && bindings &&
       (ts.isNamespaceImport(bindings) || bindings.elements.some((binding) => (binding.propertyName ?? binding.name).text === 'getShaderModule'))) consumesShaders = true;
-    if (!module.endsWith('/shader-source-scope.js')) continue;
+    const scopeModule = module.endsWith('/shader-source-scope.js');
+    const sourceModule = module.endsWith('/shader-cache.js');
+    if (!scopeModule && !sourceModule) continue;
     if (!bindings || !ts.isNamedImports(bindings)) continue;
     for (const binding of bindings.elements) {
-      if (['getShaderScopeCacheKey', 'getScopedShaderSource'].includes((binding.propertyName ?? binding.name).text)) {
+      const name = (binding.propertyName ?? binding.name).text;
+      if ((scopeModule && ['getShaderScopeCacheKey', 'getScopedShaderSource'].includes(name))
+        || (sourceModule && ['getShaderSourceIdentity', 'getShaderModuleIdentity'].includes(name))) {
         guards.add(binding.name.text);
       }
     }
