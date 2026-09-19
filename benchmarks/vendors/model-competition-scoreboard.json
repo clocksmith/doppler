@@ -19,7 +19,7 @@
     "verificationNeededModelCount": 2,
     "platformVerifiedModelCount": {
       "browser": 9,
-      "node": 28,
+      "node": 25,
       "bun": 0
     },
     "generationCompareRowCount": 15,
@@ -1628,7 +1628,7 @@
       },
       "platforms": {
         "browser": "missing",
-        "node": "verified",
+        "node": "missing",
         "bun": "missing"
       },
       "competitor": {
@@ -1682,7 +1682,7 @@
       },
       "platforms": {
         "browser": "missing",
-        "node": "verified",
+        "node": "missing",
         "bun": "missing"
       },
       "competitor": {
@@ -1736,7 +1736,7 @@
       },
       "platforms": {
         "browser": "missing",
-        "node": "verified",
+        "node": "missing",
         "bun": "missing"
       },
       "competitor": {

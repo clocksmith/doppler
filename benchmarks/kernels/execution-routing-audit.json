@@ -1,6 +1,6 @@
 {
   "schema": "doppler.execution-routing-audit-index/v1",
-  "registryDigest": "sha256:05cd14cd25d952d8e1ec2e05c8696bacbf89654873a20dd8c824deb53cb7e355",
+  "registryDigest": "sha256:84505eaaa10196083d5771795d8f04f1b134eeb0703ad43ea48bafbec701ef1c",
   "manifestCount": 30,
   "integrityFailures": [
     {
@@ -9362,5 +9362,5 @@
       "digest": "sha256:ff6ec31ede58274e5ef7eef001af31c6fc5e4b8b07686ef0a2c1067354033d04"
     }
   ],
-  "digest": "sha256:ba1cfe0be2150d7a4165fdbee431f5a7956b4a7d6a43f40f861ff9adb762002d"
+  "digest": "sha256:e5c3801395604ff4b67bdba338c35264c4824298b58f5545c23fe616e6acd910"
 }

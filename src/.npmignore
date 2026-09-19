@@ -330,9 +330,11 @@ experimental/training/qwen-checkpointed-hybrid-decoder-training-module.d.ts
 experimental/training/qwen-checkpointed-hybrid-decoder-training-module.js
 experimental/training/qwen-decoder-mlp-training-module.d.ts
 experimental/training/qwen-decoder-mlp-training-module.js
+experimental/training/qwen-full-attention-reference.d.ts
 experimental/training/qwen-full-attention-reference.js
 experimental/training/qwen-full-attention-training-module.d.ts
 experimental/training/qwen-full-attention-training-module.js
+experimental/training/qwen-full-decoder-reference.d.ts
 experimental/training/qwen-full-decoder-reference.js
 experimental/training/qwen-full-decoder-training-module.d.ts
 experimental/training/qwen-full-decoder-training-module.js
@@ -348,6 +350,7 @@ experimental/training/qwen-linear-attention-reference.d.ts
 experimental/training/qwen-linear-attention-reference.js
 experimental/training/qwen-linear-attention-training-core.d.ts
 experimental/training/qwen-linear-attention-training-core.js
+experimental/training/qwen-linear-decoder-reference.d.ts
 experimental/training/qwen-linear-decoder-reference.js
 experimental/training/qwen-linear-decoder-training-module.d.ts
 experimental/training/qwen-linear-decoder-training-module.js

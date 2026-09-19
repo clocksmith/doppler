@@ -293,6 +293,8 @@ export async function createPipeline(
   const capabilities = {
     hasF16: device.features.has('shader-f16'),
     hasSubgroups: device.features.has('subgroups'),
+    // WGSL extensions belong to the GPU provider, not the ambient device.
+    wgslLanguageFeatures: [...(globalThis.navigator?.gpu?.wgslLanguageFeatures ?? [])],
   };
 
   // Verify requirements

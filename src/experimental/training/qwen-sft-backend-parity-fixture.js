@@ -1,5 +1,5 @@
 import { f16ToF32Array, f32ToF16Array } from '../../inference/kv-cache/types.js';
-import { sha256Hex } from '../../utils/sha256.js';
+import { sha256Hex } from '../../formats/sha256.js';
 
 function values(length, offset, scale) {
   return Float32Array.from(

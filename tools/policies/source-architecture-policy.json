@@ -759,6 +759,12 @@
     "utils/stable-sort-object.js"
   ],
   "softLimitReviews": {
+    "gpu/device.js": {
+      "reviewedLines": 764,
+      "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
+      "reason": "Merged concurrent initialization and shared-device lifetime repairs belong to the existing device lifecycle; retain cohesive failure cleanup rather than splitting solely to satisfy a line threshold.",
+      "extractTo": ["gpu/device-state.js"]
+    },
     "storage/downloader.js": {
       "reviewedLines": 765,
       "debtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",

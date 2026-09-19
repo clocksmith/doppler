@@ -2714,9 +2714,7 @@
         "src/storage/source-storage-context.js",
         "src/tooling/node-webgpu-provider.v1.json",
         "src/tooling/node-webgpu.js",
-        "src/tooling/test-harness.js",
-        "src/utils/sha256.js",
-        "src/utils/stable-sort-object.js"
+        "src/tooling/test-harness.js"
       ],
       "lazyOnly": [
         "src/client/model-host/source-loading.js",
@@ -5894,7 +5892,7 @@
     {
       "file": "tests/converter/semantic-manifest-lowering.test.js",
       "kind": "dynamic",
-      "line": 32,
+      "line": 39,
       "expression": "import(historicalUrl)"
     },
     {
@@ -5938,12 +5936,6 @@
       "kind": "unresolved",
       "line": 3,
       "expression": "./node_modules/doppler-gpu/src/tooling/node-webgpu.js"
-    },
-    {
-      "file": "tests/fixtures/packed-program-bundle-consumer.js",
-      "kind": "dynamic",
-      "line": 11,
-      "expression": "import(pathToFileURL(\n  path.join(packageRoot, 'src/config/kernels/kernel-ref-digests.js')))"
     },
     {
       "file": "tests/fixtures/packed-program-bundle-consumer.js",

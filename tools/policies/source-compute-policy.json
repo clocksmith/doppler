@@ -55,6 +55,121 @@
   ],
   "reviews": [
     {
+      "id": "src/experimental/training/qwen-adapter-training-state.js#fromBase64",
+      "category": "non-tensor-data",
+      "reason": "Processes base64 checkpoint bytes or adapter topology metadata, not tensor arithmetic."
+    },
+    {
+      "id": "src/experimental/training/qwen-adapter-training-state.js#captureQwenAdapterTrainingState",
+      "category": "observation",
+      "reason": "Captures unchanged GPU parameter, moment or gradient bytes into named snapshot records; no tensor arithmetic or modified readback feeds execution."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#qwenAttentionSplitQGateForward",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#qwenAttentionSplitQGateBackward",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#ropeTransform",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#matmulRightTransposed",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#matmulInputGradient",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#matmulStandard",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#projectionForward",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#projectionBackward",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#rmsNormOffsetForward",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#rmsNormOffsetBackward",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#attentionOutput",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-full-attention-reference.js#qwenFullAttentionModuleBackward",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-hybrid-sft-microstep.js#captureGradientSnapshots",
+      "category": "observation",
+      "reason": "Captures unchanged GPU parameter, moment or gradient bytes into named snapshot records; no tensor arithmetic or modified readback feeds execution."
+    },
+    {
+      "id": "src/experimental/training/qwen-linear-attention-reference.js#qwenLinearAttentionPrepareForward",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-linear-attention-reference.js#qwenLinearAttentionPrepareBackward",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-linear-attention-reference.js#matmulRightTransposed",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-linear-attention-reference.js#transposedWeightInputGradient",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-linear-attention-reference.js#qwenLinearAttentionModuleBackward",
+      "category": "reference",
+      "reason": "Deterministic quarantined Qwen training oracle; production execution cannot import this reference and declared GPU training remains independent."
+    },
+    {
+      "id": "src/experimental/training/qwen-peft-adapter-import.js#decodeTensor",
+      "category": "artifact-codec-materialization",
+      "reason": "Decodes declared SafeTensors dtype and transposes declared PEFT matrix dimensions during adapter import, before GPU training; never an execution fallback."
+    },
+    {
+      "id": "src/experimental/training/qwen-peft-adapter-import.js#transposeQwenPeftMatrix",
+      "category": "artifact-codec-materialization",
+      "reason": "Decodes declared SafeTensors dtype and transposes declared PEFT matrix dimensions during adapter import, before GPU training; never an execution fallback."
+    },
+    {
+      "id": "src/experimental/training/qwen-peft-adapter-import.js#validateTopology",
+      "category": "non-tensor-data",
+      "reason": "Processes base64 checkpoint bytes or adapter topology metadata, not tensor arithmetic."
+    },
+    {
       "id": "src/converter/chronos-bolt-graph.js#lowerChronosBoltGraph",
       "category": "artifact-construction",
       "reason": "Forge emits constant uniform bytes, exact source offsets, memory slots and WGSL dispatches before signing; no runtime model arithmetic executes here."

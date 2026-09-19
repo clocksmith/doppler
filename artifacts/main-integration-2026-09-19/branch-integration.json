@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "checkedAtUtc": "2026-09-19T20:51:14.939Z",
+  "mainBeforePush": "7176f4f55678b4150a9df60e61470a864363214f",
+  "remoteBaseline": "d206fba1bc39c9fa3e019c077f36dbb6b63bc278",
+  "localBranches": [
+    {
+      "name": "agent/simplify-ci",
+      "sha": "c8555555686a20a5e84b469bdcf18832d71d458e",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "agent/vulkan-tier-evidence",
+      "sha": "df361e61455420ced937883d429494ac1ed023a2",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/capsule-gpu-token-selection",
+      "sha": "0424c543edc3a01b2cd7a88c2fd66d2312aac961",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/consumer-streaming-closure",
+      "sha": "a5d7a7d2f7df72994794e473a071aa290f51d450",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/doppler-claim-grid",
+      "sha": "e97dbded4a389658ed9e4b5457362c788a0e4e9c",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/local-journeys",
+      "sha": "d5157fd07cc752808bc95940b7d3cc3b36c044eb",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/native-qwen-checkpoint",
+      "sha": "eab0391ac98b5f34070ce64995b6cb80dd7a2d2a",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/native-qwen-parity",
+      "sha": "d0182833193a38c3d0ee43497bcc6fad4abdd51b",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/reploid-runtime-release-061",
+      "sha": "9df46c39c4dba0aef4e8a0abecc8edee0841eb11",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/runtime-contract-coherence",
+      "sha": "d29678e10df805fe92c68b4b95b45da2f9052f97",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "feat/capsule-remote-adapters",
+      "sha": "f306bf9b428123f01a97d91b1cce3530e275c851",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "feat/remote-adapter-operations",
+      "sha": "f35a0fcfdc3a017ae848bd7812fc1816e053ef70",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "fix/architecture-consolidation",
+      "sha": "0756d378f83b66acbee3ab167b1c208bc2c0fd92",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "fix/peft-runtime-layout",
+      "sha": "f0020460fe7a342cbca19478072e69e65cf43e6d",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "fix/release-kernel-digest-validation",
+      "sha": "7c7711068d8ecb02c11b4488f4b2a540fffd42cc",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "main",
+      "sha": "7176f4f55678b4150a9df60e61470a864363214f",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "main-before-origin-rebase-d221124d",
+      "sha": "d221124dc2f5d001f6505cc99481ae864a56fd3f",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "release/0.5.2",
+      "sha": "fbf35442f927c80d4599210fe058082b3ec17259",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "release/0.6.0",
+      "sha": "09a359a5f1d1e31180a135264fdc8da01192ff3b",
+      "ancestorOfMain": true
+    }
+  ],
+  "remoteBranches": [
+    {
+      "name": "agent/publication-hygiene",
+      "sha": "c35b16021a4b8b1d2fc4da36423d343cb7a25af2",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "agent/vulkan-tier-evidence",
+      "sha": "df361e61455420ced937883d429494ac1ed023a2",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/capsule-gpu-token-selection",
+      "sha": "0424c543edc3a01b2cd7a88c2fd66d2312aac961",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/consumer-streaming-closure",
+      "sha": "a5d7a7d2f7df72994794e473a071aa290f51d450",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/progress-overlay-polish",
+      "sha": "2e836e6ad989d338b1d7f0403b5ff1d8b415c06e",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/qwen-gemma-runtime-fixes",
+      "sha": "26b88cf2f3a74305178b8f3acdd77b89bba57b13",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/runtime-contract-coherence",
+      "sha": "d29678e10df805fe92c68b4b95b45da2f9052f97",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "codex/runtime-contract-gemma4-bench",
+      "sha": "c2e5928989513c113c7145c13f733bf2fb4cb0d8",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "entire/checkpoints/v1",
+      "sha": "40351870fdfa27876cc16367a5966de88adf23a2",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "feat/capsule-remote-adapters",
+      "sha": "f306bf9b428123f01a97d91b1cce3530e275c851",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "feat/qwen-3-6-bringup",
+      "sha": "585956071fe4727c0985b946ffa3537cded847f6",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "fix/peft-runtime-layout",
+      "sha": "f0020460fe7a342cbca19478072e69e65cf43e6d",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "main",
+      "sha": "d206fba1bc39c9fa3e019c077f36dbb6b63bc278",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "publish-gemma4-amd-replay-evidence",
+      "sha": "8b16cee64245022eda10cdb77b601c5dde86f96c",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "release/0.6.0",
+      "sha": "09a359a5f1d1e31180a135264fdc8da01192ff3b",
+      "ancestorOfMain": true
+    },
+    {
+      "name": "release/060-product-closure",
+      "sha": "dff014849cb3f4d9bb274e0af01f9c484baa4926",
+      "ancestorOfMain": true
+    }
+  ],
+  "openPullRequestsIntegrated": [
+    5,
+    6,
+    10,
+    11,
+    12
+  ],
+  "reconciliation": "Preserve current main and port unique fixes; retain old release identities and evidence. No new branches or branch deletions.",
+  "staleTrackingRef": {
+    "name": "origin/dev",
+    "sha": "57b4b74f1bba6b3638ebaee7f78070c5d4fee39f",
+    "presentOnRemote": false,
+    "action": "left untouched; not a current remote branch"
+  },
+  "otherWorktrees": "Uncommitted local-journeys edits and all other worktrees left untouched."
+}

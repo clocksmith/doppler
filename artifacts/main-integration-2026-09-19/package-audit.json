@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "packageName": "doppler-gpu",
+  "version": "0.6.2",
+  "entryCount": 1858,
+  "packedBytes": 2145728,
+  "unpackedBytes": 11301865,
+  "sha256": "6965372e29dda22c6ed7257f0f02b536c0ac1ec2b8ed64275b1a320b344dda28",
+  "bundleRoot": "/var/tmp/doppler-main-integration-20260919",
+  "inventory": "/var/tmp/doppler-main-integration-20260919/npm-pack.json",
+  "evidence": "One installed archive shared by standalone and Reploid acceptance; physical evidence recorded separately."
+}

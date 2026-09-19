@@ -1,6 +1,6 @@
 import { readBuffer, uploadData } from '../../memory/buffer-pool.js';
-import { sha256BytesHex, sha256Hex } from '../../utils/sha256.js';
-import { stableSortObject } from '../../utils/stable-sort-object.js';
+import { sha256BytesHex, sha256Hex } from '../../formats/sha256.js';
+import { stableSortObject } from '../../formats/stable-sort-object.js';
 
 const ARTIFACT_TYPE = 'qwen_adapter_training_state';
 const SCHEMA_VERSION = 1;
