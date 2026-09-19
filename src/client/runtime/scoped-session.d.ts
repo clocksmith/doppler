@@ -111,6 +111,7 @@ export interface DopplerScopedModelSession {
   loadLoRA(adapter: unknown, options?: Record<string, unknown>): Promise<void>;
   unloadLoRA(): Promise<void>;
   resetGenerationState(): void;
+  /** Blocks new work immediately; all calls await one unload and retain its failure. */
   close(): Promise<void>;
 }
 

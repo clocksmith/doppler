@@ -104,6 +104,7 @@ export function createScopedModelSession(handle) {
     throw new Error('createScopedModelSession requires a Doppler model handle.');
   }
   let closed = false;
+  let closeTask = null;
   const capabilities = capabilityMap(handle);
 
   function requireOpen() {
@@ -225,9 +226,13 @@ export function createScopedModelSession(handle) {
       return handle.resetGenerationState();
     },
     async close() {
-      if (closed) return;
-      closed = true;
-      await handle.unload();
+      if (!closeTask) {
+        closed = true;
+        // Publish one cleanup task before calling the host, including when its
+        // unload throws synchronously. Every caller observes the same outcome.
+        closeTask = Promise.resolve().then(() => handle.unload());
+      }
+      await closeTask;
     },
     async [Symbol.asyncDispose]() {
       await session.close();

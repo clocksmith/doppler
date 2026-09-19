@@ -26,6 +26,13 @@ Factory-created handles retain session snapshots; direct legacy singleton APIs
 remain compatibility defaults. Reentrant application callbacks should not await
 another operation requiring the same serialized execution scope.
 
+Scoped-session `close()` blocks new work immediately. Concurrent close and
+asynchronous-disposal callers await the same unload; later calls retain its
+success or original failure without repeating cleanup. Contract interleavings
+are exercised in `tests/inference/pipeline-session-interleaving.test.js` and
+`tests/integration/doppler-scoped-session.test.js`; these use resource doubles,
+not physical model execution.
+
 The pipeline classes remain compatibility surfaces. Sampling normalization,
 stop-sequence detection and sequence rollback have independently testable inputs;
 other extracted model-step functions still retain their existing numerical
