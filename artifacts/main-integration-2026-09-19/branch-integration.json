@@ -194,7 +194,8 @@
     "name": "origin/dev",
     "sha": "57b4b74f1bba6b3638ebaee7f78070c5d4fee39f",
     "presentOnRemote": false,
-    "action": "left untouched; not a current remote branch"
+    "action": "history reconciled after proving every one of its 3110 tip blobs already occurs in main history; no product files changed",
+    "ancestorOfMain": true
   },
   "otherWorktrees": "Uncommitted local-journeys edits and all other worktrees left untouched."
 }

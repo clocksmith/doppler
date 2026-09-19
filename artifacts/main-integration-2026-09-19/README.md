@@ -5,7 +5,15 @@ explicitly chose to preserve current main while porting unique old-branch fixes.
 [Branch inventory](branch-integration.json) records the exact local and remote
 tips checked before publication. All actual remote tips and all local branch tips
 are ancestors of the combined main. The stale `origin/dev` tracking ref is not an
-existing remote branch; it and other worktrees were left untouched.
+existing remote branch. Its history was also reconciled after verifying that all
+3,110 tip blobs already occur in main history; no product files changed. Other
+worktrees were left untouched.
+
+Historical PR #1 was already closed with its `translate` branch deleted. All
+1,450 tip blobs already occur in main history; its commit history was likewise
+reconciled without changing product files. GitHub rejected reopening the PR;
+no deleted branch was recreated. Its historical closed status is distinct from
+the five open PRs integrated through main.
 
 ## Reconciliation
 
@@ -49,8 +57,8 @@ fallbacks.
 ## Evidence
 
 [Package identity](package-audit.json) identifies the single archive used by
-standalone and Reploid checks. Detailed acceptance is recorded separately when
-the combined checks complete. Historical branch evidence is not relabeled as
+standalone and Reploid checks. [Acceptance](acceptance.json) records the combined
+checks. Historical branch evidence is not relabeled as
 acceptance of this new archive. The local retained bundle is
 `/var/tmp/doppler-main-integration-20260919`.
 

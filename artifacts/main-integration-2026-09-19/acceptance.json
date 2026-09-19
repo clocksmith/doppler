@@ -1,0 +1,125 @@
+{
+  "schema": "doppler.main-integration-acceptance/v1",
+  "createdAtUtc": "2026-09-19T20:59:27.043Z",
+  "component": "doppler",
+  "intent": "preserved",
+  "sourceCommit": "0542ab14",
+  "historyCommit": "29fa619c9275c04ae56d64a948bef4f163e98b20",
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-WYBN4IGFY+TpOu72RfvtKFhZ++TJM9iikMvP103IyWtcdu/cfdr3QEb4nV8gRc6PWy8MgayYj/0OSX5eVmp8/w==",
+    "sizeBytes": 2145728,
+    "source": "local-npm-pack",
+    "sha256": "6965372e29dda22c6ed7257f0f02b536c0ac1ec2b8ed64275b1a320b344dda28"
+  },
+  "committedSourceRepack": {
+    "sha256": "6965372e29dda22c6ed7257f0f02b536c0ac1ec2b8ed64275b1a320b344dda28",
+    "identical": true,
+    "archive": "/var/tmp/doppler-main-repack.ryjOGJ/doppler-gpu-0.6.2.tgz"
+  },
+  "checks": [
+    {
+      "command": "npm run check:green",
+      "exitCode": 0,
+      "log": "/tmp/doppler-main-green-accepted.log",
+      "sha256": "6f7653019eb09c5ccbc99e29971a7a0e972d53025ceab703540d523b83799795"
+    },
+    {
+      "command": "npm run kernels:check",
+      "exitCode": 0,
+      "log": "/tmp/doppler-main-merge-kernels.log",
+      "sha256": "2ab90d282e482734003a34a1fd6ddeb58d550019fef0e9c6d2f06efdb5cd9abd"
+    },
+    {
+      "command": "npm run test:ci",
+      "exitCode": 0,
+      "log": "/tmp/doppler-main-merge-ci.log",
+      "sha256": "8d530a090566c9e695ba1dc7fb45559d4bebf43c9f55864cd84b4aa69e826306"
+    },
+    {
+      "command": "npm run test:gpu:browser",
+      "exitCode": 0,
+      "log": "/tmp/doppler-main-merge-browser.log",
+      "sha256": "acbddbab6443aa92fdb310e1c57ab2a6011342529bc5c4d2ba15e3f337eefd34"
+    },
+    {
+      "command": "npm run test:demo:contract",
+      "exitCode": 0,
+      "log": "/tmp/doppler-main-merge-demo.log",
+      "sha256": "cdaba48324274420d43c5d71bbde881899e81e6a94f78a31ec0b9f3c46b86d80"
+    }
+  ],
+  "environment": {
+    "node": "v22.22.1",
+    "npm": "9.2.0",
+    "policyBase": "d206fba1",
+    "architectureDebtAuthorization": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f"
+  },
+  "unitFiles": 843,
+  "ciContractFiles": 9,
+  "browserKernels": {
+    "passed": 71,
+    "failed": 0,
+    "skipped": 15,
+    "backend": "SwiftShader; not physical GPU qualification"
+  },
+  "installedConsumers": {
+    "publicExports": 29,
+    "standalone": true,
+    "reploid": true,
+    "reploidPhaseCalls": 64,
+    "reploidReleases": 64,
+    "reploidTokenSelection": {
+      "passed": true,
+      "phaseCalls": 7,
+      "releases": 7
+    },
+    "webrtcAndNativeReplay": true,
+    "evidence": [
+      "installed-reploid.json",
+      "installed-peer-browser.json"
+    ]
+  },
+  "physicalConsumers": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "browser": "Chrome 146.0.7680.177",
+    "standalone": {
+      "passed": true,
+      "tokenIdsMatched": 107,
+      "stopReason": "eos-token",
+      "receipt": "physical-standalone.json"
+    },
+    "reploid": {
+      "passed": true,
+      "tokenIdsMatched": 107,
+      "stopReason": "eos-token",
+      "displayMatchesCompletion": true,
+      "receipt": "physical-reploid.json"
+    },
+    "scope": "One retained model and local machine; no performance, fleet, or new model qualification."
+  },
+  "initialFailures": {
+    "combinedCheck": "stale generated inventories, missing declarations, historical/current recipe mismatch and lost WGSL language capabilities; repaired and rerun",
+    "physicalStandaloneProbe": "Initial single-attempt Chrome adapter probe unavailable; retry-capable acceptance then passed. Raw failure retained locally.",
+    "logs": [
+      "/tmp/doppler-main-merge-green.log",
+      "/tmp/doppler-main-merge-green-final.log",
+      "/tmp/doppler-main-physical-standalone.log"
+    ]
+  },
+  "historicalClosedPullRequest": {
+    "number": 1,
+    "head": "040058556e343ebe0968615dc0332a7e6c2d2a00",
+    "historyIntegrated": true,
+    "tipBlobsAlreadyInMainHistory": 1450,
+    "githubState": "closed",
+    "githubMerged": false,
+    "reopenRejected": true,
+    "branchRecreated": false
+  },
+  "remoteCi": "Not yet run at creation; local success does not establish remote success.",
+  "publication": false,
+  "deployment": false
+}
