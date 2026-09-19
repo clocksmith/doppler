@@ -1,4 +1,9 @@
 import { state } from './ui/state.js';
+import {
+  renderTokenInspector,
+  setTokenInspectorActive,
+  isTokenInspectorActive,
+} from './ui/token-inspector/index.js';
 
 function $(id) { return document.getElementById(id); }
 
@@ -52,6 +57,9 @@ function resetLiveAssistant() {
   if (output) output.textContent = '';
   if (liveMessage) liveMessage.hidden = true;
   showWordQuality(false);
+  const inspectorView = $('token-inspector-view');
+  if (inspectorView) inspectorView.hidden = true;
+  setTokenInspectorActive(false);
 }
 
 export function renderChatMessages(messages) {
@@ -208,6 +216,28 @@ export function renderWordQuality(quality) {
     ].join('\n');
     output.append(span, document.createTextNode(' '));
   }
+}
+
+export function showTokenInspectorView(show) {
+  const plain = $('output-text');
+  const qualityOutput = $('word-quality-output');
+  const inspectorView = $('token-inspector-view');
+  const liveMessage = $('live-assistant-message');
+  if (liveMessage && show) liveMessage.hidden = false;
+  if (inspectorView) inspectorView.hidden = !show;
+  setTokenInspectorActive(show);
+  if (show) {
+    if (plain) plain.hidden = true;
+    if (qualityOutput) qualityOutput.hidden = true;
+  } else {
+    if (plain) plain.hidden = false;
+  }
+}
+
+export function renderTokenInspection(tokens) {
+  const streamContainer = $('token-stream-container');
+  const cardContainer = $('token-inspector-card-container');
+  renderTokenInspector(tokens, streamContainer, cardContainer);
 }
 
 export function setFinalStats(stats) {

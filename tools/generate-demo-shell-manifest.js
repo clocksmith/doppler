@@ -65,6 +65,7 @@ const DECLARED_ASSETS = [
   'demo/ui/styles/app.css',
   'demo/ui/word-quality/styles.css',
   'demo/ui/xray/styles.css',
+  'demo/ui/token-inspector/styles.css',
   'demo/assets/pwa/icon-192.png',
   'demo/assets/pwa/icon-512.png',
   'demo/assets/pwa/icon-maskable-512.png',

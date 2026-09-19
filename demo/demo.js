@@ -3,7 +3,10 @@ import { reloadActiveModel, setModelCallbacks } from './models.js';
 import { initInput, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
-import { onModelLoaded, runGeneration, stopGeneration } from './core.js';
+import { onModelLoaded, runGeneration, stopGeneration, loadSampleInspection } from './core.js';
+import { SAMPLE_INSPECTION_RECEIPT } from './data/sample-inspection.js';
+import { showTokenInspectorView } from './output.js';
+import { state } from './ui/state.js';
 import { initPrecisionReplay } from './ui/precision-replay/index.js';
 import { initXray, getXrayRuntimeNoticeText, isXrayProfilingNeeded } from './ui/xray/index.js';
 import { flushPwaLaunchState, initPwa } from './pwa.js';
@@ -56,6 +59,25 @@ async function init() {
   // Wire run/stop
   setRunHandler(runGeneration);
   $('stop-btn')?.addEventListener('click', stopGeneration);
+
+  // Wire sample inspection
+  $('sample-run-btn')?.addEventListener('click', () => {
+    loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
+  });
+
+  // Wire token inspector toggle
+  const inspectorToggle = $('token-inspector-toggle');
+  if (inspectorToggle) {
+    state.tokenInspectorActive = true;
+    inspectorToggle.classList.add('is-active');
+    inspectorToggle.setAttribute('aria-pressed', 'true');
+    inspectorToggle.addEventListener('click', () => {
+      state.tokenInspectorActive = !state.tokenInspectorActive;
+      inspectorToggle.classList.toggle('is-active', state.tokenInspectorActive);
+      inspectorToggle.setAttribute('aria-pressed', String(state.tokenInspectorActive));
+      showTokenInspectorView(state.tokenInspectorActive);
+    });
+  }
 
   // Init xray (reads URL ?xray= flags, wires the all-panels checkbox)
   try {
