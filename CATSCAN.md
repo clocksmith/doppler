@@ -6,7 +6,7 @@ Parent: none
 
 ## Target
 
-Make intelligence executable as portable JavaScript model programs. Immediate work supports Reploid's ordered milestones through dependable public inference; durable success remains independent application adoption.
+Make intelligence executable as portable JavaScript model programs. Immediate work supports Reploid's ordered milestones through dependable public inference; long-term success remains independent application adoption.
 
 ## Authority
 
@@ -19,7 +19,9 @@ Make intelligence executable as portable JavaScript model programs. Immediate wo
 
 ## Contracts
 
-- Input: [Durable goals](docs/goals.md) and [subsystem support policy](src/config/support-tiers/subsystems.json).
+- Input: [Strategic goals](GOALS.md)
+- Input: [System intent and invariants](INTENT.md)
+- Input: [Subsystem support policy](src/config/support-tiers/subsystems.json).
 - Output: [Package surfaces](package.json), qualified artifacts, runtime behavior, and auditable receipts.
 
 ## Invariants
@@ -34,6 +36,7 @@ Make intelligence executable as portable JavaScript model programs. Immediate wo
 ## Acceptance
 
 - `npm run check:green` passes from a clean checkout.
+- Acceptance evidence verifies that [INTENT.md](INTENT.md) and [GOALS.md](GOALS.md) remain supported.
 - Evidence: [goal completion matrix](src/config/goal-completion-matrix.json).
 
 ## Non-goals
