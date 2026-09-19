@@ -20092,10 +20092,9 @@
       "offset": 52
      },
      {
-      "name": "_pad1",
+      "name": "frequency_offset",
       "type": "u32",
-      "offset": 56,
-      "padding": true
+      "offset": 56
      },
      {
       "name": "_pad2",

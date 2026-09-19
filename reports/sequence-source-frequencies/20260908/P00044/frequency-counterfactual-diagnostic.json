@@ -1,0 +1,15 @@
+{
+  "sourceLayersIdentical": true,
+  "rows": [
+    {
+      "variant": "retained-source",
+      "maxAbsoluteErrorToGPU": 0.013994294095466708,
+      "meanAbsoluteErrorToGPU": 0.00019274908481539888
+    },
+    {
+      "variant": "regenerated-theta-counterfactual",
+      "maxAbsoluteErrorToGPU": 1.7710698169914885e-05,
+      "meanAbsoluteErrorToGPU": 4.152888189997224e-07
+    }
+  ]
+}

@@ -423,6 +423,14 @@ assert.equal(sequenceAnalysis.modelIR.outputTopology.headType, 'sequence-encoder
 assert.deepEqual(sequenceAnalysis.modelIR.outputTopology.sequence, sequenceManifest.inference.sequence);
 assert.equal(Object.hasOwn(sequenceAnalysis.modelIR.outputTopology, 'embedding'), false);
 assert.throws(() => buildQualificationRecords(sequenceAnalysis), /requires sequence qualification/);
+const frequencyManifest = structuredClone(sequenceManifest);
+frequencyManifest.inference.rope.ropeInverseFrequencies = [1, 0.464111328125];
+const frequencyAnalysis = stageAnalyze({ ...sequenceSource, manifest: frequencyManifest });
+assert.deepEqual(frequencyAnalysis.modelIR.rope.inverseFrequencies, [1, 0.464111328125]);
+assert.notEqual(frequencyAnalysis.modelIRHash, sequenceAnalysis.modelIRHash);
+frequencyManifest.inference.rope.ropeInverseFrequencies = [1];
+assert.throws(() => stageAnalyze({ ...sequenceSource, manifest: frequencyManifest }), /inverseFrequencies/);
+
 const textEmbeddingManifest = structuredClone(sequenceManifest);
 textEmbeddingManifest.inference.supportsSequence = false;
 assert.throws(() => stageAnalyze({ ...sequenceSource, manifest: textEmbeddingManifest }), /embeddingPostprocessor/);

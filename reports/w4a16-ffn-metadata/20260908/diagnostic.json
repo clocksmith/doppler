@@ -1,0 +1,39 @@
+{
+  "schema": "reploid.ffn-weight-metadata-diagnostic/v1",
+  "hypothesis": "The fusion-planning dtype validator rejects valid W4A16 metadata before the existing non-fused policy can be selected.",
+  "physicalModelFailure": "storage-converted-browser.log",
+  "reference": "Descriptor-only orchestration diagnostic; no model arithmetic or GPU execution claimed.",
+  "precedingProbe": {
+    "status": "failed",
+    "reason": "resolveFusedGateUpWeights requires initialized device capabilities; this probe isolates the rejecting validator directly."
+  },
+  "rows": [
+    {
+      "dtype": "f16",
+      "observedDtype": "f16",
+      "accepted": true
+    },
+    {
+      "dtype": "f32",
+      "observedDtype": "f32",
+      "accepted": true
+    },
+    {
+      "dtype": "bf16",
+      "observedDtype": "bf16",
+      "accepted": true
+    },
+    {
+      "dtype": "q4k",
+      "observedDtype": "q4k",
+      "accepted": true
+    },
+    {
+      "dtype": "w4a16",
+      "observedDtype": "w4a16",
+      "accepted": false,
+      "error": "[FFN] gate dtype metadata is required for fused gate/up planning."
+    }
+  ],
+  "hypothesisSupported": true
+}

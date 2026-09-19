@@ -24,6 +24,7 @@ import type {
   ExecutionV1SessionSchema,
 } from './execution-v1.schema.js';
 import type { SourceTensorPolicy } from '../../converter/source-tensor-rules.js';
+import type { SourceRotaryFrequencyPolicy } from '../../converter/source-rotary-frequencies.js';
 import type { SourceTokenizerPolicy } from '../../converter/source-tokenizer.js';
 
 export type ComputePrecision = 'f16' | 'f32' | 'auto' | null;
@@ -120,6 +121,7 @@ export interface ConverterConfigSchema {
   architecture: ArchitectureSchema | null;
   sourceTensors: SourceTensorPolicy | null;
   sourceTokenizer: SourceTokenizerPolicy | null;
+  sourceRotaryFrequencies: SourceRotaryFrequencyPolicy | null;
   moeConfig?: MoEConfigSchema | null;
   execution?: ExecutionV1GraphSchema;
   session?: ExecutionV1SessionSchema;

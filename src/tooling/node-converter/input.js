@@ -519,3 +519,26 @@ export function createNodeLargeTensorTransformer(options) {
     };
   };
 }
+
+function compareNullableStrings(a, b) {
+  const left = typeof a === 'string' ? a : '';
+  const right = typeof b === 'string' ? b : '';
+  return left.localeCompare(right);
+}
+
+export function sortTensorsByDeterministicLocality(tensors) {
+  if (!Array.isArray(tensors) || tensors.length <= 1) {
+    return tensors;
+  }
+  tensors.sort((left, right) => {
+    const sourcePathCmp = compareNullableStrings(left?.sourcePath, right?.sourcePath);
+    if (sourcePathCmp !== 0) return sourcePathCmp;
+    const leftOffset = Number.isFinite(left?.offset) ? Number(left.offset) : 0;
+    const rightOffset = Number.isFinite(right?.offset) ? Number(right.offset) : 0;
+    if (leftOffset !== rightOffset) {
+      return leftOffset - rightOffset;
+    }
+    return compareNullableStrings(left?.name, right?.name);
+  });
+  return tensors;
+}

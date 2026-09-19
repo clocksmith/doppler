@@ -1,4 +1,5 @@
 override WORKGROUP_SIZE: u32 = 256u;
+override USE_INVERSE_FREQUENCIES: bool = false;
 
 struct Uniforms {
     max_seq_len: u32,
@@ -15,7 +16,7 @@ struct Uniforms {
     mrope_section_t: u32,
     mrope_section_h: u32,
     mrope_section_w: u32,
-    _pad1: u32,
+    frequency_offset: u32,
     _pad2: u32,
 }
 
@@ -35,7 +36,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let position = index / half_dim;
     let dimension = index % half_dim;
     let exponent = f32(dimension * 2u) / f32(u.frequency_base_dim);
-    let frequency = 1.0 / pow(u.theta, exponent);
+    var frequency: f32;
+    if (USE_INVERSE_FREQUENCIES) {
+        frequency = bitcast<f32>(rope_data[u.frequency_offset + dimension]);
+    } else {
+        frequency = 1.0 / pow(u.theta, exponent);
+    }
     var scale = u.rope_scale;
     var magnitude = 1.0;
     var rope_position = f32(position);

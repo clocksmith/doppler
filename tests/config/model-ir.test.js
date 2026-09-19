@@ -20,5 +20,11 @@ assert.match(hashModelIR(ir), /^sha256:[0-9a-f]{64}$/);
 assert.notEqual(hashModelIR(ir), hashModelIR({ ...ir, hiddenSize: 16 }));
 assert.throws(() => createModelIR({ ...params, attentionGeometry: undefined }), /attentionGeometry/);
 assert.throws(() => createModelIR({ ...params, tensorRoles: {} }), /tensorRoles/);
+const retainedFrequencies = createModelIR({ ...params,
+  rope: { ...params.rope, inverseFrequencies: [1, 0.5, 0.25, 0.125] } });
+assert.notEqual(hashModelIR(retainedFrequencies), hashModelIR(ir));
+assert.throws(() => createModelIR({ ...params,
+  rope: { ...params.rope, inverseFrequencies: [1] } }), /inverseFrequencies/);
+
 
 console.log('✔ model-ir.test.js passed');

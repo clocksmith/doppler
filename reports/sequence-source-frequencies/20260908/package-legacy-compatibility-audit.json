@@ -1,0 +1,18 @@
+{
+  "schema": "doppler.package-delta-audit/v1",
+  "baselineRevision": "6f15ed0bcea2be9c2e98ab32114ce1cd2f1279ef",
+  "baseline": {
+    "entryCount": 1787,
+    "size": 2110932,
+    "unpackedSize": 10888297
+  },
+  "candidate": {
+    "entryCount": 1787,
+    "size": 2110937,
+    "unpackedSize": 10888309
+  },
+  "changedFiles": [
+    "src/gpu/kernels/rope-precompute.js"
+  ],
+  "scope": "Omit the new specialization constant for theta-generated execution so older sealed shaders remain valid."
+}

@@ -1,0 +1,8 @@
+{
+  "schema": "reploid.numerical-diagnostic-hypothesis/v1",
+  "createdAt": "2026-09-08T17:11:17.658086+00:00",
+  "hypothesis": "The final normalization scale amplifies accumulated f32 error in channel 46 beyond the frozen output tolerance.",
+  "disproof": "Capture the GPU input and output of final normalization and compare with the exact CPU boundaries; reject this explanation if the error is already large before final normalization or the normalization does not explain its amplification.",
+  "acceptanceUnchanged": true,
+  "artifact": "browser-erf-full-qualification.json"
+}

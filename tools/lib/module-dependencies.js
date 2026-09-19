@@ -41,7 +41,7 @@ export function parseModuleDependencies(source, fileName = 'module.js') {
   }
   function visit(node) {
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-      if (/^(?:\.\.\/|\.\/).*\.(?:d\.ts|js|json|html|wgsl)(?:[?#].*)?$/.test(node.text)) assetReferences.add(node.text);
+      if (/^(?:\.\.\/|\.\/|src\/).*\.(?:d\.ts|js|json|html|wgsl)(?:[?#].*)?$/.test(node.text)) assetReferences.add(node.text);
     }
     if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) {
       add('type', node, literal(node.argument.literal));

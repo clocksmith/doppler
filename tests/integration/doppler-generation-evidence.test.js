@@ -205,6 +205,15 @@ assert.equal(
   `sha256:${'b'.repeat(64)}`
 );
 
+runtimeConfig.inference.sampling.presencePenalty = 0.75;
+const penaltyEvidence = await handle.generateWithEvidence('hello', {
+  maxTokens: 4, temperature: 0, topK: 1, topP: 1, useChatTemplate: false,
+});
+assert.equal(penaltyEvidence.generationConfig.presencePenalty, 0.75);
+assert.notEqual(penaltyEvidence.generationConfigHash, evidence.generationConfigHash);
+assert.deepEqual(penaltyEvidence.tokenIds, evidence.tokenIds);
+runtimeConfig.inference.sampling.presencePenalty = 0;
+
 const adapterDigest = `sha256:${'c'.repeat(64)}`;
 pipeline.getActiveLoRA = () => ({
   name: 'same-name-adapter',

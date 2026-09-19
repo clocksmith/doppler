@@ -329,6 +329,9 @@ For claimable numbers, use `docs/benchmark-methodology.md` and artifacts in
 
 Readback cadence is runtime-configurable (`runtime.inference.session.decodeLoop.readbackInterval`).
 Default parity decode is typically per-token, but batched decode modes can amortize readbacks.
+Recorded batches keep their declared submission boundaries while sharing a
+deferred token readback. A recording failure waits for an already submitted
+prefix before releasing its resources.
 See `src/inference/pipelines/text/generator-steps.js`.
 
 ### Capability vs Performance Tradeoff

@@ -105,8 +105,9 @@ function collectEntrypoints(packageJson) {
 
 async function resolveRuntimeDependency(importerPath, rawSpecifier) {
   const specifier = stripQueryAndHash(rawSpecifier);
-  if (!isLocalSpecifier(specifier)) return null;
-  const basePath = path.resolve(path.dirname(importerPath), specifier);
+  const packageRootRelative = specifier.startsWith('src/');
+  if (!isLocalSpecifier(specifier) && !packageRootRelative) return null;
+  const basePath = path.resolve(packageRootRelative ? ROOT_DIR : path.dirname(importerPath), specifier);
   const candidates = path.extname(basePath)
     ? [basePath]
     : [basePath, `${basePath}.js`, path.join(basePath, 'index.js')];

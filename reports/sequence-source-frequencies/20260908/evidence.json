@@ -1,0 +1,92 @@
+{
+  "schema": "doppler.source-frequency-correction-evidence/v1",
+  "scope": "ESM-2 35M source f32 embedding outputs on this AMD WebGPU host",
+  "fullSourceOutputComparisonPassed": true,
+  "artifacts": [
+    {
+      "path": "policy.json",
+      "hash": "sha256:e819967854e955b94d25f5811e97fa599431bea4a526d490f199626b8805348a"
+    },
+    {
+      "path": "retained-control/full-tensor-diagnostic.json",
+      "hash": "sha256:a7ce31de2780c6f6292f7be86b2903e56cd991699b4910f3348cedf3a02cb789"
+    },
+    {
+      "path": "retained-control/activation-diagnostic.json",
+      "hash": "sha256:57308c1f23ed5e7f4f8e8e72f0ce538fea3979ef7309da684fceb8d99c943920"
+    },
+    {
+      "path": "P00044/remaining-divergence-hypothesis.json",
+      "hash": "sha256:c481f1ab1f897d53d503c0b9f36ca1b2408a2b151534969440745c3d72e2b178"
+    },
+    {
+      "path": "P00044/final-norm-hypothesis-result.json",
+      "hash": "sha256:4d3cc7b4f0c9c194f886b2d6283f37fab90af44604d328a3f771f1d1721ee48b"
+    },
+    {
+      "path": "P00044/first-layer-divergence.json",
+      "hash": "sha256:30a7e2952085de34735009d2719b35083c00cd77c87df128a42d4e4189c0b6c0"
+    },
+    {
+      "path": "P00044/frequency-counterfactual-diagnostic.json",
+      "hash": "sha256:ed1b626487e89c340b91bbcb31becae5656bc66a1fbe546630b8c8239cfb85a6"
+    },
+    {
+      "path": "P00044/source-frequency-tensors.json",
+      "hash": "sha256:da4178dd5b7452c3425707821c1ac911918a16be0e6af726a8c66b06f1d69e52"
+    },
+    {
+      "path": "retained-control/browser-source-frequencies-bound-qualification.json",
+      "hash": "sha256:bf65ee064b6e84ce4dc665c887f8571d51cb99a9514cfb2e5bbacb5ad432a808"
+    },
+    {
+      "path": "P69905/browser-source-frequencies-bound-qualification.json",
+      "hash": "sha256:ca338f9ed64db08245cd0cd72d9eb687eda6ba8b75178500eb141c118fdd6606"
+    },
+    {
+      "path": "P00044/browser-source-frequencies-bound-qualification.json",
+      "hash": "sha256:eb3398d9b3bf40d667e2990a284249ec47155e625155794097166e9c6e2d6a40"
+    },
+    {
+      "path": "P00044/full-reference.json",
+      "hash": "sha256:2a0384359316d7a6814f297e37e4f78f36d1883d1cd43310a53a15701b32ba91"
+    },
+    {
+      "path": "P69905/full-reference.json",
+      "hash": "sha256:d1ec3a33afcb04955662f33e5394a563b817e10f7fba09e0e0d2310b7c9b7ca1"
+    },
+    {
+      "path": "retained-control/full-reference.json",
+      "hash": "sha256:e4a140e9311ff78d2a49dc700dd5e931b280061bf8ee45f2b5f5dd41af3ffe15"
+    },
+    {
+      "path": "package-audit.json",
+      "hash": "sha256:7364606fe03201bce0c15f9b4e8c984a9da01d1c4c771ae41675f678223b0037"
+    },
+    {
+      "path": "legacy-rope-compatibility-hypothesis.json",
+      "hash": "sha256:a3a41ae04fac90daece3cc3a1456c602ba41e7aa7f0424983e43be94528ba8b8"
+    },
+    {
+      "path": "legacy-rope-compatibility.log",
+      "hash": "sha256:ecc40329a451256e015e2996ec019786f6a3ab2ea72667bc047692ff8be10caf"
+    },
+    {
+      "path": "legacy-rope-compatibility-corrected.log",
+      "hash": "sha256:5f1a8db386dd3075a931d247dc0f3acd6707bb6ee9557538d19285406f031ed4"
+    },
+    {
+      "path": "frequency-gpu-legacy-correction.log",
+      "hash": "sha256:795152bf32fc8d2b7405441572daa7665a8182199a6a81c760e7f57919664768"
+    },
+    {
+      "path": "package-legacy-compatibility-audit.json",
+      "hash": "sha256:86a8046e7965cd250509634d58ac9da9842985e82f1b85fcada4776441828155"
+    }
+  ],
+  "sourceReferenceRoot": ".",
+  "signedCapsuleQualified": false,
+  "independentOperators": false,
+  "performanceAdvantageClaimed": false,
+  "legacySignedShaderCompatibilityPassed": true
+}

@@ -392,6 +392,8 @@ export function stageAnalyze(normalized) {
     rope: {
       dimension: requirePositiveInteger(architecture.headDim, 'manifest.architecture.headDim'),
       baseFreq: requirePositiveInteger(inference.rope?.ropeTheta, 'manifest.inference.rope.ropeTheta'),
+      ...(inference.rope?.ropeInverseFrequencies != null
+        ? { inverseFrequencies: [...inference.rope.ropeInverseFrequencies] } : {}),
       localBaseFreq: inference.rope?.ropeLocalTheta === null
         ? null
         : requirePositiveInteger(inference.rope?.ropeLocalTheta, 'manifest.inference.rope.ropeLocalTheta'),

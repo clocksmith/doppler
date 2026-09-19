@@ -9,6 +9,7 @@ import { createConversionRunTiming } from './conversion-run-timing.js';
 import { createRowChunks, mapOrderedChunkBatches } from './node-converter-chunk-batches.js';
 import { bootstrapNodeWebGPU } from './node-webgpu.js';
 import { buildManifestIntegrityFromModelDir } from './rdrr-integrity-refresh.js';
+import { readSourceRotaryFrequencies } from '../converter/source-rotary-frequencies.js';
 import { applySourceTensorRules } from '../converter/source-tensor-rules.js';
 import {
   buildSourceTokenizerJson,
@@ -22,7 +23,7 @@ import {
   CONVERSION_REPORT_SCHEMA_VERSION,
   validateConversionReport,
 } from '../config/schema/conversion-report.schema.js';
-import { createNodeGpuTensorTransformer, createNodeLargeTensorTransformer, createNodeTensorTransformer } from './node-converter/input.js';
+import { sortTensorsByDeterministicLocality, createNodeGpuTensorTransformer, createNodeLargeTensorTransformer, createNodeTensorTransformer } from './node-converter/input.js';
 import { buildConvertReport, createFileRangeReader, createNodeConvertIO, normalizeExecutionConfig } from './node-converter/output.js';
 
 function resolveHostParallelism() {
@@ -69,29 +70,6 @@ function createStageTimer(label) {
       return elapsed;
     },
   };
-}
-
-function compareNullableStrings(a, b) {
-  const left = typeof a === 'string' ? a : '';
-  const right = typeof b === 'string' ? b : '';
-  return left.localeCompare(right);
-}
-
-function sortTensorsByDeterministicLocality(tensors) {
-  if (!Array.isArray(tensors) || tensors.length <= 1) {
-    return tensors;
-  }
-  tensors.sort((left, right) => {
-    const sourcePathCmp = compareNullableStrings(left?.sourcePath, right?.sourcePath);
-    if (sourcePathCmp !== 0) return sourcePathCmp;
-    const leftOffset = Number.isFinite(left?.offset) ? Number(left.offset) : 0;
-    const rightOffset = Number.isFinite(right?.offset) ? Number(right.offset) : 0;
-    if (leftOffset !== rightOffset) {
-      return leftOffset - rightOffset;
-    }
-    return compareNullableStrings(left?.name, right?.name);
-  });
-  return tensors;
 }
 
 let gpuCastRuntimePromise = null;
@@ -394,6 +372,9 @@ export async function convertSafetensorsDirectory(options) {
   const executionPlan = resolveExecutionPlan(executionConfig);
   const diffusionIndexPath = isInputDirectory ? path.join(inputDir, 'model_index.json') : null;
   const isDiffusionInput = isInputDirectory && diffusionIndexPath ? await fileExists(diffusionIndexPath) : false;
+  if (converterConfig.sourceRotaryFrequencies != null && (isDiffusionInput || isInputGgufFile)) {
+    throw new Error('sourceRotaryFrequencies requires the SafeTensors transformer conversion surface.');
+  }
 
   let config = null;
   let tensors = [];
@@ -637,6 +618,18 @@ export async function convertSafetensorsDirectory(options) {
     architectureHint = parsedTransformer.architectureHint;
     embeddingPostprocessor = parsedTransformer.embeddingPostprocessor ?? null;
     rerankScoring = parsedTransformer.rerankScoring ?? null;
+    const sourceFrequencies = await readSourceRotaryFrequencies(
+      tensors, converterConfig.sourceRotaryFrequencies,
+      (tensor) => fileRangeReader.readRange(tensor.sourcePath, tensor.offset, tensor.size)
+    );
+    if (sourceFrequencies) {
+      const configured = converterConfig.inference?.rope?.ropeInverseFrequencies;
+      if (configured != null && JSON.stringify(configured) !== JSON.stringify(sourceFrequencies)) {
+        throw new Error('inference.rope.ropeInverseFrequencies conflicts with source tensors.');
+      }
+      converterConfig.inference = { ...converterConfig.inference,
+        rope: { ...converterConfig.inference?.rope, ropeInverseFrequencies: sourceFrequencies } };
+    }
     tensors = applySourceTensorRules(tensors, converterConfig.sourceTensors);
     architecture = converterConfig.architecture ?? extractArchitecture(config, null);
     const tokenizerJsonPath = path.join(inputDir, 'tokenizer.json');

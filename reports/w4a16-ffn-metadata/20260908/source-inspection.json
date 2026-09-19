@@ -1,0 +1,66 @@
+{
+  "schema": "reploid.source-conversion-inspection/v1",
+  "sourceDirectory": "/home/x/models/hf/google/gemma-4-12B-it-qat-w4a16-ct",
+  "sourceRevision": "dcfe12254e8fb98c743f21efa05ff64937926c64",
+  "sourceFiles": [
+    {
+      "path": "config.json",
+      "hash": "sha256:ba14713d084391532b285f7c252b954b7c6c0db97f427a9d8fb788edc2949168",
+      "sizeBytes": 6126
+    },
+    {
+      "path": "model.safetensors",
+      "hash": "sha256:60b6e3989502969d8ae04185d72ecbbc7db63978d5af747a493d53895aa6bfa3",
+      "sizeBytes": 10264229896
+    },
+    {
+      "path": "tokenizer.json",
+      "hash": "sha256:cc8d3a0ce36466ccc1278bf987df5f71db1719b9ca6b4118264f45cb627bfe0f",
+      "sizeBytes": 32169626
+    },
+    {
+      "path": "tokenizer_config.json",
+      "hash": "sha256:ee66825f1a587ca13bcb90d7e60f59bc99e84f3b8bc0cefdc3ea595cd5abf773",
+      "sizeBytes": 2774
+    },
+    {
+      "path": "generation_config.json",
+      "hash": "sha256:c70f87dc2995fc43406c0bcfb41b69c6d31c2d0c033fa09e536ffabc091ae24c",
+      "sizeBytes": 255
+    },
+    {
+      "path": "README.md",
+      "hash": "sha256:3a2673a907c4ec11220cc4c883dd70e36fbf4e9046638fc873187328b20123e4",
+      "sizeBytes": 28491
+    },
+    {
+      "path": "chat_template.jinja",
+      "hash": "sha256:36e3a42e5cf14cd0020e72d92e1fdd9970f59b82170e421f0cbe1bb42bead3f0",
+      "sizeBytes": 17466
+    }
+  ],
+  "dtypeCounts": {
+    "I64": 328,
+    "I32": 328,
+    "BF16": 678
+  },
+  "tensorCount": 1334,
+  "recipePath": "/home/x/deco/worktrees/doppler-local-journeys/src/config/conversion/gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16.json",
+  "recipeDigest": "sha256:67ba1280262134d0d9fe5bd2f86cbda5906c4e635dd6042aefc9e9708c825915",
+  "outputDirectory": "/var/tmp/reploid-gemma4-source-20260908/converted",
+  "conversionPolicy": {
+    "weights": "w4a16",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "vision": "f16",
+    "projector": "f16",
+    "audio": "f16",
+    "computePrecision": "f16",
+    "sourceTrainingQuantization": "qat",
+    "sourceQuantizationTarget": "w4a16",
+    "sourceQuantizationFormat": "compressed-tensors"
+  },
+  "textOnly": true,
+  "minimumBenefit": "All frozen development obligations pass; no claim from successful conversion alone.",
+  "selected": false
+}

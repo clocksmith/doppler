@@ -1,3 +1,4 @@
+export { _initRoPE } from './init-rope.js';
 import { getDevice, initDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { getUniformCacheStats } from '../../../gpu/uniform-cache.js';
 import { getBufferPool as getGlobalBufferPool, readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
@@ -12,7 +13,6 @@ import { PipelineState } from './state.js';
 import { PipelineGenerator } from './generator.js';
 import { parseModelConfig } from './config.js';
 import {
-  initRoPEFrequencies,
   createKVCache,
   loadWeights,
   initMoERouter,
@@ -523,36 +523,6 @@ export async function _loadWeights() {
         throw bufferError;
       }
     }
-  }
-
-export async function _initRoPE() {
-    const config = (this.modelConfig);
-    const maxSeqLen = config.maxSeqLen;
-    const ropeBuffers = await initRoPEFrequencies({
-      headDim: config.globalHeadDim ?? config.headDim,
-      localHeadDim: config.headDim,
-      rotaryDim: config.ropeRotaryDim,
-      ropeLocalRotaryDim: config.ropeLocalRotaryDim,
-      ropeFrequencyBaseDim: config.ropeFrequencyBaseDim,
-      ropeLocalFrequencyBaseDim: config.ropeLocalFrequencyBaseDim,
-      maxSeqLen,
-      ropeTheta: config.ropeTheta,
-      ropeLocalTheta: config.ropeLocalTheta,
-      mropeInterleaved: config.mropeInterleaved,
-      mropeSection: config.mropeSection,
-      partialRotaryFactor: config.partialRotaryFactor,
-      ropeLocalPartialRotaryFactor: config.ropeLocalPartialRotaryFactor,
-      ropeScale: config.ropeScale,
-      ropeLocalScale: config.ropeLocalScale,
-      ropeScalingType: config.ropeScalingType,
-      ropeLocalScalingType: config.ropeLocalScalingType,
-      ropeScaling: config.ropeScaling,
-      ropeLocalScaling: config.ropeLocalScaling,
-    }, this.useGPU);
-    this.ropeFreqsCos = ropeBuffers.cos;
-    this.ropeFreqsSin = ropeBuffers.sin;
-    this.ropeLocalCos = ropeBuffers.localCos ?? null;
-    this.ropeLocalSin = ropeBuffers.localSin ?? null;
   }
 
 export async function _initConvLayerStates() {
