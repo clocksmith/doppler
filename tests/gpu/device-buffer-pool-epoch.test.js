@@ -203,19 +203,23 @@ async function flushMicrotasks() {
 
   assert.notEqual(currentPool, oldPool);
   assert.equal(oldBuffer.destroyed, false);
-  assert.throws(
-    () => oldPool.acquire(64, BufferUsage.STORAGE, 'stale_pool'),
-    /stale device epoch/
-  );
+  const continued = oldPool.acquire(64, BufferUsage.STORAGE, 'continued_old_session');
+  assert.equal(continued.owner, 'old');
+  releaseBuffer(continued);
+  assert.equal(oldPool.isActiveBuffer(continued), false, 'release routes to the originating pool');
 
   oldSubmit.resolve();
   await flushMicrotasks();
 
-  assert.equal(oldBuffer.destroyed, true);
+  assert.equal(oldBuffer.destroyed, false, 'switching the compatibility device must preserve other owners');
 
   const currentBuffer = acquireBuffer(64, BufferUsage.STORAGE, 'current_pool');
   assert.notEqual(currentBuffer, oldBuffer);
   assert.equal(currentBuffer.owner, 'current');
+  destroyBufferPool(oldDevice);
+  await flushMicrotasks();
+  assert.equal(oldBuffer.destroyed, true);
+  assert.equal(currentBuffer.destroyed, false, 'closing A preserves B');
   releaseBuffer(currentBuffer);
 }
 

@@ -1,5 +1,6 @@
 import { readBuffer } from '../../../memory/buffer-pool.js';
 import { resolveSamplingConfig } from './sampling-config.js';
+import { resolveTextGenerationRequest, resolveChatTemplateSetting } from './generation-request.js';
 import { isGpuBufferInstance, isWeightBuffer, isCpuWeightBuffer, getBufferDtype } from '../../../gpu/weight-buffer.js';
 import { decodeReadback } from './debug-utils/index.js';
 import { resolveExecutionSessionPlan } from './execution-plan.js';
@@ -123,40 +124,7 @@ export function assertTokenIdInRange(state, tokenId, context = 'token') {
 }
 
 function resolveChatTemplateEnabled(state, options) {
-  const fromOptions = resolveConfiguredValue(
-    options.useChatTemplate,
-    undefined,
-    'options.useChatTemplate',
-    (value) => typeof value === 'boolean'
-  );
-  if (fromOptions !== undefined) {
-    return fromOptions;
-  }
-
-  const runtimeOverride = state.runtimeConfig.inference.chatTemplate?.enabled;
-  const fromRuntime = runtimeOverride == null
-    ? undefined
-    : resolveConfiguredValue(
-      runtimeOverride,
-      undefined,
-      'state.runtimeConfig.inference.chatTemplate.enabled',
-      (value) => typeof value === 'boolean'
-    );
-  if (fromRuntime !== undefined) {
-    return fromRuntime;
-  }
-
-  const fromModel = resolveConfiguredValue(
-    state.modelConfig?.chatTemplateEnabled,
-    undefined,
-    'state.modelConfig.chatTemplateEnabled',
-    (value) => typeof value === 'boolean'
-  );
-  if (fromModel !== undefined) {
-    return fromModel;
-  }
-
-  return false;
+  return resolveChatTemplateSetting(options, state.runtimeConfig, state.modelConfig);
 }
 
 export function resolveStepOptions(state, options = {}) {
@@ -189,6 +157,7 @@ export function resolveStepOptions(state, options = {}) {
 }
 
 export function resolveGenerateOptions(state, options = {}) {
+  options = resolveTextGenerationRequest(options, state.runtimeConfig, state.modelConfig);
   const runtimeDefaults = state.runtimeConfig.inference;
   const generationDefaults = runtimeDefaults.generation;
   const executionPlan = resolveExecutionSessionPlan(state, options);
@@ -207,8 +176,8 @@ export function resolveGenerateOptions(state, options = {}) {
       (value) => Number.isFinite(value) && value >= 0
     ),
     maxTokens: executionPlan.maxTokens,
-    ...resolveSamplingConfig(options, state.runtimeConfig),
-    stopSequences: resolveConfiguredValue(options.stopSequences, [], 'options.stopSequences', Array.isArray),
+    ...options,
+    stopSequences: options.stopSequences,
     useSpeculative: resolveConfiguredValue(
       options.useSpeculative,
       generationDefaults.useSpeculative,

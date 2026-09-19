@@ -1,18 +1,14 @@
 import {
-  createSourceStorageContext,
   DIRECT_SOURCE_PATH_RUNTIME_LOCAL,
   DIRECT_SOURCE_RUNTIME_MODE,
   DIRECT_SOURCE_RUNTIME_SCHEMA,
   DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION,
   getSourceRuntimeMetadata,
-} from '../tooling/source-runtime-bundle.js';
+} from '../formats/source-runtime.js';
+import { createSourceStorageContext } from './source-storage-context.js';
 import {
   computeHash,
-  getFileStoredSize,
-  loadAuxText,
-  loadFileFromStore,
-  loadFileRangeFromStore,
-  streamFileFromStore,
+  openModelReadSession,
 } from './shard-manager.js';
 import { cloneJsonValue } from '../formats/clone-json.js';
 import { encodeUtf8 } from '../formats/encode-utf8.js';
@@ -261,9 +257,9 @@ export function buildSourceArtifactFingerprint(manifest) {
   return resolveSourceArtifact(manifest)?.fingerprint ?? null;
 }
 
-async function loadStoreFile(path) {
+async function loadStoreFile(store, path) {
   try {
-    return await loadFileFromStore(path);
+    return await store.readFile(path);
   } catch (error) {
     const message = String(error?.message || '');
     if (error?.name === 'NotFoundError' || message.toLowerCase().includes('not found')) {
@@ -283,10 +279,11 @@ export async function verifyStoredSourceArtifact(manifest, options = {}) {
   const missingFiles = [];
   const corruptFiles = [];
   const files = listSourceArtifactFiles(manifest);
-
+  const store = options.store ?? await openModelReadSession(options.modelId);
+  try {
   for (const entry of files) {
     if (!checkHashes) {
-      const storedSize = await getFileStoredSize(entry.path);
+      const storedSize = await store.getFileSize(entry.path);
       if (storedSize == null) {
         missingFiles.push(entry.path);
       } else if (Number.isFinite(Number(entry.size)) && storedSize !== Number(entry.size)) {
@@ -294,7 +291,7 @@ export async function verifyStoredSourceArtifact(manifest, options = {}) {
       }
       continue;
     }
-    const payload = await loadStoreFile(entry.path);
+    const payload = await loadStoreFile(store, entry.path);
     if (!(payload instanceof ArrayBuffer)) {
       missingFiles.push(entry.path);
       continue;
@@ -319,6 +316,9 @@ export async function verifyStoredSourceArtifact(manifest, options = {}) {
     missingFiles,
     corruptFiles,
   };
+  } finally {
+    if (!options.store) await store.close();
+  }
 }
 
 export function createStoredSourceArtifactContext(manifest, options = {}) {
@@ -327,21 +327,15 @@ export function createStoredSourceArtifactContext(manifest, options = {}) {
     throw new Error('createStoredSourceArtifactContext requires a direct-source manifest.');
   }
 
-  const readRange = async (path, offset, length) => loadFileRangeFromStore(path, offset, length);
-  const streamRange = (path, offset, length, streamOptions = {}) => {
-    const stream = streamFileFromStore(path, {
-      chunkBytes: streamOptions?.chunkBytes,
-      offset,
-      length,
-    });
-    if (!stream) {
-      return null;
-    }
-    return stream;
-  };
-  const readText = async (path) => loadAuxText(path);
+  // Capture the model/backend now, not when a later tensor read is awaited.
+  const storePromise = options.store ? Promise.resolve(options.store) : openModelReadSession(options.modelId);
+  // Construction is synchronous; preserve rejection for the first read without
+  // creating an unhandled rejection if a caller closes before loading tensors.
+  storePromise.catch(() => {});
+  const readRange = async (path, offset, length) => (await storePromise).readRange(path, offset, length);
+  const readText = async (path) => (await storePromise).readText(path);
   const readBinary = async (path) => {
-    const payload = await loadStoreFile(path);
+    const payload = await loadStoreFile(await storePromise, path);
     if (!(payload instanceof ArrayBuffer)) {
       throw new Error(`Missing stored source binary file: ${path}`);
     }
@@ -351,19 +345,12 @@ export function createStoredSourceArtifactContext(manifest, options = {}) {
   return createSourceStorageContext({
     manifest,
     readRange,
-    streamRange: streamRange ? (async function* (path, offset, length, streamOptions = {}) {
-      const stream = streamRange(path, offset, length, streamOptions);
-      if (!stream) {
-        const payload = await loadFileRangeFromStore(path, offset, length);
-        yield new Uint8Array(payload);
-        return;
-      }
-      for await (const chunk of stream) {
-        yield chunk;
-      }
-    }) : null,
+    streamRange: async function* (path, offset, length, streamOptions = {}) {
+      yield* (await storePromise).streamRange(path, offset, length, streamOptions);
+    },
     readText,
     readBinary,
+    close: async () => { if (!options.store) await (await storePromise).close(); },
     verifyHashes: options.verifyHashes !== false,
     // Stored shard/source assets were already hash-verified at import time. Warm loads
     // should not re-stream the full files just to re-prove the same digest.

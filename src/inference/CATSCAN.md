@@ -16,6 +16,7 @@ Turn validated model and runtime contracts into deterministic semantic plans, ex
 ## Scope
 
 - Mainline inference mechanisms, pipeline registry, cache behavior, and execution adapters.
+- Catalog discovery and browser URL-driven test assembly belong to tooling; `test-harness.js` is a compatibility export only.
 
 ## Contracts
 

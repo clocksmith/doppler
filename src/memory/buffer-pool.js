@@ -1,9 +1,12 @@
 
 
-import { getDevice, getDeviceEpoch, getDeviceLimits } from '../gpu/device.js';
+import { getDevice } from '../gpu/device.js';
+import { getSharedDeviceState, isDeviceLost, registerBufferDevice, observeDeviceLoss } from '../gpu/device-state.js';
 import { allowReadback, trackAllocation } from '../gpu/perf-guards.js';
 import { log, trace, isTraceEnabled } from '../debug/index.js';
 import { getRuntimeConfig } from '../config/runtime.js';
+
+const bufferPools = new WeakMap();
 
 const RESOLVED_GPU_BUFFER_USAGE = (
   typeof GPUBufferUsage === 'object'
@@ -151,10 +154,10 @@ export class BufferPool {
 
   #device;
 
-  #deviceEpoch;
+  #destroyed = false;
 
   
-  constructor(debugMode = false, schemaConfig) {
+  constructor(debugMode = false, schemaConfig, device = getDevice()) {
     if (!schemaConfig) {
       throw new Error('BufferPool requires schemaConfig from runtime.shared.bufferPool.');
     }
@@ -176,11 +179,11 @@ export class BufferPool {
     this.#bufferLabels = new WeakMap();
     this.#nextBufferId = 1;
     this.#debugMode = debugMode;
-    this.#schemaConfig = schemaConfig;
+    this.#schemaConfig = structuredClone(schemaConfig);
     this.#pendingDestruction = new Set();
     this.#destructionScheduled = false;
-    this.#device = getDevice();
-    this.#deviceEpoch = getDeviceEpoch();
+    this.#device = device;
+    device?.lost?.then(() => this.destroy(), () => this.destroy());
 
     this.#stats = {
       allocations: 0,
@@ -209,19 +212,7 @@ export class BufferPool {
   }
 
   #getBoundDevice() {
-    const currentEpoch = getDeviceEpoch();
-    if (this.#deviceEpoch !== currentEpoch) {
-      if (!this.#isEmpty()) {
-        throw new Error(
-          `BufferPool belongs to stale device epoch ${this.#deviceEpoch}; ` +
-          `current epoch is ${currentEpoch}. Create a new pool.`
-        );
-      }
-      this.#deviceEpoch = currentEpoch;
-      this.#device = getDevice();
-    } else if (!this.#device) {
-      this.#device = getDevice();
-    }
+    if (this.#destroyed || isDeviceLost(this.#device)) throw new Error('BufferPool owner is closed or its GPU device is lost.');
     return this.#device;
   }
 
@@ -233,7 +224,7 @@ export class BufferPool {
     }
 
     // Check device limits before allocation
-    const limits = getDeviceLimits();
+    const limits = device.limits;
     const maxSize = limits?.maxBufferSize || Infinity;
     const maxStorageSize = limits?.maxStorageBufferBindingSize || Infinity;
     const isStorageBuffer = (usage & RESOLVED_GPU_BUFFER_USAGE.STORAGE) !== 0;
@@ -290,6 +281,8 @@ export class BufferPool {
       size: bucket,
       usage,
     });
+    bufferPools.set(buffer, this);
+    registerBufferDevice(buffer, device);
 
     this.#activeBuffers.add(buffer);
     this.#stats.allocations++;
@@ -696,6 +689,8 @@ export class BufferPool {
 
   
   destroy() {
+    if (this.#destroyed) return;
+    this.#destroyed = true;
     // Destroy active buffers
     for (const buffer of this.#activeBuffers) {
       this.#deferDestroy(buffer);
@@ -761,28 +756,32 @@ export class BufferPool {
 
 // Global buffer pool instance
 
-let globalPool = null;
-let globalPoolEpoch = -1;
+const devicePools = new WeakMap();
 const persistentBuffers = new WeakSet();
 
-export function getBufferPool() {
-  const epoch = getDeviceEpoch();
-  if (!globalPool || globalPoolEpoch !== epoch) {
-    if (globalPool) {
-      globalPool.destroy();
-    }
-    globalPool = new BufferPool(false, getRuntimeConfig().shared.bufferPool);
-    globalPoolEpoch = epoch;
+export function getBufferPool(device = getDevice()) {
+  observeDeviceLoss(device);
+  if (!device || isDeviceLost(device)) throw new Error('BufferPool requires a live GPU device.');
+  let pool = devicePools.get(device);
+  if (!pool) {
+    pool = new BufferPool(false, getRuntimeConfig().shared.bufferPool, device);
+    devicePools.set(device, pool);
   }
-  return globalPool;
+  return pool;
 }
 
-export function destroyBufferPool() {
-  if (globalPool) {
-    globalPool.destroy();
-    globalPool = null;
-  }
-  globalPoolEpoch = -1;
+export function destroyBufferPool(device = getDevice()) {
+  if (!device) return;
+  devicePools.get(device)?.destroy();
+  devicePools.delete(device);
+}
+
+function poolForBuffer(buffer) {
+  const pool = bufferPools.get(buffer);
+  if (pool) return pool;
+  const device = getSharedDeviceState().bufferOwners.get(buffer);
+  if (!device) throw new Error('Buffer has no known GPU resource owner.');
+  return getBufferPool(device);
 }
 
 // Convenience exports for common operations
@@ -794,12 +793,12 @@ export const createUniformBuffer = (size) => getBufferPool().createUniformBuffer
 export const acquireBuffer = (size, usage, label) =>
   getBufferPool().acquire(size, usage, label);
 
-export const releaseBuffer = (buffer) => getBufferPool().release(buffer);
+export const releaseBuffer = (buffer) => poolForBuffer(buffer).release(buffer);
 
-export const discardBuffer = (buffer) => getBufferPool().discard(buffer);
+export const discardBuffer = (buffer) => poolForBuffer(buffer).discard(buffer);
 
 export const isBufferActive = (buffer) =>
-  getBufferPool().isActiveBuffer(buffer);
+  bufferPools.get(buffer)?.isActiveBuffer(buffer) === true;
 
 export function markPersistentBuffer(buffer) {
   if (buffer && typeof buffer === 'object') {
@@ -837,16 +836,16 @@ export class PersistentBufferSet extends Set {
 }
 
 export const getBufferRequestedSize = (buffer) =>
-  getBufferPool().getRequestedSize(buffer);
+  bufferPools.get(buffer)?.getRequestedSize(buffer) ?? buffer.size;
 
 export const uploadData = (buffer, data, offset) =>
-  getBufferPool().uploadData(buffer, data, offset);
+  poolForBuffer(buffer).uploadData(buffer, data, offset);
 
 export const readBuffer = (buffer, size) =>
-  getBufferPool().readBuffer(buffer, size);
+  poolForBuffer(buffer).readBuffer(buffer, size);
 
 export const readBufferSlice = (buffer, offset, size) =>
-  getBufferPool().readBufferSlice(buffer, offset, size);
+  poolForBuffer(buffer).readBufferSlice(buffer, offset, size);
 
 export const forceBufferPoolReclaim = (targetRatio) =>
-  getBufferPool().forceReclaim(targetRatio);
+  devicePools.get(getDevice())?.forceReclaim(targetRatio);

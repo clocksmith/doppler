@@ -24,7 +24,7 @@ export async function downloadSourceAsset(url, asset, options = {}) {
   const hashAlgorithm = typeof asset?.hashAlgorithm === 'string' && asset.hashAlgorithm.trim()
     ? asset.hashAlgorithm.trim().toLowerCase()
     : 'sha256';
-  const writer = await createFileWriter(asset.path);
+  const writer = await (options.store?.createFileWriter ?? createFileWriter)(asset.path);
   const hasher = expectedHash ? await createStreamingHasher(hashAlgorithm) : null;
   let receivedBytes = 0;
   try {
@@ -80,7 +80,7 @@ export async function downloadSourceAsset(url, asset, options = {}) {
       await writer.abort();
     } catch {}
     try {
-      await deleteFileFromStore(asset.path);
+      await (options.store?.deleteFileFromStore ?? deleteFileFromStore)(asset.path);
     } catch {}
     throw error;
   }

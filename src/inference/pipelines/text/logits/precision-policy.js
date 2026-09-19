@@ -1,7 +1,7 @@
 import {
   getKernelFilePrecisionPatch,
   resolveF16ToF32ActivationKernel,
-} from '../../../../config/transforms/execution-graph-transforms.js';
+} from '../../../../converter/execution-graph-transforms.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 
 function requireLogitsConfigValue(condition, label, value) {

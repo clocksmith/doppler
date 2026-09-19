@@ -1,5 +1,5 @@
 export {
   resolveCapabilityTransforms,
   resolveFinitenessFallbackTransform,
-} from '../../rules/capability-transform-resolver.js';
-export type { ResolvedTransforms } from '../../rules/capability-transform-resolver.js';
+} from '../../converter/capability-transform-resolver.js';
+export type { ResolvedTransforms } from '../../converter/capability-transform-resolver.js';

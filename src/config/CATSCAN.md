@@ -10,7 +10,8 @@ Resolve all runtime-visible policy from validated, traceable, single-source conf
 
 ## Authority
 
-- Owns schemas, config registries, merge rules, runtime profiles, support tiers, and resolved configuration transforms.
+- Owns schemas, config registries, merge rules, runtime profiles, support tiers, and pure configuration resolution.
+- Executable graph transformations belong to Forge under `src/converter/`; historical transform imports are compatibility exports only.
 - Does not own numeric execution, request intent, or conversion facts after artifact materialization.
 
 ## Scope

@@ -1,4 +1,21 @@
 const SHARED_DEVICE_STATE_KEY = '__dopplerGpuDeviceState';
+const observedDevices = new WeakSet();
+
+export function observeDeviceLoss(device) {
+  if (!device || observedDevices.has(device)) return;
+  observedDevices.add(device);
+  const markLost = () => getSharedDeviceState().lostDevices.add(device);
+  device.lost?.then(markLost, markLost);
+}
+
+export function registerBufferDevice(buffer, device) {
+  if (!buffer || !device) throw new Error('Buffer ownership requires a buffer and device.');
+  const owners = getSharedDeviceState().bufferOwners;
+  const previous = owners.get(buffer);
+  if (previous && previous !== device) throw new Error('Cannot transfer a GPU buffer to another device.');
+  observeDeviceLoss(device);
+  owners.set(buffer, device);
+}
 
 export function getSharedDeviceState() {
   const existing = globalThis[SHARED_DEVICE_STATE_KEY];

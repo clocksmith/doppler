@@ -1,4 +1,5 @@
 export interface SourceAssetDownloadOptions {
+  store?: import('../shard-manager.js').ModelStoreSession;
   signal?: AbortSignal | null;
   onProgress?: (receivedBytes: number) => void;
 }
@@ -28,4 +29,3 @@ export declare function downloadShard(
   shardInfo: Record<string, unknown>,
   options?: Record<string, unknown>
 ): Promise<Record<string, unknown>>;
-

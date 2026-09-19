@@ -1,6 +1,7 @@
 import type { InferencePipeline, KVCacheSnapshot, PromptInput } from '../../inference/pipelines/text.js';
 import type { ChatMessage } from '../../inference/pipelines/text/chat-format.js';
 import type { GenerateOptions } from '../../generation/index.js';
+import type { GenerationRequestEvidence } from '../../inference/pipelines/text/generation-request.js';
 import type { RDRRManifest } from '../../formats/rdrr/index.js';
 import type { LogitsStepResult, PipelineStats, PrefillResult, SequenceEncodeOptions, SequenceEncodeResult } from '../../inference/pipelines/text/types.d.ts';
 import type { LoRAManifest } from '../runtime/types.js';
@@ -21,22 +22,8 @@ export type DopplerEvidenceStats = Omit<PipelineStats, 'gpuTimePrefillMs' | 'gpu
   gpuTimeDecodeMs: number | null;
 };
 
-export interface DopplerGenerationConfigEvidence {
+export interface DopplerGenerationConfigEvidence extends GenerationRequestEvidence {
   logitMaskIdentity?: { id: string; contentDigest: string };
-  maxTokens: number;
-  temperature: number;
-  topP: number;
-  topK: number;
-  repetitionPenalty: number;
-  repetitionPenaltyWindow: number;
-  greedyThreshold: number;
-  suppressSpecialTokens: boolean;
-  suppressSpecialLikeTokens: boolean;
-  suppressTokenIds: number[];
-  stopSequences: string[];
-  useChatTemplate: boolean;
-  useSpeculative: boolean | null;
-  seed: number | null;
 }
 
 export interface DopplerGenerationBackendIdentity {

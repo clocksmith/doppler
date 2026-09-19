@@ -16,6 +16,7 @@ Compile source facts into ModelIR, qualified TargetPlans, and immutable Capsules
 ## Scope
 
 - [Forge stages](forge-stages.js), source-fact validation, candidate evaluation, quantizers, tokenizer copying, and shard packing.
+- [Execution graph transforms](execution-graph-transforms.js) and capability-selected preparation passes. Development loading can invoke these passes; a signed execution cannot acquire permission to rewrite its selected program through this API.
 - [Command orchestration](../tooling/model-capsule-forge.js) supplies file and signing inputs; compiler algorithms remain here.
 
 ## Contracts

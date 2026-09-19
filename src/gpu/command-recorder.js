@@ -76,6 +76,7 @@ export class CommandRecorder {
   #submitStartMs = null;
 
   #submitLatencyMs = null;
+  #uniformCache = null;
   
   
   constructor(device = null, label = 'command_recorder', options = {}) {
@@ -240,7 +241,8 @@ export class CommandRecorder {
 
   
   createUniformBuffer(data, label = 'uniforms') {
-    return getUniformCache().getOrCreate(toUniformArrayBuffer(data), label);
+    this.#uniformCache ??= getUniformCache(this.device);
+    return this.#uniformCache.getOrCreate(toUniformArrayBuffer(data), label);
   }
 
   #normalizeOperationLabel(label) {
@@ -472,7 +474,7 @@ export class CommandRecorder {
         releaseBuffer(buffer);
       }
     }
-    getUniformCache().flushPendingDestruction();
+    this.#uniformCache?.flushPendingDestruction();
   }
 
   #takeTrackedBuffers() {
@@ -564,7 +566,7 @@ export class CommandRecorder {
     } else {
       await this.device.queue.onSubmittedWorkDone();
       // Safe to destroy evicted uniform buffers now that GPU work is complete
-      getUniformCache().flushPendingDestruction();
+      this.#uniformCache?.flushPendingDestruction();
     }
   }
 

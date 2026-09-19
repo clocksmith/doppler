@@ -9,6 +9,7 @@ export type PipelineContextOptions = {
 };
 
 export declare function restorePipelineContexts(target: Record<string, unknown>): boolean;
+export declare function releasePipelineContextGlobals(target: Record<string, unknown>): void;
 
 export declare function applyPipelineContexts(
   target: Record<string, unknown>,

@@ -15,7 +15,7 @@ const precisionPolicySource = await fs.readFile(
 );
 assert.match(
   precisionPolicySource,
-  /from '..\/..\/..\/..\/config\/transforms\/execution-graph-transforms\.js'/,
+  /from '..\/..\/..\/..\/converter\/execution-graph-transforms\.js'/,
   'logits precision policy must reuse the execution-graph kernel remap contract.'
 );
 assert.doesNotMatch(

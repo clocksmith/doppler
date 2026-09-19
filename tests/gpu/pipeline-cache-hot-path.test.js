@@ -160,6 +160,13 @@ try {
   const autoLayoutB = getPipelineBindGroupLayout(first, 0);
   assert.equal(autoLayoutB, autoLayoutA);
   assert.equal(device.pipelineBindGroupLayoutCount, 1);
+  const layoutA = device.createBindGroupLayout({ label: 'same-label', entries: [] });
+  const layoutB = device.createBindGroupLayout({ label: 'same-label', entries: [] });
+  const explicitA = await getPipelineFast('scale', 'default', layoutA, null, device);
+  const explicitB = await getPipelineFast('scale', 'default', layoutB, null, device);
+  assert.notEqual(explicitA, explicitB, 'layout labels are not resource identities');
+  assert.equal(explicitA.descriptor.layout.bindGroupLayouts[0], layoutA);
+  assert.equal(explicitB.descriptor.layout.bindGroupLayouts[0], layoutB);
   const { createShaderSourceScope, runWithShaderSourceScope } = await import('../../src/gpu/kernels/shader-source-scope.js');
   for (const source of ['verified A', 'verified B']) {
     const scope = createShaderSourceScope(new Map([['scale.wgsl', source]]));
@@ -174,6 +181,28 @@ try {
     assert.throws(() => getCachedPipeline('scale', 'default'), /outside.*closure/);
     await assert.rejects(getPipelineFast('scale', 'default'), /outside.*closure/);
   });
+  const other = createFakeDevice();
+  setDevice(other, { platformConfig: null });
+  assert.equal(getCachedPipeline('scale', 'default', null, device), noConstants);
+  const explicit = await getPipelineFast('scale', 'default', null, null, device);
+  assert.equal(explicit, noConstants, 'rebinding defaults preserves the original device cache');
+  assert.equal(other.pipelineCount, 0, 'explicit device compilation never consults the current device');
+  const { unifiedKernelWrapper } = await import('../../src/gpu/kernels/kernel-execution.js');
+  const input = device.createBuffer({ size: 4, usage: GPUBufferUsage.STORAGE });
+  const output = device.createBuffer({ size: 4, usage: GPUBufferUsage.STORAGE });
+  await unifiedKernelWrapper('scale', device, 'default', [input, output], { count: 1, scale: 2 }, 1);
+  input.destroy();
+  output.destroy();
+  assert.equal(other.pipelineCount, 0, 'immediate wrapper and pipeline use the same explicit device');
+  assert.notEqual(await getPipelineFast('scale', 'default', null, null, other), noConstants);
+  const loss = Promise.withResolvers();
+  const isolated = { ...createFakeDevice(), lost: loss.promise };
+  await getPipelineFast('scale', 'default', null, null, isolated);
+  loss.resolve({ reason: 'destroyed', message: 'isolated device lost' });
+  await loss.promise;
+  await Promise.resolve();
+  await assert.rejects(getPipelineFast('scale', 'default', null, null, isolated), /live GPU device/);
+  assert.equal(getCachedPipeline('scale', 'default', null, device), noConstants, 'losing an explicitly supplied device does not invalidate another owner');
 } finally {
   clearPipelineCaches();
   clearShaderCaches();

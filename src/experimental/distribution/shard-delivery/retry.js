@@ -32,7 +32,8 @@ export const DISTRIBUTION_SOURCE_CACHE = 'cache';
 
 export const DISTRIBUTION_SOURCE_P2P = 'p2p';
 
-export const DISTRIBUTION_SOURCE_HTTP = 'http';
+import { DISTRIBUTION_SOURCE_HTTP } from '../../../storage/download/http-contract.js';
+export { DISTRIBUTION_SOURCE_HTTP };
 
 export const DISTRIBUTION_DELIVERY_METRICS_SCHEMA_VERSION = 1;
 
@@ -54,22 +55,8 @@ export const DEFAULT_P2P_QUARANTINE_MS = DEFAULT_DISTRIBUTION_CONFIG.p2p.abuse.q
 
 export const DEFAULT_P2P_CONTROL_PLANE_TOKEN_REFRESH_SKEW_MS = DEFAULT_DISTRIBUTION_CONFIG.p2p.controlPlane.tokenRefreshSkewMs;
 
-export function normalizeRequiredInteger(value, label, { allowZero = false, fallback = null } = {}) {
-  if (value === undefined || value === null) {
-    if (fallback !== null) {
-      return fallback;
-    }
-    throw new Error(`${label} is required.`);
-  }
-  const parsed = Number(value);
-  const min = allowZero ? 0 : 1;
-  if (!Number.isInteger(parsed) || parsed < min) {
-    throw new Error(
-      `${label} must be a ${allowZero ? 'non-negative' : 'positive'} integer when provided.`
-    );
-  }
-  return parsed;
-}
+import { normalizeRequiredInteger, createShardSizeMismatchError } from '../../../storage/download/http-contract.js';
+export { normalizeRequiredInteger, createShardSizeMismatchError };
 
 export function normalizeOptionalToken(value) {
   if (value === undefined || value === null) {
@@ -90,14 +77,6 @@ export function normalizeOptionalTimestamp(value) {
   return Math.floor(parsed);
 }
 
-export function createShardSizeMismatchError(message, details = {}) {
-  const error = createDopplerError(
-    ERROR_CODES.DISTRIBUTION_SHARD_SIZE_MISMATCH,
-    message
-  );
-  Object.assign(error, details);
-  return error;
-}
 
 export function assertP2PPayloadBoundary(
   shardIndex,
@@ -301,92 +280,7 @@ export function enforceP2PSecurityAndAbusePolicy(p2pConfig, state, shardIndex, n
   }
 }
 
-export function createSourceCounter() {
-  return {
-    cache: 0,
-    p2p: 0,
-    http: 0,
-  };
-}
 
-export function createLatencySummary(durations) {
-  const values = durations.filter((value) => Number.isFinite(value));
-  if (values.length === 0) {
-    return {
-      count: 0,
-      min: null,
-      max: null,
-      avg: null,
-    };
-  }
-  let sum = 0;
-  let min = Number.POSITIVE_INFINITY;
-  let max = Number.NEGATIVE_INFINITY;
-  for (const value of values) {
-    sum += value;
-    if (value < min) min = value;
-    if (value > max) max = value;
-  }
-  return {
-    count: values.length,
-    min,
-    max,
-    avg: sum / values.length,
-  };
-}
 
-export function createDeliveryMetrics(order, result, attempts, totalDurationMs) {
-  const sourceAttempts = createSourceCounter();
-  const retries = createSourceCounter();
-  const failureCodes = {};
-  const p2pDurations = [];
-  const httpDurations = [];
-  let storageWriteMs = Number.isFinite(result?.writeDurationMs) ? result.writeDurationMs : null;
-  let attemptCount = 0;
-  const attemptsBySource = createSourceCounter();
-
-  for (const attempt of attempts) {
-    if (attempt?.status !== 'success' && attempt?.status !== 'failed') {
-      continue;
-    }
-    attemptCount += 1;
-    const source = attempt?.source;
-    if (source === DISTRIBUTION_SOURCE_CACHE || source === DISTRIBUTION_SOURCE_P2P || source === DISTRIBUTION_SOURCE_HTTP) {
-      sourceAttempts[source] += 1;
-      attemptsBySource[source] += 1;
-      if (source === DISTRIBUTION_SOURCE_P2P && Number.isFinite(attempt.durationMs)) {
-        p2pDurations.push(attempt.durationMs);
-      }
-      if (source === DISTRIBUTION_SOURCE_HTTP && Number.isFinite(attempt.durationMs)) {
-        httpDurations.push(attempt.durationMs);
-      }
-    }
-    if (attempt.status === 'failed') {
-      const code = typeof attempt.code === 'string' && attempt.code
-        ? attempt.code
-        : 'unknown';
-      failureCodes[code] = (failureCodes[code] ?? 0) + 1;
-    }
-    if (storageWriteMs == null && Number.isFinite(attempt.writeDurationMs)) {
-      storageWriteMs = attempt.writeDurationMs;
-    }
-  }
-
-  for (const source of [DISTRIBUTION_SOURCE_CACHE, DISTRIBUTION_SOURCE_P2P, DISTRIBUTION_SOURCE_HTTP]) {
-    retries[source] = Math.max(0, attemptsBySource[source] - 1);
-  }
-
-  return {
-    schemaVersion: DISTRIBUTION_DELIVERY_METRICS_SCHEMA_VERSION,
-    totalDurationMs: Number.isFinite(totalDurationMs) ? totalDurationMs : 0,
-    sourceOrder: Array.isArray(order) ? [...order] : [...DISTRIBUTION_SOURCES],
-    successSource: result?.source ?? null,
-    attemptCount,
-    sourceAttempts,
-    retries,
-    failureCodes,
-    p2pRttMs: createLatencySummary(p2pDurations),
-    httpRttMs: createLatencySummary(httpDurations),
-    storageWriteMs,
-  };
-}
+import { createSourceCounter, createLatencySummary, createDeliveryMetrics } from '../../../storage/download/http-contract.js';
+export { createSourceCounter, createLatencySummary, createDeliveryMetrics };

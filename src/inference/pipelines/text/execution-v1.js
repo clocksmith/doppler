@@ -15,7 +15,7 @@ import {
   resolveCapabilityTransforms,
   resolveFinitenessFallbackTransform,
 } from '../../../config/transforms/capability-transform-resolver.js';
-import { composeTransforms } from '../../../config/transforms/execution-graph-transforms.js';
+import { composeTransforms } from '../../../converter/execution-graph-transforms.js';
 import { log } from '../../../debug/index.js';
 import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { applyExecutionPatch } from './execution-v1/validation.js';

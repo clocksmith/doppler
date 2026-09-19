@@ -23,6 +23,17 @@ class KernelTrace {
     return this._enabled;
   }
 
+  captureState() {
+    return { enabled: this._enabled, options: this._options, steps: this._steps, anomalies: this._anomalies };
+  }
+
+  restoreState(state) {
+    this._enabled = state.enabled;
+    this._options = state.options;
+    this._steps = state.steps;
+    this._anomalies = state.anomalies;
+  }
+
   
   enable(options = {}) {
     this._enabled = true;

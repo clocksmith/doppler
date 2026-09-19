@@ -50,7 +50,7 @@ export declare function clearShaderCaches(): void;
 /**
  * Get shader cache statistics
  */
-export declare function getShaderCacheStats(): {
+export declare function getShaderCacheStats(device?: GPUDevice | null): {
   sources: number;
   modules: number;
 };

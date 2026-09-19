@@ -1,6 +1,7 @@
 {
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
+  "scope": "injected-runtime-core; host-supplied executors are inventoried separately",
   "fileCount": 64,
   "sourceBytes": 600766,
   "forbiddenPatterns": [

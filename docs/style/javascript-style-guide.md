@@ -198,11 +198,14 @@ Runtime resource ownership must stay deterministic on both success and failure p
 
 ## Types: .d.ts Files
 
-All type definitions live in `.d.ts` files. JavaScript files contain no type annotations.
+Canonical type definitions live in `.d.ts` files. JavaScript remains executable
+without compilation. Modules listed in `tsconfig.source-strict.json` may use
+JSDoc type imports and local annotations to check their implementation against
+those definitions; do not duplicate entire public interfaces in JavaScript.
 
 | File | Contains |
 |------|----------|
-| `module.js` | Clean code, no JSDoc types |
+| `module.js` | JavaScript with checked type annotations in explicit strict roots |
 | `module.d.ts` | All type definitions for that module |
 
 Agents read `.d.ts` files directly for type context. No need to duplicate types in JS.
@@ -228,7 +231,8 @@ declare function writeUniforms(view: DataView, uniforms: KernelUniforms): void;
 
 ### Comments
 
-**No JSDoc in JS files.** Descriptions, parameter docs, and examples belong in `.d.ts` files.
+Descriptions and examples belong in `.d.ts` files. Implementation JSDoc is
+limited to type-checking annotations in the declared strict roots.
 
 Run `npm run source:style:check` to verify the governed `src/` and `demo/`
 JavaScript trees. Use `npm run source:style:sync` only after sibling declaration
