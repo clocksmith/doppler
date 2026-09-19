@@ -1,0 +1,3 @@
+src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json: silu.wgsl#main has sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5; expected sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca
+src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json: sample.wgsl#sample_single_pass has sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b; expected sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b
+[kernels:conversion-digests:check] 2 digest(s) drift from kernel-ref-digests.js. Run: npm run kernels:conversion-digests:sync

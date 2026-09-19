@@ -28,6 +28,39 @@ try {
   assert.notEqual(run('--unknown').status, 0);
   await fs.writeFile(candidate, '{');
   assert.notEqual(run('--file', candidate, '--check').status, 0, 'selected malformed inputs must not report success');
+
+  const packageRoot = path.join(root, 'installed');
+  for (const directory of ['tools', 'src/config/kernels', 'src/config/conversion', 'src/config/source-packages', 'models/local']) {
+    await fs.mkdir(path.join(packageRoot, directory), { recursive: true });
+  }
+  await fs.copyFile('tools/sync-conversion-kernel-digests.js', path.join(packageRoot, 'tools/sync-conversion-kernel-digests.js'));
+  await fs.copyFile('src/config/kernels/kernel-ref-digests.js', path.join(packageRoot, 'src/config/kernels/kernel-ref-digests.js'));
+  await fs.writeFile(path.join(packageRoot, 'package.json'), '{"type":"module"}');
+  const recipe = path.join(packageRoot, 'src/config/conversion/recipe.json');
+  const retainedManifest = path.join(packageRoot, 'models/local/manifest.json');
+  await fs.writeFile(recipe, original);
+  await fs.writeFile(retainedManifest, original);
+  const rejectedPackage = run('--package-root', packageRoot, '--check');
+  assert.notEqual(rejectedPackage.status, 0);
+  assert.match(rejectedPackage.stderr, /recipe\.json.*fused_matmul_q4\.wgsl#main_gemv/);
+  assert.equal(await fs.readFile(recipe, 'utf8'), original, 'package validation cannot repair installed bytes');
+  const repair = spawnSync(process.execPath, ['tools/sync-conversion-kernel-digests.js', '--source-only'], {
+    cwd: packageRoot, encoding: 'utf8',
+  });
+  assert.equal(repair.status, 0, repair.stderr);
+  assert.equal(await fs.readFile(retainedManifest, 'utf8'), original, 'source sync must preserve retained model manifests');
+  const acceptedPackage = run('--package-root', packageRoot, '--check');
+  assert.equal(acceptedPackage.status, 0, acceptedPackage.stderr);
+  for (const args of [
+    ['--package-root'], ['--package-root', packageRoot],
+    ['--package-root', packageRoot, '--file', recipe, '--check'],
+    ['--source-only', '--file', recipe],
+  ]) assert.notEqual(run(...args).status, 0, JSON.stringify(args));
+  await fs.writeFile(recipe, '{');
+  assert.notEqual(run('--package-root', packageRoot, '--check').status, 0, 'malformed packaged config must fail');
+  await fs.rm(recipe);
+  await fs.rm(path.join(packageRoot, 'src/config/source-packages'), { recursive: true });
+  assert.notEqual(run('--package-root', packageRoot, '--check').status, 0, 'missing package config directory must fail');
 } finally {
   await fs.rm(root, { recursive: true, force: true });
 }

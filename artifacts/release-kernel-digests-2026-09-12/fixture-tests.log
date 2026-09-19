@@ -1,0 +1,73 @@
+TAP version 13
+# capsule-naming-migration.test: frozen evidence and unchanged conversion semantics passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.417814
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 135.09164
+[node-tests] ok: tests/config/capsule-naming-migration.test.js
+TAP version 13
+# gemma4-12b-q4-head-conversion-config.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.250359
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 144.689322
+[node-tests] ok: tests/config/gemma4-12b-q4-head-conversion-config.test.js
+TAP version 13
+# gemma4-e2b-int4ple-f16-variant-identity.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.216565
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 136.731863
+[node-tests] ok: tests/config/gemma4-e2b-int4ple-f16-variant-identity.test.js
+TAP version 13
+# ✔ semantic-manifest-lowering.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.413516
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 234.231911
+[node-tests] ok: tests/converter/semantic-manifest-lowering.test.js
+[node-tests] ok: 4 files
