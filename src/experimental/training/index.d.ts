@@ -73,6 +73,11 @@ export * as datasets from './datasets/index.js';
 export { DataLoader } from './dataloader.js';
 export { saveCheckpoint, loadCheckpoint } from './checkpoint.js';
 export {
+  captureQwenAdapterTrainingState,
+  validateQwenAdapterTrainingState,
+  restoreQwenAdapterTrainingState,
+} from './qwen-adapter-training-state.js';
+export {
   WGSL_REPAIR_TASK_CONTRACT,
   WGSL_REPAIR_MUTATION_OPERATORS,
   VERIFIER_GUIDED_ARTIFACT_TYPES,
@@ -95,3 +100,16 @@ export {
   buildTrainingPolicyUpdate,
   buildTrainingPolicyCheckpoint,
 } from './policy-artifacts.js';
+export {
+  runQwenLinearAttentionTrainingCoreForward,
+  runQwenLinearAttentionTrainingCoreBackward,
+  releaseQwenLinearAttentionTrainingCoreCache,
+  runQwenLinearAttentionTrainingModuleForward,
+  runQwenLinearAttentionTrainingModuleBackward,
+  releaseQwenLinearAttentionTrainingModuleCache,
+} from './qwen-linear-attention-training-core.js';
+export {
+  runQwenFullAttentionTrainingModuleForward,
+  runQwenFullAttentionTrainingModuleBackward,
+  releaseQwenFullAttentionTrainingModuleCache,
+} from './qwen-full-attention-training-module.js';

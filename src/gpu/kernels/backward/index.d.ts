@@ -5,7 +5,13 @@ export { runRmsNormBackward, recordRmsNormBackward } from './rmsnorm_backward.js
 export { runRmsNormBackward as runRmsnormBackward, recordRmsNormBackward as recordRmsnormBackward } from './rmsnorm_backward.js';
 export { runGatedRmsNormBackward, recordGatedRmsNormBackward } from './gated_rmsnorm_backward.js';
 export { runCausalConv1dSiluBackward, recordCausalConv1dSiluBackward } from './causal_conv1d_silu_backward.js';
+export { runQwenLinearAttentionPrepareBackward } from './qwen_linear_attention_prepare_backward.js';
+export { runQwenAttentionSplitQGateBackward } from './qwen_attention_split_q_gate_backward.js';
+export { runSigmoidGatedBackward, runSiluGatedBackward } from './sigmoid_gated_backward.js';
+export { runQwenGqaAttentionBackward } from './qwen_gqa_attention_backward.js';
 export { runGatedDeltaRecurrentBackward } from './gated_delta_recurrent_backward.js';
+export { runGatedDeltaRecurrentCheckpointForward } from './gated_delta_recurrent_checkpoint_forward.js';
+export { runGatedDeltaRecurrentCheckpointedBackward } from './gated_delta_recurrent_checkpointed_backward.js';
 export { runLayerNormBackward, recordLayerNormBackward } from './layernorm_backward.js';
 export { runLayerNormBackward as runLayernormBackward, recordLayerNormBackward as recordLayernormBackward } from './layernorm_backward.js';
 export { runAttentionBackward, recordAttentionBackward } from './attention_backward.js';

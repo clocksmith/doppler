@@ -2,6 +2,69 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_silu_default(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  writeU32(view, 4, values["rowsplit_dim"], kernel, "rowsplit_dim");
+  writeF32(view, 8, values["clamp_max"], kernel, "clamp_max");
+  view.setUint32(12, 0, true);
+}
+
+export function write_gelu_gelu(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  writeU32(view, 4, values["rowsplit_dim"], kernel, "rowsplit_dim");
+  view.setUint32(8, 0, true);
+  view.setUint32(12, 0, true);
+}
+
+export function write_scale_default(view, values, kernel) {
+  writeU32(view, 0, values["count"], kernel, "count");
+  writeF32(view, 4, values["scale"], kernel, "scale");
+  view.setUint32(8, 0, true);
+  view.setUint32(12, 0, true);
+}
+
+export function write_clamp_default(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  view.setUint32(4, 0, true);
+  writeF32(view, 8, values["min"], kernel, "min");
+  writeF32(view, 12, values["max"], kernel, "max");
+}
+
+export function write_activation_static_qdq_default(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  view.setUint32(4, 0, true);
+  writeF32(view, 8, values["scale"], kernel, "scale");
+  writeF32(view, 12, values["invScale"], kernel, "invScale");
+  writeF32(view, 16, values["qmin"], kernel, "qmin");
+  writeF32(view, 20, values["qmax"], kernel, "qmax");
+}
+
+export function write_energy_update_update(view, values, kernel) {
+  writeU32(view, 0, values["count"], kernel, "count");
+  writeF32(view, 4, values["stepSize"], kernel, "stepSize");
+  writeF32(view, 8, values["gradientScale"], kernel, "gradientScale");
+  view.setUint32(12, 0, true);
+}
+
+export function write_energy_quintel_update_quintel_update(view, values, kernel) {
+  writeU32(view, 0, values["count"], kernel, "count");
+  writeU32(view, 4, values["size"], kernel, "size");
+  writeU32(view, 8, values["flags"], kernel, "flags");
+  view.setUint32(12, 0, true);
+  writeF32(view, 16, values["stepSize"], kernel, "stepSize");
+  writeF32(view, 20, values["gradientScale"], kernel, "gradientScale");
+  writeF32(view, 24, values["countDiff"], kernel, "countDiff");
+  writeF32(view, 28, values["centerTarget"], kernel, "centerTarget");
+  writeF32(view, 32, values["symmetryWeight"], kernel, "symmetryWeight");
+  writeF32(view, 36, values["countWeight"], kernel, "countWeight");
+  writeF32(view, 40, values["centerWeight"], kernel, "centerWeight");
+  writeF32(view, 44, values["binarizeWeight"], kernel, "binarizeWeight");
+  writeF32(view, 48, values["clampMin"], kernel, "clampMin");
+  writeF32(view, 52, values["clampMax"], kernel, "clampMax");
+  view.setUint32(56, 0, true);
+  view.setUint32(60, 0, true);
+}
+
 export function write_energy_quintel_reduce_quintel_reduce(view, values, kernel) {
   writeU32(view, 0, values["count"], kernel, "count");
   writeU32(view, 4, values["size"], kernel, "size");
@@ -405,12 +468,12 @@ export function write_causal_conv1d_silu_backward_default(view, values, kernel) 
 
 export function write_gated_delta_recurrent_backward_default(view, values, kernel) {
   writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
-  writeU32(view, 4, values["num_heads"], kernel, "num_heads");
-  writeU32(view, 8, values["key_dim"], kernel, "key_dim");
-  writeU32(view, 12, values["value_dim"], kernel, "value_dim");
-  writeF32(view, 16, values["query_scale"], kernel, "query_scale");
-  view.setUint32(20, 0, true);
-  view.setUint32(24, 0, true);
+  writeU32(view, 4, values["total_tokens"], kernel, "total_tokens");
+  writeU32(view, 8, values["token_offset"], kernel, "token_offset");
+  writeU32(view, 12, values["num_heads"], kernel, "num_heads");
+  writeU32(view, 16, values["key_dim"], kernel, "key_dim");
+  writeU32(view, 20, values["value_dim"], kernel, "value_dim");
+  writeF32(view, 24, values["query_scale"], kernel, "query_scale");
   view.setUint32(28, 0, true);
 }
 
@@ -419,9 +482,9 @@ export function write_rope_backward_default(view, values, kernel) {
   writeU32(view, 4, values["num_heads"], kernel, "num_heads");
   writeU32(view, 8, values["head_dim"], kernel, "head_dim");
   writeU32(view, 12, values["start_pos"], kernel, "start_pos");
-  view.setUint32(16, 0, true);
-  view.setUint32(20, 0, true);
-  view.setUint32(24, 0, true);
+  writeU32(view, 16, values["rotary_dim"], kernel, "rotary_dim");
+  writeU32(view, 20, values["pair_span_dim"], kernel, "pair_span_dim");
+  writeU32(view, 24, values["interleaved"], kernel, "interleaved");
   view.setUint32(28, 0, true);
 }
 
@@ -529,69 +592,4 @@ export function write_cross_entropy_backward_default(view, values, kernel) {
   writeU32(view, 4, values["vocab_size"], kernel, "vocab_size");
   writeU32(view, 8, values["dispatch_stride"], kernel, "dispatch_stride");
   view.setUint32(12, 0, true);
-}
-
-export function write_adam_default(view, values, kernel) {
-  writeU32(view, 0, values["size"], kernel, "size");
-  writeU32(view, 4, values["step"], kernel, "step");
-  writeF32(view, 8, values["lr"], kernel, "lr");
-  writeF32(view, 12, values["beta1"], kernel, "beta1");
-  writeF32(view, 16, values["beta2"], kernel, "beta2");
-  writeF32(view, 20, values["eps"], kernel, "eps");
-  writeF32(view, 24, values["weight_decay"], kernel, "weight_decay");
-  view.setUint32(28, 0, true);
-}
-
-export function write_bias_add_backward_default(view, values, kernel) {
-  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
-  writeU32(view, 4, values["dim"], kernel, "dim");
-  view.setUint32(8, 0, true);
-  view.setUint32(12, 0, true);
-}
-
-export function write_gated_delta_conv_default(view, values, kernel) {
-  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
-  writeU32(view, 4, values["conv_dim"], kernel, "conv_dim");
-  writeU32(view, 8, values["conv_kernel_size"], kernel, "conv_kernel_size");
-  writeU32(view, 12, values["num_v_heads"], kernel, "num_v_heads");
-  writeU32(view, 16, values["num_k_heads"], kernel, "num_k_heads");
-  writeU32(view, 20, values["head_k_dim"], kernel, "head_k_dim");
-  writeU32(view, 24, values["head_v_dim"], kernel, "head_v_dim");
-  writeU32(view, 28, values["q_size"], kernel, "q_size");
-  writeU32(view, 32, values["k_size"], kernel, "k_size");
-  writeU32(view, 36, values["value_dim"], kernel, "value_dim");
-  writeU32(view, 40, values["q_rep"], kernel, "q_rep");
-  writeU32(view, 44, values["_pad_u32_0"], kernel, "_pad_u32_0");
-  writeF32(view, 48, values["rms_norm_eps"], kernel, "rms_norm_eps");
-  writeF32(view, 52, values["qk_l2norm_eps"], kernel, "qk_l2norm_eps");
-  writeU32(view, 56, values["packed_flags"], kernel, "packed_flags");
-  writeU32(view, 60, values["b_proj_offset_elements"], kernel, "b_proj_offset_elements");
-}
-
-export function write_gated_delta_recurrent_default(view, values, kernel) {
-  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
-  writeU32(view, 4, values["conv_dim"], kernel, "conv_dim");
-  writeU32(view, 8, values["conv_kernel_size"], kernel, "conv_kernel_size");
-  writeU32(view, 12, values["num_v_heads"], kernel, "num_v_heads");
-  writeU32(view, 16, values["num_k_heads"], kernel, "num_k_heads");
-  writeU32(view, 20, values["head_k_dim"], kernel, "head_k_dim");
-  writeU32(view, 24, values["head_v_dim"], kernel, "head_v_dim");
-  writeU32(view, 28, values["q_size"], kernel, "q_size");
-  writeU32(view, 32, values["k_size"], kernel, "k_size");
-  writeU32(view, 36, values["value_dim"], kernel, "value_dim");
-  writeU32(view, 40, values["q_rep"], kernel, "q_rep");
-  writeU32(view, 44, values["norm_mode"], kernel, "norm_mode");
-  writeF32(view, 48, values["rms_norm_eps"], kernel, "rms_norm_eps");
-  writeF32(view, 52, values["qk_l2norm_eps"], kernel, "qk_l2norm_eps");
-  writeU32(view, 56, values["packed_flags"], kernel, "packed_flags");
-  writeU32(view, 60, values["b_proj_offset_elements"], kernel, "b_proj_offset_elements");
-}
-
-export function write_linear_attention_summary_default(view, values, kernel) {
-  writeU32(view, 0, values["num_heads"], kernel, "num_heads");
-  writeU32(view, 4, values["head_dim"], kernel, "head_dim");
-  writeU32(view, 8, values["num_tokens"], kernel, "num_tokens");
-  writeU32(view, 12, values["hidden_size"], kernel, "hidden_size");
-  view.setUint32(16, 0, true);
-  view.setUint32(20, 0, true);
 }

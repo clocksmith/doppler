@@ -37,8 +37,24 @@ const {
 const { AdamOptimizer } = await import('../../src/experimental/training/optimizer.js');
 const { runAdam } = await import('../../src/gpu/kernels/backward/adam.js');
 const { runAttentionBackward } = await import('../../src/gpu/kernels/backward/attention_backward.js');
+const { runRmsNormBackward } = await import('../../src/gpu/kernels/backward/rmsnorm_backward.js');
 const { runMatmul } = await import('../../src/gpu/kernels/matmul.js');
 const { LoraAdapter } = await import('../../src/experimental/training/lora.js');
+const {
+  parseQwenPeftAdapterSafetensors,
+  uploadQwenPeftAdapterToLayers,
+} = await import('../../src/experimental/training/qwen-peft-adapter-import.js');
+const {
+  exportQwenPeftAdapterFromLayers,
+} = await import('../../src/experimental/training/qwen-peft-adapter-export.js');
+const {
+  QwenGradientAccumulator,
+} = await import('../../src/experimental/training/qwen-gradient-accumulator.js');
+const {
+  captureQwenAdapterTrainingState,
+  restoreQwenAdapterTrainingState,
+  validateQwenAdapterTrainingState,
+} = await import('../../src/experimental/training/qwen-adapter-training-state.js');
 const { createTokenBatchTensors } = await import('../../src/experimental/training/datasets/token-batch.js');
 
 class FakeBuffer {
@@ -226,6 +242,36 @@ configurePerfGuards({
 });
 
 {
+  const device = createFakeDevice();
+  device.features.add('shader-f16');
+  setDevice(device, { platformConfig: null });
+
+  const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+  const inputBuffer = acquireBuffer(8, usage, 'rmsnorm_f16_input');
+  const weightBuffer = acquireBuffer(8, usage, 'rmsnorm_f16_weight');
+  const gradBuffer = acquireBuffer(8, usage, 'rmsnorm_f16_grad');
+  uploadData(inputBuffer, new Uint16Array([0x3c00, 0x4000, 0x4200, 0x4400]));
+  uploadData(weightBuffer, new Uint16Array([0, 0, 0, 0]));
+  uploadData(gradBuffer, new Uint16Array([0x3c00, 0x3c00, 0x3c00, 0x3c00]));
+  const input = createTensor(inputBuffer, 'f16', [1, 4], 'rmsnorm_f16_input');
+  const weight = createTensor(weightBuffer, 'f16', [4], 'rmsnorm_f16_weight');
+  const grad = createTensor(gradBuffer, 'f16', [1, 4], 'rmsnorm_f16_grad');
+  const output = await runRmsNormBackward(input, weight, grad, {
+    numTokens: 1,
+    hiddenSize: 4,
+    eps: 1e-6,
+    rmsNormWeightOffset: true,
+  });
+
+  releaseBuffer(output.buffer);
+  releaseBuffer(inputBuffer);
+  releaseBuffer(weightBuffer);
+  releaseBuffer(gradBuffer);
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
   const device = createFakeDevice({ submitThrowAt: 1 });
   setDevice(device, { platformConfig: null });
 
@@ -377,6 +423,61 @@ configurePerfGuards({
   setDevice(device, { platformConfig: null });
 
   const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+  const parameterBuffer = acquireBuffer(16, usage, 'qwen_state_parameter');
+  uploadData(parameterBuffer, new Float32Array([1, 2, 3, 4]));
+  const parameter = createTensor(parameterBuffer, 'f32', [2, 2], 'qwen_state_parameter');
+  const optimizer = new AdamOptimizer({});
+  optimizer.stepCount = 1;
+  const state = optimizer.getState(parameter);
+  uploadData(state.m.buffer, new Float32Array([0.1, 0.2, 0.3, 0.4]));
+  uploadData(state.v.buffer, new Float32Array([0.01, 0.02, 0.03, 0.04]));
+  const entries = [{ name: 'layers.0.mlp.gate_proj.lora_A', parameter }];
+  const snapshot = await captureQwenAdapterTrainingState(entries, optimizer, {
+    microstepCount: 2,
+    consumedRowIds: ['row-1', 'row-2'],
+  });
+  assert.match(snapshot.payloadSha256, /^[a-f0-9]{64}$/);
+  assert.equal(snapshot.progress.optimizerStepCount, 1);
+  assert.throws(
+    () => validateQwenAdapterTrainingState({
+      ...snapshot,
+      payloadSha256: '0'.repeat(64),
+    }),
+    /payload checksum mismatch/
+  );
+
+  uploadData(parameterBuffer, new Uint8Array(16));
+  uploadData(state.m.buffer, new Uint8Array(16));
+  uploadData(state.v.buffer, new Uint8Array(16));
+  optimizer.stepCount = 0;
+  const restored = await restoreQwenAdapterTrainingState(entries, optimizer, snapshot);
+  assert.equal(restored.optimizerStepCount, 1);
+  assert.equal(optimizer.stepCount, 1);
+  assert.deepEqual(
+    Array.from(new Float32Array(parameterBuffer.ensureBytes(16).buffer, 0, 4)),
+    [1, 2, 3, 4]
+  );
+  assert.deepEqual(
+    Array.from(new Float32Array(state.m.buffer.ensureBytes(16).buffer, 0, 4)),
+    Array.from(new Float32Array([0.1, 0.2, 0.3, 0.4]))
+  );
+  assert.deepEqual(
+    Array.from(new Float32Array(state.v.buffer.ensureBytes(16).buffer, 0, 4)),
+    Array.from(new Float32Array([0.01, 0.02, 0.03, 0.04]))
+  );
+
+  releaseBuffer(state.m.buffer);
+  releaseBuffer(state.v.buffer);
+  releaseBuffer(parameterBuffer);
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice();
+  setDevice(device, { platformConfig: null });
+
+  const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
   const paramBuffer = acquireBuffer(16, usage, 'param');
   const dirtyMoment1 = acquireBuffer(16, usage, 'dirty_moment_1');
   const dirtyMoment2 = acquireBuffer(16, usage, 'dirty_moment_2');
@@ -406,6 +507,191 @@ configurePerfGuards({
     () => new LoraAdapter({ inDim: 4, outDim: 4, rank: 2, alpha: 8, dtype: 'f32' }),
     /createBuffer failed at 2/
   );
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice();
+  setDevice(device, { platformConfig: null });
+
+  const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+  const makePair = (prefix, aShape, bShape) => {
+    const aBuffer = acquireBuffer(aShape[0] * aShape[1] * 4, usage, `${prefix}_a`);
+    const bBuffer = acquireBuffer(bShape[0] * bShape[1] * 4, usage, `${prefix}_b`);
+    return {
+      A: createTensor(aBuffer, 'f32', aShape, `${prefix}_a`),
+      B: createTensor(bBuffer, 'f32', bShape, `${prefix}_b`),
+      rank: 2,
+      alpha: 4,
+    };
+  };
+  const gate = makePair('gate', [3, 2], [2, 4]);
+  const up = makePair('up', [3, 2], [2, 4]);
+  const down = makePair('down', [4, 2], [2, 3]);
+  const layers = [{
+    type: 'linear_attention',
+    inputs: { attention: {}, mlp: { lora: { gate, up, down } } },
+  }];
+  const entries = [
+    ['gate_proj', 'a', gate.A, [1, 2, 3, 4, 5, 6]],
+    ['gate_proj', 'b', gate.B, [7, 8, 9, 10, 11, 12, 13, 14]],
+    ['up_proj', 'a', up.A, [15, 16, 17, 18, 19, 20]],
+    ['up_proj', 'b', up.B, [21, 22, 23, 24, 25, 26, 27, 28]],
+    ['down_proj', 'a', down.A, [29, 30, 31, 32, 33, 34, 35, 36]],
+    ['down_proj', 'b', down.B, [37, 38, 39, 40, 41, 42]],
+  ].map(([projection, kind, tensor, values]) => ({
+    sourceName: `source.${projection}.${kind}`,
+    canonicalName: `layers.0.mlp.${projection}.lora_${kind}`,
+    layerIndex: 0,
+    branch: 'mlp',
+    projection,
+    kind,
+    shape: tensor.shape,
+    data: new Float32Array(values),
+  }));
+  const adapter = {
+    layerTypes: ['linear_attention'],
+    tensors: entries,
+  };
+  const uploaded = uploadQwenPeftAdapterToLayers(layers, adapter);
+  assert.equal(uploaded.tensorCount, 6);
+  assert.equal(uploaded.elementCount, 42);
+  assert.deepEqual(
+    Array.from(new Float32Array(gate.A.buffer.ensureBytes(24).buffer, 0, 6)),
+    [1, 2, 3, 4, 5, 6]
+  );
+  const exported = await exportQwenPeftAdapterFromLayers(layers, {
+    rank: 2,
+    alpha: 4,
+    dropout: 0.05,
+    baseModel: 'Qwen/Qwen3.5-9B',
+    targetModules: [
+      'q_proj',
+      'k_proj',
+      'v_proj',
+      'o_proj',
+      'gate_proj',
+      'up_proj',
+      'down_proj',
+    ],
+    layerTypes: ['linear_attention'],
+  });
+  assert.equal(exported.tensorCount, 6);
+  assert.equal(exported.pairCount, 3);
+  assert.equal(exported.elementCount, 42);
+  assert.equal(exported.adapterConfig.r, 2);
+  assert.equal(exported.adapterConfig.lora_alpha, 4);
+  assert.equal(exported.adapterConfig.lora_dropout, 0.05);
+  assert.ok(exported.tensorNames.every(
+    (name) => name.startsWith('base_model.model.model.language_model.layers.0.')
+  ));
+  const roundTrip = parseQwenPeftAdapterSafetensors(exported.weights, {
+    r: exported.adapterConfig.r,
+    lora_alpha: exported.adapterConfig.lora_alpha,
+    target_modules: exported.adapterConfig.target_modules,
+    layerTypes: ['linear_attention'],
+  });
+  assert.deepEqual(
+    roundTrip.tensors.map((entry) => ({
+      canonicalName: entry.canonicalName,
+      shape: entry.shape,
+      data: Array.from(entry.data),
+    })),
+    entries.map((entry) => ({
+      canonicalName: entry.canonicalName,
+      shape: entry.shape,
+      data: Array.from(entry.data),
+    }))
+  );
+
+  for (const pair of [gate, up, down]) {
+    releaseBuffer(pair.A.buffer);
+    releaseBuffer(pair.B.buffer);
+  }
+  assertPoolIsClean();
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice();
+  setDevice(device, { platformConfig: null });
+
+  const usage = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+  const parameterBuffer = acquireBuffer(16, usage, 'qwen_accum_parameter');
+  const gradient1Buffer = acquireBuffer(16, usage, 'qwen_accum_gradient_1');
+  const gradient2Buffer = acquireBuffer(16, usage, 'qwen_accum_gradient_2');
+  uploadData(parameterBuffer, new Float32Array([1, 2, 3, 4]));
+  uploadData(gradient1Buffer, new Float32Array([0.1, 0.2, 0.3, 0.4]));
+  uploadData(gradient2Buffer, new Float32Array([0.5, 0.6, 0.7, 0.8]));
+  const parameter = createTensor(parameterBuffer, 'f32', [2, 2], 'qwen_accum_parameter');
+  const f16Parameter = createTensor(parameterBuffer, 'f16', [2, 2], 'qwen_accum_parameter_f16');
+  const gradient1 = createTensor(gradient1Buffer, 'f32', [2, 2], 'qwen_accum_gradient_1');
+  const gradient2 = createTensor(gradient2Buffer, 'f32', [2, 2], 'qwen_accum_gradient_2');
+  await assert.rejects(
+    () => new QwenGradientAccumulator({ accumSteps: 2 }).accumulate([{
+      name: 'layers.0.mlp.gate_proj.lora_A',
+      parameter: f16Parameter,
+      gradient: gradient1,
+    }]),
+    /matching F32 parameters and gradients/
+  );
+  const accumulator = new QwenGradientAccumulator({ accumSteps: 2 });
+  const first = await accumulator.accumulate([{
+    name: 'layers.0.mlp.gate_proj.lora_A',
+    parameter,
+    gradient: gradient1,
+  }]);
+  assert.deepEqual(first, {
+    microstepCount: 1,
+    accumSteps: 2,
+    ready: false,
+    parameterCount: 1,
+  });
+  const second = await accumulator.accumulate([{
+    name: 'layers.0.mlp.gate_proj.lora_A',
+    parameter,
+    gradient: gradient2,
+  }]);
+  assert.equal(second.ready, true);
+  await assert.rejects(
+    () => accumulator.step({
+      async step() {
+        throw new Error('optimizer step failed');
+      },
+    }, { training: { optimizer: {} } }),
+    /optimizer step failed/
+  );
+  assert.equal(accumulator.microstepCount, 0);
+  assert.equal(accumulator.ready, false);
+  assert.equal(accumulator.entries.length, 0);
+  await accumulator.accumulate([{
+    name: 'layers.0.mlp.gate_proj.lora_A',
+    parameter,
+    gradient: gradient1,
+  }]);
+  await accumulator.accumulate([{
+    name: 'layers.0.mlp.gate_proj.lora_A',
+    parameter,
+    gradient: gradient2,
+  }]);
+  let optimizerCalls = 0;
+  const optimizerMetrics = await accumulator.step({
+    async step(parameters, gradients) {
+      optimizerCalls += 1;
+      assert.deepEqual(parameters, [parameter]);
+      assert.ok(gradients.get(parameter));
+      return { optimizer_ms: 1 };
+    },
+  }, { training: { optimizer: {} } });
+  assert.equal(optimizerCalls, 1);
+  assert.deepEqual(optimizerMetrics, { optimizer_ms: 1 });
+  assert.equal(accumulator.microstepCount, 0);
+  assert.equal(accumulator.ready, false);
+
+  releaseBuffer(gradient1Buffer);
+  releaseBuffer(gradient2Buffer);
+  releaseBuffer(parameterBuffer);
   assertPoolIsClean();
   resetRuntimeState();
 }

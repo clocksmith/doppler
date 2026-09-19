@@ -322,9 +322,15 @@ function ratio(numerator, denominator) {
 }
 
 function variantLifecycleSurfaces(variant) {
+  if (!variantRuntimeVerified(variant)) return [];
   return Array.isArray(variant?.lifecycle?.surfaces)
     ? variant.lifecycle.surfaces.map(normalizeText).filter(Boolean)
     : [];
+}
+
+function variantRuntimeVerified(variant) {
+  return normalizeText(variant?.lifecycle?.tested) === 'verified'
+    && normalizeText(variant?.lifecycle?.result) === 'pass';
 }
 
 function platformStatus(variant, benchmarkSurfaces = []) {
@@ -483,6 +489,26 @@ async function buildGenerationRows(variantsByModelId, coverageByModelId, lanesBy
     const variant = variantsByModelId.get(modelId);
     if (!variant) continue;
     const coverage = coverageByModelId.get(modelId) || null;
+    if (!variantRuntimeVerified(variant)) {
+      const failed = normalizeText(variant?.lifecycle?.tested) === 'failed';
+      rows.push(baseRow(variant, coverage, {
+        rowId: `${modelId}:generation:${failed ? 'invalidated' : 'unverified'}`,
+        workloadMode: 'generation',
+        claimStatus: failed ? 'failed' : 'verification-needed',
+        claimReason: normalizeText(variant?.sourceNextAction) || null,
+        correctness: normalizeText(variant?.lifecycle?.result || variant?.lifecycle?.tested) || null,
+        evidence: {
+          runtimeReport: normalizeText(variant?.evidence?.runtimeReport) || null,
+          compareResult: normalizeText(variant?.evidence?.compareResult) || null,
+          summarySvg: normalizeText(variant?.evidence?.summarySvg) || null,
+          localClaimLaneId: normalizeText(lane?.laneId) || null,
+        },
+        missing: ['runtime-verify'],
+        nextGate: 'runtime-verify',
+        nextCommand: normalizeText(variant?.actions?.verifyCommand) || null,
+      }));
+      continue;
+    }
     const surfaces = Array.isArray(lane?.surfaces) ? lane.surfaces : [];
     if (surfaces.length === 0) {
       rows.push(baseRow(variant, coverage, {
