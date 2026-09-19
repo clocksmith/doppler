@@ -251,6 +251,10 @@ try {
   assert.equal(hit.manifestText, manifestText);
   assert.equal(hit.manifestHash, expectedManifestHash);
   assert.deepEqual(new Uint8Array(await hit.storageContext.loadShardRange(0, 1, 2)), shardBytes.slice(1, 3));
+  assert.ok(hitEvents.some((event) => event.stage === 'cache-queued'));
+  assert.ok(hitEvents.some((event) => (
+    event.stage === 'cache-start' && Number.isFinite(event.queueWaitMs)
+  )));
   assert.ok(hitEvents.some((event) => event.stage === 'cache-hit'));
   await hit.storageContext.close();
 

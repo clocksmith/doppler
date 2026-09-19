@@ -8,7 +8,7 @@
   "result": {
     "presetId": "gemma3",
     "modelType": "transformer",
-    "outputDir": "/Users/xyz/deco/doppler/models/local/gemma-3-1b-it-q4k-ehf16-af32",
+    "outputDir": "/workspace/deco/doppler/models/local/gemma-3-1b-it-q4k-ehf16-af32",
     "shardCount": 16,
     "tensorCount": 340,
     "totalSize": 1025493248

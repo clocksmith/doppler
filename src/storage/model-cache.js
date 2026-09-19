@@ -25,9 +25,31 @@ import {
 
 const MODULE = 'OPFSCache';
 let cacheOperationQueue = Promise.resolve();
+let cacheOperationSequence = 0;
+let cacheQueueDepth = 0;
 
-function runCacheOperation(run) {
-  const operation = cacheOperationQueue.then(run, run);
+function runCacheOperation(modelId, onProgress, run) {
+  const operationId = ++cacheOperationSequence;
+  const enqueuedAtMs = performance.now();
+  const queueDepth = ++cacheQueueDepth;
+  try {
+    onProgress?.({ stage: 'cache-queued', modelId, operationId, queueDepth,
+      queueWaitMs: 0, message: `OPFS cache operation queued: ${modelId}`, percent: 0 });
+  } catch (error) {
+    cacheQueueDepth--;
+    throw error;
+  }
+  const execute = async () => {
+    try {
+      onProgress?.({ stage: 'cache-start', modelId, operationId, queueDepth,
+        queueWaitMs: Math.max(0, performance.now() - enqueuedAtMs),
+        message: `OPFS cache operation started: ${modelId}`, percent: 0 });
+      return await run();
+    } finally {
+      cacheQueueDepth--;
+    }
+  };
+  const operation = cacheOperationQueue.then(execute, execute);
   cacheOperationQueue = operation.then(() => undefined, () => undefined);
   return operation;
 }
@@ -559,11 +581,11 @@ async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = nul
 }
 
 export function ensureModelCached(modelId, modelBaseUrl, onProgress = null) {
-  return runCacheOperation(() => ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress));
+  return runCacheOperation(modelId, onProgress, () => ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress));
 }
 
 export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null, options = {}) {
-  return runCacheOperation(async () => {
+  return runCacheOperation(modelId, onProgress, async () => {
     const signal = options?.signal || null;
     throwIfAborted(signal);
     const expectedManifestHash = normalizeExpectedManifestHash(options.expectedManifestHash);
@@ -621,7 +643,7 @@ export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null
 }
 
 export function loadPersistentModelSource(modelId) {
-  return runCacheOperation(async () => {
+  return runCacheOperation(modelId, onProgress, async () => {
     if (!isOPFSAvailable() || !await modelExists(modelId)) {
       return null;
     }

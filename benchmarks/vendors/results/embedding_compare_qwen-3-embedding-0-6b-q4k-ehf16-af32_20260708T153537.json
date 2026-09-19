@@ -82,24 +82,24 @@
   },
   "commands": {
     "dopplerBench": [
-      "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
-      "/Users/xyz/deco/doppler/src/cli/doppler-cli.js",
+      "/workspace/.nvm/versions/node/v22.20.0/bin/node",
+      "/workspace/deco/doppler/src/cli/doppler-cli.js",
       "bench",
       "--config",
       "{\"request\":{\"workload\":\"embedding\",\"modelId\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"modelUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"cacheMode\":\"warm\",\"loadMode\":\"http\",\"runtimeConfig\":{\"shared\":{\"benchmark\":{\"run\":{\"customPrompt\":\"A small red cube rests on a wooden table beside a blue sphere.\",\"warmupRuns\":1,\"timedRuns\":15,\"loadMode\":\"http\"}}},\"inference\":{\"prompt\":\"A small red cube rests on a wooden table beside a blue sphere.\"}}},\"run\":{\"surface\":\"browser\",\"timestamp\":\"2026-07-08T15:35:37.367Z\",\"browser\":{\"opfsCache\":false}}}",
       "--json"
     ],
     "dopplerVerify": [
-      "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
-      "/Users/xyz/deco/doppler/src/cli/doppler-cli.js",
+      "/workspace/.nvm/versions/node/v22.20.0/bin/node",
+      "/workspace/deco/doppler/src/cli/doppler-cli.js",
       "verify",
       "--config",
       "{\"request\":{\"workload\":\"embedding\",\"modelId\":\"qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"modelUrl\":\"https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32\",\"cacheMode\":\"warm\",\"loadMode\":\"http\",\"runtimeConfig\":{\"shared\":{\"benchmark\":{\"run\":{\"customPrompt\":\"A small red cube rests on a wooden table beside a blue sphere.\",\"warmupRuns\":0,\"timedRuns\":1,\"loadMode\":\"http\"}}},\"inference\":{\"prompt\":\"A small red cube rests on a wooden table beside a blue sphere.\"}}},\"run\":{\"surface\":\"browser\",\"timestamp\":\"2026-07-08T15:35:37.367Z\",\"browser\":{\"opfsCache\":false}}}",
       "--json"
     ],
     "transformersjsBench": [
-      "/Users/xyz/.nvm/versions/node/v22.20.0/bin/node",
-      "/Users/xyz/deco/doppler/benchmarks/runners/transformersjs-bench.js",
+      "/workspace/.nvm/versions/node/v22.20.0/bin/node",
+      "/workspace/deco/doppler/benchmarks/runners/transformersjs-bench.js",
       "--task",
       "embedding",
       "--model",
@@ -127,7 +127,7 @@
       "--embedding-style",
       "qwen3_embedding",
       "--semantic-fixture",
-      "/Users/xyz/deco/doppler/src/inference/fixtures/embedding-semantic-fixtures.json",
+      "/workspace/deco/doppler/src/inference/fixtures/embedding-semantic-fixtures.json",
       "--profile-ops",
       "off",
       "--timeout",
@@ -5633,7 +5633,7 @@
         "browserExecutable": null
       },
       "benchmarkPolicy": {
-        "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+        "source": "/workspace/deco/doppler/benchmarks/vendors/benchmark-policy.json",
         "schemaVersion": 1,
         "updated": "2026-03-29"
       },

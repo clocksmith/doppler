@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-07-07T18:09:50.414Z",
   "benchmarkPolicy": {
-    "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+    "source": "/workspace/deco/doppler/benchmarks/vendors/benchmark-policy.json",
     "schemaVersion": 1,
     "sourceSha256": "6e0e81bc2571a0a1eb6451f0f9a6a3165b015bff9ba4537a4f5a6f2b1a9b93c8",
     "updated": "2026-03-29",
@@ -244,7 +244,7 @@
   "dopplerModelSource": {
     "source": "local",
     "locator": "qwen-3-5-2b-q4k-ehaf16",
-    "modelUrl": "file:///Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+    "modelUrl": "file:///workspace/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
     "modelBaseDir": "local",
     "manifestSource": "models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json",
     "manifestSha256": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
@@ -7782,7 +7782,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "/workspace/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },
@@ -15170,7 +15170,7 @@
             }
           },
           "benchmarkPolicy": {
-            "source": "/Users/xyz/deco/doppler/benchmarks/vendors/benchmark-policy.json",
+            "source": "/workspace/deco/doppler/benchmarks/vendors/benchmark-policy.json",
             "schemaVersion": 1,
             "updated": "2026-03-29"
           },
