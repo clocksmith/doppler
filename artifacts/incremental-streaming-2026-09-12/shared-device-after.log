@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: closing a session waits for its pending readback and preserves another session on the same device
+ok 1 - closing a session waits for its pending readback and preserves another session on the same device
+  ---
+  duration_ms: 32.06714
+  type: 'test'
+  ...
+# Subtest: device loss during readback prevents token delivery and invalidates both sessions
+ok 2 - device loss during readback prevents token delivery and invalidates both sessions
+  ---
+  duration_ms: 9.694749
+  type: 'test'
+  ...
+# Subtest: device loss while a program is being constructed rejects opening and closes the late program
+ok 3 - device loss while a program is being constructed rejects opening and closes the late program
+  ---
+  duration_ms: 3.616212
+  type: 'test'
+  ...
+# Subtest: failed buffer replacement cannot resurrect the released slot
+ok 4 - failed buffer replacement cannot resurrect the released slot
+  ---
+  duration_ms: 0.30377
+  type: 'test'
+  ...
+# Subtest: a failed program-slot release still cleans other slots and closes the program
+ok 5 - a failed program-slot release still cleans other slots and closes the program
+  ---
+  duration_ms: 0.213751
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 50.192984

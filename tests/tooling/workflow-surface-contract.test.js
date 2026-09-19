@@ -9,15 +9,26 @@ const workflowFiles = readdirSync(workflowDirectory)
 assert.deepEqual(workflowFiles, [
   'check-green.yml',
   'doppler-release.yml',
+  'installed-consumers.yml',
   'manual-runtime-validation.yml',
 ]);
 
 const automaticCi = readFileSync(new URL('check-green.yml', workflowDirectory), 'utf8');
+const installedConsumers = readFileSync(new URL('installed-consumers.yml', workflowDirectory), 'utf8');
+assert.match(installedConsumers, /check-packed-package\.js --retain/);
+assert.match(installedConsumers, /DOPPLER_TEST_REQUIRED: '1'/);
+assert.match(installedConsumers, /doppler-installed-generation\.js/);
+assert.doesNotMatch(installedConsumers, /continue-on-error|DOPPLER_TEST_CHECKOUT/);
 assert.match(automaticCi, /^name: Default Green Chain$/m);
 assert.match(automaticCi, /^  check-green:$/m);
 assert.match(automaticCi, /pull_request:/);
 assert.match(automaticCi, /push:/);
-assert.match(automaticCi, /npm run ci:check/);
+for (const command of ['test:ci', 'kernels:check', 'check:green']) {
+  const step = automaticCi.split(/\n      - name:/).find(block => block.includes(`run: npm run ${command}\n`));
+  assert(step, `automatic CI must run ${command}`);
+  assert(step.includes("!cancelled() && steps.dependencies.outcome == 'success'"),
+    `${command} must preserve setup prerequisites without hiding behind unrelated failures`);
+}
 assert.match(automaticCi, /npm ci/);
 assert.match(automaticCi, /playwright install --with-deps chromium/);
 assert.match(automaticCi, /npm run test:gpu:browser/);

@@ -17,6 +17,8 @@ export interface IdbWriteStreamOptions {
 }
 
 export interface IdbStore {
+  openModelSession(modelId: string, options?: { create?: boolean }): Promise<IdbStore>;
+  close(): Promise<void>;
   init(): Promise<void>;
   openModel(modelId: string, options?: { create?: boolean }): Promise<null>;
   getCurrentModelId(): string | null;

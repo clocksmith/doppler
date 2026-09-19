@@ -1,5 +1,7 @@
 export {
   openModelStore,
+  openModelReadSession,
+  openModelStoreSession,
   writeShard,
   loadManifestFromStore,
   loadShard,
@@ -24,6 +26,7 @@ export { formatBytes, getQuotaInfo } from '../storage/quota.js';
 export { exportModelToDirectory } from '../storage/export.js';
 export { ensureModelCached, ensureModelCachedSource } from '../tooling/opfs-cache.js';
 export { createOpfsStore } from '../storage/backends/opfs-store.js';
+export { downloadShardWithOptionalDistribution } from '../tooling/distribution-shard-transport.js';
 export type { OpfsStore, OpfsStoreConfig } from '../storage/backends/opfs-store.js';
 export {
   buildManifestVersionSet,

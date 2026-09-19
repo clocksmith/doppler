@@ -16,6 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { parseModuleDependencies } from './lib/module-dependencies.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -31,59 +32,7 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-// Strip `// line` and `/* block */` comments from a grouped-export body
-// so names after an inline comment are still extracted. Previously any
-// piece of the form "// foo\n  someName" fell through the identifier
-// regex and the export was silently missed on one side.
-function stripComments(s) {
-  return s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
-}
-
-function jsExports(src) {
-  const names = new Set();
-  const patterns = [
-    // `function` or `function*` (generator), optionally `async`.
-    /^export\s+(?:async\s+)?function\s*\*?\s*([A-Za-z_$][A-Za-z0-9_$]*)/gm,
-    /^export\s+(?:const|let|var)\s+([A-Za-z_$][A-Za-z0-9_$]*)/gm,
-    /^export\s+(?:async\s+)?class\s+([A-Za-z_$][A-Za-z0-9_$]*)/gm,
-  ];
-  for (const re of patterns) for (const m of src.matchAll(re)) names.add(m[1]);
-  for (const m of src.matchAll(/^export\s*\{([^}]+)\}/gm)) {
-    for (const piece of stripComments(m[1]).split(',')) {
-      const parts = piece.trim().split(/\s+as\s+/);
-      const exported = (parts[1] || parts[0]).trim();
-      if (exported && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(exported)) names.add(exported);
-    }
-  }
-  return names;
-}
-
-function dtsValueExports(src) {
-  const names = new Set();
-  const patterns = [
-    /^export\s+declare\s+(?:async\s+)?function\s+([A-Za-z_$][A-Za-z0-9_$]*)/gm,
-    /^export\s+(?:async\s+)?function\s+([A-Za-z_$][A-Za-z0-9_$]*)/gm,
-    /^export\s+declare\s+(?:const|let|var)\s+([A-Za-z_$][A-Za-z0-9_$]*)/gm,
-    /^export\s+(?:const|let|var)\s+([A-Za-z_$][A-Za-z0-9_$]*)/gm,
-    /^export\s+declare\s+(?:abstract\s+)?class\s+([A-Za-z_$][A-Za-z0-9_$]*)/gm,
-    /^export\s+(?:abstract\s+)?class\s+([A-Za-z_$][A-Za-z0-9_$]*)/gm,
-  ];
-  for (const re of patterns) for (const m of src.matchAll(re)) names.add(m[1]);
-  for (const m of src.matchAll(/^export\s*\{([^}]+)\}/gm)) {
-    for (const piece of stripComments(m[1]).split(',')) {
-      const cleaned = piece.replace(/^\s*type\s+/, '').trim();
-      if (cleaned !== piece.trim()) continue;
-      const parts = cleaned.split(/\s+as\s+/);
-      const exported = (parts[1] || parts[0]).trim();
-      if (exported && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(exported)) names.add(exported);
-    }
-  }
-  return names;
-}
-
-function hasWildcardExport(src) {
-  return /^export\s*\*\s*from/m.test(src);
-}
+// Value exports use the same syntax model as dependency and package checks.
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -150,10 +99,11 @@ for (const jsFile of jsFiles) {
   }
   const jsSrc = fs.readFileSync(jsFile, 'utf8');
   const dtsSrc = fs.readFileSync(dtsFile, 'utf8');
-  if (hasWildcardExport(jsSrc) || hasWildcardExport(dtsSrc)) continue;
-
-  const jsE = jsExports(jsSrc);
-  const dtsE = dtsValueExports(dtsSrc);
+  const jsParsed = parseModuleDependencies(jsSrc, jsFile);
+  const dtsParsed = parseModuleDependencies(dtsSrc, dtsFile);
+  if (jsParsed.hasWildcardExport || dtsParsed.hasWildcardExport) continue;
+  const jsE = new Set(jsParsed.valueExports);
+  const dtsE = new Set(dtsParsed.valueExports);
   const rel = path.relative(ROOT, jsFile);
   const raw = {
     onlyInJs: [...jsE].filter((n) => !dtsE.has(n)),

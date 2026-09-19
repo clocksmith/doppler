@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+
+ ✓ tests/unit/change-passport-sdk.test.js (3 tests) 8ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  17:47:22
+   Duration  299ms (transform 32ms, setup 0ms, import 44ms, tests 8ms, environment 122ms)

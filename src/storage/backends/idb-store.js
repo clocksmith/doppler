@@ -569,6 +569,12 @@ export function createIdbStore(config) {
 
   return {
     init,
+    async openModelSession(modelId, options = {}) {
+      const session = createIdbStore(config);
+      await session.openModel(modelId, options);
+      return session;
+    },
+    close: cleanup,
     openModel,
     getCurrentModelId,
     getFileSize,

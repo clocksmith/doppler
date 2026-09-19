@@ -10,7 +10,7 @@ export declare function createDefaultSourceStats(): DownloadSourceStats;
 export declare function normalizeSourceStats(value: unknown): DownloadSourceStats;
 export declare function isTokenizerJsonRequired(tokenizer: unknown): boolean;
 export declare function getTokenizerModelPath(tokenizer: unknown): string | null;
-export declare function fileExistsInStore(path: string): Promise<boolean>;
+export declare function fileExistsInStore(path: string, readFile?: (path: string) => Promise<ArrayBuffer>): Promise<boolean>;
 export declare function computeAssetHash(
   payload: ArrayBuffer | Uint8Array,
   algorithm?: string
@@ -30,4 +30,3 @@ export declare function persistDownloadedShardIfNeeded(
     ) => Promise<unknown>;
   }
 ): Promise<boolean>;
-

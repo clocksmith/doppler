@@ -1,0 +1,13 @@
+{
+  "schema": "doppler.shared-archive-ci-record/v1",
+  "passed": true,
+  "archiveSha256": "c21230a20471c8beb9fa414a326b7a2da889a4ef9d07c13f3f23e8db9a1ca962",
+  "localAndRemoteTarballsIdentical": true,
+  "sourceRevision": "54299e47484a71faeebdbb6bbd7a07a363157816",
+  "ciFixtureRevision": "96776029b91895eba882c7803ba50b0fb58ebfbf",
+  "reploidRevision": "46a27ee175086e68fbf2603a13a3bc7f534609e6",
+  "runUrl": "https://github.com/clocksmith/doppler/actions/runs/34737393783",
+  "artifactId": 10311775717,
+  "artifactZipSha256": "9dcf0570d122a9fbda0af2a6b5210e7eb7dd2c3661dd541958ed3f60f411d5bd",
+  "scope": "One exact tarball passed installed standalone, HTTP, Reploid runtime, real WebRTC and native journal replay contract tests. Model programs are injected in CI; physical results are separate."
+}

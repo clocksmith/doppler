@@ -16,6 +16,7 @@ Parse and validate external and native artifact formats into explicit data contr
 ## Scope
 
 - GGUF, SafeTensors, TFLite, LiteRT, tokenizer, and RDRR format modules.
+- Neutral source-runtime file descriptions and metadata parsing.
 
 ## Contracts
 

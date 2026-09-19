@@ -16,6 +16,8 @@ export interface OpfsWriteStreamOptions {
 }
 
 export interface OpfsStore {
+  openModelSession(modelId: string, options?: { create?: boolean }): Promise<OpfsStore>;
+  close(): Promise<void>;
   init(): Promise<void>;
   openModel(modelId: string, options?: { create?: boolean }): Promise<FileSystemDirectoryHandle>;
   getCurrentModelId(): string | null;

@@ -1,0 +1,152 @@
+TAP version 13
+# capsule-adapter-execution: identity, declared kernels, corruption, base mismatch, composition, cleanup, cancellation passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.744429
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 168.380488
+[node-tests] ok: tests/runtime/capsule-adapter-execution.test.js
+TAP version 13
+# [118.4ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [119.9ms][Tokenizer] Loaded HuggingFace 257 tokens (bpe), 1 special patterns, 0 merges
+# capsule-incremental-stream.test: Unicode, stop boundaries, reconstruction, integrity, backpressure, cancellation, limits and embedding deltas passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.949213
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 235.342899
+[node-tests] ok: tests/runtime/capsule-incremental-stream.test.js
+TAP version 13
+# Subtest: closing a session waits for its pending readback and preserves another session on the same device
+ok 1 - closing a session waits for its pending readback and preserves another session on the same device
+  ---
+  duration_ms: 32.497167
+  type: 'test'
+  ...
+# Subtest: device loss during readback prevents token delivery and invalidates both sessions
+ok 2 - device loss during readback prevents token delivery and invalidates both sessions
+  ---
+  duration_ms: 12.223733
+  type: 'test'
+  ...
+# Subtest: device loss while a program is being constructed rejects opening and closes the late program
+ok 3 - device loss while a program is being constructed rejects opening and closes the late program
+  ---
+  duration_ms: 3.179643
+  type: 'test'
+  ...
+# Subtest: failed buffer replacement cannot resurrect the released slot
+ok 4 - failed buffer replacement cannot resurrect the released slot
+  ---
+  duration_ms: 0.331332
+  type: 'test'
+  ...
+# Subtest: a failed program-slot release still cleans other slots and closes the program
+ok 5 - a failed program-slot release still cleans other slots and closes the program
+  ---
+  duration_ms: 0.195807
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 6 - test module initialization completed
+  ---
+  duration_ms: 0.035327
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 190.426412
+[node-tests] ok: tests/runtime/capsule-shared-device.test.js
+TAP version 13
+# ✔ plan-bind-execute.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.668265
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 153.339584
+[node-tests] ok: tests/runtime/plan-bind-execute.test.js
+TAP version 13
+# host-teacher-qualification.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.124572
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3694.448395
+[node-tests] ok: tests/training/host-teacher-qualification.test.js
+TAP version 13
+# Subtest: retained teacher labels reproduce the historical training dataset
+ok 1 - retained teacher labels reproduce the historical training dataset # SKIP Local evidence unavailable: reports/training/teacher-qualification/doppler-js-wgsl-2026-07-11-v4
+  ---
+  duration_ms: 0.917053
+  type: 'test'
+  ...
+# student-code-experiment.test: ok
+# Subtest: synthetic teacher receipts enforce admission, balancing and provenance
+ok 2 - synthetic teacher receipts enforce admission, balancing and provenance
+  ---
+  duration_ms: 32710.168573
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 3 - test module initialization completed
+  ---
+  duration_ms: 0.549002
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 45809.904245
+[node-tests] ok: tests/training/student-code-experiment.test.js
+[node-tests] ok: 6 files

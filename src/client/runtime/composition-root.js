@@ -6,7 +6,7 @@ import { verifyCapsuleMetadata, getCapsuleIdentity } from '../../config/capsule.
 import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
 import { hashCapsuleSequenceInput, hashCapsuleSequenceOutput } from '../../config/capsule-sequence-receipt.js';
 import { createVerifiedCapsuleArtifactStore } from './verified-capsule-artifact-store.js';
-import { createResourceBinder } from './resource-binder.js';
+import { createResourceBinder, createDeviceAvailabilityCheck } from './resource-binder.js';
 import { createCommandExecutor } from './command-executor.js';
 import { createSessionController } from './session-controller.js';
 import { selectTargetPlan } from './target-selector.js';
@@ -105,10 +105,13 @@ export function createDopplerRuntime(ports) {
             };
         assertCapsuleLoadActive(options.signal);
         const selectedPlan = selectTargetPlan(capsule.targetPlans, deviceProfile, selectionPolicy);
+        const assertDeviceAvailable = createDeviceAvailabilityCheck(device);
+        assertDeviceAvailable();
         const targetPlanDigest = hashTargetPlan(selectedPlan);
         emit(observer, { type: 'target-selected', capsuleId: capsule.capsuleId, targetId: selectedPlan.targetId, targetPlanDigest });
         verifiedStore = createVerifiedCapsuleArtifactStore(capsule, artifactStore, options);
         const artifactReceipts = await verifyCapsuleV2Artifacts(capsule, verifiedStore);
+        assertDeviceAvailable();
         verification = freezeCapsuleV2({ ...verification, artifactReceipts });
         await cache?.set?.(capsule.semanticRoot, {
           schema: 'doppler.capsule-verification-cache/v1', semanticRoot: capsule.semanticRoot, artifactReceipts,
@@ -123,6 +126,7 @@ export function createDopplerRuntime(ports) {
         let observedInitialExecutionIdentity = null;
         program = await programFactory({ capsule, targetPlan: selectedPlan, artifactStore: verifiedStore, deviceProfile, options });
         assertCapsuleLoadActive(options.signal);
+        assertDeviceAvailable();
         if (selectedPlan.schema === 'doppler.target-plan/v2') {
           if (typeof program?.getInitialExecutionIdentity !== 'function') {
             throw new Error('TargetPlan v2 requires the loaded program to report initial execution identity.');
@@ -240,12 +244,12 @@ export function createDopplerRuntime(ports) {
             return program.reset?.();
           },
 
-          async *generate(generationOptions = {}) {
+          async *generate(generationOptions = {}, control) {
             if (closed) throw new Error('Capsule runtime session is closed.');
             await assertPlanUnchanged();
             assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'generate');
             try {
-              return yield* sessionController.generateTokens(selectedPlan, { ...generationOptions, modules });
+              return yield* sessionController.generateTokens(selectedPlan, { ...generationOptions, modules }, control);
             } finally {
               await assertPlanUnchanged();
             }
@@ -311,7 +315,7 @@ export function createDopplerRuntime(ports) {
           return task(currentSignal);
         }, signal);
         const adapters = createCapsuleOperationAdapters({ program,
-          generate: (request) => local.generate(request), rerank: (request) => local.rerank(request),
+          generate: (request, control) => local.generate(request, control), rerank: (request) => local.rerank(request),
           embed: (request) => local.embed(request),
           encodeSequence: (sequence, options) => local.encodeSequence(sequence, options) });
         assertCapsuleLoadActive(options.signal);

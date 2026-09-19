@@ -6,10 +6,13 @@ function ensureModel(models, modelId) {
 }
 
 export function createMemoryStore(config) {
+  return createMemoryStoreHandle(config, { models: new Map(), totalBytes: 0 });
+}
+
+function createMemoryStoreHandle(config, shared) {
   const { maxBytes } = config;
-  const models = new Map();
+  const { models } = shared;
   let currentModelId = null;
-  let totalBytes = 0;
 
   async function init() {}
 
@@ -51,9 +54,9 @@ export function createMemoryStore(config) {
   }
 
   function adjustBytes(delta) {
-    totalBytes += delta;
-    if (totalBytes > maxBytes) {
-      totalBytes -= delta;
+    shared.totalBytes += delta;
+    if (shared.totalBytes > maxBytes) {
+      shared.totalBytes -= delta;
       throw new Error(`Memory store exceeded maxBytes (${maxBytes})`);
     }
   }
@@ -217,10 +220,16 @@ export function createMemoryStore(config) {
   async function cleanup() {
     models.clear();
     currentModelId = null;
-    totalBytes = 0;
+    shared.totalBytes = 0;
   }
 
   return {
+    async openModelSession(modelId, options = {}) {
+      const session = createMemoryStoreHandle(config, shared);
+      await session.openModel(modelId, options);
+      return session;
+    },
+    async close() { currentModelId = null; },
     init,
     openModel,
     getCurrentModelId,

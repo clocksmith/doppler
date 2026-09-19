@@ -46,7 +46,6 @@ import {
   resetLinearAttentionRuntime,
   restoreLinearAttentionRuntime,
 } from './text/linear-attention.js';
-import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from './registry.js';
 import { selectRuleValue } from '../../rules/rule-registry.js';
 import { createObservationContext } from '../observation-context.js';
@@ -412,7 +411,7 @@ export class InferencePipeline extends PipelineState {
     if (ringStats) {
       stats.decodeRing = ringStats;
     }
-    const uniformCacheStats = getUniformCacheStats();
+    const uniformCacheStats = getUniformCacheStats(this.gpuContext?.device ?? null);
     if (uniformCacheStats) {
       stats.uniformCache = uniformCacheStats;
     }
@@ -428,7 +427,7 @@ export class InferencePipeline extends PipelineState {
     const stats = { used: 0 };
 
     try {
-      const poolStats = getGlobalBufferPool().getStats();
+      const poolStats = getGlobalBufferPool(this.gpuContext?.device ?? null).getStats();
       stats.pool = poolStats;
       stats.used += poolStats.currentBytesAllocated || 0;
     } catch {
@@ -456,7 +455,7 @@ export class InferencePipeline extends PipelineState {
 
   getBufferPool() {
     try {
-      return getGlobalBufferPool();
+      return getGlobalBufferPool(this.gpuContext?.device ?? null);
     } catch {
       return null;
     }

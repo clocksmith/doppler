@@ -64,5 +64,14 @@ export function runNodeTestScripts(names, runTests, {
       }
     }
   }
-  for (const name of names) visit(name);
+  const failures = [];
+  for (const name of names) {
+    try { visit(name); } catch (error) {
+      seen.clear();
+      failures.push(error);
+      console.error(error.message);
+    }
+  }
+  if (failures.length) throw new AggregateError(failures,
+    `[node-tests] ${failures.length} independent script checks failed: ${failures.map((error) => error.message).join('; ')}`);
 }

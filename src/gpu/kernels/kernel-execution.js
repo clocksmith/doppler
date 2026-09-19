@@ -31,23 +31,13 @@ export async function unifiedKernelWrapper(
   extraBindings = null,
   dispatchLabel = null
 ) {
-  const device = target?.device || getDevice();
+  const device = target?.device ?? (target?.createCommandEncoder ? target : getDevice());
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const config = getKernelConfig(opName, variant);
-  const pipeline = getCachedPipeline(opName, variant, constants)
-    ?? await getPipelineFast(opName, variant, null, constants);
+  const pipeline = getCachedPipeline(opName, variant, constants, device)
+    ?? await getPipelineFast(opName, variant, null, constants, device);
 
-  const uniformBuffer = createUniformBuffer(
-    `${opName}_uniforms`,
-    getUniformByteLength(config),
-    (view) => writeUniformsFromObject(view, config, uniforms),
-    recorder,
-    device
-  );
-
-  const bindGroupEntries = [
-    { binding: 0, resource: { buffer: uniformBuffer } }
-  ];
+  const bindGroupEntries = [];
 
   const dataBindings = getDataBindings(config);
 
@@ -100,6 +90,14 @@ export async function unifiedKernelWrapper(
     }
   }
 
+  const uniformBuffer = createUniformBuffer(
+    `${opName}_uniforms`,
+    getUniformByteLength(config),
+    (view) => writeUniformsFromObject(view, config, uniforms),
+    recorder,
+    device
+  );
+  bindGroupEntries.unshift({ binding: 0, resource: { buffer: uniformBuffer } });
   try {
     const bindGroup = device.createBindGroup({
       label: `${opName}_bind_group`,
@@ -118,7 +116,7 @@ export async function unifiedKernelWrapper(
         dispatchIndirect(device, pipeline, bindGroup, workgroups.indirectBuffer, indirectOffset, label);
       }
     } else {
-      dispatchKernel(target, pipeline, bindGroup, workgroups, label);
+      dispatchKernel(recorder ?? device, pipeline, bindGroup, workgroups, label);
     }
   } catch (error) {
     if (!recorder) {

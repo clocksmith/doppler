@@ -9,7 +9,7 @@ export const TEST_CAPSULE_PUBLIC_KEY = Object.freeze({
   x: 'FLU5-eSyW8ORkAf8HupzJn8juiJ2TrGSw2rgMNqGPfc',
   kty: 'OKP',
 });
-const TEST_CAPSULE_PRIVATE_KEY = Object.freeze({
+export const TEST_CAPSULE_PRIVATE_KEY = Object.freeze({
   crv: 'Ed25519',
   d: 'WQi2FHRfw0jZxl_IXiMp5TAuehMfssojWd2Oj3WaUKU',
   x: TEST_CAPSULE_PUBLIC_KEY.x,

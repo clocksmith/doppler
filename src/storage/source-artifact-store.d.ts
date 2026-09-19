@@ -1,8 +1,8 @@
 import type { RDRRManifest } from '../formats/rdrr/types.js';
 import type {
   SourceRuntimeMetadata,
-  SourceStorageContext,
-} from '../tooling/source-runtime-bundle.js';
+} from '../formats/source-runtime.js';
+import type { SourceStorageContext } from './source-storage-context.js';
 
 export interface StoredSourceArtifactFile {
   path: string;
@@ -50,10 +50,10 @@ export declare function synthesizeStoredSourceArtifactManifest(
 
 export declare function verifyStoredSourceArtifact(
   manifest: RDRRManifest,
-  options?: { checkHashes?: boolean }
+  options?: { checkHashes?: boolean; modelId?: string; store?: import('./model-read-session.js').ModelReadSession }
 ): Promise<StoredSourceArtifactIntegrity>;
 
 export declare function createStoredSourceArtifactContext(
   manifest: RDRRManifest,
-  options?: { verifyHashes?: boolean }
+  options?: { verifyHashes?: boolean; modelId?: string; store?: import('./model-read-session.js').ModelReadSession }
 ): SourceStorageContext;

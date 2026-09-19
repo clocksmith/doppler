@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { PipelineGenerator } from '../../src/inference/pipelines/text/generator.js';
+import { createDopplerConfig } from '../../src/config/schema/index.js';
 
 // Exercise the actual generation entry points and reset owner, stopping before
 // GPU work. Physical reset/no-reset controls are retained separately.
@@ -11,6 +12,15 @@ for (const surface of ['generate', 'generateTokenIds']) {
       isLoaded: condition !== 'unloaded',
       isGenerating: condition === 'busy',
       currentSeqLen: 19,
+      runtimeConfig: createDopplerConfig().runtime,
+      executionPlanState: {
+        activePlanId: 'primary',
+        primaryPlan: { id: 'primary', defaultMaxTokens: 256, defaultBatchSize: 1,
+          defaultStopCheckMode: 'batch', defaultDisableCommandBatching: false,
+          defaultDisableMultiTokenDecode: false, readbackInterval: 1,
+          ringTokens: 1, ringStop: 1, ringStaging: 1 },
+        fallbackPlan: null,
+      },
       kvCache: { clear() { clears += 1; } },
       linearAttentionRuntime: { schemaVersion: 2, layers: new Map([[0, layer]]) },
     };

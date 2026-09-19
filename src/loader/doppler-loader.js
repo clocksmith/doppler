@@ -9,7 +9,7 @@ import {
   loadAuxFile,
   computeHash,
 } from '../storage/shard-manager.js';
-import { clearManifest, parseManifest, setManifest as setCurrentManifest } from '../formats/rdrr/index.js';
+import { clearManifest, getManifest, parseManifest, setManifest as setCurrentManifest } from '../formats/rdrr/index.js';
 import { initDevice, getDevice, getKernelCapabilities } from '../gpu/device.js';
 import {
   PersistentBufferSet,
@@ -18,7 +18,7 @@ import {
   releaseBuffer,
   forceBufferPoolReclaim,
 } from '../memory/buffer-pool.js';
-import { getExpertCache } from './experts/expert-cache.js';
+import { createExpertCache } from './experts/expert-cache.js';
 import { formatBytes } from '../storage/quota.js';
 import { log, trace as debugTrace } from '../debug/index.js';
 import { isGpuBufferInstance, isWeightBuffer } from '../gpu/weight-buffer.js';
@@ -339,7 +339,7 @@ export class DopplerLoader {
     this.heapManager = getHeapManager();
     await this.heapManager.init();
 
-    this.expertCache = getExpertCache();
+    this.expertCache = createExpertCache(undefined, this._loadingConfig.expertCache);
 
     if (!this.shardCache.hasCustomLoader) {
       await initStorage();
@@ -729,8 +729,8 @@ export class DopplerLoader {
     this.finalNorm = null;
     this.embeddingPostprocessor = null;
     this.perLayerInputWeights = null;
+    if (getManifest() === this.manifest) clearManifest();
     this.manifest = null;
-    clearManifest();
     this.modelId = null;
     this.loadedShards.clear();
     this.isLoaded = false;

@@ -96,6 +96,7 @@ export interface SerializedDownloadState {
  * Download options
  */
 export interface DownloadOptions {
+  transport?: import('./distribution-transport.js').ShardTransport;
   concurrency?: number;
   requestPersist?: boolean;
   modelId?: string;

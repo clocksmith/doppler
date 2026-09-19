@@ -1,6 +1,18 @@
 {
   "schema": "doppler.capsule-operation-catalog/v1",
   "maxObservationDepth": 64,
+  "streamFormats": {
+    "doppler.capsule-operation-request/v1": {
+      "eventSchema": "doppler.capsule-operation-event/v1",
+      "receiptSchema": "doppler.capsule-operation-receipt/v1",
+      "incremental": false
+    },
+    "doppler.capsule-operation-request/v2": {
+      "eventSchema": "doppler.capsule-operation-event/v2",
+      "receiptSchema": "doppler.capsule-operation-receipt/v2",
+      "incremental": true
+    }
+  },
   "operations": {
     "generate": {
       "version": 1,

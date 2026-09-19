@@ -1,5 +1,6 @@
 import type { RDRRManifest } from '../formats/rdrr/types.js';
-import type { SourceRuntimeShardSource, SourceStorageContext } from '../tooling/source-runtime-bundle.js';
+import type { SourceRuntimeShardSource } from '../formats/source-runtime.js';
+import type { SourceStorageContext } from './source-storage-context.js';
 
 export declare const ARTIFACT_FORMAT_RDRR: 'rdrr';
 export declare const ARTIFACT_FORMAT_DIRECT_SOURCE: 'direct-source';

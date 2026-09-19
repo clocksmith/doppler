@@ -1,0 +1,9 @@
+{
+  "src/formats/load-json.js": {
+    "import(nodeModule('fs/promises'))": ["node:fs/promises"],
+    "import(nodeModule('url'))": ["node:url"]
+  },
+  "src/gpu/kernels/shader-cache.js": {
+    "import(nodeModule('fs/promises'))": ["node:fs/promises"]
+  }
+}

@@ -17,6 +17,7 @@ Compose model acquisition and application handles above the injected Capsule exe
 
 - [Host service](index.js), [model handles](model-session.js), and [evidence construction](model-evidence.js).
 - Previous `client/runtime/index` and `model-session` paths remain compatibility facades.
+- [Source ingestion](source-loading.js) owns host assembly for source-model compatibility loading; `client/runtime/source-runtime` remains a forwarding import.
 
 ## Contracts
 

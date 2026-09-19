@@ -1,0 +1,85 @@
+[2m[WebServer] [22m(node:3223735) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:3223871) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:3224011) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:3224040) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:3224040) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+[2m[WebServer] [22m☡  WARNING: GEMINI_API_KEY not found in .env file
+[2m[WebServer] [22m   The Gemini proxy endpoint will not work without it.
+[2m[WebServer] [22m(node:3224082) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 60 tests using 1 worker
+
+(node:3224427) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3224427) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium-swiftshader] › tests/e2e/boot.spec.js:37:3 › Boot Screen › loads with product modes and no duplicate mode heading (370ms)
+  ✓   2 [chromium-swiftshader] › tests/e2e/boot.spec.js:49:3 › Boot Screen › has Reploid selected by default (306ms)
+  ✓   3 [chromium-swiftshader] › tests/e2e/boot.spec.js:56:3 › Boot Screen › ignores stale saved mode and genesis on first load (1.3s)
+  ✓   4 [chromium-swiftshader] › tests/e2e/boot.spec.js:73:3 › Boot Screen › shows all three product modes (652ms)
+  ✓   5 [chromium-swiftshader] › tests/e2e/boot.spec.js:81:3 › Boot Screen › allows switching modes with single selection (429ms)
+  ✓   6 [chromium-swiftshader] › tests/e2e/boot.spec.js:95:3 › Route Entry Points › recovers once from a transient public-route module failure (479ms)
+  ✓   7 [chromium-swiftshader] › tests/e2e/boot.spec.js:118:3 › Route Entry Points › home keeps one focused model task below minimal navigation (305ms)
+  ✓   8 [chromium-swiftshader] › tests/e2e/boot.spec.js:145:3 › Route Entry Points › product root renders the minimal Reploid request workflow (347ms)
+  ✓   9 [chromium-swiftshader] › tests/e2e/boot.spec.js:169:3 › Route Entry Points › product navigation remains compact and complete on desktop and mobile (460ms)
+  ✓  10 [chromium-swiftshader] › tests/e2e/boot.spec.js:205:3 › Route Entry Points › desktop navigation leaves the task column unobstructed (231ms)
+  ✓  11 [chromium-swiftshader] › tests/e2e/boot.spec.js:228:3 › Route Entry Points › contribution status labels and values are vertically centered in their metric chips (321ms)
+  ✓  12 [chromium-swiftshader] › tests/e2e/boot.spec.js:269:3 › Route Entry Points › product routes fit a narrow mobile viewport without horizontal clipping (885ms)
+  ✓  13 [chromium-swiftshader] › tests/e2e/boot.spec.js:315:3 › Route Entry Points › product routes hide raw payloads and hosted controls by default (772ms)
+  ✓  14 [chromium-swiftshader] › tests/e2e/boot.spec.js:332:3 › Route Entry Points › compatibility routes resolve into the three Reploid product flows (628ms)
+  ✓  15 [chromium-swiftshader] › tests/e2e/boot.spec.js:378:3 › Route Entry Points › home route boots without early VFS misses for instance-scoped runtime modules (514ms)
+  ✓  16 [chromium-swiftshader] › tests/e2e/boot.spec.js:397:3 › Route Entry Points › home route boots Reploid with minimal ring controls (313ms)
+  ✓  17 [chromium-swiftshader] › tests/e2e/boot.spec.js:436:3 › Route Entry Points › home route clears direct inference keys when disabled (362ms)
+  ✓  18 [chromium-swiftshader] › tests/e2e/boot.spec.js:454:3 › Route Entry Points › home route self browser previews selected files (473ms)
+  ✓  19 [chromium-swiftshader] › tests/e2e/boot.spec.js:469:3 › Route Entry Points › home route recovers from awaken failure (316ms)
+  ✓  20 [chromium-swiftshader] › tests/e2e/boot.spec.js:485:3 › Route Entry Points › home route can draft a seeded goal before inference is configured (330ms)
+  ✓  21 [chromium-swiftshader] › tests/e2e/boot.spec.js:496:3 › Route Entry Points › home route preserves the goal input node while typing (314ms)
+  ✓  22 [chromium-swiftshader] › tests/e2e/boot.spec.js:513:3 › Route Entry Points › home route can awaken with remote slots and no local inference (213ms)
+  ✓  23 [chromium-swiftshader] › tests/e2e/boot.spec.js:531:3 › Route Entry Points › /zero locks the boot mode to Zero (494ms)
+  ✓  24 [chromium-swiftshader] › tests/e2e/boot.spec.js:607:3 › Route Entry Points › /zero awakens with the complete DI dependency closure (421ms)
+  ✓  25 [chromium-swiftshader] › tests/e2e/boot.spec.js:744:3 › Route Entry Points › /x locks the boot mode to X without boot failures (1.1s)
+  ✓  26 [chromium-swiftshader] › tests/e2e/boot.spec.js:779:3 › Same-Origin Multi-Peer › opens a new peer in the same browser context with isolated instance, identity, and self state (854ms)
+  ✓  27 [chromium-swiftshader] › tests/e2e/boot.spec.js:879:3 › Same-Origin Multi-Peer › rotates the active peer identity after awaken instead of keeping the legacy peer (476ms)
+  ✓  28 [chromium-swiftshader] › tests/e2e/boot.spec.js:908:3 › Same-Origin Multi-Peer › same-origin provider and consumer discover each other over swarm transport (786ms)
+  ✓  29 [chromium-swiftshader] › tests/e2e/boot.spec.js:988:3 › Connection Selection › shows Doppler, direct, and proxy brain options (304ms)
+  ✓  30 [chromium-swiftshader] › tests/e2e/boot.spec.js:997:3 › Connection Selection › does not show a separate Doppler local-model path in direct mode (329ms)
+  ✓  31 [chromium-swiftshader] › tests/e2e/boot.spec.js:1006:3 › Connection Selection › selects Gemini 3.5 Flash by default for direct Gemini inference (462ms)
+  ✓  32 [chromium-swiftshader] › tests/e2e/boot.spec.js:1017:3 › Advanced Mapping › defaults Reploid to the capsule genesis level (1.2s)
+  ✓  33 [chromium-swiftshader] › tests/e2e/boot.spec.js:1024:3 › Advanced Mapping › maps X to the full genesis level (1.1s)
+  ✓  34 [chromium-swiftshader] › tests/e2e/boot.spec.js:1037:3 › Goal Input › shows ordered placeholders and unlocks the goal input after inference config (607ms)
+  ✓  35 [chromium-swiftshader] › tests/e2e/boot.spec.js:1056:3 › Goal Input › shows the self tree browser in Reploid (541ms)
+  ✓  36 [chromium-swiftshader] › tests/e2e/boot.spec.js:1071:3 › Goal Input › shows Reploid environment editor without bootstrapper toggle (513ms)
+  ✓  37 [chromium-swiftshader] › tests/e2e/boot.spec.js:1079:3 › Goal Input › shows runtime preset rail and a single dropdown for the active level (513ms)
+  ✓  38 [chromium-swiftshader] › tests/e2e/boot.spec.js:1089:3 › Goal Input › shows generated-goal action (495ms)
+  ✓  39 [chromium-swiftshader] › tests/e2e/boot.spec.js:1097:3 › Goal Input › shuffle presets updates the goal input (1.9s)
+  ✓  40 [chromium-swiftshader] › tests/e2e/boot.spec.js:1106:3 › Goal Input › switches the preset dropdown when choosing a different runtime level (3.3s)
+  ✓  41 [chromium-swiftshader] › tests/e2e/boot.spec.js:1115:3 › Goal Input › awaken button exists (1.1s)
+  ✓  42 [chromium-swiftshader] › tests/e2e/boot.spec.js:1121:3 › Goal Input › enforces goal maxlength (500 chars) (671ms)
+  ✓  43 [chromium-swiftshader] › tests/e2e/boot.spec.js:1130:3 › Reploid Runtime › awakens into capsule instead of the zero shell (451ms)
+  ✓  44 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:331:3 › Run, Contribute, Records peer room › runs from Home and drives the graph with real peer activity (1.1s)
+  ✓  45 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:401:3 › Run, Contribute, Records peer room › preserves room context when Run opens before Contribute (849ms)
+  ✓  46 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:456:3 › Run, Contribute, Records peer room › preserves the Records facet and open disclosures across refreshes (6.8s)
+  ✓  47 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:500:3 › Run, Contribute, Records peer room › starts and stops a provider with stable page identity (817ms)
+  ✓  48 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:527:3 › Run, Contribute, Records peer room › restores an active provider after reload with the same page identity (853ms)
+  ✓  49 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:563:3 › Run, Contribute, Records peer room › asks before retrying a requester run interrupted by reload (778ms)
+  ✓  50 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:604:3 › Run, Contribute, Records peer room › classifies a contributor reload during inference as recoverable unavailability (1.1s)
+  ✓  51 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:647:3 › Run, Contribute, Records peer room › fails provider start closed when runtime model load fails (353ms)
+  -  52 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:681:3 › Run, Contribute, Records peer room › recovers contributor startup after a server-relay publish outage
+  -  53 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:711:3 › Run, Contribute, Records peer room › reports and recovers a live server-relay polling outage
+  -  54 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:744:3 › Run, Contribute, Records peer room › honors a server relay rate limit and returns contributor status to Available
+  -  55 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:778:3 › Run, Contribute, Records peer room › reports and recovers from a contributor network transition
+  ✓  56 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:804:3 › Run, Contribute, Records peer room › completes a five-page ring quorum through real UI routes (4.1s)
+  -  57 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:840:3 › Run, Contribute, Records peer room › runs a twelve-provider mesh and records the accepted ledger locally
+  ✓  58 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:900:3 › Run, Contribute, Records peer room › queues simultaneous requester pages through one provider (1.7s)
+  ✓  59 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:933:3 › Run, Contribute, Records peer room › keeps two active rooms isolated (1.1s)
+  ✓  60 [chromium-swiftshader] › tests/e2e/p2p-mesh.spec.js:967:3 › Run, Contribute, Records peer room › runs simultaneous distributed ring requests across provider pages (5.3s)
+
+  5 skipped
+  55 passed (56.1s)

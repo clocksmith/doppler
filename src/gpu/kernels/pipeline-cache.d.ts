@@ -52,7 +52,8 @@ export declare function getPipelineBindGroupLayout(
 export declare function getCachedPipeline(
   operation: string,
   variant: string,
-  constants?: Record<string, number | boolean> | null
+  constants?: Record<string, number | boolean> | null,
+  device?: GPUDevice | null
 ): GPUComputePipeline | null;
 
 /**
@@ -64,7 +65,8 @@ export declare function getPipelineFast(
   operation: string,
   variant: string,
   bindGroupLayout?: GPUBindGroupLayout | null,
-  constants?: Record<string, number | boolean> | null
+  constants?: Record<string, number | boolean> | null,
+  device?: GPUDevice | null
 ): Promise<GPUComputePipeline>;
 
 /**
@@ -74,7 +76,8 @@ export declare function createPipeline(
   operation: string,
   variant: string,
   bindGroupLayout?: GPUBindGroupLayout | null,
-  constants?: Record<string, number | boolean> | null
+  constants?: Record<string, number | boolean> | null,
+  device?: GPUDevice | null
 ): Promise<GPUComputePipeline>;
 
 // ============================================================================
@@ -89,7 +92,7 @@ export declare function clearPipelineCaches(): void;
 /**
  * Get pipeline cache statistics
  */
-export declare function getPipelineCacheStats(): {
+export declare function getPipelineCacheStats(device?: GPUDevice | null): {
   pipelines: number;
   bindGroupLayouts: number;
   pipelineLayouts: number;

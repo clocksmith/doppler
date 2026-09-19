@@ -9,6 +9,7 @@ import ts from 'typescript';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const GOVERNED_ROOTS = ['src', 'demo'];
 const WRITE = process.argv.includes('--write');
+const STRICT_IMPLEMENTATIONS = new Set(JSON.parse(fs.readFileSync(path.join(ROOT, 'tsconfig.source-strict.json'), 'utf8')).files);
 const LIST_COMPUTE_CANDIDATES = process.argv.includes('--list-compute-candidates');
 const RAW_CONSOLE_ALLOWED_PREFIXES = ['src/cli/', 'src/debug/', 'demo/'];
 const RAW_CONSOLE_ALLOWED_FILES = new Set(['src/gpu/device.js']);
@@ -272,7 +273,7 @@ for (const file of files) {
   const relative = path.relative(ROOT, file).split(path.sep).join('/');
   sourceComputeCandidates.push(...detectSourceComputeCandidates(file, relative, source));
   if (WRITE) {
-    if (source.includes('/**')) {
+    if (source.includes('/**') && !STRICT_IMPLEMENTATIONS.has(relative)) {
       changedFiles += 1;
       removedBlocks += source.match(/\/\*\*/g)?.length ?? 0;
       fs.writeFileSync(file, removeJSDoc(source));
@@ -286,7 +287,7 @@ for (const file of files) {
       jsDocLines.push(index + 1);
     }
   }
-  if (jsDocLines.length > 0) {
+  if (jsDocLines.length > 0 && !STRICT_IMPLEMENTATIONS.has(relative)) {
     violations.push({
       file: relative,
       invariant: 'declaration-files-own-api-types',
@@ -379,7 +380,7 @@ if (violations.length === 0) {
   console.log(
     `[source:style:check] ${files.length} governed JavaScript modules have sibling declarations, ` +
     `${sourceComputeCandidates.length} reviewed numeric candidate(s), no runtime tensor compute, ` +
-    'no implementation JSDoc, no undeclared raw console calls, and no banned geometry inference'
+    'implementation annotations limited to checked strict roots, no undeclared raw console calls, and no banned geometry inference'
   );
   process.exit(0);
 }

@@ -13,3 +13,5 @@ export interface SharedDeviceState {
 export declare function getSharedDeviceState(): SharedDeviceState;
 export declare function getSharedDeviceEpoch(): number;
 export declare function isDeviceLost(device: GPUDevice | null | undefined): boolean;
+export function observeDeviceLoss(device: GPUDevice | null | undefined): void;
+export function registerBufferDevice(buffer: GPUBuffer, device: GPUDevice): void;

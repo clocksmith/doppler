@@ -1,0 +1,17 @@
+{
+  "schema": "doppler.package-change-audit/v1",
+  "nodeVersion": "22.23.2",
+  "npmVersion": "10.9.8",
+  "size": 2119045,
+  "unpackedSize": 10906744,
+  "entryCount": 1789,
+  "integrity": "sha512-rdesSSP6rFYmgf+pbIobrH99hs+HaAJfv7/lWl9FkGldlVOcdmSC7ZOHZhu+MxNBtmfeW2/AhWIUBVWbbHiSVg==",
+  "changedRuntimeFiles": [
+    {
+      "path": "src/gpu/device.js",
+      "sha256": "047d30f33eb41f8a1b122f6e454a8eed36475462815c63a83bc1880b766ab11c",
+      "addedSourceBytes": 223
+    }
+  ],
+  "scope": "Same package closure; preserve device generation when restoring a session on the same GPUDevice."
+}

@@ -6,7 +6,7 @@ import {
 import { getKernelCapabilities } from '../../gpu/device.js';
 import { formatChatMessages } from '../../inference/pipelines/text/chat-format.js';
 import { applyChatTemplate } from '../../inference/pipelines/text/init-chat-templates.js';
-import { resolveSamplingConfig } from '../../inference/pipelines/text/sampling-config.js';
+import { resolveTextGenerationRequest, generationRequestEvidence } from '../../inference/pipelines/text/generation-request.js';
 import { collectModelRerankScores } from '../runtime/model-rerank.js';
 import {
   MODEL_INSPECTION_RECEIPT_SCHEMA,
@@ -103,41 +103,7 @@ async function collectText(iterable) {
   return output;
 }
 
-function resolveUseChatTemplate(pipeline, options) {
-  if (typeof options.useChatTemplate === 'boolean') {
-    return options.useChatTemplate;
-  }
-  const runtimeValue = pipeline?.runtimeConfig?.inference?.chatTemplate?.enabled;
-  if (typeof runtimeValue === 'boolean') {
-    return runtimeValue;
-  }
-  const modelValue = pipeline?.modelConfig?.chatTemplateEnabled;
-  return typeof modelValue === 'boolean' ? modelValue : false;
-}
-
-function resolveGenerationConfigEvidence(pipeline, options) {
-  const runtimeConfig = pipeline?.runtimeConfig;
-  const generation = runtimeConfig?.inference?.generation;
-  if (!generation || typeof generation !== 'object' || Array.isArray(generation)) {
-    throw new Error('Loaded Doppler pipeline does not expose resolved generation config.');
-  }
-  const maxTokens = options.maxTokens ?? generation.maxTokens;
-  if (!Number.isInteger(maxTokens) || maxTokens <= 0) {
-    throw new Error('Resolved Doppler generation maxTokens must be a positive integer.');
-  }
-  const sampling = resolveSamplingConfig(options, runtimeConfig);
-  const stopSequences = options.stopSequences ?? [];
-  if (!Array.isArray(stopSequences) || stopSequences.some((value) => typeof value !== 'string')) {
-    throw new Error('Resolved Doppler stopSequences must be an array of strings.');
-  }
-  const useSpeculative = options.useSpeculative ?? generation.useSpeculative ?? null;
-  if (useSpeculative !== null && typeof useSpeculative !== 'boolean') {
-    throw new Error('Resolved Doppler useSpeculative must be a boolean or null.');
-  }
-  const seed = options.seed ?? null;
-  if (seed !== null && (!Number.isFinite(seed) || seed < 0)) {
-    throw new Error('Resolved Doppler seed must be null or a non-negative number.');
-  }
+function resolveGenerationConfigEvidence(request, options) {
   let logitMaskIdentity;
   if (options.logitMaskFn != null) {
     const identity = options.logitMaskIdentity;
@@ -149,23 +115,10 @@ function resolveGenerationConfigEvidence(pipeline, options) {
   } else if (options.logitMaskIdentity != null) {
     throw new Error('logitMaskIdentity requires an executed logitMaskFn.');
   }
-  return {
-    ...(logitMaskIdentity ? { logitMaskIdentity } : {}),
-    maxTokens,
-    temperature: sampling.temperature,
-    topP: sampling.topP,
-    topK: sampling.topK,
-    repetitionPenalty: sampling.repetitionPenalty,
-    repetitionPenaltyWindow: sampling.repetitionPenaltyWindow,
-    greedyThreshold: sampling.greedyThreshold,
-    suppressSpecialTokens: sampling.suppressSpecialTokens,
-    suppressSpecialLikeTokens: sampling.suppressSpecialLikeTokens,
-    suppressTokenIds: [...sampling.suppressTokenIds],
-    stopSequences: [...stopSequences],
-    useChatTemplate: resolveUseChatTemplate(pipeline, options),
-    useSpeculative,
-    seed,
-  };
+  return Object.freeze({
+    ...generationRequestEvidence(request),
+    ...(logitMaskIdentity ? { logitMaskIdentity: Object.freeze(logitMaskIdentity) } : {}),
+  });
 }
 
 function decodeGeneratedTokens(pipeline, tokenIds) {
@@ -231,8 +184,9 @@ export function createModelHandle(pipeline, resolved) {
     assertExecutionMayStart(resolutionPolicy);
     const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
     assertSupportedGenerationOptions(options);
-    const generationConfig = resolveGenerationConfigEvidence(pipeline, options);
-    const result = await pipeline.generateTokenIds(prompt, options);
+    const executionOptions = resolveTextGenerationRequest(options, pipeline.runtimeConfig, pipeline.modelConfig);
+    const generationConfig = resolveGenerationConfigEvidence(executionOptions, options);
+    const result = await pipeline.generateTokenIds(prompt, executionOptions);
     const tokenIds = Array.from(result?.tokenIds || [], Number);
     const outputText = decodeGeneratedTokens(pipeline, tokenIds);
     const stats = result?.stats || pipeline.getStats?.() || null;
@@ -475,6 +429,9 @@ export function createModelHandle(pipeline, resolved) {
       },
       tokenizePrompt(prompt, options = {}) {
         return tokenizePrompt(pipeline, prompt, options);
+      },
+      createIncrementalDecoder() {
+        return pipeline.tokenizer.createIncrementalDecoder();
       },
       decodeTokenIds(tokenIds) {
         if (!Array.isArray(tokenIds)) {

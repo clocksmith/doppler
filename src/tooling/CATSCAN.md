@@ -16,7 +16,8 @@ Give browser, Node, and CLI adapters one normalized command contract and one evi
 ## Scope
 
 - Shipped tooling APIs and shared browser/Node command infrastructure.
-- [Capsule Forge command](model-capsule-forge.js) handles files and signing inputs around the [converter-owned compiler](../converter/CATSCAN.md), not a second compiler.
+- [Test harness](test-harness.js): catalog discovery, browser options, experimental diagnostics.
+- [Capsule Forge command](model-capsule-forge.js): files and signing around the [compiler](../converter/CATSCAN.md).
 - [Model onboarding](model-onboarding.js) coordinates pinned source assessment,
   lineage, conversion, independent comparison, physical qualification, and signed
   Capsule execution resumably. Retains immutable outputs and failures.
@@ -43,7 +44,7 @@ Give browser, Node, and CLI adapters one normalized command contract and one evi
 
 ## Non-goals
 
-- A repository-dev script bucket or a surface-specific alternate runtime.
+- Repository-dev scripts or alternate runtimes.
 
 ## Freedom
 

@@ -1,0 +1,529 @@
+{
+  "schema": "reploid.library-package-acceptance/v1",
+  "node": "v22.22.1",
+  "platform": "linux",
+  "architecture": "x64",
+  "evidence": "/home/x/deco/worktrees/reploid-consumer-streaming/artifacts/library-acceptance/2026-09-14T21-13-12-675Z",
+  "consumer": "/dev/shm/reusable-products-20260914/reploid-installed-consumer-0nlT4J",
+  "checks": [
+    {
+      "name": "pack-and-detached-install",
+      "status": "passed",
+      "durationMs": 665.365361,
+      "result": {
+        "package": "reploid",
+        "version": "0.1.0",
+        "optionalDopplerPeerInstalled": false
+      }
+    },
+    {
+      "name": "published-assets-and-application-copy",
+      "status": "passed",
+      "durationMs": 16.36543699999993,
+      "result": {
+        "matchedAssets": 61,
+        "publicEntries": [
+          "reploid",
+          "reploid/mesh",
+          "reploid/webrtc",
+          "reploid/browser",
+          "reploid/doppler",
+          "reploid/improve",
+          "reploid/config"
+        ]
+      }
+    },
+    {
+      "name": "migrated-adapters-use-public-entries",
+      "status": "passed",
+      "durationMs": 1.3214049999999133,
+      "result": {
+        "adapters": 18,
+        "imports": 25
+      }
+    },
+    {
+      "name": "installed-node-public-imports",
+      "status": "passed",
+      "durationMs": 76.44787700000006,
+      "result": [
+        {
+          "name": "reploid",
+          "ok": true,
+          "exports": [
+            "AgentLoop",
+            "CYCLE_ARTIFACT_ROOT",
+            "ResponseParser",
+            "createAgentRuntime",
+            "createCycleArtifactWriter",
+            "createReploid",
+            "createToolRunner",
+            "getCycleArtifactPath",
+            "getCycleId"
+          ]
+        },
+        {
+          "name": "reploid/mesh",
+          "ok": true,
+          "exports": [
+            "DEFAULT_REWARD_POLICY",
+            "SWARM_ROLES",
+            "applyReceiptToContribution",
+            "buildSwarmState",
+            "chooseProviderPeer",
+            "contributionPolicy",
+            "createContributionSummary",
+            "createGenerationRequest",
+            "createGenerationResult",
+            "createIntelligenceMesh",
+            "createLegacyGenerationMesh",
+            "createPeerAdvertisement",
+            "createSwarmController",
+            "decayContributionScore",
+            "deriveContributionDelta",
+            "deriveSwarmRole",
+            "getPairReceiptCount",
+            "isReceiptEligible",
+            "rankProviderPeers",
+            "swarmCoordination"
+          ]
+        },
+        {
+          "name": "reploid/webrtc",
+          "ok": true,
+          "exports": [
+            "DEFAULT_SIGNAL_FAILURE_THRESHOLD",
+            "DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS",
+            "DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS",
+            "DEFAULT_SIGNAL_POLL_TIMEOUT_MS",
+            "P2P_TRANSPORT_STATES",
+            "SIGNAL_TYPES",
+            "boundedRetryDelay",
+            "candidateToPayload",
+            "createCallbackSignalingAdapter",
+            "createFirestoreLikeSignalingAdapter",
+            "createP2PTransport",
+            "createPollingSignalingAdapter",
+            "createPoolSdkSignalingAdapter",
+            "createSignalId",
+            "createSignalMessage",
+            "createSignalingChannel",
+            "createSwarmTransport",
+            "createWebRTCSwarm",
+            "defaultDeserialize",
+            "defaultSerialize",
+            "descriptionToPayload",
+            "isSignalForPeer",
+            "normalizeSignalMessage",
+            "retryAfterMsFromError",
+            "retryPolicy"
+          ]
+        },
+        {
+          "name": "reploid/browser",
+          "ok": true,
+          "exports": [
+            "canonicalizeReceiptPayload",
+            "countersignReceipt",
+            "createIndexedDbStore",
+            "createMemoryStore",
+            "createPeerIdFromPublicJwk",
+            "createReceiptDraft",
+            "createSigningIdentity",
+            "createVfs",
+            "encodeBytes",
+            "fromBase64Url",
+            "getIdentityImportAlgorithm",
+            "getIdentitySignAlgorithm",
+            "getReceiptPayload",
+            "importSigningKey",
+            "importVerificationKey",
+            "receipt",
+            "signReceiptDraft",
+            "toBase64Url",
+            "verifyReceipt"
+          ]
+        },
+        {
+          "name": "reploid/doppler",
+          "ok": true,
+          "exports": [
+            "createDopplerProvider",
+            "openDopplerProvider"
+          ]
+        },
+        {
+          "name": "reploid/improve",
+          "ok": true,
+          "exports": [
+            "ALGORITHM_MANIFEST_SCHEMA",
+            "ALGORITHM_REGISTRY_PATH",
+            "IMPROVEMENT_EPISODE_ROOT",
+            "IMPROVEMENT_EPISODE_SCHEMA",
+            "IMPROVEMENT_EVENT_SCHEMA",
+            "ImprovementEpisodeLedger",
+            "assessPromotionReadiness",
+            "canonicalJson",
+            "createImprovementLedger",
+            "hashImprovementValue",
+            "validateAlgorithmManifest",
+            "validateHypothesisReflection",
+            "validateImprovementEpisodePromotionEvidence",
+            "validateMetricDefinition",
+            "verifyImprovementEvents"
+          ]
+        },
+        {
+          "name": "reploid/config",
+          "ok": true,
+          "exports": [
+            "ConfigurationError",
+            "freezeJson",
+            "hashConfiguration",
+            "requireResolvedConfig",
+            "resolveConfig",
+            "snapshotJson"
+          ]
+        },
+        {
+          "name": "private-path-rejected",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "installed-core-declarations-without-doppler",
+      "status": "passed",
+      "durationMs": 641.98377,
+      "result": {
+        "entries": 6,
+        "ambientTypes": []
+      }
+    },
+    {
+      "name": "installed-configuration-regression",
+      "status": "passed",
+      "durationMs": 71.9508330000001,
+      "result": {
+        "precedence": true,
+        "immutable": true,
+        "secretsRejected": true,
+        "requestPolicyEnforced": true
+      }
+    },
+    {
+      "name": "doppler-fixture-install",
+      "status": "passed",
+      "durationMs": 1480.6453479999998,
+      "result": {
+        "version": "0.6.1",
+        "typePackages": {
+          "@webgpu/types": "0.1.72"
+        },
+        "directory": "/dev/shm/reusable-products-20260914/reploid-doppler-consumer-Gd7TAK"
+      }
+    },
+    {
+      "name": "installed-declarations-with-doppler",
+      "status": "passed",
+      "durationMs": 817.3983470000003,
+      "result": {
+        "entries": 7,
+        "ambientTypes": [
+          "@webgpu/types"
+        ]
+      }
+    },
+    {
+      "name": "installed-doppler-public-contract",
+      "status": "passed",
+      "durationMs": 99.21402899999975,
+      "result": {
+        "publicExports": true,
+        "modelExecution": false
+      }
+    },
+    {
+      "name": "browser-launch",
+      "status": "passed",
+      "durationMs": 55.38166699999965,
+      "result": null
+    },
+    {
+      "name": "installed-browser-public-imports",
+      "status": "passed",
+      "durationMs": 71.7458830000005,
+      "result": {
+        "entries": [
+          {
+            "name": "reploid",
+            "ok": true,
+            "exports": [
+              "AgentLoop",
+              "CYCLE_ARTIFACT_ROOT",
+              "ResponseParser",
+              "createAgentRuntime",
+              "createCycleArtifactWriter",
+              "createReploid",
+              "createToolRunner",
+              "getCycleArtifactPath",
+              "getCycleId"
+            ]
+          },
+          {
+            "name": "reploid/mesh",
+            "ok": true,
+            "exports": [
+              "DEFAULT_REWARD_POLICY",
+              "SWARM_ROLES",
+              "applyReceiptToContribution",
+              "buildSwarmState",
+              "chooseProviderPeer",
+              "contributionPolicy",
+              "createContributionSummary",
+              "createGenerationRequest",
+              "createGenerationResult",
+              "createIntelligenceMesh",
+              "createLegacyGenerationMesh",
+              "createPeerAdvertisement",
+              "createSwarmController",
+              "decayContributionScore",
+              "deriveContributionDelta",
+              "deriveSwarmRole",
+              "getPairReceiptCount",
+              "isReceiptEligible",
+              "rankProviderPeers",
+              "swarmCoordination"
+            ]
+          },
+          {
+            "name": "reploid/webrtc",
+            "ok": true,
+            "exports": [
+              "DEFAULT_SIGNAL_FAILURE_THRESHOLD",
+              "DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS",
+              "DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS",
+              "DEFAULT_SIGNAL_POLL_TIMEOUT_MS",
+              "P2P_TRANSPORT_STATES",
+              "SIGNAL_TYPES",
+              "boundedRetryDelay",
+              "candidateToPayload",
+              "createCallbackSignalingAdapter",
+              "createFirestoreLikeSignalingAdapter",
+              "createP2PTransport",
+              "createPollingSignalingAdapter",
+              "createPoolSdkSignalingAdapter",
+              "createSignalId",
+              "createSignalMessage",
+              "createSignalingChannel",
+              "createSwarmTransport",
+              "createWebRTCSwarm",
+              "defaultDeserialize",
+              "defaultSerialize",
+              "descriptionToPayload",
+              "isSignalForPeer",
+              "normalizeSignalMessage",
+              "retryAfterMsFromError",
+              "retryPolicy"
+            ]
+          },
+          {
+            "name": "reploid/browser",
+            "ok": true,
+            "exports": [
+              "canonicalizeReceiptPayload",
+              "countersignReceipt",
+              "createIndexedDbStore",
+              "createMemoryStore",
+              "createPeerIdFromPublicJwk",
+              "createReceiptDraft",
+              "createSigningIdentity",
+              "createVfs",
+              "encodeBytes",
+              "fromBase64Url",
+              "getIdentityImportAlgorithm",
+              "getIdentitySignAlgorithm",
+              "getReceiptPayload",
+              "importSigningKey",
+              "importVerificationKey",
+              "receipt",
+              "signReceiptDraft",
+              "toBase64Url",
+              "verifyReceipt"
+            ]
+          },
+          {
+            "name": "reploid/doppler",
+            "ok": true,
+            "exports": [
+              "createDopplerProvider",
+              "openDopplerProvider"
+            ]
+          },
+          {
+            "name": "reploid/improve",
+            "ok": true,
+            "exports": [
+              "ALGORITHM_MANIFEST_SCHEMA",
+              "ALGORITHM_REGISTRY_PATH",
+              "IMPROVEMENT_EPISODE_ROOT",
+              "IMPROVEMENT_EPISODE_SCHEMA",
+              "IMPROVEMENT_EVENT_SCHEMA",
+              "ImprovementEpisodeLedger",
+              "assessPromotionReadiness",
+              "canonicalJson",
+              "createImprovementLedger",
+              "hashImprovementValue",
+              "validateAlgorithmManifest",
+              "validateHypothesisReflection",
+              "validateImprovementEpisodePromotionEvidence",
+              "validateMetricDefinition",
+              "verifyImprovementEvents"
+            ]
+          },
+          {
+            "name": "reploid/config",
+            "ok": true,
+            "exports": [
+              "ConfigurationError",
+              "freezeJson",
+              "hashConfiguration",
+              "requireResolvedConfig",
+              "resolveConfig",
+              "snapshotJson"
+            ]
+          }
+        ],
+        "sideEffects": []
+      }
+    },
+    {
+      "name": "deterministic-browser-consumer:/",
+      "status": "passed",
+      "durationMs": 384.6087640000005,
+      "result": {
+        "model": "deterministic-fixture",
+        "networkJobs": 0,
+        "route": "/"
+      }
+    },
+    {
+      "name": "deterministic-browser-consumer:/nested/app/",
+      "status": "passed",
+      "durationMs": 383.5324550000005,
+      "result": {
+        "model": "deterministic-fixture",
+        "networkJobs": 0,
+        "route": "/nested/app/"
+      }
+    },
+    {
+      "name": "deterministic-browser-consumer:/nested/app/cross-origin.html",
+      "status": "passed",
+      "durationMs": 382.9320400000006,
+      "result": {
+        "model": "deterministic-fixture",
+        "networkJobs": 0,
+        "route": "/nested/app/cross-origin.html"
+      }
+    },
+    {
+      "name": "provider-verification-worker",
+      "status": "passed",
+      "durationMs": 48.53443100000004,
+      "result": {
+        "passed": true,
+        "errors": [],
+        "warnings": [
+          "Warning in /vendor/reploid/adapters/doppler.js: Path traversal pattern detected (../) - potential security risk",
+          "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "Warning in /vendor/reploid/adapters/doppler-stream.js: Path traversal pattern detected (../) - potential security risk",
+          "Warning in /vendor/reploid/adapters/doppler-stream.js:15: Suspicious variable name: requireValue - may indicate code execution"
+        ],
+        "events": [
+          {
+            "type": "verification:pattern_detected",
+            "timestamp": 1789420397869,
+            "path": "/vendor/reploid/adapters/doppler.js",
+            "patternId": "path_traversal",
+            "category": "filesystem",
+            "message": "Path traversal pattern detected (../) - potential security risk",
+            "severity": "warning"
+          },
+          {
+            "type": "complexity",
+            "timestamp": 1789420397871,
+            "metric": "nesting",
+            "value": 6,
+            "threshold": 5,
+            "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+            "path": "/vendor/reploid/adapters/doppler.js"
+          },
+          {
+            "type": "verification:pattern_detected",
+            "timestamp": 1789420397873,
+            "path": "/vendor/reploid/adapters/doppler-stream.js",
+            "patternId": "path_traversal",
+            "category": "filesystem",
+            "message": "Path traversal pattern detected (../) - potential security risk",
+            "severity": "warning"
+          },
+          {
+            "type": "verification:pattern_detected",
+            "timestamp": 1789420397873,
+            "path": "/vendor/reploid/adapters/doppler-stream.js",
+            "patternId": "suspicious_variable_name",
+            "category": "structural",
+            "message": "Suspicious variable name: requireValue - may indicate code execution",
+            "line": 15,
+            "severity": "warning"
+          }
+        ],
+        "details": {
+          "patternViolations": [
+            {
+              "path": "/vendor/reploid/adapters/doppler.js",
+              "patternId": "path_traversal",
+              "category": "filesystem",
+              "message": "Path traversal pattern detected (../) - potential security risk",
+              "severity": "warning"
+            },
+            {
+              "path": "/vendor/reploid/adapters/doppler-stream.js",
+              "patternId": "path_traversal",
+              "category": "filesystem",
+              "message": "Path traversal pattern detected (../) - potential security risk",
+              "severity": "warning"
+            }
+          ],
+          "complexityWarnings": [
+            {
+              "type": "complexity",
+              "metric": "nesting",
+              "value": 6,
+              "threshold": 5,
+              "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+              "path": "/vendor/reploid/adapters/doppler.js"
+            }
+          ],
+          "filesAnalyzed": 3
+        }
+      }
+    }
+  ],
+  "scope": "Installed ESM imports, public boundaries, declaration resolution, asset identity and deterministic browser consumer.",
+  "exclusions": [
+    "Actual model inference",
+    "Independent peers",
+    "Full application acceptance",
+    "Publication",
+    "Deployment"
+  ],
+  "archive": {
+    "path": "/home/x/deco/worktrees/reploid-consumer-streaming/artifacts/library-acceptance/2026-09-14T21-13-12-675Z/reploid-0.1.0.tgz",
+    "sha256": "b92d6ac8a88740aebe82745d7b2e67afd9eb6c8f676efc9bed675f1cad35a250"
+  },
+  "dopplerConsumer": "/dev/shm/reusable-products-20260914/reploid-doppler-consumer-Gd7TAK",
+  "browser": "145.0.7632.6",
+  "passed": true
+}

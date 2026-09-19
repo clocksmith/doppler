@@ -77,6 +77,8 @@ export interface TraceOptions {
  */
 declare class KernelTrace {
   get enabled(): boolean;
+  captureState(): { enabled: boolean; options: TraceOptions; steps: KernelStep[]; anomalies: Anomaly[] };
+  restoreState(state: ReturnType<KernelTrace['captureState']>): void;
   enable(options?: TraceOptions): void;
   disable(): void;
   clear(): void;

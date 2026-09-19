@@ -36,7 +36,7 @@ import {
   normalizeHashString,
   normalizePositiveInteger,
   toPathKey,
-} from './source-runtime/bundle-plan.js';
+} from '../formats/source-runtime.js';
 
 export {
   DIRECT_SOURCE_PATH_ARTIFACT_RELATIVE,
@@ -45,8 +45,8 @@ export {
   DIRECT_SOURCE_RUNTIME_SCHEMA,
   DIRECT_SOURCE_RUNTIME_SCHEMA_VERSION,
   getSourceRuntimeMetadata,
-} from './source-runtime/bundle-plan.js';
-export { createSourceStorageContext } from './source-runtime/bundle-materialize.js';
+} from '../formats/source-runtime.js';
+export { createSourceStorageContext } from '../storage/source-storage-context.js';
 
 function resolveTensorShape(shape, tensorName) {
   if (!Array.isArray(shape)) {

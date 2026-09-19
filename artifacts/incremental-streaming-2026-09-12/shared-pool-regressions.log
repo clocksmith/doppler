@@ -1,0 +1,84 @@
+TAP version 13
+# [97.6ms][GPU] Device lost: current device lost, Reason: destroyed
+# [100.9ms][GPU] Device lost: current device lost, Reason: destroyed
+# device-buffer-pool-epoch.test: ok
+# Subtest: tests/gpu/device-buffer-pool-epoch.test.js
+ok 1 - tests/gpu/device-buffer-pool-epoch.test.js
+  ---
+  duration_ms: 129.130698
+  type: 'test'
+  ...
+# [95.0ms][Platform] No specific platform matched for adapter (vendor=unit, arch=device-ownership), falling back to generic
+# [GPU] unit device-ownership, basic, 0.0GB
+# [100.7ms][Platform] No specific platform matched for adapter (vendor=unit, arch=device-ownership), falling back to generic
+# [GPU] unit device-ownership, basic, 0.0GB
+# device-ownership-contract.test: ok
+# Subtest: tests/gpu/device-ownership-contract.test.js
+ok 2 - tests/gpu/device-ownership-contract.test.js
+  ---
+  duration_ms: 122.533086
+  type: 'test'
+  ...
+# dispatch-device-loss-context.test: ok
+# Subtest: tests/gpu/dispatch-device-loss-context.test.js
+ok 3 - tests/gpu/dispatch-device-loss-context.test.js
+  ---
+  duration_ms: 111.951884
+  type: 'test'
+  ...
+# [89.9ms][BufferPool] Deferred destruction failed: device lost
+# buffer-pool-cleanup.test: ok
+# Subtest: tests/inference/buffer-pool-cleanup.test.js
+ok 4 - tests/inference/buffer-pool-cleanup.test.js
+  ---
+  duration_ms: 116.886375
+  type: 'test'
+  ...
+# [149.7ms][GPU] Device lost: Test loss, Reason: destroyed
+# [153.6ms][GPU] Device lost: Test replacement, Reason: destroyed
+# pipeline-context-restoration.test: ok
+# Subtest: tests/inference/pipeline-context-restoration.test.js
+ok 5 - tests/inference/pipeline-context-restoration.test.js
+  ---
+  duration_ms: 185.445382
+  type: 'test'
+  ...
+# Subtest: closing a session waits for its pending readback and preserves another session on the same device
+ok 6 - closing a session waits for its pending readback and preserves another session on the same device
+  ---
+  duration_ms: 44.429349
+  type: 'test'
+  ...
+# Subtest: device loss during readback prevents token delivery and invalidates both sessions
+ok 7 - device loss during readback prevents token delivery and invalidates both sessions
+  ---
+  duration_ms: 14.376738
+  type: 'test'
+  ...
+# Subtest: device loss while a program is being constructed rejects opening and closes the late program
+ok 8 - device loss while a program is being constructed rejects opening and closes the late program
+  ---
+  duration_ms: 5.451073
+  type: 'test'
+  ...
+# Subtest: failed buffer replacement cannot resurrect the released slot
+ok 9 - failed buffer replacement cannot resurrect the released slot
+  ---
+  duration_ms: 0.499981
+  type: 'test'
+  ...
+# Subtest: a failed program-slot release still cleans other slots and closes the program
+ok 10 - a failed program-slot release still cleans other slots and closes the program
+  ---
+  duration_ms: 0.308872
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 230.806556
