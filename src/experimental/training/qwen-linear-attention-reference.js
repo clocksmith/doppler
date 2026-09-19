@@ -1,3 +1,8 @@
+import {
+  gatedDeltaRecurrentCheckpointedBackward,
+  gatedDeltaRecurrentCheckpointedForward,
+} from './qwen-gated-delta-reference.js';
+
 function requirePositiveInteger(value, label) {
   if (!Number.isInteger(value) || value < 1) {
     throw new Error(`${label} must be a positive integer.`);
@@ -202,6 +207,199 @@ export function l2NormalizeBackward(input, gradOutput, cache, options) {
   return gradInput;
 }
 
+function resolvePrepareDimensions(options) {
+  const numTokens = requirePositiveInteger(options?.numTokens, 'numTokens');
+  const numKeyHeads = requirePositiveInteger(options?.numKeyHeads, 'numKeyHeads');
+  const numValueHeads = requirePositiveInteger(options?.numValueHeads, 'numValueHeads');
+  const keyDim = requirePositiveInteger(options?.keyDim, 'keyDim');
+  const valueDim = requirePositiveInteger(options?.valueDim, 'valueDim');
+  const eps = Number(options?.eps);
+  if (numValueHeads % numKeyHeads !== 0) {
+    throw new Error('numValueHeads must be divisible by numKeyHeads.');
+  }
+  if (!Number.isFinite(eps) || eps <= 0) {
+    throw new Error('eps must be finite and positive.');
+  }
+  const repeatFactor = numValueHeads / numKeyHeads;
+  const querySize = numKeyHeads * keyDim;
+  const keySize = querySize;
+  const valueSize = numValueHeads * valueDim;
+  return {
+    numTokens,
+    numKeyHeads,
+    numValueHeads,
+    keyDim,
+    valueDim,
+    eps,
+    repeatFactor,
+    querySize,
+    keySize,
+    valueSize,
+    convSize: querySize + keySize + valueSize,
+  };
+}
+
+export function qwenLinearAttentionPrepareForward(inputs, options) {
+  const dims = resolvePrepareDimensions(options);
+  const {
+    numTokens,
+    numKeyHeads,
+    numValueHeads,
+    keyDim,
+    valueDim,
+    eps,
+    repeatFactor,
+    querySize,
+    keySize,
+    valueSize,
+    convSize,
+  } = dims;
+  const mixed = requireArrayLength(inputs?.mixed, numTokens * convSize, 'mixed');
+  const a = requireArrayLength(inputs?.a, numTokens * numValueHeads, 'a');
+  const b = requireArrayLength(inputs?.b, numTokens * numValueHeads, 'b');
+  const aLog = requireArrayLength(inputs?.aLog, numValueHeads, 'aLog');
+  const dtBias = requireArrayLength(inputs?.dtBias, numValueHeads, 'dtBias');
+  const query = new Float32Array(numTokens * numValueHeads * keyDim);
+  const key = new Float32Array(query.length);
+  const value = new Float32Array(numTokens * valueSize);
+  const logDecay = new Float32Array(numTokens * numValueHeads);
+  const beta = new Float32Array(logDecay.length);
+
+  for (let token = 0; token < numTokens; token += 1) {
+    const mixedBase = token * convSize;
+    for (let keyHead = 0; keyHead < numKeyHeads; keyHead += 1) {
+      const rawQueryBase = mixedBase + (keyHead * keyDim);
+      const rawKeyBase = mixedBase + querySize + (keyHead * keyDim);
+      let querySumSquares = 0;
+      let keySumSquares = 0;
+      for (let dim = 0; dim < keyDim; dim += 1) {
+        querySumSquares += mixed[rawQueryBase + dim] ** 2;
+        keySumSquares += mixed[rawKeyBase + dim] ** 2;
+      }
+      const queryInverse = 1 / Math.sqrt(querySumSquares + eps);
+      const keyInverse = 1 / Math.sqrt(keySumSquares + eps);
+      for (let repeat = 0; repeat < repeatFactor; repeat += 1) {
+        const valueHead = (keyHead * repeatFactor) + repeat;
+        const outputBase = ((token * numValueHeads) + valueHead) * keyDim;
+        for (let dim = 0; dim < keyDim; dim += 1) {
+          query[outputBase + dim] = mixed[rawQueryBase + dim] * queryInverse;
+          key[outputBase + dim] = mixed[rawKeyBase + dim] * keyInverse;
+        }
+      }
+    }
+    value.set(
+      mixed.subarray(mixedBase + querySize + keySize, mixedBase + convSize),
+      token * valueSize
+    );
+    for (let head = 0; head < numValueHeads; head += 1) {
+      const scalarIndex = (token * numValueHeads) + head;
+      const betaValue = 1 / (1 + Math.exp(-b[scalarIndex]));
+      const softplusInput = a[scalarIndex] + dtBias[head];
+      const softplus = Math.log1p(Math.exp(-Math.abs(softplusInput)))
+        + Math.max(softplusInput, 0);
+      beta[scalarIndex] = betaValue;
+      logDecay[scalarIndex] = -Math.exp(aLog[head]) * softplus;
+    }
+  }
+  return { query, key, value, logDecay, beta, cache: { dims } };
+}
+
+export function qwenLinearAttentionPrepareBackward(inputs, gradients, cache, options) {
+  const dims = resolvePrepareDimensions(options);
+  for (const key of Object.keys(dims)) {
+    if (cache?.dims?.[key] !== dims[key]) {
+      throw new Error(`linear-attention prepare cache mismatch for ${key}.`);
+    }
+  }
+  const {
+    numTokens,
+    numKeyHeads,
+    numValueHeads,
+    keyDim,
+    valueDim,
+    eps,
+    repeatFactor,
+    querySize,
+    keySize,
+    valueSize,
+    convSize,
+  } = dims;
+  const mixed = requireArrayLength(inputs?.mixed, numTokens * convSize, 'mixed');
+  const a = requireArrayLength(inputs?.a, numTokens * numValueHeads, 'a');
+  const b = requireArrayLength(inputs?.b, numTokens * numValueHeads, 'b');
+  const aLog = requireArrayLength(inputs?.aLog, numValueHeads, 'aLog');
+  const dtBias = requireArrayLength(inputs?.dtBias, numValueHeads, 'dtBias');
+  const gradQuery = requireArrayLength(
+    gradients?.query,
+    numTokens * numValueHeads * keyDim,
+    'gradients.query'
+  );
+  const gradKey = requireArrayLength(gradients?.key, gradQuery.length, 'gradients.key');
+  const gradValue = requireArrayLength(
+    gradients?.value,
+    numTokens * numValueHeads * valueDim,
+    'gradients.value'
+  );
+  const gradLogDecay = requireArrayLength(
+    gradients?.logDecay,
+    numTokens * numValueHeads,
+    'gradients.logDecay'
+  );
+  const gradBeta = requireArrayLength(gradients?.beta, gradLogDecay.length, 'gradients.beta');
+  const gradMixed = new Float32Array(mixed.length);
+  const gradA = new Float32Array(a.length);
+  const gradB = new Float32Array(b.length);
+  const gradALog = new Float32Array(aLog.length);
+  const gradDtBias = new Float32Array(dtBias.length);
+
+  for (let token = 0; token < numTokens; token += 1) {
+    const mixedBase = token * convSize;
+    for (let keyHead = 0; keyHead < numKeyHeads; keyHead += 1) {
+      for (const [rawBase, repeatedGradient] of [
+        [mixedBase + (keyHead * keyDim), gradQuery],
+        [mixedBase + querySize + (keyHead * keyDim), gradKey],
+      ]) {
+        const aggregated = new Float32Array(keyDim);
+        let sumSquares = 0;
+        let dot = 0;
+        for (let dim = 0; dim < keyDim; dim += 1) {
+          const rawValue = mixed[rawBase + dim];
+          sumSquares += rawValue * rawValue;
+          for (let repeat = 0; repeat < repeatFactor; repeat += 1) {
+            const valueHead = (keyHead * repeatFactor) + repeat;
+            const gradientBase = ((token * numValueHeads) + valueHead) * keyDim;
+            aggregated[dim] += repeatedGradient[gradientBase + dim];
+          }
+          dot += aggregated[dim] * rawValue;
+        }
+        const inverse = 1 / Math.sqrt(sumSquares + eps);
+        const correction = dot * inverse * inverse;
+        for (let dim = 0; dim < keyDim; dim += 1) {
+          gradMixed[rawBase + dim] = inverse
+            * (aggregated[dim] - (mixed[rawBase + dim] * correction));
+        }
+      }
+    }
+    gradMixed.set(gradValue.subarray(token * valueSize, (token + 1) * valueSize),
+      mixedBase + querySize + keySize);
+    for (let head = 0; head < numValueHeads; head += 1) {
+      const scalarIndex = (token * numValueHeads) + head;
+      const betaValue = 1 / (1 + Math.exp(-b[scalarIndex]));
+      const softplusInput = a[scalarIndex] + dtBias[head];
+      const softplus = Math.log1p(Math.exp(-Math.abs(softplusInput)))
+        + Math.max(softplusInput, 0);
+      const softplusDerivative = 1 / (1 + Math.exp(-softplusInput));
+      const negativeA = -Math.exp(aLog[head]);
+      const common = gradLogDecay[scalarIndex] * negativeA * softplusDerivative;
+      gradA[scalarIndex] = common;
+      gradB[scalarIndex] = gradBeta[scalarIndex] * betaValue * (1 - betaValue);
+      gradALog[head] += gradLogDecay[scalarIndex] * negativeA * softplus;
+      gradDtBias[head] += common;
+    }
+  }
+  return { mixed: gradMixed, a: gradA, b: gradB, aLog: gradALog, dtBias: gradDtBias };
+}
+
 export function gatedDeltaParametersForward(a, b, aLog, dtBias) {
   if (!(a instanceof Float32Array) || !(b instanceof Float32Array)
     || !(aLog instanceof Float32Array) || !(dtBias instanceof Float32Array)
@@ -238,4 +436,281 @@ export function gatedDeltaParametersBackward(a, b, aLog, dtBias, gradLogDecay, g
     gradB[index] = gradBeta[index] * forward.beta[index] * (1 - forward.beta[index]);
   }
   return { a: gradA, b: gradB, aLog: gradALog, dtBias: gradDtBias };
+}
+
+function resolveCoreOptions(options) {
+  const preparation = resolvePrepareDimensions(options);
+  const kernelSize = requirePositiveInteger(options?.kernelSize, 'kernelSize');
+  const checkpointInterval = requirePositiveInteger(
+    options?.checkpointInterval,
+    'checkpointInterval'
+  );
+  const queryScale = Number(options?.queryScale);
+  const rmsEps = Number(options?.rmsEps);
+  if (!Number.isFinite(queryScale)) {
+    throw new Error('queryScale must be finite.');
+  }
+  if (!Number.isFinite(rmsEps) || rmsEps <= 0) {
+    throw new Error('rmsEps must be finite and positive.');
+  }
+  return { ...preparation, kernelSize, checkpointInterval, queryScale, rmsEps };
+}
+
+export function qwenLinearAttentionCoreForward(inputs, options) {
+  const dims = resolveCoreOptions(options);
+  const qkv = requireArrayLength(inputs?.qkv, dims.numTokens * dims.convSize, 'qkv');
+  const z = requireArrayLength(
+    inputs?.z,
+    dims.numTokens * dims.numValueHeads * dims.valueDim,
+    'z'
+  );
+  const convWeight = requireArrayLength(
+    inputs?.convWeight,
+    dims.convSize * dims.kernelSize,
+    'convWeight'
+  );
+  const normWeight = requireArrayLength(inputs?.normWeight, dims.valueDim, 'normWeight');
+  const stateElements = dims.numValueHeads * dims.keyDim * dims.valueDim;
+  const initialState = requireArrayLength(inputs?.initialState, stateElements, 'initialState');
+  const convolution = causalConvSiluForward(qkv, convWeight, {
+    numTokens: dims.numTokens,
+    channels: dims.convSize,
+    kernelSize: dims.kernelSize,
+  });
+  const preparation = qwenLinearAttentionPrepareForward({
+    mixed: convolution.output,
+    a: inputs.a,
+    b: inputs.b,
+    aLog: inputs.aLog,
+    dtBias: inputs.dtBias,
+  }, dims);
+  const recurrenceInputs = {
+    query: preparation.query,
+    key: preparation.key,
+    value: preparation.value,
+    logDecay: preparation.logDecay,
+    beta: preparation.beta,
+    initialState,
+  };
+  const recurrence = gatedDeltaRecurrentCheckpointedForward(recurrenceInputs, {
+    numTokens: dims.numTokens,
+    numHeads: dims.numValueHeads,
+    keyDim: dims.keyDim,
+    valueDim: dims.valueDim,
+    queryScale: dims.queryScale,
+    checkpointInterval: dims.checkpointInterval,
+  });
+  const normalization = gatedRmsNormForward(
+    recurrence.output,
+    z,
+    normWeight,
+    {
+      rows: dims.numTokens * dims.numValueHeads,
+      width: dims.valueDim,
+      eps: dims.rmsEps,
+    }
+  );
+  return {
+    output: normalization.output,
+    finalState: recurrence.finalState,
+    cache: { dims, convolution, preparation, recurrence, normalization },
+  };
+}
+
+export function qwenLinearAttentionCoreBackward(inputs, gradOutput, cache, options) {
+  const dims = resolveCoreOptions(options);
+  for (const key of Object.keys(dims)) {
+    if (cache?.dims?.[key] !== dims[key]) {
+      throw new Error(`linear-attention core cache mismatch for ${key}.`);
+    }
+  }
+  requireArrayLength(
+    gradOutput,
+    dims.numTokens * dims.numValueHeads * dims.valueDim,
+    'gradOutput'
+  );
+  const normalizationGradients = gatedRmsNormBackward(
+    cache.recurrence.output,
+    inputs.z,
+    inputs.normWeight,
+    gradOutput,
+    cache.normalization.cache,
+    {
+      rows: dims.numTokens * dims.numValueHeads,
+      width: dims.valueDim,
+      eps: dims.rmsEps,
+    }
+  );
+  const recurrenceInputs = {
+    query: cache.preparation.query,
+    key: cache.preparation.key,
+    value: cache.preparation.value,
+    logDecay: cache.preparation.logDecay,
+    beta: cache.preparation.beta,
+    initialState: inputs.initialState,
+  };
+  if (inputs.gradFinalState != null) {
+    recurrenceInputs.gradFinalState = inputs.gradFinalState;
+  }
+  const recurrenceGradients = gatedDeltaRecurrentCheckpointedBackward(
+    recurrenceInputs,
+    normalizationGradients.input,
+    cache.recurrence.cache,
+    {
+      numTokens: dims.numTokens,
+      numHeads: dims.numValueHeads,
+      keyDim: dims.keyDim,
+      valueDim: dims.valueDim,
+      queryScale: dims.queryScale,
+      checkpointInterval: dims.checkpointInterval,
+    }
+  );
+  const preparationGradients = qwenLinearAttentionPrepareBackward({
+    mixed: cache.convolution.output,
+    a: inputs.a,
+    b: inputs.b,
+    aLog: inputs.aLog,
+    dtBias: inputs.dtBias,
+  }, recurrenceGradients, cache.preparation.cache, dims);
+  const convolutionGradients = causalConvSiluBackward(
+    inputs.qkv,
+    inputs.convWeight,
+    preparationGradients.mixed,
+    cache.convolution.cache,
+    {
+      numTokens: dims.numTokens,
+      channels: dims.convSize,
+      kernelSize: dims.kernelSize,
+    }
+  );
+  return {
+    qkv: convolutionGradients.input,
+    z: normalizationGradients.gate,
+    a: preparationGradients.a,
+    b: preparationGradients.b,
+    initialState: recurrenceGradients.initialState,
+    convWeight: convolutionGradients.weight,
+    normWeight: normalizationGradients.weight,
+    aLog: preparationGradients.aLog,
+    dtBias: preparationGradients.dtBias,
+  };
+}
+
+function matmulRightTransposed(input, weight, rows, inputSize, outputSize) {
+  requireArrayLength(input, rows * inputSize, 'matmul input');
+  requireArrayLength(weight, outputSize * inputSize, 'matmul transposed weight');
+  const output = new Float32Array(rows * outputSize);
+  for (let row = 0; row < rows; row += 1) {
+    for (let outputIndex = 0; outputIndex < outputSize; outputIndex += 1) {
+      let sum = 0;
+      for (let inputIndex = 0; inputIndex < inputSize; inputIndex += 1) {
+        sum += input[(row * inputSize) + inputIndex]
+          * weight[(outputIndex * inputSize) + inputIndex];
+      }
+      output[(row * outputSize) + outputIndex] = sum;
+    }
+  }
+  return output;
+}
+
+function transposedWeightInputGradient(gradOutput, weight, rows, inputSize, outputSize) {
+  requireArrayLength(gradOutput, rows * outputSize, 'matmul gradOutput');
+  requireArrayLength(weight, outputSize * inputSize, 'matmul transposed weight');
+  const gradInput = new Float32Array(rows * inputSize);
+  for (let row = 0; row < rows; row += 1) {
+    for (let inputIndex = 0; inputIndex < inputSize; inputIndex += 1) {
+      let sum = 0;
+      for (let outputIndex = 0; outputIndex < outputSize; outputIndex += 1) {
+        sum += gradOutput[(row * outputSize) + outputIndex]
+          * weight[(outputIndex * inputSize) + inputIndex];
+      }
+      gradInput[(row * inputSize) + inputIndex] = sum;
+    }
+  }
+  return gradInput;
+}
+
+export function qwenLinearAttentionModuleForward(inputs, options) {
+  const dims = resolveCoreOptions(options);
+  const hiddenSize = requirePositiveInteger(options?.hiddenSize, 'hiddenSize');
+  const hidden = requireArrayLength(inputs?.hidden, dims.numTokens * hiddenSize, 'hidden');
+  const projections = {
+    qkv: matmulRightTransposed(
+      hidden,
+      inputs.qkvWeight,
+      dims.numTokens,
+      hiddenSize,
+      dims.convSize
+    ),
+    z: matmulRightTransposed(
+      hidden,
+      inputs.zWeight,
+      dims.numTokens,
+      hiddenSize,
+      dims.valueSize
+    ),
+    a: matmulRightTransposed(
+      hidden,
+      inputs.aWeight,
+      dims.numTokens,
+      hiddenSize,
+      dims.numValueHeads
+    ),
+    b: matmulRightTransposed(
+      hidden,
+      inputs.bWeight,
+      dims.numTokens,
+      hiddenSize,
+      dims.numValueHeads
+    ),
+  };
+  const core = qwenLinearAttentionCoreForward({
+    ...inputs,
+    ...projections,
+  }, dims);
+  const output = matmulRightTransposed(
+    core.output,
+    inputs.outWeight,
+    dims.numTokens,
+    dims.valueSize,
+    hiddenSize
+  );
+  return { output, finalState: core.finalState, cache: { dims: { ...dims, hiddenSize }, projections, core } };
+}
+
+export function qwenLinearAttentionModuleBackward(inputs, gradOutput, cache, options) {
+  const dims = resolveCoreOptions(options);
+  const hiddenSize = requirePositiveInteger(options?.hiddenSize, 'hiddenSize');
+  requireArrayLength(gradOutput, dims.numTokens * hiddenSize, 'gradOutput');
+  const gradCoreOutput = transposedWeightInputGradient(
+    gradOutput,
+    inputs.outWeight,
+    dims.numTokens,
+    dims.valueSize,
+    hiddenSize
+  );
+  const coreGradients = qwenLinearAttentionCoreBackward({
+    ...inputs,
+    ...cache.projections,
+  }, gradCoreOutput, cache.core.cache, dims);
+  const projectionSpecs = [
+    ['qkv', inputs.qkvWeight, dims.convSize],
+    ['z', inputs.zWeight, dims.valueSize],
+    ['a', inputs.aWeight, dims.numValueHeads],
+    ['b', inputs.bWeight, dims.numValueHeads],
+  ];
+  const hidden = new Float32Array(dims.numTokens * hiddenSize);
+  for (const [name, weight, outputSize] of projectionSpecs) {
+    const contribution = transposedWeightInputGradient(
+      coreGradients[name],
+      weight,
+      dims.numTokens,
+      hiddenSize,
+      outputSize
+    );
+    for (let index = 0; index < hidden.length; index += 1) {
+      hidden[index] += contribution[index];
+    }
+  }
+  return { hidden, initialState: coreGradients.initialState };
 }

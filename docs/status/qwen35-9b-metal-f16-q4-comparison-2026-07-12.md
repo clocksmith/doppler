@@ -1,5 +1,11 @@
 # Qwen 3.5 9B M3 F16/Q4 correctness comparison
 
+> **Later audit (2026-07-13):** an initial hypothesis that the v1 manifest used
+> the wrong post-attention normalization route was disproved. The v1 inference
+> graph already has the required norm order and split-half RoPE pairing. This
+> receipt retains its original one-prompt F16/Q4 comparison scope. See
+> [the native-training architecture correction](qwen35-architecture-contract-correction-2026-07-13.md).
+
 The exact accepted F16 control fits and runs on the 24 GB Apple M3. With the
 same prompt, input tokens, correctness profile, and greedy sampling used for
 the mixed-Q4 candidate, F16 generated `` `f32` `` and Q4 stopped immediately

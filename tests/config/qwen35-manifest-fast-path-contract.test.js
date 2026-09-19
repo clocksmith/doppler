@@ -200,6 +200,18 @@ function assertQwen2MetalDecodePatch(profile, label) {
 
 const qwen08Config = await readJson('src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json');
 const qwen2Config = await readJson('src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json');
+assert.equal(qwen08Config.inference?.normalization?.postAttentionNorm, true);
+assert.equal(qwen08Config.inference?.normalization?.preFeedforwardNorm, false);
+assert.equal(qwen2Config.inference?.normalization?.postAttentionNorm, true);
+assert.equal(qwen2Config.inference?.normalization?.preFeedforwardNorm, false);
+assert.equal(
+  qwen08Config.manifest?.artifactIdentity?.manifestVariantId,
+  'qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1'
+);
+assert.equal(
+  qwen2Config.manifest?.artifactIdentity?.manifestVariantId,
+  'qwen-3-5-2b-q4k-ehaf16-mv-exec-v1'
+);
 const qwen08Manifest = await readJson('models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json');
 const qwen2Manifest = await readJson('models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json');
 

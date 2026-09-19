@@ -70,7 +70,7 @@ This closes only the F16 projection-input-gradient gate. It does not exercise
 a Qwen block, a LoRA update, AdamW, export, inference, compiler capability, or
 semantic kernel correctness.
 
-Two additional clean-revision oracles are sealed at `00af4712`:
+Two additional clean-revision oracles were first sealed at `00af4712`:
 
 - The split `gate_proj`/`up_proj` LoRA oracle first rejected the candidate and
   localized a real layout defect: `LoraAdapter.forward()` let matmul use its
@@ -80,16 +80,90 @@ Two additional clean-revision oracles are sealed at `00af4712`:
   scalar reference with worst error `2.9802322387695312e-8`. Its receipt is
   `reports/training/native-parity/split-gate-up-lora-oracle.json`, SHA-256
   `be4e5887ed1b2e87e25b307d31c4e11713d56ff161c82f687df10bc4c2edefc7`.
-- The linear-attention component oracle covers causal-conv input gradients,
-  gated-RMSNorm input/gate gradients, and full-history recurrent gradients for
-  query, key, value, log-decay, beta, and initial state. All nine families are
-  finite and match their scalar references with worst error
-  `5.960464477539063e-8`. Its receipt is
-  `reports/training/native-parity/qwen-linear-attention-backward-oracle.json`,
-  SHA-256
-  `0ba99c5dc1c75dd398a4c1366a2964d7f2fa0306744f82cf21338410fd0e421c`.
+- The linear-attention component oracle covers causal Conv1D+SiLU and gated
+  RMSNorm forward behavior, their frozen-weight input/gate gradients, and
+  full-history recurrent gradients for query, key, value, log-decay, beta, and
+  initial state. All comparisons are finite and match their scalar references
+  with worst error `5.960464477539063e-8`. The preparation and
+  checkpoint/recompute extensions
+  below supersedes that first component receipt at the same local report path.
 
 Neither receipt is a complete Qwen layer or optimizer update.
+
+The Qwen full-attention-specific receipt is now sealed at clean revision
+`85d1842c`. The per-head split of the doubled Q projection into query
+and output gate is exact in both directions. Sigmoid output gating matches the
+scalar forward and backward with worst error `1.4901161193847656e-8`; its
+perturbed-gate control changes output by `0.00843888521194458`. A native
+recomputed-softmax causal GQA reverse pass also matches scalar query, grouped
+key, and grouped value gradients with worst error
+`5.960464477539063e-8`. The previously full-width-only RoPE backward now also
+implements Qwen's partial interleaved contract; its forward/backward errors are
+`1.4901161193847656e-8` and `7.450580596923828e-9`. Non-rotary dimensions are
+copied through rather than left as pooled bytes.
+The composed exact-head-width slice then runs frozen F16 Q/K/V/O projections,
+rank-two Q/K/V/O LoRA deltas, offset Q/K RMSNorm, partial interleaved RoPE,
+causal GQA, and sigmoid output gating as one module. Its forward error is
+`7.450580596923828e-9` and its hidden-state gradient error is
+`9.313225746154785e-10`. Every Q/K/V/O adapter A/B gradient is finite and
+nonzero; the worst adapter-gradient comparison error is
+`1.6880221664905548e-9`. A `q_proj` LoRA-B perturbation changes the composed
+module output by `4.777684807777405e-7`, so the adapter path is observable.
+The local receipt is
+`reports/training/native-parity/qwen-full-attention-backward-oracle.json`,
+SHA-256
+`167f09af1dbbba2dcb2cb54ad83423e381089464015a7a474e4c8fb2da6bd905`.
+This closes the tiny full-attention forward/hidden/adapter-gradient mechanics,
+not the staged gate's loss, optimizer update, residual, or production-shape
+performance requirements.
+
+A full decoder-layer composition is sealed separately at clean revision
+`925de161`. It adds Qwen's offset input RMSNorm, post-attention RMSNorm,
+attention and MLP residual branches, frozen F16 `gate_proj`, `up_proj`, and
+`down_proj`, and GPU-resident gated-SiLU backward. All seven V12 adapter
+families (`q`, `k`, `v`, `o`, `gate`, `up`, and `down`) participate in one
+forward/backward graph. The forward and hidden-gradient errors are
+`9.5367431640625e-7` and `9.238719940185547e-7`; all fourteen adapter A/B
+gradient tensors are finite and nonzero, with worst comparison error
+`2.7120113372802734e-6`. A `down_proj` LoRA-B perturbation changes the layer
+output by `3.223121166229248e-5`. The clean receipt is
+`reports/training/native-parity/qwen-full-decoder-backward-oracle.json`,
+SHA-256
+`5bbc19a22c5dc8dcd08acf5a8314a3c4d6d6dbab6e710a9d33dea507e36ff9e5`.
+It uses Qwen's exact head width and partial-rotary geometry with a tiny hidden
+width and head count. It does not establish production-shape memory or speed.
+
+The first completion-masked loss/backward/update composition is sealed at
+clean revision `190511b7`. It runs frozen F16 token embedding, one full Qwen
+decoder layer, final offset RMSNorm, the frozen F16 LM head, softmax and
+completion-only cross entropy, all fourteen Q/K/V/O/gate/up/down rank-two LoRA
+gradients, and one decoupled AdamW update. All adapter gradients are finite and
+nonzero, every adapter parameter changes, and the GPU mean-loss error against
+the independent scalar calculation is `2.384185791015625e-7`. Recomputing the
+same loss without masking the prompt changes the mean by
+`0.031296690305074204`, so the completion mask is observable. The clean
+receipt is
+`reports/training/native-parity/qwen-hybrid-sft-microstep-oracle.json`,
+SHA-256
+`4792e9c80c17c1d0d8b19d22ff255b459919c0c8997aa42f1a8eb75a1fe419be`.
+This is a tiny one-layer, rank-two integration receipt. The staged one-Qwen-
+microstep gate remains blocked until an identical initialized rank-32 adapter
+is compared tensor-by-tensor with the Gamma reference backend.
+
+PEFT adapter ingestion is separately sealed at clean revision `e923117a`.
+The oracle reads the completed seed-11 V12 anchor adapter, validates the exact
+24-linear/eight-full layer topology, transposes PEFT A/B storage into Doppler's
+live `[input,rank]`/`[rank,output]` contract, and round-trips the normalized
+tensors through Doppler safetensors. All 256 tensors, 128 pairs, and
+58,195,968 F32 values retain the canonical digest
+`d07dac6c88db1e05277ef6fd9f948e76638aa9dfff55227c776137474c7ac213`.
+The receipt is
+`reports/training/native-parity/qwen35-9b-peft-adapter-import-oracle.json`,
+SHA-256
+`5ec789ab8f44da3216ee90d97a8934e5c1eb19206272fe83919afe392ef92dbd`.
+This proves format, topology, and transpose fidelity for one completed adapter.
+It does not substitute that trained adapter for a matched initialization, and
+it does not establish production-geometry GPU upload or inference.
 
 ## Known blocking gaps
 
@@ -97,9 +171,10 @@ Neither receipt is a complete Qwen layer or optimizer update.
   state transition, causal depthwise convolution plus SiLU, Q/K L2
   normalization, the `a`/`b` parameter transforms, and gated RMSNorm.
   Central finite differences check every input, weight, and initial-state
-  gradient. Candidate WebGPU kernels now implement and numerically verify
-  frozen-weight causal-conv input gradients and gated-RMSNorm input/gate
-  gradients. A separate full-history recurrent candidate
+  gradient. Candidate WebGPU kernels now implement and numerically verify the
+  QKV split, Q/K L2 normalization and head repeat, value split, log-decay and
+  beta transforms, causal Conv1D+SiLU, gated RMSNorm, and their required
+  frozen-weight input gradients. A separate full-history recurrent candidate
   implements query, key, value, log-decay, beta, and initial-state gradients
   for the tiny oracle. It is intentionally not the production algorithm:
   retaining every recurrent state is infeasible at Qwen 9B dimensions.
@@ -107,13 +182,74 @@ Neither receipt is a complete Qwen layer or optimizer update.
   forward state and every backward gradient exactly. For 640 tokens, 32 heads,
   128 key/value dimensions, and interval 32, its active recurrence-state
   footprint is 28,311,552 F32 elements versus 336,068,608 for full history.
-  The corresponding GPU checkpoint/recompute schedule and projection/LoRA
-  integration remain absent.
+  The combined GPU receipt is sealed at clean revision `04e139b1`. In addition
+  to the isolated checks, it composes projected QKV/Z/A/B through causal
+  Conv1D+SiLU, preparation, checkpointed recurrence, and gated RMSNorm, then
+  propagates one gradient through that entire chain. Forward output, final
+  state, and QKV/Z/A/B/initial-state gradients match the scalar composition
+  with worst error `3.5762786865234375e-7`. A second composed slice adds the
+  exact F16 `[out,in]` input and output projection contract and returns the
+  hidden-state gradient; its hidden-gradient error is
+  `6.984919309616089e-10`. The recurrent schedule includes state carry across
+  two blocks. Residuals, decoder pre-normalization, MLP, full attention, and
+  complete decoder-layer integration remain absent.
+  The updated local component receipt is
+  `reports/training/native-parity/qwen-linear-attention-backward-oracle.json`,
+  SHA-256
+  `bed5e7f7adc48aaf71118964bc0c37fb308b4d5369798a193ab909bef9341e8a`.
+- A linear-attention decoder-layer composition is sealed at clean revision
+  `925de161`. It adds the same input/post-attention offset RMSNorm, residual,
+  and shared MLP contract around checkpointed gated-delta recurrence. Forward,
+  final-state, hidden-gradient, and initial-state-gradient errors are at most
+  `1.7881393432617188e-7`. All six `gate`/`up`/`down` LoRA A/B gradients are
+  finite and nonzero. A `down_proj` LoRA-B perturbation changes layer output by
+  `1.8775463104248047e-5`. The receipt is
+  `reports/training/native-parity/qwen-linear-decoder-backward-oracle.json`,
+  SHA-256
+  `5871c629ba0293172796f73243a5312a09ac5ad37695427ed5023254cb6abbfd`.
+  This is a tiny layer-mechanics receipt, not production geometry or a
+  multi-layer graph.
+- Cross-layer routing and backward now pass for one complete pattern period:
+  `linear_attention`, `linear_attention`, `linear_attention`, then
+  `full_attention`. The clean `fb3738aa` receipt compares the composed GPU
+  graph against independent scalar layer composition. Hybrid forward error is
+  `7.152557373046875e-7`, input-hidden gradient error is
+  `2.384185791015625e-7`, and the worst comparison is the first linear layer's
+  recurrent initial-state gradient at `5.7220458984375e-6`, below the frozen
+  `5e-5` threshold. All layer-local V12 adapter gradients are finite and
+  nonzero. The receipt is
+  `reports/training/native-parity/qwen-hybrid-decoder-backward-oracle.json`,
+  SHA-256
+  `ddf39c9fd09c18094c7f3144525ee19ce3be576862c588e7414826e59888be80`.
+  This validates one tiny four-layer period, not all 32 production-width
+  layers or cross-layer activation checkpointing.
+- Native optimizer semantics now include actual decoupled AdamW. Before
+  `6f9b46c8`, `AdamOptimizer` executed Adam even when the workload declared
+  `type: adamw`; `weightDecay` never reached the kernel. The fixed two-step
+  oracle matches scalar parameters and both moment tensors with worst error
+  `2.9802322387695312e-8`. Its matched zero-decay control differs by
+  `1.6003847122192383e-4`, proving the configured decay is active. The clean
+  receipt is `reports/training/native-parity/adamw-optimizer-oracle.json`,
+  SHA-256
+  `ebceac348572640b1fae7fa4c8030b7aa6a22090201bf1adff1bf80504f5d577`.
+  This closes two-step optimizer mechanics only; accumulation and resume still
+  need their own parity receipts.
 - Separate `gate_proj` and `up_proj` LoRA plus gated-SiLU backward is sealed at
-  the block-mechanics boundary. It does not include Qwen attention, residuals,
-  normalization, loss, or an optimizer update.
+  the block-mechanics boundary and is now also exercised inside the tiny
+  completion-masked microstep.
+- Full attention now has both its Q/K/V/O module oracle and a composed
+  attention/MLP/residual decoder-layer oracle covering every V12 LoRA family.
+  A tiny matched scalar loss and optimizer update also passes. The staged gate
+  still needs the exact initialized rank-32 adapter and Gamma-backend
+  comparison.
 - Gradient checkpointing is not qualified for the Qwen hybrid graph.
-- A matched initial-adapter importer and PEFT export parity receipt are absent.
+- Cross-layer backward passes one tiny three-linear/one-full period. The full
+  32-layer production-width graph and cross-layer activation checkpointing are
+  not yet qualified.
+- Exact PEFT ingestion and Doppler-format round trip pass for one completed
+  V12 adapter. The parity experiment still needs a matched initial rank-32
+  adapter generated before either backend's first update, production-geometry
+  GPU upload, and PEFT-compatible export parity.
 - Sustained AdamW accumulation and resume have not run on Qwen 9B.
 - Doppler-native inference for the trained adapter remains separate from base
   F16 inference and from the rejected mixed-Q4 artifact.

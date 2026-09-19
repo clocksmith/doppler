@@ -1,0 +1,80 @@
+{
+  "artifactType": "qwen35_native_training_architecture_correction",
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-13",
+  "status": "native_correction_implemented_inference_hypothesis_retracted_requalification_pending",
+  "model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "referenceImplementation": {
+    "library": "transformers",
+    "version": "5.13.1",
+    "class": "Qwen3_5DecoderLayer",
+    "sourceSha256": "cf085792cb59e5bdf9b88a3d20bd353892289d054662a9c2b662221b97caefba",
+    "decoderOrder": "input_norm_token_mixer_residual_post_attention_norm_mlp_residual",
+    "ropePairing": "split_half_within_partial_rotary_prefix",
+    "partialRotaryFactor": 0.25
+  },
+  "confirmedFindings": [
+    {
+      "id": "native_decoder_norm_order",
+      "disposition": "corrected",
+      "description": "Native full and linear decoder graphs and their scalar references normalized the attention output before adding the residual."
+    },
+    {
+      "id": "native_fixture_rope_pairing",
+      "disposition": "corrected",
+      "description": "Qwen-specific native-training fixtures used adjacent-pair RoPE and a geometry that could not distinguish it from the required split-half pairing."
+    }
+  ],
+  "retractedFinding": {
+    "id": "conversion_norm_route",
+    "disposition": "disproved",
+    "failedDiagnostic": "refresh-converted-manifest rejected postAttentionNorm=false because all 32 post_attention_layernorm tensors exist",
+    "runtimeFacts": {
+      "postAttentionNormMeaning": "tensor_presence",
+      "sandwichSelector": "preFeedforwardNorm_or_postFeedforwardNorm",
+      "qwenNormalizationFlags": {
+        "postAttentionNorm": true,
+        "preFeedforwardNorm": false,
+        "postFeedforwardNorm": false
+      },
+      "qwenRopeInterleaved": false,
+      "qwenMropeInterleaved": true
+    }
+  },
+  "implementation": {
+    "dopplerNativeCorrectionCommits": [
+      "d20f1446465b375a9fbc6df760dc4384cbd6720a",
+      "d61b76b0c45e704485ea61cc4658dddde675363d"
+    ],
+    "retractedInferenceCommits": [
+      "99fa6c546b54572a11bfc48d1d71f1a15cb36b3a",
+      "df3f7fed3935704219b5090ba593ed7178462f69"
+    ],
+    "gammaCommits": [
+      "452e51e1ff56529916dfee250f8ff0753862ca43",
+      "6d21d7b229c1c2387b3e5447648effd03786ba82"
+    ],
+    "manifestVariantChanged": false,
+    "weightPacksChanged": false
+  },
+  "evidenceDisposition": {
+    "v12GammaTrainingAndEvaluation": "unaffected",
+    "nativeDecoderAndIntegratedSftReceiptsBeforeCorrection": "superseded",
+    "m3V1F16Result": "original_one_prompt_control_scope_retained",
+    "m3V1MixedQ4Result": "original_base_inference_failure_scope_retained",
+    "m3V1F16Q4BoundaryComparison": "original_diagnostic_scope_retained",
+    "layer0Q4ScalarOracle": "kernel_local_result_retained",
+    "qwen08And2BInferenceCatalog": "unchanged"
+  },
+  "requiredGates": [
+    "clean corrected native GPU oracle suite",
+    "rank-32 Transformers Gamma versus Doppler microstep parity",
+    "matched-prefix accumulation and checkpoint-resume parity",
+    "PEFT-compatible export parity",
+    "adapter inference only after coherent base inference"
+  ],
+  "claimBoundary": "This receipt corrects the Doppler-native training graph and retracts an unsupported inference-manifest diagnosis. It does not yet prove corrected GPU parity, native sustained training, adapter correctness, WGSL capability, semantic kernel correctness, or promotion, and it does not invalidate the separately scoped v1 inference receipts."
+}

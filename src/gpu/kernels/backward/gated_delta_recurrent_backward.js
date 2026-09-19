@@ -8,11 +8,14 @@ import { releaseUniformBuffer } from '../../uniform-cache.js';
 
 function validate(inputs, options) {
   const numTokens = Math.floor(Number(options?.numTokens));
+  const totalTokens = Math.floor(Number(options?.totalTokens));
+  const tokenOffset = Math.floor(Number(options?.tokenOffset));
   const numHeads = Math.floor(Number(options?.numHeads));
   const keyDim = Math.floor(Number(options?.keyDim));
   const valueDim = Math.floor(Number(options?.valueDim));
   const queryScale = Number(options?.queryScale);
-  if (numTokens < 1 || numHeads < 1 || keyDim < 1 || valueDim < 1 || valueDim > 128) {
+  if (numTokens < 1 || totalTokens < 1 || tokenOffset < 0 || tokenOffset + numTokens > totalTokens
+    || numHeads < 1 || keyDim < 1 || valueDim < 1 || valueDim > 128) {
     throw new Error('gated-delta recurrent backward requires positive dimensions and valueDim <= 128.');
   }
   if (!Number.isFinite(queryScale)) {
@@ -23,7 +26,21 @@ function validate(inputs, options) {
       throw new Error(`gated-delta recurrent backward requires f32 ${label}.`);
     }
   }
-  return { numTokens, numHeads, keyDim, valueDim, queryScale };
+  if (typeof options?.initializeOutputBuffers !== 'boolean'
+    || typeof options?.initializeGradState !== 'boolean') {
+    throw new Error('gated-delta recurrent backward requires explicit buffer initialization flags.');
+  }
+  return {
+    numTokens,
+    totalTokens,
+    tokenOffset,
+    numHeads,
+    keyDim,
+    valueDim,
+    queryScale,
+    initializeOutputBuffers: options.initializeOutputBuffers,
+    initializeGradState: options.initializeGradState,
+  };
 }
 
 function allocate(bytes, label, provided) {
@@ -34,9 +51,9 @@ export async function runGatedDeltaRecurrentBackward(inputs, options = {}) {
   const dims = validate(inputs, options);
   const device = getDevice();
   if (!device) throw new Error('gated-delta recurrent backward requires an active GPU device.');
-  const queryBytes = dims.numTokens * dims.numHeads * dims.keyDim * 4;
-  const valueBytes = dims.numTokens * dims.numHeads * dims.valueDim * 4;
-  const scalarBytes = dims.numTokens * dims.numHeads * 4;
+  const queryBytes = dims.totalTokens * dims.numHeads * dims.keyDim * 4;
+  const valueBytes = dims.totalTokens * dims.numHeads * dims.valueDim * 4;
+  const scalarBytes = dims.totalTokens * dims.numHeads * 4;
   const stateBytes = dims.numHeads * dims.keyDim * dims.valueDim * 4;
   const packedQueryKeyBuffer = acquireBuffer(queryBytes * 2, undefined, 'gated_delta_packed_query_key');
   const packedDecayBetaBuffer = acquireBuffer(scalarBytes * 2, undefined, 'gated_delta_packed_decay_beta');
@@ -51,13 +68,30 @@ export async function runGatedDeltaRecurrentBackward(inputs, options = {}) {
   let uniformBuffer = null;
   let completed = false;
   try {
+    if (dims.initializeOutputBuffers || dims.initializeGradState) {
+      const clearEncoder = device.createCommandEncoder({ label: 'gated_delta_backward_clear_outputs' });
+      if (dims.initializeOutputBuffers) {
+        clearEncoder.clearBuffer(gradQueryBuffer);
+        clearEncoder.clearBuffer(gradKeyBuffer);
+        clearEncoder.clearBuffer(gradValueBuffer);
+        clearEncoder.clearBuffer(gradLogDecayBuffer);
+        clearEncoder.clearBuffer(gradBetaBuffer);
+      }
+      if (dims.initializeGradState) {
+        clearEncoder.clearBuffer(gradStateBuffer);
+      }
+      device.queue.submit([clearEncoder.finish()]);
+    }
     const packEncoder = device.createCommandEncoder({ label: 'gated_delta_backward_pack_inputs' });
     packEncoder.copyBufferToBuffer(inputs.query.buffer, 0, packedQueryKeyBuffer, 0, queryBytes);
     packEncoder.copyBufferToBuffer(inputs.key.buffer, 0, packedQueryKeyBuffer, queryBytes, queryBytes);
     packEncoder.copyBufferToBuffer(inputs.logDecay.buffer, 0, packedDecayBetaBuffer, 0, scalarBytes);
     packEncoder.copyBufferToBuffer(inputs.beta.buffer, 0, packedDecayBetaBuffer, scalarBytes, scalarBytes);
+    packEncoder.copyBufferToBuffer(gradQueryBuffer, 0, packedGradQueryKeyBuffer, 0, queryBytes);
+    packEncoder.copyBufferToBuffer(gradKeyBuffer, 0, packedGradQueryKeyBuffer, queryBytes, queryBytes);
+    packEncoder.copyBufferToBuffer(gradLogDecayBuffer, 0, packedGradDecayBetaBuffer, 0, scalarBytes);
+    packEncoder.copyBufferToBuffer(gradBetaBuffer, 0, packedGradDecayBetaBuffer, scalarBytes, scalarBytes);
     device.queue.submit([packEncoder.finish()]);
-    device.queue.writeBuffer(gradStateBuffer, 0, new Uint8Array(stateBytes));
 
     const pipeline = await createPipeline('gated_delta_recurrent_backward', 'default');
     uniformBuffer = createUniformBufferWithView(
@@ -65,10 +99,12 @@ export async function runGatedDeltaRecurrentBackward(inputs, options = {}) {
       32,
       (view) => {
         view.setUint32(0, dims.numTokens, true);
-        view.setUint32(4, dims.numHeads, true);
-        view.setUint32(8, dims.keyDim, true);
-        view.setUint32(12, dims.valueDim, true);
-        view.setFloat32(16, dims.queryScale, true);
+        view.setUint32(4, dims.totalTokens, true);
+        view.setUint32(8, dims.tokenOffset, true);
+        view.setUint32(12, dims.numHeads, true);
+        view.setUint32(16, dims.keyDim, true);
+        view.setUint32(20, dims.valueDim, true);
+        view.setFloat32(24, dims.queryScale, true);
       },
       null,
       device
@@ -99,11 +135,11 @@ export async function runGatedDeltaRecurrentBackward(inputs, options = {}) {
     await device.queue.onSubmittedWorkDone();
     completed = true;
     return {
-      query: createTensor(gradQueryBuffer, 'f32', [dims.numTokens, dims.numHeads, dims.keyDim], 'gated_delta_grad_query'),
-      key: createTensor(gradKeyBuffer, 'f32', [dims.numTokens, dims.numHeads, dims.keyDim], 'gated_delta_grad_key'),
-      value: createTensor(gradValueBuffer, 'f32', [dims.numTokens, dims.numHeads, dims.valueDim], 'gated_delta_grad_value'),
-      logDecay: createTensor(gradLogDecayBuffer, 'f32', [dims.numTokens, dims.numHeads], 'gated_delta_grad_log_decay'),
-      beta: createTensor(gradBetaBuffer, 'f32', [dims.numTokens, dims.numHeads], 'gated_delta_grad_beta'),
+      query: createTensor(gradQueryBuffer, 'f32', [dims.totalTokens, dims.numHeads, dims.keyDim], 'gated_delta_grad_query'),
+      key: createTensor(gradKeyBuffer, 'f32', [dims.totalTokens, dims.numHeads, dims.keyDim], 'gated_delta_grad_key'),
+      value: createTensor(gradValueBuffer, 'f32', [dims.totalTokens, dims.numHeads, dims.valueDim], 'gated_delta_grad_value'),
+      logDecay: createTensor(gradLogDecayBuffer, 'f32', [dims.totalTokens, dims.numHeads], 'gated_delta_grad_log_decay'),
+      beta: createTensor(gradBetaBuffer, 'f32', [dims.totalTokens, dims.numHeads], 'gated_delta_grad_beta'),
       initialState: createTensor(gradStateBuffer, 'f32', [dims.numHeads, dims.keyDim, dims.valueDim], 'gated_delta_grad_initial_state'),
     };
   } finally {

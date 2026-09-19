@@ -86,7 +86,93 @@
     },
     {
       "id": "full_attention_block",
-      "status": "pending"
+      "status": "blocked_missing_loss_and_update",
+      "componentEvidence": {
+        "status": "passed_integrated_lora_gradient_oracle",
+        "sourceRevision": "85d1842c78f39c1114261b9e519ff59e13ae9a0d",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen-full-attention-backward-oracle.json",
+        "receiptSha256": "167f09af1dbbba2dcb2cb54ad83423e381089464015a7a474e4c8fb2da6bd905",
+        "coveredComponents": [
+          "per_head_q_gate_split_forward",
+          "per_head_q_gate_split_backward",
+          "sigmoid_output_gate_forward",
+          "sigmoid_output_gate_backward",
+          "causal_gqa_softmax_recompute",
+          "causal_gqa_query_backward",
+          "causal_gqa_grouped_key_backward",
+          "causal_gqa_grouped_value_backward",
+          "partial_interleaved_rope_forward",
+          "partial_interleaved_rope_backward",
+          "non_rotary_gradient_passthrough",
+          "f16_q_k_v_o_projections",
+          "q_k_v_o_lora_forward",
+          "q_k_v_o_lora_a_gradients",
+          "q_k_v_o_lora_b_gradients",
+          "offset_q_k_rmsnorm",
+          "integrated_module_forward",
+          "integrated_module_hidden_backward"
+        ],
+        "maximumComparisonError": 5.960464477539063e-8,
+        "maximumAdapterGradientComparisonError": 1.6880221664905548e-9,
+        "nonzeroGradientFamilies": [
+          "q_proj_lora_a",
+          "q_proj_lora_b",
+          "k_proj_lora_a",
+          "k_proj_lora_b",
+          "v_proj_lora_a",
+          "v_proj_lora_b",
+          "o_proj_lora_a",
+          "o_proj_lora_b"
+        ],
+        "gateNegativeControlDifference": 0.00843888521194458,
+        "adapterNegativeControlDifference": 4.777684807777405e-7,
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "Tiny integrated frozen-F16 Qwen full-attention module with Q/K/V/O LoRA forward and gradients; loss, optimizer update, decoder residuals, and production-shape performance remain unqualified."
+      },
+      "decoderLayerEvidence": {
+        "status": "passed_tiny_full_decoder_gradient_oracle",
+        "sourceRevision": "925de161dbd1d2a3c9f7fe1573f87b50652abe6e",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen-full-decoder-backward-oracle.json",
+        "receiptSha256": "5bbc19a22c5dc8dcd08acf5a8314a3c4d6d6dbab6e710a9d33dea507e36ff9e5",
+        "coveredComponents": [
+          "offset_input_rmsnorm",
+          "full_attention_block",
+          "offset_post_attention_rmsnorm",
+          "attention_residual",
+          "f16_gate_up_down_projections",
+          "gpu_resident_gated_silu_backward",
+          "mlp_residual",
+          "q_k_v_o_gate_up_down_lora_forward",
+          "q_k_v_o_gate_up_down_lora_gradients",
+          "hidden_backward"
+        ],
+        "maximumComparisonError": 0.0000027120113372802734,
+        "forwardMaxAbsError": 9.5367431640625e-7,
+        "hiddenGradientMaxAbsError": 9.238719940185547e-7,
+        "nonzeroGradientFamilies": [
+          "q_proj_lora_a",
+          "q_proj_lora_b",
+          "k_proj_lora_a",
+          "k_proj_lora_b",
+          "v_proj_lora_a",
+          "v_proj_lora_b",
+          "o_proj_lora_a",
+          "o_proj_lora_b",
+          "gate_proj_lora_a",
+          "gate_proj_lora_b",
+          "up_proj_lora_a",
+          "up_proj_lora_b",
+          "down_proj_lora_a",
+          "down_proj_lora_b"
+        ],
+        "adapterNegativeControlDifference": 0.00003223121166229248,
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "Tiny Qwen full-attention decoder with exact head width and partial rotary geometry; production head count/hidden width, loss, optimizer update, memory, and performance remain unqualified."
+      }
     },
     {
       "id": "split_gate_up_block",
@@ -120,7 +206,7 @@
         "norm",
         "out_proj"
       ],
-      "status": "blocked_missing_bounded_gpu_recurrence",
+      "status": "passed_tiny_module_oracle",
       "referenceEvidence": {
         "implementations": [
           "src/experimental/training/qwen-gated-delta-reference.js",
@@ -153,17 +239,42 @@
           "qwen640PeakBackwardStateElements": 28311552,
           "validation": "exact_forward_final_state_and_all_gradient_arrays_across_checkpoint_intervals"
         },
-        "claimBoundary": "Scalar linear-attention and checkpoint/recompute references only; projection/LoRA integration and bounded-memory GPU backward remain unimplemented."
+        "claimBoundary": "Scalar linear-attention and checkpoint/recompute references only; GPU recurrence evidence is recorded separately and projection/LoRA integration remains unimplemented."
       },
       "gpuComponentSlice": {
-        "status": "passed_oracle_only",
+        "status": "passed_integrated_f16_projection_module_oracle",
         "kernels": [
+          "src/gpu/kernels/qwen_linear_attention_prepare.wgsl",
+          "src/gpu/kernels/backward/qwen_linear_attention_prepare_backward.wgsl",
+          "src/gpu/kernels/causal_conv1d_silu.wgsl",
           "src/gpu/kernels/backward/causal_conv1d_silu_backward.wgsl",
+          "src/gpu/kernels/gated_rmsnorm.wgsl",
           "src/gpu/kernels/backward/gated_rmsnorm_backward.wgsl",
-          "src/gpu/kernels/backward/gated_delta_recurrent_backward.wgsl"
+          "src/gpu/kernels/backward/gated_delta_recurrent_backward.wgsl",
+          "src/gpu/kernels/backward/gated_delta_recurrent_checkpoint_forward.wgsl",
+          "src/gpu/kernels/backward/gated_delta_recurrent_checkpointed_backward.wgsl"
         ],
         "oracle": "tests/training/browser/qwen-linear-attention-backward-oracle.js",
+        "coveredForwardOperations": [
+          "qkv_split",
+          "qk_l2_normalization",
+          "qk_head_repeat",
+          "value_split",
+          "log_decay_transform",
+          "beta_transform",
+          "causal_conv_silu",
+          "gated_rmsnorm",
+          "gated_delta_checkpoint_output",
+          "gated_delta_checkpoint_states",
+          "gated_delta_final_state",
+          "integrated_projected_core_output",
+          "f16_input_projections",
+          "f16_output_projection"
+        ],
         "coveredGradients": [
+          "prepare_mixed_qkv",
+          "prepare_a_projection",
+          "prepare_b_projection",
           "causal_conv_input",
           "gated_rmsnorm_input",
           "gated_rmsnorm_gate",
@@ -172,28 +283,168 @@
           "gated_delta_value",
           "gated_delta_log_decay",
           "gated_delta_beta",
-          "gated_delta_initial_state"
+          "gated_delta_initial_state",
+          "integrated_core_qkv",
+          "integrated_core_z",
+          "integrated_core_a",
+          "integrated_core_b",
+          "integrated_core_initial_state",
+          "integrated_module_hidden",
+          "integrated_module_initial_state"
         ],
-        "recurrentStateStrategy": "full_history_oracle_only",
-        "productionStateStrategy": "scalar_checkpoint_recompute_reference_only",
+        "recurrentStateStrategy": "checkpoint_recompute_oracle",
+        "productionStateStrategy": "bounded_checkpoint_recompute_mechanics_passed",
         "evidence": {
-          "sourceRevision": "00af471259c79b7a6c0fef67dc32dc88108f6f74",
+          "sourceRevision": "04e139b1c0596c6bf36328b291051eb7902712a7",
           "sourceDirty": false,
           "receiptPath": "reports/training/native-parity/qwen-linear-attention-backward-oracle.json",
-          "receiptSha256": "0ba99c5dc1c75dd398a4c1366a2964d7f2fa0306744f82cf21338410fd0e421c",
-          "maximumComparisonError": 5.960464477539063e-8,
+          "receiptSha256": "bed5e7f7adc48aaf71118964bc0c37fb308b4d5369798a193ab909bef9341e8a",
+          "maximumComparisonError": 3.5762786865234375e-7,
           "negativeControlDifference": 0.11269691213965416,
           "backend": "webgpu_vulkan",
-          "deviceVendor": "amd"
+          "deviceVendor": "amd",
+          "checkpointIntervalTested": 2,
+          "checkpointBlockCountTested": 2,
+          "checkpointComparisons": [
+            "forward_output",
+            "forward_checkpoint_states",
+            "forward_final_state",
+            "backward_query",
+            "backward_key",
+            "backward_value",
+            "backward_log_decay",
+            "backward_beta",
+            "backward_initial_state"
+          ]
         },
-        "claimBoundary": "Numerically verified component kernels only; bounded-memory GPU recurrence and integrated linear-attention backward do not exist."
+        "claimBoundary": "Numerically verified tiny integrated linear-attention module including frozen F16 input/output projections; residuals, decoder normalization, MLP, full attention, and complete decoder-layer execution remain absent."
+      },
+      "decoderLayerEvidence": {
+        "status": "passed_tiny_linear_decoder_gradient_oracle",
+        "sourceRevision": "925de161dbd1d2a3c9f7fe1573f87b50652abe6e",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen-linear-decoder-backward-oracle.json",
+        "receiptSha256": "5871c629ba0293172796f73243a5312a09ac5ad37695427ed5023254cb6abbfd",
+        "coveredComponents": [
+          "offset_input_rmsnorm",
+          "checkpointed_linear_attention_block",
+          "recurrent_final_state",
+          "recurrent_initial_state_gradient",
+          "offset_post_attention_rmsnorm",
+          "attention_residual",
+          "f16_gate_up_down_projections",
+          "gpu_resident_gated_silu_backward",
+          "mlp_residual",
+          "gate_up_down_lora_forward",
+          "gate_up_down_lora_gradients",
+          "hidden_backward"
+        ],
+        "maximumComparisonError": 1.7881393432617188e-7,
+        "forwardMaxAbsError": 5.960464477539063e-8,
+        "finalStateMaxAbsError": 9.313225746154785e-10,
+        "hiddenGradientMaxAbsError": 1.2665987014770508e-7,
+        "initialStateGradientMaxAbsError": 1.7881393432617188e-7,
+        "nonzeroGradientFamilies": [
+          "gate_proj_lora_a",
+          "gate_proj_lora_b",
+          "up_proj_lora_a",
+          "up_proj_lora_b",
+          "down_proj_lora_a",
+          "down_proj_lora_b"
+        ],
+        "adapterNegativeControlDifference": 0.000018775463104248047,
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "Tiny Qwen linear-attention decoder with checkpointed recurrence and V12 MLP LoRA; production geometry, loss, optimizer update, cross-layer composition, memory, and performance remain unqualified."
+      }
+    },
+    {
+      "id": "hybrid_decoder_graph",
+      "status": "passed_tiny_four_layer_pattern_oracle",
+      "evidence": {
+        "sourceRevision": "fb3738aa86a02c2ccaf091d4fb94eda60c0ff4ae",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen-hybrid-decoder-backward-oracle.json",
+        "receiptSha256": "ddf39c9fd09c18094c7f3144525ee19ce3be576862c588e7414826e59888be80",
+        "layerTypes": [
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention"
+        ],
+        "coveredComponents": [
+          "cross_layer_forward",
+          "cross_layer_backward",
+          "three_linear_recurrent_final_states",
+          "three_linear_recurrent_initial_state_gradients",
+          "all_layer_local_v12_lora_gradients",
+          "hybrid_layer_type_routing"
+        ],
+        "maximumComparisonError": 0.0000057220458984375,
+        "forwardMaxAbsError": 7.152557373046875e-7,
+        "hiddenGradientMaxAbsError": 2.384185791015625e-7,
+        "adapterNegativeControlDifference": 0.00009560585021972656,
+        "allAdapterGradientFamiliesNonzero": true,
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "One tiny four-layer three-linear/one-full pattern period; 32-layer production geometry, loss, optimizer update, cross-layer activation checkpointing, memory, and performance remain unqualified."
+      }
+    },
+    {
+      "id": "adamw_update",
+      "status": "passed_two_step_oracle",
+      "evidence": {
+        "sourceRevision": "6f9b46c83c84b854865fab4530a0ca0b75120b17",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/adamw-optimizer-oracle.json",
+        "receiptSha256": "ebceac348572640b1fae7fa4c8030b7aa6a22090201bf1adff1bf80504f5d577",
+        "steps": 2,
+        "maximumComparisonError": 2.9802322387695312e-8,
+        "weightDecayNegativeControlDifference": 0.00016003847122192383,
+        "fixedDefect": "The native optimizer previously ignored training.optimizer.weightDecay even when type was adamw.",
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "Two deterministic F32 decoupled AdamW steps; Qwen loss integration, accumulation, resume, and sustained training remain unqualified."
       }
     },
     {
       "id": "one_qwen_microstep",
       "minimumAdapterUpdateCosine": 0.999,
       "maximumRelativeL2Error": 0.02,
-      "status": "blocked"
+      "status": "blocked_missing_rank32_gamma_parity",
+      "componentEvidence": {
+        "status": "passed_tiny_completion_masked_loss_backward_update_oracle",
+        "sourceRevision": "190511b7aad522d564c483ef2aaed51020a69549",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen-hybrid-sft-microstep-oracle.json",
+        "receiptSha256": "4792e9c80c17c1d0d8b19d22ff255b459919c0c8997aa42f1a8eb75a1fe419be",
+        "activeTokenCount": 2,
+        "adapterParameterTensorCount": 14,
+        "optimizerStepCount": 1,
+        "allAdapterGradientsNonzero": true,
+        "everyAdapterParameterChanged": true,
+        "meanLossMaxAbsError": 2.384185791015625e-7,
+        "promptMaskNegativeControlMeanLossDifference": 0.031296690305074204,
+        "coveredAdapterFamilies": [
+          "q_proj_lora_a",
+          "q_proj_lora_b",
+          "k_proj_lora_a",
+          "k_proj_lora_b",
+          "v_proj_lora_a",
+          "v_proj_lora_b",
+          "o_proj_lora_a",
+          "o_proj_lora_b",
+          "gate_proj_lora_a",
+          "gate_proj_lora_b",
+          "up_proj_lora_a",
+          "up_proj_lora_b",
+          "down_proj_lora_a",
+          "down_proj_lora_b"
+        ],
+        "backend": "webgpu_vulkan",
+        "deviceVendor": "amd",
+        "claimBoundary": "Tiny one-full-layer rank-two completion-masked SFT microstep; not the rank-32 Gamma parity gate, production Qwen geometry, accumulation, resume, or capability evidence."
+      }
     },
     {
       "id": "matched_training_prefix",
@@ -202,7 +453,24 @@
     },
     {
       "id": "peft_export_and_inference",
-      "status": "blocked"
+      "status": "blocked_missing_matched_initial_gpu_upload_export_and_inference",
+      "componentEvidence": {
+        "status": "passed_completed_adapter_import_and_doppler_round_trip",
+        "sourceRevision": "e923117a168efec9d994c4923227d0a19b4102d9",
+        "sourceDirty": false,
+        "receiptPath": "reports/training/native-parity/qwen35-9b-peft-adapter-import-oracle.json",
+        "receiptSha256": "5ec789ab8f44da3216ee90d97a8934e5c1eb19206272fe83919afe392ef92dbd",
+        "sourceAdapterWeightsSha256": "e8c219b3944ad9357468639c60e91a1cc38c44a8bc2050842d75c3a6c5e12f0c",
+        "rank": 32,
+        "alpha": 64,
+        "tensorCount": 256,
+        "pairCount": 128,
+        "elementCount": 58195968,
+        "canonicalTensorDigest": "d07dac6c88db1e05277ef6fd9f948e76638aa9dfff55227c776137474c7ac213",
+        "dopplerRoundTripWeightsSha256": "5fbd713d432952f045d395dd00f3a72eff2e244276ae35885b5591b5fd70c8c1",
+        "exactRoundTripDigestMatch": true,
+        "claimBoundary": "Exact PEFT topology, A/B transpose, and Doppler safetensors round trip for one completed V12 adapter; not matched initialization, production-geometry GPU upload, PEFT-compatible export, or inference evidence."
+      }
     },
     {
       "id": "sustained_candidate",
@@ -210,7 +478,7 @@
     }
   ],
   "implementedRevision": "4ee6406f",
-  "latestMechanicsRevision": "00af471259c79b7a6c0fef67dc32dc88108f6f74",
+  "latestMechanicsRevision": "e923117a168efec9d994c4923227d0a19b4102d9",
   "implementedSlice": [
     "packed_f16_frozen_weight_input_gradient",
     "f32_gradient_accumulation",
@@ -223,24 +491,46 @@
     "qwen_gated_delta_scalar_reverse_mode_reference",
     "qwen_gated_delta_scalar_checkpoint_recompute_reference",
     "qwen_linear_attention_component_reverse_mode_references",
+    "qwen_linear_attention_prepare_forward_candidate",
+    "qwen_linear_attention_prepare_backward_candidate",
+    "qwen_causal_conv_forward_candidate",
     "qwen_causal_conv_input_backward_candidate",
+    "qwen_gated_rmsnorm_forward_candidate",
     "qwen_gated_rmsnorm_input_gate_backward_candidate",
     "qwen_gated_delta_full_history_backward_candidate",
     "explicit_lora_kn_weight_orientation",
     "split_gate_up_lora_browser_oracle",
-    "qwen_linear_attention_component_browser_oracle"
+    "qwen_linear_attention_component_browser_oracle",
+    "qwen_gated_delta_checkpoint_forward_gpu_oracle",
+    "qwen_gated_delta_checkpointed_backward_gpu_oracle",
+    "qwen_linear_attention_integrated_projected_core_oracle",
+    "qwen_linear_attention_f16_projection_module_oracle",
+    "qwen_full_attention_q_gate_split_oracle",
+    "qwen_full_attention_sigmoid_gate_oracle",
+    "qwen_full_attention_causal_gqa_backward_oracle",
+    "qwen_partial_interleaved_rope_backward_oracle",
+    "qwen_full_attention_integrated_frozen_module_oracle",
+    "qwen_full_decoder_layer_forward_backward_oracle",
+    "qwen_linear_decoder_layer_forward_backward_oracle",
+    "qwen_hybrid_decoder_cross_layer_forward_backward_oracle",
+    "decoupled_adamw_update_oracle",
+    "completion_masked_qwen_sft_microstep_oracle",
+    "qwen_peft_fail_closed_topology_import",
+    "qwen_peft_a_b_transpose",
+    "qwen_peft_live_tensor_upload_plan",
+    "completed_v12_adapter_doppler_safetensors_round_trip"
   ],
   "blockingGaps": [
-    "qwen_linear_attention_checkpoint_recompute_backward",
-    "qwen_linear_attention_full_layer_integration",
-    "qwen_gradient_checkpointing",
-    "matched_initial_adapter_import",
-    "peft_export_parity",
+    "rank32_gamma_doppler_microstep_parity",
+    "production_qwen_geometry",
+    "cross_layer_activation_checkpointing",
+    "matched_initial_rank32_adapter_generation_and_gpu_upload",
+    "peft_compatible_export_parity",
     "sustained_adamw_accumulation_and_resume",
     "doppler_adapter_inference_parity"
   ],
   "nativeQwen9bSupportClaimed": false,
   "capabilityClaimed": false,
   "promotionClaimed": false,
-  "claimBoundary": "The F16 projection input-gradient gate passed. No Qwen block, optimizer, adapter, compiler-capability, semantic-kernel, or promotion parity is established."
+  "claimBoundary": "Tiny full, linear, hybrid-decoder, decoupled-AdamW, and completion-masked SFT mechanics pass independent scalar oracles; one completed rank-32 PEFT adapter also passes exact Doppler-format import and round trip. Matched Gamma microstep parity, production Qwen geometry and GPU upload, accumulation/resume, PEFT-compatible export, adapter inference, compiler capability, semantic-kernel correctness, and promotion remain unestablished."
 }

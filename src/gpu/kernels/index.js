@@ -369,6 +369,10 @@ export {
 } from './transpose.js';
 
 // Training Backward Kernels
+export { runCausalConv1dSilu, recordCausalConv1dSilu } from './causal_conv1d_silu.js';
+export { runGatedRmsNorm, recordGatedRmsNorm } from './gated_rmsnorm.js';
+export { runQwenLinearAttentionPrepare } from './qwen_linear_attention_prepare.js';
+export { runQwenAttentionSplitQGate } from './qwen_attention_split_q_gate.js';
 export {
   runEmbedBackward,
   recordEmbedBackward,
@@ -387,6 +391,8 @@ export {
   runCausalConv1dSiluBackward,
   recordCausalConv1dSiluBackward,
   runGatedDeltaRecurrentBackward,
+  runGatedDeltaRecurrentCheckpointForward,
+  runGatedDeltaRecurrentCheckpointedBackward,
   runLayerNormBackward,
   recordLayerNormBackward,
   runAttentionBackward,

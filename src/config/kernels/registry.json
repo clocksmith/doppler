@@ -2,6 +2,1015 @@
  "$schema": "./kernel-registry.schema.json",
  "version": "1.0",
  "operations": {
+  "qwen_attention_split_q_gate": {
+   "description": "Split Qwen full-attention interleaved per-head query and output gate",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "query",
+     "type": "storage"
+    },
+    {
+     "index": 3,
+     "name": "gate",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_heads",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "head_dim",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "element_count",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "qwen_attention_split_q_gate.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "qwen_attention_split_q_gate_backward": {
+   "description": "Reverse Qwen full-attention query/output-gate split",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "grad_query",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "grad_gate",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "grad_input",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_heads",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "head_dim",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "element_count",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "backward/qwen_attention_split_q_gate_backward.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "qwen_gqa_softmax_recompute": {
+   "description": "Recompute causal GQA softmax rows for Qwen attention backward",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "query",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "key",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "softmax",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "seq_len",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_heads",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "num_kv_heads",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "head_dim",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "scale",
+      "type": "f32",
+      "offset": 16
+     },
+     {
+      "name": "causal",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "backward/qwen_gqa_softmax_recompute.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "qwen_gqa_softmax_backward_scores": {
+   "description": "Compute causal GQA softmax-logit gradients",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "value",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "grad_output",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "softmax",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "grad_scores",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "seq_len",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_heads",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "num_kv_heads",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "head_dim",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "scale",
+      "type": "f32",
+      "offset": 16
+     },
+     {
+      "name": "causal",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "backward/qwen_gqa_softmax_backward_scores.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "qwen_gqa_attention_backward": {
+   "description": "Causal Qwen GQA query/key/value gradients with KV-head reduction",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "query",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "key",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "softmax",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "grad_scores",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "grad_output",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 6,
+     "name": "grad_query",
+     "type": "storage"
+    },
+    {
+     "index": 7,
+     "name": "grad_key",
+     "type": "storage"
+    },
+    {
+     "index": 8,
+     "name": "grad_value",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "seq_len",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_heads",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "num_kv_heads",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "head_dim",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "scale",
+      "type": "f32",
+      "offset": 16
+     },
+     {
+      "name": "causal",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "backward/qwen_gqa_attention_backward.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "sigmoid_gated_backward": {
+   "description": "Sigmoid or SiLU gated backward",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "gate",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "grad_output",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "grad_input",
+     "type": "storage"
+    },
+    {
+     "index": 5,
+     "name": "grad_gate",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "count",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "gate_mode",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "swiglu_limit",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "backward/sigmoid_gated_backward.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "qwen_linear_attention_prepare": {
+   "description": "Qwen linear-attention QKV split, Q/K L2 normalization, head repeat, and decay/beta preparation",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "mixed",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "a_projection",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "b_projection",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "packed_parameters",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "query",
+     "type": "storage"
+    },
+    {
+     "index": 6,
+     "name": "key",
+     "type": "storage"
+    },
+    {
+     "index": 7,
+     "name": "value",
+     "type": "storage"
+    },
+    {
+     "index": 8,
+     "name": "log_decay",
+     "type": "storage"
+    },
+    {
+     "index": 9,
+     "name": "beta",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 48,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_key_heads",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "num_value_heads",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "key_dim",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "value_dim",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "conv_size",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "query_size",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "key_size",
+      "type": "u32",
+      "offset": 28
+     },
+     {
+      "name": "value_size",
+      "type": "u32",
+      "offset": 32
+     },
+     {
+      "name": "repeat_factor",
+      "type": "u32",
+      "offset": 36
+     },
+     {
+      "name": "eps",
+      "type": "f32",
+      "offset": 40
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 44
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "qwen_linear_attention_prepare.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "qwen_linear_attention_prepare_backward": {
+   "description": "Qwen linear-attention preparation backward for frozen recurrent parameters",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "mixed",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "packed_a_b",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "packed_parameters",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "packed_grad_query_key",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "grad_value",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 6,
+     "name": "packed_grad_decay_beta",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 7,
+     "name": "grad_mixed",
+     "type": "storage"
+    },
+    {
+     "index": 8,
+     "name": "grad_a",
+     "type": "storage"
+    },
+    {
+     "index": 9,
+     "name": "grad_b",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 48,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_key_heads",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "num_value_heads",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "key_dim",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "value_dim",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "conv_size",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "query_size",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "key_size",
+      "type": "u32",
+      "offset": 28
+     },
+     {
+      "name": "value_size",
+      "type": "u32",
+      "offset": 32
+     },
+     {
+      "name": "repeat_factor",
+      "type": "u32",
+      "offset": 36
+     },
+     {
+      "name": "eps",
+      "type": "f32",
+      "offset": 40
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 44
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "backward/qwen_linear_attention_prepare_backward.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "gated_rmsnorm": {
+   "description": "Gated RMSNorm forward for Qwen linear attention",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "gate",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "rows",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "width",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "eps",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "gated_rmsnorm.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "causal_conv1d_silu": {
+   "description": "Causal depthwise Conv1D plus SiLU forward for Qwen linear attention",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "weight",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "channels",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "kernel_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "causal_conv1d_silu.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "gated_delta_recurrent_checkpoint_forward": {
+   "description": "Bounded checkpoint gated-delta recurrent forward",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "query_key",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "value",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "decay_beta",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 4,
+     "name": "initial_state",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 5,
+     "name": "current_state",
+     "type": "storage"
+    },
+    {
+     "index": 6,
+     "name": "checkpoints",
+     "type": "storage"
+    },
+    {
+     "index": 7,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 48,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "total_tokens",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "token_offset",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "num_heads",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "key_dim",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "value_dim",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "checkpoint_interval",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "checkpoint_count",
+      "type": "u32",
+      "offset": 28
+     },
+     {
+      "name": "query_scale",
+      "type": "f32",
+      "offset": 32
+     },
+     {
+      "name": "initial_state_offset",
+      "type": "u32",
+      "offset": 36
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 40
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 44
+     }
+    ]
+   },
+   "variants": {
+    "default": {
+     "wgsl": "backward/gated_delta_recurrent_checkpoint_forward.wgsl",
+     "entryPoint": "main",
+     "workgroup": [128,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "matmul": {
    "description": "Matrix multiplication kernels",
    "baseBindings": [
@@ -16224,39 +17233,37 @@
       "offset": 0
      },
      {
-      "name": "num_heads",
+      "name": "total_tokens",
       "type": "u32",
       "offset": 4
      },
      {
-      "name": "key_dim",
+      "name": "token_offset",
       "type": "u32",
       "offset": 8
      },
      {
-      "name": "value_dim",
+      "name": "num_heads",
       "type": "u32",
       "offset": 12
      },
      {
-      "name": "query_scale",
-      "type": "f32",
+      "name": "key_dim",
+      "type": "u32",
       "offset": 16
      },
      {
+      "name": "value_dim",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "query_scale",
+      "type": "f32",
+      "offset": 24
+     },
+     {
       "name": "_pad0",
-      "type": "u32",
-      "offset": 20,
-      "padding": true
-     },
-     {
-      "name": "_pad1",
-      "type": "u32",
-      "offset": 24,
-      "padding": true
-     },
-     {
-      "name": "_pad2",
       "type": "u32",
       "offset": 28,
       "padding": true
@@ -16411,25 +17418,22 @@
       "offset": 12
      },
      {
+      "name": "rotary_dim",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "pair_span_dim",
+      "type": "u32",
+      "offset": 20
+     },
+     {
+      "name": "interleaved",
+      "type": "u32",
+      "offset": 24
+     },
+     {
       "name": "_pad0",
-      "type": "u32",
-      "offset": 16,
-      "padding": true
-     },
-     {
-      "name": "_pad1",
-      "type": "u32",
-      "offset": 20,
-      "padding": true
-     },
-     {
-      "name": "_pad2",
-      "type": "u32",
-      "offset": 24,
-      "padding": true
-     },
-     {
-      "name": "_pad3",
       "type": "u32",
       "offset": 28,
       "padding": true

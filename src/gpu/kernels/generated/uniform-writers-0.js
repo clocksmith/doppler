@@ -2,6 +2,75 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_qwen_attention_split_q_gate_default(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["num_heads"], kernel, "num_heads");
+  writeU32(view, 8, values["head_dim"], kernel, "head_dim");
+  writeU32(view, 12, values["element_count"], kernel, "element_count");
+}
+
+export function write_qwen_gqa_softmax_recompute_default(view, values, kernel) {
+  writeU32(view, 0, values["seq_len"], kernel, "seq_len");
+  writeU32(view, 4, values["num_heads"], kernel, "num_heads");
+  writeU32(view, 8, values["num_kv_heads"], kernel, "num_kv_heads");
+  writeU32(view, 12, values["head_dim"], kernel, "head_dim");
+  writeF32(view, 16, values["scale"], kernel, "scale");
+  writeU32(view, 20, values["causal"], kernel, "causal");
+  writeU32(view, 24, values["_pad0"], kernel, "_pad0");
+  writeU32(view, 28, values["_pad1"], kernel, "_pad1");
+}
+
+export function write_sigmoid_gated_backward_default(view, values, kernel) {
+  writeU32(view, 0, values["count"], kernel, "count");
+  writeU32(view, 4, values["gate_mode"], kernel, "gate_mode");
+  writeF32(view, 8, values["swiglu_limit"], kernel, "swiglu_limit");
+  writeU32(view, 12, values["_pad2"], kernel, "_pad2");
+}
+
+export function write_qwen_linear_attention_prepare_default(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["num_key_heads"], kernel, "num_key_heads");
+  writeU32(view, 8, values["num_value_heads"], kernel, "num_value_heads");
+  writeU32(view, 12, values["key_dim"], kernel, "key_dim");
+  writeU32(view, 16, values["value_dim"], kernel, "value_dim");
+  writeU32(view, 20, values["conv_size"], kernel, "conv_size");
+  writeU32(view, 24, values["query_size"], kernel, "query_size");
+  writeU32(view, 28, values["key_size"], kernel, "key_size");
+  writeU32(view, 32, values["value_size"], kernel, "value_size");
+  writeU32(view, 36, values["repeat_factor"], kernel, "repeat_factor");
+  writeF32(view, 40, values["eps"], kernel, "eps");
+  writeU32(view, 44, values["_pad0"], kernel, "_pad0");
+}
+
+export function write_gated_rmsnorm_default(view, values, kernel) {
+  writeU32(view, 0, values["rows"], kernel, "rows");
+  writeU32(view, 4, values["width"], kernel, "width");
+  writeF32(view, 8, values["eps"], kernel, "eps");
+  writeU32(view, 12, values["_pad0"], kernel, "_pad0");
+}
+
+export function write_causal_conv1d_silu_default(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["channels"], kernel, "channels");
+  writeU32(view, 8, values["kernel_size"], kernel, "kernel_size");
+  writeU32(view, 12, values["_pad0"], kernel, "_pad0");
+}
+
+export function write_gated_delta_recurrent_checkpoint_forward_default(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["total_tokens"], kernel, "total_tokens");
+  writeU32(view, 8, values["token_offset"], kernel, "token_offset");
+  writeU32(view, 12, values["num_heads"], kernel, "num_heads");
+  writeU32(view, 16, values["key_dim"], kernel, "key_dim");
+  writeU32(view, 20, values["value_dim"], kernel, "value_dim");
+  writeU32(view, 24, values["checkpoint_interval"], kernel, "checkpoint_interval");
+  writeU32(view, 28, values["checkpoint_count"], kernel, "checkpoint_count");
+  writeF32(view, 32, values["query_scale"], kernel, "query_scale");
+  writeU32(view, 36, values["initial_state_offset"], kernel, "initial_state_offset");
+  writeU32(view, 40, values["_pad0"], kernel, "_pad0");
+  writeU32(view, 44, values["_pad1"], kernel, "_pad1");
+}
+
 export function write_matmul_f16(view, values, kernel) {
   writeU32(view, 0, values["M"], kernel, "M");
   writeU32(view, 4, values["N"], kernel, "N");
@@ -531,67 +600,4 @@ export function write_rope_qk_default(view, values, kernel) {
   writeU32(view, 20, values["rotary_dim"], kernel, "rotary_dim");
   writeU32(view, 24, values["interleaved"], kernel, "interleaved");
   writeU32(view, 28, values["pair_span_dim"], kernel, "pair_span_dim");
-}
-
-export function write_silu_default(view, values, kernel) {
-  writeU32(view, 0, values["size"], kernel, "size");
-  writeU32(view, 4, values["rowsplit_dim"], kernel, "rowsplit_dim");
-  writeF32(view, 8, values["clamp_max"], kernel, "clamp_max");
-  view.setUint32(12, 0, true);
-}
-
-export function write_gelu_gelu(view, values, kernel) {
-  writeU32(view, 0, values["size"], kernel, "size");
-  writeU32(view, 4, values["rowsplit_dim"], kernel, "rowsplit_dim");
-  view.setUint32(8, 0, true);
-  view.setUint32(12, 0, true);
-}
-
-export function write_scale_default(view, values, kernel) {
-  writeU32(view, 0, values["count"], kernel, "count");
-  writeF32(view, 4, values["scale"], kernel, "scale");
-  view.setUint32(8, 0, true);
-  view.setUint32(12, 0, true);
-}
-
-export function write_clamp_default(view, values, kernel) {
-  writeU32(view, 0, values["size"], kernel, "size");
-  view.setUint32(4, 0, true);
-  writeF32(view, 8, values["min"], kernel, "min");
-  writeF32(view, 12, values["max"], kernel, "max");
-}
-
-export function write_activation_static_qdq_default(view, values, kernel) {
-  writeU32(view, 0, values["size"], kernel, "size");
-  view.setUint32(4, 0, true);
-  writeF32(view, 8, values["scale"], kernel, "scale");
-  writeF32(view, 12, values["invScale"], kernel, "invScale");
-  writeF32(view, 16, values["qmin"], kernel, "qmin");
-  writeF32(view, 20, values["qmax"], kernel, "qmax");
-}
-
-export function write_energy_update_update(view, values, kernel) {
-  writeU32(view, 0, values["count"], kernel, "count");
-  writeF32(view, 4, values["stepSize"], kernel, "stepSize");
-  writeF32(view, 8, values["gradientScale"], kernel, "gradientScale");
-  view.setUint32(12, 0, true);
-}
-
-export function write_energy_quintel_update_quintel_update(view, values, kernel) {
-  writeU32(view, 0, values["count"], kernel, "count");
-  writeU32(view, 4, values["size"], kernel, "size");
-  writeU32(view, 8, values["flags"], kernel, "flags");
-  view.setUint32(12, 0, true);
-  writeF32(view, 16, values["stepSize"], kernel, "stepSize");
-  writeF32(view, 20, values["gradientScale"], kernel, "gradientScale");
-  writeF32(view, 24, values["countDiff"], kernel, "countDiff");
-  writeF32(view, 28, values["centerTarget"], kernel, "centerTarget");
-  writeF32(view, 32, values["symmetryWeight"], kernel, "symmetryWeight");
-  writeF32(view, 36, values["countWeight"], kernel, "countWeight");
-  writeF32(view, 40, values["centerWeight"], kernel, "centerWeight");
-  writeF32(view, 44, values["binarizeWeight"], kernel, "binarizeWeight");
-  writeF32(view, 48, values["clampMin"], kernel, "clampMin");
-  writeF32(view, 52, values["clampMax"], kernel, "clampMax");
-  view.setUint32(56, 0, true);
-  view.setUint32(60, 0, true);
 }

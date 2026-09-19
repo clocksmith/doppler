@@ -45,19 +45,34 @@ export function resolveMatmulBackwardOptions(options = {}) {
   };
 }
 
-export function computeSiluGatedBackwardValues(gate, up, gradOutput, swigluLimit = 0) {
+export function computeSiluGatedBackwardValues(
+  gate,
+  up,
+  gradOutput,
+  swigluLimit = 0,
+  gateActivation = 'silu'
+) {
   if (gate.length !== up.length || gate.length !== gradOutput.length) {
     throw new Error('gated SiLU backward requires equal-length gate, up, and gradient arrays.');
   }
   const gradGate = new Float32Array(gate.length);
   const gradUp = new Float32Array(gate.length);
   for (let index = 0; index < gate.length; index += 1) {
-    const clamped = Math.max(-15, Math.min(15, gate[index]));
-    const sigmoid = 1 / (1 + Math.exp(-clamped));
-    const activated = gate[index] * sigmoid;
+    const clamped = gateActivation === 'sigmoid'
+      ? gate[index]
+      : Math.max(-15, Math.min(15, gate[index]));
+    const sigmoid = clamped >= 0
+      ? 1 / (1 + Math.exp(-clamped))
+      : (() => {
+          const exponent = Math.exp(clamped);
+          return exponent / (1 + exponent);
+        })();
+    const activated = gateActivation === 'sigmoid' ? sigmoid : gate[index] * sigmoid;
     const product = activated * up[index];
     if (swigluLimit > 0 && Math.abs(product) > swigluLimit) continue;
-    const derivative = sigmoid * (1 + (gate[index] * (1 - sigmoid)));
+    const derivative = gateActivation === 'sigmoid'
+      ? sigmoid * (1 - sigmoid)
+      : sigmoid * (1 + (gate[index] * (1 - sigmoid)));
     gradGate[index] = gradOutput[index] * derivative * up[index];
     gradUp[index] = gradOutput[index] * activated;
   }
@@ -224,24 +239,33 @@ export class AutogradTape {
 
     if (backwardName === 'silu_gated_backward') {
       const [gate, up] = record.inputs;
-      const gateValues = await this.readTensorAsF32(gate);
-      const upValues = await this.readTensorAsF32(up);
-      const gradValues = await this.readTensorAsF32(gradOut);
       const count = Math.max(1, Math.floor(Number(record.options?.count) || 0));
-      if (gateValues.length < count || upValues.length < count || gradValues.length < count) {
-        throw new Error('gated SiLU backward tensor is shorter than the declared count.');
+      if (record.options?.gateActivation === 'sigmoid') {
+        const gradients = await backwardKernels.runSigmoidGatedBackward(
+          up,
+          gate,
+          gradOut,
+          { count }
+        );
+        return this.filterStoppedGradients(record, [
+          { input: gate, grad: gradients.gate },
+          { input: up, grad: gradients.input },
+        ]);
       }
-      const values = computeSiluGatedBackwardValues(
-        gateValues.subarray(0, count),
-        upValues.subarray(0, count),
-        gradValues.subarray(0, count),
-        Number.isFinite(record.options?.swigluLimit) ? record.options.swigluLimit : 0
+      const gradients = await backwardKernels.runSiluGatedBackward(
+        gate,
+        up,
+        gradOut,
+        {
+          count,
+          swigluLimit: Number.isFinite(record.options?.swigluLimit)
+            ? record.options.swigluLimit
+            : 0,
+        }
       );
-      const gradGate = createUploadedTensor(values.gradGate, 'f32', [...gate.shape], 'silu_gated_grad_gate');
-      const gradUp = createUploadedTensor(values.gradUp, 'f32', [...up.shape], 'silu_gated_grad_up');
       return this.filterStoppedGradients(record, [
-        { input: gate, grad: gradGate },
-        { input: up, grad: gradUp },
+        { input: gate, grad: gradients.gate },
+        { input: up, grad: gradients.up },
       ]);
     }
 
