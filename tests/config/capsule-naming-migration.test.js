@@ -4,6 +4,9 @@ import fs from 'node:fs/promises';
 
 const archive = 'tests/fixtures/pre-capsule';
 const manifest = JSON.parse(await fs.readFile(`${archive}/manifest.json`, 'utf8'));
+const digestRebindings = JSON.parse(await fs.readFile(
+  'artifacts/release-kernel-digests-2026-09-12/recipe-digest-rebindings.json', 'utf8'
+));
 // This is an explicit test projection, never a runtime compatibility adapter.
 function renameIdentityFields(value) {
   if (Array.isArray(value)) return value.map(renameIdentityFields);
@@ -20,9 +23,10 @@ for (const entry of manifest.files) {
   if (!entry.source.startsWith('src/config/conversion/')) continue;
   const current = JSON.parse(await fs.readFile(entry.source, 'utf8'));
   const expected = renameIdentityFields(JSON.parse(bytes));
-  // The later GELU specialization changes shader identity independently of the
-  // naming migration. Every other computational field still matches this archive.
+  // Later shader changes and the recorded stale-digest repair have exact
+  // identity mappings. Every other field still matches the frozen archive.
   const geluDigests = {
+    ...digestRebindings,
     'sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34':
       'sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0',
   };

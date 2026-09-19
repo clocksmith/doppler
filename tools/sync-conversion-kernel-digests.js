@@ -8,8 +8,34 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
+let checkOnly = false;
+let sourceOnly = false;
+let packageRootArgument = null;
+const selectedFiles = [];
+const usage = 'Usage: sync-conversion-kernel-digests.js [--check] [--source-only] '
+  + '[--file <candidate-recipe.json>] [--package-root <installed-package-directory>]';
+for (let index = 2; index < process.argv.length; index += 1) {
+  const argument = process.argv[index];
+  if (argument === '--check') checkOnly = true;
+  else if (argument === '--source-only') sourceOnly = true;
+  else if (['--file', '--package-root'].includes(argument)
+    && process.argv[index + 1] && !process.argv[index + 1].startsWith('--')) {
+    const value = path.resolve(process.argv[++index]);
+    if (argument === '--file') selectedFiles.push(value);
+    else if (packageRootArgument === null) packageRootArgument = value;
+    else throw new Error(usage);
+  } else throw new Error(usage);
+}
+if (packageRootArgument && (!checkOnly || selectedFiles.length > 0)) {
+  throw new Error('--package-root requires an installed package directory and --check; it cannot select --file.');
+}
+const scanRoot = packageRootArgument ?? ROOT;
+sourceOnly = sourceOnly || packageRootArgument !== null;
+if (sourceOnly && selectedFiles.length > 0) {
+  throw new Error('--source-only cannot select --file.');
+}
 
-const refPath = path.join(ROOT, 'src/config/kernels/kernel-ref-digests.js');
+const refPath = path.join(scanRoot, 'src/config/kernels/kernel-ref-digests.js');
 const refSource = fs.readFileSync(refPath, 'utf8');
 const canonical = new Map();
 for (const match of refSource.matchAll(/"([^"]+#[^"]+)":\s*"([a-f0-9]+)"/g)) {
@@ -21,30 +47,28 @@ const ROOTS = [
   'src/config/source-packages',
   'models/local',
 ];
+if (canonical.size === 0) throw new Error(`No canonical kernel digests found in ${refPath}.`);
+const scanDirectories = sourceOnly ? ROOTS.filter((value) => value !== 'models/local') : ROOTS;
+if (sourceOnly) {
+  for (const directory of scanDirectories) {
+    if (!fs.statSync(path.join(scanRoot, directory)).isDirectory()) {
+      throw new Error(`Missing package configuration directory: ${directory}`);
+    }
+  }
+}
 
 function walk(dir, acc = []) {
-  const abs = path.join(ROOT, dir);
+  const abs = path.join(scanRoot, dir);
   if (!fs.existsSync(abs)) return acc;
   for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
     const p = path.join(abs, entry.name);
-    if (entry.isDirectory()) walk(path.relative(ROOT, p), acc);
+    if (entry.isDirectory()) walk(path.relative(scanRoot, p), acc);
     else if (entry.name.endsWith('.json')) acc.push(p);
   }
   return acc;
 }
 
-let checkOnly = false;
-const selectedFiles = [];
-for (let index = 2; index < process.argv.length; index += 1) {
-  const argument = process.argv[index];
-  if (argument === '--check') checkOnly = true;
-  else if (argument === '--file' && process.argv[index + 1] && !process.argv[index + 1].startsWith('--')) {
-    selectedFiles.push(path.resolve(process.argv[++index]));
-  } else {
-    throw new Error('Usage: sync-conversion-kernel-digests.js [--check] [--file <candidate-recipe.json>]');
-  }
-}
-const files = selectedFiles.length > 0 ? [...new Set(selectedFiles)] : ROOTS.flatMap((root) => walk(root));
+const files = selectedFiles.length > 0 ? [...new Set(selectedFiles)] : scanDirectories.flatMap((directory) => walk(directory));
 
 let drifted = 0;
 const changedFiles = new Set();
@@ -52,7 +76,7 @@ const changedFiles = new Set();
 for (const file of files) {
   let data;
   try { data = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (error) {
-    if (selectedFiles.length > 0) throw error;
+    if (selectedFiles.length > 0 || sourceOnly) throw error;
     continue;
   }
   let changed = false;
@@ -66,6 +90,7 @@ for (const file of files) {
       const have = node.digest.replace(/^sha256:/, '');
       if (want && want !== have) {
         drifted++;
+        if (checkOnly) console.error(`${path.relative(scanRoot, file)}: ${key} has sha256:${have}; expected sha256:${want}`);
         if (!checkOnly) {
           node.digest = `sha256:${want}`;
           changed = true;
@@ -82,11 +107,14 @@ for (const file of files) {
 
 if (checkOnly) {
   if (drifted > 0) {
-    console.error(`[kernels:conversion-digests:check] ${drifted} digest(s) drift from kernel-ref-digests.js. Run: npm run kernels:conversion-digests:sync`);
+    const repair = sourceOnly
+      ? 'Repair source with npm run kernels:conversion-digests:sync -- --source-only, then rebuild the package.'
+      : 'Run: npm run kernels:conversion-digests:sync';
+    console.error(`[kernels:conversion-digests:check] ${drifted} digest(s) drift from kernel-ref-digests.js. ${repair}`);
     process.exit(1);
   }
-  console.log('[kernels:conversion-digests:check] all conversion/source-package/manifest digests match kernel-ref-digests.js');
+  console.log(`[kernels:conversion-digests:check] registered kernel digests match in ${files.length} configuration files`);
 } else {
   console.log(`[kernels:conversion-digests:sync] updated ${drifted} digest(s) in ${changedFiles.size} file(s).`);
-  for (const file of changedFiles) console.log(`  ${path.relative(ROOT, file)}`);
+  for (const file of changedFiles) console.log(`  ${path.relative(scanRoot, file)}`);
 }

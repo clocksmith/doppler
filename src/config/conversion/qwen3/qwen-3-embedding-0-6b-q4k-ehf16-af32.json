@@ -193,7 +193,7 @@
       "q4_decode_gemv": {
         "kernel": "fused_matmul_q4.wgsl",
         "entry": "main_gemv",
-        "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+        "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
       },
       "q4_widetile": {
         "kernel": "fused_matmul_q4_widetile.wgsl",
@@ -229,7 +229,7 @@
       "silu": {
         "kernel": "silu.wgsl",
         "entry": "main",
-        "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
+        "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
         "constants": {
           "HAS_GATE": true
         }

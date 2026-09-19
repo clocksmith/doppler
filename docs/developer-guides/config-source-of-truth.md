@@ -78,7 +78,18 @@ Kernel management checks:
 - `npm run kernels:codegen:check`
 - `npm run kernels:registry:check`
 - `npm run kernels:digests:check`
+- `npm run kernels:package-digests:check`
 - `npm run kernels:supported-manifests:report`
+
+`kernels:package-digests:check` validates the generated digest registry and all
+shipped conversion/source-package recipes. The default green chain runs it,
+and `package:smoke` checks recipes again in the installed archive. Neither gate
+reads or rewrites retained `models/local` manifests. Repair source recipes with
+`npm run kernels:conversion-digests:sync -- --source-only`, then rebuild the
+package. Check an existing installation without modifying it with
+`node tools/sync-conversion-kernel-digests.js --check --package-root <directory>`.
+This checks registered kernel digests; it does not qualify pending kernels or
+models.
 
 ## Model Registry Management
 

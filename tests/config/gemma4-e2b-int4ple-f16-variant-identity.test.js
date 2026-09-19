@@ -91,8 +91,15 @@ assert.equal(hashJson(retainedConfig), 'sha256:b7961c6c2c0fa75a51db4eb689e737c88
 assert.notEqual(hashJson(af16Config), hashJson(retainedConfig));
 const currentWithRetainedKernel = structuredClone(af16Config);
 currentWithRetainedKernel.execution.kernels.gelu.digest = retainedConfig.execution.kernels.gelu.digest;
+const digestRebindings = readJson('artifacts/release-kernel-digests-2026-09-12/recipe-digest-rebindings.json');
+for (const [id, kernel] of Object.entries(retainedConfig.execution.kernels)) {
+  if (kernel.digest in digestRebindings) {
+    assert.equal(currentWithRetainedKernel.execution.kernels[id].digest, digestRebindings[kernel.digest]);
+    currentWithRetainedKernel.execution.kernels[id].digest = kernel.digest;
+  }
+}
 assert.deepEqual(currentWithRetainedKernel, retainedConfig,
-  'This extension changes only the GELU source identity in the retained Gemma recipe.');
+  'Only the GELU identity and recorded kernel-digest repairs may differ from the retained Gemma recipe.');
 
 assert.deepEqual(
   af16Manifest.inference?.session?.compute?.defaults,
