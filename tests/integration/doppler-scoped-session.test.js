@@ -144,6 +144,54 @@ test('close is idempotent and blocks later work', async () => {
   await assert.rejects(session.generate('prompt'), /session is closed/);
 });
 
+test('concurrent close and disposal wait for the same unload', async () => {
+  const unloading = Promise.withResolvers();
+  let unloadCount = 0;
+  const session = createScopedModelSession(makeHandle({
+    async unload() {
+      unloadCount += 1;
+      await unloading.promise;
+    },
+  }));
+  const first = session.close();
+  const second = session.close();
+  const disposal = session[Symbol.asyncDispose]();
+  let secondFinished = false;
+  second.then(() => { secondFinished = true; });
+  try {
+    await Promise.resolve();
+    assert.equal(session.closed, true, 'closing immediately rejects new work');
+    await assert.rejects(session.generate('prompt'), /session is closed/);
+    assert.equal(secondFinished, false, 'close cannot report completion before resources are released');
+  } finally {
+    unloading.resolve();
+    await Promise.all([first, second, disposal]);
+  }
+  assert.equal(unloadCount, 1);
+});
+
+test('every close caller observes the original unload failure without retrying cleanup', async () => {
+  for (const synchronous of [false, true]) {
+    const unloading = Promise.withResolvers();
+    const failure = new Error('unload failed');
+    let unloadCount = 0;
+    const session = createScopedModelSession(makeHandle({
+      unload() {
+        unloadCount += 1;
+        if (synchronous) throw failure;
+        return unloading.promise;
+      },
+    }));
+    const first = assert.rejects(session.close(), error => error === failure);
+    const second = assert.rejects(session.close(), error => error === failure);
+    const disposal = assert.rejects(session[Symbol.asyncDispose](), error => error === failure);
+    if (!synchronous) unloading.reject(failure);
+    await Promise.all([first, second, disposal]);
+    await assert.rejects(session.close(), error => error === failure);
+    assert.equal(unloadCount, 1);
+  }
+});
+
 test('guided and deep inspection disclose non-representative execution', async () => {
   const session = createScopedModelSession(makeHandle());
   const guided = await session.inspect('prompt');

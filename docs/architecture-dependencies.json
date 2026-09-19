@@ -4244,6 +4244,7 @@
         "tests/inference/pipeline-context-restoration.test.js",
         "tests/inference/pipeline-embedding-fast-path.test.js",
         "tests/inference/pipeline-session-config.test.js",
+        "tests/inference/pipeline-session-interleaving.test.js",
         "tests/inference/pipeline-shader-scope.test.js",
         "tests/inference/postnorm-contract.test.js",
         "tests/inference/prefill-output-ownership.test.js",

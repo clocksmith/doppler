@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.session-interleaving-package-audit/v1",
+  "baseline": "d27bfbaf",
+  "node": "22.23.2",
+  "npm": "10.9.8",
+  "archive": "/var/tmp/doppler-session-interleaving.LV1VXp/doppler-gpu-0.6.2.tgz",
+  "sha256": "7abc1abf2ea7cb44a447f3674fc69fd4fcd9160985ddc9a4bcad07c813350ee8",
+  "entryCount": 1858,
+  "packedBytes": 2149978,
+  "unpackedBytes": 11302207,
+  "inventoryUnchanged": true,
+  "changes": [
+    {
+      "path": "src/client/runtime/scoped-session.js",
+      "beforeBytes": 8909,
+      "afterBytes": 9162,
+      "deltaBytes": 253
+    },
+    {
+      "path": "src/client/runtime/scoped-session.d.ts",
+      "beforeBytes": 4662,
+      "afterBytes": 4751,
+      "deltaBytes": 89
+    }
+  ]
+}

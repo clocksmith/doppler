@@ -80,7 +80,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // compressed bytes with the same 1858 entries / 11,301,865 unpacked bytes.
   // Preserve exact payload limits; only the measured gzip allowance changes.
   // Evidence: artifacts/main-integration-2026-09-19/remote-ci-initial.json.
-  maxPackedSize: 2_149_817,
+  // Shared session-close completion adds 342 unpacked bytes in two existing files.
+  // Node 22.23.2/npm 10.9.8: 2,149,978 packed bytes; inventory unchanged.
+  // Evidence: artifacts/session-interleaving-2026-09-19/package-audit.json.
+  maxPackedSize: 2_149_978,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -91,7 +94,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // and benchmark-observation changes preceded installed-consumer work; its
   // application fixtures remain outside the package. The archive inventory is
   // retained in artifacts/installed-consumers-2026-09-12/candidate/npm-pack.json.
-  maxUnpackedSize: 11_301_865,
+  maxUnpackedSize: 11_302_207,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
