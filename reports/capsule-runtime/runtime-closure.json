@@ -2,8 +2,8 @@
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
-  "fileCount": 70,
-  "sourceBytes": 738608,
+  "fileCount": 71,
+  "sourceBytes": 757251,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -244,8 +244,8 @@
     },
     {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 422924,
-      "hash": "sha256:d4876fff9c8c795380298726fad65b2f176da10cc75636fda53b5b76616f1e58"
+      "sizeBytes": 440813,
+      "hash": "sha256:4e292c1471d4b2f6012b3f766c292c22a1217afaf9692452c84e2e39aec427a4"
     },
     {
       "path": "src/config/lora-layouts.js",
@@ -264,8 +264,8 @@
     },
     {
       "path": "src/config/model-ir.js",
-      "sizeBytes": 6644,
-      "hash": "sha256:f970113567f8dd296b28fc76d4711a7bc21d2c51185e1ed630d9e52ce6b23219"
+      "sizeBytes": 6954,
+      "hash": "sha256:cb808e6a8c05a0b174f930891d648eac027f6e270266b68b7227afc8dd74078d"
     },
     {
       "path": "src/config/revocation-policy.js",
@@ -276,6 +276,11 @@
       "path": "src/config/revocation-registry.json",
       "sizeBytes": 270,
       "hash": "sha256:55923af9620bd85335672067f55fa87b42ce2bd718bda2e33ac64a79734b569f"
+    },
+    {
+      "path": "src/config/rope-frequencies.js",
+      "sizeBytes": 444,
+      "hash": "sha256:35ce10b989052c732a0c7b9a94476c7e543599e39cc2bcf5a66c1778bfb585ad"
     },
     {
       "path": "src/config/schema/debug.schema.js",

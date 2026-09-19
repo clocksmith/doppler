@@ -251,7 +251,7 @@
       "sample": {
         "kernel": "sample.wgsl",
         "entry": "sample_single_pass",
-        "digest": "sha256:85b79cfe27c04f8c9ff113e0b5bfa8ae4a9b4da059b7504f51d2f76c56fc604b"
+        "digest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef"
       },
       "gemv": {
         "kernel": "matmul_gemv_subgroup.wgsl",
