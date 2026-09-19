@@ -1,0 +1,11 @@
+{
+  "schema": "doppler.capsule-token-selection-contract/v1",
+  "declarationSchema": "doppler.capsule-token-selection/v1",
+  "generationContract": "doppler.generation-contract/v1",
+  "logitsDtype": "f32",
+  "requiredKernels": [
+    { "operation": "sample", "variant": "argmax" },
+    { "operation": "rep_penalty", "variant": "default" },
+    { "operation": "logit_suppress", "variant": "f32" }
+  ]
+}

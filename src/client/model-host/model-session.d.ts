@@ -276,6 +276,8 @@ export interface DopplerModelHandle {
       phase?: Record<string, unknown> | null;
     }>;
     decodeStepLogits(currentIds: number[], options?: DopplerGenerateOptions): Promise<LogitsStepResult>;
+    prefillWithToken(prompt: string, options: DopplerGenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('../../inference/pipelines/text/generator/token-selection.js').SelectedTokenResult>;
+    decodeStepWithToken(currentIds: number[], options: DopplerGenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('../../inference/pipelines/text/generator/token-selection.js').SelectedTokenResult>;
     generateWithPrefixKV(
       prefix: KVCacheSnapshot,
       prompt: string,

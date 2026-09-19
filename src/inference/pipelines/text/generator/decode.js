@@ -2,41 +2,30 @@ import { getDevice, setTrackSubmits } from '../../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
 import { recordHistoryPenalties } from '../../../../gpu/kernels/rep-penalty.js';
-import { recordCheckStop } from '../../../../gpu/kernels/check-stop.js';
-import { recordCheckHotVocabStop } from '../../../../gpu/kernels/check-hot-vocab-stop.js';
+
+
 import { resetSubmitStats, logSubmitStats } from '../../../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../../gpu/command-recorder.js';
 import { allowReadback } from '../../../../gpu/perf-guards.js';
-import { getUniformCache } from '../../../../gpu/uniform-cache.js';
+
 import { log } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import {
-  isBatchDecodeEnabled,
-  isDecodeRecorderEnabled,
-  isProfileDecodeRecorderEnabled,
-} from '../execution-plan.js';
-import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity, getTopK } from '../sampling.js';
-import { isStopToken } from '../init.js';
+import { isDecodeRecorderEnabled, isProfileDecodeRecorderEnabled } from '../execution-plan.js';
+import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity } from '../sampling.js';
+
 import { embed } from '../embed.js';
 import { resolvePerLayerInputsSession } from './session-context.js';
 import { processLayer } from '../layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, recordGreedyLmHeadArgmaxGPU, extractLastPositionLogits } from '../logits/index.js';
+import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits } from '../logits/index.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from '../../../../gpu/weight-buffer.js';
 import { decodeReadback } from '../debug-utils/index.js';
 import { captureObservedFusedDecodeLogits, emitObservedLogits } from '../generator-logits-observation.js';
-import { getFinalNormWeights, extractEmbeddingFromHidden } from '../generator-runtime.js';
+
 import { parseFinitenessStatusWords } from '../finiteness-guard-status.js';
-import { hasLinearAttentionLayers } from '../linear-attention.js';
+
 import { hasConvLayers } from '../layer.js';
 import { advanceDecodeStepCount } from '../tsir-fixture-writer.js';
-import {
-  preparePerLayerInputs,
-  createPleBufferCache,
-  prefetchPerLayerRow,
-  hasRangeBackedPerLayerInputEmbeddings,
-  hasGpuSplitPerLayerInputEmbeddings,
-  getPleHotVocabularyRuntime,
-} from '../per-layer-inputs.js';
+import { preparePerLayerInputs, prefetchPerLayerRow } from '../per-layer-inputs.js';
 
 export const UNKNOWN_TOKEN_TEXT = '<unknown>';
 
@@ -280,48 +269,54 @@ export async function runDecodeLayers(state, tokenId, opts, helpers) {
 
   let hiddenStates = embedTensor.buffer;
 
-  // Resolve pending PLE prefetch from previous decode step
-  let plePrefetchResult = null;
-  if (state.plePrefetchPending) {
-    plePrefetchResult = await state.plePrefetchPending;
-    state.plePrefetchPending = null;
-  }
-
-  const perLayerInputs = await preparePerLayerInputs([tokenId], embedTensor, context, {
-    numTokens: 1,
-    pleCache: state.pleCache ?? null,
-    prefetchedRow: plePrefetchResult,
-  });
-
+  let returned = false;
   try {
-    for (let l = 0; l < config.numLayers; l++) {
-      context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
-      const prevStates = hiddenStates;
-      hiddenStates = (await processLayer(l, hiddenStates, 1, false, context));
-      state.decodeBuffers.swapPingPong();
-      releasePerLayerInputBuffer(context.perLayerInputBuffer, null, context.decodeBuffers, state.pleCache ?? null);
-      if (perLayerInputs) {
-        perLayerInputs[l] = null;
-      }
-      context.perLayerInputBuffer = null;
-      if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStates) {
-        const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
-        if (!isPreAllocated) {
-          releaseBuffer(prevStates);
+    // Resolve pending PLE prefetch from previous decode step
+    let plePrefetchResult = null;
+    if (state.plePrefetchPending) {
+      plePrefetchResult = await state.plePrefetchPending;
+      state.plePrefetchPending = null;
+    }
+
+    const perLayerInputs = await preparePerLayerInputs([tokenId], embedTensor, context, {
+      numTokens: 1,
+      pleCache: state.pleCache ?? null,
+      prefetchedRow: plePrefetchResult,
+    });
+
+    try {
+      for (let l = 0; l < config.numLayers; l++) {
+        context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
+        const prevStates = hiddenStates;
+        hiddenStates = (await processLayer(l, hiddenStates, 1, false, context));
+        state.decodeBuffers.swapPingPong();
+        releasePerLayerInputBuffer(context.perLayerInputBuffer, null, context.decodeBuffers, state.pleCache ?? null);
+        if (perLayerInputs) {
+          perLayerInputs[l] = null;
+        }
+        context.perLayerInputBuffer = null;
+        if (isGpuBufferInstance(prevStates) && prevStates !== hiddenStates) {
+          const isPreAllocated = isOwnedDecodeBuffer(prevStates, decodeHiddenBuffer, decodeAltBuffer);
+          if (!isPreAllocated) {
+            releaseBuffer(prevStates);
+          }
         }
       }
-    }
-  } finally {
-    context.perLayerInputBuffer = null;
-    if (perLayerInputs) {
-      for (const buffer of perLayerInputs) {
-        releasePerLayerInputBuffer(buffer, null, context.decodeBuffers, state.pleCache ?? null);
+    } finally {
+      context.perLayerInputBuffer = null;
+      if (perLayerInputs) {
+        for (const buffer of perLayerInputs) {
+          releasePerLayerInputBuffer(buffer, null, context.decodeBuffers, state.pleCache ?? null);
+        }
       }
+      helpers.releaseSharedAttentionState?.(context.sharedAttentionState, null);
     }
-    helpers.releaseSharedAttentionState?.(context.sharedAttentionState, null);
-  }
 
-  return { hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer, context };
+    returned = true;
+    return { hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer, context };
+  } finally {
+    if (!returned && !isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer)) releaseBuffer(hiddenStates);
+  }
 }
 
 export function createDecodeRecorder(state, opts) {
@@ -889,76 +884,85 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
   advanceDecodeStepCount(state);
   const recorder = createDecodeRecorder(state, opts);
 
-  const { hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer } = await runDecodeLayers(
-    state,
-    lastToken,
-    opts,
-    {
-      ...helpers,
-      buildLayerContext: (ignoredRecorder, isDecode, debugLayers, executionPlan) =>
-        helpers.buildLayerContext(recorder, isDecode, debugLayers, executionPlan),
+  let hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer;
+  let logitsBuffer = null, returned = false;
+  try {
+    ({ hiddenStates, decodeHiddenBuffer, decodeAltBuffer, debugCheckBuffer } = await runDecodeLayers(
+      state,
+      lastToken,
+      opts,
+      {
+        ...helpers,
+        buildLayerContext: (ignoredRecorder, isDecode, debugLayers, executionPlan) =>
+          helpers.buildLayerContext(recorder, isDecode, debugLayers, executionPlan),
+      }
+    ));
+
+    await submitDecodeRecorderProfile(state, opts, recorder, ' (layers only)');
+
+    let logitsDtype = null;
+    let rawVocabSize = config.vocabSize;
+    let logits = null;
+
+    if (state.useGPU && !isCpuWeightBuffer(state.weights.get('lm_head'))) {
+      const logitsResult = await computeLogitsGPU(
+        hiddenStates,
+        numTokens,
+        helpers.getLogitsWeights(),
+        helpers.getLogitsConfig(),
+        state.debugFlags,
+        state.operatorDiagnostics,
+        { applySoftcap: true }
+      );
+
+      if (logitsResult) {
+        logitsBuffer = logitsResult.logitsBuffer;
+        logitsDtype = logitsResult.logitsDtype;
+        rawVocabSize = logitsResult.vocabSize;
+
+        if (opts._returnGpuLogits !== true) {
+          const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
+          const logitsData = await readBuffer(logitsBuffer, numTokens * rawVocabSize * logitsBytes);
+          const rawLogits = decodeReadback(logitsData, logitsDtype);
+          logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
+        }
+      }
     }
-  );
 
-  await submitDecodeRecorderProfile(state, opts, recorder, ' (layers only)');
-
-  let logitsBuffer = null;
-  let logitsDtype = null;
-  let rawVocabSize = config.vocabSize;
-  let logits = null;
-
-  if (state.useGPU && !isCpuWeightBuffer(state.weights.get('lm_head'))) {
-    const logitsResult = await computeLogitsGPU(
-      hiddenStates,
-      numTokens,
-      helpers.getLogitsWeights(),
-      helpers.getLogitsConfig(),
-      state.debugFlags,
-      state.operatorDiagnostics,
-      { applySoftcap: true }
-    );
-
-    if (logitsResult) {
-      logitsBuffer = logitsResult.logitsBuffer;
-      logitsDtype = logitsResult.logitsDtype;
-      rawVocabSize = logitsResult.vocabSize;
-
-      const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: logitsDtype });
-      const logitsData = await readBuffer(logitsBuffer, numTokens * rawVocabSize * logitsBytes);
-      const rawLogits = decodeReadback(logitsData, logitsDtype);
-      logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
+    if (!logits && !(opts._returnGpuLogits === true && logitsBuffer)) {
+      const rawLogits = await computeLogits(
+        hiddenStates,
+        numTokens,
+        helpers.getLogitsWeights(),
+        helpers.getLogitsConfig(),
+        state.useGPU,
+        state.debugFlags,
+        undefined,
+        debugCheckBuffer,
+        state.runtimeConfig.shared.debug.probes,
+        { returnGpuBuffer: opts._returnGpuLogits === true },
+        state.operatorDiagnostics
+      );
+      if (opts._returnGpuLogits === true) {
+        ({ logitsBuffer, logitsDtype, rawVocabSize } = rawLogits);
+      } else {
+        logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
+      }
     }
+
+    state.currentSeqLen++;
+
+    returned = true;
+    return {
+      logits,
+      logitsBuffer,
+      logitsDtype,
+      rawVocabSize,
+      vocabSize: config.vocabSize,
+    };
+  } finally {
+    if (hiddenStates && !isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer)) releaseBuffer(hiddenStates);
+    if (!returned && logitsBuffer) releaseBuffer(logitsBuffer);
+    recorder?.abort();
   }
-
-  if (!logits) {
-    const rawLogits = await computeLogits(
-      hiddenStates,
-      numTokens,
-      helpers.getLogitsWeights(),
-      helpers.getLogitsConfig(),
-      state.useGPU,
-      state.debugFlags,
-      undefined,
-      debugCheckBuffer,
-      state.runtimeConfig.shared.debug.probes,
-      null,
-      state.operatorDiagnostics
-    );
-    logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
-  }
-
-  const isPreAllocated = isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer);
-  if (!isPreAllocated) {
-    releaseBuffer(hiddenStates);
-  }
-
-  state.currentSeqLen++;
-
-  return {
-    logits,
-    logitsBuffer,
-    logitsDtype,
-    rawVocabSize,
-    vocabSize: config.vocabSize,
-  };
 }

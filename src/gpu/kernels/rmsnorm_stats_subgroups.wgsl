@@ -1,7 +1,7 @@
 enable subgroups;
+requires subgroup_id;
 
 override WORKGROUP_SIZE: u32 = 256u;
-const MAX_SUBGROUPS: u32 = 32u;
 
 struct RMSNormStatsParams {
   hidden_size: u32,
@@ -16,16 +16,15 @@ struct RMSNormStatsParams {
 @group(0) @binding(3) var<storage, read_write> prenorm_sum: array<f32>;
 @group(0) @binding(4) var<storage, read_write> inv_rms: array<f32>;
 
-var<workgroup> subgroup_partial_sums: array<f32, MAX_SUBGROUPS>;
+var<workgroup> subgroup_partial_sums: array<f32, WORKGROUP_SIZE>;
 
 fn reduce_sum(
   local_sum_sq: f32,
   thread_index: u32,
   subgroup_lane: u32,
-  subgroup_size: u32
+  subgroup_id: u32,
+  subgroup_count: u32
 ) -> f32 {
-  let subgroup_id = thread_index / subgroup_size;
-  let subgroup_count = (WORKGROUP_SIZE + subgroup_size - 1u) / subgroup_size;
   let subgroup_sum = subgroupAdd(local_sum_sq);
   if (subgroup_lane == 0u && subgroup_id < subgroup_count) {
     subgroup_partial_sums[subgroup_id] = subgroup_sum;
@@ -51,7 +50,8 @@ fn main(
   @builtin(local_invocation_id) local_id: vec3<u32>,
   @builtin(workgroup_id) workgroup_id: vec3<u32>,
   @builtin(subgroup_invocation_id) subgroup_lane: u32,
-  @builtin(subgroup_size) subgroup_size: u32
+  @builtin(subgroup_id) subgroup_id: u32,
+  @builtin(num_subgroups) subgroup_count: u32
 ) {
   let token = token_index(workgroup_id);
   let thread_index = local_id.x;
@@ -69,7 +69,7 @@ fn main(
       local_sum_sq = local_sum_sq + value * value;
     }
   }
-  let total_sum = reduce_sum(local_sum_sq, thread_index, subgroup_lane, subgroup_size);
+  let total_sum = reduce_sum(local_sum_sq, thread_index, subgroup_lane, subgroup_id, subgroup_count);
   if (thread_index == 0u) {
     inv_rms[token] = inverseSqrt(total_sum / f32(params.hidden_size) + params.eps);
   }

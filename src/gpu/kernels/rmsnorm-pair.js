@@ -112,7 +112,7 @@ async function runRMSNormPairImpl(
       variant,
       [input, residualBuffer, postWeightBuffer, preWeightBuffer, postOutput, preOutput],
       {
-        hidden_size: inferredHiddenSize,
+        size: inferredHiddenSize,
         num_tokens: batchSize,
         eps,
         has_residual: residual ? 1 : 0,
@@ -212,7 +212,7 @@ async function runResidualRMSNormPairImpl(
       variant,
       [input, residual, normWeightBuffer, residualOutput, normOutput],
       {
-        hidden_size: inferredHiddenSize,
+        size: inferredHiddenSize,
         num_tokens: batchSize,
         eps,
         output_scale: residualScale,

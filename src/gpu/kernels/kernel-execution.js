@@ -90,15 +90,16 @@ export async function unifiedKernelWrapper(
     }
   }
 
-  const uniformBuffer = createUniformBuffer(
-    `${opName}_uniforms`,
-    getUniformByteLength(config),
-    (view) => writeUniformsFromObject(view, config, uniforms),
-    recorder,
-    device
-  );
-  bindGroupEntries.unshift({ binding: 0, resource: { buffer: uniformBuffer } });
+  let uniformBuffer = null;
   try {
+    uniformBuffer = createUniformBuffer(
+      `${opName}_uniforms`,
+      getUniformByteLength(config),
+      (view) => writeUniformsFromObject(view, config, uniforms),
+      recorder,
+      device
+    );
+    bindGroupEntries.unshift({ binding: 0, resource: { buffer: uniformBuffer } });
     const bindGroup = device.createBindGroup({
       label: `${opName}_bind_group`,
       layout: getPipelineBindGroupLayout(pipeline, 0),
@@ -120,7 +121,7 @@ export async function unifiedKernelWrapper(
     }
   } catch (error) {
     if (!recorder) {
-      uniformBuffer.destroy();
+      uniformBuffer?.destroy();
     }
     throw error;
   }

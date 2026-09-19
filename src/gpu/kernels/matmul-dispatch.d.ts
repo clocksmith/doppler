@@ -30,6 +30,7 @@ export declare function calculateMatmulDispatch(
 
 export declare function createMatmulUniformBuffer(
   label: string,
+  config: KernelConfig,
   M: number,
   N: number,
   K: number,
@@ -38,7 +39,8 @@ export declare function createMatmulUniformBuffer(
   transposeB: boolean,
   uniformWorkgroupsX: number | undefined,
   recorder: CommandRecorder | null,
-  device: GPUDevice
+  device: GPUDevice,
+  extras?: { eps?: number } | null
 ): GPUBuffer;
 
 export declare function createMatmulBindGroupLayout(): GPUBindGroupLayout;

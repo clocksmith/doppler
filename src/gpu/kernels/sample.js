@@ -1,3 +1,4 @@
+import { getKernelBindGroupLayout, createKernelBindingEntries } from './kernel-bindings.js';
 
 
 import { getDevice, getKernelCapabilities } from '../device.js';
@@ -5,9 +6,9 @@ import { acquireBuffer, readBufferSlice, releaseBuffer } from '../../memory/buff
 import { WORKGROUP_SIZES } from './constants.js';
 import {
   createPipeline,
-  getOrCreateBindGroupLayout,
 } from './pipeline-cache.js';
-import { createUniformBufferWithView } from './uniform-utils.js';
+import { getKernelConfig } from './kernel-configs.js';
+import { createKernelUniformBuffer } from './uniform-utils.js';
 import { allowReadback } from '../perf-guards.js';
 import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
@@ -16,23 +17,23 @@ import { recordDispatch } from './dispatch.js';
 import { validateGenerationField } from '../../config/generation-contract.js';
 
 
-function getSampleBindGroupLayout(device) {
-  return getOrCreateBindGroupLayout(
-    'sample_bind_group_layout',
-    [
-      { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
-      { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
-      { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
-      { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
-      { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
-    ],
-    device
-  );
+function getSampleBindGroupLayout(device, variant) {
+  return getKernelBindGroupLayout(getKernelConfig('sample', variant), device);
+}
+
+function sampleBindingEntries(variant, uniformBuffer, logits, output, indices, scores) {
+  return createKernelBindingEntries(getKernelConfig('sample', variant), {
+    uniforms: { buffer: uniformBuffer },
+    logits: { buffer: logits },
+    output: { buffer: output },
+    topk_indices: { buffer: indices },
+    topk_logits: { buffer: scores },
+  });
 }
 
 
 async function createSamplePipeline(device, entryPoint) {
-  return createPipeline('sample', entryPoint, getSampleBindGroupLayout(device));
+  return createPipeline('sample', entryPoint, getSampleBindGroupLayout(device, entryPoint));
 }
 
 function resolveSampleVariants(logitsDtype) {
@@ -121,38 +122,38 @@ async function resolveArgmaxPipelines(device, vocabSize, variants) {
   };
 }
 
-function createArgmaxUniformBuffer(device, recorder, vocabSize, options) {
-  const padTokenValue = options.padTokenId == null ? 0xFFFFFFFF : options.padTokenId;
-  return createUniformBufferWithView(
+function createArgmaxUniformBuffer(device, recorder, variant, vocabSize, options) {
+  return createKernelUniformBuffer(
     'argmax_uniforms',
-    32,
-    (view) => {
-      view.setUint32(0, vocabSize, true);
-      view.setUint32(4, 1, true);
-      view.setFloat32(8, 1.0, true);
-      view.setFloat32(12, 0.0, true);
-      view.setUint32(16, padTokenValue, true);
-      view.setFloat32(20, options.logitSoftcap, true);
-      view.setUint32(24, options.outputIndex, true);
+    getKernelConfig('sample', variant),
+    {
+      vocab_size: vocabSize,
+      top_k: 1,
+      temperature: 1.0,
+      random_value: 0.0,
+      pad_token_id: options.padTokenId === null ? 0xFFFFFFFF : options.padTokenId,
+      logit_softcap: options.logitSoftcap === null ? 0 : options.logitSoftcap,
+      output_index: options.outputIndex,
+      top_p: 0.0, // Argmax does not sample a probability distribution.
     },
     recorder,
     device
   );
 }
 
-function createSampleUniformBuffer(device, recorder, vocabSize, topK, temperature, randomValue, padTokenId, logitSoftcap, outputIndex, topP) {
-  return createUniformBufferWithView(
+function createSampleUniformBuffer(device, recorder, variant, vocabSize, topK, temperature, randomValue, padTokenId, logitSoftcap, outputIndex, topP) {
+  return createKernelUniformBuffer(
     'sample_uniforms',
-    32,
-    (view) => {
-      view.setUint32(0, vocabSize, true);
-      view.setUint32(4, topK, true);
-      view.setFloat32(8, temperature, true);
-      view.setFloat32(12, randomValue, true);
-      view.setUint32(16, padTokenId == null ? 0xFFFFFFFF : padTokenId, true);
-      view.setFloat32(20, logitSoftcap, true);
-      view.setUint32(24, outputIndex, true);
-      view.setFloat32(28, topP, true);
+    getKernelConfig('sample', variant),
+    {
+      vocab_size: vocabSize,
+      top_k: topK,
+      temperature,
+      random_value: randomValue,
+      pad_token_id: padTokenId === null ? 0xFFFFFFFF : padTokenId,
+      logit_softcap: logitSoftcap === null ? 0 : logitSoftcap,
+      output_index: outputIndex,
+      top_p: topP,
     },
     recorder,
     device
@@ -224,16 +225,10 @@ async function executeArgmaxRun(logits, vocabSize, options) {
     ownsOutputBuffer = !options.outputBuffer;
     ensureOutputBufferSize(outputBuffer, minOutputBytes, 'argmax outputIndex');
 
-    uniformBuffer = createArgmaxUniformBuffer(device, null, vocabSize, options);
+    uniformBuffer = createArgmaxUniformBuffer(device, null, variants.argmax, vocabSize, options);
 
-    const bindGroupLayout = getSampleBindGroupLayout(device);
-    const entries = [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: logits } },
-      { binding: 2, resource: { buffer: outputBuffer } },
-      { binding: 3, resource: { buffer: tempIndices } },
-      { binding: 4, resource: { buffer: tempLogits } },
-    ];
+    const bindGroupLayout = getSampleBindGroupLayout(device, variants.argmax);
+    const entries = sampleBindingEntries(variants.argmax, uniformBuffer, logits, outputBuffer, tempIndices, tempLogits);
     const argmaxBindGroup = device.createBindGroup({
       label: 'argmax_bind_group',
       layout: bindGroupLayout,
@@ -301,16 +296,10 @@ async function executeArgmaxRecord(recorder, logits, vocabSize, options) {
     ownsOutputBuffer = !options.outputBuffer;
     ensureOutputBufferSize(outputBuffer, minOutputBytes, 'argmax outputIndex');
 
-    const uniformBuffer = createArgmaxUniformBuffer(device, recorder, vocabSize, options);
+    const uniformBuffer = createArgmaxUniformBuffer(device, recorder, variants.argmax, vocabSize, options);
 
-    const bindGroupLayout = getSampleBindGroupLayout(device);
-    const entries = [
-      { binding: 0, resource: { buffer: uniformBuffer } },
-      { binding: 1, resource: { buffer: logits } },
-      { binding: 2, resource: { buffer: outputBuffer } },
-      { binding: 3, resource: { buffer: tempIndices } },
-      { binding: 4, resource: { buffer: tempLogits } },
-    ];
+    const bindGroupLayout = getSampleBindGroupLayout(device, variants.argmax);
+    const entries = sampleBindingEntries(variants.argmax, uniformBuffer, logits, outputBuffer, tempIndices, tempLogits);
     const bindGroup = device.createBindGroup({
       label: 'argmax_bind_group',
       layout: bindGroupLayout,
@@ -420,6 +409,7 @@ export async function runGPUSample(
     uniformBuffer = createSampleUniformBuffer(
       device,
       null,
+      variants.phase1,
       vocabSize,
       topK,
       temperature,
@@ -430,17 +420,11 @@ export async function runGPUSample(
       topP
     );
 
-    const bindGroupLayout = getSampleBindGroupLayout(device);
+    const bindGroupLayout = getSampleBindGroupLayout(device, variants.phase1);
     const bindGroup = device.createBindGroup({
       label: 'sample_bind_group',
       layout: bindGroupLayout,
-      entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: { buffer: logits } },
-        { binding: 2, resource: { buffer: outputBuffer } },
-        { binding: 3, resource: { buffer: topkIndices } },
-        { binding: 4, resource: { buffer: topkLogits } },
-      ],
+      entries: sampleBindingEntries(variants.phase1, uniformBuffer, logits, outputBuffer, topkIndices, topkLogits),
     });
 
     const encoder = device.createCommandEncoder({ label: 'sample_encoder' });
@@ -543,6 +527,7 @@ export async function recordGPUSample(
     const uniformBuffer = createSampleUniformBuffer(
       device,
       recorder,
+      variants.phase1,
       vocabSize,
       topK,
       temperature,
@@ -553,17 +538,11 @@ export async function recordGPUSample(
       topP
     );
 
-    const bindGroupLayout = getSampleBindGroupLayout(device);
+    const bindGroupLayout = getSampleBindGroupLayout(device, variants.phase1);
     const bindGroup = device.createBindGroup({
       label: 'sample_bind_group',
       layout: bindGroupLayout,
-      entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-        { binding: 1, resource: { buffer: logits } },
-        { binding: 2, resource: { buffer: outputBuffer } },
-        { binding: 3, resource: { buffer: topkIndices } },
-        { binding: 4, resource: { buffer: topkLogits } },
-      ],
+      entries: sampleBindingEntries(variants.phase1, uniformBuffer, logits, outputBuffer, topkIndices, topkLogits),
     });
 
     recordDispatch(recorder, phase1Pipeline, bindGroup, numWorkgroups, 'sample_phase1');

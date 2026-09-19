@@ -100,7 +100,7 @@ export async function createSignedCapsuleFixture(options = {}) {
     ['manifest', bytes(options.manifest ? JSON.stringify(options.manifest) : '{"modelId":"capsule-test-model"}\n')],
     ['tokenizer', bytes('{"type":"test"}\n')],
     ['weights', Uint8Array.from([1, 2, 3, 4])],
-    ['wgsl', bytes('@compute @workgroup_size(1) fn main() {}\n')],
+    ['wgsl', bytes(options.wgslSource ?? '@compute @workgroup_size(1) fn main() {}\n')],
     ['evidence', bytes('{"passed":true}\n')],
     ['program-bundle', bytes('{"schema":"doppler.program-bundle/v1"}\n')],
   ]);
@@ -150,7 +150,7 @@ export async function createSignedCapsuleFixture(options = {}) {
     modelIRHash: hashModelIR(modelIR),
     executionGraphHash,
     programBundleHash,
-    capabilityPredicate: { requiresF16: false, requiresSubgroups: false, minBufferSize: 4 },
+    capabilityPredicate: options.capabilityPredicate ?? { requiresF16: false, requiresSubgroups: false, minBufferSize: 4 },
     dtypes: { activation: 'f32', kv: 'f32', weight: 'f32' },
     fusions: [],
     kernelClosure: [{ moduleId: 'main', digest: wgslHash, sourceHash: wgslHash }],

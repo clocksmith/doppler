@@ -5,26 +5,13 @@ import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from 
 import { allowReadback } from '../../../../gpu/perf-guards.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
-import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from '../sampling.js';
+import { sample, logitsSanity } from '../sampling.js';
 import { embed } from '../embed.js';
 import { processLayer } from '../layer.js';
-import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits } from '../logits/index.js';
-import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata, getLayout } from '../../../../gpu/weight-buffer.js';
-import {
-  decodeStep,
-  decodeStepLogits,
-  advanceWithToken,
-  generateNTokensGPU,
-  shouldUseBatchDecode,
-  sumProfileTimings,
-  FinitenessError,
-  advanceWithTokenAndEmbedding as runAdvanceWithTokenAndEmbedding,
-} from '../generator-steps.js';
-import {
-  buildLayerContext,
-  debugCheckBuffer as debugCheckBufferHelper,
-  resolvePerLayerInputsSession,
-} from './session-context.js';
+import { computeLogits, recordLogitsGPU, extractLastPositionLogits } from '../logits/index.js';
+import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, getWeightMetadata } from '../../../../gpu/weight-buffer.js';
+import { sumProfileTimings, FinitenessError } from '../generator-steps.js';
+import { buildLayerContext, debugCheckBuffer as debugCheckBufferHelper } from './session-context.js';
 import {
   getLogitsConfig,
   getLogitsWeights,
@@ -32,41 +19,12 @@ import {
 import { releaseSharedAttentionState } from './attention-lifecycle.js';
 import { decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
 import { parseFinitenessStatusWords } from '../finiteness-guard-status.js';
-import {
-  advanceDecodeStepCount,
-  createTsirFixtureState,
-  drainPendingTsirReads,
-} from '../tsir-fixture-writer.js';
-import {
-  activateFallbackExecutionPlan,
-  hasFallbackExecutionPlan,
-  rebaseExecutionSessionPlan,
-  resetActiveExecutionPlan,
-  resolveMaxBatchDecodeTokens,
-  resolvePrefillRecorderChunkLayers,
-  resolveActiveExecutionPlan,
-  setActiveExecutionPlan,
-} from '../execution-plan.js';
-import {
-  cloneLinearAttentionRuntime,
-  hasLinearAttentionLayers,
-  resetLinearAttentionRuntime,
-  restoreLinearAttentionRuntime,
-} from '../linear-attention.js';
-import {
-  preparePerLayerInputs,
-  createPleBufferCache,
-  prefetchPerLayerRow,
-  getPleHotVocabularyRuntime,
-  hasGpuSplitPerLayerInputEmbeddings,
-  hasRangeBackedPerLayerInputEmbeddings,
-} from '../per-layer-inputs.js';
+import { drainPendingTsirReads } from '../tsir-fixture-writer.js';
+import { resolvePrefillRecorderChunkLayers } from '../execution-plan.js';
+import { hasLinearAttentionLayers, resetLinearAttentionRuntime } from '../linear-attention.js';
+import { preparePerLayerInputs } from '../per-layer-inputs.js';
 import { createTensor } from '../../../../gpu/tensor.js';
-import {
-  releasePerLayerInputBuffer,
-  shouldDisablePrefillCommandBatching,
-  resolveEffectivePrefillTokenChunkSize,
-} from './prefill-policy.js';
+import { releasePerLayerInputBuffer, shouldDisablePrefillCommandBatching } from './prefill-policy.js';
 import { probePrefillEmbedding, tracePrefillEmbeddingIds } from './prefill-observation.js';
 import {
   normalizePrefixEmbeddingOverride,
@@ -75,22 +33,8 @@ import {
   applyPrefixEmbeddingOverride,
   resolvePrefixEmbeddingOverrideTransitionDeclaredBy,
 } from './prefix-embedding.js';
-import {
-  shouldDisableBatchDecodeAfterShortBatch,
-  resolveHotVocabularyBatchDecodeAvailability,
-  primePleDecodeRuntimeCache,
-  recordPrefillProfileStep,
-  resolveTokenText,
-  usesReplayPrefillDecode,
-  assertIncrementalDecodeSupport,
-  summarizeExecutionPlan,
-  shouldRetryWithFinitenessFallback,
-  createUnhandledFinitenessPolicyError,
-  resolveTargetPlanKVDtype,
-  resolveCurrentKVCacheDtype,
-  cloneRuntimeInferenceWithKVDtype,
-} from '../generator-decode-policy.js';
-import { FINITENESS_RESET_WORDS, borrowLinearWeight, borrowNormWeight, canUseChunkedSoftEmbeddingLogits, getExperimentalIntentBundleModule, normalizeCanvasTokenIds, normalizeSelectedLogitTokenIds, normalizeSelfConditioningLogits, normalizeSelfConditioningLogitsState, normalizeSelfConditioningSoftEmbeddingState, recordPrefillRecorderStats, releaseBorrowedWeight, resolveDiffusionGemmaSoftEmbeddingChunkRows, resolvePrefillChunkSubmitMode, resolveSuppressedSamplingTokenIds, traceActivationHealth } from './text.js';
+import { recordPrefillProfileStep, resolveTokenText } from '../generator-decode-policy.js';
+import { FINITENESS_RESET_WORDS, normalizeSelectedLogitTokenIds, recordPrefillRecorderStats, resolvePrefillChunkSubmitMode, traceActivationHealth } from './text.js';
 
 export async function _commitPrefillHiddenChunk(prefillResult) {
     const {
@@ -477,328 +421,367 @@ export async function _prefill(inputIds, opts) {
     });
 
     let currentHiddenBuffer = hiddenStates.buffer;
-    let prefillRecordMs = 0;
-    let prefillSubmitWaitMs = 0;
-    const layerLoopTraceStart = tracePrefillEnabled ? performance.now() : 0;
-    const traceLayerHealthEnabled = isTraceEnabled('logits');
+    let transferred = false;
     try {
-      for (let l = 0; l < config.numLayers; l++) {
-        // Per-layer hard cancellation: when the caller's AbortSignal aborts,
-        // exit the prefill loop between layer dispatches rather than
-        // continuing to burn GPU on superseded work. Granularity is one
-        // layer (~5-50ms), which is the fastest cancel granularity WebGPU
-        // exposes today.
-        if (opts?.signal?.aborted) {
-          const reason = typeof opts.signal.reason === "string" ? opts.signal.reason : "Doppler: prefill aborted";
-          const err = new Error(reason);
-          err.name = "AbortError";
-          err.code = "ABORT_ERR";
-          throw err;
-        }
-        context.recorder = currentRecorder;
-        context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
-
-        const prevBuffer = currentHiddenBuffer;
-        const layerRecordStart = performance.now();
-        const layerOutput = await processLayer(l, currentHiddenBuffer, numTokens, true, context);
-        prefillRecordMs += performance.now() - layerRecordStart;
-        if (!isGpuBufferInstance(layerOutput)) throw new Error('Expected GPUBuffer from processLayer');
-        currentHiddenBuffer = layerOutput;
-        releasePerLayerInputBuffer(
-          context.perLayerInputBuffer,
-          currentRecorder,
-          context.decodeBuffers,
-          this._state.pleCache ?? null
-        );
-        if (perLayerInputs) {
-          perLayerInputs[l] = null;
-        }
-        context.perLayerInputBuffer = null;
-
-        const isCheckpoint = useCheckpoints && opts.debugLayers?.includes(l);
-        const isChunkBoundary = !isCheckpoint
-          && !traceLayerHealthEnabled
-          && currentRecorder
-          && l < config.numLayers - 1
-          && (l + 1) % prefillRecorderChunkLayers === 0;
-
-        if (isCheckpoint && currentRecorder) {
-          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-            currentHiddenBuffer,
-            currentRecorder,
-            'prefill_checkpoint_carry'
-          );
-          recordPrefillRecorderStats(this._state, currentRecorder);
-          await currentRecorder.submitAndWait();
-          await recordProfile(currentRecorder);
-          currentRecorder = undefined;
-        }
-
-        if (traceLayerHealthEnabled && currentRecorder) {
-          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-            currentHiddenBuffer,
-            currentRecorder,
-            'prefill_trace_layer_health_carry'
-          );
-          const traceSubmitStart = performance.now();
-          recordPrefillRecorderStats(this._state, currentRecorder);
-          await currentRecorder.submitAndWait();
-          await recordProfile(currentRecorder);
-          prefillSubmitWaitMs += performance.now() - traceSubmitStart;
-          await traceActivationHealth(
-            `PREFILL_LAYER_${l}_HEALTH`,
-            currentHiddenBuffer,
-            activationDtype,
-            numTokens * config.hiddenSize
-          );
-          currentRecorder = l < config.numLayers - 1
-            ? createRecorder('prefill-trace')
-            : undefined;
-        }
-
-        const shouldDebug = opts.debug && currentHiddenBuffer && (!recorder || isCheckpoint);
-        if (shouldDebug && !currentRecorder) {
-          const device = getDevice();
-          if (device) {
-            if (allowReadback(`pipeline.prefill.layer-${l}`)) {
-              try {
-                const sampleSize = config.hiddenSize * activationBytes;
-                const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
-                const readback = await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize);
-                const data = decodeReadback(readback, activationDtype);
-                let min = Infinity;
-                let max = -Infinity;
-                let maxAbs = 0;
-                for (const v of data) {
-                  if (!Number.isFinite(v)) continue;
-                  if (v < min) min = v;
-                  if (v > max) max = v;
-                  const av = Math.abs(v);
-                  if (av > maxAbs) maxAbs = av;
-                }
-                const sample = Array.from(data).slice(0, 3).map(x => x.toFixed(3)).join(', ');
-                log.debug('Pipeline', `LAYER_${l}_LAST[pos=${numTokens - 1}]: min=${min.toFixed(3)}, max=${max.toFixed(3)}, maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
-              } catch (e) {
-                log.debug('Pipeline', `LAYER_${l}_LAST: error reading buffer: ${e}`);
-              }
-            }
+      let prefillRecordMs = 0;
+      let prefillSubmitWaitMs = 0;
+      const layerLoopTraceStart = tracePrefillEnabled ? performance.now() : 0;
+      const traceLayerHealthEnabled = isTraceEnabled('logits');
+      try {
+        for (let l = 0; l < config.numLayers; l++) {
+          // Per-layer hard cancellation: when the caller's AbortSignal aborts,
+          // exit the prefill loop between layer dispatches rather than
+          // continuing to burn GPU on superseded work. Granularity is one
+          // layer (~5-50ms), which is the fastest cancel granularity WebGPU
+          // exposes today.
+          if (opts?.signal?.aborted) {
+            const reason = typeof opts.signal.reason === "string" ? opts.signal.reason : "Doppler: prefill aborted";
+            const err = new Error(reason);
+            err.name = "AbortError";
+            err.code = "ABORT_ERR";
+            throw err;
           }
-        }
+          context.recorder = currentRecorder;
+          context.perLayerInputBuffer = perLayerInputs?.[l] ?? null;
 
-        if (isCheckpoint && useCheckpoints && l < config.numLayers - 1) {
-          currentRecorder = createRecorder('prefill-cont');
-        }
-
-        if (prevBuffer !== currentHiddenBuffer) {
-          if (currentRecorder) {
-            currentRecorder.trackTemporaryBuffer(prevBuffer);
-          } else {
-            releaseBuffer(prevBuffer);
-          }
-        }
-
-        if (isChunkBoundary) {
-          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-            currentHiddenBuffer,
-            currentRecorder,
-            'prefill_chunk_carry'
-          );
-          // Chunk boundary exists only to bound intermediate buffer lifetime.
-          // When the runtime opts into async chunk submit AND profile timings
-          // are not being collected, skip the CPU-GPU wait: queue order is
-          // preserved across submits and deferred cleanup still releases
-          // tracked buffers when GPU work completes. Profile runs keep the
-          // sync path because resolveProfileTimings requires the submitted
-          // work to be done.
-          const chunkSubmitMode = resolvePrefillChunkSubmitMode(
-            this._state.runtimeConfig,
-            this._state.modelConfig
-          );
-          const chunkSubmitStart = performance.now();
-          recordPrefillRecorderStats(this._state, currentRecorder);
-          if (chunkSubmitMode === 'async' && !opts.profile) {
-            currentRecorder.submit({ cleanup: 'deferred' });
-          } else {
-            await currentRecorder.submitAndWait();
-            await recordProfile(currentRecorder);
-          }
-          prefillSubmitWaitMs += performance.now() - chunkSubmitStart;
-          await traceActivationHealth(
-            `PREFILL_LAYER_${l}_HEALTH`,
-            currentHiddenBuffer,
-            activationDtype,
-            numTokens * config.hiddenSize
-          );
-          if (tracePrefillEnabled) {
-            trace.perf('Prefill chunk submitted', {
-              layer: l,
-              elapsedMs: performance.now() - layerLoopTraceStart,
-              prefillRecordMs,
-              prefillSubmitWaitMs,
-            });
-          }
-          currentRecorder = createRecorder('prefill-chunk');
-        }
-      }
-      if (tracePrefillEnabled) {
-        trace.perf('Prefill layer loop recorded', {
-          numTokens,
-          elapsedMs: performance.now() - layerLoopTraceStart,
-          prefillRecordMs,
-          prefillSubmitWaitMs,
-        });
-      }
-    } finally {
-      context.perLayerInputBuffer = null;
-      if (perLayerInputs) {
-        for (const buffer of perLayerInputs) {
+          const prevBuffer = currentHiddenBuffer;
+          const layerRecordStart = performance.now();
+          const layerOutput = await processLayer(l, currentHiddenBuffer, numTokens, true, context);
+          prefillRecordMs += performance.now() - layerRecordStart;
+          if (!isGpuBufferInstance(layerOutput)) throw new Error('Expected GPUBuffer from processLayer');
+          currentHiddenBuffer = layerOutput;
           releasePerLayerInputBuffer(
-            buffer,
+            context.perLayerInputBuffer,
             currentRecorder,
             context.decodeBuffers,
             this._state.pleCache ?? null
           );
+          if (perLayerInputs) {
+            perLayerInputs[l] = null;
+          }
+          context.perLayerInputBuffer = null;
+
+          const isCheckpoint = useCheckpoints && opts.debugLayers?.includes(l);
+          const isChunkBoundary = !isCheckpoint
+            && !traceLayerHealthEnabled
+            && currentRecorder
+            && l < config.numLayers - 1
+            && (l + 1) % prefillRecorderChunkLayers === 0;
+
+          if (isCheckpoint && currentRecorder) {
+            currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+              currentHiddenBuffer,
+              currentRecorder,
+              'prefill_checkpoint_carry'
+            );
+            recordPrefillRecorderStats(this._state, currentRecorder);
+            await currentRecorder.submitAndWait();
+            await recordProfile(currentRecorder);
+            currentRecorder = undefined;
+          }
+
+          if (traceLayerHealthEnabled && currentRecorder) {
+            currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+              currentHiddenBuffer,
+              currentRecorder,
+              'prefill_trace_layer_health_carry'
+            );
+            const traceSubmitStart = performance.now();
+            recordPrefillRecorderStats(this._state, currentRecorder);
+            await currentRecorder.submitAndWait();
+            await recordProfile(currentRecorder);
+            prefillSubmitWaitMs += performance.now() - traceSubmitStart;
+            await traceActivationHealth(
+              `PREFILL_LAYER_${l}_HEALTH`,
+              currentHiddenBuffer,
+              activationDtype,
+              numTokens * config.hiddenSize
+            );
+            currentRecorder = l < config.numLayers - 1
+              ? createRecorder('prefill-trace')
+              : undefined;
+          }
+
+          const shouldDebug = opts.debug && currentHiddenBuffer && (!recorder || isCheckpoint);
+          if (shouldDebug && !currentRecorder) {
+            const device = getDevice();
+            if (device) {
+              if (allowReadback(`pipeline.prefill.layer-${l}`)) {
+                try {
+                  const sampleSize = config.hiddenSize * activationBytes;
+                  const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
+                  const readback = await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize);
+                  const data = decodeReadback(readback, activationDtype);
+                  let min = Infinity;
+                  let max = -Infinity;
+                  let maxAbs = 0;
+                  for (const v of data) {
+                    if (!Number.isFinite(v)) continue;
+                    if (v < min) min = v;
+                    if (v > max) max = v;
+                    const av = Math.abs(v);
+                    if (av > maxAbs) maxAbs = av;
+                  }
+                  const sample = Array.from(data).slice(0, 3).map(x => x.toFixed(3)).join(', ');
+                  log.debug('Pipeline', `LAYER_${l}_LAST[pos=${numTokens - 1}]: min=${min.toFixed(3)}, max=${max.toFixed(3)}, maxAbs=${maxAbs.toFixed(2)}, sample=[${sample}]`);
+                } catch (e) {
+                  log.debug('Pipeline', `LAYER_${l}_LAST: error reading buffer: ${e}`);
+                }
+              }
+            }
+          }
+
+          if (isCheckpoint && useCheckpoints && l < config.numLayers - 1) {
+            currentRecorder = createRecorder('prefill-cont');
+          }
+
+          if (prevBuffer !== currentHiddenBuffer) {
+            if (currentRecorder) {
+              currentRecorder.trackTemporaryBuffer(prevBuffer);
+            } else {
+              releaseBuffer(prevBuffer);
+            }
+          }
+
+          if (isChunkBoundary) {
+            currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+              currentHiddenBuffer,
+              currentRecorder,
+              'prefill_chunk_carry'
+            );
+            // Chunk boundary exists only to bound intermediate buffer lifetime.
+            // When the runtime opts into async chunk submit AND profile timings
+            // are not being collected, skip the CPU-GPU wait: queue order is
+            // preserved across submits and deferred cleanup still releases
+            // tracked buffers when GPU work completes. Profile runs keep the
+            // sync path because resolveProfileTimings requires the submitted
+            // work to be done.
+            const chunkSubmitMode = resolvePrefillChunkSubmitMode(
+              this._state.runtimeConfig,
+              this._state.modelConfig
+            );
+            const chunkSubmitStart = performance.now();
+            recordPrefillRecorderStats(this._state, currentRecorder);
+            if (chunkSubmitMode === 'async' && !opts.profile) {
+              currentRecorder.submit({ cleanup: 'deferred' });
+            } else {
+              await currentRecorder.submitAndWait();
+              await recordProfile(currentRecorder);
+            }
+            prefillSubmitWaitMs += performance.now() - chunkSubmitStart;
+            await traceActivationHealth(
+              `PREFILL_LAYER_${l}_HEALTH`,
+              currentHiddenBuffer,
+              activationDtype,
+              numTokens * config.hiddenSize
+            );
+            if (tracePrefillEnabled) {
+              trace.perf('Prefill chunk submitted', {
+                layer: l,
+                elapsedMs: performance.now() - layerLoopTraceStart,
+                prefillRecordMs,
+                prefillSubmitWaitMs,
+              });
+            }
+            currentRecorder = createRecorder('prefill-chunk');
+          }
+        }
+        if (tracePrefillEnabled) {
+          trace.perf('Prefill layer loop recorded', {
+            numTokens,
+            elapsedMs: performance.now() - layerLoopTraceStart,
+            prefillRecordMs,
+            prefillSubmitWaitMs,
+          });
+        }
+      } finally {
+        context.perLayerInputBuffer = null;
+        if (perLayerInputs) {
+          for (const buffer of perLayerInputs) {
+            releasePerLayerInputBuffer(
+              buffer,
+              currentRecorder,
+              context.decodeBuffers,
+              this._state.pleCache ?? null
+            );
+          }
+        }
+        releaseSharedAttentionState(context.sharedAttentionState, currentRecorder);
+        this._state.stats.prefillRecordMs = (this._state.stats.prefillRecordMs ?? 0) + prefillRecordMs;
+        this._state.stats.prefillSubmitWaitMs = (this._state.stats.prefillSubmitWaitMs ?? 0) + prefillSubmitWaitMs;
+      }
+
+      {
+        const tsirFixtureCfg = this._state.operatorDiagnostics?.tsirFixture ?? null;
+        if (tsirFixtureCfg && Array.isArray(tsirFixtureCfg.pendingReads) && tsirFixtureCfg.pendingReads.length > 0) {
+          if (currentRecorder) {
+            currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+              currentHiddenBuffer,
+              currentRecorder,
+              'prefill_tsir_drain_carry'
+            );
+            recordPrefillRecorderStats(this._state, currentRecorder);
+            await currentRecorder.submitAndWait();
+            await recordProfile(currentRecorder);
+            currentRecorder = undefined;
+          }
+          await drainPendingTsirReads(tsirFixtureCfg);
         }
       }
-      releaseSharedAttentionState(context.sharedAttentionState, currentRecorder);
-      this._state.stats.prefillRecordMs = (this._state.stats.prefillRecordMs ?? 0) + prefillRecordMs;
-      this._state.stats.prefillSubmitWaitMs = (this._state.stats.prefillSubmitWaitMs ?? 0) + prefillSubmitWaitMs;
-    }
+      if (this._state.finitenessBuffer) {
+        if (currentRecorder) {
+          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+              currentHiddenBuffer,
+              currentRecorder,
+              'prefill_finiteness_carry'
+            );
+            recordPrefillRecorderStats(this._state, currentRecorder);
+            await currentRecorder.submitAndWait();
+            await recordProfile(currentRecorder);
+            currentRecorder = undefined;
+        }
+        const isInfiniteData = await readBuffer(this._state.finitenessBuffer, 16);
+        const u32 = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 4);
+        const finitenessStatus = parseFinitenessStatusWords(u32, 0);
+        if (finitenessStatus.triggered) {
+          throw new FinitenessError(`F16 bounds exceeded during prefill${finitenessStatus.metadata}`);
+        }
+      }
 
-    {
-      const tsirFixtureCfg = this._state.operatorDiagnostics?.tsirFixture ?? null;
-      if (tsirFixtureCfg && Array.isArray(tsirFixtureCfg.pendingReads) && tsirFixtureCfg.pendingReads.length > 0) {
+      if (benchmarkSubmits) {
+        logSubmitStats(`Prefill (${numTokens} tokens, ${config.numLayers} layers)`);
+        setTrackSubmits(false);
+      }
+
+      if (opts.debug) {
+        log.debug('Pipeline', `LAYER_LOOP_DONE, currentHiddenBuffer type=${currentHiddenBuffer?.constructor?.name}`);
+        if (currentHiddenBuffer && allowReadback('pipeline.prefill.final-hidden')) {
+          const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
+          const sampleSize = config.hiddenSize * activationBytes;
+          const data = decodeReadback(
+            await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize),
+            activationDtype
+          );
+          const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
+          const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
+          log.debug('Pipeline', `FINAL_HIDDEN[pos=${numTokens - 1}]: nan=${nanCount}/${data.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
+        }
+      }
+
+      if (hasGpuTimePrefill) {
+        this._state.stats.gpuTimePrefillMs = gpuTimePrefillMs;
+      }
+
+      if (returnHidden) {
         if (currentRecorder) {
           currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
             currentHiddenBuffer,
             currentRecorder,
-            'prefill_tsir_drain_carry'
+            'prefill_return_hidden_carry'
           );
-          recordPrefillRecorderStats(this._state, currentRecorder);
-          await currentRecorder.submitAndWait();
-          await recordProfile(currentRecorder);
-          currentRecorder = undefined;
         }
-        await drainPendingTsirReads(tsirFixtureCfg);
+        transferred = true;
+        return {
+          numTokens,
+          config,
+          startPos,
+          activationDtype,
+          activationBytes,
+          currentRecorder,
+          recordProfile,
+          debugCheckBuffer,
+          currentHiddenBuffer,
+        };
       }
-    }
-    if (this._state.finitenessBuffer) {
-      if (currentRecorder) {
-        currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
+
+      let lastLogits;
+      let logitsVocabSize = config.vocabSize;
+      const lmHead = this._state.weights.get('lm_head');
+      const canRecordLogits = !!currentRecorder
+        && opts._returnGpuLogits !== true
+        && selectedLogitTokenIds === null
+        && !!lmHead
+        && !isCpuWeightBuffer(lmHead)
+        && !this._state.disableRecordedLogits
+        && numTokens === 1;
+      if (currentRecorder && canRecordLogits) {
+        const logitsTraceStart = tracePrefillEnabled ? performance.now() : 0;
+        const recorded = await recordLogitsGPU(
+          currentRecorder,
+          currentHiddenBuffer,
+          numTokens,
+          getLogitsWeights(this._state),
+          getLogitsConfig(this._state),
+          this._state.operatorDiagnostics,
+          { applySoftcap: true }
+        );
+        logitsVocabSize = recorded.vocabSize;
+
+        recordPrefillRecorderStats(this._state, currentRecorder);
+        await currentRecorder.submitAndWait();
+        await recordProfile(currentRecorder);
+
+        const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: recorded.logitsDtype });
+        const lastLogitsSize = logitsVocabSize * logitsBytes;
+        const lastLogitsOffset = (numTokens - 1) * lastLogitsSize;
+        const logitsData = await readBufferSlice(recorded.logitsBuffer, lastLogitsOffset, lastLogitsSize);
+        releaseBuffer(recorded.logitsBuffer);
+        lastLogits = decodeReadback(logitsData, recorded.logitsDtype);
+        if (tracePrefillEnabled) {
+          trace.perf('Prefill recorded logits complete', {
+            numTokens,
+            vocabSize: logitsVocabSize,
+            elapsedMs: performance.now() - logitsTraceStart,
+          });
+        }
+
+        const health = getLogitsHealth(lastLogits);
+        if (health.nanCount > 0 || health.infCount > 0 || health.nonZeroCount === 0) {
+          log.warn(
+            'Logits',
+            `Recorded logits invalid (nan=${health.nanCount} inf=${health.infCount} nonZero=${health.nonZeroCount}, maxAbs=${health.maxAbs.toFixed(3)}); recomputing without recorder.`
+          );
+          this._state.disableRecordedLogits = true;
+          this._state.disableFusedDecode = true;
+          const fallbackLogits = await computeLogits(
+            currentHiddenBuffer,
+            numTokens,
+            getLogitsWeights(this._state),
+            getLogitsConfig(this._state),
+            this._state.useGPU,
+            this._state.debugFlags,
+            undefined,
+            debugCheckBuffer,
+            this._state.runtimeConfig.shared.debug.probes,
+            { lastPositionOnly: true },
+            this._state.operatorDiagnostics
+          );
+          const fallbackHealth = getLogitsHealth(fallbackLogits);
+          if (fallbackHealth.nanCount > 0 || fallbackHealth.infCount > 0 || fallbackHealth.nonZeroCount === 0) {
+            throw new Error(
+              `[Logits] Fallback logits invalid (nan=${fallbackHealth.nanCount} inf=${fallbackHealth.infCount} nonZero=${fallbackHealth.nonZeroCount}, maxAbs=${fallbackHealth.maxAbs.toFixed(3)}). ` +
+              'This indicates upstream kernel output is NaN/Inf (often prefill attention/matmul).'
+            );
+          }
+          logitsVocabSize = config.vocabSize;
+          lastLogits = fallbackLogits.length === logitsVocabSize
+            ? fallbackLogits
+            : extractLastPositionLogits(fallbackLogits, numTokens, logitsVocabSize);
+        }
+
+      } else {
+        const logitsTraceStart = tracePrefillEnabled ? performance.now() : 0;
+        if (currentRecorder) {
+          currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
             currentHiddenBuffer,
             currentRecorder,
-            'prefill_finiteness_carry'
+            'prefill_logits_carry'
           );
           recordPrefillRecorderStats(this._state, currentRecorder);
           await currentRecorder.submitAndWait();
           await recordProfile(currentRecorder);
-          currentRecorder = undefined;
-      }
-      const isInfiniteData = await readBuffer(this._state.finitenessBuffer, 16);
-      const u32 = new Uint32Array(isInfiniteData.buffer, isInfiniteData.byteOffset, 4);
-      const finitenessStatus = parseFinitenessStatusWords(u32, 0);
-      if (finitenessStatus.triggered) {
-        if (isGpuBufferInstance(currentHiddenBuffer)) {
-          releaseBuffer(currentHiddenBuffer);
         }
-        throw new FinitenessError(`F16 bounds exceeded during prefill${finitenessStatus.metadata}`);
-      }
-    }
-
-    if (benchmarkSubmits) {
-      logSubmitStats(`Prefill (${numTokens} tokens, ${config.numLayers} layers)`);
-      setTrackSubmits(false);
-    }
-
-    if (opts.debug) {
-      log.debug('Pipeline', `LAYER_LOOP_DONE, currentHiddenBuffer type=${currentHiddenBuffer?.constructor?.name}`);
-      if (currentHiddenBuffer && allowReadback('pipeline.prefill.final-hidden')) {
-        const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
-        const sampleSize = config.hiddenSize * activationBytes;
-        const data = decodeReadback(
-          await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize),
-          activationDtype
-        );
-        const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
-        const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
-        log.debug('Pipeline', `FINAL_HIDDEN[pos=${numTokens - 1}]: nan=${nanCount}/${data.length}, sample=[${nonZero.map(x => x.toFixed(4)).join(', ')}]`);
-      }
-    }
-
-    if (hasGpuTimePrefill) {
-      this._state.stats.gpuTimePrefillMs = gpuTimePrefillMs;
-    }
-
-    if (returnHidden) {
-      if (currentRecorder) {
-        currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-          currentHiddenBuffer,
-          currentRecorder,
-          'prefill_return_hidden_carry'
-        );
-      }
-      return {
-        numTokens,
-        config,
-        startPos,
-        activationDtype,
-        activationBytes,
-        currentRecorder,
-        recordProfile,
-        debugCheckBuffer,
-        currentHiddenBuffer,
-      };
-    }
-
-    let lastLogits;
-    let logitsVocabSize = config.vocabSize;
-    const lmHead = this._state.weights.get('lm_head');
-    const canRecordLogits = !!currentRecorder
-      && selectedLogitTokenIds === null
-      && !!lmHead
-      && !isCpuWeightBuffer(lmHead)
-      && !this._state.disableRecordedLogits
-      && numTokens === 1;
-    if (currentRecorder && canRecordLogits) {
-      const logitsTraceStart = tracePrefillEnabled ? performance.now() : 0;
-      const recorded = await recordLogitsGPU(
-        currentRecorder,
-        currentHiddenBuffer,
-        numTokens,
-        getLogitsWeights(this._state),
-        getLogitsConfig(this._state),
-        this._state.operatorDiagnostics,
-        { applySoftcap: true }
-      );
-      logitsVocabSize = recorded.vocabSize;
-
-      recordPrefillRecorderStats(this._state, currentRecorder);
-      await currentRecorder.submitAndWait();
-      await recordProfile(currentRecorder);
-
-      const logitsBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: recorded.logitsDtype });
-      const lastLogitsSize = logitsVocabSize * logitsBytes;
-      const lastLogitsOffset = (numTokens - 1) * lastLogitsSize;
-      const logitsData = await readBufferSlice(recorded.logitsBuffer, lastLogitsOffset, lastLogitsSize);
-      releaseBuffer(recorded.logitsBuffer);
-      lastLogits = decodeReadback(logitsData, recorded.logitsDtype);
-      if (tracePrefillEnabled) {
-        trace.perf('Prefill recorded logits complete', {
-          numTokens,
-          vocabSize: logitsVocabSize,
-          elapsedMs: performance.now() - logitsTraceStart,
-        });
-      }
-
-      const health = getLogitsHealth(lastLogits);
-      if (health.nanCount > 0 || health.infCount > 0 || health.nonZeroCount === 0) {
-        log.warn(
-          'Logits',
-          `Recorded logits invalid (nan=${health.nanCount} inf=${health.infCount} nonZero=${health.nonZeroCount}, maxAbs=${health.maxAbs.toFixed(3)}); recomputing without recorder.`
-        );
-        this._state.disableRecordedLogits = true;
-        this._state.disableFusedDecode = true;
-        const fallbackLogits = await computeLogits(
+        const logits = await computeLogits(
           currentHiddenBuffer,
           numTokens,
           getLogitsWeights(this._state),
@@ -808,89 +791,58 @@ export async function _prefill(inputIds, opts) {
           undefined,
           debugCheckBuffer,
           this._state.runtimeConfig.shared.debug.probes,
-          { lastPositionOnly: true },
+          { lastPositionOnly: true, selectedTokenIds: selectedLogitTokenIds, returnGpuBuffer: opts._returnGpuLogits === true },
           this._state.operatorDiagnostics
         );
-        const fallbackHealth = getLogitsHealth(fallbackLogits);
-        if (fallbackHealth.nanCount > 0 || fallbackHealth.infCount > 0 || fallbackHealth.nonZeroCount === 0) {
-          throw new Error(
-            `[Logits] Fallback logits invalid (nan=${fallbackHealth.nanCount} inf=${fallbackHealth.infCount} nonZero=${fallbackHealth.nonZeroCount}, maxAbs=${fallbackHealth.maxAbs.toFixed(3)}). ` +
-            'This indicates upstream kernel output is NaN/Inf (often prefill attention/matmul).'
-          );
+
+        if (opts._returnGpuLogits === true || selectedLogitTokenIds !== null) {
+          lastLogits = logits;
+        } else {
+          lastLogits = logits.length === logitsVocabSize
+            ? logits
+            : extractLastPositionLogits(logits, numTokens, logitsVocabSize);
         }
-        logitsVocabSize = config.vocabSize;
-        lastLogits = fallbackLogits.length === logitsVocabSize
-          ? fallbackLogits
-          : extractLastPositionLogits(fallbackLogits, numTokens, logitsVocabSize);
+
+        if (tracePrefillEnabled) {
+          trace.perf('Prefill logits complete', {
+            numTokens,
+            vocabSize: logitsVocabSize,
+            elapsedMs: performance.now() - logitsTraceStart,
+          });
+        }
       }
 
-      releaseBuffer(currentHiddenBuffer);
-    } else {
-      const logitsTraceStart = tracePrefillEnabled ? performance.now() : 0;
-      if (currentRecorder) {
-        currentHiddenBuffer = preserveBufferAcrossRecorderSubmit(
-          currentHiddenBuffer,
-          currentRecorder,
-          'prefill_logits_carry'
-        );
-        recordPrefillRecorderStats(this._state, currentRecorder);
-        await currentRecorder.submitAndWait();
-        await recordProfile(currentRecorder);
-      }
-      const logits = await computeLogits(
-        currentHiddenBuffer,
-        numTokens,
-        getLogitsWeights(this._state),
-        getLogitsConfig(this._state),
-        this._state.useGPU,
-        this._state.debugFlags,
-        undefined,
-        debugCheckBuffer,
-        this._state.runtimeConfig.shared.debug.probes,
-        { lastPositionOnly: true, selectedTokenIds: selectedLogitTokenIds },
-        this._state.operatorDiagnostics
-      );
+      this._state.currentSeqLen = startPos + numTokens;
 
-      if (selectedLogitTokenIds !== null) {
-        lastLogits = logits;
-      } else {
-        lastLogits = logits.length === logitsVocabSize
-          ? logits
-          : extractLastPositionLogits(logits, numTokens, logitsVocabSize);
+      if (opts._returnGpuLogits === true) return lastLogits;
+
+      if (opts.debug && selectedLogitTokenIds === null) {
+        logitsSanity(lastLogits, 'Prefill', (tokens) => resolveTokenText(this._state.tokenizer, tokens));
       }
-      releaseBuffer(currentHiddenBuffer);
+      if (isTraceEnabled('logits')) {
+        trace.logits(selectedLogitTokenIds === null ? 'PREFILL_LOGITS_HEALTH' : 'PREFILL_SELECTED_LOGITS_HEALTH', getLogitsHealth(lastLogits));
+      }
+
+      if (opts.debug) {
+        if (this._state.kvCache?.hasGPUCache?.()) {
+          log.debug('Pipeline', `KV cache active after prefill: seqLen=${this._state.kvCache.getKeyCache(0)?.constructor.name ?? '?'}`);
+        } else {
+          log.warn('Pipeline', `KV cache NOT active after prefill! hasGPUCache=${this._state.kvCache?.hasGPUCache?.()}`);
+        }
+      }
+
       if (tracePrefillEnabled) {
-        trace.perf('Prefill logits complete', {
+        trace.perf('Prefill phase complete', {
           numTokens,
-          vocabSize: logitsVocabSize,
-          elapsedMs: performance.now() - logitsTraceStart,
+          totalMs: performance.now() - prefillTraceStart,
         });
       }
-    }
 
-    this._state.currentSeqLen = startPos + numTokens;
-
-    if (opts.debug && selectedLogitTokenIds === null) {
-      logitsSanity(lastLogits, 'Prefill', (tokens) => resolveTokenText(this._state.tokenizer, tokens));
-    }
-    if (isTraceEnabled('logits')) {
-      trace.logits(selectedLogitTokenIds === null ? 'PREFILL_LOGITS_HEALTH' : 'PREFILL_SELECTED_LOGITS_HEALTH', getLogitsHealth(lastLogits));
-    }
-
-    if (opts.debug) {
-      if (this._state.kvCache?.hasGPUCache?.()) {
-        log.debug('Pipeline', `KV cache active after prefill: seqLen=${this._state.kvCache.getKeyCache(0)?.constructor.name ?? '?'}`);
-      } else {
-        log.warn('Pipeline', `KV cache NOT active after prefill! hasGPUCache=${this._state.kvCache?.hasGPUCache?.()}`);
+      return lastLogits;
+    } finally {
+      if (!transferred) {
+        releaseBuffer(currentHiddenBuffer);
+        currentRecorder?.abort();
       }
     }
-
-    if (tracePrefillEnabled) {
-      trace.perf('Prefill phase complete', {
-        numTokens,
-        totalMs: performance.now() - prefillTraceStart,
-      });
-    }
-
-    return lastLogits;
   }

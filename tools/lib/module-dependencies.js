@@ -41,13 +41,13 @@ export function parseModuleDependencies(source, fileName = 'module.js') {
   }
   function visit(node) {
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-      if (/^(?:\.\.\/|\.\/).*\.(?:d\.ts|js|json|html|wgsl)$/.test(node.text)) assetReferences.add(node.text);
+      if (/^(?:\.\.\/|\.\/).*\.(?:d\.ts|js|json|html|wgsl)(?:[?#].*)?$/.test(node.text)) assetReferences.add(node.text);
     }
     if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) {
       add('type', node, literal(node.argument.literal));
     }
-    if (ts.isImportDeclaration(node)) add('static', node, literal(node.moduleSpecifier));
-    if (ts.isExportDeclaration(node) && node.moduleSpecifier) add('forward', node, literal(node.moduleSpecifier));
+    if (ts.isImportDeclaration(node)) add(node.importClause?.isTypeOnly ? 'type' : 'static', node, literal(node.moduleSpecifier));
+    if (ts.isExportDeclaration(node) && node.moduleSpecifier) add(node.isTypeOnly ? 'type' : 'forward', node, literal(node.moduleSpecifier));
     if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
       add('dynamic', node, literal(node.arguments[0]));
     }

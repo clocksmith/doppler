@@ -1,0 +1,12 @@
+{
+  "trustedSigners": {
+    "doppler-local-gpu-selection-evaluation-20260915": {
+      "crv": "Ed25519",
+      "x": "2dycmL3N_VAuAzbGGbJ_Lon-mk7mPvV_LEnBujhILDA",
+      "kty": "OKP"
+    }
+  },
+  "acceptedTargetPlanDigests": [
+    "sha256:2983e5f3b9a9c2e03825ba0168c5c8272788a30e1879fcfd67d0836ed5b5b496"
+  ]
+}

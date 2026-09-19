@@ -8,6 +8,7 @@
  */
 
 import type { CommandRecorder } from '../command-recorder.js';
+import type { KernelConfig } from '../../config/kernel-registry-contract.js';
 
 // ============================================================================
 // Types
@@ -26,11 +27,12 @@ export interface UniformBufferOptions {
 /**
  * Write a kernel's uniform fields into a DataView according to the
  * registry-declared layout. Throws when the kernel has no uniforms or
- * an unsupported field type.
+ * a required field is absent or outside its binary type's range. Only declared
+ * padding is filled with zero. Additional values shared across variants are ignored.
  */
 export declare function writeUniformsFromObject(
   view: DataView,
-  config: unknown,
+  config: KernelConfig,
   values: Record<string, number>
 ): void;
 
@@ -39,7 +41,15 @@ export declare function writeUniformsFromObject(
  * declared size and alignment rules into account. Returns 0 when the
  * kernel has no uniforms.
  */
-export declare function getUniformByteLength(config: unknown): number;
+export declare function getUniformByteLength(config: KernelConfig): number;
+
+export declare function createKernelUniformBuffer(
+  label: string,
+  config: KernelConfig,
+  values: Record<string, number>,
+  recorder?: CommandRecorder | null,
+  deviceOverride?: GPUDevice | null
+): GPUBuffer;
 
 /**
  * Create a uniform buffer from raw data.

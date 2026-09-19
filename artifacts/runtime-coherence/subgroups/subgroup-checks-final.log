@@ -1,0 +1,23 @@
+[node-tests] script: kernels:check
+[kernels:check] codegen
+[wgsl:check] variants=42 changed=0 unchanged=42
+[kernels:check] registry
+[kernels:registry:check] registry.json reachability is up to date (350 variants)
+[kernels:check] digests
+[kernels:digests:check] kernel-ref-digests.js is up to date
+[kernels:check] language-contract
+kernel-language-contract.test: 350 variants, 284 modules agree
+[kernels:check] all checks passed
+[node-tests] script: source:style:check
+[source:style:check] 999 governed JavaScript modules have sibling declarations, 204 reviewed numeric candidate(s), no runtime tensor compute, no implementation JSDoc, no undeclared raw console calls, and no banned geometry inference
+[node-tests] script: source:architecture:check
+source architecture check passed: 21 owners, 2669 files, 0 governed oversize files, 52 reviewed soft-limit files, 25 reviewed generic modules (6 semantic owners, 19 facades, 0 legacy debt)
+[node-tests] script: typecheck:source
+[node-tests] script: program-bundle:schema:check
+Program Bundle schema artifact is current: /home/x/deco/worktrees/doppler-runtime-contract-coherence/src/config/schema/program-bundle.schema.json
+[node-tests] script: rules:bundle:check
+rule bundle: current (56 source files)
+[node-tests] script: package:closure:check
+package source closure check passed (897 runtime JS, 438 declarations, 450 resources)
+[node-tests] script: runtime:closure:check
+Capsule runtime closure passed: 65 files, 605878 source bytes.

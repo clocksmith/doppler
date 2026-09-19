@@ -1,0 +1,3587 @@
+TAP version 13
+# attention-kv-precision-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.054736
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 107.631882
+[node-tests] ok: tests/inference/attention-kv-precision-contract.test.js
+TAP version 13
+# attention-kv-precision-source.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.926885
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 106.259077
+[node-tests] ok: tests/inference/attention-kv-precision-source.test.js
+TAP version 13
+# attention-output-projection.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.957552
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 91.421506
+[node-tests] ok: tests/inference/attention-output-projection.test.js
+TAP version 13
+# Subtest: immediate and recorded modes consume the identical semantic plan
+ok 1 - immediate and recorded modes consume the identical semantic plan
+  ---
+  duration_ms: 5.490706
+  type: 'test'
+  ...
+# Subtest: changing one semantic decision changes the plan identity
+ok 2 - changing one semantic decision changes the plan identity
+  ---
+  duration_ms: 1.226339
+  type: 'test'
+  ...
+# Subtest: query scaling and NoPE are immutable plan identity
+ok 3 - query scaling and NoPE are immutable plan identity
+  ---
+  duration_ms: 1.603319
+  type: 'test'
+  ...
+# Subtest: semantic plans are deeply immutable and JSON-safe
+ok 4 - semantic plans are deeply immutable and JSON-safe
+  ---
+  duration_ms: 0.905424
+  type: 'test'
+  ...
+# Subtest: characterization matrix covers phase, dtype, capability, KV, fusion, LoRA, gate, and failure contracts
+ok 5 - characterization matrix covers phase, dtype, capability, KV, fusion, LoRA, gate, and failure contracts
+  ---
+  duration_ms: 20.465606
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 6 - test module initialization completed
+  ---
+  duration_ms: 0.103725
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 132.567552
+[node-tests] ok: tests/inference/attention-plan.test.js
+TAP version 13
+# attention-projection-dtype.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.022936
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 173.357267
+[node-tests] ok: tests/inference/attention-projection-dtype.test.js
+TAP version 13
+# attention-projection-offsets.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.447485
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 267.49155
+[node-tests] ok: tests/inference/attention-projection-offsets.test.js
+TAP version 13
+# [134.1ms][KernelSelect] matmul variant=f32 reason=default
+# attention-projections-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.008989
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 178.829759
+[node-tests] ok: tests/inference/attention-projections-cleanup.test.js
+TAP version 13
+# attention-quant-options.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.928277
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 98.764971
+[node-tests] ok: tests/inference/attention-quant-options.test.js
+TAP version 13
+# [165.8ms][KernelSelect] matmul variant=f32 reason=default
+# attention-run-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.04671
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 209.567862
+[node-tests] ok: tests/inference/attention-run-cleanup.test.js
+TAP version 13
+# attention-softmax-stability.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.987239
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100.313095
+[node-tests] ok: tests/inference/attention-softmax-stability.test.js
+TAP version 13
+# bdpa-steamroller.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.910194
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 115.177597
+[node-tests] ok: tests/inference/bdpa-steamroller.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+# [157.4ms][KernelSelect] matmul variant=bf16w_f32a reason=path_override
+# [162.5ms][KernelSelect] matmul variant=gemv_subgroup_bf16w_vec4 reason=path_override
+# bf16-weight-kernels-gpu-regression.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.999534
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 220.085932
+[node-tests] ok: tests/inference/bf16-weight-kernels-gpu-regression.test.js
+TAP version 13
+# [107.8ms][BufferPool] Deferred destruction failed: device lost
+# buffer-pool-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.049435
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 151.67928
+[node-tests] ok: tests/inference/buffer-pool-cleanup.test.js
+TAP version 13
+# [94.8ms][Config] Using manifest-first config (source of truth)
+# [97.0ms][Config] Using manifest-first config (source of truth)
+# [97.1ms][Config] Using manifest-first config (source of truth)
+# [98.2ms][Config] Using manifest-first config (source of truth)
+# [98.4ms][Config] Using manifest-first config (source of truth)
+# config-lfm2-intermediate-runtime.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.086485
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 134.161343
+[node-tests] ok: tests/inference/config-lfm2-intermediate-runtime.test.js
+TAP version 13
+# decode-ring.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.024108
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 114.856102
+[node-tests] ok: tests/inference/decode-ring.test.js
+TAP version 13
+# Subtest: DiffusionGemma dense_plus_moe branch keeps dense intermediate width unchanged
+ok 1 - DiffusionGemma dense_plus_moe branch keeps dense intermediate width unchanged
+  ---
+  duration_ms: 3.49525
+  type: 'test'
+  ...
+# Subtest: invalid FFN branch mode fails manifest inference validation
+ok 2 - invalid FFN branch mode fails manifest inference validation
+  ---
+  duration_ms: 0.488119
+  type: 'test'
+  ...
+# Subtest: DiffusionGemma declares explicit prefill override f32 to f16 cast
+ok 3 - DiffusionGemma declares explicit prefill override f32 to f16 cast
+  ---
+  duration_ms: 0.899754
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 4 - test module initialization completed
+  ---
+  duration_ms: 0.062297
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 223.147695
+[node-tests] ok: tests/inference/diffusion-gemma-config-contract.test.js
+TAP version 13
+# [230.7ms][DiffusionGemma] Loaded block-diffusion contract: canvas=3, steps=2, vocab=8
+# [235.9ms][DiffusionGemma] Loaded block-diffusion contract: canvas=2, steps=1, vocab=8
+# [237.2ms][DiffusionGemma] Loaded block-diffusion contract: canvas=4, steps=4, vocab=8
+# diffusion-gemma-sampling.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.489263
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 280.628731
+[node-tests] ok: tests/inference/diffusion-gemma-sampling.test.js
+TAP version 13
+# [220.0ms][EnergyRowHead] Loaded model "energy-row-head-test" (energy_row_head)
+# [221.1ms][EnergyRowHead] Loaded model "dream-bridge-test" (d1-to2-bridge-diffusion)
+# [221.2ms][EnergyRowHead] Loaded model "dream-synth-test" (synthesis-mixer-diffusion)
+# [221.4ms][EnergyRowHead] Loaded model "dream-ebrm-test" (ebrm-diffusion)
+# [221.6ms][EnergyRowHead] Loaded model "dream-energy-head-test" (dream_energy_head)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.059174
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 259.383498
+[node-tests] ok: tests/inference/dream-energy-head-pipeline.test.js
+TAP version 13
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.958775
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 284.251773
+[node-tests] ok: tests/inference/dream-structured-pipeline.test.js
+TAP version 13
+# dtype-contract-step-precision.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.926303
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 107.405878
+[node-tests] ok: tests/inference/dtype-contract-step-precision.test.js
+TAP version 13
+# embed-cpu-f16-gather.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.029718
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 185.224819
+[node-tests] ok: tests/inference/embed-cpu-f16-gather.test.js
+TAP version 13
+# embedding-normalization-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.050358
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 116.234767
+[node-tests] ok: tests/inference/embedding-normalization-contract.test.js
+TAP version 13
+# embedding-semantic-details.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.071106
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 214.988347
+[node-tests] ok: tests/inference/embedding-semantic-details.test.js
+TAP version 13
+# embedding-semantic-fixtures-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.243551
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 241.774722
+[node-tests] ok: tests/inference/embedding-semantic-fixtures-contract.test.js
+TAP version 13
+# embedding-state-reset.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.059224
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 258.378218
+[node-tests] ok: tests/inference/embedding-state-reset.test.js
+TAP version 13
+# embedding-without-eos.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.995233
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 120.360023
+[node-tests] ok: tests/inference/embedding-without-eos.test.js
+TAP version 13
+# execution-inline-kernel-path-phase-overrides.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.034106
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 118.352585
+[node-tests] ok: tests/inference/execution-inline-kernel-path-phase-overrides.test.js
+TAP version 13
+# [161.5ms][ExecutionPlan] Using transform-based finiteness fallback kernel path: gemma3-f16-fused-f32a-online
+# [163.9ms][ExecutionPlan] Using transform-based finiteness fallback kernel path: gemma3-f16-fused-f32a-online
+# [164.4ms][ExecutionPlan] Using transform-based finiteness fallback kernel path: gemma3-f16-fused-f32a-online
+# [164.6ms][ExecutionPlan] Using transform-based finiteness fallback kernel path: gemma-inline-fallback-transform
+# execution-plan.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.05193
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 202.703522
+[node-tests] ok: tests/inference/execution-plan.test.js
+TAP version 13
+# ffn-execution-v1-precision-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.034217
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 211.448755
+[node-tests] ok: tests/inference/ffn-execution-v1-precision-contract.test.js
+TAP version 13
+# ffn-mixed-q4k-materialization-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.107675
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 199.355961
+[node-tests] ok: tests/inference/ffn-mixed-q4k-materialization-contract.test.js
+TAP version 13
+# finiteness-guard-status.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.938787
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 95.91115
+[node-tests] ok: tests/inference/finiteness-guard-status.test.js
+TAP version 13
+# finiteness-overflow-gate.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.03057
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 119.902403
+[node-tests] ok: tests/inference/finiteness-overflow-gate.test.js
+TAP version 13
+# finiteness-policy.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.01983
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 99.973187
+[node-tests] ok: tests/inference/finiteness-policy.test.js
+TAP version 13
+# first-load-composition.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.934149
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 117.585972
+[node-tests] ok: tests/inference/first-load-composition.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+# fused-ffn-gelu-gpu-regression.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.494954
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 240.734796
+[node-tests] ok: tests/inference/fused-ffn-gelu-gpu-regression.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# fused-ffn-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)
+# Subtest: /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
+ok 1 - /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
+  ---
+  duration_ms: 204.636693
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 210.707751
+[node-tests] ok: tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# fused-matmul-q4-metal-simd16-gpu-regression.test: skipped (requires Apple Metal subgroups)
+# Subtest: /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
+ok 1 - /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
+  ---
+  duration_ms: 184.303446
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 190.538443
+[node-tests] ok: tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+# fused-normed-ffn-gpu-regression.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.367515
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 234.060492
+[node-tests] ok: tests/inference/fused-normed-ffn-gpu-regression.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# gelu-erf-gpu-regression.test: ok (f32/f16, erf/tanh, plain/gated)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.116372
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 238.406062
+[node-tests] ok: tests/inference/gelu-erf-gpu-regression.test.js
+TAP version 13
+# [100.3ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+# gemma3-1b-head256-prefill-path.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.031972
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 138.059934
+[node-tests] ok: tests/inference/gemma3-1b-head256-prefill-path.test.js
+TAP version 13
+# [110.1ms][KernelSelect] attention variant=prefill_streaming_f16kv reason=path_override:streaming
+# gemma3-1b-streaming-prefill-path.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.082578
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 143.36471
+[node-tests] ok: tests/inference/gemma3-1b-streaming-prefill-path.test.js
+TAP version 13
+# [101.4ms][KernelSelect] attention variant=decode_online_head256_f16kv reason=path_override:subgroup
+# gemma3-270m-head256-decode-path.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.033004
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 137.971437
+[node-tests] ok: tests/inference/gemma3-270m-head256-decode-path.test.js
+TAP version 13
+# [NaN Regression] skipped: local fixture missing at /home/x/deco/worktrees/doppler-runtime-contract-coherence/models/local/gemma-3-1b-it-f16-af32/manifest.json
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.145226
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 166.035367
+[node-tests] ok: tests/inference/gemma3-nan-regression.test.js
+TAP version 13
+# gemma4-12b-encoder-free-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.049996
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 120.321623
+[node-tests] ok: tests/inference/gemma4-12b-encoder-free.test.js
+TAP version 13
+# gemma4-double-wide-mlp-runtime.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.070155
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 140.068716
+[node-tests] ok: tests/inference/gemma4-double-wide-mlp-runtime.test.js
+TAP version 13
+# [100.5ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+# gemma4-e2b-head512-decode-path.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.096294
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 135.947057
+[node-tests] ok: tests/inference/gemma4-e2b-head512-decode-path.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# gemma4-e2b-q4k-apple-retain-regression.test: skipped (vendor=amd not apple)
+# Subtest: /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
+ok 1 - /home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
+  ---
+  duration_ms: 326.654789
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 333.668182
+[node-tests] ok: tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js
+TAP version 13
+# gemma4-finiteness-fallback-kvcache-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.901267
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 96.885645
+[node-tests] ok: tests/inference/gemma4-finiteness-fallback-kvcache-contract.test.js
+TAP version 13
+# gemma4-hot-vocab-ple-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.070466
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 189.37309
+[node-tests] ok: tests/inference/gemma4-hot-vocab-ple-contract.test.js
+TAP version 13
+# gemma4-multimodal-f16-override-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.50342
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 105.104978
+[node-tests] ok: tests/inference/gemma4-multimodal-f16-override-contract.test.js
+TAP version 13
+# gemma4-multimodal-prefill-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.270131
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 266.650724
+[node-tests] ok: tests/inference/gemma4-multimodal-prefill-contract.test.js
+TAP version 13
+# gemma4-per-layer-prefix-override-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.896197
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 96.340559
+[node-tests] ok: tests/inference/gemma4-per-layer-prefix-override-contract.test.js
+TAP version 13
+# gemma4-pipeline-registration.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.054395
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 272.694101
+[node-tests] ok: tests/inference/gemma4-pipeline-registration.test.js
+TAP version 13
+# gemma4-ple-projection-norm-cache.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.116451
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 202.474383
+[node-tests] ok: tests/inference/gemma4-ple-projection-norm-cache.test.js
+TAP version 13
+# gemma4-vision-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.120429
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 187.021845
+[node-tests] ok: tests/inference/gemma4-vision-cleanup.test.js
+TAP version 13
+# [235.1ms][Pipeline] Vision weights loaded (0 Gemma 4 encoder layers)
+# gemma4-vision-weight-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.064324
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 270.374565
+[node-tests] ok: tests/inference/gemma4-vision-weight-contract.test.js
+TAP version 13
+#   ok: generateTokenIds diagnostics
+# [225.1ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (2 tokens @ 33892.0 tok/s)
+#   ok: EOS stop parity
+# [225.8ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+#   ok: immediate EOS first-token parity
+# [227.0ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (4 tokens @ 46413.4 tok/s)
+#   ok: maxTokens cap parity
+# [228.3ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (3 tokens @ 13835.2 tok/s)
+#   ok: abort signal parity
+# [229.0ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (2 tokens @ 48794.8 tok/s)
+#   ok: stop sequence parity
+#   ok: stats fields
+#   ok: self-speculation burst honors configured tokens
+#   ok: cleanup on success and throw
+#   ok: double-generation guard
+# generate-token-ids-behavioral-parity.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.888944
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 266.357443
+[node-tests] ok: tests/inference/generate-token-ids-behavioral-parity.test.js
+TAP version 13
+# generate-token-ids-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.904843
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 94.608499
+[node-tests] ok: tests/inference/generate-token-ids-contract.test.js
+TAP version 13
+# generation-constraints.test: ok
+# generation-constraints decode dispatch: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.991717
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 262.97201
+[node-tests] ok: tests/inference/generation-constraints.test.js
+TAP version 13
+# generation-prompt-state-reset.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.084672
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 255.638455
+[node-tests] ok: tests/inference/generation-prompt-state-reset.test.js
+TAP version 13
+# generator-finiteness-fallback.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.08901
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 191.745327
+[node-tests] ok: tests/inference/generator-finiteness-fallback.test.js
+TAP version 13
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.999973
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 136.368171
+[node-tests] ok: tests/inference/generator-helpers.test.js
+TAP version 13
+# generator-hot-vocab-batch-continuation.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.105732
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 195.747862
+[node-tests] ok: tests/inference/generator-hot-vocab-batch-continuation.test.js
+TAP version 13
+# generator-prefill-submit-mode.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.024288
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 248.165908
+[node-tests] ok: tests/inference/generator-prefill-submit-mode.test.js
+TAP version 13
+# generator-runtime.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.406228
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 152.295253
+[node-tests] ok: tests/inference/generator-runtime.test.js
+TAP version 13
+# generator-steps-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.999572
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 238.68973
+[node-tests] ok: tests/inference/generator-steps-cleanup.test.js
+TAP version 13
+# generator-stop-token-parity.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.366052
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 262.478953
+[node-tests] ok: tests/inference/generator-stop-token-parity.test.js
+TAP version 13
+# generator-token-id-hint-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.981688
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 105.580344
+[node-tests] ok: tests/inference/generator-token-id-hint-contract.test.js
+TAP version 13
+# glmocr-chat-format-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.949117
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 97.532373
+[node-tests] ok: tests/inference/glmocr-chat-format-contract.test.js
+TAP version 13
+# glmocr-image-preprocess-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.021162
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 167.15083
+[node-tests] ok: tests/inference/glmocr-image-preprocess-contract.test.js
+TAP version 13
+# glmocr-mrope-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.002717
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 117.840644
+[node-tests] ok: tests/inference/glmocr-mrope-contract.test.js
+TAP version 13
+# glmocr-vision-config-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.06257
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 117.794687
+[node-tests] ok: tests/inference/glmocr-vision-config-contract.test.js
+TAP version 13
+# [203.8ms][Pipeline] Vision weights loaded (2 GLM-OCR encoder layers)
+# glmocr-vision-weight-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.994965
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 244.06531
+[node-tests] ok: tests/inference/glmocr-vision-weight-contract.test.js
+TAP version 13
+# heterogeneous-attention-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.236388
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 167.389669
+[node-tests] ok: tests/inference/heterogeneous-attention-contract.test.js
+TAP version 13
+# image-transcription-node-url.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.974454
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 341.418767
+[node-tests] ok: tests/inference/image-transcription-node-url.test.js
+TAP version 13
+# image-transcription-resource-scope.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.990665
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 126.878327
+[node-tests] ok: tests/inference/image-transcription-resource-scope.test.js
+TAP version 13
+# json-grammar-mask.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.96701
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 101.752608
+[node-tests] ok: tests/inference/json-grammar-mask.test.js
+TAP version 13
+# kv-cache-direct-write.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.000613
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 194.464809
+[node-tests] ok: tests/inference/kv-cache-direct-write.test.js
+TAP version 13
+# [130.1ms][KVCache] Migrating 1 positions to GPU...
+# [130.8ms][KVCache] Migrating 1 positions to GPU (paged)...
+# kv-cache-sync.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.042903
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 166.818926
+[node-tests] ok: tests/inference/kv-cache-sync.test.js
+TAP version 13
+# [160.4ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [161.1ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [161.1ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [161.2ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [161.3ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [160.9ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [161.1ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [161.1ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [161.3ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [161.4ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [161.8ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8191, layout=contiguous, modelMaxSeqLen=8191, requestedKvDtype=f16, requestedMaxSeqLen=8191
+# [161.9ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [162.1ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=1024, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [162.2ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=512, layout=contiguous, modelMaxSeqLen=2048, requestedKvDtype=f16, requestedMaxSeqLen=2048
+# [161.8ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [161.9ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.1ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.2ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.3ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.5ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.5ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.5ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.5ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.6ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.6ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.7ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.7ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [162.4ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=2048, layout=contiguous, modelMaxSeqLen=2048, requestedKvDtype=f16, requestedMaxSeqLen=2048
+# [162.5ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [162.5ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [162.5ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [162.5ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [162.6ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [162.6ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [162.7ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [162.7ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# kvcache-layout-policy.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.957141
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 200.640574
+[node-tests] ok: tests/inference/kvcache-layout-policy.test.js
+TAP version 13
+# layer-dispatch-routing.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.18424
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 217.264229
+[node-tests] ok: tests/inference/layer-dispatch-routing.test.js
+TAP version 13
+# layer-scalar-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.044516
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 187.485971
+[node-tests] ok: tests/inference/layer-scalar-contract.test.js
+TAP version 13
+# layernorm-bias-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.864387
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 97.136639
+[node-tests] ok: tests/inference/layernorm-bias-contract.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+# lfm2-conv-kernel-init.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.501456
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 242.455501
+[node-tests] ok: tests/inference/lfm2-conv-kernel-init.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# [227.3ms][KernelSelect] matmul variant=f32 reason=default
+# lfm2-layer-plan-conv-state.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.502268
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 292.30907
+[node-tests] ok: tests/inference/lfm2-layer-plan-conv-state.test.js
+TAP version 13
+# linear-attention-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.990685
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 173.975328
+[node-tests] ok: tests/inference/linear-attention-contract.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# linear-attention-core-gpu-regression.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.655757
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 253.635588
+[node-tests] ok: tests/inference/linear-attention-core-gpu-regression.test.js
+TAP version 13
+# linear-attention-lora-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.995885
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 89.990637
+[node-tests] ok: tests/inference/linear-attention-lora-contract.test.js
+TAP version 13
+# linear-attention-norm-mode.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.058413
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 170.264823
+[node-tests] ok: tests/inference/linear-attention-norm-mode.test.js
+TAP version 13
+# linear-attention-state-probes.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.956912
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 87.896204
+[node-tests] ok: tests/inference/linear-attention-state-probes.test.js
+TAP version 13
+# Subtest: rewriteWeightLoadError preserves unrelated errors
+ok 1 - rewriteWeightLoadError preserves unrelated errors
+  ---
+  duration_ms: 1.059104
+  type: 'test'
+  ...
+# Subtest: annotateWeightLoadError records the failing tensor context
+ok 2 - annotateWeightLoadError records the failing tensor context
+  ---
+  duration_ms: 0.915704
+  type: 'test'
+  ...
+# Subtest: rewriteWeightLoadError rewrites device lifecycle failures with explicit guidance
+ok 3 - rewriteWeightLoadError rewrites device lifecycle failures with explicit guidance
+  ---
+  duration_ms: 0.358706
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 4 - test module initialization completed
+  ---
+  duration_ms: 0.060794
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 122.260165
+[node-tests] ok: tests/inference/load-errors.test.js
+TAP version 13
+# local-multimodal-manifest-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.888653
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100.368403
+[node-tests] ok: tests/inference/local-multimodal-manifest-contract.test.js
+TAP version 13
+# logit-output-probes.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.437907
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 116.928237
+[node-tests] ok: tests/inference/logit-output-probes.test.js
+TAP version 13
+# logit-output-transform.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.60401
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 144.848597
+[node-tests] ok: tests/inference/logit-output-transform.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# logits-bias.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.409874
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 190.646011
+[node-tests] ok: tests/inference/logits-bias.test.js
+TAP version 13
+# logits-large-weight-config-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.021594
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 167.571924
+[node-tests] ok: tests/inference/logits-large-weight-config-contract.test.js
+TAP version 13
+# logits-last-position-phase-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.015391
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 164.772835
+[node-tests] ok: tests/inference/logits-last-position-phase-contract.test.js
+TAP version 13
+# logits-softcap-f32-tail-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.044356
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 119.686691
+[node-tests] ok: tests/inference/logits-softcap-f32-tail-contract.test.js
+TAP version 13
+# logits-utils-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.032985
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 135.909971
+[node-tests] ok: tests/inference/logits-utils-cleanup.test.js
+TAP version 13
+# logits-weight-buffer-final-norm.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.056168
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 121.851465
+[node-tests] ok: tests/inference/logits-weight-buffer-final-norm.test.js
+TAP version 13
+# lora-runtime-matmul-layout-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.111402
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 195.690157
+[node-tests] ok: tests/inference/lora-runtime-matmul-layout-contract.test.js
+TAP version 13
+# manifest-compute-lane-binding.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.075685
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 201.955922
+[node-tests] ok: tests/inference/manifest-compute-lane-binding.test.js
+TAP version 13
+# manifest-unsupported-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.08334
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 117.979046
+[node-tests] ok: tests/inference/manifest-unsupported-contract.test.js
+TAP version 13
+# [93.4ms][KernelSelect] matmul variant=f16w_f32a reason=path_override
+# [93.9ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override_f16_fallthrough
+# [94.2ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override_f16_fallthrough
+# [94.3ms][KernelSelect] matmul variant=gemv_subgroup_vec4 reason=gemv
+# [94.5ms][KernelSelect] matmul variant=q4_fused_batched reason=q4k_fused
+# [94.6ms][KernelSelect] matmul variant=q4_fused_multicol reason=q4k_fused
+# [94.7ms][KernelSelect] matmul variant=q4_fused_widetile_residual reason=q4k_fused
+# [94.9ms][KernelSelect] matmul variant=f32 reason=path_override_quantized_fallthrough
+# [95.0ms][KernelSelect] matmul variant=litert_int4_multicol_f32a_f32out reason=path_override
+# [95.4ms][KernelSelect] matmul variant=gemv_subgroup_multicol reason=path_override
+# matmul-kernel-path-weight-dtype-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.114107
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 128.782423
+[node-tests] ok: tests/inference/matmul-kernel-path-weight-dtype-contract.test.js
+TAP version 13
+# [173.5ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=1024, layout=contiguous, modelMaxSeqLen=131072, requestedKvDtype=f32, requestedMaxSeqLen=1024
+# [177.7ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=1024, layout=contiguous, modelMaxSeqLen=131072, requestedKvDtype=f32, requestedMaxSeqLen=1024
+# [190.6ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=1024, layout=contiguous, modelMaxSeqLen=131072, requestedKvDtype=f32, requestedMaxSeqLen=1024
+# mixed-geometry-kvcache.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.130048
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 234.413153
+[node-tests] ok: tests/inference/mixed-geometry-kvcache.test.js
+TAP version 13
+# [227.3ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=32, layout=contiguous, modelMaxSeqLen=131072, requestedKvDtype=f32, requestedMaxSeqLen=32
+# mixed-geometry-prefill-with-embedding.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.104439
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 286.268953
+[node-tests] ok: tests/inference/mixed-geometry-prefill-with-embedding.test.js
+TAP version 13
+# Subtest: builds complete full-model checkpoint evidence across prefill and decode
+ok 1 - builds complete full-model checkpoint evidence across prefill and decode
+  ---
+  duration_ms: 5.349481
+  type: 'test'
+  ...
+# Subtest: fails closed when a tensor class, KV proof, or decode floor is missing
+ok 2 - fails closed when a tensor class, KV proof, or decode floor is missing
+  ---
+  duration_ms: 0.79653
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 3 - test module initialization completed
+  ---
+  duration_ms: 0.103164
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 102.098712
+[node-tests] ok: tests/inference/model-checkpoint-evidence.test.js
+TAP version 13
+# [165.1ms][Pipeline] Resolved session applied (lfm2-manifest-session-test): batchSize=16, stopCheckMode=batch, readbackInterval=4, disableCommandBatching=false
+# [166.8ms][Pipeline] Resolved session applied (manifest-session-kvtype-preserved-test): batchSize=16, stopCheckMode=batch, readbackInterval=4, disableCommandBatching=false
+# [166.9ms][Pipeline] Resolved session applied (qwen3-runtime-session-override-test): batchSize=4, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=true
+# [167.0ms][Pipeline] Resolved session applied (lfm2-manifest-ring-defaults-test): batchSize=8, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+# [167.0ms][Pipeline] Resolved session applied (lfm2-manifest-ring-disable-test): batchSize=8, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+# [167.0ms][Pipeline] Resolved session applied (lfm2-runtime-override-wins-test): batchSize=16, stopCheckMode=batch, readbackInterval=2, disableCommandBatching=false
+# [167.1ms][Pipeline] Resolved session applied (lfm2-null-runtime-overrides-do-not-mask-session-test): batchSize=32, stopCheckMode=batch, readbackInterval=64, disableCommandBatching=false
+# [167.1ms][Pipeline] Resolved session applied (lfm2-disable-command-batching-override-test): batchSize=8, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=true
+# [167.5ms][Pipeline] Resolved session applied (lfm2-full-runtime-override-test): batchSize=8, stopCheckMode=batch, readbackInterval=4, disableCommandBatching=true
+# model-load-batching-defaults.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.01975
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 206.423013
+[node-tests] ok: tests/inference/model-load-batching-defaults.test.js
+TAP version 13
+# [164.2ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=model)
+# [165.0ms][Pipeline] KernelPath: inline-f32 (1 decode steps, 1 kernels, source=model)
+# model-load-kernel-path-dtype-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.00396
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 196.836576
+[node-tests] ok: tests/inference/model-load-kernel-path-dtype-contract.test.js
+TAP version 13
+# [168.2ms][Pipeline] Resolved session applied (large-weights-runtime-override-fixture): batchSize=1, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+# [169.4ms][Pipeline] Resolved session applied (large-weights-runtime-override-fixture): batchSize=1, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+# model-load-large-weights-runtime-override.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.048634
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 204.390386
+[node-tests] ok: tests/inference/model-load-large-weights-runtime-override.test.js
+TAP version 13
+# moe-active-expert-schedule.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.062329
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 167.888241
+[node-tests] ok: tests/inference/moe-active-expert-schedule.test.js
+TAP version 13
+# moe-cache-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.035148
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 143.490482
+[node-tests] ok: tests/inference/moe-cache-cleanup.test.js
+TAP version 13
+# moe-dtype-contract-source.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.898802
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 103.339678
+[node-tests] ok: tests/inference/moe-dtype-contract-source.test.js
+TAP version 13
+# moe-mixtral-runtime-wiring.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.068732
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 130.327042
+[node-tests] ok: tests/inference/moe-mixtral-runtime-wiring.test.js
+TAP version 13
+# [163.7ms][KernelSelect] matmul variant=f32 reason=default
+# moe-ops-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.051359
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 206.38407
+[node-tests] ok: tests/inference/moe-ops-cleanup.test.js
+TAP version 13
+# [229.8ms][Pipeline] Unloaded
+# moe-router-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.99371
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 270.374613
+[node-tests] ok: tests/inference/moe-router-cleanup.test.js
+TAP version 13
+# moe-routing-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.958975
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 101.381251
+[node-tests] ok: tests/inference/moe-routing-contract.test.js
+TAP version 13
+# multimodal-config-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.048133
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 121.641401
+[node-tests] ok: tests/inference/multimodal-config-contract.test.js
+TAP version 13
+# multimodal-generation-options.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.066056
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 260.615882
+[node-tests] ok: tests/inference/multimodal-generation-options.test.js
+TAP version 13
+# [232.7ms][Pipeline] Loading vision weights on demand
+# [233.9ms][Pipeline] Loading audio weights on demand
+# multimodal-lazy-weight-load.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.033225
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 274.101409
+[node-tests] ok: tests/inference/multimodal-lazy-weight-load.test.js
+TAP version 13
+# multimodal-prefill-command-batching.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.506867
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 221.257891
+[node-tests] ok: tests/inference/multimodal-prefill-command-batching.test.js
+TAP version 13
+# multimodal-sequence-capacity-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.918879
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 88.676204
+[node-tests] ok: tests/inference/multimodal-sequence-capacity-contract.test.js
+TAP version 13
+# node-file-shard-storage-context.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.006174
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 219.096232
+[node-tests] ok: tests/inference/node-file-shard-storage-context.test.js
+TAP version 13
+# operator-diagnostics-forwarding-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.919541
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 106.591881
+[node-tests] ok: tests/inference/operator-diagnostics-forwarding-contract.test.js
+TAP version 13
+#   stage-names: ok
+#   operator-identity: ok
+#   operator-events: ok
+#   drift-policy: ok
+#   capture-policy: ok
+#   failure-reduction: ok
+# operator-diffing.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.888943
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 102.443481
+[node-tests] ok: tests/inference/operator-diffing.test.js
+TAP version 13
+# [174.4ms][EnergyRowHead] Loaded model "dream-energy-head-test" (dream_energy_head)
+# [176.3ms][Energy] Loaded energy model "energy-test"
+# [176.9ms][Energy] Quintel backend: GPU
+# [177.1ms][Energy] GPU quintel path failed: writeBuffer failed at 1
+# [177.2ms][Energy] Quintel backend: CPU
+# pipeline-buffer-write-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.046991
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 224.275882
+[node-tests] ok: tests/inference/pipeline-buffer-write-cleanup.test.js
+TAP version 13
+# [129.8ms][GPU] Device lost: Test loss, Reason: destroyed
+# [132.0ms][GPU] Device lost: Test replacement, Reason: destroyed
+# pipeline-context-restoration.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.12108
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 175.449516
+[node-tests] ok: tests/inference/pipeline-context-restoration.test.js
+TAP version 13
+# pipeline-embedding-fast-path.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.05709
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 267.91304
+[node-tests] ok: tests/inference/pipeline-embedding-fast-path.test.js
+TAP version 13
+# pipeline-shader-scope.test: ok (contract doubles)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.907048
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 104.351183
+[node-tests] ok: tests/inference/pipeline-shader-scope.test.js
+TAP version 13
+# postnorm-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.960949
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 93.250475
+[node-tests] ok: tests/inference/postnorm-contract.test.js
+TAP version 13
+# presence-penalty.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.988982
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113.115472
+[node-tests] ok: tests/inference/presence-penalty.test.js
+TAP version 13
+# [Doppler] Trace categories: embed
+# [Doppler] Trace disabled
+# probes-readback.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.037392
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 134.100095
+[node-tests] ok: tests/inference/probes-readback.test.js
+TAP version 13
+# q4k-loader-kernel-path-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.029708
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 208.007938
+[node-tests] ok: tests/inference/q4k-loader-kernel-path-contract.test.js
+TAP version 13
+# qk-norm-buffer-cache-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.03044
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 117.181136
+[node-tests] ok: tests/inference/qk-norm-buffer-cache-contract.test.js
+TAP version 13
+# qk-norm-weight-shape.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.036321
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 171.145635
+[node-tests] ok: tests/inference/qk-norm-weight-shape.test.js
+TAP version 13
+# qwen-linear-norm-offset.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.091134
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 200.51843
+[node-tests] ok: tests/inference/qwen-linear-norm-offset.test.js
+TAP version 13
+# qwen-manifest-completeness.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.021443
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 179.819524
+[node-tests] ok: tests/inference/qwen-manifest-completeness.test.js
+TAP version 13
+# qwen-output-gate-recorder-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.904042
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 106.54875
+[node-tests] ok: tests/inference/qwen-output-gate-recorder-contract.test.js
+TAP version 13
+# qwen-q4k-eos-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.045218
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 96.985046
+[node-tests] ok: tests/inference/qwen-q4k-eos-contract.test.js
+TAP version 13
+# qwen-rmsnorm-offset-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.00958
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 97.579395
+[node-tests] ok: tests/inference/qwen-rmsnorm-offset-contract.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# qwen-rope-runtime-config.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 2.003171
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 265.535837
+[node-tests] ok: tests/inference/qwen-rope-runtime-config.test.js
+TAP version 13
+# [91.3ms][Config] Experimental: Overriding 18 allowlisted model param(s) via runtime: vision_config.vision_architecture, vision_config.depth, vision_config.hidden_size, vision_config.intermediate_size, vision_config.num_heads, vision_config.num_key_value_heads, vision_config.head_dim, vision_config.out_hidden_size, vision_config.patch_size, vision_config.pooling_kernel_size, vision_config.spatial_merge_size, vision_config.temporal_patch_size, vision_config.eps, vision_config.hidden_activation, vision_config.min_pixels, vision_config.max_pixels, vision_config.normalization.mean, vision_config.normalization.std. Manifest values are recommended.
+# qwen-vision-config-runtime-override.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.066298
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 131.624425
+[node-tests] ok: tests/inference/qwen-vision-config-runtime-override.test.js
+TAP version 13
+# refactor-receipt.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.982179
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113.617227
+[node-tests] ok: tests/inference/refactor-receipt.test.js
+TAP version 13
+# rerank-scoring-details.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.883503
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 215.680803
+[node-tests] ok: tests/inference/rerank-scoring-details.test.js
+TAP version 13
+# Subtest: resolved runtime session is immutable and detached from mutable inputs
+ok 1 - resolved runtime session is immutable and detached from mutable inputs
+  ---
+  duration_ms: 3.476806
+  type: 'test'
+  ...
+# Subtest: attention accepts only the resolved session boundary
+ok 2 - attention accepts only the resolved session boundary
+  ---
+  duration_ms: 1.04632
+  type: 'test'
+  ...
+# Subtest: observation context keeps command intent out of numeric runtime policy
+ok 3 - observation context keeps command intent out of numeric runtime policy
+  ---
+  duration_ms: 0.239511
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 4 - test module initialization completed
+  ---
+  duration_ms: 0.060454
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 101.439202
+[node-tests] ok: tests/inference/resolved-runtime-session.test.js
+TAP version 13
+# Subtest: immediate failure cleanup releases every acquired stage exactly once
+ok 1 - immediate failure cleanup releases every acquired stage exactly once
+  ---
+  duration_ms: 1.884478
+  type: 'test'
+  ...
+# Subtest: aliasing, transfer, retention, and output replacement are explicit
+ok 2 - aliasing, transfer, retention, and output replacement are explicit
+  ---
+  duration_ms: 0.383832
+  type: 'test'
+  ...
+# Subtest: recorded scope retains submit-owned buffers and prevents duplicate tracking
+ok 3 - recorded scope retains submit-owned buffers and prevents duplicate tracking
+  ---
+  duration_ms: 0.153069
+  type: 'test'
+  ...
+# Subtest: early return closes owned temporaries while preserving borrowed resources
+ok 4 - early return closes owned temporaries while preserving borrowed resources
+  ---
+  duration_ms: 0.100799
+  type: 'test'
+  ...
+# Subtest: pooled resource reacquisition starts a new ownership lifetime
+ok 5 - pooled resource reacquisition starts a new ownership lifetime
+  ---
+  duration_ms: 0.147327
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 6 - test module initialization completed
+  ---
+  duration_ms: 0.044374
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 92.724566
+[node-tests] ok: tests/inference/resource-scope.test.js
+TAP version 13
+# rmsnorm-cache-bypass.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.097546
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 127.847386
+[node-tests] ok: tests/inference/rmsnorm-cache-bypass.test.js
+TAP version 13
+# rmsnorm-fusion-gate.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.864067
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 104.291712
+[node-tests] ok: tests/inference/rmsnorm-fusion-gate.test.js
+TAP version 13
+# rope-frequency-cache-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.016033
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 228.520896
+[node-tests] ok: tests/inference/rope-frequency-cache-contract.test.js
+TAP version 13
+# [228.3ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [229.0ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [228.8ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [229.0ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# runtime-contract-regressions.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.093409
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 268.042065
+[node-tests] ok: tests/inference/runtime-contract-regressions.test.js
+TAP version 13
+# sampling-config.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.903451
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 99.102784
+[node-tests] ok: tests/inference/sampling-config.test.js
+TAP version 13
+# sampling-nan-guard.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.992628
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 120.697717
+[node-tests] ok: tests/inference/sampling-nan-guard.test.js
+TAP version 13
+# sampling-topk-fast-path.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.006154
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 115.103796
+[node-tests] ok: tests/inference/sampling-topk-fast-path.test.js
+TAP version 13
+# Subtest: SD3 transformer plan is immutable and derives geometry without GPU state
+ok 1 - SD3 transformer plan is immutable and derives geometry without GPU state
+  ---
+  duration_ms: 1.744574
+  type: 'test'
+  ...
+# Subtest: SD3 position and modulation plans remain JSON-safe
+ok 2 - SD3 position and modulation plans remain JSON-safe
+  ---
+  duration_ms: 0.628994
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 3 - test module initialization completed
+  ---
+  duration_ms: 0.065263
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 132.339302
+[node-tests] ok: tests/inference/sd3-transformer-plan.test.js
+TAP version 13
+# selected-logits-diagnostics.test: ok (synthetic execution; no physical inference claim)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.063011
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 256.797247
+[node-tests] ok: tests/inference/selected-logits-diagnostics.test.js
+TAP version 13
+# sequence-encoding-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.033195
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 270.361333
+[node-tests] ok: tests/inference/sequence-encoding-contract.test.js
+TAP version 13
+# soft-embedding-split-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.283396
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 147.177516
+[node-tests] ok: tests/inference/soft-embedding-split-contract.test.js
+TAP version 13
+# speculative-decoding.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.948385
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 95.075693
+[node-tests] ok: tests/inference/speculative-decoding.test.js
+TAP version 13
+# test-harness-storage-context.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.038625
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 256.254486
+[node-tests] ok: tests/inference/test-harness-storage-context.test.js
+TAP version 13
+# [139.8ms][TurboQuant] Computed rotation matrix: d=64, seed=1414616389
+# [332.2ms][TurboQuant] Computed codebook: d=64, b=4, centroids=16
+# [333.7ms][TurboQuant] Computed QJL matrix: d=64, seed=1363823696
+# tiered-turboquant-clone.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.185171
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 377.265874
+[node-tests] ok: tests/inference/tiered-turboquant-clone.test.js
+TAP version 13
+# token-sampling-contract: canonical validation, penalty window and filter order passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.932916
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 109.605506
+[node-tests] ok: tests/inference/token-sampling-contract.test.js
+TAP version 13
+# [81.6ms][Tokenizer] Loaded 13 tokens (bpe)
+# [83.2ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [83.3ms][Tokenizer] Loaded HuggingFace 13 tokens (bpe), 3 special patterns, 0 merges
+# tokenizer-bundled-added-tokens.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.012827
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 115.436162
+[node-tests] ok: tests/inference/tokenizer-bundled-added-tokens.test.js
+TAP version 13
+# [103.4ms][Tokenizer] Loaded 3 tokens (bpe)
+# [104.9ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [105.0ms][Tokenizer] Loaded HuggingFace 3 tokens (bpe), 0 special patterns, 0 merges
+# [105.0ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [105.1ms][Tokenizer] Loaded HuggingFace 4 tokens (bpe), 3 special patterns, 0 merges
+# [105.3ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [105.3ms][Tokenizer] Loaded HuggingFace 200002 tokens (bpe), 3 special patterns, 0 merges
+# tokenizer-bundled-flags.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.023086
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 138.864337
+[node-tests] ok: tests/inference/tokenizer-bundled-flags.test.js
+TAP version 13
+# [77.8ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [78.6ms][Tokenizer] Loaded HuggingFace 7413 tokens (bpe), 0 special patterns, 0 merges
+# tokenizer-bundled-hot-token-ranking.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.0091
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 118.934117
+[node-tests] ok: tests/inference/tokenizer-bundled-hot-token-ranking.test.js
+TAP version 13
+# [89.4ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [90.8ms][Tokenizer] Loaded HuggingFace 94 tokens (bpe), 4 special patterns, 6 merges
+# tokenizer-bundled-split-pretokenizer.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.047041
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 126.818139
+[node-tests] ok: tests/inference/tokenizer-bundled-split-pretokenizer.test.js
+TAP version 13
+# [86.4ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [87.2ms][Tokenizer] Loaded HuggingFace 6 tokens (bpe), 0 special patterns, 0 merges
+# [87.7ms][Tokenizer] Loaded 3 tokens (bpe)
+# tokenizer-bundled-unicode-decode.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.057
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 120.225919
+[node-tests] ok: tests/inference/tokenizer-bundled-unicode-decode.test.js
+TAP version 13
+# [77.6ms][Tokenizer] HuggingFace model.type="WordPiece", using type="wordpiece"
+# [78.5ms][Tokenizer] Loaded HuggingFace 8 tokens (wordpiece), 5 special patterns, 0 merges
+# [79.8ms][Tokenizer] HuggingFace model.type="WordPiece", using type="wordpiece"
+# [80.0ms][Tokenizer] Loaded HuggingFace 5 tokens (wordpiece), 2 special patterns, 0 merges
+# [81.1ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [81.2ms][Tokenizer] Loaded HuggingFace 6 tokens (bpe), 4 special patterns, 0 merges
+# [81.5ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [81.6ms][Tokenizer] Loaded HuggingFace 9 tokens (bpe), 4 special patterns, 0 merges
+# tokenizer-bundled-wordpiece.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.070896
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113.84683
+[node-tests] ok: tests/inference/tokenizer-bundled-wordpiece.test.js
+TAP version 13
+# [81.0ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [82.1ms][Tokenizer] Loaded HuggingFace 261 tokens (bpe), 1 special patterns, 0 merges
+# [141.1ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [141.3ms][Tokenizer] Loaded HuggingFace 261 tokens (bpe), 1 special patterns, 0 merges
+# [201.2ms][Tokenizer] HuggingFace model.type="WordPiece", using type="wordpiece"
+# [201.4ms][Tokenizer] Loaded HuggingFace 261 tokens (wordpiece), 1 special patterns, 0 merges
+# tokenizer-incremental-decode.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.275521
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 238.351024
+[node-tests] ok: tests/inference/tokenizer-incremental-decode.test.js
+TAP version 13
+# [88.0ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+# [89.0ms][Tokenizer] Loaded 3 tokens (bpe)
+# [90.0ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+# [90.2ms][Tokenizer] Bundled tokenizer cache hit: tokenizer.json
+# tokenizer-load-timing.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.016924
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 123.93445
+[node-tests] ok: tests/inference/tokenizer-load-timing.test.js
+TAP version 13
+# [96.4ms][Tokenizer] Loaded 3 tokens (bpe)
+# [97.1ms][Tokenizer] Loaded 3 tokens (bpe)
+# [97.6ms][Tokenizer] Failed to parse model, using byte fallback: Unexpected end of buffer
+# [98.8ms][Tokenizer] Loaded 16 pieces (bpe)
+# tokenizer-reload-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.461311
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 141.684736
+[node-tests] ok: tests/inference/tokenizer-reload-cleanup.test.js
+TAP version 13
+# tokenizer.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.026272
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 111.782424
+[node-tests] ok: tests/inference/tokenizer.test.js
+TAP version 13
+# tsir-fixture-writer.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.579012
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 116.869361
+[node-tests] ok: tests/inference/tsir-fixture-writer.test.js
+TAP version 13
+# Subtest: createTsvGrammarMask
+    # Subtest: blocks newline before any tabs are emitted (line cannot end without fields)
+    ok 1 - blocks newline before any tabs are emitted (line cannot end without fields)
+      ---
+      duration_ms: 1.076677
+      type: 'test'
+      ...
+    # Subtest: blocks newline mid-line (after some but not all field separators)
+    ok 2 - blocks newline mid-line (after some but not all field separators)
+      ---
+      duration_ms: 0.140705
+      type: 'test'
+      ...
+    # Subtest: allows newline once all 3 tabs are emitted
+    ok 3 - allows newline once all 3 tabs are emitted
+      ---
+      duration_ms: 0.14335
+      type: 'test'
+      ...
+    # Subtest: blocks a 4th tab on the same line (would push past the schema)
+    ok 4 - blocks a 4th tab on the same line (would push past the schema)
+      ---
+      duration_ms: 0.124093
+      type: 'test'
+      ...
+    # Subtest: resets per-line tab counter on newline
+    ok 5 - resets per-line tab counter on newline
+      ---
+      duration_ms: 0.07418
+      type: 'test'
+      ...
+    # Subtest: does NOT enforce category content (any string token allowed at line start)
+    ok 6 - does NOT enforce category content (any string token allowed at line start)
+      ---
+      duration_ms: 0.063289
+      type: 'test'
+      ...
+    # Subtest: handles a multi-character token piece containing tab + newline together
+    ok 7 - handles a multi-character token piece containing tab + newline together
+      ---
+      duration_ms: 0.093836
+      type: 'test'
+      ...
+    # Subtest: blocks a multi-character piece that would over-fill the tab budget
+    ok 8 - blocks a multi-character piece that would over-fill the tab budget
+      ---
+      duration_ms: 0.125346
+      type: 'test'
+      ...
+    # Subtest: returns a no-op when no tokenizer is provided
+    ok 9 - returns a no-op when no tokenizer is provided
+      ---
+      duration_ms: 0.158899
+      type: 'test'
+      ...
+    1..9
+ok 1 - createTsvGrammarMask
+  ---
+  duration_ms: 2.951105
+  type: 'suite'
+  ...
+# Subtest: test module initialization completed
+ok 2 - test module initialization completed
+  ---
+  duration_ms: 0.131337
+  type: 'test'
+  ...
+1..2
+# tests 10
+# suites 1
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 99.738912
+[node-tests] ok: tests/inference/tsv-grammar-mask.test.js
+TAP version 13
+# turboquant-config-merge: merge tests passed
+# [169.8ms][TurboQuant] Computed rotation matrix: d=8, seed=1414616389
+# [347.9ms][TurboQuant] Computed codebook: d=8, b=4, centroids=16
+# [348.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1024, layout=contiguous_quantized, modelMaxSeqLen=1024, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [348.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1024, layout=contiguous_quantized, modelMaxSeqLen=1024, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [348.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1024, layout=contiguous_quantized, modelMaxSeqLen=1024, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [348.9ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1024, layout=contiguous_quantized, modelMaxSeqLen=1024, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [349.1ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1024, layout=contiguous_quantized, modelMaxSeqLen=1024, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [349.3ms][TurboQuant] Computed QJL matrix: d=8, seed=1363823696
+# [349.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1024, layout=contiguous_quantized, modelMaxSeqLen=1024, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [349.6ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1024, layout=contiguous_quantized, modelMaxSeqLen=1024, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [349.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1024, layout=contiguous_quantized, modelMaxSeqLen=1024, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [349.9ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [350.4ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [350.1ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=1024, layout=contiguous, modelMaxSeqLen=1024, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [350.3ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1024, layout=contiguous_quantized, modelMaxSeqLen=1024, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [350.5ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=512, layout=contiguous, modelMaxSeqLen=1024, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# turboquant-config-merge: layout resolution tests passed
+# turboquant-config-merge.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.194128
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 387.444929
+[node-tests] ok: tests/inference/turboquant-config-merge.test.js
+TAP version 13
+# vision-pipeline-capability.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.135087
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 271.254025
+[node-tests] ok: tests/inference/vision-pipeline-capability.test.js
+TAP version 13
+# weight-buffer-runtime-dtype.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.001626
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 216.963622
+[node-tests] ok: tests/inference/weight-buffer-runtime-dtype.test.js
+[node-tests] ok: 176 files

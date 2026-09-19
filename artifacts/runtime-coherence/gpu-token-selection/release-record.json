@@ -1,0 +1,157 @@
+{
+  "schema": "doppler.gpu-token-selection-release-record/v1",
+  "status": "local-evaluation-candidate",
+  "implementationRevision": "eaea457ef793f5846f8603bf35af832e54a0e4f0",
+  "fixtureGenerationRevision": "eaea457ef793f5846f8603bf35af832e54a0e4f0",
+  "inventoryCorrectionRevision": "a99c799497881f2571c52d4f496d0ea1a9e19046",
+  "pullRequest": "https://github.com/clocksmith/doppler/pull/12",
+  "baseBranch": "codex/runtime-contract-coherence",
+  "archives": {
+    "acceptedLocal": {
+      "filename": "doppler-gpu-0.6.2.tgz",
+      "version": "0.6.2",
+      "integrity": "sha512-RDLnMRvZ3affIL8XA7sejHRQ2DYtTTYoHKNMY/l+XMsDIIx4gBc2ixfL2v8qUe4IMQW/5xQmxY5rvvLU8LM/uw==",
+      "sizeBytes": 2117296,
+      "source": "local-npm-pack",
+      "sha256": "9c574a03500e137e44184cc1827339ca4b4ee6e60597351999d5f9d0679c06af"
+    },
+    "baseline": {
+      "filename": "doppler-gpu-0.6.2.tgz",
+      "version": "0.6.2",
+      "integrity": "sha512-QJ8YBiw8j4zS1cXVoAgt4KHkGWQNCwqJr8ahbk/ckjqWPW0yP7gwfUMyRw84zwYFgPgIZoyf/pFrDqSR1WSP0g==",
+      "sizeBytes": 2130910,
+      "source": "local-npm-pack",
+      "sha256": "f9758530d0fec3967dfa96dc64252dcdd874c0c73f120ee28f7767899f0ca2d6"
+    },
+    "firstCandidate": {
+      "filename": "doppler-gpu-0.6.2.tgz",
+      "version": "0.6.2",
+      "integrity": "sha512-ymN+CzYNbhrgpJZ7UzrUYsE9m9W9pUlElr30wFKBdjgudntde4J/kmzSoKUdffGsXBdWDryIOwX0Pb4Imiowig==",
+      "sizeBytes": 2134638,
+      "source": "local-npm-pack",
+      "sha256": "bf935f56d56f04085d5bd3473fb3dfdce1a08e809488844ee3d1dbb4b79077b4"
+    },
+    "preSealingQualificationProbe": {
+      "filename": "doppler-gpu-0.6.2.tgz",
+      "version": "0.6.2",
+      "integrity": "sha512-ymN+CzYNbhrgpJZ7UzrUYsE9m9W9pUlElr30wFKBdjgudntde4J/kmzSoKUdffGsXBdWDryIOwX0Pb4Imiowig==",
+      "sizeBytes": 2134638,
+      "source": "local-npm-pack",
+      "sha256": "bf935f56d56f04085d5bd3473fb3dfdce1a08e809488844ee3d1dbb4b79077b4"
+    },
+    "reploid": {
+      "path": "/dev/shm/doppler-runtime-coherence/immutable-candidate/reploid-library/reploid-0.1.0.tgz",
+      "sha256": "b92d6ac8a88740aebe82745d7b2e67afd9eb6c8f676efc9bed675f1cad35a250"
+    }
+  },
+  "reploidRevision": "19bc359ef1b7606fde3132ab2f37920f4891e6e5",
+  "capsule": {
+    "modelId": "qwen-3-4b-instruct-2507-f16-af32-closed-development",
+    "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-081a4e03adbdc572",
+    "semanticRoot": "sha256:081a4e03adbdc572d778cb9ba4470989bb5d5b2e9e638c49db2a390460449516",
+    "executionGraphHash": "sha256:069de226ba7fa3ece3ea7f66ebf391d897c66d236e0286732ae35b65d6c3913b",
+    "targetPlanDigests": [
+      "sha256:2983e5f3b9a9c2e03825ba0168c5c8272788a30e1879fcfd67d0836ed5b5b496"
+    ],
+    "artifactCount": 148,
+    "wgslModuleCount": 23
+  },
+  "authority": {
+    "id": "doppler-local-gpu-selection-evaluation-20260915",
+    "scope": "Local evaluation only; public key retained; private key outside repository."
+  },
+  "environment": {
+    "browserVersion": "146.0.7680.177",
+    "hardware": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "0x1586",
+      "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+      "isFallbackAdapter": false
+    },
+    "nodeVersion": "22.22.1",
+    "npmVersion": "9.2.0"
+  },
+  "acceptance": {
+    "installedStandalone": {
+      "passed": true,
+      "receipt": "standalone-package.json",
+      "scope": "Public package contracts, injected execution and 29 public export declarations"
+    },
+    "installedReploid": {
+      "passed": true,
+      "receipts": [
+        "reploid-installed.json",
+        "reploid-token-selection.json"
+      ],
+      "scope": "Injected execution, settings, cancellation, request adapters, public stream reconstruction and cleanup"
+    },
+    "physicalStandalone": {
+      "passed": true,
+      "receipt": "standalone-receipt.json",
+      "runs": 3,
+      "tokensPerRun": 256,
+      "tokensMatchBaseline": true,
+      "stopReason": "max-tokens"
+    },
+    "physicalReploid": {
+      "passed": true,
+      "receipt": "reploid-physical-receipt.json",
+      "tokens": 107,
+      "partials": 106,
+      "stopReason": "eos-token",
+      "displayMatchesVerifiedCompletion": true
+    },
+    "physicalOperators": {
+      "passed": true,
+      "receipt": "gpu-selection-physical-operators-final.log",
+      "selectionCases": 129,
+      "samplingDistributionCases": 540,
+      "penaltyCases": 96,
+      "nonfiniteProbeRows": 12
+    },
+    "ci": "ci-observation.json",
+    "unitHistory": "unit-results.json",
+    "localGreenChain": "local-acceptance.json",
+    "ciFinal": "ci-final-acceptance.json"
+  },
+  "observedReadback": {
+    "vocabSize": 151936,
+    "baselineBytesPerDecode": 607744,
+    "candidateBytesPerDecode": 4,
+    "decodeSteps": 255,
+    "baselineTotalBytes": 154974720,
+    "candidateTotalBytes": 1020,
+    "baselineSubmissions": 1530,
+    "candidateSubmissions": 1530
+  },
+  "performanceDisposition": {
+    "promoted": false,
+    "endToEndSpeedupEstablished": false,
+    "reason": "Final unobserved repeated request was 17523.2 ms versus 17197.9 ms baseline; one local diagnostic population. Lower readback did not improve overall latency.",
+    "records": [
+      "gpu-selection-baseline-summary.json",
+      "gpu-selection-public-summary-1.json",
+      "gpu-selection-public-summary-final.json"
+    ]
+  },
+  "limitations": [
+    "Model acceptance is local greedy generation on one AMD browser implementation. Operator stochastic parity does not qualify every installed model sampling distribution.",
+    "Pre-sealing qualification used archive bf935f56d56f04085d5bd3473fb3dfdce1a08e809488844ee3d1dbb4b79077b4; final signed public consumers used 9c574a03500e137e44184cc1827339ca4b4ee6e60597351999d5f9d0679c06af.",
+    "The profiler sourceRevision is the precommit HEAD; fixture-source-state.json captures that working state and package-reproduction.json binds the final installed bytes to committed implementation.",
+    "CI uses another npm/Node packaging toolchain and its archive is not asserted byte-identical to the local physical archive.",
+    "Historical manifests, qualifications and shader mismatches remain historical."
+  ],
+  "publication": false,
+  "deployment": false,
+  "productionAuthorityQualification": false,
+  "externalAdoption": false,
+  "component": "doppler",
+  "intent": "preserved",
+  "boundaryEffects": [
+    "Capsule generation recipe",
+    "Forge validation and source identity",
+    "GPU selection and resource lifecycle",
+    "Installed-consumer fixtures"
+  ]
+}

@@ -1,0 +1,2406 @@
+{
+  "sourceRevision": "5a176f9c",
+  "method": "WGSL declaration reflection only; no numerical execution",
+  "variants": 350,
+  "modules": 284,
+  "failures": [
+    {
+      "op": "matmul",
+      "variant": "f16",
+      "unified": false,
+      "errors": [
+        "matmul/f16: transpose_b must be u32 at byte 16.",
+        "matmul/f16: _pad0 must be u32 at byte 20.",
+        "matmul/f16: _pad1 must be u32 at byte 24.",
+        "matmul/f16: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "f16_vec4",
+      "unified": false,
+      "errors": [
+        "matmul/f16_vec4: transpose_b must be u32 at byte 16.",
+        "matmul/f16_vec4: _pad0 must be u32 at byte 20.",
+        "matmul/f16_vec4: _pad1 must be u32 at byte 24.",
+        "matmul/f16_vec4: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "f16_tiled",
+      "unified": false,
+      "errors": [
+        "matmul/f16_tiled: transpose_b must be u32 at byte 16.",
+        "matmul/f16_tiled: _pad0 must be u32 at byte 20.",
+        "matmul/f16_tiled: _pad1 must be u32 at byte 24.",
+        "matmul/f16_tiled: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "f16w_f32a",
+      "unified": false,
+      "errors": [
+        "matmul/f16w_f32a: transpose_b must be u32 at byte 16.",
+        "matmul/f16w_f32a: _pad0 must be u32 at byte 20.",
+        "matmul/f16w_f32a: _pad1 must be u32 at byte 24.",
+        "matmul/f16w_f32a: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "bf16w_f32a",
+      "unified": false,
+      "errors": [
+        "matmul/bf16w_f32a: transpose_b must be u32 at byte 16.",
+        "matmul/bf16w_f32a: _pad0 must be u32 at byte 20.",
+        "matmul/bf16w_f32a: _pad1 must be u32 at byte 24.",
+        "matmul/bf16w_f32a: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "f16w_f32a_tiled",
+      "unified": false,
+      "errors": [
+        "matmul/f16w_f32a_tiled: transpose_b must be u32 at byte 16.",
+        "matmul/f16w_f32a_tiled: _pad0 must be u32 at byte 20.",
+        "matmul/f16w_f32a_tiled: _pad1 must be u32 at byte 24.",
+        "matmul/f16w_f32a_tiled: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv",
+      "unified": false,
+      "errors": [
+        "matmul/gemv: transpose_b must be u32 at byte 16.",
+        "matmul/gemv: _pad0 must be u32 at byte 20.",
+        "matmul/gemv: _pad1 must be u32 at byte 24.",
+        "matmul/gemv: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_f16a: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_f16a: _pad0 must be u32 at byte 20.",
+        "matmul/gemv_f16a: _pad1 must be u32 at byte 24.",
+        "matmul/gemv_f16a: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_bf16w",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_bf16w: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_bf16w: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_bf16w: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_bf16w: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_bf16w_vec4",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_bf16w_vec4: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_bf16w_vec4: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_bf16w_vec4: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_bf16w_vec4: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_bf16w_multicol",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_bf16w_multicol: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_bf16w_multicol: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_bf16w_multicol: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_bf16w_multicol: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_f16a: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_f16a: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_f16a: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_f16a: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_vec4",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_vec4: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_vec4: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_vec4: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_vec4: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_vec4_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_vec4_f16a: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_vec4_f16a: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_vec4_f16a: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_vec4_f16a: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_cols8_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_cols8_f16a: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_cols8_f16a: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_cols8_f16a: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_cols8_f16a: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_vec4_cols8_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_vec4_cols8_f16a: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_vec4_cols8_f16a: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_vec4_cols8_f16a: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_vec4_cols8_f16a: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_multicol",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_multicol: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_multicol: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_multicol: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_multicol: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_multicol_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_multicol_f16a: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_multicol_f16a: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_multicol_f16a: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_multicol_f16a: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_cols64",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_cols64: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_cols64: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_cols64: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_cols64: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_cols64_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_cols64_f16a: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_cols64_f16a: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_cols64_f16a: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_cols64_f16a: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "gemv_subgroup_vec4_cols64_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/gemv_subgroup_vec4_cols64_f16a: transpose_b must be u32 at byte 16.",
+        "matmul/gemv_subgroup_vec4_cols64_f16a: workgroups_x must be u32 at byte 20.",
+        "matmul/gemv_subgroup_vec4_cols64_f16a: _pad0 must be u32 at byte 24.",
+        "matmul/gemv_subgroup_vec4_cols64_f16a: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_f16a: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_f16a: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_f16a: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_f16a: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "litert_int4_multicol_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/litert_int4_multicol_f16a: transpose_b must be u32 at byte 16.",
+        "matmul/litert_int4_multicol_f16a: workgroups_x must be u32 at byte 20.",
+        "matmul/litert_int4_multicol_f16a: _pad1 must be u32 at byte 24.",
+        "matmul/litert_int4_multicol_f16a: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "litert_int4_multicol_f16a_f32out",
+      "unified": false,
+      "errors": [
+        "matmul/litert_int4_multicol_f16a_f32out: transpose_b must be u32 at byte 16.",
+        "matmul/litert_int4_multicol_f16a_f32out: workgroups_x must be u32 at byte 20.",
+        "matmul/litert_int4_multicol_f16a_f32out: _pad1 must be u32 at byte 24.",
+        "matmul/litert_int4_multicol_f16a_f32out: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "litert_int4_multicol_f32a_f32out",
+      "unified": false,
+      "errors": [
+        "matmul/litert_int4_multicol_f32a_f32out: transpose_b must be u32 at byte 16.",
+        "matmul/litert_int4_multicol_f32a_f32out: workgroups_x must be u32 at byte 20.",
+        "matmul/litert_int4_multicol_f32a_f32out: _pad1 must be u32 at byte 24.",
+        "matmul/litert_int4_multicol_f32a_f32out: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "w4a16_multicol_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/w4a16_multicol_f16a: transpose_b must be u32 at byte 16.",
+        "matmul/w4a16_multicol_f16a: workgroups_x must be u32 at byte 20.",
+        "matmul/w4a16_multicol_f16a: _pad1 must be u32 at byte 24.",
+        "matmul/w4a16_multicol_f16a: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "w4a16_multicol_f16a_f32out",
+      "unified": false,
+      "errors": [
+        "matmul/w4a16_multicol_f16a_f32out: transpose_b must be u32 at byte 16.",
+        "matmul/w4a16_multicol_f16a_f32out: workgroups_x must be u32 at byte 20.",
+        "matmul/w4a16_multicol_f16a_f32out: _pad1 must be u32 at byte 24.",
+        "matmul/w4a16_multicol_f16a_f32out: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "w4a16_batched_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/w4a16_batched_f16a: transpose_b must be u32 at byte 16.",
+        "matmul/w4a16_batched_f16a: workgroups_x must be u32 at byte 20.",
+        "matmul/w4a16_batched_f16a: _pad1 must be u32 at byte 24.",
+        "matmul/w4a16_batched_f16a: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "w4a16_batched_f16a_f32out",
+      "unified": false,
+      "errors": [
+        "matmul/w4a16_batched_f16a_f32out: transpose_b must be u32 at byte 16.",
+        "matmul/w4a16_batched_f16a_f32out: workgroups_x must be u32 at byte 20.",
+        "matmul/w4a16_batched_f16a_f32out: _pad1 must be u32 at byte 24.",
+        "matmul/w4a16_batched_f16a_f32out: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_batched",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_batched: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_batched: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_batched: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_batched: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_batched_multicol_shared",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_batched_multicol_shared: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_batched_multicol_shared: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_batched_multicol_shared: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_batched_multicol_shared: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_multicol",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_multicol: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_multicol: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_multicol: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_multicol: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_gemv",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_gemv: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_gemv: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_gemv: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_gemv: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_multicol_f16",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_multicol_f16: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_multicol_f16: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_multicol_f16: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_multicol_f16: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_multicol_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_multicol_f16a: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_multicol_f16a: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_multicol_f16a: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_multicol_f16a: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_multicol_f16a_f32acc",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_multicol_f16a_f32acc: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_multicol_f16a_f32acc: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_multicol_f16a_f32acc: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_multicol_f16a_f32acc: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_metal_simd16",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_metal_simd16: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_metal_simd16: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_metal_simd16: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_metal_simd16: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_batched_f16",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_batched_f16: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_batched_f16: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_batched_f16: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_batched_f16: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_batched_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_batched_f16a: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_batched_f16a: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_batched_f16a: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_batched_f16a: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_batched_f16acc_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_batched_f16acc_f16a: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_batched_f16acc_f16a: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_batched_f16acc_f16a: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_batched_f16acc_f16a: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_prefill_tiled_f16",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_prefill_tiled_f16: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_prefill_tiled_f16: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_prefill_tiled_f16: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_prefill_tiled_f16: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_widetile_f16",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_widetile_f16: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_widetile_f16: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_widetile_f16: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_widetile_f16: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_widetile_f16a",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_widetile_f16a: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_widetile_f16a: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_widetile_f16a: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_widetile_f16a: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_widetile",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_widetile: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_widetile: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_widetile: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_widetile: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_rmsnorm_widetile",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_rmsnorm_widetile: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_rmsnorm_widetile: eps must be f32 at byte 20.",
+        "matmul/q4_fused_rmsnorm_widetile: _pad0 must be u32 at byte 24.",
+        "matmul/q4_fused_rmsnorm_widetile: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "q4_fused_widetile_residual",
+      "unified": false,
+      "errors": [
+        "matmul/q4_fused_widetile_residual: num_blocks_per_row must be u32 at byte 16.",
+        "matmul/q4_fused_widetile_residual: _pad0 must be u32 at byte 20.",
+        "matmul/q4_fused_widetile_residual: _pad1 must be u32 at byte 24.",
+        "matmul/q4_fused_widetile_residual: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul",
+      "variant": "f32",
+      "unified": false,
+      "errors": [
+        "matmul/f32: transpose_b must be u32 at byte 16.",
+        "matmul/f32: _pad0 must be u32 at byte 20.",
+        "matmul/f32: _pad1 must be u32 at byte 24.",
+        "matmul/f32: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "fused_ffn/default: uniform size 36; WGSL requires 32.",
+        "fused_ffn/default: clamp_max must be f32 at byte 20.",
+        "fused_ffn/default: _pad0 must be u32 at byte 24.",
+        "fused_ffn/default: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "multi",
+      "unified": false,
+      "errors": [
+        "fused_ffn/multi: uniform size 36; WGSL requires 32.",
+        "fused_ffn/multi: clamp_max must be f32 at byte 20.",
+        "fused_ffn/multi: _pad0 must be u32 at byte 24.",
+        "fused_ffn/multi: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "f16",
+      "unified": false,
+      "errors": [
+        "fused_ffn/f16: uniform size 36; WGSL requires 32.",
+        "fused_ffn/f16: clamp_max must be f32 at byte 20.",
+        "fused_ffn/f16: _pad0 must be u32 at byte 24.",
+        "fused_ffn/f16: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "f16_batched",
+      "unified": false,
+      "errors": [
+        "fused_ffn/f16_batched: uniform size 36; WGSL requires 32.",
+        "fused_ffn/f16_batched: clamp_max must be f32 at byte 20.",
+        "fused_ffn/f16_batched: _pad0 must be u32 at byte 24.",
+        "fused_ffn/f16_batched: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "f16_native",
+      "unified": false,
+      "errors": [
+        "fused_ffn/f16_native: uniform size 36; WGSL requires 32.",
+        "fused_ffn/f16_native: clamp_max must be f32 at byte 20.",
+        "fused_ffn/f16_native: _pad0 must be u32 at byte 24.",
+        "fused_ffn/f16_native: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "f16_native_batched",
+      "unified": false,
+      "errors": [
+        "fused_ffn/f16_native_batched: uniform size 36; WGSL requires 32.",
+        "fused_ffn/f16_native_batched: clamp_max must be f32 at byte 20.",
+        "fused_ffn/f16_native_batched: _pad0 must be u32 at byte 24.",
+        "fused_ffn/f16_native_batched: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "batched",
+      "unified": false,
+      "errors": [
+        "fused_ffn/batched: uniform size 36; WGSL requires 32.",
+        "fused_ffn/batched: clamp_max must be f32 at byte 20.",
+        "fused_ffn/batched: _pad0 must be u32 at byte 24.",
+        "fused_ffn/batched: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "q4k",
+      "unified": false,
+      "errors": [
+        "fused_ffn/q4k: uniform size 36; WGSL requires 32.",
+        "fused_ffn/q4k: num_blocks_per_row must be u32 at byte 20.",
+        "fused_ffn/q4k: clamp_max must be f32 at byte 24.",
+        "fused_ffn/q4k: _pad0 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "q4k_metal_simd16",
+      "unified": false,
+      "errors": [
+        "fused_ffn/q4k_metal_simd16: uniform size 36; WGSL requires 32.",
+        "fused_ffn/q4k_metal_simd16: num_blocks_per_row must be u32 at byte 20.",
+        "fused_ffn/q4k_metal_simd16: clamp_max must be f32 at byte 24.",
+        "fused_ffn/q4k_metal_simd16: _pad0 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "q4k_f16a",
+      "unified": false,
+      "errors": [
+        "fused_ffn/q4k_f16a: uniform size 36; WGSL requires 32.",
+        "fused_ffn/q4k_f16a: num_blocks_per_row must be u32 at byte 20.",
+        "fused_ffn/q4k_f16a: clamp_max must be f32 at byte 24.",
+        "fused_ffn/q4k_f16a: _pad0 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "q4k_batched",
+      "unified": false,
+      "errors": [
+        "fused_ffn/q4k_batched: uniform size 36; WGSL requires 32.",
+        "fused_ffn/q4k_batched: num_blocks_per_row must be u32 at byte 20.",
+        "fused_ffn/q4k_batched: clamp_max must be f32 at byte 24.",
+        "fused_ffn/q4k_batched: _pad0 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "q4k_batched_f16a",
+      "unified": false,
+      "errors": [
+        "fused_ffn/q4k_batched_f16a: uniform size 36; WGSL requires 32.",
+        "fused_ffn/q4k_batched_f16a: num_blocks_per_row must be u32 at byte 20.",
+        "fused_ffn/q4k_batched_f16a: clamp_max must be f32 at byte 24.",
+        "fused_ffn/q4k_batched_f16a: _pad0 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "gate_up_gelu_gated_tiled_f16",
+      "unified": false,
+      "errors": [
+        "fused_ffn/gate_up_gelu_gated_tiled_f16: uniform size 36; WGSL requires 32.",
+        "fused_ffn/gate_up_gelu_gated_tiled_f16: transpose_b must be u32 at byte 12.",
+        "fused_ffn/gate_up_gelu_gated_tiled_f16: _pad0 must be u32 at byte 16.",
+        "fused_ffn/gate_up_gelu_gated_tiled_f16: _pad1 must be u32 at byte 20.",
+        "fused_ffn/gate_up_gelu_gated_tiled_f16: _pad2 must be u32 at byte 24.",
+        "fused_ffn/gate_up_gelu_gated_tiled_f16: _pad3 must be u32 at byte 28.",
+        "fused_ffn/gate_up_gelu_gated_tiled_f16: alpha is absent from the WGSL uniform struct.",
+        "fused_ffn/gate_up_gelu_gated_tiled_f16: activation is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "fused_ffn",
+      "variant": "q4k_normed",
+      "unified": false,
+      "errors": [
+        "fused_ffn/q4k_normed: uniform size 36; WGSL requires 48.",
+        "fused_ffn/q4k_normed: num_blocks_per_row must be u32 at byte 20.",
+        "fused_ffn/q4k_normed: clamp_max must be f32 at byte 24.",
+        "fused_ffn/q4k_normed: rms_norm_weight_offset must be u32 at byte 28.",
+        "fused_ffn/q4k_normed: norm_weight_is_f16 must be u32 at byte 32.",
+        "fused_ffn/q4k_normed: _pad0 must be u32 at byte 36.",
+        "fused_ffn/q4k_normed: _pad1 must be u32 at byte 40.",
+        "fused_ffn/q4k_normed: _pad2 must be u32 at byte 44."
+      ]
+    },
+    {
+      "op": "dequant",
+      "variant": "subgroup",
+      "unified": false,
+      "errors": [
+        "dequant/subgroup: output_offset must be u32 at byte 4.",
+        "dequant/subgroup: _pad0 must be u32 at byte 8.",
+        "dequant/subgroup: _pad1 must be u32 at byte 12.",
+        "dequant/subgroup: block_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "dequant",
+      "variant": "subgroup_vec4",
+      "unified": false,
+      "errors": [
+        "dequant/subgroup_vec4: output_offset must be u32 at byte 4.",
+        "dequant/subgroup_vec4: _pad0 must be u32 at byte 8.",
+        "dequant/subgroup_vec4: _pad1 must be u32 at byte 12.",
+        "dequant/subgroup_vec4: block_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "dequant",
+      "variant": "subgroup_f16out",
+      "unified": false,
+      "errors": [
+        "dequant/subgroup_f16out: output_offset must be u32 at byte 4.",
+        "dequant/subgroup_f16out: _pad0 must be u32 at byte 8.",
+        "dequant/subgroup_f16out: _pad1 must be u32 at byte 12.",
+        "dequant/subgroup_f16out: block_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "dequant",
+      "variant": "subgroup_vec4_f16out",
+      "unified": false,
+      "errors": [
+        "dequant/subgroup_vec4_f16out: output_offset must be u32 at byte 4.",
+        "dequant/subgroup_vec4_f16out: _pad0 must be u32 at byte 8.",
+        "dequant/subgroup_vec4_f16out: _pad1 must be u32 at byte 12.",
+        "dequant/subgroup_vec4_f16out: block_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "dequant",
+      "variant": "shared",
+      "unified": false,
+      "errors": [
+        "dequant/shared: output_offset must be u32 at byte 4.",
+        "dequant/shared: _pad0 must be u32 at byte 8.",
+        "dequant/shared: _pad1 must be u32 at byte 12.",
+        "dequant/shared: block_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "dequant",
+      "variant": "mxfp4",
+      "unified": false,
+      "errors": [
+        "dequant/mxfp4: total_elements must be u32 at byte 0.",
+        "dequant/mxfp4: num_groups must be u32 at byte 4.",
+        "dequant/mxfp4: group_size must be u32 at byte 8.",
+        "dequant/mxfp4: row_stride must be u32 at byte 12.",
+        "dequant/mxfp4: num_blocks is absent from the WGSL uniform struct.",
+        "dequant/mxfp4: block_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "dequant",
+      "variant": "mxfp4_expert",
+      "unified": false,
+      "errors": [
+        "dequant/mxfp4_expert: uniform size 16; WGSL requires 32.",
+        "dequant/mxfp4_expert: expert_idx must be u32 at byte 0.",
+        "dequant/mxfp4_expert: num_experts must be u32 at byte 4.",
+        "dequant/mxfp4_expert: out_dim must be u32 at byte 8.",
+        "dequant/mxfp4_expert: num_groups must be u32 at byte 12.",
+        "dequant/mxfp4_expert: total_output must be u32 at byte 16.",
+        "dequant/mxfp4_expert: _pad0 must be u32 at byte 20.",
+        "dequant/mxfp4_expert: _pad1 must be u32 at byte 24.",
+        "dequant/mxfp4_expert: _pad2 must be u32 at byte 28.",
+        "dequant/mxfp4_expert: num_blocks is absent from the WGSL uniform struct.",
+        "dequant/mxfp4_expert: block_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "dequant",
+      "variant": "mxfp4_expert_f16",
+      "unified": false,
+      "errors": [
+        "dequant/mxfp4_expert_f16: uniform size 16; WGSL requires 32.",
+        "dequant/mxfp4_expert_f16: expert_idx must be u32 at byte 0.",
+        "dequant/mxfp4_expert_f16: num_experts must be u32 at byte 4.",
+        "dequant/mxfp4_expert_f16: out_dim must be u32 at byte 8.",
+        "dequant/mxfp4_expert_f16: num_groups must be u32 at byte 12.",
+        "dequant/mxfp4_expert_f16: total_output must be u32 at byte 16.",
+        "dequant/mxfp4_expert_f16: _pad0 must be u32 at byte 20.",
+        "dequant/mxfp4_expert_f16: _pad1 must be u32 at byte 24.",
+        "dequant/mxfp4_expert_f16: _pad2 must be u32 at byte 28.",
+        "dequant/mxfp4_expert_f16: num_blocks is absent from the WGSL uniform struct.",
+        "dequant/mxfp4_expert_f16: block_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "dequant",
+      "variant": "q6k_f16out",
+      "unified": false,
+      "errors": [
+        "dequant/q6k_f16out: output_offset must be u32 at byte 4.",
+        "dequant/q6k_f16out: workgroups_x must be u32 at byte 8.",
+        "dequant/q6k_f16out: _pad1 must be u32 at byte 12.",
+        "dequant/q6k_f16out: block_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "dequant",
+      "variant": "mxfp4_expert_fused_f16",
+      "unified": false,
+      "errors": [
+        "dequant/mxfp4_expert_fused_f16: uniform size 16; WGSL requires 32.",
+        "dequant/mxfp4_expert_fused_f16: expert_idx must be u32 at byte 0.",
+        "dequant/mxfp4_expert_fused_f16: num_experts must be u32 at byte 4.",
+        "dequant/mxfp4_expert_fused_f16: out_dim must be u32 at byte 8.",
+        "dequant/mxfp4_expert_fused_f16: num_groups must be u32 at byte 12.",
+        "dequant/mxfp4_expert_fused_f16: total_output must be u32 at byte 16.",
+        "dequant/mxfp4_expert_fused_f16: _pad0 must be u32 at byte 20.",
+        "dequant/mxfp4_expert_fused_f16: _pad1 must be u32 at byte 24.",
+        "dequant/mxfp4_expert_fused_f16: _pad2 must be u32 at byte 28.",
+        "dequant/mxfp4_expert_fused_f16: num_blocks is absent from the WGSL uniform struct.",
+        "dequant/mxfp4_expert_fused_f16: block_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill",
+      "unified": false,
+      "errors": [
+        "attention/prefill: uniform size 64; WGSL requires 76.",
+        "attention/prefill: seq_len must be u32 at byte 12.",
+        "attention/prefill: query_len must be u32 at byte 16.",
+        "attention/prefill: bidirectional_span_start must be u32 at byte 56.",
+        "attention/prefill: bidirectional_span_length must be u32 at byte 60.",
+        "attention/prefill: _pad0 must be u32 at byte 64.",
+        "attention/prefill: _pad1 must be u32 at byte 68.",
+        "attention/prefill: _pad2 must be u32 at byte 72.",
+        "attention/prefill: kv_len is absent from the WGSL uniform struct.",
+        "attention/prefill: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode",
+      "unified": false,
+      "errors": [
+        "attention/decode: uniform size 64; WGSL requires 60.",
+        "attention/decode: seq_len must be u32 at byte 12.",
+        "attention/decode: query_len must be u32 at byte 16.",
+        "attention/decode: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_small",
+      "unified": false,
+      "errors": [
+        "attention/prefill_small: uniform size 64; WGSL requires 60.",
+        "attention/prefill_small: seq_len must be u32 at byte 12.",
+        "attention/prefill_small: query_len must be u32 at byte 16.",
+        "attention/prefill_small: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_small",
+      "unified": false,
+      "errors": [
+        "attention/decode_small: uniform size 64; WGSL requires 60.",
+        "attention/decode_small: seq_len must be u32 at byte 12.",
+        "attention/decode_small: query_len must be u32 at byte 16.",
+        "attention/decode_small: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_streaming",
+      "unified": false,
+      "errors": [
+        "attention/prefill_streaming: uniform size 64; WGSL requires 76.",
+        "attention/prefill_streaming: seq_len must be u32 at byte 12.",
+        "attention/prefill_streaming: query_len must be u32 at byte 16.",
+        "attention/prefill_streaming: bidirectional_span_start must be u32 at byte 56.",
+        "attention/prefill_streaming: bidirectional_span_length must be u32 at byte 60.",
+        "attention/prefill_streaming: _pad0 must be u32 at byte 64.",
+        "attention/prefill_streaming: _pad1 must be u32 at byte 68.",
+        "attention/prefill_streaming: _pad2 must be u32 at byte 72.",
+        "attention/prefill_streaming: kv_len is absent from the WGSL uniform struct.",
+        "attention/prefill_streaming: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_streaming",
+      "unified": false,
+      "errors": [
+        "attention/decode_streaming: uniform size 64; WGSL requires 76.",
+        "attention/decode_streaming: seq_len must be u32 at byte 12.",
+        "attention/decode_streaming: query_len must be u32 at byte 16.",
+        "attention/decode_streaming: bidirectional_span_start must be u32 at byte 56.",
+        "attention/decode_streaming: bidirectional_span_length must be u32 at byte 60.",
+        "attention/decode_streaming: _pad0 must be u32 at byte 64.",
+        "attention/decode_streaming: _pad1 must be u32 at byte 68.",
+        "attention/decode_streaming: _pad2 must be u32 at byte 72.",
+        "attention/decode_streaming: kv_len is absent from the WGSL uniform struct.",
+        "attention/decode_streaming: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_f16",
+      "unified": false,
+      "errors": [
+        "attention/prefill_f16: uniform size 64; WGSL requires 76.",
+        "attention/prefill_f16: seq_len must be u32 at byte 12.",
+        "attention/prefill_f16: query_len must be u32 at byte 16.",
+        "attention/prefill_f16: bidirectional_span_start must be u32 at byte 56.",
+        "attention/prefill_f16: bidirectional_span_length must be u32 at byte 60.",
+        "attention/prefill_f16: _pad0 must be u32 at byte 64.",
+        "attention/prefill_f16: _pad1 must be u32 at byte 68.",
+        "attention/prefill_f16: _pad2 must be u32 at byte 72.",
+        "attention/prefill_f16: kv_len is absent from the WGSL uniform struct.",
+        "attention/prefill_f16: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_f16",
+      "unified": false,
+      "errors": [
+        "attention/decode_f16: uniform size 64; WGSL requires 60.",
+        "attention/decode_f16: seq_len must be u32 at byte 12.",
+        "attention/decode_f16: query_len must be u32 at byte 16.",
+        "attention/decode_f16: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_small_f16",
+      "unified": false,
+      "errors": [
+        "attention/prefill_small_f16: uniform size 64; WGSL requires 60.",
+        "attention/prefill_small_f16: seq_len must be u32 at byte 12.",
+        "attention/prefill_small_f16: query_len must be u32 at byte 16.",
+        "attention/prefill_small_f16: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_small_f16",
+      "unified": false,
+      "errors": [
+        "attention/decode_small_f16: uniform size 64; WGSL requires 60.",
+        "attention/decode_small_f16: seq_len must be u32 at byte 12.",
+        "attention/decode_small_f16: query_len must be u32 at byte 16.",
+        "attention/decode_small_f16: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_streaming_f16",
+      "unified": false,
+      "errors": [
+        "attention/prefill_streaming_f16: uniform size 64; WGSL requires 76.",
+        "attention/prefill_streaming_f16: seq_len must be u32 at byte 12.",
+        "attention/prefill_streaming_f16: query_len must be u32 at byte 16.",
+        "attention/prefill_streaming_f16: bidirectional_span_start must be u32 at byte 56.",
+        "attention/prefill_streaming_f16: bidirectional_span_length must be u32 at byte 60.",
+        "attention/prefill_streaming_f16: _pad0 must be u32 at byte 64.",
+        "attention/prefill_streaming_f16: _pad1 must be u32 at byte 68.",
+        "attention/prefill_streaming_f16: _pad2 must be u32 at byte 72.",
+        "attention/prefill_streaming_f16: kv_len is absent from the WGSL uniform struct.",
+        "attention/prefill_streaming_f16: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_streaming_f16",
+      "unified": false,
+      "errors": [
+        "attention/decode_streaming_f16: uniform size 64; WGSL requires 76.",
+        "attention/decode_streaming_f16: seq_len must be u32 at byte 12.",
+        "attention/decode_streaming_f16: query_len must be u32 at byte 16.",
+        "attention/decode_streaming_f16: bidirectional_span_start must be u32 at byte 56.",
+        "attention/decode_streaming_f16: bidirectional_span_length must be u32 at byte 60.",
+        "attention/decode_streaming_f16: _pad0 must be u32 at byte 64.",
+        "attention/decode_streaming_f16: _pad1 must be u32 at byte 68.",
+        "attention/decode_streaming_f16: _pad2 must be u32 at byte 72.",
+        "attention/decode_streaming_f16: kv_len is absent from the WGSL uniform struct.",
+        "attention/decode_streaming_f16: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/prefill_f16kv: uniform size 64; WGSL requires 76.",
+        "attention/prefill_f16kv: seq_len must be u32 at byte 12.",
+        "attention/prefill_f16kv: query_len must be u32 at byte 16.",
+        "attention/prefill_f16kv: bidirectional_span_start must be u32 at byte 56.",
+        "attention/prefill_f16kv: bidirectional_span_length must be u32 at byte 60.",
+        "attention/prefill_f16kv: _pad0 must be u32 at byte 64.",
+        "attention/prefill_f16kv: _pad1 must be u32 at byte 68.",
+        "attention/prefill_f16kv: _pad2 must be u32 at byte 72.",
+        "attention/prefill_f16kv: kv_len is absent from the WGSL uniform struct.",
+        "attention/prefill_f16kv: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/decode_f16kv: uniform size 64; WGSL requires 60.",
+        "attention/decode_f16kv: seq_len must be u32 at byte 12.",
+        "attention/decode_f16kv: query_len must be u32 at byte 16.",
+        "attention/decode_f16kv: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_small_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/prefill_small_f16kv: uniform size 64; WGSL requires 60.",
+        "attention/prefill_small_f16kv: seq_len must be u32 at byte 12.",
+        "attention/prefill_small_f16kv: query_len must be u32 at byte 16.",
+        "attention/prefill_small_f16kv: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_small_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/decode_small_f16kv: uniform size 64; WGSL requires 60.",
+        "attention/decode_small_f16kv: seq_len must be u32 at byte 12.",
+        "attention/decode_small_f16kv: query_len must be u32 at byte 16.",
+        "attention/decode_small_f16kv: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_head128_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/prefill_head128_f16kv: uniform size 64; WGSL requires 60.",
+        "attention/prefill_head128_f16kv: seq_len must be u32 at byte 12.",
+        "attention/prefill_head128_f16kv: query_len must be u32 at byte 16.",
+        "attention/prefill_head128_f16kv: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_head256_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/prefill_head256_f16kv: uniform size 64; WGSL requires 60.",
+        "attention/prefill_head256_f16kv: seq_len must be u32 at byte 12.",
+        "attention/prefill_head256_f16kv: query_len must be u32 at byte 16.",
+        "attention/prefill_head256_f16kv: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_head512_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/prefill_head512_f16kv: uniform size 64; WGSL requires 60.",
+        "attention/prefill_head512_f16kv: seq_len must be u32 at byte 12.",
+        "attention/prefill_head512_f16kv: query_len must be u32 at byte 16.",
+        "attention/prefill_head512_f16kv: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_head512_f16",
+      "unified": false,
+      "errors": [
+        "attention/prefill_head512_f16: uniform size 64; WGSL requires 60.",
+        "attention/prefill_head512_f16: seq_len must be u32 at byte 12.",
+        "attention/prefill_head512_f16: query_len must be u32 at byte 16.",
+        "attention/prefill_head512_f16: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_flash_head256_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/prefill_flash_head256_f16kv: seq_len must be u32 at byte 12.",
+        "attention/prefill_flash_head256_f16kv: query_len must be u32 at byte 16.",
+        "attention/prefill_flash_head256_f16kv: num_kv_splits must be u32 at byte 56.",
+        "attention/prefill_flash_head256_f16kv: _pad must be u32 at byte 60.",
+        "attention/prefill_flash_head256_f16kv: kv_len is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_flash_reduce",
+      "unified": false,
+      "errors": [
+        "attention/prefill_flash_reduce: uniform size 64; WGSL requires 16.",
+        "attention/prefill_flash_reduce: query_len must be u32 at byte 4.",
+        "attention/prefill_flash_reduce: num_kv_splits must be u32 at byte 8.",
+        "attention/prefill_flash_reduce: _pad must be u32 at byte 12.",
+        "attention/prefill_flash_reduce: num_kv_heads is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: head_dim is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: kv_len is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: seq_len is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: scale is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: is_causal is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: start_pos is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: attn_softcap is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: sliding_window is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: kv_len_source is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: kv_start is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: page_size is absent from the WGSL uniform struct.",
+        "attention/prefill_flash_reduce: kv_layout is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "prefill_streaming_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/prefill_streaming_f16kv: uniform size 64; WGSL requires 76.",
+        "attention/prefill_streaming_f16kv: seq_len must be u32 at byte 12.",
+        "attention/prefill_streaming_f16kv: query_len must be u32 at byte 16.",
+        "attention/prefill_streaming_f16kv: bidirectional_span_start must be u32 at byte 56.",
+        "attention/prefill_streaming_f16kv: bidirectional_span_length must be u32 at byte 60.",
+        "attention/prefill_streaming_f16kv: _pad0 must be u32 at byte 64.",
+        "attention/prefill_streaming_f16kv: _pad1 must be u32 at byte 68.",
+        "attention/prefill_streaming_f16kv: _pad2 must be u32 at byte 72.",
+        "attention/prefill_streaming_f16kv: kv_len is absent from the WGSL uniform struct.",
+        "attention/prefill_streaming_f16kv: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_streaming_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/decode_streaming_f16kv: uniform size 64; WGSL requires 76.",
+        "attention/decode_streaming_f16kv: seq_len must be u32 at byte 12.",
+        "attention/decode_streaming_f16kv: query_len must be u32 at byte 16.",
+        "attention/decode_streaming_f16kv: bidirectional_span_start must be u32 at byte 56.",
+        "attention/decode_streaming_f16kv: bidirectional_span_length must be u32 at byte 60.",
+        "attention/decode_streaming_f16kv: _pad0 must be u32 at byte 64.",
+        "attention/decode_streaming_f16kv: _pad1 must be u32 at byte 68.",
+        "attention/decode_streaming_f16kv: _pad2 must be u32 at byte 72.",
+        "attention/decode_streaming_f16kv: kv_len is absent from the WGSL uniform struct.",
+        "attention/decode_streaming_f16kv: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_online_f16",
+      "unified": false,
+      "errors": [
+        "attention/decode_online_f16: uniform size 64; WGSL requires 60."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_online_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/decode_online_f16kv: uniform size 64; WGSL requires 60."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_online_head256_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/decode_online_head256_f16kv: uniform size 64; WGSL requires 60."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_online_head256_f16kv_output_gate",
+      "unified": false,
+      "errors": [
+        "attention/decode_online_head256_f16kv_output_gate: uniform size 64; WGSL requires 60."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_chunked_f16",
+      "unified": false,
+      "errors": [
+        "attention/decode_chunked_f16: uniform size 64; WGSL requires 60."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_chunked_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/decode_chunked_f16kv: uniform size 64; WGSL requires 60."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_paged_f16",
+      "unified": false,
+      "errors": [
+        "attention/decode_paged_f16: uniform size 64; WGSL requires 60."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_paged_f16kv",
+      "unified": false,
+      "errors": [
+        "attention/decode_paged_f16kv: uniform size 64; WGSL requires 60."
+      ]
+    },
+    {
+      "op": "attention",
+      "variant": "decode_subgroup",
+      "unified": false,
+      "errors": [
+        "attention/decode_subgroup: uniform size 64; WGSL requires 60.",
+        "attention/decode_subgroup: causal must be u32 at byte 24.",
+        "attention/decode_subgroup: is_causal is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention_tiered",
+      "variant": "decode_tiered_f16",
+      "unified": false,
+      "errors": [
+        "attention_tiered/decode_tiered_f16: uniform size 80; WGSL requires 68."
+      ]
+    },
+    {
+      "op": "attention_tiered",
+      "variant": "decode_tiered_f16kv",
+      "unified": false,
+      "errors": [
+        "attention_tiered/decode_tiered_f16kv: uniform size 80; WGSL requires 68."
+      ]
+    },
+    {
+      "op": "attention_tiered_quant",
+      "variant": "decode_tiered_int8_f16kv",
+      "unified": false,
+      "errors": [
+        "attention_tiered_quant/decode_tiered_int8_f16kv: uniform size 64; WGSL requires 60."
+      ]
+    },
+    {
+      "op": "attention_tiered_quant",
+      "variant": "decode_tiered_int4_f16kv",
+      "unified": false,
+      "errors": [
+        "attention_tiered_quant/decode_tiered_int4_f16kv: uniform size 64; WGSL requires 60."
+      ]
+    },
+    {
+      "op": "attention_tiered_quant",
+      "variant": "decode_tiered_turboquant_f16kv",
+      "unified": false,
+      "errors": [
+        "attention_tiered_quant/decode_tiered_turboquant_f16kv: _pad0 must be u32 at byte 56.",
+        "attention_tiered_quant/decode_tiered_turboquant_f16kv: _pad1 must be u32 at byte 60.",
+        "attention_tiered_quant/decode_tiered_turboquant_f16kv: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention_tiered_quant",
+      "variant": "decode_tiered_turboquant_prod_f16kv",
+      "unified": false,
+      "errors": [
+        "attention_tiered_quant/decode_tiered_turboquant_prod_f16kv: packed_stride_mse must be u32 at byte 52.",
+        "attention_tiered_quant/decode_tiered_turboquant_prod_f16kv: packed_stride_residual must be u32 at byte 56.",
+        "attention_tiered_quant/decode_tiered_turboquant_prod_f16kv: _pad must be u32 at byte 60.",
+        "attention_tiered_quant/decode_tiered_turboquant_prod_f16kv: packed_stride is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "attention_contiguous_quant",
+      "variant": "decode_contiguous_turboquant_prod_f16kv",
+      "unified": false,
+      "errors": [
+        "attention_contiguous_quant/decode_contiguous_turboquant_prod_f16kv: packed_stride_mse must be u32 at byte 40.",
+        "attention_contiguous_quant/decode_contiguous_turboquant_prod_f16kv: packed_stride_residual must be u32 at byte 44.",
+        "attention_contiguous_quant/decode_contiguous_turboquant_prod_f16kv: packed_stride is absent from the WGSL uniform struct.",
+        "attention_contiguous_quant/decode_contiguous_turboquant_prod_f16kv: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "kv_quantize",
+      "variant": "int8",
+      "unified": false,
+      "errors": [
+        "kv_quantize/int8: uniform size 32; WGSL requires 24."
+      ]
+    },
+    {
+      "op": "kv_quantize",
+      "variant": "int4",
+      "unified": false,
+      "errors": [
+        "kv_quantize/int4: uniform size 32; WGSL requires 24."
+      ]
+    },
+    {
+      "op": "kv_quantize",
+      "variant": "turboquant",
+      "unified": false,
+      "errors": [
+        "kv_quantize/turboquant: _pad0 must be u32 at byte 20.",
+        "kv_quantize/turboquant: _pad1 must be u32 at byte 24.",
+        "kv_quantize/turboquant: _pad2 must be u32 at byte 28.",
+        "kv_quantize/turboquant: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "kv_quantize",
+      "variant": "turboquant_prod",
+      "unified": false,
+      "errors": [
+        "kv_quantize/turboquant_prod: packed_stride_mse must be u32 at byte 16.",
+        "kv_quantize/turboquant_prod: packed_stride_residual must be u32 at byte 20.",
+        "kv_quantize/turboquant_prod: _pad0 must be u32 at byte 24.",
+        "kv_quantize/turboquant_prod: _pad1 must be u32 at byte 28.",
+        "kv_quantize/turboquant_prod: packed_stride is absent from the WGSL uniform struct.",
+        "kv_quantize/turboquant_prod: _pad is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "lm_head_select_logits",
+      "variant": "f16w_f32a",
+      "unified": false,
+      "errors": [
+        "lm_head_select_logits/f16w_f32a: _pad0 must be u32 at byte 24.",
+        "lm_head_select_logits/f16w_f32a: num_blocks_per_row is absent from the WGSL uniform struct.",
+        "lm_head_select_logits/f16w_f32a: weightDecay is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "rmsnorm",
+      "variant": "default",
+      "unified": true,
+      "errors": [
+        "rmsnorm/default: size must be u32 at byte 0.",
+        "rmsnorm/default: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "rmsnorm",
+      "variant": "small",
+      "unified": true,
+      "errors": [
+        "rmsnorm/small: size must be u32 at byte 0.",
+        "rmsnorm/small: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "rmsnorm",
+      "variant": "residual",
+      "unified": true,
+      "errors": [
+        "rmsnorm/residual: size must be u32 at byte 0.",
+        "rmsnorm/residual: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "rmsnorm",
+      "variant": "subgroup",
+      "unified": true,
+      "errors": [
+        "rmsnorm/subgroup: size must be u32 at byte 0.",
+        "rmsnorm/subgroup: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "rmsnorm",
+      "variant": "small_subgroup",
+      "unified": true,
+      "errors": [
+        "rmsnorm/small_subgroup: size must be u32 at byte 0.",
+        "rmsnorm/small_subgroup: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "rmsnorm",
+      "variant": "default_f16",
+      "unified": true,
+      "errors": [
+        "rmsnorm/default_f16: size must be u32 at byte 0.",
+        "rmsnorm/default_f16: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "rmsnorm",
+      "variant": "small_f16",
+      "unified": true,
+      "errors": [
+        "rmsnorm/small_f16: size must be u32 at byte 0.",
+        "rmsnorm/small_f16: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "rmsnorm_pair",
+      "variant": "default",
+      "unified": true,
+      "errors": [
+        "rmsnorm_pair/default: size must be u32 at byte 0.",
+        "rmsnorm_pair/default: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "rmsnorm_pair",
+      "variant": "subgroup",
+      "unified": true,
+      "errors": [
+        "rmsnorm_pair/subgroup: size must be u32 at byte 0.",
+        "rmsnorm_pair/subgroup: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "residual_rmsnorm_pair",
+      "variant": "subgroup",
+      "unified": true,
+      "errors": [
+        "residual_rmsnorm_pair/subgroup: size must be u32 at byte 0.",
+        "residual_rmsnorm_pair/subgroup: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "layernorm",
+      "variant": "default",
+      "unified": true,
+      "errors": [
+        "layernorm/default: size must be u32 at byte 0.",
+        "layernorm/default: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "layernorm",
+      "variant": "default_f16",
+      "unified": true,
+      "errors": [
+        "layernorm/default_f16: size must be u32 at byte 0.",
+        "layernorm/default_f16: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "fused_matmul_rmsnorm",
+      "variant": "small",
+      "unified": false,
+      "errors": [
+        "fused_matmul_rmsnorm/small: uniform size 16; WGSL requires 32.",
+        "fused_matmul_rmsnorm/small: N must be u32 at byte 0.",
+        "fused_matmul_rmsnorm/small: K must be u32 at byte 4.",
+        "fused_matmul_rmsnorm/small: eps must be f32 at byte 8.",
+        "fused_matmul_rmsnorm/small: has_residual must be u32 at byte 12.",
+        "fused_matmul_rmsnorm/small: transpose_b must be u32 at byte 16.",
+        "fused_matmul_rmsnorm/small: _pad0 must be u32 at byte 20.",
+        "fused_matmul_rmsnorm/small: _pad1 must be u32 at byte 24.",
+        "fused_matmul_rmsnorm/small: _pad2 must be u32 at byte 28.",
+        "fused_matmul_rmsnorm/small: M is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "fused_matmul_rmsnorm",
+      "variant": "medium",
+      "unified": false,
+      "errors": [
+        "fused_matmul_rmsnorm/medium: uniform size 16; WGSL requires 32.",
+        "fused_matmul_rmsnorm/medium: N must be u32 at byte 0.",
+        "fused_matmul_rmsnorm/medium: K must be u32 at byte 4.",
+        "fused_matmul_rmsnorm/medium: eps must be f32 at byte 8.",
+        "fused_matmul_rmsnorm/medium: has_residual must be u32 at byte 12.",
+        "fused_matmul_rmsnorm/medium: transpose_b must be u32 at byte 16.",
+        "fused_matmul_rmsnorm/medium: _pad0 must be u32 at byte 20.",
+        "fused_matmul_rmsnorm/medium: _pad1 must be u32 at byte 24.",
+        "fused_matmul_rmsnorm/medium: _pad2 must be u32 at byte 28.",
+        "fused_matmul_rmsnorm/medium: M is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "fused_matmul_rmsnorm",
+      "variant": "phase1",
+      "unified": false,
+      "errors": [
+        "fused_matmul_rmsnorm/phase1: uniform size 16; WGSL requires 32.",
+        "fused_matmul_rmsnorm/phase1: N must be u32 at byte 0.",
+        "fused_matmul_rmsnorm/phase1: K must be u32 at byte 4.",
+        "fused_matmul_rmsnorm/phase1: eps must be f32 at byte 8.",
+        "fused_matmul_rmsnorm/phase1: has_residual must be u32 at byte 12.",
+        "fused_matmul_rmsnorm/phase1: transpose_b must be u32 at byte 16.",
+        "fused_matmul_rmsnorm/phase1: _pad0 must be u32 at byte 20.",
+        "fused_matmul_rmsnorm/phase1: _pad1 must be u32 at byte 24.",
+        "fused_matmul_rmsnorm/phase1: _pad2 must be u32 at byte 28.",
+        "fused_matmul_rmsnorm/phase1: M is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "fused_matmul_rmsnorm",
+      "variant": "small_f16",
+      "unified": false,
+      "errors": [
+        "fused_matmul_rmsnorm/small_f16: uniform size 16; WGSL requires 32.",
+        "fused_matmul_rmsnorm/small_f16: N must be u32 at byte 0.",
+        "fused_matmul_rmsnorm/small_f16: K must be u32 at byte 4.",
+        "fused_matmul_rmsnorm/small_f16: eps must be f32 at byte 8.",
+        "fused_matmul_rmsnorm/small_f16: has_residual must be u32 at byte 12.",
+        "fused_matmul_rmsnorm/small_f16: transpose_b must be u32 at byte 16.",
+        "fused_matmul_rmsnorm/small_f16: _pad0 must be u32 at byte 20.",
+        "fused_matmul_rmsnorm/small_f16: _pad1 must be u32 at byte 24.",
+        "fused_matmul_rmsnorm/small_f16: _pad2 must be u32 at byte 28.",
+        "fused_matmul_rmsnorm/small_f16: M is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "fused_matmul_rmsnorm",
+      "variant": "medium_f16",
+      "unified": false,
+      "errors": [
+        "fused_matmul_rmsnorm/medium_f16: uniform size 16; WGSL requires 32.",
+        "fused_matmul_rmsnorm/medium_f16: N must be u32 at byte 0.",
+        "fused_matmul_rmsnorm/medium_f16: K must be u32 at byte 4.",
+        "fused_matmul_rmsnorm/medium_f16: eps must be f32 at byte 8.",
+        "fused_matmul_rmsnorm/medium_f16: has_residual must be u32 at byte 12.",
+        "fused_matmul_rmsnorm/medium_f16: transpose_b must be u32 at byte 16.",
+        "fused_matmul_rmsnorm/medium_f16: _pad0 must be u32 at byte 20.",
+        "fused_matmul_rmsnorm/medium_f16: _pad1 must be u32 at byte 24.",
+        "fused_matmul_rmsnorm/medium_f16: _pad2 must be u32 at byte 28.",
+        "fused_matmul_rmsnorm/medium_f16: M is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "fused_matmul_residual",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "fused_matmul_residual/default: alpha must be f32 at byte 12.",
+        "fused_matmul_residual/default: transpose_b must be u32 at byte 16.",
+        "fused_matmul_residual/default: _pad0 must be u32 at byte 20.",
+        "fused_matmul_residual/default: _pad1 must be u32 at byte 24.",
+        "fused_matmul_residual/default: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "fused_matmul_residual",
+      "variant": "f16",
+      "unified": false,
+      "errors": [
+        "fused_matmul_residual/f16: alpha must be f32 at byte 12.",
+        "fused_matmul_residual/f16: transpose_b must be u32 at byte 16.",
+        "fused_matmul_residual/f16: _pad0 must be u32 at byte 20.",
+        "fused_matmul_residual/f16: _pad1 must be u32 at byte 24.",
+        "fused_matmul_residual/f16: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "soft_embedding",
+      "variant": "logits_norm_stats",
+      "unified": false,
+      "errors": [
+        "soft_embedding/logits_norm_stats: temperature must be f32 at byte 20.",
+        "soft_embedding/logits_norm_stats: output_mode is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "soft_embedding",
+      "variant": "logits_probability_chunk",
+      "unified": false,
+      "errors": [
+        "soft_embedding/logits_probability_chunk: temperature must be f32 at byte 20.",
+        "soft_embedding/logits_probability_chunk: output_mode is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "silu",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "silu/default: clamp_max must be f32 at byte 8.",
+        "silu/default: _pad1 must be f32 at byte 12."
+      ]
+    },
+    {
+      "op": "silu",
+      "variant": "default_f16",
+      "unified": false,
+      "errors": [
+        "silu/default_f16: clamp_max must be f32 at byte 8.",
+        "silu/default_f16: _pad1 must be f32 at byte 12."
+      ]
+    },
+    {
+      "op": "gelu",
+      "variant": "gelu",
+      "unified": true,
+      "errors": [
+        "gelu/gelu: _pad0 must be u32 at byte 8.",
+        "gelu/gelu: _pad1 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "gelu",
+      "variant": "gelu_f16",
+      "unified": true,
+      "errors": [
+        "gelu/gelu_f16: _pad0 must be u32 at byte 8.",
+        "gelu/gelu_f16: _pad1 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "scale",
+      "variant": "default",
+      "unified": true,
+      "errors": [
+        "scale/default: count must be u32 at byte 0.",
+        "scale/default: _pad0 must be u32 at byte 8.",
+        "scale/default: _pad1 must be u32 at byte 12.",
+        "scale/default: size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "scale",
+      "variant": "default_f16",
+      "unified": true,
+      "errors": [
+        "scale/default_f16: count must be u32 at byte 0.",
+        "scale/default_f16: _pad0 must be u32 at byte 8.",
+        "scale/default_f16: _pad1 must be u32 at byte 12.",
+        "scale/default_f16: size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "scale",
+      "variant": "inplace",
+      "unified": true,
+      "errors": [
+        "scale/inplace: count must be u32 at byte 0.",
+        "scale/inplace: _pad0 must be u32 at byte 8.",
+        "scale/inplace: _pad1 must be u32 at byte 12.",
+        "scale/inplace: size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "scale",
+      "variant": "inplace_f16",
+      "unified": true,
+      "errors": [
+        "scale/inplace_f16: count must be u32 at byte 0.",
+        "scale/inplace_f16: _pad0 must be u32 at byte 8.",
+        "scale/inplace_f16: _pad1 must be u32 at byte 12.",
+        "scale/inplace_f16: size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "activation_static_qdq",
+      "variant": "default",
+      "unified": true,
+      "errors": [
+        "activation_static_qdq/default: uniform size 32; WGSL requires 24."
+      ]
+    },
+    {
+      "op": "energy_eval",
+      "variant": "eval",
+      "unified": false,
+      "errors": [
+        "energy_eval/eval: _pad0 must be u32 at byte 8.",
+        "energy_eval/eval: _pad1 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "energy_eval",
+      "variant": "eval_f16",
+      "unified": false,
+      "errors": [
+        "energy_eval/eval_f16: _pad0 must be u32 at byte 8.",
+        "energy_eval/eval_f16: _pad1 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "energy_update",
+      "variant": "update",
+      "unified": false,
+      "errors": [
+        "energy_update/update: _pad0 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "energy_update",
+      "variant": "update_f16",
+      "unified": false,
+      "errors": [
+        "energy_update/update_f16: _pad0 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "gather",
+      "variant": "vec4",
+      "unified": true,
+      "errors": [
+        "gather/vec4: uniform size 36; WGSL requires 32.",
+        "gather/vec4: _pad0 must be u32 at byte 20.",
+        "gather/vec4: _pad1 must be u32 at byte 24.",
+        "gather/vec4: _pad2 must be u32 at byte 28.",
+        "gather/vec4: input_hidden_size is absent from the WGSL uniform struct.",
+        "gather/vec4: hidden_offset is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "gather",
+      "variant": "f16_vec4",
+      "unified": true,
+      "errors": [
+        "gather/f16_vec4: uniform size 36; WGSL requires 32.",
+        "gather/f16_vec4: _pad0 must be u32 at byte 20.",
+        "gather/f16_vec4: _pad1 must be u32 at byte 24.",
+        "gather/f16_vec4: _pad2 must be u32 at byte 28.",
+        "gather/f16_vec4: input_hidden_size is absent from the WGSL uniform struct.",
+        "gather/f16_vec4: hidden_offset is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "gather",
+      "variant": "f16_out",
+      "unified": true,
+      "errors": [
+        "gather/f16_out: uniform size 36; WGSL requires 32.",
+        "gather/f16_out: _pad0 must be u32 at byte 20.",
+        "gather/f16_out: _pad1 must be u32 at byte 24.",
+        "gather/f16_out: _pad2 must be u32 at byte 28.",
+        "gather/f16_out: input_hidden_size is absent from the WGSL uniform struct.",
+        "gather/f16_out: hidden_offset is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "gather",
+      "variant": "vec4_f16_out",
+      "unified": true,
+      "errors": [
+        "gather/vec4_f16_out: uniform size 36; WGSL requires 32.",
+        "gather/vec4_f16_out: _pad0 must be u32 at byte 20.",
+        "gather/vec4_f16_out: _pad1 must be u32 at byte 24.",
+        "gather/vec4_f16_out: _pad2 must be u32 at byte 28.",
+        "gather/vec4_f16_out: input_hidden_size is absent from the WGSL uniform struct.",
+        "gather/vec4_f16_out: hidden_offset is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "gather",
+      "variant": "f16_f16_out",
+      "unified": true,
+      "errors": [
+        "gather/f16_f16_out: uniform size 36; WGSL requires 32.",
+        "gather/f16_f16_out: _pad0 must be u32 at byte 20.",
+        "gather/f16_f16_out: _pad1 must be u32 at byte 24.",
+        "gather/f16_f16_out: _pad2 must be u32 at byte 28.",
+        "gather/f16_f16_out: input_hidden_size is absent from the WGSL uniform struct.",
+        "gather/f16_f16_out: hidden_offset is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "gather",
+      "variant": "f16_vec4_f16_out",
+      "unified": true,
+      "errors": [
+        "gather/f16_vec4_f16_out: uniform size 36; WGSL requires 32.",
+        "gather/f16_vec4_f16_out: _pad0 must be u32 at byte 20.",
+        "gather/f16_vec4_f16_out: _pad1 must be u32 at byte 24.",
+        "gather/f16_vec4_f16_out: _pad2 must be u32 at byte 28.",
+        "gather/f16_vec4_f16_out: input_hidden_size is absent from the WGSL uniform struct.",
+        "gather/f16_vec4_f16_out: hidden_offset is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "residual",
+      "variant": "default",
+      "unified": true,
+      "errors": [
+        "residual/default: _pad1 must be u32 at byte 8.",
+        "residual/default: _pad2 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "residual",
+      "variant": "vec4",
+      "unified": true,
+      "errors": [
+        "residual/vec4: _pad1 must be u32 at byte 8.",
+        "residual/vec4: _pad2 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "residual",
+      "variant": "default_f16",
+      "unified": true,
+      "errors": [
+        "residual/default_f16: _pad1 must be u32 at byte 8.",
+        "residual/default_f16: _pad2 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "residual",
+      "variant": "vec4_f16",
+      "unified": true,
+      "errors": [
+        "residual/vec4_f16: _pad1 must be u32 at byte 8.",
+        "residual/vec4_f16: _pad2 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "topk",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "topk/default: num_tokens must be u32 at byte 0.",
+        "topk/default: num_experts must be u32 at byte 4.",
+        "topk/default: top_k must be u32 at byte 8.",
+        "topk/default: normalize must be u32 at byte 12.",
+        "topk/default: size is absent from the WGSL uniform struct.",
+        "topk/default: k is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "topk",
+      "variant": "small",
+      "unified": false,
+      "errors": [
+        "topk/small: num_tokens must be u32 at byte 0.",
+        "topk/small: num_experts must be u32 at byte 4.",
+        "topk/small: top_k must be u32 at byte 8.",
+        "topk/small: normalize must be u32 at byte 12.",
+        "topk/small: size is absent from the WGSL uniform struct.",
+        "topk/small: k is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "topk",
+      "variant": "fused",
+      "unified": false,
+      "errors": [
+        "topk/fused: num_tokens must be u32 at byte 0.",
+        "topk/fused: num_experts must be u32 at byte 4.",
+        "topk/fused: top_k must be u32 at byte 8.",
+        "topk/fused: normalize must be u32 at byte 12.",
+        "topk/fused: size is absent from the WGSL uniform struct.",
+        "topk/fused: k is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "topk",
+      "variant": "fused_f16",
+      "unified": false,
+      "errors": [
+        "topk/fused_f16: num_tokens must be u32 at byte 0.",
+        "topk/fused_f16: num_experts must be u32 at byte 4.",
+        "topk/fused_f16: top_k must be u32 at byte 8.",
+        "topk/fused_f16: normalize must be u32 at byte 12.",
+        "topk/fused_f16: size is absent from the WGSL uniform struct.",
+        "topk/fused_f16: k is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "topk",
+      "variant": "fused_f16_w16",
+      "unified": false,
+      "errors": [
+        "topk/fused_f16_w16: num_tokens must be u32 at byte 0.",
+        "topk/fused_f16_w16: num_experts must be u32 at byte 4.",
+        "topk/fused_f16_w16: top_k must be u32 at byte 8.",
+        "topk/fused_f16_w16: normalize must be u32 at byte 12.",
+        "topk/fused_f16_w16: size is absent from the WGSL uniform struct.",
+        "topk/fused_f16_w16: k is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "topk",
+      "variant": "gptoss_router_topk",
+      "unified": false,
+      "errors": [
+        "topk/gptoss_router_topk: num_tokens must be u32 at byte 0.",
+        "topk/gptoss_router_topk: num_experts must be u32 at byte 4.",
+        "topk/gptoss_router_topk: top_k must be u32 at byte 8.",
+        "topk/gptoss_router_topk: normalize must be u32 at byte 12.",
+        "topk/gptoss_router_topk: size is absent from the WGSL uniform struct.",
+        "topk/gptoss_router_topk: k is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "scatter_add",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "scatter_add/default: uniform size 32; WGSL requires 16."
+      ]
+    },
+    {
+      "op": "scatter_add",
+      "variant": "vec4",
+      "unified": false,
+      "errors": [
+        "scatter_add/vec4: uniform size 32; WGSL requires 16."
+      ]
+    },
+    {
+      "op": "scatter_add",
+      "variant": "dynamic",
+      "unified": false,
+      "errors": [
+        "scatter_add/dynamic: uniform size 32; WGSL requires 16.",
+        "scatter_add/dynamic: _pad must be u32 at byte 12.",
+        "scatter_add/dynamic: num_experts is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "scatter_add",
+      "variant": "dynamic_expert_scale",
+      "unified": false,
+      "errors": [
+        "scatter_add/dynamic_expert_scale: uniform size 32; WGSL requires 16.",
+        "scatter_add/dynamic_expert_scale: _pad must be u32 at byte 12.",
+        "scatter_add/dynamic_expert_scale: num_experts is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "scatter_add",
+      "variant": "dynamic_f16",
+      "unified": false,
+      "errors": [
+        "scatter_add/dynamic_f16: uniform size 32; WGSL requires 16.",
+        "scatter_add/dynamic_f16: _pad must be u32 at byte 12.",
+        "scatter_add/dynamic_f16: num_experts is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "scatter_add",
+      "variant": "dynamic_f16_expert_scale",
+      "unified": false,
+      "errors": [
+        "scatter_add/dynamic_f16_expert_scale: uniform size 32; WGSL requires 16.",
+        "scatter_add/dynamic_f16_expert_scale: _pad must be u32 at byte 12.",
+        "scatter_add/dynamic_f16_expert_scale: num_experts is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "scatter_add",
+      "variant": "dynamic_f16_w16",
+      "unified": false,
+      "errors": [
+        "scatter_add/dynamic_f16_w16: uniform size 32; WGSL requires 16.",
+        "scatter_add/dynamic_f16_w16: _pad must be u32 at byte 12.",
+        "scatter_add/dynamic_f16_w16: num_experts is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "scatter_add",
+      "variant": "dynamic_f16_w16_expert_scale",
+      "unified": false,
+      "errors": [
+        "scatter_add/dynamic_f16_w16_expert_scale: uniform size 32; WGSL requires 16.",
+        "scatter_add/dynamic_f16_w16_expert_scale: _pad must be u32 at byte 12.",
+        "scatter_add/dynamic_f16_w16_expert_scale: num_experts is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "scatter_add",
+      "variant": "accumulate",
+      "unified": false,
+      "errors": [
+        "scatter_add/accumulate: uniform size 32; WGSL requires 16."
+      ]
+    },
+    {
+      "op": "swiglu",
+      "variant": "rowsplit_bias",
+      "unified": false,
+      "errors": [
+        "swiglu/rowsplit_bias: num_tokens must be u32 at byte 0.",
+        "swiglu/rowsplit_bias: dim must be u32 at byte 4.",
+        "swiglu/rowsplit_bias: bias_offset must be u32 at byte 8.",
+        "swiglu/rowsplit_bias: clamp_max must be f32 at byte 12.",
+        "swiglu/rowsplit_bias: size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "swiglu",
+      "variant": "rowsplit_bias_f16",
+      "unified": false,
+      "errors": [
+        "swiglu/rowsplit_bias_f16: num_tokens must be u32 at byte 0.",
+        "swiglu/rowsplit_bias_f16: dim must be u32 at byte 4.",
+        "swiglu/rowsplit_bias_f16: bias_offset must be u32 at byte 8.",
+        "swiglu/rowsplit_bias_f16: clamp_max must be f32 at byte 12.",
+        "swiglu/rowsplit_bias_f16: size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "cast",
+      "variant": "f32_to_f16",
+      "unified": false,
+      "errors": [
+        "cast/f32_to_f16: _pad0 must be u32 at byte 4.",
+        "cast/f32_to_f16: _pad1 must be u32 at byte 8.",
+        "cast/f32_to_f16: _pad2 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "cast",
+      "variant": "f16_to_f32",
+      "unified": false,
+      "errors": [
+        "cast/f16_to_f32: count must be u32 at byte 0.",
+        "cast/f16_to_f32: _pad0 must be u32 at byte 4.",
+        "cast/f16_to_f32: _pad1 must be u32 at byte 8.",
+        "cast/f16_to_f32: _pad2 must be u32 at byte 12.",
+        "cast/f16_to_f32: size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "split_qkv",
+      "variant": "default",
+      "unified": true,
+      "errors": [
+        "split_qkv/default: numTokens must be u32 at byte 0.",
+        "split_qkv/default: qSize must be u32 at byte 4.",
+        "split_qkv/default: kSize must be u32 at byte 8.",
+        "split_qkv/default: vSize must be u32 at byte 12.",
+        "split_qkv/default: num_tokens is absent from the WGSL uniform struct.",
+        "split_qkv/default: q_size is absent from the WGSL uniform struct.",
+        "split_qkv/default: k_size is absent from the WGSL uniform struct.",
+        "split_qkv/default: v_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "split_qkv",
+      "variant": "f16",
+      "unified": true,
+      "errors": [
+        "split_qkv/f16: numTokens must be u32 at byte 0.",
+        "split_qkv/f16: qSize must be u32 at byte 4.",
+        "split_qkv/f16: kSize must be u32 at byte 8.",
+        "split_qkv/f16: vSize must be u32 at byte 12.",
+        "split_qkv/f16: num_tokens is absent from the WGSL uniform struct.",
+        "split_qkv/f16: q_size is absent from the WGSL uniform struct.",
+        "split_qkv/f16: k_size is absent from the WGSL uniform struct.",
+        "split_qkv/f16: v_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "rep_penalty",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "rep_penalty/default: registry uniform fields must be an array."
+      ]
+    },
+    {
+      "op": "rep_penalty",
+      "variant": "default_f16",
+      "unified": false,
+      "errors": [
+        "rep_penalty/default_f16: registry uniform fields must be an array."
+      ]
+    },
+    {
+      "op": "bf16_to_f32",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "bf16_to_f32/default: num_elements must be u32 at byte 0.",
+        "bf16_to_f32/default: input_offset must be u32 at byte 4.",
+        "bf16_to_f32/default: output_offset must be u32 at byte 8.",
+        "bf16_to_f32/default: _pad must be u32 at byte 12.",
+        "bf16_to_f32/default: size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "bf16_to_f16",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "bf16_to_f16/default: num_elements must be u32 at byte 0.",
+        "bf16_to_f16/default: input_offset must be u32 at byte 4.",
+        "bf16_to_f16/default: output_offset must be u32 at byte 8.",
+        "bf16_to_f16/default: _pad must be u32 at byte 12.",
+        "bf16_to_f16/default: size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "matmul_backward",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "matmul_backward/default: _pad0 must be u32 at byte 20.",
+        "matmul_backward/default: _pad1 must be u32 at byte 24.",
+        "matmul_backward/default: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul_backward",
+      "variant": "f16_weight",
+      "unified": false,
+      "errors": [
+        "matmul_backward/f16_weight: _pad0 must be u32 at byte 20.",
+        "matmul_backward/f16_weight: _pad1 must be u32 at byte 24.",
+        "matmul_backward/f16_weight: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul_backward",
+      "variant": "q4k_weight",
+      "unified": false,
+      "errors": [
+        "matmul_backward/q4k_weight: num_blocks_per_row must be u32 at byte 20.",
+        "matmul_backward/q4k_weight: _pad0 must be u32 at byte 24.",
+        "matmul_backward/q4k_weight: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "matmul_transpose_a",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "matmul_transpose_a/default: _pad0 must be u32 at byte 16.",
+        "matmul_transpose_a/default: _pad1 must be u32 at byte 20.",
+        "matmul_transpose_a/default: _pad2 must be u32 at byte 24.",
+        "matmul_transpose_a/default: _pad3 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "attention_backward",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "attention_backward/default: _pad2 must be u32 at byte 12.",
+        "attention_backward/default: _pad0 is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "layernorm_backward",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "layernorm_backward/default: size must be u32 at byte 0.",
+        "layernorm_backward/default: hidden_size is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "adam",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "adam/default: weight_decay must be f32 at byte 24.",
+        "adam/default: _pad0 is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "bias_add_backward",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "bias_add_backward/default: _pad0 must be u32 at byte 8.",
+        "bias_add_backward/default: _pad1 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "upsample2d_backward",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "upsample2d_backward/default: _pad0 must be u32 at byte 24.",
+        "upsample2d_backward/default: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "pixel_shuffle_backward",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "pixel_shuffle_backward/default: _pad0 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "groupnorm_backward",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "groupnorm_backward/default: _pad0 must be u32 at byte 20.",
+        "groupnorm_backward/default: _pad1 must be u32 at byte 24.",
+        "groupnorm_backward/default: _pad2 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "gated_delta_conv",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "gated_delta_conv/default: _pad_u32_0 must be u32 at byte 44.",
+        "gated_delta_conv/default: norm_mode is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "gated_delta_conv",
+      "variant": "default_f16",
+      "unified": false,
+      "errors": [
+        "gated_delta_conv/default_f16: _pad_u32_0 must be u32 at byte 44.",
+        "gated_delta_conv/default_f16: norm_mode is absent from the WGSL uniform struct."
+      ]
+    },
+    {
+      "op": "conv2d_backward_input",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "conv2d_backward_input/default: _pad0 must be u32 at byte 40.",
+        "conv2d_backward_input/default: _pad1 must be u32 at byte 44."
+      ]
+    },
+    {
+      "op": "conv2d_backward_weight",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "conv2d_backward_weight/default: _pad0 must be u32 at byte 40.",
+        "conv2d_backward_weight/default: _pad1 must be u32 at byte 44."
+      ]
+    },
+    {
+      "op": "check_finiteness",
+      "variant": "f16",
+      "unified": false,
+      "errors": [
+        "check_finiteness/f16: registry is missing the 16-byte uniform layout."
+      ]
+    },
+    {
+      "op": "check_hot_vocab_stop",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "check_hot_vocab_stop/default: registry is missing the 32-byte uniform layout."
+      ]
+    },
+    {
+      "op": "check_stop",
+      "variant": "default",
+      "unified": false,
+      "errors": [
+        "check_stop/default: registry is missing the 16-byte uniform layout."
+      ]
+    },
+    {
+      "op": "gated_short_conv",
+      "variant": "f32",
+      "unified": false,
+      "errors": [
+        "gated_short_conv/f32: registry is missing the 16-byte uniform layout."
+      ]
+    },
+    {
+      "op": "logit_merge",
+      "variant": "weighted",
+      "unified": false,
+      "errors": [
+        "logit_merge/weighted: expected one uniform buffer at group 0, binding 0."
+      ]
+    },
+    {
+      "op": "logit_merge",
+      "variant": "max",
+      "unified": false,
+      "errors": [
+        "logit_merge/max: expected one uniform buffer at group 0, binding 0."
+      ]
+    },
+    {
+      "op": "logit_merge",
+      "variant": "geometric",
+      "unified": false,
+      "errors": [
+        "logit_merge/geometric: expected one uniform buffer at group 0, binding 0."
+      ]
+    },
+    {
+      "op": "moe_router_bias_add",
+      "variant": "f16_f16",
+      "unified": false,
+      "errors": [
+        "moe_router_bias_add/f16_f16: registry is missing the 16-byte uniform layout."
+      ]
+    },
+    {
+      "op": "moe_router_bias_add",
+      "variant": "f16_f32",
+      "unified": false,
+      "errors": [
+        "moe_router_bias_add/f16_f32: registry is missing the 16-byte uniform layout."
+      ]
+    },
+    {
+      "op": "moe_router_bias_add",
+      "variant": "f32_f16",
+      "unified": false,
+      "errors": [
+        "moe_router_bias_add/f32_f16: registry is missing the 16-byte uniform layout."
+      ]
+    },
+    {
+      "op": "moe_router_bias_add",
+      "variant": "f32_f32",
+      "unified": false,
+      "errors": [
+        "moe_router_bias_add/f32_f32: registry is missing the 16-byte uniform layout."
+      ]
+    },
+    {
+      "op": "rmsnorm_stats",
+      "variant": "workgroup",
+      "unified": false,
+      "errors": [
+        "rmsnorm_stats/workgroup: registry is missing the 16-byte uniform layout."
+      ]
+    },
+    {
+      "op": "rmsnorm_stats",
+      "variant": "subgroups",
+      "unified": false,
+      "errors": [
+        "rmsnorm_stats/subgroups: registry is missing the 16-byte uniform layout."
+      ]
+    },
+    {
+      "op": "embedding_pool",
+      "variant": "f32",
+      "unified": true,
+      "errors": [
+        "embedding_pool/f32: _pad0 must be u32 at byte 24.",
+        "embedding_pool/f32: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "embedding_pool",
+      "variant": "f16",
+      "unified": true,
+      "errors": [
+        "embedding_pool/f16: _pad0 must be u32 at byte 24.",
+        "embedding_pool/f16: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "l2_normalize",
+      "variant": "f32",
+      "unified": true,
+      "errors": [
+        "l2_normalize/f32: _pad0 must be u32 at byte 8.",
+        "l2_normalize/f32: _pad1 must be u32 at byte 12."
+      ]
+    },
+    {
+      "op": "logit_finalize",
+      "variant": "f32",
+      "unified": true,
+      "errors": [
+        "logit_finalize/f32: _pad0 must be u32 at byte 24.",
+        "logit_finalize/f32: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "logit_finalize",
+      "variant": "f16",
+      "unified": true,
+      "errors": [
+        "logit_finalize/f16: _pad0 must be u32 at byte 24.",
+        "logit_finalize/f16: _pad1 must be u32 at byte 28."
+      ]
+    },
+    {
+      "op": "rope_precompute",
+      "variant": "f32",
+      "unified": true,
+      "errors": [
+        "rope_precompute/f32: _pad1 must be u32 at byte 56.",
+        "rope_precompute/f32: _pad2 must be u32 at byte 60."
+      ]
+    },
+    {
+      "op": "forecast_output",
+      "variant": "f32",
+      "unified": false,
+      "errors": [
+        "forecast_output/f32: registry is missing the 16-byte uniform layout."
+      ]
+    }
+  ]
+}

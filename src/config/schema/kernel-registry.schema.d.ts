@@ -25,8 +25,11 @@ export interface BindingSchema {
   /** Binding index in the bind group */
   index: number;
 
-  /** Human-readable name for debugging */
+  /** Resource role used by its wrapper */
   name: string;
+
+  /** Corresponding WGSL global variable, when explicitly verified. */
+  wgslName?: string;
 
   /** Buffer type (uniform, storage, read-only-storage) */
   type: BindingType;
@@ -52,13 +55,16 @@ export interface UniformFieldSchema {
 
   /** Byte offset in the uniform buffer */
   offset: number;
+
+  /** Explicit unused padding. Only these fields may be omitted and become zero. */
+  padding?: boolean;
 }
 
 /**
  * Complete uniform buffer schema for a kernel.
  */
 export interface UniformsSchema {
-  /** Total size in bytes (must be 16-byte aligned for WebGPU) */
+  /** WGSL SizeOf(struct), including member alignment and trailing padding. */
   size: number;
 
   /** Fields in the uniform struct */
@@ -87,6 +93,7 @@ export interface KernelVariantSchema {
 
   /** GPU features required to use this variant */
   requires?: GpuFeature[];
+  requiredWgslFeatures?: string[];
 
   /** Estimated shared memory usage in bytes */
   sharedMemory?: number;
@@ -103,8 +110,11 @@ export interface KernelVariantSchema {
   /** Additional bindings beyond the base operation bindings */
   bindingsOverride?: BindingSchema[];
 
+  /** Complete variant layout; mutually exclusive with bindingsOverride. */
+  bindings?: BindingSchema[];
+
   /** Override uniform schema (if different from base) */
-  uniformsOverride?: UniformsSchema;
+  uniformsOverride?: UniformsSchema | null;
 
   /** Human-readable description */
   description?: string;
@@ -118,7 +128,7 @@ export interface OperationSchema {
   baseBindings: BindingSchema[];
 
   /** Base uniforms shared by all variants */
-  baseUniforms: UniformsSchema;
+  baseUniforms: UniformsSchema | null;
 
   /** Available variants for this operation */
   variants: Record<string, KernelVariantSchema>;
@@ -159,12 +169,13 @@ export interface ResolvedKernelConfig {
 
   /** GPU features required */
   requires: GpuFeature[];
+  requiredWgslFeatures: string[];
 
   /** All bindings (base + override merged) */
   bindings: BindingSchema[];
 
   /** Uniform schema (base or overridden) */
-  uniforms: UniformsSchema;
+  uniforms: UniformsSchema | null;
 
   /** WGSL override constants */
   wgslOverrides: WgslOverridesSchema;

@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.2 public:boundaries:check
+> node tools/check-public-boundaries.js
+
+public boundary check passed (npm package: 1796 files, 2130916 bytes packed, 11133861 bytes unpacked)

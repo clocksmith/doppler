@@ -1,0 +1,74 @@
+{
+  "README.md": {
+    "sizeBytes": 3464,
+    "sha256": "fe054da70d73300b7817bd3b2103bbe80bd4a7dbfdf83ff7fba633a852da26e4"
+  },
+  "acceptance.json": {
+    "sizeBytes": 7648,
+    "sha256": "0730ff843524f7145d434794402e6d695c61193308df273e4c655fde75cb1b22"
+  },
+  "remaining-subgroup-inventory.json": {
+    "sizeBytes": 11734,
+    "sha256": "824b31870ee8111d276ab44ca46aeb546366abd4348c52ead53ce375ef2063de"
+  },
+  "reploid-installed.json": {
+    "sizeBytes": 5490,
+    "sha256": "3b0fd283614e917e5daebff2a34e6d2fc2b45c9be23a7e7a7bd994e7845179cf"
+  },
+  "standalone-npm-pack.json": {
+    "sizeBytes": 212726,
+    "sha256": "2dc7e3905b91184e6e2aff28c25a556cc6f9005e64abf5527bba350cc4aef874"
+  },
+  "standalone-receipt.json": {
+    "sizeBytes": 1819,
+    "sha256": "36ba3a828d5fc464857e930ba9b6db4cb8ed3f476c1515114bdd0a56d9b7bcab"
+  },
+  "standalone-source-state.json": {
+    "sizeBytes": 2083,
+    "sha256": "32760982fafd1aa6624eaf6a29b1e61ba0fab5a8b09e4fd5acc49946dfc31ce2"
+  },
+  "subgroup-baseline-final.log": {
+    "sizeBytes": 1123,
+    "sha256": "5b946b915309e21f74e9dd22e0a64d8a2e29476343ed743d9e51a6626a5eba2e"
+  },
+  "subgroup-browser-physical-retry.log": {
+    "sizeBytes": 621,
+    "sha256": "0e5e9896d536952d77b81e81fe24dc01f615aa4d0f06b0db62305fb851e2b46d"
+  },
+  "subgroup-browser-physical.log": {
+    "sizeBytes": 373,
+    "sha256": "974e6556760dd1d01457bb756845ff899faa4845f234fcea79aadb8ec882d3f5"
+  },
+  "subgroup-checks-final.log": {
+    "sizeBytes": 1484,
+    "sha256": "167e83be616a1f87169196580cbe2e14d6dcc1173eace467ce4cb65edcbc1ec2"
+  },
+  "subgroup-checks.log": {
+    "sizeBytes": 1567,
+    "sha256": "0f59efd2a6179cbbcd3af0c81b49111fb966139b38b1933c8f903475da840d26"
+  },
+  "subgroup-contract-final.log": {
+    "sizeBytes": 1488,
+    "sha256": "63f4ffff4e26ced3592c47bb9b3806f621710d143cde24e4d769deca82ca6a71"
+  },
+  "subgroup-focused.log": {
+    "sizeBytes": 8218,
+    "sha256": "b1329246224cfd4d0262820ae9b16bb6f816be1c3a69635ed90f184d3c301918"
+  },
+  "subgroup-installed-reploid.log": {
+    "sizeBytes": 4021,
+    "sha256": "aff9d8d22388330e0315482ce9f7324efb9612a0893dda62acebda1524040ad8"
+  },
+  "subgroup-installed-standalone.log": {
+    "sizeBytes": 881,
+    "sha256": "25d7092835c32066d5768db64f64124291c2fe080bc529e5301b5d2b3d98b20c"
+  },
+  "subgroup-ownership-baseline.log": {
+    "sizeBytes": 420,
+    "sha256": "5d5a4e74a01c80fbcb19075b2ef60aca2e925c62e2643f7b758c4665ea81ded8"
+  },
+  "subgroup-physical-final.log": {
+    "sizeBytes": 1150,
+    "sha256": "73002c4e936358ffb76ce6918b6463096c442a0377a50616bda4d5a5b797ade3"
+  }
+}

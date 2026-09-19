@@ -122,21 +122,26 @@ struct Uniforms {
 ### Runtime Flags
 
 Runtime-toggled behavior MUST be expressed as explicit uniform fields (not padding).
-Keep TS and WGSL layouts in lockstep, and avoid "hidden" flags that rely on `_pad`.
+Keep JavaScript and WGSL layouts in lockstep, and avoid "hidden" flags that rely on `_pad`.
 
 ```wgsl
+// uniform-layout-example
 struct Uniforms {
     has_residual: u32,  // 0 or 1
     _pad: vec3<u32>,
 }
 ```
 
-```ts
+```javascript
 const UNIFORM_LAYOUT = {
   hasResidual: { offset: 0, size: 4 },
-  _pad: { offset: 4, size: 12 },
-} as const;
+  _pad: { offset: 16, size: 12 },
+}; // Struct alignment is 16 bytes; total size is 32 bytes.
 ```
+
+`vec3<u32>` has 16-byte alignment. Three separate `u32` padding members would
+instead fit at offsets 4, 8, and 12 in a 16-byte struct. The example above is
+compiled and read back by `tests/kernels/kernel-uniform-echo-physical.test.js`.
 
 ### Policy Constants Must Be Config-Driven
 

@@ -273,6 +273,22 @@ per-field runtime tuning outside the config payload.
 - `kernelRef` is exact-match pinned (`id`, `version`, `digest`) against `session.compute.kernelProfiles`.
 - `kernelRef.digest` is WGSL-content pinning (`sha256(normalized shader source + entry)`), not filename-only identity.
 - `src/config/kernels/registry.json` is the source of truth for kernel operation IDs, variant IDs, WGSL filenames, entry points, feature requirements, bindings, uniforms, and metadata.
+- Uniform layouts declare every field's WGSL name, scalar type, and byte offset,
+  plus the WGSL struct size. Fields are required unless explicitly marked
+  `padding: true`; fields read by WGSL cannot be padding. Generated JavaScript
+  writers reject missing values, out-of-range integers, and non-finite or
+  unrepresentable floats before allocating a uniform buffer. Shared request
+  objects may contain additional fields unused by the selected variant.
+- `npm run kernels:uniforms:sync` generates direct writers and declarations from
+  that registry after checking it against parsed WGSL declarations.
+  `npm run kernels:uniforms:check` rejects declaration drift and stale writers.
+  Shader compilation and physical parameter readback remain independent checks.
+- Variant `bindings` declares a complete layout, including removals or moved
+  resources; it cannot coexist with the legacy partial `bindingsOverride`.
+  `name` is the wrapper resource role; `wgslName`, when supplied, binds it to the
+  shader variable checked by the interface generator. Matmul's
+  `variantMetadata.dispatchGeometry` selects its dispatch algorithm explicitly;
+  variant names do not select geometry.
 - Kernel-registry `weightDtype` is the source of truth for a selected kernel's
   weight encoding. Loader materialization must resolve the selected inline
   path's shader and entry point against the registry; it must not duplicate a

@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "consumer": "installed-reploid",
+  "runtimeVersion": "0.6.2",
+  "phases": 7,
+  "releases": 7,
+  "physicalExecution": false
+}

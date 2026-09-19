@@ -1,0 +1,14 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/helpers/subgroup-portability.js:4
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: inv_rms:128:17:permuted[0]: 0.9294989705085754 != 0.820999801158905
+    at assert (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/helpers/subgroup-portability.js:4:25)
+    at assertClose (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/helpers/subgroup-portability.js:41:5)
+    at runSubgroupPortabilityCases (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/helpers/subgroup-portability.js:73:9)
+    at async file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/kernels/subgroup-portability-physical.test.js:18:18
+
+Node.js v22.22.1

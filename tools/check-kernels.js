@@ -4,6 +4,10 @@ import { spawnSync } from 'node:child_process';
 
 const checks = [
   {
+    name: 'uniform-interfaces',
+    command: ['node', 'tools/generate-kernel-uniforms.js', '--check'],
+  },
+  {
     name: 'codegen',
     command: ['node', 'tools/generate-wgsl.js', '--check'],
   },
@@ -14,6 +18,10 @@ const checks = [
   {
     name: 'digests',
     command: ['node', 'tools/sync-kernel-ref-digests.js', '--check'],
+  },
+  {
+    name: 'language-contract',
+    command: ['node', 'tests/config/kernel-language-contract.test.js'],
   },
 ];
 

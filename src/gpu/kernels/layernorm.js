@@ -72,7 +72,7 @@ export async function runLayerNorm(
       null,
       variant,
       [input, weightBuffer, biasBuffer, outputBuf],
-      { hidden_size: inferredHiddenSize, num_tokens: batchSize, eps },
+      { size: inferredHiddenSize, num_tokens: batchSize, eps },
       batchSize,
       { PARAMS_IS_F16: paramDtype === 'f16' }
     );
@@ -118,7 +118,7 @@ export async function recordLayerNorm(
       recorder,
       variant,
       [input, weightBuffer, biasBuffer, outputBuf],
-      { hidden_size: inferredHiddenSize, num_tokens: batchSize, eps },
+      { size: inferredHiddenSize, num_tokens: batchSize, eps },
       batchSize,
       { PARAMS_IS_F16: paramDtype === 'f16' }
     );
