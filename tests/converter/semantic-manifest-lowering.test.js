@@ -21,6 +21,13 @@ const checkedInConfig = await readJson(recipe.output);
 // merely because a current shader changed.
 const historicalDigests = Object.fromEntries(checkedInReceipt.dispositions
   .filter(row => row.kind === 'kernel-digest-binding').map(row => [row.kernelRef, row.digest.slice(7)]));
+const historicalTemplate = structuredClone(template);
+const templateDigests = new Map(checkedInReceipt.dispositions
+  .filter(row => row.kind === 'kernel-digest-binding').map(row => [row.kernelRef, row.templateDigest]));
+for (const kernel of Object.values(historicalTemplate.execution.kernels)) {
+  const key = `${kernel.kernel}#${kernel.entry}`;
+  if (templateDigests.has(key)) kernel.digest = templateDigests.get(key);
+}
 const historicalUrl = new URL('../../src/converter/semantic-manifest-lowering.js?historical-receipt', import.meta.url).href;
 const hooks = registerHooks({ resolve(specifier, context, next) {
   if (context.parentURL === historicalUrl && specifier.endsWith('/kernel-ref-digests.js')) {
@@ -30,11 +37,11 @@ const hooks = registerHooks({ resolve(specifier, context, next) {
 } });
 try {
   const historical = await import(historicalUrl);
-  assert.deepEqual(historical.materializeSemanticManifestCandidate({ modelIR: sourceReceipt.modelIR, template, recipe }),
+  assert.deepEqual(historical.materializeSemanticManifestCandidate({ modelIR: sourceReceipt.modelIR, template: historicalTemplate, recipe }),
     checkedInReceipt, 'historical semantic lowering must reproduce with its recorded kernel identities');
 } finally { hooks.deregister(); }
-assert.deepEqual(checkedInReceipt.conversionConfig, checkedInConfig);
 const receipt = materializeSemanticManifestCandidate({ modelIR: sourceReceipt.modelIR, template, recipe });
+assert.deepEqual(receipt.conversionConfig, checkedInConfig, 'current recipe binds the current candidate, not historical promotion');
 assert.deepEqual(materializeSemanticManifestCandidate({ modelIR: sourceReceipt.modelIR, template, recipe }), receipt,
   'current source lowering is deterministic');
 for (const kernel of Object.values(receipt.conversionConfig.execution.kernels)) {

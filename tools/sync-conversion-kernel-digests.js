@@ -4,6 +4,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -36,10 +37,21 @@ if (sourceOnly && selectedFiles.length > 0) {
 }
 
 const refPath = path.join(scanRoot, 'src/config/kernels/kernel-ref-digests.js');
-const refSource = fs.readFileSync(refPath, 'utf8');
 const canonical = new Map();
-for (const match of refSource.matchAll(/"([^"]+#[^"]+)":\s*"([a-f0-9]+)"/g)) {
-  canonical.set(match[1], match[2]);
+if (packageRootArgument) {
+  const registry = JSON.parse(fs.readFileSync(path.join(scanRoot, 'src/config/kernels/registry.json'), 'utf8'));
+  for (const operation of Object.values(registry.operations)) {
+    for (const variant of Object.values(operation.variants)) {
+      const source = fs.readFileSync(path.join(scanRoot, 'src/gpu/kernels', variant.wgsl), 'utf8').replace(/\r\n/g, '\n');
+      const entry = variant.entryPoint;
+      canonical.set(`${variant.wgsl}#${entry}`, createHash('sha256').update(`${source}\n@@entry:${entry}`).digest('hex'));
+    }
+  }
+} else {
+  const refSource = fs.readFileSync(refPath, 'utf8');
+  for (const match of refSource.matchAll(/"([^"]+#[^"]+)":\s*"([a-f0-9]+)"/g)) {
+    canonical.set(match[1], match[2]);
+  }
 }
 
 const ROOTS = [

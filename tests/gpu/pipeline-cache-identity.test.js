@@ -34,6 +34,23 @@ function fixture(t) {
 
 const entry = (buffer = {}) => ({ binding: 0, visibility: 4, buffer });
 
+test('explicit devices retain provider WGSL requirements and reject missing features', async t => {
+  const { device } = fixture(t);
+  device.features.add('subgroups');
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, 'navigator', previous);
+    else delete globalThis.navigator;
+  });
+  const provider = { wgslLanguageFeatures: new Set() };
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { gpu: provider } });
+  registerShaderSources({ 'rmsnorm_stats_subgroups.wgsl': 'source with subgroup_id' });
+  await assert.rejects(getPipelineFast('rmsnorm_stats', 'subgroups', null, null, device), /subgroup_id/);
+  provider.wgslLanguageFeatures.add('subgroup_id');
+  setDevice(null, { platformConfig: null });
+  assert.ok(await getPipelineFast('rmsnorm_stats', 'subgroups', null, null, device));
+});
+
 test('layout identity uses descriptors, including WebGPU defaults, and ordered layout objects', t => {
   const { device } = fixture(t);
   const uniform = getOrCreateBindGroupLayout('shared', [entry()], device);

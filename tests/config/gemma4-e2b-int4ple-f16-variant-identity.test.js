@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 
 const AF32_MODEL_ID = 'gemma-4-e2b-it-q4k-ehf16-af32-int4ple';
 const AF16_MODEL_ID = 'gemma-4-e2b-it-q4k-ehf16-af16-int4ple';
@@ -94,7 +95,8 @@ currentWithRetainedKernel.execution.kernels.gelu.digest = retainedConfig.executi
 const digestRebindings = readJson('artifacts/release-kernel-digests-2026-09-12/recipe-digest-rebindings.json');
 for (const [id, kernel] of Object.entries(retainedConfig.execution.kernels)) {
   if (kernel.digest in digestRebindings) {
-    assert.equal(currentWithRetainedKernel.execution.kernels[id].digest, digestRebindings[kernel.digest]);
+    assert.equal(currentWithRetainedKernel.execution.kernels[id].digest,
+      `sha256:${KERNEL_REF_CONTENT_DIGESTS[`${kernel.kernel}#${kernel.entry}`]}`);
     currentWithRetainedKernel.execution.kernels[id].digest = kernel.digest;
   }
 }

@@ -8,8 +8,8 @@ import { writeProgramBundle, verifyClosedProgramBundle } from 'doppler-gpu/tooli
 
 const packageRoot = path.dirname(path.dirname(fileURLToPath(import.meta.resolve('doppler-gpu'))));
 assert(packageRoot.endsWith(path.join('node_modules', 'doppler-gpu')));
-const { KERNEL_REF_CONTENT_DIGESTS } = await import(pathToFileURL(
-  path.join(packageRoot, 'src/config/kernels/kernel-ref-digests.js')));
+const gatherSource = (await fs.readFile(path.join(packageRoot, 'src/gpu/kernels/gather.wgsl'), 'utf8'))
+  .replace(/\r\n/g, '\n');
 const directory = path.resolve('program-bundle-fixture');
 await fs.mkdir(directory);
 const weights = new Uint8Array(16);
@@ -20,7 +20,7 @@ const manifest = {
   tokenizer: { type: 'bundled', file: 'tokenizer.json' },
   inference: { schema: 'doppler.execution/v1', execution: {
     kernels: { embed: { kernel: 'gather.wgsl', entry: 'main',
-      digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['gather.wgsl#main']}` } },
+      digest: `sha256:${hash(`${gatherSource}\n@@entry:main`)}` } },
     preLayer: [['embed', 'embed']], decode: [], prefill: [], postLayer: [],
   } },
 };

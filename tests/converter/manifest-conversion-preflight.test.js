@@ -40,7 +40,9 @@ const [
 ]);
 const inputs = {
   rawConfig,
-  conversionConfig,
+  // Reproduce the retained receipt with its exact promoted recipe, not a newly
+  // rebound candidate. Current candidates must independently pass the gate.
+  conversionConfig: semanticReceipt.conversionConfig,
   semanticReceipt,
   headers,
   weightIndex,
@@ -50,6 +52,8 @@ const inputs = {
   policy,
 };
 const receipt = createManifestConversionPreflightReceipt(inputs);
+assert.throws(() => createManifestConversionPreflightReceipt({ ...inputs, conversionConfig }),
+  /Conversion config does not match/, 'current shader identities cannot inherit historical promotion');
 assert.deepEqual(receipt, checkedIn, 'conversion preflight receipt must be deterministic');
 assert.equal(receipt.sourceEvidence.scopedTensorCount, 627);
 assert.equal(receipt.sourceEvidence.sourceQuantization, 'bf16');

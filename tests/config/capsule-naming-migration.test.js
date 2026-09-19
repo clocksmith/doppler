@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
+import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 
 const archive = 'tests/fixtures/pre-capsule';
 const manifest = JSON.parse(await fs.readFile(`${archive}/manifest.json`, 'utf8'));
@@ -32,8 +33,9 @@ for (const entry of manifest.files) {
   };
   for (const [id, kernel] of Object.entries(expected.execution.kernels)) {
     if (kernel.digest in geluDigests) {
-      assert.equal(current.execution.kernels[id].digest, geluDigests[kernel.digest]);
-      kernel.digest = geluDigests[kernel.digest];
+      const currentDigest = `sha256:${KERNEL_REF_CONTENT_DIGESTS[`${kernel.kernel}#${kernel.entry}`]}`;
+      assert.equal(current.execution.kernels[id].digest, currentDigest);
+      kernel.digest = currentDigest;
     }
   }
   if (entry.source === 'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json') {

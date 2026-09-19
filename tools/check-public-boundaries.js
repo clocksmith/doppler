@@ -47,7 +47,11 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // inventory: artifacts/incremental-streaming-2026-09-12/current-package-audit.json.
   // Ownership contracts and retained import facades add 17 files; no second
   // inference engine. Inventory: artifacts/architecture-consolidation-2026-09-19/package-audit.json.
-  maxEntryCount: 1806,
+  // Combined branch integration: 1858 entries, 2,145,728 packed / 11,301,865
+  // unpacked bytes on Node 22.22.1/npm 9.2.0. Adds declared GPU selection,
+  // rotary source contracts and experimental training; no repository tools.
+  // Evidence: artifacts/main-integration-2026-09-19/package-audit.json.
+  maxEntryCount: 1858,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -72,7 +76,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Node 22.23.2/npm 10.9.8: artifacts/incremental-streaming-2026-09-12/shared-pool-package.json.
   // Consolidated candidate: 2,122,307 packed bytes plus the retained, measured
   // 2,158-byte cross-npm compression allowance.
-  maxPackedSize: 2_124_465,
+  maxPackedSize: 2_147_886,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -83,7 +87,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // and benchmark-observation changes preceded installed-consumer work; its
   // application fixtures remain outside the package. The archive inventory is
   // retained in artifacts/installed-consumers-2026-09-12/candidate/npm-pack.json.
-  maxUnpackedSize: 10_938_448,
+  maxUnpackedSize: 11_301_865,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

@@ -35,6 +35,11 @@ try {
   }
   await fs.copyFile('tools/sync-conversion-kernel-digests.js', path.join(packageRoot, 'tools/sync-conversion-kernel-digests.js'));
   await fs.copyFile('src/config/kernels/kernel-ref-digests.js', path.join(packageRoot, 'src/config/kernels/kernel-ref-digests.js'));
+  await fs.writeFile(path.join(packageRoot, 'src/config/kernels/registry.json'), JSON.stringify({
+    operations: { matmul: { variants: { fixture: { wgsl: 'fused_matmul_q4.wgsl', entryPoint: 'main_gemv' } } } },
+  }));
+  await fs.mkdir(path.join(packageRoot, 'src/gpu/kernels'), { recursive: true });
+  await fs.copyFile('src/gpu/kernels/fused_matmul_q4.wgsl', path.join(packageRoot, 'src/gpu/kernels/fused_matmul_q4.wgsl'));
   await fs.writeFile(path.join(packageRoot, 'package.json'), '{"type":"module"}');
   const recipe = path.join(packageRoot, 'src/config/conversion/recipe.json');
   const retainedManifest = path.join(packageRoot, 'models/local/manifest.json');
@@ -51,6 +56,11 @@ try {
   assert.equal(await fs.readFile(retainedManifest, 'utf8'), original, 'source sync must preserve retained model manifests');
   const acceptedPackage = run('--package-root', packageRoot, '--check');
   assert.equal(acceptedPackage.status, 0, acceptedPackage.stderr);
+  const shader = path.join(packageRoot, 'src/gpu/kernels/fused_matmul_q4.wgsl');
+  await fs.appendFile(shader, '\n// altered installed bytes\n');
+  assert.notEqual(run('--package-root', packageRoot, '--check').status, 0,
+    'installed shader bytes, not the repository digest mirror, control validation');
+  await fs.copyFile('src/gpu/kernels/fused_matmul_q4.wgsl', shader);
   for (const args of [
     ['--package-root'], ['--package-root', packageRoot],
     ['--package-root', packageRoot, '--file', recipe, '--check'],
