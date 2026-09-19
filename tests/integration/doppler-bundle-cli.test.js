@@ -118,7 +118,11 @@ function runCli(args, options = {}) {
   const manifest = JSON.parse(readFileSync(FIXTURE_MANIFEST, 'utf8'));
   // This happy-path capture is synthetic. Bind its temporary manifest to the
   // current shader while leaving the retained model and report untouched.
-  manifest.inference.execution.kernels.gelu.digest = `sha256:${KERNEL_REF_CONTENT_DIGESTS['gelu.wgsl#main']}`;
+  for (const kernel of Object.values(manifest.inference.execution.kernels)) {
+    const digest = KERNEL_REF_CONTENT_DIGESTS[`${kernel.kernel}#${kernel.entry}`];
+    assert.ok(digest, `Synthetic fixture kernel must have source identity: ${kernel.kernel}#${kernel.entry}`);
+    kernel.digest = `sha256:${digest}`;
+  }
   const executionGraphHash = resolveExecutionGraphHash(manifest);
   assert.ok(executionGraphHash, 'manifest must expose an executionGraphHash');
 

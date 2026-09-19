@@ -1,0 +1,46 @@
+{
+  "revision": "a99c799497881f2571c52d4f496d0ea1a9e19046",
+  "conclusion": "success",
+  "runUrl": "https://github.com/clocksmith/doppler/actions/runs/35014223947",
+  "jobId": 104533464876,
+  "acceptanceSteps": [
+    {
+      "name": "Run repository acceptance checks",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 7,
+      "started_at": "2026-09-15T19:33:17Z",
+      "completed_at": "2026-09-15T19:39:11Z"
+    },
+    {
+      "name": "Run browser WebGPU kernel contract",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 8,
+      "started_at": "2026-09-15T19:39:11Z",
+      "completed_at": "2026-09-15T19:39:18Z"
+    },
+    {
+      "name": "Run demo UI and offline PWA contract",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 9,
+      "started_at": "2026-09-15T19:39:18Z",
+      "completed_at": "2026-09-15T19:39:25Z"
+    }
+  ],
+  "logExcerpt": [
+    "2026-09-15T19:39:11.3607326Z [node-tests] ok: 825 files",
+    "2026-09-15T19:39:18.9162351Z     \"passed\": 71,",
+    "2026-09-15T19:39:18.9162633Z     \"failed\": 0,",
+    "2026-09-15T19:39:18.9162912Z     \"skipped\": 15,",
+    "2026-09-15T19:39:24.9768863Z Demo controls: sampling, profiles, diagnostics, keyboard, stop, receipts, removal, install handoff, contrast and responsive layouts passed (mocked execution)."
+  ],
+  "installedConsumersRunUrl": "https://github.com/clocksmith/doppler/actions/runs/35014223948",
+  "installedConsumersConclusion": "success",
+  "browserKernelCases": {
+    "passed": 71,
+    "failed": 0,
+    "skipped": 15
+  }
+}

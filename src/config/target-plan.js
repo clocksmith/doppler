@@ -1,4 +1,5 @@
 import { validateCapsuleAdapterExecution } from './capsule-adapter-policy.js';
+import { validateCapsuleTokenSelection } from './capsule-token-selection.js';
 
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
@@ -90,6 +91,9 @@ function validateCommand(command, phase, label, errors) {
 
 export function validateTargetPlan(plan) {
   const errors = [];
+  if (plan?.tokenSelection !== undefined) {
+    try { validateCapsuleTokenSelection(plan); } catch (error) { errors.push(error.message); }
+  }
   if (plan?.adapterExecution !== undefined) {
     try { validateCapsuleAdapterExecution(plan); } catch (error) { errors.push(error.message); }
   }
@@ -117,6 +121,12 @@ export function validateTargetPlan(plan) {
       if (typeof plan.capabilityPredicate[field] !== 'boolean') {
         errors.push(`capabilityPredicate.${field} must be boolean.`);
       }
+    }
+    const languageFeatures = plan.capabilityPredicate.requiredWgslFeatures;
+    if (languageFeatures !== undefined && (!Array.isArray(languageFeatures)
+      || languageFeatures.some(feature => typeof feature !== 'string' || !/^[a-z][a-z0-9_]*$/.test(feature))
+      || new Set(languageFeatures).size !== languageFeatures.length)) {
+      errors.push('capabilityPredicate.requiredWgslFeatures must contain unique WGSL language feature names.');
     }
     if (!Number.isInteger(plan.capabilityPredicate.minBufferSize) || plan.capabilityPredicate.minBufferSize < 0) {
       errors.push('capabilityPredicate.minBufferSize must be a non-negative integer.');
@@ -269,6 +279,7 @@ export function matchesDeviceCapability(targetPlan, deviceProfile) {
   const predicate = targetPlan.capabilityPredicate;
   if (predicate.requiresF16 && !deviceProfile.hasF16) return false;
   if (predicate.requiresSubgroups && !deviceProfile.hasSubgroups) return false;
+  if (predicate.requiredWgslFeatures?.some(feature => !deviceProfile.wgslLanguageFeatures?.includes(feature))) return false;
   if ((deviceProfile.maxBufferSize || 0) < predicate.minBufferSize) return false;
   if (Array.isArray(predicate.supportedVendors) && predicate.supportedVendors.length > 0) {
     const vendor = String(deviceProfile.adapter?.vendor || '').toLowerCase();
@@ -402,6 +413,7 @@ export function createTargetPlanV2(params) {
     qualification: params.qualification,
     initialExecutionIdentity: params.initialExecutionIdentity,
     ...(params.adapterExecution !== undefined ? { adapterExecution: params.adapterExecution } : {}),
+    ...(params.tokenSelection !== undefined ? { tokenSelection: params.tokenSelection } : {}),
   };
   const validation = validateTargetPlan(plan);
   if (!validation.ok) {

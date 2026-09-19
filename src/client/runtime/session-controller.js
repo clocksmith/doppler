@@ -60,7 +60,13 @@ export function createSessionController(commandExecutor, resourceBinder, program
         for (let step = 0; step < sampling.maxTokens; step += 1) {
           if (signal?.aborted) throw new GenerationError('aborted', 'Generation aborted during decode.', { cause: signal.reason });
           resourceBinder.assertDeviceAvailable();
-          const tokenId = sampleCapsuleLogits(stepResult?.logits, contextTokens, sampling, tokenContract);
+          const tokenId = targetPlan.tokenSelection === undefined
+            ? sampleCapsuleLogits(stepResult?.logits, contextTokens, sampling, tokenContract)
+            : stepResult?.tokenId;
+          if (targetPlan.tokenSelection !== undefined && (!Number.isInteger(tokenId) || tokenId < 0
+            || !Number.isInteger(stepResult?.vocabSize) || tokenId >= stepResult.vocabSize)) {
+            throw new Error('Declared GPU token selection returned an invalid token result.');
+          }
           program.releaseStepResult(stepResult);
           stepResult = null;
           generatedTokens?.push(tokenId);

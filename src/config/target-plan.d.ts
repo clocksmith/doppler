@@ -39,6 +39,7 @@ export interface TargetPlanV1 {
   capabilityPredicate: {
     requiresF16: boolean;
     requiresSubgroups: boolean;
+    requiredWgslFeatures?: string[];
     minBufferSize: number;
     supportedVendors?: string[];
   };
@@ -67,6 +68,7 @@ export interface TargetPlanV2 extends Omit<TargetPlanV1, 'schema' | 'schemaVersi
   schemaVersion: 2;
   initialExecutionIdentity: InitialExecutionIdentity;
   adapterExecution?: CapsuleAdapterExecutionDeclaration;
+  tokenSelection?: import('./capsule-token-selection.js').CapsuleTokenSelection;
 }
 
 export type TargetPlan = TargetPlanV1 | TargetPlanV2;
@@ -75,6 +77,7 @@ export interface TargetPlanDeviceProfile {
   surface: string;
   hasF16?: boolean;
   hasSubgroups?: boolean;
+  wgslLanguageFeatures?: string[];
   maxBufferSize?: number;
   adapter?: {
     vendor?: string | null;

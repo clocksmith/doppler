@@ -1,6 +1,7 @@
 import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { observeInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
+import { validateCapsuleTokenSelection } from '../../config/capsule-token-selection.js';
 
 function arraysEqual(left, right) {
   return Array.isArray(left)
@@ -22,6 +23,12 @@ function toPipelineOptions(options, signal) {
 export function createCapsuleProgramAdapter(modelHandle, capsule, targetPlan) {
   if (!modelHandle?.advanced) throw new Error('Capsule program adapter requires a loaded Doppler model handle.');
   if (modelHandle.manifest?.modelId !== capsule.modelId) throw new Error('Loaded program modelId does not match the Capsule.');
+  const tokenSelection = targetPlan.tokenSelection === undefined ? null
+    : validateCapsuleTokenSelection(targetPlan, capsule.wgslModules);
+  if (tokenSelection && (typeof modelHandle.advanced.prefillWithToken !== 'function'
+    || typeof modelHandle.advanced.decodeStepWithToken !== 'function')) {
+    throw new Error('Loaded program does not implement the declared GPU token-selection recipe.');
+  }
   const declaredByPhase = Object.fromEntries(['prefill', 'decode'].map((phase) => [
     phase,
     targetPlan.phases[phase].flatMap((command) => command.declaredStepIds || []),
@@ -120,18 +127,25 @@ export function createCapsuleProgramAdapter(modelHandle, capsule, targetPlan) {
       let result;
       if (phase === 'prefill') {
         const { prompt, promptTokens, generationOptions } = request.context;
-        result = await modelHandle.advanced.prefillWithLogits(prompt, {
+        const options = {
           ...toPipelineOptions(generationOptions, request.signal),
           inputIds: promptTokens,
-        });
+        };
+        result = tokenSelection
+          ? await modelHandle.advanced.prefillWithToken(prompt, options, this.getTokenContract())
+          : await modelHandle.advanced.prefillWithLogits(prompt, options);
       } else if (phase === 'decode') {
-        result = await modelHandle.advanced.decodeStepLogits(request.context.contextTokens, {
+        const options = {
           ...toPipelineOptions(request.context.generationOptions, request.signal),
-        });
+        };
+        result = tokenSelection
+          ? await modelHandle.advanced.decodeStepWithToken(request.context.contextTokens, options, this.getTokenContract())
+          : await modelHandle.advanced.decodeStepLogits(request.context.contextTokens, options);
       } else {
         throw new Error(`Capsule program adapter does not implement phase "${phase}".`);
       }
-      assertNoPlanMutation();
+      try { assertNoPlanMutation(); }
+      catch (error) { this.releaseStepResult(result); throw error; }
       return result;
     },
 

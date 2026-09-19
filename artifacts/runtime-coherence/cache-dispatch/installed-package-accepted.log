@@ -1,0 +1,14 @@
+package import smoke passed (29 exports + browser condition)
+Installed standalone Node provider smoke passed (synthetic; Doe absent).
+package training API smoke passed
+package CLI smoke passed (doppler)
+package CLI smoke passed (doppler-gpu)
+package CLI smoke passed (doppler-serve)
+installed Electron Capsule contract passed (synthetic device/program, no repository imports)
+Installed Capsule HTTP/direct parity passed (synthetic).
+Installed Capsule embedding smoke passed (synthetic; no physical qualification).
+Installed Capsule generation passed (injected logits; no physical qualification).
+Installed browser-conditioned host stream exports passed.
+package type smoke passed (29 public export declarations)
+packed package smoke passed (1789 files, 2117107 bytes packed, 10912124 bytes unpacked)
+Package evidence retained: /dev/shm/doppler-runtime-coherence/candidate-accepted

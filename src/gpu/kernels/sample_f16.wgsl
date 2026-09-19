@@ -45,6 +45,8 @@ fn apply_softcap(x: f32, softcap: f32) -> f32 {
 }
 
 fn candidate_beats(candidate_value: f32, candidate_index: u32, best_value: f32, best_index: u32) -> bool {
+    if (candidate_index == 0xffffffffu) { return false; }
+    if (best_index == 0xffffffffu) { return true; }
     if (candidate_value > best_value) {
         return true;
     }
@@ -52,6 +54,10 @@ fn candidate_beats(candidate_value: f32, candidate_index: u32, best_value: f32, 
         return false;
     }
     return candidate_index < best_index;
+}
+
+fn finite_candidate(value: f32) -> bool {
+    return (bitcast<u32>(value) & 0x7f800000u) != 0x7f800000u;
 }
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -135,7 +141,7 @@ fn find_topk_phase1(
     for (var token = wgid.x; token < u.vocab_size; token += num_wg.x) {
         let raw = f32(logits[token]);
         // Non-finite and padding logits never enter the candidate distribution.
-        if (token != u.pad_token_id && abs(raw) <= 3.402823e+38) {
+        if (token != u.pad_token_id && finite_candidate(raw)) {
             let value = apply_softcap(raw, u.logit_softcap);
             count = heap_offer(base, count, value, token);
         }
@@ -192,7 +198,7 @@ fn softmax_and_sample(@builtin(local_invocation_id) lid: vec3<u32>) {
     var selected = topk_indices[base + retained - 1u];
     for (var i = 0u; i < retained; i++) {
         cumulative += topk_logits[base + i];
-        if (cumulative >= threshold) {
+        if (cumulative > threshold) {
             selected = topk_indices[base + i];
             break;
         }
@@ -217,11 +223,11 @@ fn sample_single_pass(
 
     // Phase 1: Find global max
     var local_max: f32 = NEG_INF;
-    var local_max_idx: u32 = 0u;
+    var local_max_idx: u32 = 0xffffffffu;
 
     var idx = gid.x;
     while (idx < vocab_size) {
-        if (idx != pad_id) {
+        if (idx != pad_id && finite_candidate(f32(logits[idx]))) {
             // Apply softcapping before temperature scaling
             let val = apply_softcap(f32(logits[idx]), softcap) / temperature;
             if (candidate_beats(val, idx, local_max, local_max_idx)) {
@@ -281,11 +287,11 @@ fn argmax(
 
     // Each thread finds max in its chunk
     var local_max: f32 = NEG_INF;
-    var local_max_idx: u32 = 0u;
+    var local_max_idx: u32 = 0xffffffffu;
 
     var idx = global_idx;
     while (idx < vocab_size) {
-        if (idx != pad_id) {
+        if (idx != pad_id && finite_candidate(f32(logits[idx]))) {
             // Apply softcapping (argmax is greedy, no temperature)
             let val = apply_softcap(f32(logits[idx]), softcap);
             if (candidate_beats(val, idx, local_max, local_max_idx)) {
@@ -339,7 +345,7 @@ fn argmax_reduce(
         shared_indices[thread_idx] = topk_indices[thread_idx];
     } else {
         shared_values[thread_idx] = NEG_INF;
-        shared_indices[thread_idx] = 0u;
+        shared_indices[thread_idx] = 0xffffffffu;
     }
     workgroupBarrier();
 

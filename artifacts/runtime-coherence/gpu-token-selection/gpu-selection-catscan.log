@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.2 catscan:check
+> node tools/sync-catscan-index.js --check
+
+catscan: current docs/component-index.md (30 components)

@@ -1,0 +1,354 @@
+TAP version 13
+# kernel-language-contract.test: 350 variants, 284 modules agree
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.213852
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 130.624661
+[node-tests] ok: tests/config/kernel-language-contract.test.js
+TAP version 13
+# kernel-registry-loader.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.07013
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 98.495538
+[node-tests] ok: tests/config/kernel-registry-loader.test.js
+TAP version 13
+# program-bundle-schema.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.93303
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 120.244515
+[node-tests] ok: tests/config/program-bundle-schema.test.js
+TAP version 13
+# ✔ target-plan.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.087322
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 126.805736
+[node-tests] ok: tests/config/target-plan.test.js
+TAP version 13
+# wgsl-language-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.159138
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 96.367569
+[node-tests] ok: tests/config/wgsl-language-contract.test.js
+TAP version 13
+# ✔ forge-stages.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.314603
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 229.550469
+[node-tests] ok: tests/converter/forge-stages.test.js
+TAP version 13
+# kernel-language-selection.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.197912
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 126.710363
+[node-tests] ok: tests/gpu/kernel-language-selection.test.js
+TAP version 13
+# Subtest: layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+ok 1 - layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+  ---
+  duration_ms: 7.068525
+  type: 'test'
+  ...
+# Subtest: compute cache distinguishes actual layouts and shader bytes
+ok 2 - compute cache distinguishes actual layouts and shader bytes
+  ---
+  duration_ms: 1.480628
+  type: 'test'
+  ...
+# [98.3ms][GPU] Device lost: injected loss, Reason: unknown
+# Subtest: concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+ok 3 - concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+  ---
+  duration_ms: 2.545718
+  type: 'test'
+  ...
+# Subtest: device loss during compilation rejects the result and cannot populate the cache
+ok 4 - device loss during compilation rejects the result and cannot populate the cache
+  ---
+  duration_ms: 2.239617
+  type: 'test'
+  ...
+# Subtest: device replacement while shader diagnostics are pending cannot compile a pipeline
+ok 5 - device replacement while shader diagnostics are pending cannot compile a pipeline
+  ---
+  duration_ms: 0.784638
+  type: 'test'
+  ...
+# Subtest: clearing caches during compilation prevents late cache publication
+ok 6 - clearing caches during compilation prevents late cache publication
+  ---
+  duration_ms: 0.496401
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 7 - test module initialization completed
+  ---
+  duration_ms: 0.044986
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 135.125971
+[node-tests] ok: tests/gpu/pipeline-cache-identity.test.js
+TAP version 13
+# rmsnorm-stats-ownership.test: 24 allocation/compilation/dispatch/ownership cases passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.197942
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 133.678376
+[node-tests] ok: tests/gpu/rmsnorm-stats-ownership.test.js
+TAP version 13
+# shader-source-scope.test: ok (contract doubles, not GPU execution)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.948368
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 106.797958
+[node-tests] ok: tests/gpu/shader-source-scope.test.js
+TAP version 13
+# Subtest: immediate and recorded modes consume the identical semantic plan
+ok 1 - immediate and recorded modes consume the identical semantic plan
+  ---
+  duration_ms: 4.140112
+  type: 'test'
+  ...
+# Subtest: changing one semantic decision changes the plan identity
+ok 2 - changing one semantic decision changes the plan identity
+  ---
+  duration_ms: 0.95483
+  type: 'test'
+  ...
+# Subtest: query scaling and NoPE are immutable plan identity
+ok 3 - query scaling and NoPE are immutable plan identity
+  ---
+  duration_ms: 1.243829
+  type: 'test'
+  ...
+# Subtest: semantic plans are deeply immutable and JSON-safe
+ok 4 - semantic plans are deeply immutable and JSON-safe
+  ---
+  duration_ms: 0.790899
+  type: 'test'
+  ...
+# Subtest: characterization matrix covers phase, dtype, capability, KV, fusion, LoRA, gate, and failure contracts
+ok 5 - characterization matrix covers phase, dtype, capability, KV, fusion, LoRA, gate, and failure contracts
+  ---
+  duration_ms: 14.942577
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 6 - test module initialization completed
+  ---
+  duration_ms: 0.095351
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 133.311167
+[node-tests] ok: tests/inference/attention-plan.test.js
+TAP version 13
+# ✔ capsule-artifact-source.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.201609
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 229.192559
+[node-tests] ok: tests/runtime/capsule-artifact-source.test.js
+TAP version 13
+# ✔ capsule-operation.test.js passed (injected program; contract evidence only)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.775611
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 209.684092
+[node-tests] ok: tests/runtime/capsule-operation.test.js
+TAP version 13
+# capsule-wgsl-language.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.660853
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 158.333075
+[node-tests] ok: tests/runtime/capsule-wgsl-language.test.js
+TAP version 13
+# ✔ target-selector.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.150431
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 131.164932
+[node-tests] ok: tests/runtime/target-selector.test.js
+TAP version 13
+# program-bundle-exporter.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.186761
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 192.864119
+[node-tests] ok: tests/tooling/program-bundle-exporter.test.js
+[node-tests] ok: 16 files

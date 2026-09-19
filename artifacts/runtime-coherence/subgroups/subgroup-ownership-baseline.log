@@ -1,0 +1,18 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: false:inv_rms:false: pooled output leak
+
+1 !== 0
+
+    at file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/gpu/rmsnorm-stats-ownership.test.js:56:16 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

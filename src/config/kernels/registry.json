@@ -48,6 +48,29 @@
       "name": "alpha",
       "type": "f32",
       "offset": 12
+     },
+     {
+      "name": "num_blocks_per_row",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 20,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -64,6 +87,84 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "variantMetadata": {
+      "dispatchGeometry": "matrix-workgroup",
+      "colsPerThread": 1
      }
     },
     "f16_vec4": {
@@ -74,14 +175,89 @@
      "outputDtype": "f16",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerThread": 4
+      "colsPerThread": 4,
+      "dispatchGeometry": "matrix-workgroup"
      },
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "f16_tiled": {
      "wgsl": "matmul_f16_tiled.wgsl",
@@ -92,7 +268,8 @@
      "weightDtype": "f16",
      "variantMetadata": {
       "tileM": 64,
-      "tileN": 64
+      "tileN": 64,
+      "dispatchGeometry": "matrix-tile"
      },
      "description": "Register-tiled prefill matmul (transpose_b=1 row-major B): 4x4 thread tile, 64x64 workgroup tile, 16x outputs/workgroup vs base",
      "reachability": {
@@ -100,7 +277,81 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "f16w_f32a": {
      "wgsl": "matmul_f16w_f32a.wgsl",
@@ -146,6 +397,84 @@
       ],
       "ruleChains": ["matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "variantMetadata": {
+      "dispatchGeometry": "matrix-workgroup",
+      "colsPerThread": 1
      }
     },
     "bf16w_f32a": {
@@ -161,6 +490,84 @@
       "inlineConfigs": ["muse-glimmer/muse-glimmer-30b-text-bf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "variantMetadata": {
+      "dispatchGeometry": "matrix-workgroup",
+      "colsPerThread": 1
      }
     },
     "f16w_f32a_tiled": {
@@ -172,7 +579,8 @@
      "weightDtype": "f16",
      "variantMetadata": {
       "tileM": 64,
-      "tileN": 64
+      "tileN": 64,
+      "dispatchGeometry": "matrix-tile"
      },
      "description": "Register-tiled prefill matmul: f32 activations, f16 weights, f32 output. 4x4 thread tile, 64x64 workgroup tile.",
      "reachability": {
@@ -189,7 +597,81 @@
       ],
       "ruleChains": ["matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv": {
      "wgsl": "matmul_gemv.wgsl",
@@ -204,6 +686,83 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#gemvVariant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "variantMetadata": {
+      "dispatchGeometry": "column"
      }
     },
     "gemv_f16a": {
@@ -219,6 +778,83 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#gemvVariant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "variantMetadata": {
+      "dispatchGeometry": "column"
      }
     },
     "gemv_subgroup": {
@@ -229,7 +865,8 @@
      "outputDtype": "f32",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerWg": 4
+      "colsPerWg": 4,
+      "dispatchGeometry": "linear-column-block"
      },
      "description": "Subgroup-optimized GEMV - 1.5x faster using subgroupAdd",
      "reachability": {
@@ -237,7 +874,80 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_bf16w": {
      "wgsl": "matmul_gemv_subgroup_bf16w.wgsl",
@@ -247,7 +957,8 @@
      "outputDtype": "f32",
      "weightDtype": "bf16",
      "variantMetadata": {
-      "colsPerWg": 4
+      "colsPerWg": 4,
+      "dispatchGeometry": "linear-column-block"
      },
      "description": "Subgroup GEMV over packed BF16 checkpoint weights with F32 activations and output.",
      "reachability": {
@@ -255,7 +966,80 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_bf16w_vec4": {
      "wgsl": "matmul_gemv_subgroup_bf16w.wgsl",
@@ -265,14 +1049,88 @@
      "outputDtype": "f32",
      "weightDtype": "bf16",
      "variantMetadata": {
-      "colsPerWg": 4
+      "colsPerWg": 4,
+      "dispatchGeometry": "linear-column-block"
      },
      "reachability": {
       "status": "pinned",
       "inlineConfigs": ["muse-glimmer/muse-glimmer-30b-text-bf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_bf16w_multicol": {
      "wgsl": "matmul_gemv_subgroup_bf16w.wgsl",
@@ -282,14 +1140,88 @@
      "outputDtype": "f32",
      "weightDtype": "bf16",
      "variantMetadata": {
-      "colsPerWg": 64
+      "colsPerWg": 64,
+      "dispatchGeometry": "linear-column-block"
      },
      "reachability": {
       "status": "pinned",
       "inlineConfigs": ["muse-glimmer/muse-glimmer-30b-text-bf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_f16a": {
      "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -299,7 +1231,8 @@
      "outputDtype": "f16",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerWg": 4
+      "colsPerWg": 4,
+      "dispatchGeometry": "linear-column-block"
      },
      "description": "Subgroup-optimized GEMV with f16 activations + f16 output",
      "reachability": {
@@ -307,7 +1240,80 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_vec4": {
      "wgsl": "matmul_gemv_subgroup.wgsl",
@@ -317,7 +1323,8 @@
      "outputDtype": "f32",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerWg": 4
+      "colsPerWg": 4,
+      "dispatchGeometry": "linear-column-block"
      },
      "reachability": {
       "status": "pinned",
@@ -353,7 +1360,80 @@
       ],
       "ruleChains": ["matmul.rules.json#gemvVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_vec4_f16a": {
      "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -363,14 +1443,88 @@
      "outputDtype": "f16",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerWg": 4
+      "colsPerWg": 4,
+      "dispatchGeometry": "linear-column-block"
      },
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#gemvVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_cols8_f16a": {
      "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -380,7 +1534,8 @@
      "outputDtype": "f16",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerWg": 8
+      "colsPerWg": 8,
+      "dispatchGeometry": "linear-column-block"
      },
      "description": "Subgroup GEMV with 8 columns per workgroup (f16 activations/output)",
      "reachability": {
@@ -388,7 +1543,80 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_vec4_cols8_f16a": {
      "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -398,7 +1626,8 @@
      "outputDtype": "f16",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerWg": 8
+      "colsPerWg": 8,
+      "dispatchGeometry": "linear-column-block"
      },
      "description": "Subgroup GEMV vec4 with 8 columns per workgroup (f16 activations/output)",
      "reachability": {
@@ -406,7 +1635,80 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_multicol": {
      "wgsl": "matmul_gemv_subgroup.wgsl",
@@ -416,7 +1718,8 @@
      "outputDtype": "f32",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerWg": 8
+      "colsPerWg": 8,
+      "dispatchGeometry": "linear-column-block"
      },
      "description": "Multi-column GEMV for large vocab (LM head F16) - 32 columns per workgroup",
      "reachability": {
@@ -459,7 +1762,80 @@
       ],
       "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_multicol_f16a": {
      "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -469,7 +1845,8 @@
      "outputDtype": "f16",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerWg": 8
+      "colsPerWg": 8,
+      "dispatchGeometry": "linear-column-block"
      },
      "description": "Multi-column GEMV for large vocab (LM head F16) - f16 activations/output",
      "reachability": {
@@ -477,7 +1854,80 @@
       "inlineConfigs": ["qwen3/qwen-3-5-0-8b-q4k-ehaf16"],
       "ruleChains": ["matmul.rules.json#gemvPathVariant","matmul.rules.json#gemvVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_cols64": {
      "wgsl": "matmul_gemv_subgroup.wgsl",
@@ -487,7 +1937,8 @@
      "outputDtype": "f32",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerWg": 64
+      "colsPerWg": 64,
+      "dispatchGeometry": "linear-column-block"
      },
      "description": "Cooperative 4-thread GEMV - 64 columns per workgroup, 4 threads per column (experimental)",
      "reachability": {
@@ -495,7 +1946,80 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_cols64_f16a": {
      "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -505,7 +2029,8 @@
      "outputDtype": "f16",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerWg": 64
+      "colsPerWg": 64,
+      "dispatchGeometry": "linear-column-block"
      },
      "description": "Cooperative 4-thread GEMV f16a - 64 columns per workgroup, 4 threads per column (experimental)",
      "reachability": {
@@ -513,7 +2038,80 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "gemv_subgroup_vec4_cols64_f16a": {
      "wgsl": "matmul_gemv_subgroup_f16a.wgsl",
@@ -523,7 +2121,8 @@
      "outputDtype": "f16",
      "weightDtype": "f16",
      "variantMetadata": {
-      "colsPerWg": 64
+      "colsPerWg": 64,
+      "dispatchGeometry": "linear-column-block"
      },
      "description": "Cooperative 4-thread GEMV f16a vec4 - 64 columns per workgroup with vec4 loads (experimental)",
      "reachability": {
@@ -531,7 +2130,80 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "q4_fused_f16a": {
      "wgsl": "fused_matmul_q4_f16a.wgsl",
@@ -545,6 +2217,35 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f16"
+      }
+     ],
+     "variantMetadata": {
+      "dispatchGeometry": "column"
      }
     },
     "litert_int4_multicol_f16a": {
@@ -555,7 +2256,8 @@
      "outputDtype": "f16",
      "weightDtype": "litert_int4",
      "variantMetadata": {
-      "colsPerWg": 8
+      "colsPerWg": 8,
+      "dispatchGeometry": "row-column-block"
      },
      "description": "LiteRT fixed-affine INT4 batched matmul with f16 activations and f16 output; keeps Gemma 4 split-package weights packed on GPU",
      "reachability": {
@@ -563,7 +2265,80 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#litertInt4FusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_words"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f16"
+      }
+     ]
     },
     "litert_int4_multicol_f16a_f32out": {
      "wgsl": "fused_matmul_litert_int4_f16a_f32out.wgsl",
@@ -573,7 +2348,8 @@
      "outputDtype": "f32",
      "weightDtype": "litert_int4",
      "variantMetadata": {
-      "colsPerWg": 8
+      "colsPerWg": 8,
+      "dispatchGeometry": "row-column-block"
      },
      "description": "LiteRT fixed-affine INT4 batched matmul with f16 activations and f32 output; keeps Gemma 4 split-package weights packed on GPU",
      "reachability": {
@@ -581,7 +2357,80 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#litertInt4FusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_words"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f32"
+      }
+     ]
     },
     "litert_int4_multicol_f32a_f32out": {
      "wgsl": "fused_matmul_litert_int4_f32a_f32out.wgsl",
@@ -591,7 +2440,8 @@
      "outputDtype": "f32",
      "weightDtype": "litert_int4",
      "variantMetadata": {
-      "colsPerWg": 8
+      "colsPerWg": 8,
+      "dispatchGeometry": "row-column-block"
      },
      "description": "LiteRT fixed-affine INT4 batched matmul with f32 activations and f32 output; keeps Gemma 4 split-package logits packed on GPU",
      "reachability": {
@@ -599,7 +2449,80 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#litertInt4FusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_words"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f32"
+      }
+     ]
     },
     "w4a16_multicol_f16a": {
      "wgsl": "fused_matmul_w4a16_f16a.wgsl",
@@ -609,7 +2532,8 @@
      "outputDtype": "f16",
      "weightDtype": "w4a16",
      "variantMetadata": {
-      "colsPerWg": 8
+      "colsPerWg": 8,
+      "dispatchGeometry": "row-column-block"
      },
      "description": "Compressed-tensors W4A16 packed matmul with f16 activations and f16 output; keeps QAT weights packed on GPU with per-row-group scales",
      "reachability": {
@@ -617,7 +2541,86 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#w4a16FusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_words"
+      },
+      {
+       "index": 3,
+       "name": "scales",
+       "type": "read-only-storage",
+       "wgslName": "S_words"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f16"
+      }
+     ]
     },
     "w4a16_multicol_f16a_f32out": {
      "wgsl": "fused_matmul_w4a16_f16a_f32out.wgsl",
@@ -627,7 +2630,8 @@
      "outputDtype": "f32",
      "weightDtype": "w4a16",
      "variantMetadata": {
-      "colsPerWg": 8
+      "colsPerWg": 8,
+      "dispatchGeometry": "row-column-block"
      },
      "description": "Compressed-tensors W4A16 packed matmul with f16 activations and f32 output; keeps QAT weights packed on GPU with per-row-group scales",
      "reachability": {
@@ -635,7 +2639,86 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#w4a16FusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_words"
+      },
+      {
+       "index": 3,
+       "name": "scales",
+       "type": "read-only-storage",
+       "wgslName": "S_words"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f32"
+      }
+     ]
     },
     "w4a16_batched_f16a": {
      "wgsl": "fused_matmul_w4a16_batched_f16a.wgsl",
@@ -646,7 +2729,8 @@
      "weightDtype": "w4a16",
      "variantMetadata": {
       "colsPerWg": 8,
-      "tileM": 4
+      "tileM": 4,
+      "dispatchGeometry": "row-column-tile"
      },
      "description": "Compressed-tensors W4A16 packed batched prefill matmul with f16 activations and f16 output; keeps QAT weights packed on GPU with per-row-group scales",
      "reachability": {
@@ -654,7 +2738,86 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#w4a16FusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_words"
+      },
+      {
+       "index": 3,
+       "name": "scales",
+       "type": "read-only-storage",
+       "wgslName": "S_words"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f16"
+      }
+     ]
     },
     "w4a16_batched_f16a_f32out": {
      "wgsl": "fused_matmul_w4a16_batched_f16a_f32out.wgsl",
@@ -665,7 +2828,8 @@
      "weightDtype": "w4a16",
      "variantMetadata": {
       "colsPerWg": 8,
-      "tileM": 4
+      "tileM": 4,
+      "dispatchGeometry": "row-column-tile"
      },
      "description": "Compressed-tensors W4A16 packed batched prefill matmul with f16 activations and f32 output; keeps QAT weights packed on GPU with per-row-group scales",
      "reachability": {
@@ -673,7 +2837,86 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#w4a16FusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_words"
+      },
+      {
+       "index": 3,
+       "name": "scales",
+       "type": "read-only-storage",
+       "wgslName": "S_words"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f32"
+      }
+     ]
     },
     "q4_fused_batched": {
      "wgsl": "fused_matmul_q4_batched.wgsl",
@@ -683,14 +2926,41 @@
      "outputDtype": "f32",
      "weightDtype": "q4k",
      "variantMetadata": {
-      "tileM": 4
+      "tileM": 4,
+      "dispatchGeometry": "column-row-tile"
      },
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "q4_fused_batched_multicol_shared": {
      "wgsl": "fused_matmul_q4_batched_multicol_shared.wgsl",
@@ -701,7 +2971,8 @@
      "weightDtype": "q4k",
      "variantMetadata": {
       "tileM": 4,
-      "colsPerWg": 8
+      "colsPerWg": 8,
+      "dispatchGeometry": "row-column-tile"
      },
      "description": "Shared-A Q4_K prefill matmul: 4 rows x 8 columns per workgroup while preserving block/subblock traversal",
      "reachability": {
@@ -728,7 +2999,33 @@
       ],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "q4_fused_multicol": {
      "wgsl": "fused_matmul_q4.wgsl",
@@ -738,7 +3035,8 @@
      "outputDtype": "f32",
      "weightDtype": "q4k",
      "variantMetadata": {
-      "colsPerWg": 32
+      "colsPerWg": 32,
+      "dispatchGeometry": "column-block"
      },
      "description": "Multi-column GEMV for large vocab (LM head) - 32 columns per workgroup",
      "reachability": {
@@ -754,7 +3052,33 @@
       ],
       "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "q4_fused_gemv": {
      "wgsl": "fused_matmul_q4.wgsl",
@@ -764,7 +3088,8 @@
      "outputDtype": "f32",
      "weightDtype": "q4k",
      "variantMetadata": {
-      "colsPerWg": 32
+      "colsPerWg": 32,
+      "dispatchGeometry": "column-block"
      },
      "description": "Optimised fused Q4K GEMV - shared-A cooperative load + fast nibble extraction for maximum M=1 decode throughput without f16 precision loss",
      "reachability": {
@@ -789,7 +3114,33 @@
       ],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "q4_fused_multicol_f16": {
      "wgsl": "fused_matmul_q4_multicol_f16.wgsl",
@@ -799,7 +3150,8 @@
      "outputDtype": "f16",
      "weightDtype": "q4k",
      "variantMetadata": {
-      "colsPerWg": 32
+      "colsPerWg": 32,
+      "dispatchGeometry": "column-block"
      },
      "description": "Multi-column GEMV for large vocab (LM head) - F16 output",
      "reachability": {
@@ -807,7 +3159,33 @@
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f16"
+      }
+     ]
     },
     "q4_fused_multicol_f16a": {
      "wgsl": "fused_matmul_q4_multicol_f16a.wgsl",
@@ -817,7 +3195,8 @@
      "outputDtype": "f16",
      "weightDtype": "q4k",
      "variantMetadata": {
-      "colsPerWg": 32
+      "colsPerWg": 32,
+      "dispatchGeometry": "column-block"
      },
      "description": "Multi-column GEMV for large vocab (LM head) - F16 input/output",
      "reachability": {
@@ -825,7 +3204,33 @@
       "inlineConfigs": ["gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"],
       "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f16"
+      }
+     ]
     },
     "q4_fused_multicol_f16a_f32acc": {
      "wgsl": "fused_matmul_q4_multicol_f16a_f32acc.wgsl",
@@ -835,7 +3240,8 @@
      "outputDtype": "f16",
      "weightDtype": "q4k",
      "variantMetadata": {
-      "colsPerWg": 32
+      "colsPerWg": 32,
+      "dispatchGeometry": "column-block"
      },
      "description": "F16 IO + F32 accumulator twin of q4_fused_multicol_f16a. Closes the f16-accum decode-gemv gap on AMD RDNA3 where f32 accumulation outperforms f16 by ~60%.",
      "reachability": {
@@ -843,7 +3249,33 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f16"
+      }
+     ]
     },
     "q4_fused_metal_simd16": {
      "wgsl": "fused_matmul_q4_metal_simd16.wgsl",
@@ -853,7 +3285,8 @@
      "outputDtype": "f32",
      "weightDtype": "q4k",
      "variantMetadata": {
-      "colsPerWg": 16
+      "colsPerWg": 16,
+      "dispatchGeometry": "column-block"
      },
      "description": "Metal Q4_K GEMV with one 16-lane subgroup partition per output row.",
      "reachability": {
@@ -861,7 +3294,33 @@
       "inlineConfigs": ["runtime/profiles/qwen-3-5-2b-metal-throughput"],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "q4_fused_batched_f16": {
      "wgsl": "fused_matmul_q4_batched_f16.wgsl",
@@ -871,14 +3330,41 @@
      "outputDtype": "f16",
      "weightDtype": "q4k",
      "variantMetadata": {
-      "tileM": 4
+      "tileM": 4,
+      "dispatchGeometry": "column-row-tile"
      },
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f16"
+      }
+     ]
     },
     "q4_fused_batched_f16a": {
      "wgsl": "fused_matmul_q4_batched_f16a.wgsl",
@@ -888,14 +3374,41 @@
      "outputDtype": "f16",
      "weightDtype": "q4k",
      "variantMetadata": {
-      "tileM": 4
+      "tileM": 4,
+      "dispatchGeometry": "column-row-tile"
      },
      "reachability": {
       "status": "model-selectable",
       "inlineConfigs": [],
       "ruleChains": ["matmul.rules.json#q4kFusedVariant"],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f16"
+      }
+     ]
     },
     "q4_fused_batched_f16acc_f16a": {
      "wgsl": "fused_matmul_q4_batched_f16acc_f16a.wgsl",
@@ -906,7 +3419,8 @@
      "weightDtype": "q4k",
      "variantMetadata": {
       "tileM": 4,
-      "accumDtype": "f16"
+      "accumDtype": "f16",
+      "dispatchGeometry": "column-row-tile"
      },
      "description": "Batched Q4_K prefill matmul with f16 activation input, f16 accumulation, and f16 output for experimental all-f16 execution lanes.",
      "reachability": {
@@ -914,7 +3428,33 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C_f16"
+      }
+     ]
     },
     "q4_fused_prefill_tiled_f16": {
      "wgsl": "fused_matmul_q4_prefill_tiled_f16.wgsl",
@@ -925,7 +3465,8 @@
      "weightDtype": "q4k",
      "variantMetadata": {
       "tileM": 64,
-      "colsPerWg": 64
+      "colsPerWg": 64,
+      "dispatchGeometry": "row-column-tile"
      },
      "description": "Register-tiled Q4_K prefill matmul: 64x64 outputs per WG via 4x4 register tile per thread, amortizing Q4K dequant across 16x the outputs of q4_fused_batched_f16a.",
      "reachability": {
@@ -933,7 +3474,33 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "q4_fused_widetile_f16": {
      "wgsl": "fused_matmul_q4_widetile_f16.wgsl",
@@ -944,7 +3511,8 @@
      "weightDtype": "q4k",
      "variantMetadata": {
       "tileM": 4,
-      "colsPerWg": 256
+      "colsPerWg": 256,
+      "dispatchGeometry": "row-column-tile"
      },
      "description": "WideTile Q4_K prefill matmul (adapted from ORT MatMulNBitsWideTile, MIT licensed). Each thread owns 1 output column × TILE_M rows; register-tiled accumulation. F32 A, Q4_K B (llama.cpp 256-block), F16 C. ~128x fewer WGs than q4_fused_batched_f16 at Gemma-4 prefill shape.",
      "reachability": {
@@ -952,7 +3520,33 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "q4_fused_widetile_f16a": {
      "wgsl": "fused_matmul_q4_widetile_f16a.wgsl",
@@ -963,7 +3557,8 @@
      "weightDtype": "q4k",
      "variantMetadata": {
       "tileM": 4,
-      "colsPerWg": 256
+      "colsPerWg": 256,
+      "dispatchGeometry": "row-column-tile"
      },
      "description": "WideTile Q4_K prefill matmul with f16 activation input and f16 output for execution-v1 f16 activation lanes.",
      "reachability": {
@@ -974,7 +3569,33 @@
       ],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 4,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "q4_fused_widetile": {
      "wgsl": "fused_matmul_q4_widetile.wgsl",
@@ -985,7 +3606,8 @@
      "weightDtype": "q4k",
      "variantMetadata": {
       "tileM": 4,
-      "colsPerWg": 256
+      "colsPerWg": 256,
+      "dispatchGeometry": "row-column-tile"
      },
      "description": "F32-output twin of q4_fused_widetile_f16. Same WideTile design, f32 output for callers that need it (e.g. FFN gate/up when activationDtype=f32).",
      "reachability": {
@@ -1009,7 +3631,33 @@
       ],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ]
     },
     "q4_fused_rmsnorm_widetile": {
      "wgsl": "fused_rmsnorm_q4_widetile.wgsl",
@@ -1020,7 +3668,8 @@
      "weightDtype": "q4k",
      "variantMetadata": {
       "tileM": 4,
-      "colsPerWg": 256
+      "colsPerWg": 256,
+      "dispatchGeometry": "row-column-tile"
      },
      "description": "Fused RMSNorm + Q4_K WideTile matmul. Two-pass: pass 1 computes per-row sum-of-squares across all K; pass 2 reloads A, applies normed*weight + matmul in same tileA buffer. Saves 1 standalone rmsnorm dispatch per fusion point. Bind slot 4 = norm_weight (f32).",
      "reachability": {
@@ -1028,7 +3677,86 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "num_blocks_per_row",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "eps",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      },
+      {
+       "index": 4,
+       "name": "norm_weight",
+       "type": "read-only-storage",
+       "wgslName": "norm_weight"
+      }
+     ]
     },
     "q4_fused_widetile_residual": {
      "wgsl": "fused_matmul_q4_widetile_residual.wgsl",
@@ -1039,7 +3767,8 @@
      "weightDtype": "q4k",
      "variantMetadata": {
       "tileM": 4,
-      "colsPerWg": 256
+      "colsPerWg": 256,
+      "dispatchGeometry": "row-column-tile"
      },
      "description": "WideTile Q4_K matmul fused with residual add in one dispatch. Used at o_proj + attn_residual and ffn_down + ffn_residual call sites to cut 1 dispatch per layer per fusion point (~0.85 ms bubble each).",
      "reachability": {
@@ -1047,7 +3776,39 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
-     }
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B_q4k"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      },
+      {
+       "index": 4,
+       "name": "residual",
+       "type": "read-only-storage",
+       "wgslName": "residual"
+      }
+     ]
     },
     "f32": {
      "wgsl": "matmul_f32.wgsl",
@@ -1066,6 +3827,84 @@
       ],
       "ruleChains": ["matmul.rules.json#gemvVariant","matmul.rules.json#matmulKernel"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform",
+       "wgslName": "u"
+      },
+      {
+       "index": 1,
+       "name": "input",
+       "type": "read-only-storage",
+       "wgslName": "A"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage",
+       "wgslName": "B"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage",
+       "wgslName": "C"
+      }
+     ],
+     "variantMetadata": {
+      "dispatchGeometry": "matrix-workgroup",
+      "colsPerThread": 1
      }
     }
    }
@@ -1100,7 +3939,7 @@
     }
    ],
    "baseUniforms": {
-    "size": 36,
+    "size": 32,
     "fields": [
      {
       "name": "M",
@@ -1126,6 +3965,23 @@
       "name": "activation",
       "type": "u32",
       "offset": 16
+     },
+     {
+      "name": "clamp_max",
+      "type": "f32",
+      "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -1227,6 +4083,52 @@
       "inlineConfigs": [],
       "ruleChains": ["fused-ffn.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "intermediate_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "activation",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_blocks_per_row",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "clamp_max",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     },
     "q4k_metal_simd16": {
@@ -1240,6 +4142,52 @@
       "inlineConfigs": ["runtime/profiles/qwen-3-5-2b-metal-throughput"],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "intermediate_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "activation",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_blocks_per_row",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "clamp_max",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     },
     "q4k_f16a": {
@@ -1253,6 +4201,52 @@
       "inlineConfigs": ["gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16"],
       "ruleChains": ["fused-ffn.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "intermediate_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "activation",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_blocks_per_row",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "clamp_max",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     },
     "q4k_batched": {
@@ -1265,6 +4259,52 @@
       "inlineConfigs": [],
       "ruleChains": ["fused-ffn.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "intermediate_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "activation",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_blocks_per_row",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "clamp_max",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     },
     "q4k_batched_f16a": {
@@ -1278,6 +4318,52 @@
       "inlineConfigs": [],
       "ruleChains": ["fused-ffn.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "intermediate_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "activation",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_blocks_per_row",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "clamp_max",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     },
     "gate_up_gelu_gated_tiled_f16": {
@@ -1291,6 +4377,55 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "intermediate_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 16,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad3",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     },
     "q4k_normed": {
@@ -1341,6 +4476,74 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 48,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "intermediate_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "activation",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_blocks_per_row",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "clamp_max",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "rms_norm_weight_offset",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "norm_weight_is_f16",
+        "type": "u32",
+        "offset": 32
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 36,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 40,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 44,
+        "padding": true
+       }
+      ]
      }
     }
    }
@@ -1373,9 +4576,21 @@
       "offset": 0
      },
      {
-      "name": "block_size",
+      "name": "output_offset",
       "type": "u32",
       "offset": 4
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -1469,6 +4684,31 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "total_elements",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_groups",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "group_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "row_stride",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
      }
     },
     "mxfp4_expert": {
@@ -1481,6 +4721,54 @@
       "inlineConfigs": [],
       "ruleChains": ["dequant.rules.json#mxfp4ExpertVariant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "expert_idx",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "out_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_groups",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "total_output",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     },
     "mxfp4_expert_f16": {
@@ -1493,6 +4781,54 @@
       "inlineConfigs": [],
       "ruleChains": ["dequant.rules.json#mxfp4ExpertVariant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "expert_idx",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "out_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_groups",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "total_output",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     },
     "q6k_f16out": {
@@ -1506,6 +4842,32 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "num_blocks",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "output_offset",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "workgroups_x",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 12,
+        "padding": true
+       }
+      ]
      }
     },
     "f32_rowwise": {
@@ -1514,6 +4876,12 @@
      "workgroup": [256,1,1],
      "requires": [],
      "description": "Q4_K dequantization with row-wise layout (f32 output)",
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["dequant.rules.json#rowwiseVariant"],
+      "wgslOnDisk": true
+     },
      "uniformsOverride": {
       "size": 16,
       "fields": [
@@ -1538,12 +4906,6 @@
         "offset": 12
        }
       ]
-     },
-     "reachability": {
-      "status": "model-selectable",
-      "inlineConfigs": [],
-      "ruleChains": ["dequant.rules.json#rowwiseVariant"],
-      "wgslOnDisk": true
      }
     },
     "f16_rowwise": {
@@ -1552,6 +4914,12 @@
      "workgroup": [256,1,1],
      "requires": ["shader-f16"],
      "description": "Q4_K dequantization with row-wise matrix layout for non-256-aligned K",
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["dequant.rules.json#rowwiseVariant"],
+      "wgslOnDisk": true
+     },
      "uniformsOverride": {
       "size": 16,
       "fields": [
@@ -1576,12 +4944,6 @@
         "offset": 12
        }
       ]
-     },
-     "reachability": {
-      "status": "model-selectable",
-      "inlineConfigs": [],
-      "ruleChains": ["dequant.rules.json#rowwiseVariant"],
-      "wgslOnDisk": true
      }
     },
     "mxfp4_expert_fused_f16": {
@@ -1602,6 +4964,54 @@
       "inlineConfigs": [],
       "ruleChains": ["dequant.rules.json#mxfp4ExpertVariant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "expert_idx",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "out_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_groups",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "total_output",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     }
    }
@@ -1646,7 +5056,7 @@
     }
    ],
    "baseUniforms": {
-    "size": 64,
+    "size": 60,
     "fields": [
      {
       "name": "num_heads",
@@ -1664,12 +5074,12 @@
       "offset": 8
      },
      {
-      "name": "kv_len",
+      "name": "seq_len",
       "type": "u32",
       "offset": 12
      },
      {
-      "name": "seq_len",
+      "name": "query_len",
       "type": "u32",
       "offset": 16
      },
@@ -1721,7 +5131,8 @@
      {
       "name": "_pad",
       "type": "u32",
-      "offset": 56
+      "offset": 56,
+      "padding": true
      }
     ]
    },
@@ -1740,6 +5151,109 @@
       "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
       "ruleChains": ["attention.rules.json#phase"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 76,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "bidirectional_span_start",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "bidirectional_span_length",
+        "type": "u32",
+        "offset": 60
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 64,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 68,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 72,
+        "padding": true
+       }
+      ]
      }
     },
     "decode": {
@@ -1814,6 +5328,109 @@
       "inlineConfigs": [],
       "ruleChains": ["attention.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 76,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "bidirectional_span_start",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "bidirectional_span_length",
+        "type": "u32",
+        "offset": 60
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 64,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 68,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 72,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_streaming": {
@@ -1830,6 +5447,109 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 76,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "bidirectional_span_start",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "bidirectional_span_length",
+        "type": "u32",
+        "offset": 60
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 64,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 68,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 72,
+        "padding": true
+       }
+      ]
      }
     },
     "prefill_f16": {
@@ -1846,6 +5566,109 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 76,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "bidirectional_span_start",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "bidirectional_span_length",
+        "type": "u32",
+        "offset": 60
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 64,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 68,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 72,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_f16": {
@@ -1910,6 +5733,109 @@
       "inlineConfigs": ["gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 76,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "bidirectional_span_start",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "bidirectional_span_length",
+        "type": "u32",
+        "offset": 60
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 64,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 68,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 72,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_streaming_f16": {
@@ -1926,6 +5852,109 @@
       "inlineConfigs": ["gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 76,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "bidirectional_span_start",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "bidirectional_span_length",
+        "type": "u32",
+        "offset": 60
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 64,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 68,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 72,
+        "padding": true
+       }
+      ]
      }
     },
     "prefill_f16kv": {
@@ -1942,6 +5971,109 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 76,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "bidirectional_span_start",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "bidirectional_span_length",
+        "type": "u32",
+        "offset": 60
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 64,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 68,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 72,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_f16kv": {
@@ -2168,6 +6300,92 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 64,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "num_kv_splits",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 60,
+        "padding": true
+       }
+      ]
      }
     },
     "prefill_flash_reduce": {
@@ -2184,6 +6402,32 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "num_kv_splits",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 12,
+        "padding": true
+       }
+      ]
      }
     },
     "prefill_streaming_f16kv": {
@@ -2231,6 +6475,109 @@
       ],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 76,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "bidirectional_span_start",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "bidirectional_span_length",
+        "type": "u32",
+        "offset": 60
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 64,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 68,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 72,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_streaming_f16kv": {
@@ -2278,6 +6625,109 @@
       ],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 76,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "query_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "bidirectional_span_start",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "bidirectional_span_length",
+        "type": "u32",
+        "offset": 60
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 64,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 68,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 72,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_online_f16": {
@@ -2296,6 +6746,87 @@
       "inlineConfigs": ["gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"],
       "ruleChains": ["attention.rules.json#optimizedVariant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_online_f16kv": {
@@ -2350,6 +6881,87 @@
       ],
       "ruleChains": ["attention.rules.json#optimizedVariant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_online_head256_f16kv": {
@@ -2369,6 +6981,87 @@
       "inlineConfigs": ["gemma3/gemma-3-270m-it-f16-af32","gemma3/gemma-3-270m-it-q4k-ehf16-af32"],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_online_head256_f16kv_output_gate": {
@@ -2392,6 +7085,87 @@
       ],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_chunked_f16": {
@@ -2410,6 +7184,87 @@
       "inlineConfigs": [],
       "ruleChains": ["attention.rules.json#chunkedVariant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_chunked_f16kv": {
@@ -2428,6 +7283,87 @@
       "inlineConfigs": [],
       "ruleChains": ["attention.rules.json#chunkedVariant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_paged_f16": {
@@ -2445,6 +7381,87 @@
       "inlineConfigs": [],
       "ruleChains": ["attention.rules.json#pagedVariant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_paged_f16kv": {
@@ -2462,6 +7479,87 @@
       "inlineConfigs": [],
       "ruleChains": ["attention.rules.json#pagedVariant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_subgroup": {
@@ -2469,6 +7567,7 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": ["subgroups"],
+     "requiredWgslFeatures": ["subgroup_id"],
      "outputDtype": "f32",
      "variantMetadata": {
       "tier": "subgroup"
@@ -2479,6 +7578,87 @@
       "inlineConfigs": [],
       "ruleChains": ["attention.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 60,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "kv_len_source",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "kv_start",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "page_size",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "kv_layout",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       }
+      ]
      }
     }
    }
@@ -2528,7 +7708,7 @@
     }
    ],
    "baseUniforms": {
-    "size": 80,
+    "size": 68,
     "fields": [
      {
       "name": "num_heads",
@@ -2613,7 +7793,8 @@
      {
       "name": "_pad",
       "type": "u32",
-      "offset": 64
+      "offset": 64,
+      "padding": true
      }
     ]
    },
@@ -2704,7 +7885,7 @@
     }
    ],
    "baseUniforms": {
-    "size": 64,
+    "size": 60,
     "fields": [
      {
       "name": "num_heads",
@@ -2779,7 +7960,8 @@
      {
       "name": "_pad",
       "type": "u32",
-      "offset": 56
+      "offset": 56,
+      "padding": true
      }
     ]
    },
@@ -2833,6 +8015,93 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 64,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "cold_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "hot_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 32
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 36
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "hot_window",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "hot_start",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "packed_stride",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 56,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 60,
+        "padding": true
+       }
+      ]
      }
     },
     "decode_tiered_turboquant_prod_f16kv": {
@@ -2850,6 +8119,92 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 64,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "cold_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "hot_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 32
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 36
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "hot_window",
+        "type": "u32",
+        "offset": 44
+       },
+       {
+        "name": "hot_start",
+        "type": "u32",
+        "offset": 48
+       },
+       {
+        "name": "packed_stride_mse",
+        "type": "u32",
+        "offset": 52
+       },
+       {
+        "name": "packed_stride_residual",
+        "type": "u32",
+        "offset": 56
+       },
+       {
+        "name": "_pad",
+        "type": "u32",
+        "offset": 60,
+        "padding": true
+       }
+      ]
      }
     }
    }
@@ -2964,7 +8319,8 @@
      {
       "name": "_pad",
       "type": "u32",
-      "offset": 44
+      "offset": 44,
+      "padding": true
      }
     ]
    },
@@ -3001,6 +8357,71 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 48,
+      "fields": [
+       {
+        "name": "num_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "kv_len",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "seq_len",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "is_causal",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 28
+       },
+       {
+        "name": "attn_softcap",
+        "type": "f32",
+        "offset": 32
+       },
+       {
+        "name": "sliding_window",
+        "type": "u32",
+        "offset": 36
+       },
+       {
+        "name": "packed_stride_mse",
+        "type": "u32",
+        "offset": 40
+       },
+       {
+        "name": "packed_stride_residual",
+        "type": "u32",
+        "offset": 44
+       }
+      ]
      }
     }
    }
@@ -3045,7 +8466,7 @@
     }
    ],
    "baseUniforms": {
-    "size": 32,
+    "size": 24,
     "fields": [
      {
       "name": "num_kv_heads",
@@ -3075,7 +8496,8 @@
      {
       "name": "_pad",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      }
     ]
    },
@@ -3117,6 +8539,54 @@
       "inlineConfigs": [],
       "ruleChains": ["kv_quantize.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "packed_stride",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 20,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     },
     "turboquant_prod": {
@@ -3130,6 +8600,53 @@
       "inlineConfigs": [],
       "ruleChains": ["kv_quantize.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "num_kv_heads",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "head_dim",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "start_pos",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "packed_stride_mse",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "packed_stride_residual",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     }
    }
@@ -3330,24 +8847,21 @@
       "offset": 16
      },
      {
-      "name": "num_blocks_per_row",
-      "type": "u32",
-      "offset": 20
-     },
-     {
       "name": "logit_softcap",
       "type": "f32",
       "offset": 20
      },
      {
-      "name": "weightDecay",
-      "type": "f32",
-      "offset": 24
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -3404,7 +8918,7 @@
     "size": 32,
     "fields": [
      {
-      "name": "hidden_size",
+      "name": "size",
       "type": "u32",
       "offset": 0
      },
@@ -3436,12 +8950,14 @@
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -3616,7 +9132,7 @@
     "size": 32,
     "fields": [
      {
-      "name": "hidden_size",
+      "name": "size",
       "type": "u32",
       "offset": 0
      },
@@ -3643,17 +9159,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -3722,7 +9241,7 @@
     "size": 32,
     "fields": [
      {
-      "name": "hidden_size",
+      "name": "size",
       "type": "u32",
       "offset": 0
      },
@@ -3749,17 +9268,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -3848,17 +9370,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -3926,7 +9451,7 @@
     "size": 16,
     "fields": [
      {
-      "name": "hidden_size",
+      "name": "size",
       "type": "u32",
       "offset": 0
      },
@@ -3943,7 +9468,8 @@
      {
       "name": "_pad",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -4008,27 +9534,50 @@
     }
    ],
    "baseUniforms": {
-    "size": 16,
+    "size": 32,
     "fields": [
      {
-      "name": "M",
+      "name": "N",
       "type": "u32",
       "offset": 0
      },
      {
-      "name": "N",
+      "name": "K",
       "type": "u32",
       "offset": 4
      },
      {
-      "name": "K",
-      "type": "u32",
+      "name": "eps",
+      "type": "f32",
       "offset": 8
      },
      {
-      "name": "eps",
-      "type": "f32",
+      "name": "has_residual",
+      "type": "u32",
       "offset": 12
+     },
+     {
+      "name": "transpose_b",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 20,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -4144,6 +9693,34 @@
       "name": "K",
       "type": "u32",
       "offset": 8
+     },
+     {
+      "name": "alpha",
+      "type": "f32",
+      "offset": 12
+     },
+     {
+      "name": "transpose_b",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 20,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -4214,7 +9791,8 @@
      {
       "name": "_pad",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -4322,19 +9900,21 @@
       "offset": 16
      },
      {
-      "name": "output_mode",
-      "type": "u32",
+      "name": "temperature",
+      "type": "f32",
       "offset": 20
      },
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -4349,6 +9929,53 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "canvas_length",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "vocab_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "row_start",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "row_count",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "output_mode",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     },
     "logits_norm_stats": {
@@ -4461,7 +10088,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      },
      {
       "name": "temperature",
@@ -4476,12 +10104,14 @@
      {
       "name": "_pad1",
       "type": "f32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "f32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -4575,17 +10205,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 36
+      "offset": 36,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 40
+      "offset": 40,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 44
+      "offset": 44,
+      "padding": true
      }
     ]
    },
@@ -4898,6 +10531,17 @@
       "name": "rowsplit_dim",
       "type": "u32",
       "offset": 4
+     },
+     {
+      "name": "clamp_max",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "_pad1",
+      "type": "f32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -4985,6 +10629,18 @@
       "name": "rowsplit_dim",
       "type": "u32",
       "offset": 4
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -5061,7 +10717,7 @@
     "size": 16,
     "fields": [
      {
-      "name": "size",
+      "name": "count",
       "type": "u32",
       "offset": 0
      },
@@ -5069,6 +10725,18 @@
       "name": "scale",
       "type": "f32",
       "offset": 4
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -5148,7 +10816,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 4
+      "offset": 4,
+      "padding": true
      },
      {
       "name": "min",
@@ -5197,7 +10866,7 @@
     }
    ],
    "baseUniforms": {
-    "size": 32,
+    "size": 24,
     "fields": [
      {
       "name": "size",
@@ -5207,7 +10876,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 4
+      "offset": 4,
+      "padding": true
      },
      {
       "name": "scale",
@@ -5282,6 +10952,18 @@
       "name": "scale",
       "type": "f32",
       "offset": 4
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -5350,6 +11032,12 @@
       "name": "gradientScale",
       "type": "f32",
       "offset": 8
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -5415,7 +11103,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      },
      {
       "name": "stepSize",
@@ -5470,12 +11159,14 @@
      {
       "name": "_pad1",
       "type": "f32",
-      "offset": 56
+      "offset": 56,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "f32",
-      "offset": 60
+      "offset": 60,
+      "padding": true
      }
     ]
    },
@@ -5546,7 +11237,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      },
      {
       "name": "stepSize",
@@ -5601,12 +11293,14 @@
      {
       "name": "_pad1",
       "type": "f32",
-      "offset": 56
+      "offset": 56,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "f32",
-      "offset": 60
+      "offset": 60,
+      "padding": true
      }
     ]
    },
@@ -5679,7 +11373,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      },
      {
       "name": "symmetryWeight",
@@ -5704,22 +11399,26 @@
      {
       "name": "_pad1",
       "type": "f32",
-      "offset": 32
+      "offset": 32,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "f32",
-      "offset": 36
+      "offset": 36,
+      "padding": true
      },
      {
       "name": "_pad3",
       "type": "f32",
-      "offset": 40
+      "offset": 40,
+      "padding": true
      },
      {
       "name": "_pad4",
       "type": "f32",
-      "offset": 44
+      "offset": 44,
+      "padding": true
      }
     ]
    },
@@ -5777,7 +11476,7 @@
     }
    ],
    "baseUniforms": {
-    "size": 36,
+    "size": 32,
     "fields": [
      {
       "name": "num_tokens",
@@ -5805,24 +11504,22 @@
       "offset": 16
      },
      {
-      "name": "input_hidden_size",
-      "type": "u32",
-      "offset": 20
-     },
-     {
-      "name": "hidden_offset",
-      "type": "u32",
-      "offset": 24
-     },
-     {
       "name": "_pad0",
       "type": "u32",
-      "offset": 28
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 32
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -5840,6 +11537,58 @@
       "inlineConfigs": ["muse-glimmer/muse-glimmer-30b-text-bf16-af32"],
       "ruleChains": ["gather.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 36,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "vocab_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "transpose",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "index_offset",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "input_hidden_size",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "hidden_offset",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 32,
+        "padding": true
+       }
+      ]
      }
     },
     "default": {
@@ -5868,6 +11617,58 @@
       ],
       "ruleChains": ["gather.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 36,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "vocab_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "transpose",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "index_offset",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "input_hidden_size",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "hidden_offset",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 32,
+        "padding": true
+       }
+      ]
      }
     },
     "vec4": {
@@ -5920,6 +11721,58 @@
       ],
       "ruleChains": ["gather.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 36,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "vocab_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "transpose",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "index_offset",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "input_hidden_size",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "hidden_offset",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 32,
+        "padding": true
+       }
+      ]
      }
     },
     "f16_vec4": {
@@ -6020,6 +11873,58 @@
       "inlineConfigs": [],
       "ruleChains": ["gather.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 36,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "vocab_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "transpose",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "index_offset",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "input_hidden_size",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "hidden_offset",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 32,
+        "padding": true
+       }
+      ]
      }
     },
     "litert_int4_vec4_f32_out": {
@@ -6037,6 +11942,58 @@
       "inlineConfigs": [],
       "ruleChains": ["gather.rules.json#variant"],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 36,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "vocab_size",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "transpose",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "index_offset",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "input_hidden_size",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "hidden_offset",
+        "type": "u32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 32,
+        "padding": true
+       }
+      ]
      }
     }
    }
@@ -6136,12 +12093,14 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 40
+      "offset": 40,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 44
+      "offset": 44,
+      "padding": true
      }
     ]
    },
@@ -6297,12 +12256,14 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 56
+      "offset": 56,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 60
+      "offset": 60,
+      "padding": true
      }
     ]
    },
@@ -6376,6 +12337,17 @@
       "name": "scale",
       "type": "f32",
       "offset": 4
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -6508,14 +12480,24 @@
     "size": 16,
     "fields": [
      {
-      "name": "size",
+      "name": "num_tokens",
       "type": "u32",
       "offset": 0
      },
      {
-      "name": "k",
+      "name": "num_experts",
       "type": "u32",
       "offset": 4
+     },
+     {
+      "name": "top_k",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "normalize",
+      "type": "u32",
+      "offset": 12
      }
     ]
    },
@@ -6633,7 +12615,7 @@
     }
    ],
    "baseUniforms": {
-    "size": 32,
+    "size": 16,
     "fields": [
      {
       "name": "num_tokens",
@@ -6651,9 +12633,10 @@
       "offset": 8
      },
      {
-      "name": "num_experts",
+      "name": "_pad",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -6668,6 +12651,31 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "top_k",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
      }
     },
     "vec4": {
@@ -6680,6 +12688,31 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "top_k",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
      }
     },
     "dynamic": {
@@ -6911,6 +12944,31 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "hidden_size",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "top_k",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "num_experts",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
      }
     }
    }
@@ -6985,7 +13043,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -7063,7 +13122,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -7142,12 +13202,14 @@
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad3",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -7264,22 +13326,26 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 16
+      "offset": 16,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad3",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -7331,9 +13397,24 @@
     "size": 16,
     "fields": [
      {
-      "name": "size",
+      "name": "num_tokens",
       "type": "u32",
       "offset": 0
+     },
+     {
+      "name": "dim",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "bias_offset",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "clamp_max",
+      "type": "f32",
+      "offset": 12
      }
     ]
    },
@@ -7414,17 +13495,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -7485,6 +13569,24 @@
       "name": "size",
       "type": "u32",
       "offset": 0
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 4,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -7511,6 +13613,34 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "count",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 4,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 8,
+        "padding": true
+       },
+       {
+        "name": "_pad2",
+        "type": "u32",
+        "offset": 12,
+        "padding": true
+       }
+      ]
      }
     }
    }
@@ -7565,7 +13695,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -7648,7 +13779,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -7723,7 +13855,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -7793,17 +13926,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -8003,7 +14139,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -8056,22 +14193,22 @@
     "size": 16,
     "fields": [
      {
-      "name": "num_tokens",
+      "name": "numTokens",
       "type": "u32",
       "offset": 0
      },
      {
-      "name": "q_size",
+      "name": "qSize",
       "type": "u32",
       "offset": 4
      },
      {
-      "name": "k_size",
+      "name": "kSize",
       "type": "u32",
       "offset": 8
      },
      {
-      "name": "v_size",
+      "name": "vSize",
       "type": "u32",
       "offset": 12
      }
@@ -8208,7 +14345,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 44
+      "offset": 44,
+      "padding": true
      }
     ]
    },
@@ -8352,12 +14490,14 @@
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 56
+      "offset": 56,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 60
+      "offset": 60,
+      "padding": true
      }
     ]
    },
@@ -8506,7 +14646,8 @@
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 60
+      "offset": 60,
+      "padding": true
      }
     ]
    },
@@ -8570,7 +14711,8 @@
      {
       "name": "_pad",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -8622,38 +14764,50 @@
     }
    ],
    "baseUniforms": {
-    "vocab_size": {
-     "type": "u32",
-     "offset": 0
-    },
-    "history_count": {
-     "type": "u32",
-     "offset": 4
-    },
-    "penalty": {
-     "type": "f32",
-     "offset": 8
-    },
-    "batch_count": {
-     "type": "u32",
-     "offset": 12
-    },
-    "batch_offset": {
-     "type": "u32",
-     "offset": 16
-    },
-    "presence_penalty": {
-     "type": "f32",
-     "offset": 20
-    },
-    "repetition_penalty_window": {
-     "type": "u32",
-     "offset": 24
-    },
-    "_pad2": {
-     "type": "u32",
-     "offset": 28
-    }
+    "size": 32,
+    "fields": [
+     {
+      "name": "vocab_size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "history_count",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "penalty",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "batch_count",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "batch_offset",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "presence_penalty",
+      "type": "f32",
+      "offset": 20
+     },
+     {
+      "name": "repetition_penalty_window",
+      "type": "u32",
+      "offset": 24
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
    },
    "variants": {
     "default": {
@@ -8688,27 +14842,32 @@
     {
      "index": 0,
      "name": "uniforms",
-     "type": "uniform"
+     "type": "uniform",
+     "wgslName": "u"
     },
     {
      "index": 1,
      "name": "logits",
-     "type": "read-only-storage"
+     "type": "read-only-storage",
+     "wgslName": "logits"
     },
     {
      "index": 2,
      "name": "output",
-     "type": "storage"
+     "type": "storage",
+     "wgslName": "output"
     },
     {
      "index": 3,
      "name": "topk_indices",
-     "type": "storage"
+     "type": "storage",
+     "wgslName": "topk_indices"
     },
     {
      "index": 4,
      "name": "topk_logits",
-     "type": "storage"
+     "type": "storage",
+     "wgslName": "topk_logits"
     }
    ],
    "baseUniforms": {
@@ -8963,9 +15122,25 @@
     "size": 16,
     "fields": [
      {
-      "name": "size",
+      "name": "num_elements",
       "type": "u32",
       "offset": 0
+     },
+     {
+      "name": "input_offset",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "output_offset",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "_pad",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -9007,9 +15182,25 @@
     "size": 16,
     "fields": [
      {
-      "name": "size",
+      "name": "num_elements",
       "type": "u32",
       "offset": 0
+     },
+     {
+      "name": "input_offset",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "output_offset",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "_pad",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -9068,7 +15259,8 @@
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -9138,6 +15330,24 @@
       "name": "transpose_b",
       "type": "u32",
       "offset": 16
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 20,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -9179,6 +15389,53 @@
       "inlineConfigs": [],
       "ruleChains": [],
       "wgslOnDisk": true
+     },
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "alpha",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "transpose_b",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "num_blocks_per_row",
+        "type": "u32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
      }
     }
    }
@@ -9229,6 +15486,30 @@
       "name": "alpha",
       "type": "f32",
       "offset": 12
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 16,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 20,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad3",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -9277,17 +15558,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 4
+      "offset": 4,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 8
+      "offset": 8,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -9361,17 +15645,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -9425,17 +15712,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 4
+      "offset": 4,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 8
+      "offset": 8,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -9494,12 +15784,14 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 8
+      "offset": 8,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -9558,12 +15850,14 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 8
+      "offset": 8,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -9625,9 +15919,10 @@
       "offset": 8
      },
      {
-      "name": "_pad0",
+      "name": "_pad2",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -9696,7 +15991,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -9775,7 +16071,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -9844,7 +16141,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -9948,17 +16246,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -10020,7 +16321,7 @@
     "size": 16,
     "fields": [
      {
-      "name": "hidden_size",
+      "name": "size",
       "type": "u32",
       "offset": 0
      },
@@ -10037,7 +16338,8 @@
      {
       "name": "_pad",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -10111,22 +16413,26 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 16
+      "offset": 16,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad3",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -10185,12 +16491,14 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 8
+      "offset": 8,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -10294,12 +16602,14 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 40
+      "offset": 40,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 44
+      "offset": 44,
+      "padding": true
      }
     ]
    },
@@ -10412,17 +16722,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 36
+      "offset": 36,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 40
+      "offset": 40,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 44
+      "offset": 44,
+      "padding": true
      }
     ]
    },
@@ -10500,7 +16813,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -10580,17 +16894,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -10673,17 +16990,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -10781,17 +17101,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -10879,12 +17202,14 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -10982,7 +17307,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -11075,7 +17401,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -11158,7 +17485,8 @@
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -11240,14 +17568,15 @@
       "offset": 20
      },
      {
-      "name": "_pad0",
-      "type": "u32",
+      "name": "weight_decay",
+      "type": "f32",
       "offset": 24
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -11297,6 +17626,18 @@
       "name": "dim",
       "type": "u32",
       "offset": 4
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -11366,6 +17707,18 @@
       "name": "scale",
       "type": "u32",
       "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -11440,6 +17793,12 @@
       "name": "patch_channels",
       "type": "u32",
       "offset": 24
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -11514,6 +17873,24 @@
       "name": "eps",
       "type": "f32",
       "offset": 16
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 20,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -11620,7 +17997,7 @@
       "offset": 40
      },
      {
-      "name": "norm_mode",
+      "name": "_pad_u32_0",
       "type": "u32",
       "offset": 44
      },
@@ -12071,12 +18448,14 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 16
+      "offset": 16,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      }
     ]
    },
@@ -12164,17 +18543,20 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 20
+      "offset": 20,
+      "padding": true
      },
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 24
+      "offset": 24,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 28
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -12252,7 +18634,8 @@
      {
       "name": "_pad0",
       "type": "u32",
-      "offset": 16
+      "offset": 16,
+      "padding": true
      }
     ]
    },
@@ -12320,12 +18703,14 @@
      {
       "name": "_pad1",
       "type": "u32",
-      "offset": 8
+      "offset": 8,
+      "padding": true
      },
      {
       "name": "_pad2",
       "type": "u32",
-      "offset": 12
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -12434,6 +18819,18 @@
       "name": "pad",
       "type": "u32",
       "offset": 36
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 40,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 44,
+      "padding": true
      }
     ]
    },
@@ -12528,6 +18925,18 @@
       "name": "pad",
       "type": "u32",
       "offset": 36
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 40,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 44,
+      "padding": true
      }
     ]
    },
@@ -12737,6 +19146,31 @@
       "wgslOnDisk": true
      }
     }
+   },
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "layer",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "step",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "abs_threshold",
+      "type": "f32",
+      "offset": 12
+     }
+    ]
    }
   },
   "check_hot_vocab_stop": {
@@ -12781,6 +19215,54 @@
       "wgslOnDisk": true
      }
     }
+   },
+   "baseUniforms": {
+    "size": 32,
+    "fields": [
+     {
+      "name": "eosTokenId",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "maxTokens",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "currentPos",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "tokenIndex",
+      "type": "u32",
+      "offset": 12
+     },
+     {
+      "name": "hotTokenSentinel",
+      "type": "u32",
+      "offset": 16
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 20,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
+     }
+    ]
    }
   },
   "check_stop": {
@@ -12815,6 +19297,31 @@
       "wgslOnDisk": true
      }
     }
+   },
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "eosTokenId",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "maxTokens",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "currentPos",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "tokenIndex",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
    }
   },
   "gated_short_conv": {
@@ -12859,6 +19366,32 @@
       "wgslOnDisk": true
      }
     }
+   },
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "kernel_size",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "_pad",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
    }
   },
   "logit_merge": {
@@ -12922,6 +19455,31 @@
       "wgslOnDisk": true
      }
     }
+   },
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "vocab_size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "weight_a",
+      "type": "f32",
+      "offset": 4
+     },
+     {
+      "name": "weight_b",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "temperature",
+      "type": "f32",
+      "offset": 12
+     }
+    ]
    }
   },
   "moe_router_bias_add": {
@@ -12992,6 +19550,33 @@
       "wgslOnDisk": true
      }
     }
+   },
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_experts",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
    }
   },
   "rmsnorm_stats": {
@@ -13000,27 +19585,32 @@
     {
      "index": 0,
      "name": "uniforms",
-     "type": "uniform"
+     "type": "uniform",
+     "wgslName": "params"
     },
     {
      "index": 1,
      "name": "input",
-     "type": "read-only-storage"
+     "type": "read-only-storage",
+     "wgslName": "input"
     },
     {
      "index": 2,
      "name": "residual",
-     "type": "read-only-storage"
+     "type": "read-only-storage",
+     "wgslName": "residual"
     },
     {
      "index": 3,
      "name": "prenorm_sum",
-     "type": "storage"
+     "type": "storage",
+     "wgslName": "prenorm_sum"
     },
     {
      "index": 4,
      "name": "inv_rms",
-     "type": "storage"
+     "type": "storage",
+     "wgslName": "inv_rms"
     }
    ],
    "variants": {
@@ -13041,6 +19631,7 @@
      "entryPoint": "main",
      "workgroup": [256,1,1],
      "requires": ["subgroups"],
+     "requiredWgslFeatures": ["subgroup_id"],
      "reachability": {
       "status": "unused",
       "inlineConfigs": [],
@@ -13048,6 +19639,31 @@
       "wgslOnDisk": true
      }
     }
+   },
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "hidden_size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "num_tokens",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "eps",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "token_stride",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
    }
   },
   "embedding_pool": {
@@ -13106,6 +19722,18 @@
       "name": "last_index",
       "type": "u32",
       "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -13167,6 +19795,18 @@
       "name": "hidden_size",
       "type": "u32",
       "offset": 4
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
      }
     ]
    },
@@ -13241,6 +19881,18 @@
       "name": "softcap",
       "type": "f32",
       "offset": 20
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 24,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 28,
+      "padding": true
      }
     ]
    },
@@ -13438,6 +20090,18 @@
       "name": "mrope_section_w",
       "type": "u32",
       "offset": 52
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 56,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 60,
+      "padding": true
      }
     ]
    },
@@ -13495,7 +20159,8 @@
       "wgslOnDisk": true
      }
     }
-   }
+   },
+   "baseUniforms": null
   },
   "patch_context": {
    "description": "Declared numeric forecasting operator: patch_context",
@@ -13541,7 +20206,8 @@
       "wgslOnDisk": true
      }
     }
-   }
+   },
+   "baseUniforms": null
   },
   "append_embedding": {
    "description": "Declared numeric forecasting operator: append_embedding",
@@ -13577,7 +20243,8 @@
       "wgslOnDisk": true
      }
     }
-   }
+   },
+   "baseUniforms": null
   },
   "rmsnorm_serial": {
    "description": "Declared numeric forecasting operator: rmsnorm_serial",
@@ -13613,7 +20280,8 @@
       "wgslOnDisk": true
      }
     }
-   }
+   },
+   "baseUniforms": null
   },
   "attention_relative": {
    "description": "Declared numeric forecasting operator: attention_relative",
@@ -13664,7 +20332,8 @@
       "wgslOnDisk": true
      }
     }
-   }
+   },
+   "baseUniforms": null
   },
   "forecast_output": {
    "description": "Declared numeric forecasting operator: forecast_output",
@@ -13710,6 +20379,34 @@
       "wgslOnDisk": true
      }
     }
+   },
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "horizon",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "_pad0",
+      "type": "u32",
+      "offset": 4,
+      "padding": true
+     },
+     {
+      "name": "_pad1",
+      "type": "u32",
+      "offset": 8,
+      "padding": true
+     },
+     {
+      "name": "_pad2",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
    }
   },
   "runtime_probe": {
@@ -13740,6 +20437,57 @@
        "type": "storage"
       }
      ],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   },
+   "baseUniforms": null
+  },
+  "logit_suppress": {
+   "description": "Mask explicitly suppressed token IDs in f32 logits on the device.",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "wgslName": "u",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "token_ids",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "logits",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 8,
+    "fields": [
+     {
+      "name": "vocab_size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "token_count",
+      "type": "u32",
+      "offset": 4
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "logit_suppress.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
      "reachability": {
       "status": "unused",
       "inlineConfigs": [],

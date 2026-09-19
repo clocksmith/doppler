@@ -39,6 +39,7 @@ export interface ProgramBundleWgslModule {
     }>;
     workgroupSize: string[];
     requiresSubgroups: boolean;
+    requiredWgslFeatures?: string[];
   };
 }
 

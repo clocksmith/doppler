@@ -155,7 +155,7 @@
   },
   {
    "path": "kernels/rmsnorm.rules.json",
-   "digest": "sha256:fa5872e9d5bd9912775d45c678075d3e17221b0f8693366a3999c4322c503b2c"
+   "digest": "sha256:598cfe8c97bb3787ebf73572b5f918507739286437c0e426ff3e3bac3e7f5176"
   },
   {
    "path": "kernels/rope-qk.rules.json",
@@ -3539,6 +3539,18 @@
     {
      "match": {},
      "value": "default"
+    }
+   ],
+   "statsVariant": [
+    {
+     "match": {
+      "canUseSubgroups": true
+     },
+     "value": "subgroups"
+    },
+    {
+     "match": {},
+     "value": "workgroup"
     }
    ]
   },

@@ -1,0 +1,55 @@
+TAP version 13
+# browser-import-graph.test: dynamic targets and missing dependencies reject
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.215221
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1002.172604
+[node-tests] ok: tests/tooling/browser-import-graph.test.js
+TAP version 13
+# javascript-dependency-graph.test: comments, strings, dynamic imports, types and resources passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.04996
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 318.538572
+[node-tests] ok: tests/tooling/javascript-dependency-graph.test.js
+TAP version 13
+# runtime-closure-graph.test: forbidden dynamic imports, cycles, resources and unresolved imports passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.21979
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 337.213614
+[node-tests] ok: tests/tooling/runtime-closure-graph.test.js
+[node-tests] ok: 3 files

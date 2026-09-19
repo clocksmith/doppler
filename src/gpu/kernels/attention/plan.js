@@ -7,7 +7,7 @@ import { getKernelThresholds, padToQ4KBlock } from '../../../config/schema/index
 import { createUniformBufferWithView } from '../uniform-utils.js';
 import { getKernelConfig } from '../kernel-configs.js';
 import { getPipelineBindGroupLayout } from '../pipeline-cache.js';
-import { hasRequiredFeatures } from '../feature-check.js';
+import { hasRequiredFeatures, getKernelWgslRequirements } from '../feature-check.js';
 import { dispatchIndirect, recordDispatchIndirect } from '../dispatch.js';
 import { releaseUniformBuffer } from '../../uniform-cache.js';
 import { log, trace } from '../../../debug/index.js';
@@ -125,7 +125,10 @@ export function resolveAttentionVariant(
   const canUseChunked = isDecode && useF16KV && headDim >= minHeadDimForChunked && kvLen <= chunkedMaxKVLen;
   const decodeSubgroupMaxKVLen = chunkedMaxKVLen;
   const decodeSubgroupMaxHeadDim = getKernelThresholds().attention.subgroupMaxHeadDim;
-  const canUseDecodeSubgroup = isDecode && !useF16KV && !useF16Q && headDim <= decodeSubgroupMaxHeadDim && kvLen <= decodeSubgroupMaxKVLen;
+  const subgroupConfig = getKernelConfig('attention', 'decode_subgroup');
+  const canUseDecodeSubgroup = isDecode && !useF16KV && !useF16Q
+    && headDim <= decodeSubgroupMaxHeadDim && kvLen <= decodeSubgroupMaxKVLen
+    && hasRequiredFeatures(subgroupConfig.requires, caps, getKernelWgslRequirements(subgroupConfig));
   const canUseDecodeOptimized = isDecode
     && useF16KV
     && caps.hasF16
@@ -217,7 +220,7 @@ export function validateAttentionVariant(
     throw new Error(`Unknown attention kernel variant "${variant}".`);
   }
 
-  if (!hasRequiredFeatures(config.requires, caps)) {
+  if (!hasRequiredFeatures(config.requires, caps, getKernelWgslRequirements(config))) {
     throw new Error(`Attention kernel "${variant}" requires unsupported GPU features.`);
   }
 

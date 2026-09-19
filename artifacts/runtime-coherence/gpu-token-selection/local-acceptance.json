@@ -1,0 +1,11 @@
+{
+  "command": "TMPDIR=/dev/shm/doppler-runtime-coherence npm run check:green",
+  "exitCode": 0,
+  "passed": true,
+  "revision": "a99c799497881f2571c52d4f496d0ea1a9e19046",
+  "log": "gpu-selection-check-green-final.log",
+  "logSha256": "d214244ab6f1071c7237d61c224dbc3b1fc88e395f78bac5b7171e6205e8d2e0",
+  "unitFiles": 825,
+  "unitFilesPassed": 825,
+  "scope": "Full repository check:green chain, including unit tests and installed package contracts. Dedicated physical and remote browser checks have separate receipts."
+}

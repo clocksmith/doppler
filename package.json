@@ -158,7 +158,9 @@
     "bench:embeddings:compare": "node tools/compare-embeddings.js",
     "bench:rerank:compare": "node tools/compare-rerankers.js",
     "bench:rerank:compare:hf": "node tools/compare-rerankers-hf.js",
-    "kernels:sync": "npm run kernels:codegen:sync && npm run kernels:registry:sync && npm run kernels:digests:sync",
+    "kernels:uniforms:sync": "node tools/generate-kernel-uniforms.js",
+    "kernels:uniforms:check": "node tools/generate-kernel-uniforms.js --check",
+    "kernels:sync": "npm run kernels:uniforms:sync && npm run kernels:codegen:sync && npm run kernels:registry:sync && npm run kernels:digests:sync",
     "kernels:check": "node tools/check-kernels.js",
     "kernels:codegen:sync": "node tools/generate-wgsl.js",
     "kernels:codegen:check": "node tools/generate-wgsl.js --check",
@@ -395,7 +397,8 @@
     "jest": "^30.2.0",
     "onnxruntime-web": "^1.24.1",
     "playwright": "^1.58.2",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "wgsl_reflect": "1.6.0"
   },
   "overrides": {
     "adm-zip": "^0.6.0",

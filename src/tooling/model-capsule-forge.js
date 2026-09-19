@@ -436,6 +436,7 @@ export async function forgeModelCapsule(options) {
     modelIREvidence,
     initialExecutionIdentity,
     ...(options.adapterExecution !== undefined ? { adapterExecution: options.adapterExecution } : {}),
+    ...(options.tokenSelection !== undefined ? { tokenSelection: options.tokenSelection } : {}),
     ...(candidateEvaluation ? { candidateEvaluation: candidateEvaluation.json } : {}),
     release,
   }, signer);

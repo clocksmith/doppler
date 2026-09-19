@@ -388,6 +388,11 @@ export const PROGRAM_BUNDLE_JSON_SCHEMA: Readonly<{
                         requiresSubgroups: {
                             type: string;
                         };
+                        requiredWgslFeatures: {
+                            type: string;
+                            uniqueItems: boolean;
+                            items: { type: string; pattern: string };
+                        };
                     };
                 };
             };

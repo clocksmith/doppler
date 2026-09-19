@@ -1,0 +1,427 @@
+TAP version 13
+# capsule-adapter-execution: identity, declared kernels, corruption, base mismatch, composition, cleanup, cancellation passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.578409
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 141.01471
+[node-tests] ok: tests/runtime/capsule-adapter-execution.test.js
+TAP version 13
+# capsule-artifact-retention.test: passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.901959
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 111.79369
+[node-tests] ok: tests/runtime/capsule-artifact-retention.test.js
+TAP version 13
+# ✔ capsule-artifact-source.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.180794
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 240.044562
+[node-tests] ok: tests/runtime/capsule-artifact-source.test.js
+TAP version 13
+# capsule-embedding.test: passed (synthetic pipeline/device; actual session, adapter and evidence handle)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.933578
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 330.688793
+[node-tests] ok: tests/runtime/capsule-embedding.test.js
+TAP version 13
+# ✔ capsule-forecast.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.761394
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 111.046212
+[node-tests] ok: tests/runtime/capsule-forecast.test.js
+TAP version 13
+# [260.2ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [261.3ms][Tokenizer] Loaded HuggingFace 257 tokens (bpe), 1 special patterns, 0 merges
+# capsule-incremental-stream.test: Unicode, stop boundaries, reconstruction, integrity, backpressure, cancellation, limits and embedding deltas passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.660013
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 357.793207
+[node-tests] ok: tests/runtime/capsule-incremental-stream.test.js
+TAP version 13
+# ✔ capsule-load-options.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.055718
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 295.323905
+[node-tests] ok: tests/runtime/capsule-load-options.test.js
+TAP version 13
+# capsule-loading-http.test: ok (real HTTP and signed Capsule; synthetic GPU)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.577317
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 794.818884
+[node-tests] ok: tests/runtime/capsule-loading-http.test.js
+TAP version 13
+# capsule-loading.test: ok (signed metadata; synthetic device)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.705789
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 176.744395
+[node-tests] ok: tests/runtime/capsule-loading.test.js
+TAP version 13
+# capsule-operation-document-search.test.js passed (injected program; no physical inference claim)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.720587
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 146.680549
+[node-tests] ok: tests/runtime/capsule-operation-document-search.test.js
+TAP version 13
+# ✔ capsule-operation.test.js passed (injected program; contract evidence only)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.792503
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 199.049781
+[node-tests] ok: tests/runtime/capsule-operation.test.js
+TAP version 13
+# ✔ capsule-rerank.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.718273
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 206.874997
+[node-tests] ok: tests/runtime/capsule-rerank.test.js
+TAP version 13
+# ✔ capsule-runtime-entrypoint.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.008249
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113.999183
+[node-tests] ok: tests/runtime/capsule-runtime-entrypoint.test.js
+TAP version 13
+# capsule-session-execution: exclusion, cancellation, draining and cleanup failure passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.710117
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 120.081979
+[node-tests] ok: tests/runtime/capsule-session-execution.test.js
+TAP version 13
+# Subtest: closing a session waits for its pending readback and preserves another session on the same device
+ok 1 - closing a session waits for its pending readback and preserves another session on the same device
+  ---
+  duration_ms: 27.130312
+  type: 'test'
+  ...
+# Subtest: device loss during readback prevents token delivery and invalidates both sessions
+ok 2 - device loss during readback prevents token delivery and invalidates both sessions
+  ---
+  duration_ms: 8.567404
+  type: 'test'
+  ...
+# Subtest: device loss while a program is being constructed rejects opening and closes the late program
+ok 3 - device loss while a program is being constructed rejects opening and closes the late program
+  ---
+  duration_ms: 2.822255
+  type: 'test'
+  ...
+# Subtest: failed buffer replacement cannot resurrect the released slot
+ok 4 - failed buffer replacement cannot resurrect the released slot
+  ---
+  duration_ms: 0.311156
+  type: 'test'
+  ...
+# Subtest: a failed program-slot release still cleans other slots and closes the program
+ok 5 - a failed program-slot release still cleans other slots and closes the program
+  ---
+  duration_ms: 0.200498
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 6 - test module initialization completed
+  ---
+  duration_ms: 0.054994
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 173.906962
+[node-tests] ok: tests/runtime/capsule-shared-device.test.js
+TAP version 13
+# capsule-wgsl-language.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.697303
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 176.062431
+[node-tests] ok: tests/runtime/capsule-wgsl-language.test.js
+TAP version 13
+# Subtest: abort during compilation rejects without submitting or destroying borrowed buffers
+ok 1 - abort during compilation rejects without submitting or destroying borrowed buffers
+  ---
+  duration_ms: 6.686672
+  type: 'test'
+  ...
+# Subtest: abort during binding preparation cannot submit
+ok 2 - abort during binding preparation cannot submit
+  ---
+  duration_ms: 0.679841
+  type: 'test'
+  ...
+# Subtest: device loss during compilation cannot submit
+ok 3 - device loss during compilation cannot submit
+  ---
+  duration_ms: 0.402127
+  type: 'test'
+  ...
+# Subtest: post-submission cancellation reports submitted work rather than successful completion
+ok 4 - post-submission cancellation reports submitted work rather than successful completion
+  ---
+  duration_ms: 4.899206
+  type: 'test'
+  ...
+# Subtest: successful dispatch distinguishes submission from observed completion
+ok 5 - successful dispatch distinguishes submission from observed completion
+  ---
+  duration_ms: 0.747297
+  type: 'test'
+  ...
+# Subtest: failed compilation can be retried
+ok 6 - failed compilation can be retried
+  ---
+  duration_ms: 0.633423
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 7 - test module initialization completed
+  ---
+  duration_ms: 0.118063
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 107.922941
+[node-tests] ok: tests/runtime/command-executor-cancellation.test.js
+TAP version 13
+# ✔ initial-execution-identity.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.762566
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 199.371256
+[node-tests] ok: tests/runtime/initial-execution-identity.test.js
+TAP version 13
+# ✔ plan-bind-execute.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.612583
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 165.194304
+[node-tests] ok: tests/runtime/plan-bind-execute.test.js
+TAP version 13
+# ✔ target-selector.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.160776
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 132.98117
+[node-tests] ok: tests/runtime/target-selector.test.js
+[node-tests] ok: 20 files

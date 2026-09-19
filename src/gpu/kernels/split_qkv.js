@@ -40,7 +40,7 @@ async function _splitQKV(target, qkvTensor, options) {
     await unifiedKernelWrapper(
       'split_qkv', target, pipelineVariant,
       [qkvTensor, qBuffer, kBuffer, vBuffer],
-      { num_tokens: numTokens, q_size: qSize, k_size: kSize, v_size: vSize },
+      { numTokens, qSize, kSize, vSize },
       planSplitQKVDispatch(totalElements)
     );
 

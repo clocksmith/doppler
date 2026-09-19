@@ -1,0 +1,70 @@
+{
+  "README.md": {
+    "sha256": "41efc60b160d0a23900dd6c1a1eecc29f6db8435da9d874b7d95e50548abb8c3",
+    "bytes": 1991
+  },
+  "acceptance.json": {
+    "sha256": "18f7bba274beaff67057b8ea78156a6589c50fc4277fc6a4acb0d45073afaa64",
+    "bytes": 2319
+  },
+  "cache-cancellation-after.log": {
+    "sha256": "f9a6c21047dd13adb0cfd4497dc3edd24dd7596aede6389a564842f95317d0dc",
+    "bytes": 2237
+  },
+  "cache-cancellation-before.log": {
+    "sha256": "3cbd6557875b72327ea7e310390c5118d858840c8463708b77084e2d30e0acb8",
+    "bytes": 10020
+  },
+  "final-dispatch.log": {
+    "sha256": "2dd2cd0f9068b7c82c1247ab9e21b37f8909fea7208b2d71e29d5dbd82e5016c",
+    "bytes": 3001
+  },
+  "final-focused.log": {
+    "sha256": "4414af8e99d6831cfccfb8942fca33fc2d9a4f4e58b04c6146687daed7777ee2",
+    "bytes": 5992
+  },
+  "installed-package-accepted.log": {
+    "sha256": "0a8f11bb817dabbe71970686a3097dfbeb1008db01a5ca86ffd6969f68b255a5",
+    "bytes": 881
+  },
+  "installed-package-final.log": {
+    "sha256": "6215e299f8da1afbd92525da47f0eb69887bf08bd2812aec4d7930424180522f",
+    "bytes": 3259
+  },
+  "installed-package.log": {
+    "sha256": "4c107533a3f478c6a80a086732c96793788cfbe7025aba3071ed7e23a10c269f",
+    "bytes": 1400
+  },
+  "last-regressions.log": {
+    "sha256": "3342cb4c09f6cd5d489e00f91c8eaffc52fa4f35306cf05713437330f7d34406",
+    "bytes": 4355
+  },
+  "reploid-installed.json": {
+    "sha256": "7d63b4a2fba1b355d630265d611d88879d3b3f22e764d5c358fd78f46cce4e92",
+    "bytes": 4021
+  },
+  "standalone-commands.json": {
+    "sha256": "4f55f080d52221266e514e703a3825c1519f9a9ea18b066fb588037ae9ce0f68",
+    "bytes": 248141
+  },
+  "standalone-npm-pack.json": {
+    "sha256": "16dc1e341b1941d82b966eab09087f8a072929e9cfe2968678952c65a085b40d",
+    "bytes": 212611
+  },
+  "standalone-receipt.json": {
+    "sha256": "bd4631b18fb01e6fe57b748a1b83fd2a76bf771ca49ccc5241047f10a0a07261",
+    "bytes": 1819
+  },
+  "standalone-source-state.json": {
+    "sha256": "fac1515e33fe61487303efe0b4240384b014507b8de3dd36a8a445b881c3162a",
+    "bytes": 710
+  },
+  "unit-retry.log": {
+    "sha256": "3f111874028c1fb6a807e06dc96235819e068cacbca319ece42c4ae786c9bb0f",
+    "bytes": 8239
+  },
+  "unit.log": {
+    "sha256": "026c46d7dd94abdd8965085853edbd0be083c1b683133401d445c861063cb966",
+    "bytes": 401817
+  }
+}

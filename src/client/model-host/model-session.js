@@ -468,6 +468,16 @@ export function createModelHandle(pipeline, resolved) {
         assertSupportedGenerationOptions(options);
         return pipeline.prefillWithLogits(prompt, options);
       },
+      prefillWithToken(prompt, options, tokenContract) {
+        assertRaw('advanced.prefillWithToken');
+        assertSupportedGenerationOptions(options);
+        return pipeline.prefillWithToken(prompt, options, tokenContract);
+      },
+      decodeStepWithToken(currentIds, options, tokenContract) {
+        assertRaw('advanced.decodeStepWithToken');
+        assertSupportedGenerationOptions(options);
+        return pipeline.decodeStepWithToken(currentIds, options, tokenContract);
+      },
       prefillWithTokenLogits(prompt, tokenIds, options = {}) {
         assertRaw('advanced.prefillWithTokenLogits');
         assertSupportedGenerationOptions(options);

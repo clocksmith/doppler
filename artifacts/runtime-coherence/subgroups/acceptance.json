@@ -1,0 +1,116 @@
+{
+  "schema": "doppler.runtime-coherence-acceptance/v1",
+  "component": [
+    "doppler.gpu.kernels",
+    "doppler.client.runtime",
+    "doppler.config",
+    "doppler.converter",
+    "doppler.tooling"
+  ],
+  "intent": "preserved",
+  "baseRevision": "009a202f560d6b3c751cec4a6a6025b104a2e1e1",
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-e+2jp1LFD50Aef5p54Uua3Uh5UQZoqSibPt8pUGmDdBPL9C/NAstYQQg0uuFsbPoPwHydyK8hI6RiJU8HBiczQ==",
+    "sizeBytes": 2118763,
+    "source": "local-npm-pack",
+    "sha256": "068b2bbfb3b0568bb54eface1fee61809a703a3ec8cf4d49b6ecb8879900d490"
+  },
+  "fixtureGenerationRevision": "working tree identified in standalone-source-state.json and implementationSha256",
+  "reploidRevision": "19bc359ef1b7606fde3132ab2f37920f4891e6e5",
+  "implementationSha256": {
+    "src/.npmignore": "7969fc68b0571bd4115681bab16d51e392c209c29e48b11a5c3c1cd86dd50abd",
+    "src/client/model-host/index.js": "6a2c701f9cc261b5210cd1e99e336e56b742591eed233dec058201ae3db19be3",
+    "src/client/runtime/composition-root.js": "be4bee43b909a81f7cdbe58a5f179e4aa37dfce5c2d71c740443101674b880e0",
+    "src/config/kernel-registry-contract.d.ts": "200a222a080e9fae82964e42ad1c08564349bd11cd1214a04cc048318b36d4f8",
+    "src/config/kernel-registry-contract.js": "a89428fa660c26a772a2a1dc1d21d1ab5d028d272a461b3b39fcffeea17afe41",
+    "src/config/kernels/kernel-ref-digests.js": "294c4c4510969bdc23015571c9bdffeddfd21301ec09d72c01ba830678f26866",
+    "src/config/kernels/registry.json": "b75008f9f67073fe84a9bf25b51effd699e7b0029a08355f890e0fa50ec2dc52",
+    "src/config/schema/kernel-registry.schema.d.ts": "eef7188c55acbee300b5ea70298fa81b11d1aaa2bc4ae4933452104a72360c04",
+    "src/config/schema/kernel-registry.schema.js": "5082cdd6e700d8ef78adcb7e84726111fafd1c8d7a3c9fbb92f7cc3c0b4bce14",
+    "src/config/schema/program-bundle-json-schema.d.ts": "9b54d5ad18bf226f97a46eb51a715444a26ba0ac7df76a0832a015a3ec4120d5",
+    "src/config/schema/program-bundle-json-schema.js": "d774c9b85044cc7fac747b85a61033fdfc17e331c3abf97e81220d671ab5fc4f",
+    "src/config/schema/program-bundle.schema.d.ts": "49d9961bd1b9eee9b73e874d0b419a6aa7292c5771cf272cbfa30ca667224777",
+    "src/config/schema/program-bundle.schema.json": "8af48bdfb1a37d6daa77629e26bba212ede4ea552a6600e5956e49692f437096",
+    "src/config/target-plan.d.ts": "96c1041750e4fbe2fb48a728c99647a795a42d343b87812201b0c8899f89de42",
+    "src/config/target-plan.js": "04e56c6f222717065b5d74135647636b0c30734450e1bf4dd74f3c5cf32adc12",
+    "src/config/wgsl-language-contract.d.ts": "4a10e60fec0c5cd5353af87b8a0cc5f02472e94233a8e9bd8d29c282d6616874",
+    "src/config/wgsl-language-contract.js": "3d0c959cfe7d934fcb48763eab16cfa072cd802e7ca935f5936c62f628fd4007",
+    "src/converter/forge-stages.js": "02b352aa96a3ffdb8f963b0512340997355cc066447cd145e42c62ce6ac5bec8",
+    "src/gpu/device.d.ts": "03599b99659293560f4507378f6f704a5be7bb0a6a0b1a350059018649d85e8a",
+    "src/gpu/device.js": "94bf8aec8f7a46b1019de62fd22c00a230e161b01ba2780537c38d23ae6c45c3",
+    "src/gpu/kernels/attention/plan.js": "5691ec7969e5d1367d6bdb6380c26a95f7d1d772cfe6dc9db6fd026e96d6bde4",
+    "src/gpu/kernels/attention_decode_subgroup.wgsl": "3e96265a2f15e6841b3762191782c22411854e07081e4fd1b999ace1c0292397",
+    "src/gpu/kernels/feature-check.d.ts": "367016e0c0c74574b8868261048749a85452897e12eae938b2f21ef3523ac67d",
+    "src/gpu/kernels/feature-check.js": "ce4ba97642f0e1c0b213145dfe22f5b9b531c72a3f7f0cf9be5065902a88ab9e",
+    "src/gpu/kernels/pipeline-cache.js": "63b429b0f33849b14662b72267e67eda4e34f3daf12b3aa3d4b90e28c4a0987e",
+    "src/gpu/kernels/rmsnorm-stats.js": "82bbdcd6f92e706fb62dc770f1268ca6e39c7011eedcf53e3645947dc801c99f",
+    "src/gpu/kernels/rmsnorm_stats_subgroups.wgsl": "7e7211162904eca2a75db88fc8b195fd8e873c556c29bf19b9e7cb88aee674a7",
+    "src/gpu/kernels/shader-source-scope.d.ts": "661bf4706b2909688c65c9fbab7e761ddbf3ab08204a973dd97765c4b39286fa",
+    "src/gpu/kernels/shader-source-scope.js": "683ba9c805a1b77936dc12b5beebd001a19001e2ab90c781373ed2c6241d28fb",
+    "src/rules/generated/rule-bundle.json": "524af49ee3498d026370c33353f5ca097443fc50d16fb9dcb8be619950233947",
+    "src/rules/kernels/rmsnorm.rules.json": "598cfe8c97bb3787ebf73572b5f918507739286437c0e426ff3e3bac3e7f5176",
+    "src/tooling/program-bundle/wgsl-closure.js": "17d68144863f461328eb332abef0df2af167f509347ea5b7e73830fc14ecf7ad",
+    "tests/config/kernel-language-contract.test.js": "42a2b110ddc56b98ee80a3442eebe872f0c482ccd379e69703370dbc0ea513b2",
+    "tests/config/wgsl-language-contract.test.js": "d39c656072aa5158116392df2bd84e05308258563add288c815c54f963e6fafb",
+    "tests/converter/forge-stages.test.js": "53edbb51fb093c3bfb6d5d3ad6fadc7929c2b8e6e345eafabafd616c19b6532e",
+    "tests/gpu/kernel-language-selection.test.js": "22efec7b306942bf08f1a1436468233284952f21b93bc7d13c71af377727c4a9",
+    "tests/gpu/rmsnorm-stats-ownership.test.js": "99bdf9a72565de8de5f0c5e174364e5599a9fe98eeaa0dc0a0cfd2e242c87d7f",
+    "tests/helpers/capsule-v2-fixture.js": "1af8c1318b50ef5ba2841b4b69032f7ce7be964bfb0b230ec156a7d15e20ae51",
+    "tests/helpers/subgroup-portability.js": "4bd1e41f5d5cf269fdb2721796e4b223c286e76714a9398950f98c4df19c479b",
+    "tests/kernels/subgroup-portability-browser.test.js": "b1aad98ab81433b83fe63824375be59f8f5837a641b12c95957bbec27214629f",
+    "tests/kernels/subgroup-portability-physical.test.js": "1875f9b778f4aae9ecad9324f20dc6cb410b2e5f8fdb58df1eab75a1e88076f1",
+    "tests/runtime/capsule-wgsl-language.test.js": "5d8aab563b2a15d8a663dee358da50130a16f73fccd9c8d839518252b1b55fb5",
+    "tests/tooling/wgsl-language-export.test.js": "51cc37aa2af158d924e118e0d8db9009f682c37cb5263590aff849ae326a3fbc",
+    "tools/check-kernels.js": "a72c81465190e0c59a3e38f53735972313a6611538b91fb28cb17eb9a9013aad"
+  },
+  "physical": {
+    "node": {
+      "passed": true,
+      "rmsCases": 60,
+      "attentionCases": 54,
+      "log": "subgroup-physical-final.log"
+    },
+    "browser": {
+      "passed": true,
+      "browserVersion": "146.0.7680.177",
+      "rmsCases": 60,
+      "attentionCases": 54,
+      "log": "subgroup-browser-physical-retry.log"
+    },
+    "scope": "Two reviewed operators plus existing portable RMSNorm stats; AMD RDNA 3. Original and instrumented data-index permutations; no hardware subgroup-mapping control, performance comparison or full-model qualification."
+  },
+  "regressions": {
+    "originalShaderFailsPermutedGeometry": true,
+    "originalWrapperLeaksOnSecondAllocationFailure": true,
+    "ownershipCases": 24,
+    "focusedFiles": 16,
+    "additionalContractFiles": 4,
+    "installedStandalone": true,
+    "installedReploid": true
+  },
+  "retainedFailures": [
+    {
+      "log": "subgroup-baseline-final.log",
+      "reason": "Old shader reduction collision under permuted data-index geometry."
+    },
+    {
+      "log": "subgroup-ownership-baseline.log",
+      "reason": "Old stats wrapper leaves first allocation active when second allocation fails."
+    },
+    {
+      "log": "subgroup-browser-physical.log",
+      "reason": "Chrome could not obtain adapter before applying existing physical harness Dawn flags."
+    },
+    {
+      "log": "subgroup-checks.log",
+      "reason": "Generated Program Bundle schema edited before canonical schema source; repaired source and regenerated."
+    }
+  ],
+  "limitations": [
+    "Other subgroup-mapping inventory entries remain separate repair targets.",
+    "Existing typecheck:source check does not establish strict checking of JavaScript implementations.",
+    "No npm publication, production deployment, physical model requalification, or other-hardware claim."
+  ]
+}

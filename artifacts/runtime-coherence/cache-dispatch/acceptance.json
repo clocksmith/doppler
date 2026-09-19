@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.runtime-coherence-cache-dispatch/v1",
+  "baseRevision": "a5d7a7d2f7df72994794e473a071aa290f51d450",
+  "implementationFiles": {
+    "docs/architecture.md": "6c89705497caf8c40b1c8b92307d61aba350e7d3a12cd09ba886149ce28deba2",
+    "reports/capsule-runtime/runtime-closure.json": "8dd830054de1e1187857de8eaff6a2d051df47278a67d92e1f7d53ac84a282f8",
+    "src/client/runtime/command-executor.d.ts": "cf6bd12b0b90653016456eafa7b9b8ea8244f6b155521eeee8d227a33aee3b2f",
+    "src/client/runtime/command-executor.js": "ef02519d18ac42e3dfc831ee3d100e68feca7817883d47fa747be842982d1e36",
+    "src/gpu/kernels/pipeline-cache.js": "9afea14904fe50d8fb5336b19f1d5c7391f7d1b10e2605bec4dde71076453841",
+    "src/gpu/kernels/shader-cache.d.ts": "63aa9ce9c040c5957ce39c7d7b6a111ec187763669c29ddeb7f60c4f6f3f73ee",
+    "src/gpu/kernels/shader-cache.js": "5441797b4a03d6aa04bd18453a32cf9a2056e1487fc48fb869c394eb73e614ff",
+    "tests/gpu/pipeline-cache-hot-path.test.js": "fb333ebfae8d62632978d26678aab07d2e99927270fae0532b871631d8e73a21",
+    "tests/gpu/pipeline-cache-identity.test.js": "954b6655c9bf50f69495b4bb6dc3e97fe8b4add3d60db53f054f88eb70a5bbba",
+    "tests/runtime/capsule-forecast.test.js": "34c4123a3569dcd0ed2ae768315b4425132a1e98bc0a97e7c69928ec918894a2",
+    "tests/runtime/command-executor-cancellation.test.js": "ce07b1d240b28cef315db49e07ca5eedac9a89f2d898d9b65fd7493cf2ce6e1d",
+    "tests/tooling/shader-cache-scopes.test.js": "e9c68e2a43607ef4058012ee99b836a2062d8fb3562182fd3a8599c3251a3053",
+    "tools/check-shader-cache-scopes.js": "6e25dd465e131c1f6dc5c5dad821a08285b4721d52449bde3f4462327132b626"
+  },
+  "standaloneArchiveSha256": "4c08f8addd4b485e5f91b8f7f4be03cbbe5d015e3926e6373c844ce2230833c7",
+  "reploidRevision": "19bc359ef1b7606fde3132ab2f37920f4891e6e5",
+  "reploidArchiveSha256": "b92d6ac8a88740aebe82745d7b2e67afd9eb6c8f676efc9bed675f1cad35a250",
+  "physicalScope": "Direct WGSL dispatch and readback on local AMD RDNA3 using Node WebGPU; no model requalification.",
+  "unitScope": "804 files attempted; 794 passed initially. Nine temporary-directory quota failures and the content-identity inventory check were resolved through retained focused reruns. Final dispatch changes also passed installed-consumer and focused regressions.",
+  "publication": false,
+  "deployment": false
+}

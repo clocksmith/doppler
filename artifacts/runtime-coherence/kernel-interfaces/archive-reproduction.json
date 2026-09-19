@@ -1,0 +1,10 @@
+{
+  "schema": "doppler.archive-reproduction/v1",
+  "passed": true,
+  "sha256": "852b858a1d1f5d42a951f1bed747b8e45d63c3bfad95f4e8c2e186a6d1affbd2",
+  "original": "/dev/shm/doppler-runtime-coherence/uniform-candidate-final/doppler-gpu-0.6.2.tgz",
+  "reproduced": "/dev/shm/doppler-runtime-coherence/uniform-reproduced/doppler-gpu-0.6.2.tgz",
+  "node": "v22.22.1",
+  "npm": "9.2.0",
+  "method": "Two npm pack invocations; exact archive SHA-256 equality"
+}

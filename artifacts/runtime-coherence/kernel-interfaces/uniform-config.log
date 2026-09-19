@@ -1,0 +1,6 @@
+
+> doppler-gpu@0.6.2 config:single-source:check
+> node tools/check-config-single-source.js && node tools/sync-generation-contract.js --check
+
+[config:single-source:check] config contract single-source checks passed
+Generation declarations match the public definition.

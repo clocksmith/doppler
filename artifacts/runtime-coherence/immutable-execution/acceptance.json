@@ -1,0 +1,120 @@
+{
+  "schema": "doppler.immutable-execution-acceptance/v1",
+  "passed": true,
+  "runtimeCodeRevision": "0e97ee91d78500da8fc8fe1f94ebb63f7eb08ea9",
+  "archiveSha256": "f9758530d0fec3967dfa96dc64252dcdd874c0c73f120ee28f7767899f0ca2d6",
+  "installedStandalone": true,
+  "installedReploid": true,
+  "physicalStandaloneGeneration": true,
+  "physicalReploidGeneration": true,
+  "baselineCandidateBaselineOutputIdentical": true,
+  "runtimeTestFiles": 20,
+  "fullCiStatus": "passed",
+  "fullCiUrl": "https://github.com/clocksmith/doppler/actions/runs/34926891639",
+  "installedCiUrl": "https://github.com/clocksmith/doppler/actions/runs/34926891634",
+  "published": false,
+  "deployed": false,
+  "evidence": [
+    {
+      "path": "README.md",
+      "sha256": "b8a61e63608b06b0a803f638de37a5dd4e818b44c49068fb31c4052aa9fc22d6"
+    },
+    {
+      "path": "baseline-after.cpuprofile",
+      "sha256": "2ddeff4e1ba432ba17ca96cc290fa58be381f444eafcd675ca26010869e88711"
+    },
+    {
+      "path": "baseline-after.json",
+      "sha256": "f92923def15f4407a66de5defd1353289b0de336547ddf3fd8492c832cd17574"
+    },
+    {
+      "path": "capsule-profile-baseline-after.log",
+      "sha256": "9f8a86be5c73d453325993156164ed4e8c9e222756294d3cecb20efa52092e18"
+    },
+    {
+      "path": "capsule-profile-immutable.log",
+      "sha256": "d784ac4a087095b5c7d807412d1ab7d74612d3b4973a1b2f524c9087c12c85e0"
+    },
+    {
+      "path": "compare.js",
+      "sha256": "fe521cc4fbe0670c4507715f03d97e42475b7be038fe7f35efc773509e922ffc"
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "470b1fd05dec75060ffaedf8a01b95373a33910e56bd75df1212c809dd34fdae"
+    },
+    {
+      "path": "immutable-architecture.log",
+      "sha256": "25701afc733b8783e958e314ae6c4eccd0dc9d8d039eeeb7962fa31a13e8a3cd"
+    },
+    {
+      "path": "immutable-closure.log",
+      "sha256": "379a7cb8760756813078996a0f30d282ae1147e53a70962dcb999af257308849"
+    },
+    {
+      "path": "immutable-package.log",
+      "sha256": "4dcceef3531f32c54c266cf110a4abdb194ceeb56bfcc7d614cf8e8536d53fa7"
+    },
+    {
+      "path": "immutable-public.log",
+      "sha256": "9886cfc750a5c89dc77d818a0cbf7676e2cc6ff3d6f38ea856224d5dea5f20ab"
+    },
+    {
+      "path": "immutable-reploid-contract.log",
+      "sha256": "c9d658be1c03eceb15ebae40a349bf9a400d33a7cf6fc64d0942214374ab4abe"
+    },
+    {
+      "path": "immutable-runtime-final.log",
+      "sha256": "1aed361bef05181b66d3dcb66fb4137b91298daceafafd9b7986f452108dcaab"
+    },
+    {
+      "path": "immutable-style.log",
+      "sha256": "742a9f015ae42ec337ce3423d9dd3ff36d6a7a78ca8d569905ea99e9a126c9b7"
+    },
+    {
+      "path": "immutable-types.log",
+      "sha256": "cfa5ebfa923bc1270deb6a718fd183d883b521f0fe6b4bb6bc2949cb03c65aed"
+    },
+    {
+      "path": "package-delta.json",
+      "sha256": "87846ae93bec5ff137320bbc03077229e3021fdeb4f90c29bb5af0bfb7499fae"
+    },
+    {
+      "path": "package-receipt.json",
+      "sha256": "1e687248046c4b535d7a601f086f23cc6867c10b7c3031d680a9f3845cb8c2de"
+    },
+    {
+      "path": "physical-reploid-config.json",
+      "sha256": "39b16f40b49a94edef928c2a4a738e4d3b7a180dc2249f408322e2aa5815fff4"
+    },
+    {
+      "path": "physical-reploid.json",
+      "sha256": "7efc7becca3db84637893f3def4305a8b5bd37c36e463d61d75cf898e497bac2"
+    },
+    {
+      "path": "physical-reploid.log",
+      "sha256": "2e1982da25ba929ad76dd167a093a12d94a543a5977f3d54481b693b7dfa12ea"
+    },
+    {
+      "path": "receipt.json",
+      "sha256": "eb99ef3ba5b256d1b2eb03bd489095b90eab55112b9faba0451374a92e142541"
+    },
+    {
+      "path": "remote-ci.json",
+      "sha256": "bf6b05e92276d4421f76f050bbebecb0db8ab98cba935880e144a436e9329a32"
+    },
+    {
+      "path": "run-1.cpuprofile",
+      "sha256": "74a053b30844aac9894674aa42e9a8a00ab46417e19250a6d3726476461df48c"
+    },
+    {
+      "path": "source-files.json",
+      "sha256": "2c66313207e3479b6f7aefdfc642d56816bdcd07920ebf6a802b16ce5106843a"
+    },
+    {
+      "path": "summary.json",
+      "sha256": "cb5324817e7c2178e43853b2b36c66276aa8f3cf498591e95e78bcfab8e582c3"
+    }
+  ],
+  "fullCiUnitFiles": 818
+}

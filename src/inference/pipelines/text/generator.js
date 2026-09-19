@@ -1,6 +1,7 @@
 
 
 import { getDevice, setTrackSubmits } from '../../../gpu/device.js';
+import { prefillWithToken, decodeStepWithToken } from './generator/capsule-generation.js';
 import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData } from '../../../memory/buffer-pool.js';
 import { isGPUSamplingAvailable } from '../../../gpu/kernels/sample.js';
 import { markWarmed as markKernelCacheWarmed } from '../../../gpu/kernel-selection-cache.js';
@@ -545,6 +546,14 @@ export class PipelineGenerator {
 
   async prefillWithLogits(prompt, options = {}) {
     return prefillWithLogitsImpl.apply(this, arguments);
+  }
+
+  prefillWithToken(prompt, options, tokenContract) {
+    return prefillWithToken.call(this, prompt, options, tokenContract);
+  }
+
+  decodeStepWithToken(currentIds, options, tokenContract) {
+    return decodeStepWithToken.call(this, currentIds, options, tokenContract);
   }
 
   async prefillWithTokenLogits(prompt, tokenIds, options = {}) {

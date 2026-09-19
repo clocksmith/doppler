@@ -96,6 +96,8 @@ export declare class InferencePipeline extends PipelineState {
   resetToSeqLen(seqLen: number): void;
 
   decodeStepLogits(currentIds: number[], options?: GenerateOptions): Promise<LogitsStepResult>;
+  prefillWithToken(prompt: PromptInput, options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('./text/generator/token-selection.js').SelectedTokenResult>;
+  decodeStepWithToken(currentIds: number[], options: GenerateOptions, tokenContract: { padTokenId: number | null }): Promise<import('./text/generator/token-selection.js').SelectedTokenResult>;
 
   advanceWithToken(tokenId: number, options?: GenerateOptions): Promise<void>;
 

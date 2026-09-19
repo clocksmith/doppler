@@ -1,0 +1,203 @@
+{
+  "bundleRoot": "/dev/shm/doppler-runtime-coherence/gpu-selection-candidate-1",
+  "requiredVendor": "amd",
+  "channel": "chrome",
+  "temporaryDirectory": "/dev/shm/doppler-runtime-coherence",
+  "launchArgs": [
+    "--enable-unsafe-webgpu",
+    "--enable-webgpu-developer-features",
+    "--disable-dawn-features=disallow_unsafe_apis",
+    "--ignore-gpu-blocklist",
+    "--use-angle=vulkan",
+    "--enable-features=Vulkan",
+    "--disable-vulkan-surface",
+    "--enable-precise-memory-info"
+  ],
+  "schema": "doppler.installed-capsule-profile/v1",
+  "outputDir": "/dev/shm/doppler-runtime-coherence/gpu-selection-raw-2",
+  "timeoutMs": 900000,
+  "cpuSamplingIntervalUs": 100,
+  "runs": [
+    {
+      "label": "first-request",
+      "instrumented": false
+    },
+    {
+      "label": "observed-repeated-request",
+      "instrumented": true
+    },
+    {
+      "label": "unobserved-repeated-request",
+      "instrumented": false
+    }
+  ],
+  "model": {
+    "capsuleRoot": "/var/tmp/reploid-qwen4b-source-20260908/capsule-evidence-closed-development/distribution",
+    "capsuleFile": "capsule.json",
+    "descriptor": {
+      "schema": "doppler.capability-example/v1",
+      "openOptions": {
+        "trustedSigners": {
+          "reploid-local-document-development-2026-09": {
+            "crv": "Ed25519",
+            "x": "Do-kZ0thJNiifDklaYkfV1pse44FaBrdtBcDpKBMAdA",
+            "kty": "OKP"
+          }
+        },
+        "acceptedTargetPlanDigests": [
+          "sha256:60711a3c83b882d015343cc07f5a942825456acc93ad0d15dddf6877c8b9a5e6"
+        ]
+      },
+      "maxDurationMs": 300000,
+      "request": {
+        "schema": "doppler.capsule-operation-request/v2",
+        "operation": {
+          "name": "generate",
+          "version": 1
+        },
+        "input": {
+          "prompt": "Write a numbered list of forty practical ways to make a small JavaScript application reliable. Give each item a complete sentence with a concrete example. Begin with item 1 and continue through item 40."
+        },
+        "options": {
+          "maxTokens": 256,
+          "maxSeqLen": 4096,
+          "temperature": 0,
+          "topK": 1,
+          "topP": 1,
+          "repetitionPenalty": 1,
+          "repetitionPenaltyWindow": 0,
+          "presencePenalty": 0,
+          "useChatTemplate": true,
+          "seed": 0
+        },
+        "assignment": null,
+        "limits": {
+          "maxInputBytes": 100000,
+          "maxOutputBytes": 1000000
+        }
+      }
+    },
+    "expectedTokenIds": []
+  },
+  "baselineReceipt": "/dev/shm/doppler-runtime-coherence/gpu-selection-baseline/receipt.json",
+  "sourceRoot": "/var/tmp/doppler-capsule-gpu-selection-20260915/distribution",
+  "sourceFile": "candidate-source.json",
+  "runtimeConfig": {
+    "inference": {
+      "compute": {
+        "activationDtype": "f32"
+      },
+      "generation": {
+        "disableMultiTokenDecode": false
+      },
+      "session": {
+        "attentionDecodeOnline": null,
+        "compute": {
+          "defaults": {
+            "accumDtype": "f32",
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "outputDtype": "f32"
+          }
+        },
+        "decodeLoop": {
+          "batchSize": 4,
+          "disableCommandBatching": false,
+          "readbackInterval": 1,
+          "readbackMode": "sequential",
+          "ringStaging": 1,
+          "ringStop": 1,
+          "ringTokens": 1,
+          "stopCheckMode": "batch",
+          "submitLatencyThresholdMs": null
+        },
+        "fusedFfnQ4K": null,
+        "kvcache": {
+          "bdpaVocabSize": 2048,
+          "forceF32Softcap": false,
+          "gpuPagedFallbackMaxSeqLen": 4096,
+          "kvDtype": "f16",
+          "layout": "contiguous",
+          "maxSeqLen": 8192,
+          "pageSize": 256,
+          "quantization": {
+            "bitWidth": 4,
+            "mode": "none",
+            "prodMode": false
+          },
+          "tiering": {
+            "coldDtype": "f16",
+            "coldPageSize": 256,
+            "compression": {
+              "bitWidth": 4,
+              "blockSize": 1,
+              "mode": "none",
+              "prodMode": false
+            },
+            "gating": {
+              "minAluBwRatio": 0,
+              "mode": "auto"
+            },
+            "hotWindow": 1024,
+            "mode": "off"
+          },
+          "windowSize": 1024
+        },
+        "lmHeadArgmaxQ4K": null,
+        "perLayerInputs": {
+          "gpuUpload": {
+            "mode": "per_step_slices",
+            "stagingRows": 2
+          },
+          "hotCache": {
+            "maxBytes": 134217728,
+            "maxTokens": 1024,
+            "mode": "prepared_tokens",
+            "outputDtype": "f32"
+          },
+          "materialization": "auto",
+          "prefetch": {
+            "mode": "next_token",
+            "rowsAhead": 1
+          },
+          "rowCache": {
+            "decodedDtype": "f32",
+            "maxBytes": 134217728,
+            "maxRows": 256,
+            "mode": "lru"
+          }
+        },
+        "prefillChunkLayers": 4,
+        "prefillChunkSubmitMode": "sync",
+        "prefillTokenChunkSize": null,
+        "retainQ4KMaterialization": false,
+        "skipEmbeddingKVCacheWrites": false,
+        "speculation": {
+          "mode": "none",
+          "rollbackOnReject": true,
+          "threshold": null,
+          "tokens": 1,
+          "verify": "greedy"
+        },
+        "useFlashPrefillAttention": false,
+        "useFusedGateUpGelu": false,
+        "useFusedQKVSplitQKNorm": false,
+        "useFusedQKVSplitQKNormRoPE": false,
+        "useFusedRmsnormWideTile": false,
+        "useGreedyLmHeadArgmaxFusion": false,
+        "useLargeBatchF16F32FusedGateUp": false,
+        "useLinearAttentionABProjectionFusion": false,
+        "useLinearAttentionFusedDecodeCore": false,
+        "useLinearAttentionQKVZProjectionFusion": false,
+        "useOrtFlashPrefillAttention": false,
+        "usePostAttnNormFusedGateUp": false,
+        "usePostFfnNextInputRMSNormPairFusion": false,
+        "useSandwichRMSNormPairFusion": false,
+        "useTiledQ4KPrefill": false,
+        "useWideTileQ4KDecode": false,
+        "useWideTileQ4KPrefill": false,
+        "useWideTileResidualFusion": false
+      }
+    }
+  }
+}

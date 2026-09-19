@@ -1,0 +1,9 @@
+file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/src/tooling/program-bundle/wgsl-closure.js:217
+      throw new Error(
+            ^
+
+Error: program bundle export: kernel digest mismatch for sample.wgsl#sample_single_pass. execution declares sha256:f32f0058e3ac8ce40c010cfa208e6e5897bf3464fd94976ab97e6449ab7fea08, source has sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef.
+    at buildWgslClosure (file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/src/tooling/program-bundle/wgsl-closure.js:217:13)
+    at async file:///home/x/deco/worktrees/doppler-runtime-contract-coherence/tests/tooling/program-bundle-source-identity.test.js:16:18
+
+Node.js v22.22.1

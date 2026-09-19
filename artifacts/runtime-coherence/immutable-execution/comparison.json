@@ -1,0 +1,106 @@
+{
+  "schema": "doppler.immutable-metadata-comparison/v1",
+  "passed": true,
+  "baselineArchiveSha256": "852b858a1d1f5d42a951f1bed747b8e45d63c3bfad95f4e8c2e186a6d1affbd2",
+  "candidateArchiveSha256": "f9758530d0fec3967dfa96dc64252dcdd874c0c73f120ee28f7767899f0ca2d6",
+  "outputSha256": "e0c629f36956829a4cee92665c1661622f4fd4d6b996db8e021e7f17866affd8",
+  "cohorts": {
+    "before": [
+      {
+        "label": "first-request",
+        "instrumented": false,
+        "elapsedMs": 22774.800000190735,
+        "firstTokenMs": 12850.10000038147,
+        "decodeMedianMs": 90.69999980926514,
+        "decodeMeanMs": 92.98018867564652,
+        "tokenCount": 107
+      },
+      {
+        "label": "observed-repeated-request",
+        "instrumented": true,
+        "elapsedMs": 22704.800000190735,
+        "firstTokenMs": 12747.800000190735,
+        "decodeMedianMs": 90.90000009536743,
+        "decodeMeanMs": 93.28396226325125,
+        "tokenCount": 107
+      },
+      {
+        "label": "unobserved-repeated-request",
+        "instrumented": false,
+        "elapsedMs": 22439.300000190735,
+        "firstTokenMs": 12744.199999809265,
+        "decodeMedianMs": 89.10000014305115,
+        "decodeMeanMs": 90.81037735939026,
+        "tokenCount": 107
+      }
+    ],
+    "candidate": [
+      {
+        "label": "first-request",
+        "instrumented": false,
+        "elapsedMs": 21280.199999809265,
+        "firstTokenMs": 13223.5,
+        "decodeMedianMs": 74.84999990463257,
+        "decodeMeanMs": 75.81886792182922,
+        "tokenCount": 107
+      },
+      {
+        "label": "observed-repeated-request",
+        "instrumented": true,
+        "elapsedMs": 20714,
+        "firstTokenMs": 13135.300000190735,
+        "decodeMedianMs": 70.7000002861023,
+        "decodeMeanMs": 71.33207546989873,
+        "tokenCount": 107
+      },
+      {
+        "label": "unobserved-repeated-request",
+        "instrumented": false,
+        "elapsedMs": 21020.400000095367,
+        "firstTokenMs": 13129.800000190735,
+        "decodeMedianMs": 73.54999995231628,
+        "decodeMeanMs": 74.21603773674875,
+        "tokenCount": 107
+      }
+    ],
+    "after": [
+      {
+        "label": "first-request",
+        "instrumented": false,
+        "elapsedMs": 22918.700000286102,
+        "firstTokenMs": 13041.300000190735,
+        "decodeMedianMs": 90.45000004768372,
+        "decodeMeanMs": 92.5377358490566,
+        "tokenCount": 107
+      },
+      {
+        "label": "observed-repeated-request",
+        "instrumented": true,
+        "elapsedMs": 22584.89999961853,
+        "firstTokenMs": 12856.799999713898,
+        "decodeMedianMs": 90.04999995231628,
+        "decodeMeanMs": 91.12075471878052,
+        "tokenCount": 107
+      },
+      {
+        "label": "unobserved-repeated-request",
+        "instrumented": false,
+        "elapsedMs": 22528,
+        "firstTokenMs": 12856.699999809265,
+        "decodeMedianMs": 89.15000033378601,
+        "decodeMeanMs": 90.59433962264151,
+        "tokenCount": 107
+      }
+    ]
+  },
+  "baselineMedianRangeMs": [
+    89.10000014305115,
+    90.69999980926514
+  ],
+  "candidateMedianRangeMs": [
+    73.54999995231628,
+    74.84999990463257
+  ],
+  "consistentLocalReduction": true,
+  "scope": "Sequential baseline/candidate/baseline on one host, identical frozen requests and outputs. First and repeated uninstrumented requests are retained; instrumented runs are separate. This diagnoses removed CPU work, not a randomized throughput tournament or universal speedup claim."
+}

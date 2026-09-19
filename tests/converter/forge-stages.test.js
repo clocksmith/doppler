@@ -107,6 +107,15 @@ assert.equal(result.capsule.schema, 'doppler.capsule/v2');
 assert.equal(result.capsule.signature.authority, TEST_CAPSULE_AUTHORITY);
 assert.equal(result.capsule.modelIR.hiddenSize, 4);
 assert.equal(result.capsule.targetPlans.length, 1, 'Forge must not invent unsupported target variants');
+assert.equal(Object.hasOwn(result.capsule.targetPlans[0].capabilityPredicate, 'requiredWgslFeatures'), false);
+const languageBundle = structuredClone(programBundle);
+languageBundle.wgslModules[0].metadata.requiredWgslFeatures = ['subgroup_id'];
+const languageResult = await runForgePipeline({ manifest, manifestRaw, programBundle: languageBundle,
+  programBundleRaw: `${JSON.stringify(languageBundle)}\n`, programBundlePath: '/tmp/program-bundle.json',
+  repoRoot: '/tmp', outputPath: '/tmp/model.capsule.json', release,
+}, { authority: TEST_CAPSULE_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY });
+assert.deepEqual(languageResult.capsule.targetPlans[0].capabilityPredicate.requiredWgslFeatures, ['subgroup_id'],
+  'Forge preserves source language requirements in the signed execution recipe');
 const candidateEvaluation = createForgeEvaluationFixture(result.capsule.targetPlans[0].modelIRHash,
   result.capsule.targetPlans.map(hashTargetPlan));
 const evaluatedCapsule = await runForgePipeline({ manifest, manifestRaw, programBundle, programBundleRaw,
@@ -241,6 +250,29 @@ assert.notEqual(adapterResult.capsule.semanticRoot, v2Result.capsule.semanticRoo
 await assert.rejects(runForgePipeline({ ...adapterInput, adapterExecution: {
   ...adapterExecution, kernelModules: [...adapterExecution.kernelModules, 'undeclared'],
 } }, { authority: TEST_CAPSULE_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY }), /outside signed execution closure/);
+
+// Synthetic closures test signing and exact observation binding, not GPU execution.
+const samplingModules = ['sample.wgsl', 'rep_penalty.wgsl', 'logit_suppress.wgsl'].map(file => ({
+  ...v2ProgramBundle.wgslModules[0], id: `sampling-${file}`, file,
+}));
+const samplingBundle = { ...v2ProgramBundle, wgslModules: [...v2ProgramBundle.wgslModules, ...samplingModules] };
+const tokenSelection = { schema: 'doppler.capsule-token-selection/v1',
+  generationContract: 'doppler.generation-contract/v1', logitsDtype: 'f32',
+  kernelModules: samplingModules.map(module => module.id) };
+const samplingBaseIdentity = createInitialExecutionIdentityV2({ ...initialExecutionIdentity, dtypeLane: { ...initialExecutionIdentity.dtypeLane, output: 'f32' } });
+const samplingIdentity = createInitialExecutionIdentityV2({ ...samplingBaseIdentity,
+  kernelClosure: [...initialExecutionIdentity.kernelClosure,
+    ...samplingModules.map(module => ({ moduleId: module.id, file: module.file, entry: module.entry, digest: module.digest }))],
+});
+const samplingInput = { ...adapterInput, adapterExecution: undefined, tokenSelection,
+  programBundle: samplingBundle, programBundleRaw: JSON.stringify(samplingBundle), initialExecutionIdentity: samplingIdentity };
+const samplingSigner = { authority: TEST_CAPSULE_AUTHORITY, privateKeyJwk, publicKeyJwk: TEST_CAPSULE_PUBLIC_KEY };
+const samplingResult = await runForgePipeline(samplingInput, samplingSigner);
+assert.deepEqual(samplingResult.capsule.targetPlans[0].tokenSelection, tokenSelection);
+assert.notEqual(samplingResult.capsule.semanticRoot, v2Result.capsule.semanticRoot);
+await assert.rejects(runForgePipeline({ ...samplingInput, initialExecutionIdentity: samplingBaseIdentity }, samplingSigner), /kernel closure different/);
+await assert.rejects(runForgePipeline({ ...samplingInput, initialExecutionIdentity: null }, samplingSigner), /initial execution identity/);
+await assert.rejects(runForgePipeline({ ...samplingInput, tokenSelection: { ...tokenSelection, logitsDtype: 'f16' } }, samplingSigner), /requires f32 logits/);
 
 // Actual Forge stages with synthetic source/output evidence, not hardware proof.
 const rerankIR = structuredClone(modelIRV2);

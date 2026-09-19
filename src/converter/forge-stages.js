@@ -220,6 +220,7 @@ export async function stageInspect(input) {
       modelIREvidence: input.modelIREvidence ?? null,
       initialExecutionIdentity: input.initialExecutionIdentity ?? null,
       ...(input.adapterExecution !== undefined ? { adapterExecution: input.adapterExecution } : {}),
+      ...(input.tokenSelection !== undefined ? { tokenSelection: input.tokenSelection } : {}),
       release: requireObject(input.release, 'Capsule release contract'),
     },
   };
@@ -580,6 +581,7 @@ export function stageSpecialize(lowered) {
     );
   }
   const requiresSubgroups = wgslModules.some((module) => module.metadata?.requiresSubgroups === true);
+  const requiredWgslFeatures = [...new Set(wgslModules.flatMap(module => module.metadata?.requiredWgslFeatures ?? []))].sort();
   const bytesPerActivation = activationDtype === 'f16' ? 2 : 4;
   const bytesPerKv = kvDtype === 'f16' ? 2 : 4;
   const bufferSlots = [
@@ -630,6 +632,7 @@ export function stageSpecialize(lowered) {
     capabilityPredicate: {
       requiresF16: activationDtype === 'f16' || kvDtype === 'f16',
       requiresSubgroups,
+      ...(requiredWgslFeatures.length ? { requiredWgslFeatures } : {}),
       minBufferSize: Math.max(...manifest.shards.map((shard) => requirePositiveInteger(shard.size, 'manifest.shards[].size'))),
     },
     dtypes: { activation: activationDtype, kv: kvDtype, weight: weightDtype },
@@ -656,8 +659,10 @@ export function stageSpecialize(lowered) {
       ...targetPlanFields,
       initialExecutionIdentity: normalized.initialExecutionIdentity,
       ...(normalized.adapterExecution !== undefined ? { adapterExecution: normalized.adapterExecution } : {}),
+      ...(normalized.tokenSelection !== undefined ? { tokenSelection: normalized.tokenSelection } : {}),
     });
   } else {
+    if (normalized.tokenSelection !== undefined) throw new Error('GPU token selection requires an exact initial execution identity.');
     if (normalized.adapterExecution !== undefined) throw new Error('Adapter execution requires an exact initial execution identity.');
     targetPlan = createTargetPlan(targetPlanFields);
   }

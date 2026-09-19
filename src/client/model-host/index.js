@@ -388,6 +388,7 @@ export function createDopplerRuntimeService({
             surface: isNodeRuntime() ? 'node-webgpu' : 'browser-webgpu',
             hasF16: capabilities.hasF16 === true,
             hasSubgroups: capabilities.hasSubgroups === true,
+            wgslLanguageFeatures: capabilities.wgslLanguageFeatures,
             maxBufferSize: Number(capabilities.maxBufferSize || gpuDevice.limits?.maxBufferSize || 0),
             adapter: capabilities.adapterInfo ?? null,
           };

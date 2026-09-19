@@ -1,0 +1,6 @@
+{
+  "passed": false,
+  "exitCode": 130,
+  "physicalResult": null,
+  "reason": "Stopped before loading completed: qualification harness omitted the existing verified artifact range store and reread full shards for tensor slices. Repaired the harness to use the same artifact owner as Capsule execution."
+}

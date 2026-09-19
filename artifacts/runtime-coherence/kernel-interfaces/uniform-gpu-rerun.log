@@ -1,0 +1,38 @@
+TAP version 13
+# [135.1ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+# kernel-contract-regressions.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.154333
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 176.432536
+[node-tests] ok: tests/gpu/kernel-contract-regressions.test.js
+TAP version 13
+# matmul-dispatch-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.637622
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 165.611287
+[node-tests] ok: tests/gpu/matmul-dispatch-contract.test.js
+[node-tests] ok: 2 files

@@ -1,8 +1,9 @@
+import { getKernelConfig } from './kernel-configs.js';
+import { getKernelBindGroupLayout } from './kernel-bindings.js';
 import { KernelBase } from './kernel-base.js';
 import { GPU_LIMITS, TILE_SIZES } from './constants.js';
-import { createUniformBufferWithView } from './uniform-utils.js';
+import { createKernelUniformBuffer } from './uniform-utils.js';
 import {
-  getOrCreateBindGroupLayout,
   getCachedPipeline,
   createPipeline,
 } from './pipeline-cache.js';
@@ -34,136 +35,67 @@ export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, useLiteRT
     useLiteRTInt4Fused = false;
   }
   const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
-  const [wgX, wgY] = config.workgroupSize;
-  let workgroupsX = 1;
-  let workgroupsY = 1;
-  
-  let uniformWorkgroupsX;
-
-  // Get colsPerWg from variantMetadata (required for multicol GEMV)
-  const colsPerWg = config.variantMetadata?.colsPerWg;
-  // Get tileM from variantMetadata (required for batched variants)
-  const tileM = config.variantMetadata?.tileM;
-
-  if (useQ4KFused && variant.includes('multicol') && colsPerWg == null) {
-    throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.colsPerWg.`);
-  }
-  if (useQ4KFused && variant.includes('batched') && tileM == null) {
-    throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.tileM.`);
-  }
-  if ((useLiteRTInt4Fused || useW4A16Fused) && colsPerWg == null) {
-    throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.colsPerWg.`);
-  }
-  if (useW4A16Fused && variant.includes('batched') && tileM == null) {
-    throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.tileM.`);
-  }
-
-  if (useW4A16Fused && variant.includes('batched')) {
-    workgroupsX = Math.ceil(N / colsPerWg);
-    workgroupsY = Math.ceil(M / tileM);
-    if (workgroupsX > maxWorkgroups || workgroupsY > maxWorkgroups) {
-      throw new Error(
-        `Matmul kernel "${variant}" dispatch exceeds WebGPU workgroup limits: ` +
-        `workgroupsX=${workgroupsX}, workgroupsY=${workgroupsY}, max=${maxWorkgroups}.`
-      );
+  const geometry = config.variantMetadata?.dispatchGeometry;
+  const metadata = config.variantMetadata;
+  const required = (field) => {
+    const value = metadata?.[field];
+    if (!Number.isInteger(value) || value <= 0) {
+      throw new Error(`Matmul kernel "${variant}" is missing positive variantMetadata.${field}.`);
     }
-    return { workgroups: [workgroupsX, workgroupsY, 1], uniformWorkgroupsX };
+    return value;
+  };
+  let x, y, uniformWorkgroupsX;
+  switch (geometry) {
+    case 'column':
+      x = N; y = 1;
+      break;
+    case 'column-block':
+      x = Math.ceil(N / required('colsPerWg')); y = 1;
+      break;
+    case 'row-column-block':
+      x = Math.ceil(N / required('colsPerWg')); y = M;
+      uniformWorkgroupsX = 0; // Declared but unused by these shader entry points.
+      break;
+    case 'row-column-tile':
+      x = Math.ceil(N / required('colsPerWg')); y = Math.ceil(M / required('tileM'));
+      uniformWorkgroupsX = 0;
+      break;
+    case 'column-row-tile':
+      x = N; y = Math.ceil(M / required('tileM'));
+      break;
+    case 'linear-column-block': {
+      const count = Math.ceil(N / required('colsPerWg'));
+      x = Math.min(count, maxWorkgroups); y = Math.ceil(count / maxWorkgroups);
+      uniformWorkgroupsX = x;
+      break;
+    }
+    case 'matrix-tile':
+      x = Math.ceil(M / required('tileM')); y = Math.ceil(N / required('tileN'));
+      break;
+    case 'matrix-workgroup':
+      x = Math.ceil(M / config.workgroupSize[0]);
+      y = Math.ceil(N / (config.workgroupSize[1] * required('colsPerThread')));
+      break;
+    default:
+      throw new Error(`Matmul kernel "${variant}" has unsupported dispatchGeometry "${String(geometry)}".`);
   }
-
-  if (useLiteRTInt4Fused || useW4A16Fused) {
-    workgroupsX = Math.ceil(N / colsPerWg);
-    workgroupsY = M;
-    if (workgroupsX > maxWorkgroups || workgroupsY > maxWorkgroups) {
-      throw new Error(
-        `Matmul kernel "${variant}" dispatch exceeds WebGPU workgroup limits: ` +
-        `workgroupsX=${workgroupsX}, workgroupsY=${workgroupsY}, max=${maxWorkgroups}.`
-      );
-    }
-    return { workgroups: [workgroupsX, workgroupsY, 1], uniformWorkgroupsX };
+  if (![x, y].every((value) => Number.isInteger(value) && value > 0 && value <= maxWorkgroups)) {
+    throw new Error(`Matmul kernel "${variant}" dispatch exceeds WebGPU workgroup limits: ${x} x ${y}, max=${maxWorkgroups}.`);
   }
-
-  if (useGemv && variant.startsWith('gemv_subgroup')) {
-    if (colsPerWg == null) {
-      throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.colsPerWg.`);
-    }
-    const gemvWorkgroupsX = Math.ceil(N / colsPerWg);
-    if (gemvWorkgroupsX > maxWorkgroups) {
-      workgroupsX = maxWorkgroups;
-      workgroupsY = Math.ceil(gemvWorkgroupsX / maxWorkgroups);
-    } else {
-      workgroupsX = gemvWorkgroupsX;
-      workgroupsY = 1;
-    }
-    uniformWorkgroupsX = workgroupsX;
-    return { workgroups: [workgroupsX, workgroupsY, 1], uniformWorkgroupsX };
-  }
-
-  if (useQ4KFused) {
-    if (variant === 'q4_fused') {
-      workgroupsX = N;
-      workgroupsY = 1;
-    } else if (config.variantMetadata?.colsPerWg && config.variantMetadata?.tileM) {
-      workgroupsX = Math.ceil(N / colsPerWg);
-      workgroupsY = Math.ceil(M / tileM);
-    } else if (config.variantMetadata?.colsPerWg) {
-      // Multicol variants: q4_fused_multicol, q4_fused_multicol_f16
-      workgroupsX = Math.ceil(N / colsPerWg);
-      workgroupsY = 1;
-    } else if (config.variantMetadata?.tileM) {
-      // Batched variants: q4_fused_batched, q4_fused_batched_f16
-      workgroupsX = N;
-      workgroupsY = Math.ceil(M / tileM);
-    } else {
-      // Fallback for q4_fused (1 col per workgroup)
-      workgroupsX = N;
-      workgroupsY = 1;
-    }
-  } else if (useGemv) {
-    workgroupsX = N;
-    workgroupsY = 1;
-  } else if (variant === 'f16_tiled' || variant === 'f16w_f32a_tiled') {
-    if (config.variantMetadata?.tileM == null || config.variantMetadata?.tileN == null) {
-      throw new Error(`Matmul kernel "${variant}" is missing variantMetadata.tileM or tileN.`);
-    }
-    workgroupsX = Math.ceil(M / config.variantMetadata.tileM);
-    workgroupsY = Math.ceil(N / config.variantMetadata.tileN);
-  } else {
-    const colsPerThread = config.variantMetadata?.colsPerThread ?? 1;
-    workgroupsX = Math.ceil(M / wgX);
-    workgroupsY = Math.ceil(N / (wgY * colsPerThread));
-  }
-
-  return { workgroups: [workgroupsX, workgroupsY, 1], uniformWorkgroupsX };
+  return { workgroups: [x, y, 1], uniformWorkgroupsX };
 }
 
 
-export function createMatmulUniformBuffer(label, M, N, K, alpha, useQ4KFused, transposeB, uniformWorkgroupsX, recorder, device, extras = null) {
-  // Shader struct is 32 bytes: M, N, K, alpha, transpose_b/num_blocks, workgroups_x/_pad0, _pad1, _pad2
-  const uniformSize = 32;
-
-  return createUniformBufferWithView(
+export function createMatmulUniformBuffer(label, config, M, N, K, alpha, useQ4KFused, transposeB, uniformWorkgroupsX, recorder, device, extras = null) {
+  return createKernelUniformBuffer(
     label,
-    uniformSize,
-    (view) => {
-      view.setUint32(0, M, true);
-      view.setUint32(4, N, true);
-      view.setUint32(8, K, true);
-      view.setFloat32(12, alpha, true);
-      if (useQ4KFused) {
-        const numBlocksPerRow = Math.ceil(K / TILE_SIZES.Q4K_SUPER_BLOCK_SIZE);
-        view.setUint32(16, numBlocksPerRow, true);
-      } else {
-        view.setUint32(16, transposeB ? 1 : 0, true);
-      }
-      // workgroups_x (or _pad0 if not needed)
-      view.setUint32(20, uniformWorkgroupsX ?? 0, true);
-      // _pad1, _pad2 - leave as zeros (already zero-initialized)
-      // Extras for fused-rmsnorm WideTile variant: eps f32 overwrites slot 20
-      // (workgroupsX is unused for those variants). rmsNormOffset is a kernel
-      // override constant, not a uniform field.
-      if (extras && Number.isFinite(extras.eps)) {
-        view.setFloat32(20, extras.eps, true);
-      }
+    config,
+    {
+      M, N, K, alpha,
+      transpose_b: transposeB ? 1 : 0,
+      num_blocks_per_row: Math.ceil(K / TILE_SIZES.Q4K_SUPER_BLOCK_SIZE),
+      workgroups_x: uniformWorkgroupsX,
+      eps: extras?.eps,
     },
     recorder,
     device
@@ -172,28 +104,8 @@ export function createMatmulUniformBuffer(label, M, N, K, alpha, useQ4KFused, tr
 
 
 export function createMatmulBindGroupLayout() {
-  return getOrCreateBindGroupLayout('matmul_bind_group_layout', [
-    {
-      binding: 0,
-      visibility: GPUShaderStage.COMPUTE,
-      buffer: { type: 'uniform' },
-    },
-    {
-      binding: 1,
-      visibility: GPUShaderStage.COMPUTE,
-      buffer: { type: 'read-only-storage' },
-    },
-    {
-      binding: 2,
-      visibility: GPUShaderStage.COMPUTE,
-      buffer: { type: 'read-only-storage' },
-    },
-    {
-      binding: 3,
-      visibility: GPUShaderStage.COMPUTE,
-      buffer: { type: 'storage' },
-    },
-  ]);
+  // Compatibility helper for the registry's dense matrix binding layout.
+  return getKernelBindGroupLayout(getKernelConfig('matmul', 'f32'));
 }
 
 

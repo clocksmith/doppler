@@ -1,5 +1,4 @@
 import path from 'node:path';
-import { KERNEL_REF_CONTENT_DIGESTS } from '../../config/kernels/kernel-ref-digests.js';
 import { sha256Hex } from '../../formats/sha256.js';
 import {
   createPackageSourceFile,
@@ -8,6 +7,7 @@ import {
   tryReadTextFile,
 } from './materialize.js';
 import { normalizeDigest, requireString } from './validation.js';
+import { getRequiredWgslFeatures } from '../../config/wgsl-language-contract.js';
 
 function collectKernelRefsFromEntries(entries, section, refs) {
   if (!Array.isArray(entries)) return;
@@ -112,16 +112,8 @@ export function buildExecutionStepMetadata(execution, expandedSteps, modules) {
 }
 
 async function resolveKernelSourceDigest(kernel, entry, kernelSourceRoot) {
-  const registryDigest = KERNEL_REF_CONTENT_DIGESTS[`${kernel}#${entry}`];
   const kernelPath = path.resolve(kernelSourceRoot, kernel);
   const source = await tryReadTextFile(kernelPath);
-  if (registryDigest) {
-    return {
-      digest: `sha256:${registryDigest}`,
-      sourcePath: normalizeSlash(path.join(kernelSourceRoot, kernel)),
-      sourceText: source,
-    };
-  }
   if (source != null) {
     const normalizedSource = source.replace(/\r\n/g, '\n');
     return {
@@ -173,6 +165,7 @@ function parseWgslOverrides(sourceText) {
 }
 
 function buildWgslMetadata(sourceText, entry) {
+  const requiredWgslFeatures = getRequiredWgslFeatures(sourceText);
   const workgroupMatch = typeof sourceText === 'string'
     ? /@workgroup_size\(([^)]*)\)/.exec(sourceText)
     : null;
@@ -184,6 +177,7 @@ function buildWgslMetadata(sourceText, entry) {
       ? workgroupMatch[1].split(',').map((part) => part.trim()).filter(Boolean)
       : [],
     requiresSubgroups: typeof sourceText === 'string' && /\b(subgroup|enable\s+subgroups)\b/.test(sourceText),
+    ...(requiredWgslFeatures.length ? { requiredWgslFeatures } : {}),
   };
   return { ...metadata, sourceMetadataHash: hashStableJson(metadata) };
 }

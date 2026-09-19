@@ -36,6 +36,20 @@ Add a new GPU kernel implementation or a new variant of an existing kernel.
 7. Add correctness tests and browser harness coverage.
 8. Run kernel generation or checks if the kernel participates in generated variants.
 
+For a uniform change, update the registry contract and the shader declaration,
+then run `npm run kernels:uniforms:sync`. Do not add handwritten byte offsets or
+another parameter type definition in a wrapper. Use `createKernelUniformBuffer`
+with the selected kernel config and semantic parameter values. Its generated
+writer and declarations live in `src/gpu/kernels/generated/`; identical layouts
+share a writer. Use `createKernelBindingEntries` for named buffer roles and
+`getKernelBindGroupLayout` for an explicit layout. Keep meaningful scalar
+transformations, such as a disabled token's sentinel value, in the wrapper.
+
+The generator checks declarations rather than parsing shader function bodies.
+It does not certify the numerical algorithm. The physical uniform echo test
+compiles original struct declarations and checks distinctive request values;
+affected operator and installed-model tests cover the subsequent execution.
+
 ## Verification
 
 - `npm run kernels:check`

@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.package-toolchain-comparison/v1",
+  "passed": true,
+  "identicalFileBytes": true,
+  "identicalTarBytes": true,
+  "archives": [
+    {
+      "node": "22.22.1",
+      "npm": "9.2.0",
+      "bytes": 2130910,
+      "archiveSha256": "f9758530d0fec3967dfa96dc64252dcdd874c0c73f120ee28f7767899f0ca2d6",
+      "tarSha256": "8a208a38c438c4b4b14db0200fd48316589e6ff87e3d29c336fb974cc8afd787",
+      "fileCount": 1796
+    },
+    {
+      "node": "22.22.1",
+      "npm": "10.9.8",
+      "bytes": 2130910,
+      "archiveSha256": "f9758530d0fec3967dfa96dc64252dcdd874c0c73f120ee28f7767899f0ca2d6",
+      "tarSha256": "8a208a38c438c4b4b14db0200fd48316589e6ff87e3d29c336fb974cc8afd787",
+      "fileCount": 1796
+    },
+    {
+      "node": "22.23.2",
+      "npm": "10.9.8",
+      "bytes": 2134070,
+      "archiveSha256": "72f246466039d05f525031c90c04f122214957e4d3fff6a9889a177930017fcb",
+      "tarSha256": "8a208a38c438c4b4b14db0200fd48316589e6ff87e3d29c336fb974cc8afd787",
+      "fileCount": 1796
+    }
+  ],
+  "scope": "Locally reproduced CI Node/npm versions. File bytes are identical; gzip archive identities remain distinct."
+}
