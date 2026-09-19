@@ -8,7 +8,7 @@
   "result": {
     "presetId": "lfm2",
     "modelType": "transformer",
-    "outputDir": "/Users/xyz/deco/doppler/models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+    "outputDir": "/workspace/deco/doppler/models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32",
     "shardCount": 13,
     "tensorCount": 148,
     "totalSize": 851352832

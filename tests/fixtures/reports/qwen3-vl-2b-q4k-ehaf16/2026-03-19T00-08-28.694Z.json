@@ -8,7 +8,7 @@
   "result": {
     "presetId": "qwen3_vl",
     "modelType": "transformer",
-    "outputDir": "/Users/xyz/deco/doppler/models/local/qwen3-vl-2b-q4k-ehaf16",
+    "outputDir": "/workspace/deco/doppler/models/local/qwen3-vl-2b-q4k-ehaf16",
     "shardCount": 25,
     "tensorCount": 625,
     "totalSize": 1644659008
