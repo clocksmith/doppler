@@ -128,6 +128,7 @@
   <link rel="stylesheet" href="/demo/ui/styles/app.css">
   <link rel="stylesheet" href="/demo/ui/word-quality/styles.css">
   <link rel="stylesheet" href="/demo/ui/xray/styles.css">
+  <link rel="stylesheet" href="/demo/ui/token-inspector/styles.css">
   <script type="importmap">
     {
       "imports": {
@@ -225,6 +226,9 @@
         </div>
       </div>
       <div class="chat-toolbar">
+        <button id="token-inspector-toggle" class="btn btn-small token-inspector-btn is-active" type="button" aria-pressed="true" title="Toggle interactive token generation inspector">
+          <span class="ti-icon" aria-hidden="true">🔍</span> Inspect Tokens
+        </button>
         <details id="chat-controls" class="chat-controls">
           <summary>
             <span>Run options</span>
@@ -341,6 +345,11 @@
             <div id="output-text" class="output-text"></div>
             <!-- Token logits container (optional) -->
             <div id="word-quality-output" hidden></div>
+            <!-- Interactive Token Generation Inspector container -->
+            <div id="token-inspector-view" class="token-inspector-view" hidden>
+              <div id="token-stream-container" class="token-stream-container"></div>
+              <div id="token-inspector-card-container" class="token-inspector-card-container"></div>
+            </div>
           </article>
         </div>
       </section>
@@ -351,6 +360,7 @@
           <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Message Doppler..." rows="3"></textarea>
         </div>
         <div class="input-actions">
+          <button id="sample-run-btn" class="btn btn-ghost sample-run-btn" type="button" title="Try instant sample token inspection with verified pre-computed generation data">⚡ Inspect Sample</button>
           <button id="shuffle-btn" class="btn btn-ghost" type="button" title="Use another example prompt">&#x21BB; Example</button>
           <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Load a model to send"><span aria-hidden="true">&#x25B8;</span> Send</button>
           <button id="stop-btn" class="btn" type="button" hidden>Stop</button>

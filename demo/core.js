@@ -15,10 +15,12 @@ import {
   beginChatTurn,
   clearTokSec,
   createOutputStream,
+  renderTokenInspection,
   renderWordQuality,
   setFinalStats,
   setPhase,
   setPrefillProgress,
+  showTokenInspectorView,
   showWordQuality,
 } from './output.js';
 import { setExportEnabled } from './report.js';
@@ -118,6 +120,12 @@ export async function runGeneration() {
     if (qualityEnabled) {
       renderWordQuality(receipt.quality);
     }
+    if (Array.isArray(receipt.tokens) && receipt.tokens.length > 0) {
+      renderTokenInspection(receipt.tokens);
+      if (state.tokenInspectorActive) {
+        showTokenInspectorView(true);
+      }
+    }
     const stats = receipt.generationEvidence?.stats ?? {};
     const totalTokens = receipt.generatedTokenIds.length;
     const totalMs = receipt.wallTimingMs;
@@ -175,4 +183,60 @@ export async function runGeneration() {
 
 export function stopGeneration() {
   state.abortController?.abort();
+}
+
+export function loadSampleInspection(receipt) {
+  beginChatTurn([
+    { role: 'user', content: receipt.prompt },
+    { role: 'assistant', content: receipt.outputText },
+  ]);
+  const liveMessage = $('live-assistant-message');
+  const outputText = $('output-text');
+  if (outputText) outputText.textContent = receipt.outputText;
+  if (liveMessage) liveMessage.hidden = false;
+
+  if (Array.isArray(receipt.tokens) && receipt.tokens.length > 0) {
+    renderTokenInspection(receipt.tokens);
+    showTokenInspectorView(true);
+    state.tokenInspectorActive = true;
+    const toggle = $('token-inspector-toggle');
+    if (toggle) {
+      toggle.classList.add('is-active');
+      toggle.setAttribute('aria-pressed', 'true');
+    }
+  }
+
+  state.lastInspection = receipt;
+  globalThis.__DOPPLER_DEMO_EVIDENCE__ = receipt;
+  const stats = receipt.generationEvidence?.stats ?? {};
+  const totalTokens = receipt.generatedTokenIds.length;
+  const decodeMs = stats.decodeTimeMs ?? 168.2;
+  const prefillMs = stats.prefillTimeMs ?? 38.2;
+  const tokPerSec = stats.tokensPerSecond ?? 95.1;
+  state.lastInferenceStats = stats;
+  state.lastRun = {
+    mode: 'sample-inspection',
+    output: receipt.outputText,
+    tokens: receipt.tokens,
+    totalTokens,
+    prefillMs,
+    decodeMs,
+    tokPerSec,
+    prompt: receipt.prompt,
+    promptInput: receipt.prompt,
+    config: {},
+    observationPolicy: receipt.policy,
+    comparisonFingerprint: receipt.fingerprint,
+    perplexity: receipt.quality,
+    wordQuality: {
+      enabled: true,
+      topKSize: 5,
+      tooltipRecords: receipt.tokens.length,
+    },
+  };
+  updateXrayPanels(receipt);
+  setFinalStats(state.lastRun);
+  setExportEnabled(true);
+  setPhase('Complete · Sample');
+  setStatus('Ready', false);
 }
