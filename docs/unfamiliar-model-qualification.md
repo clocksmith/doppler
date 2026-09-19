@@ -40,3 +40,20 @@ adapting the reusable configuration, authoring the full reference and recovery
 policy, diagnosing the GELU difference, and repairing activation binding. Acquisition,
 source capture, conversion, full comparison, and recovery ran as commands. This is
 not yet unattended new-family automation, hardware diversity, or external adoption.
+
+## ESM-2 35M source frequency preservation
+
+Expanded full-output comparisons on the retained 35M source exposed another
+source-preservation defect after erf GELU was restored. The checkpoint's saved
+rotary frequencies differ from theta-regenerated values. First-layer readbacks
+match embeddings and projections, then diverge at rotary encoding. A source
+counterfactual using regenerated frequencies matches the observed difference.
+
+The converter now validates and retains the declared source frequency vectors.
+The manifest and ModelIR bind them; GPU table construction consumes them, runtime
+overrides fail, and cache identity includes the values. Full frozen sequence
+outputs pass with the original tolerance. See the
+[correction evidence](../reports/sequence-source-frequencies/20260908/evidence.json)
+and [migration contract](conversion-runtime-contract.md#retained-rotary-frequencies).
+Signed Capsule, installed-package recovery, and peer qualification remain separate
+evidence. This local correction does not revise earlier signed artifacts.

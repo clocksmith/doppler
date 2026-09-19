@@ -111,7 +111,7 @@
         "kind": "ignore",
         "match": "^esm\\.encoder\\.layer\\.\\d+\\.attention\\.self\\.rotary_embeddings\\.inv_freq$",
         "expectedMatches": 12,
-        "reason": "RoPE frequencies are deterministically generated from the manifest theta and head dimension."
+        "reason": "Source frequency values are validated across layers and retained in inference.rope.ropeInverseFrequencies."
       },
       {
         "kind": "rename",
@@ -229,7 +229,7 @@
     },
     "normalization": {
       "type": "layernorm",
-      "rmsNormEps": 1e-05,
+      "rmsNormEps": 0.00001,
       "rmsNormWeightOffset": false,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
@@ -390,7 +390,7 @@
       "rope_precompute": {
         "kernel": "rope_precompute.wgsl",
         "entry": "main",
-        "digest": "sha256:0ccd038aa7e69bf064d599e86f93100735cc32fba20a942cb1deed5da5a692e8"
+        "digest": "sha256:414ccac32bd1a6f694b4ac9ba88fd8c4f6bfec4688126107ddc12ab110c145aa"
       },
       "gather_vec4": {
         "kernel": "gather_vec4.wgsl",
@@ -625,5 +625,9 @@
   },
   "largeWeights": {
     "gpuResidentOverrides": null
+  },
+  "sourceRotaryFrequencies": {
+    "match": "^esm\\.encoder\\.layer\\.\\d+\\.attention\\.self\\.rotary_embeddings\\.inv_freq$",
+    "expectedMatches": 12
   }
 }

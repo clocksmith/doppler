@@ -4,10 +4,8 @@ import {
 } from '../ops.js';
 import { createTensor } from '../../../../gpu/tensor.js';
 import {
-  getWeightDtype,
   isGpuBufferInstance,
   isWeightBuffer,
-  resolveWeightBufferMaterialization,
 } from '../../../../gpu/weight-buffer.js';
 import { getDevice, getKernelCapabilities } from '../../../../gpu/device.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
@@ -37,7 +35,7 @@ import {
 } from '../../../../config/kernel-path-loader.js';
 import { resolveLayerIntermediateSize } from '../config.js';
 import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
-import { canFuseSplitPrefillF16GateUpPath, hasQ4KMaterialization, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';
+import { canFuseSplitPrefillF16GateUpPath, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';
 
 export const ACTIVATION_FN_MAP = {
   gelu: doGeLU,
@@ -89,7 +87,7 @@ export async function coerceTensorDtype(tensor, targetDtype, recorder, options =
 }
 
 export function requireFusedWeightDtype(dtype, label) {
-  if (dtype !== 'bf16' && dtype !== 'f16' && dtype !== 'f32' && dtype !== 'q4k') {
+  if (dtype !== 'bf16' && dtype !== 'f16' && dtype !== 'f32' && dtype !== 'q4k' && dtype !== 'w4a16') {
     throw new Error(`[FFN] ${label} dtype metadata is required for fused gate/up planning.`);
   }
   return dtype;

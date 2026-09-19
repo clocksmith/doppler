@@ -17,7 +17,8 @@ async function computeRoPEFreqsForTheta(
   maxSeqLen,
   ropeScale,
   ropeScalingType,
-  ropeScaling
+  ropeScaling,
+  inverseFrequencies
 ) {
   return runRoPEPrecompute({
     theta,
@@ -27,6 +28,7 @@ async function computeRoPEFreqsForTheta(
     ropeScale,
     scalingType: ropeScalingType,
     scaling: ropeScaling,
+    inverseFrequencies,
   });
 }
 
@@ -72,6 +74,7 @@ function buildRoPECacheKey(config) {
     localHeadDim: config.localHeadDim ?? null,
     rotaryDim: config.rotaryDim ?? null,
     ropeLocalRotaryDim: config.ropeLocalRotaryDim ?? null,
+    ropeInverseFrequencies: config.ropeInverseFrequencies ?? null,
     ropeFrequencyBaseDim: config.ropeFrequencyBaseDim ?? null,
     ropeLocalFrequencyBaseDim: config.ropeLocalFrequencyBaseDim ?? null,
     maxSeqLen: config.maxSeqLen,
@@ -140,6 +143,7 @@ export async function initRoPEFrequencies(config, useGPU) {
     localHeadDim,
     rotaryDim,
     ropeLocalRotaryDim,
+    ropeInverseFrequencies,
     ropeFrequencyBaseDim,
     ropeLocalFrequencyBaseDim,
     maxSeqLen,
@@ -229,7 +233,8 @@ export async function initRoPEFrequencies(config, useGPU) {
     maxSeqLen,
     ropeScale,
     ropeScalingType,
-    ropeScaling
+    ropeScaling,
+    ropeInverseFrequencies
   );
 
   // Compute local (sliding_attention) frequencies if different from global.
@@ -254,7 +259,8 @@ export async function initRoPEFrequencies(config, useGPU) {
       maxSeqLen,
       resolvedLocalScale,
       resolvedLocalScalingType,
-      resolvedLocalScaling
+      resolvedLocalScaling,
+      null
     );
     log.debug(
       'Pipeline',
@@ -302,3 +308,34 @@ export function isGPURoPEBuffers(buffers) {
   if (typeof GPUBuffer === 'undefined') return false;
   return !!buffers?.cos && isGpuBufferInstance(buffers.cos);
 }
+
+export async function _initRoPE() {
+    const config = (this.modelConfig);
+    const maxSeqLen = config.maxSeqLen;
+    const ropeBuffers = await initRoPEFrequencies({
+      headDim: config.globalHeadDim ?? config.headDim,
+      localHeadDim: config.headDim,
+      rotaryDim: config.ropeRotaryDim,
+      ropeLocalRotaryDim: config.ropeLocalRotaryDim,
+      ropeInverseFrequencies: config.ropeInverseFrequencies,
+      ropeFrequencyBaseDim: config.ropeFrequencyBaseDim,
+      ropeLocalFrequencyBaseDim: config.ropeLocalFrequencyBaseDim,
+      maxSeqLen,
+      ropeTheta: config.ropeTheta,
+      ropeLocalTheta: config.ropeLocalTheta,
+      mropeInterleaved: config.mropeInterleaved,
+      mropeSection: config.mropeSection,
+      partialRotaryFactor: config.partialRotaryFactor,
+      ropeLocalPartialRotaryFactor: config.ropeLocalPartialRotaryFactor,
+      ropeScale: config.ropeScale,
+      ropeLocalScale: config.ropeLocalScale,
+      ropeScalingType: config.ropeScalingType,
+      ropeLocalScalingType: config.ropeLocalScalingType,
+      ropeScaling: config.ropeScaling,
+      ropeLocalScaling: config.ropeLocalScaling,
+    }, this.useGPU);
+    this.ropeFreqsCos = ropeBuffers.cos;
+    this.ropeFreqsSin = ropeBuffers.sin;
+    this.ropeLocalCos = ropeBuffers.localCos ?? null;
+    this.ropeLocalSin = ropeBuffers.localSin ?? null;
+  }

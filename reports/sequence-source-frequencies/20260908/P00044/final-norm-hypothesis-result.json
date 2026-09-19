@@ -1,0 +1,7 @@
+{
+  "hypothesisDisproved": true,
+  "preFinalNormMaxAbsoluteError": 0.028411865234375,
+  "preFinalNormValuesOver001": 26817,
+  "finalNormWeightChannel46": 0.347412109375,
+  "conclusion": "Divergence already exists before final normalization. Capture each layer boundary to locate the first growth."
+}

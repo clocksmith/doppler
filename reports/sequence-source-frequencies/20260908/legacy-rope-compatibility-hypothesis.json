@@ -1,0 +1,5 @@
+{
+  "hypothesis": "The unconditional new specialization constant may reject an older signed RoPE shader even when the model uses theta-generated frequencies.",
+  "diagnostic": "Run the exact pre-change shader in a scoped physical GPU precompute with inverseFrequencies null. No model, shader or tolerance substitution.",
+  "falsifier": "The exact old shader executes and its full table matches the frozen formula tolerance."
+}

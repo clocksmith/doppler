@@ -6,3 +6,4 @@ export declare const getDtypeBytes: any;
 export declare const mapWithConcurrency: any;
 export declare const normalizeWorkerTransformResult: any;
 export declare const resolveRowChunkTransformPlan: any;
+export declare const sortTensorsByDeterministicLocality: <T>(tensors: T[]) => T[];

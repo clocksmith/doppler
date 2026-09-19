@@ -28,9 +28,6 @@ export declare class CommandRecorder {
   readonly label: string;
 
   /**
-   * @param device - GPU device (auto-detected if not provided)
-   * @param label - Label for debugging
-   * @param options - Recorder options (profiling, etc.)
    */
   constructor(device?: GPUDevice | null, label?: string, options?: RecorderOptions);
 
@@ -43,10 +40,6 @@ export declare class CommandRecorder {
    * Create a temporary buffer that will be destroyed after submit.
    * Use for uniform buffers and other per-operation temporaries.
    *
-   * @param size - Buffer size in bytes
-   * @param usage - Buffer usage flags
-   * @param label - Buffer label for debugging
-   * @returns GPUBuffer
    */
   createTempBuffer(size: number, usage: GPUBufferUsageFlags, label?: string): GPUBuffer;
 
@@ -72,9 +65,6 @@ export declare class CommandRecorder {
    * Create a uniform buffer, write data, and track for cleanup.
    * Uses content-addressed caching for identical uniform data.
    *
-   * @param data - Data to write
-   * @param label - Buffer label
-   * @returns GPUBuffer
    */
   createUniformBuffer(data: ArrayBuffer | ArrayBufferView, label?: string): GPUBuffer;
 
@@ -82,8 +72,6 @@ export declare class CommandRecorder {
    * Begin a compute pass on the encoder.
    * When profiling is enabled, injects timestampWrites to measure GPU execution time.
    *
-   * @param label - Pass label for debugging (used as key in profile results)
-   * @returns GPUComputePassEncoder
    */
   beginComputePass(label?: string): GPUComputePassEncoder;
 
@@ -116,7 +104,6 @@ export declare class CommandRecorder {
 
   /**
    * Get the raw encoder for advanced use cases.
-   * @returns GPUCommandEncoder
    */
   getEncoder(): GPUCommandEncoder;
 
@@ -124,7 +111,6 @@ export declare class CommandRecorder {
    * Track a buffer for cleanup after submit.
    * Pooled buffers are released back to the pool; non-pooled buffers are destroyed.
    *
-   * @param buffer - Buffer to clean up after submit
    */
   trackTemporaryBuffer(buffer: GPUBuffer): void;
 
@@ -133,6 +119,9 @@ export declare class CommandRecorder {
    * recorder-owned cleanup makes the captured data unavailable.
    */
   enqueueCompletionTask(task: () => Promise<void> | void): void;
+
+  /** Submit the recorded prefix and continue recording without readback or cleanup. */
+  submitPartial(): void;
 
   /**
    * Submit all recorded commands and clean up temporary buffers.
@@ -150,13 +139,11 @@ export declare class CommandRecorder {
    * Submit and wait for GPU to complete (useful for debugging/profiling).
    * Also flushes the uniform cache's pending destruction queue to clean up
    * any evicted buffers that were referenced by this command buffer.
-   * @returns Promise that resolves when GPU work is done
    */
   submitAndWait(): Promise<void>;
 
   /**
    * Get statistics about recorded operations.
-   * @returns Statistics object
    */
   getStats(): {
     opCount: number;
@@ -171,18 +158,18 @@ export declare class CommandRecorder {
     tempBufferCount: number;
     pooledBufferCount: number;
     submitted: boolean;
+    submissionCount: number;
   };
 
   /**
-   * Get the submit completion latency in milliseconds (null if not resolved yet).
+   * Final submit to completion in milliseconds (null until resolved).
    */
   getSubmitLatencyMs(): number | null;
 
   /**
-   * Abort recording without submitting (cleanup only).
-   * Use if an error occurs during recording.
+   * Abort the unsubmitted suffix. Cleanup waits for any submitted prefix.
    */
-  abort(): void;
+  abort(): Promise<void> | null;
 
   /**
    * Resolve profiling timestamps and return per-kernel timings.
@@ -191,7 +178,6 @@ export declare class CommandRecorder {
    * Returns a map of kernel label to execution time in milliseconds.
    * Labels with multiple invocations are aggregated (e.g., 'matmul' across all layers).
    *
-   * @returns Promise resolving to timing map, or null if profiling not enabled
    */
   resolveProfileTimings(): Promise<ProfileTimings | null>;
 
@@ -199,17 +185,12 @@ export declare class CommandRecorder {
    * Get a formatted profiling report.
    * Must be called after resolveProfileTimings().
    *
-   * @param timings - Timings from resolveProfileTimings()
-   * @returns Formatted string report
    */
   static formatProfileReport(timings: ProfileTimings): string;
 }
 
 /**
  * Create a new CommandRecorder.
- * @param label - Label for debugging
- * @param options - Recorder options
- * @returns CommandRecorder instance
  */
 export function createCommandRecorder(
   label?: string,
@@ -221,8 +202,6 @@ export function createCommandRecorder(
  * Create a profiling-enabled CommandRecorder.
  * Falls back to non-profiling if timestamp-query not available.
  *
- * @param label - Label for debugging
- * @returns CommandRecorder with profiling enabled
  */
 export function createProfilingRecorder(
   label?: string,
