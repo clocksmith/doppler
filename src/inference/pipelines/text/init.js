@@ -17,7 +17,7 @@ import { selectRuleValue as selectKernelRuleValue } from '../../../gpu/kernels/r
 import { Tokenizer } from '../../tokenizer.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
-import { getDopplerLoader } from '../../../loader/doppler-loader.js';
+import { createDopplerLoader } from '../../../loader/doppler-loader.js';
 import { log } from '../../../debug/index.js';
 import { getRuntimeConfig } from '../../../config/runtime.js';
 import { PAGED_LAYOUT_SEQ_LEN_THRESHOLD } from '../../../config/schema/index.js';
@@ -669,7 +669,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
     throw new Error('runtime.loading.shardCache.verifyHashes is required.');
   }
 
-  const dopplerLoader = options.loader ?? getDopplerLoader(loadingConfig);
+  const dopplerLoader = options.loader ?? createDopplerLoader(loadingConfig);
   const keepF32Weights = options.keepF32Weights === true;
   dopplerLoader.setQ4KConfig(
     resolveWeightLoadingConfig(

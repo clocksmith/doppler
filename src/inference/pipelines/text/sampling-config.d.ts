@@ -6,7 +6,9 @@ export interface ResolvedSamplingConfig extends RuntimeSamplingOptions {
   suppressSpecialLikeTokens: boolean;
 }
 
-export type SamplingCallOptions = Partial<ResolvedSamplingConfig>;
+export type SamplingCallOptions = Partial<Omit<ResolvedSamplingConfig, 'suppressTokenIds'>> & {
+  suppressTokenIds?: readonly number[];
+};
 
 export function resolveSamplingConfig(
   opts: SamplingCallOptions | null | undefined,

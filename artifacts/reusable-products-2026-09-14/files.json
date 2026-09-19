@@ -1,0 +1,190 @@
+{
+  "README.md": {
+    "sha256": "f36a33eaed4cbe0ac89a5e2494246e52b4ad84c67ab61baaf422eeece88c9bc5",
+    "sizeBytes": 9413
+  },
+  "acceptance.json": {
+    "sha256": "056f85bfd4b97f8049128e8f2802162b94d1067319afbf7e8cbb638f3e278b45",
+    "sizeBytes": 5153
+  },
+  "archive-reproduction.json": {
+    "sha256": "27705f52c327c17eedd7f368c78e37c23a0431050bb44e7a1cf89b2c419ee511",
+    "sizeBytes": 1507
+  },
+  "ci-commands.json": {
+    "sha256": "fbea5dfa962baa7f7dfa582a59450fb2ba44cdea68886748b02e357fd5d547ec",
+    "sizeBytes": 247579
+  },
+  "ci-doppler-green-excerpt.log": {
+    "sha256": "c95b0172713504e95903abd14a105ad815eb2b1c2069fe88f04f56ad46c07a56",
+    "sizeBytes": 34990
+  },
+  "ci-doppler-green-run.json": {
+    "sha256": "b5faf5a13ad4a417d44998a3f3777e850df0b467e7a2f11f9fc30f5bd65aa332",
+    "sizeBytes": 354
+  },
+  "ci-fixture-source.json": {
+    "sha256": "46c36770f0a7104d5dd325559960bc6db6337c672d1f8d62ff72d38996b99a75",
+    "sizeBytes": 160
+  },
+  "ci-installed-run.json": {
+    "sha256": "487dd9d43489a59b92435fdabaad8c5d768b88e2d02b19f482e61d5816fb968d",
+    "sizeBytes": 377
+  },
+  "ci-published-v1.json": {
+    "sha256": "3669d4966725a488f062d5dfa0821297610f9c6fc1672df542aa146fe42fe849",
+    "sizeBytes": 1382
+  },
+  "ci-reploid-application-excerpt.log": {
+    "sha256": "44e9db773ab766c55d27ef35c98ac346e066b44c78aa0db323c79b1035249750",
+    "sizeBytes": 27296
+  },
+  "ci-reploid-application-run.json": {
+    "sha256": "2a1980050872ef17addfe04210ee3589b38405d57e2ecf167fa600aa821c0f5f",
+    "sizeBytes": 345
+  },
+  "ci-reploid.json": {
+    "sha256": "726de5eab8075e837608c856cde735440fdbd447be379c22e28a7124573a1f2a",
+    "sizeBytes": 3997
+  },
+  "ci-standalone.json": {
+    "sha256": "6db44be793d5ff70c81b958689c0d0e9e69b7a6a8361e913f88cc64cef99be4c",
+    "sizeBytes": 1828
+  },
+  "ci-webrtc.json": {
+    "sha256": "15d38c82b2a87b2bd5e44260516bbdd7aa152b4864a2d8b1d80595c77fca5b96",
+    "sizeBytes": 26647
+  },
+  "generation-fixture.json": {
+    "sha256": "9a20090fc55fc398da80b8228d7b38f70d707bcfea351817eb7c7e45bd95ebaf",
+    "sizeBytes": 7942
+  },
+  "library-package-browser.json": {
+    "sha256": "f19536dd5e59a0eb7f321f999b22e2989c8263847be22be505fb921571219209",
+    "sizeBytes": 16612
+  },
+  "local-doppler-green.log": {
+    "sha256": "de0808c18bc1bad9aa5107b5c76b37fe8a6301ce51a83066d3983f36fccd342b",
+    "sizeBytes": 413008
+  },
+  "local-exact-archives-reploid.json": {
+    "sha256": "850b404f2da11983f3c6b966e8d9fe01421fe4d6d0c40fffde583ed6e42d80f6",
+    "sizeBytes": 4039
+  },
+  "local-reploid-application.log": {
+    "sha256": "3b307971e129534dcf01d037f0182b4289e7d9ea8f4429be7aea37fcbd88a250",
+    "sizeBytes": 92924
+  },
+  "physical-reploid-library-config.json": {
+    "sha256": "da9b58fd4f0c7d92c0b070d5a97f03af96701d7091bf8659e9fadf1b363e61aa",
+    "sizeBytes": 8914
+  },
+  "physical-reploid-library.json": {
+    "sha256": "61a32fccaf9bc0113268c9a3ffb686ba82567776a2b3a36dc149a7616edd35ce",
+    "sizeBytes": 54725
+  },
+  "physical-reploid-library.log": {
+    "sha256": "4eb43455c8ea9f83466f1782e9f5d064cbf6d7c94d8ee77ea12a12ac4c5941f6",
+    "sizeBytes": 2249
+  },
+  "physical-standalone-config.json": {
+    "sha256": "db688c5b189878c00929f26eddf9f03730d6cf82ab496fc64f2ae209869a4fd2",
+    "sizeBytes": 26008
+  },
+  "physical-standalone.json": {
+    "sha256": "5d054800dc40d9a5d45cd98cf39e63445b3c9594ad95f642471ecdddf03fa8a8",
+    "sizeBytes": 272797
+  },
+  "physical-standalone.log": {
+    "sha256": "228dcb81a9a1a7667ab5aa4c1cb2fe3c02c0f6ecf46d70ec0973438c6e826018",
+    "sizeBytes": 7218
+  },
+  "reconciliation/README.md": {
+    "sha256": "932ed31f5e124da1c241556c734117e5c887ea1c6da92ab689493986c6e0e58a",
+    "sizeBytes": 3605
+  },
+  "reconciliation/acceptance.json": {
+    "sha256": "5ed6770ca806bd595e1fb1ac0cf6d7b90b4b5b449be8903e565956452ca56206",
+    "sizeBytes": 3591
+  },
+  "reconciliation/browser-boot-peer.log": {
+    "sha256": "0ecbcddf174c6bab249a0a7996a563874d194214dc2c8d942297d2f0d0c09a60",
+    "sizeBytes": 11551
+  },
+  "reconciliation/browser-relay-recovery.log": {
+    "sha256": "e655bc976d88a08df37ca8ebf9088bca0a20faac0c42985ec2f2eea835737497",
+    "sizeBytes": 2601
+  },
+  "reconciliation/ci-final-application-run.json": {
+    "sha256": "077b8f3083a49781bf1b8b3cfd0d212a03af8f897744def4d0003cc50166dfa8",
+    "sizeBytes": 318
+  },
+  "reconciliation/ci-final-doppler-run.json": {
+    "sha256": "06c3df907f340642324eefd3e63b3a096d0f8bd68e4a6e3d542f8fef1b90f6a0",
+    "sizeBytes": 327
+  },
+  "reconciliation/ci-first-application-run.json": {
+    "sha256": "31861dd282cbacf6bd874d7e6cf057f971a8e3a02489306f9961fdef4df5488b",
+    "sizeBytes": 318
+  },
+  "reconciliation/ci-first-contract-failure.log": {
+    "sha256": "39ee5baa3a88e604bbd0bdcd2ac4646e24427ccc52106655f69321aaed524392",
+    "sizeBytes": 698
+  },
+  "reconciliation/ci-fixture-source.json": {
+    "sha256": "74630150c2e48a26bac32936091de0b2b40358f05744c8298f45f1dd275d798f",
+    "sizeBytes": 160
+  },
+  "reconciliation/ci-installed-run.json": {
+    "sha256": "ed66a9cae6cff4fabd8b4a7896fbafbdd235eb0ccd9a54d75a5958c09d3c2f50",
+    "sizeBytes": 350
+  },
+  "reconciliation/ci-library.json": {
+    "sha256": "e430190e69007aec05d1b0a2cfaa223b295c527414bbb0ee2aa40eb1356d71fb",
+    "sizeBytes": 3997
+  },
+  "reconciliation/ci-standalone.json": {
+    "sha256": "62650d2dbaee75c60ef35524d14b7d290979aa5e3a54a7d85c289ef5f793e577",
+    "sizeBytes": 1828
+  },
+  "reconciliation/ci-webrtc.json": {
+    "sha256": "27eea30eab7f380df58b7445619ef7cbb6009cdec2386112b0be9aa64a685894",
+    "sizeBytes": 26647
+  },
+  "reconciliation/local-unit.log": {
+    "sha256": "a75f84c153e84656ae8fb7895630546880166de5ff323c1da1c5def9b509da4f",
+    "sizeBytes": 90051
+  },
+  "reconciliation/sdk-tests.log": {
+    "sha256": "e5462172f2a798989a57d19547b2b908e172231bea4193b33b6e8f143e985bda",
+    "sizeBytes": 289
+  },
+  "reploid-application-comparison.json": {
+    "sha256": "7bdd08235fec78c5b8a757c0934f404baf63e09a7357d36f76a5d1321d543cd1",
+    "sizeBytes": 129739
+  },
+  "superseded/ci-runs.json": {
+    "sha256": "6218cc1df4caca55eb52d269331ba8d59ffad747c63d28c19be22d1192a30529",
+    "sizeBytes": 1165
+  },
+  "superseded/initial-provider-fixture-failure.log": {
+    "sha256": "8abd3e36f3a7ac6acd0c1751dd5b3be175ea0c023903710a41c9925bfd361c12",
+    "sizeBytes": 420
+  },
+  "superseded/package-budget-failure.log": {
+    "sha256": "3e2bad088e6ea9470db8aa7aa14d1e96af20e934d790fe987459cb295b00d6d7",
+    "sizeBytes": 15565
+  },
+  "superseded/physical-initial-reploid-library.json": {
+    "sha256": "a118f2b437326e19cb090dd2a9ad3599efc8bb47ae42721ad6f9ad6822b0c712",
+    "sizeBytes": 54786
+  },
+  "superseded/physical-initial-standalone.json": {
+    "sha256": "8687440bd97ffdfe3062ded29bdffe90ffaa47dad3b6e65a53401534a434ce48",
+    "sizeBytes": 272866
+  },
+  "superseded/physical-local-npm9-interrupted.log": {
+    "sha256": "3fdcb6f84f2084ed2fe10e30b7521524413ecfafdf99724c15379341269d2e85",
+    "sizeBytes": 5690
+  }
+}

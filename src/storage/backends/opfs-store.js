@@ -510,6 +510,12 @@ export function createOpfsStore(config) {
 
   return {
     init,
+    async openModelSession(modelId, options = {}) {
+      const session = createOpfsStore(config);
+      await session.openModel(modelId, options);
+      return session;
+    },
+    close: cleanup,
     openModel,
     getCurrentModelId,
     getFileSize,

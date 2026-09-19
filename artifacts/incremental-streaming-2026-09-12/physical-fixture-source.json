@@ -1,0 +1,5 @@
+{
+  "commit": "1c6c08f603fafc59fba0b88ab4d8e76794fe5e1b",
+  "status": " M examples/capsule-capabilities/app.js\n M reports/capsule-runtime/runtime-closure.json\n M src/client/capsule-host.browser.d.ts\n M src/client/capsule-host.browser.js\n M src/client/runtime/composition-root.js\n M tests/runtime/capsule-incremental-stream.test.js\n M tools/check-installed-capabilities.js\n M tools/check-packed-package.js\n M tools/check-public-boundaries.js\n?? tests/fixtures/packed-browser-host-consumer.js\n",
+  "runnerSha256": "ea0350d806aafa055138f816eddc56b32ca7c2d21e0a56112ad7cc71e8d47771"
+}

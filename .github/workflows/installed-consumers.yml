@@ -1,0 +1,70 @@
+name: Installed standalone and Reploid consumers
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  installed-consumers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+        env:
+          # These public-package contracts do not execute the ONNX reference backend.
+          ONNXRUNTIME_NODE_INSTALL: skip
+      - name: Build one archive and accept its standalone consumer
+        run: node tools/check-packed-package.js --retain "$RUNNER_TEMP/doppler-candidate"
+      - name: Checkout the reviewed Reploid consumer
+        uses: actions/checkout@v7
+        with:
+          repository: clocksmith/reploid
+          ref: 7b0258a37d90ff35ca3c42758d0ff432c2db0989
+          path: .consumer-reploid
+      - name: Require Reploid acceptance of the same installed archive
+        env:
+          DOPPLER_TEST_REQUIRED: '1'
+          DOPPLER_TEST_CONSUMER: ${{ runner.temp }}/doppler-candidate/consumer
+        run: node .consumer-reploid/tests/fixtures/doppler-installed-generation.js > "$RUNNER_TEMP/doppler-candidate/reploid-receipt.json"
+      - name: Require published 0.6.1 compatibility through the installed library
+        env:
+          DOPPLER_TEST_CONSUMER: ${{ runner.temp }}/doppler-published/consumer
+          DOPPLER_TEST_STREAM_FORMAT: v1
+        run: |
+          mkdir -p "$DOPPLER_TEST_CONSUMER"
+          npm pack doppler-gpu@0.6.1 --json --pack-destination "$RUNNER_TEMP/doppler-published" > "$RUNNER_TEMP/doppler-published/npm-pack.json"
+          npm install --prefix "$DOPPLER_TEST_CONSUMER" --ignore-scripts --omit=optional --no-audit --no-fund "$RUNNER_TEMP/doppler-published/doppler-gpu-0.6.1.tgz"
+          cp "$RUNNER_TEMP/doppler-candidate/consumer/generation-fixture.json" "$DOPPLER_TEST_CONSUMER/generation-fixture.json"
+          node .consumer-reploid/tests/fixtures/doppler-installed-library-check.js > "$RUNNER_TEMP/doppler-published/reploid-receipt.json"
+      - name: Install browser for transport and native storage acceptance
+        run: npx playwright install --with-deps chromium
+      - name: Require installed v2 streaming over WebRTC and native replay
+        env:
+          DOPPLER_TEST_CONSUMER: ${{ runner.temp }}/doppler-candidate/consumer
+        run: node .consumer-reploid/tests/fixtures/doppler-installed-peer-browser-check.js > "$RUNNER_TEMP/doppler-candidate/reploid-browser-receipt.json"
+      - name: Preserve exact archive and portable consumer evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: installed-consumer-candidate
+          path: |
+            ${{ runner.temp }}/doppler-candidate/*.tgz
+            ${{ runner.temp }}/doppler-candidate/*.json
+            ${{ runner.temp }}/doppler-candidate/consumer/*.js
+            ${{ runner.temp }}/doppler-candidate/consumer/*.json
+            ${{ runner.temp }}/doppler-candidate/reploid-library/*.tgz
+            ${{ runner.temp }}/doppler-published/*.tgz
+            ${{ runner.temp }}/doppler-published/*.json
+            ${{ runner.temp }}/doppler-published/consumer/*.json
+            ${{ runner.temp }}/doppler-published/reploid-library/*.tgz
+          if-no-files-found: error

@@ -1,0 +1,18 @@
+{
+  "schema": "doppler.remote-green-result/v1",
+  "passed": true,
+  "runUrl": "https://github.com/clocksmith/doppler/actions/runs/34736606257",
+  "jobId": 103669068251,
+  "branchRevision": "d3ab2c571cab0d93d1ea49709035028fe4c1d595",
+  "fixtureRevision": "1d74a450bd14087bff0f7d0ce9f768afb97bb968",
+  "steps": [
+    "repository acceptance checks",
+    "browser WebGPU kernel contract",
+    "demo UI and offline PWA contract"
+  ],
+  "scope": "Hosted CI; hardware/model-local tests retain their explicit skipped or simulated scope.",
+  "excerpts": [
+    "2026-09-13T03:59:53.4792627Z # [node-tests] script: failed",
+    "2026-09-13T04:02:02.2038084Z [node-tests] already passed in this check invocation: 36 files"
+  ]
+}

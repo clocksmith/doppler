@@ -12,6 +12,7 @@ export interface CapsuleProgramAdapter {
   unloadAdapter(): Promise<void>;
   getInitialExecutionIdentity(): InitialExecutionIdentity;
   tokenize(prompt: unknown, options?: Record<string, unknown>): number[];
+  createIncrementalDecoder(): import('../../inference/tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder;
   decodeTokens(tokenIds: number[]): string;
   getTokenContract(): Record<string, unknown>;
   reset(): void;

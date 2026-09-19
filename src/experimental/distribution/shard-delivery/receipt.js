@@ -32,11 +32,6 @@ import { appendHttpTransferChunk, clearPersistedShardState, createHttpTransferSt
 
 export const p2pTransportPolicyState = new WeakMap();
 
-export function normalizeManifestVersionSet(value) {
-  if (value === undefined || value === null) return null;
-  const normalized = String(value).trim();
-  return normalized || null;
-}
 
 export function assertP2PPayloadRangeStart(
   shardIndex,
@@ -217,76 +212,9 @@ export function markP2PTransportFailure(p2pConfig, state, normalizedError, nowMs
   }
 }
 
-export function assertExpectedHash(resultHash, expectedHash, shardIndex) {
-  if (!expectedHash) return;
-  if (!resultHash) {
-    const error = createDopplerError(
-      ERROR_CODES.DISTRIBUTION_SHARD_HASH_MISMATCH,
-      `Shard ${shardIndex} missing hash result`
-    );
-    error.code = 'hash_missing';
-    throw error;
-  }
-  if (resultHash !== expectedHash) {
-    const error = createDopplerError(
-      ERROR_CODES.DISTRIBUTION_SHARD_HASH_MISMATCH,
-      `Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${resultHash}`
-    );
-    error.code = 'hash_mismatch';
-    error.expectedHash = expectedHash;
-    error.actualHash = resultHash;
-    throw error;
-  }
-}
 
-export function assertExpectedSize(bytes, expectedSize, shardIndex) {
-  if (!Number.isFinite(expectedSize)) return;
-  const expected = Math.floor(expectedSize);
-  const actual = Number.isFinite(bytes) ? Math.floor(bytes) : -1;
-  if (expected < 0 || actual < 0) return;
-  if (actual !== expected) {
-    const error = createDopplerError(
-      ERROR_CODES.DISTRIBUTION_SHARD_SIZE_MISMATCH,
-      `Size mismatch for shard ${shardIndex}: expected ${expected}, got ${actual}`
-    );
-    error.code = 'size_mismatch';
-    error.expectedSize = expected;
-    error.actualSize = actual;
-    throw error;
-  }
-}
 
-export function assertExpectedManifestVersionSet(resultVersionSet, expectedVersionSet, shardIndex, source) {
-  const expected = normalizeManifestVersionSet(expectedVersionSet);
-  if (!expected) return;
-  const actual = normalizeManifestVersionSet(resultVersionSet);
-  if (!actual) {
-    const error = createDopplerError(
-      ERROR_CODES.DISTRIBUTION_SHARD_MANIFEST_VERSION_SET_MISMATCH,
-      `Shard ${shardIndex} source "${source}" missing manifestVersionSet while antiRollback.requireManifestVersionSet=true.`
-    );
-    error.code = 'manifest_version_set_missing';
-    error.expectedManifestVersionSet = expected;
-    error.actualManifestVersionSet = actual;
-    throw error;
-  }
-  if (actual !== expected) {
-    const error = createDopplerError(
-      ERROR_CODES.DISTRIBUTION_SHARD_MANIFEST_VERSION_SET_MISMATCH,
-      `Shard ${shardIndex} source "${source}" manifestVersionSet mismatch: expected ${expected}, got ${actual}`
-    );
-    error.code = 'manifest_version_set_mismatch';
-    error.expectedManifestVersionSet = expected;
-    error.actualManifestVersionSet = actual;
-    throw error;
-  }
-}
 
-export function createAbortError(label = 'operation aborted') {
-  const error = new Error(label);
-  error.name = 'AbortError';
-  return error;
-}
 
 export async function withTimeout(promise, timeoutMs, label = 'operation') {
   if (!timeoutMs || timeoutMs <= 0) {
@@ -586,3 +514,5 @@ export async function downloadShardFromP2P(shardIndex, shardInfo, p2pConfig, opt
   }
   throw lastError;
 }
+import { normalizeManifestVersionSet, assertExpectedHash, assertExpectedSize, assertExpectedManifestVersionSet, createAbortError } from '../../../storage/download/http-contract.js';
+export { normalizeManifestVersionSet, assertExpectedHash, assertExpectedSize, assertExpectedManifestVersionSet, createAbortError };

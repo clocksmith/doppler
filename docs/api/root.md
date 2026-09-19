@@ -144,6 +144,11 @@ KV layout, or memory strategy.
 
 ## Generation request and completion contract
 
+For operation events, see [incremental Capsule streams](../capsule-streaming.md).
+Request v2 carries incremental partials and a complete final result; v1 retains
+its cumulative event contract. The public reconstruction helper avoids cumulative
+copying during partial consumption.
+
 `doppler-gpu/generation-contract` exports the validation-only public contract:
 `GENERATION_CONTRACT`, `validateGenerationInput`, `resolveGenerationOptions`,
 and `GenerationError`. Its JSON definition owns accepted fields, ranges,

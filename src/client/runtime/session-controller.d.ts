@@ -9,7 +9,7 @@ export type GenerationRunOptions = GenerationInput & GenerationOptions & {
 export interface GenerationResult { sampling: ResolvedGenerationOptions; completion: GenerationCompletion; }
 
 export interface SessionController {
-  generateTokens(targetPlan: TargetPlan, options: GenerationRunOptions): AsyncGenerator<number, GenerationResult, void>;
+  generateTokens(targetPlan: TargetPlan, options: GenerationRunOptions, control?: { incremental?: boolean }): AsyncGenerator<number, GenerationResult, void>;
   close(): Promise<void>;
 }
 

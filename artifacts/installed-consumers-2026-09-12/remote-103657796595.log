@@ -1,0 +1,341 @@
+﻿2026-09-13T02:13:32.9725735Z Current runner version: '2.337.0'
+2026-09-13T02:13:32.9745760Z ##[group]Runner Image Provisioner
+2026-09-13T02:13:32.9746477Z Hosted Compute Agent
+2026-09-13T02:13:32.9747018Z Version: 20260828.587
+2026-09-13T02:13:32.9747604Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-13T02:13:32.9748203Z Build Date: 2026-08-28T16:44:25Z
+2026-09-13T02:13:32.9748855Z Worker ID: {94e8ddae-5e69-484c-97b7-ea5e3b271c2a}
+2026-09-13T02:13:32.9749485Z Azure Region: westcentralus
+2026-09-13T02:13:32.9750052Z ##[endgroup]
+2026-09-13T02:13:32.9751108Z ##[group]Operating System
+2026-09-13T02:13:32.9751623Z Ubuntu
+2026-09-13T02:13:32.9752120Z 24.04.5
+2026-09-13T02:13:32.9752547Z LTS
+2026-09-13T02:13:32.9752963Z ##[endgroup]
+2026-09-13T02:13:32.9753499Z ##[group]Runner Image
+2026-09-13T02:13:32.9753995Z Image: ubuntu-24.04
+2026-09-13T02:13:32.9754722Z Version: 20260907.300.1
+2026-09-13T02:13:32.9755708Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260907.300/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-13T02:13:32.9757018Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260907.300
+2026-09-13T02:13:32.9757817Z ##[endgroup]
+2026-09-13T02:13:32.9758784Z ##[group]GITHUB_TOKEN Permissions
+2026-09-13T02:13:32.9760325Z Contents: read
+2026-09-13T02:13:32.9760879Z Metadata: read
+2026-09-13T02:13:32.9761344Z ##[endgroup]
+2026-09-13T02:13:32.9762962Z Secret source: Actions
+2026-09-13T02:13:32.9763798Z Cache mode: write
+2026-09-13T02:13:32.9764637Z Prepare workflow directory
+2026-09-13T02:13:33.0460360Z Prepare all required actions
+2026-09-13T02:13:33.0500862Z Getting action download info
+2026-09-13T02:13:33.3817572Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-09-13T02:13:33.5873287Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+2026-09-13T02:13:33.8098525Z Download action repository 'actions/upload-artifact@v6' (SHA:b7c566a772e6b6bfb58ed0dc250532a479d7789f)
+2026-09-13T02:13:34.2045332Z Complete job name: installed-consumers
+2026-09-13T02:13:34.2697145Z ##[group]Run actions/checkout@v7
+2026-09-13T02:13:34.2697792Z with:
+2026-09-13T02:13:34.2698157Z   repository: clocksmith/doppler
+2026-09-13T02:13:34.2701148Z   token: ***
+2026-09-13T02:13:34.2701493Z   ssh-strict: true
+2026-09-13T02:13:34.2701845Z   ssh-user: git
+2026-09-13T02:13:34.2702201Z   persist-credentials: true
+2026-09-13T02:13:34.2702580Z   clean: true
+2026-09-13T02:13:34.2702927Z   sparse-checkout-cone-mode: true
+2026-09-13T02:13:34.2703330Z   fetch-depth: 1
+2026-09-13T02:13:34.2703670Z   fetch-tags: false
+2026-09-13T02:13:34.2704018Z   show-progress: true
+2026-09-13T02:13:34.2704375Z   lfs: false
+2026-09-13T02:13:34.2704864Z   submodules: false
+2026-09-13T02:13:34.2705222Z   set-safe-directory: true
+2026-09-13T02:13:34.2705668Z   allow-unsafe-pr-checkout: false
+2026-09-13T02:13:34.2706233Z ##[endgroup]
+2026-09-13T02:13:34.3485991Z Syncing repository: clocksmith/doppler
+2026-09-13T02:13:34.3487967Z ##[group]Getting Git version info
+2026-09-13T02:13:34.3488945Z Working directory is '/home/runner/work/doppler/doppler'
+2026-09-13T02:13:34.3490195Z [command]/usr/bin/git version
+2026-09-13T02:13:34.3591372Z git version 2.55.0
+2026-09-13T02:13:34.3607373Z ##[endgroup]
+2026-09-13T02:13:34.3616596Z Temporarily overriding HOME='/home/runner/work/_temp/8bfe8383-4db0-4ff9-b2f4-533039812369' before making global git config changes
+2026-09-13T02:13:34.3618335Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-13T02:13:34.3622107Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/doppler/doppler
+2026-09-13T02:13:34.3665888Z Deleting the contents of '/home/runner/work/doppler/doppler'
+2026-09-13T02:13:34.3668855Z ##[group]Determining repository object format
+2026-09-13T02:13:34.3670022Z ##[endgroup]
+2026-09-13T02:13:34.3670903Z ##[group]Initializing the repository
+2026-09-13T02:13:34.3673520Z [command]/usr/bin/git init /home/runner/work/doppler/doppler
+2026-09-13T02:13:34.3773247Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-13T02:13:34.3774640Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-13T02:13:34.3776135Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-13T02:13:34.3777067Z hint: call:
+2026-09-13T02:13:34.3777557Z hint:
+2026-09-13T02:13:34.3778186Z hint: 	git config --global init.defaultBranch <name>
+2026-09-13T02:13:34.3778934Z hint:
+2026-09-13T02:13:34.3779663Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-13T02:13:34.3780822Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-13T02:13:34.3781765Z hint:
+2026-09-13T02:13:34.3782279Z hint: 	git branch -m <name>
+2026-09-13T02:13:34.3782883Z hint:
+2026-09-13T02:13:34.3784276Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-13T02:13:34.3785719Z Initialized empty Git repository in /home/runner/work/doppler/doppler/.git/
+2026-09-13T02:13:34.3787336Z [command]/usr/bin/git remote add origin https://github.com/clocksmith/doppler
+2026-09-13T02:13:34.3828435Z ##[endgroup]
+2026-09-13T02:13:34.3829363Z ##[group]Disabling automatic garbage collection
+2026-09-13T02:13:34.3831366Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-13T02:13:34.3858869Z ##[endgroup]
+2026-09-13T02:13:34.3859728Z ##[group]Setting up auth
+2026-09-13T02:13:34.3860371Z Removing SSH command configuration
+2026-09-13T02:13:34.3864596Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-13T02:13:34.3892874Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-13T02:13:34.4246720Z Removing HTTP extra header
+2026-09-13T02:13:34.4251279Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-13T02:13:34.4282970Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-13T02:13:34.4478099Z Removing includeIf entries pointing to credentials config files
+2026-09-13T02:13:34.4479344Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-13T02:13:34.4509363Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-13T02:13:34.4700813Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-59bd47e9-427a-401b-8cd7-0e01caf001be.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-13T02:13:34.4733344Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/doppler/doppler/.git.path /home/runner/work/_temp/git-credentials-59bd47e9-427a-401b-8cd7-0e01caf001be.config
+2026-09-13T02:13:34.4760953Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/doppler/doppler/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-59bd47e9-427a-401b-8cd7-0e01caf001be.config
+2026-09-13T02:13:34.4797613Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-59bd47e9-427a-401b-8cd7-0e01caf001be.config
+2026-09-13T02:13:34.4826227Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-59bd47e9-427a-401b-8cd7-0e01caf001be.config
+2026-09-13T02:13:34.4851827Z ##[endgroup]
+2026-09-13T02:13:34.4852450Z ##[group]Fetching the repository
+2026-09-13T02:13:34.4856731Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +171e8d02ffcc4d41f734a1cf99bcd49cebc879d8:refs/remotes/pull/10/merge
+2026-09-13T02:13:44.2700761Z From https://github.com/clocksmith/doppler
+2026-09-13T02:13:44.2701922Z  * [new ref]         171e8d02ffcc4d41f734a1cf99bcd49cebc879d8 -> pull/10/merge
+2026-09-13T02:13:44.2705635Z ##[endgroup]
+2026-09-13T02:13:44.2706744Z ##[group]Determining the checkout info
+2026-09-13T02:13:44.2707807Z ##[endgroup]
+2026-09-13T02:13:44.2709764Z [command]/usr/bin/git sparse-checkout disable
+2026-09-13T02:13:44.3088536Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-13T02:13:44.3379920Z ##[group]Checking out the ref
+2026-09-13T02:13:44.3382773Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/10/merge
+2026-09-13T02:13:45.5221792Z Updating files:  15% (1093/7223)
+2026-09-13T02:13:45.5275255Z Updating files:  16% (1156/7223)
+2026-09-13T02:13:45.5503061Z Updating files:  17% (1228/7223)
+2026-09-13T02:13:45.5563362Z Updating files:  18% (1301/7223)
+2026-09-13T02:13:45.5592898Z Updating files:  19% (1373/7223)
+2026-09-13T02:13:45.5623868Z Updating files:  20% (1445/7223)
+2026-09-13T02:13:45.5661530Z Updating files:  21% (1517/7223)
+2026-09-13T02:13:45.5690408Z Updating files:  22% (1590/7223)
+2026-09-13T02:13:45.5712948Z Updating files:  23% (1662/7223)
+2026-09-13T02:13:45.5742605Z Updating files:  24% (1734/7223)
+2026-09-13T02:13:45.5772478Z Updating files:  25% (1806/7223)
+2026-09-13T02:13:45.5809462Z Updating files:  26% (1878/7223)
+2026-09-13T02:13:45.5840056Z Updating files:  27% (1951/7223)
+2026-09-13T02:13:45.5872478Z Updating files:  28% (2023/7223)
+2026-09-13T02:13:45.5905000Z Updating files:  29% (2095/7223)
+2026-09-13T02:13:45.5934613Z Updating files:  30% (2167/7223)
+2026-09-13T02:13:45.5963891Z Updating files:  31% (2240/7223)
+2026-09-13T02:13:45.5991740Z Updating files:  32% (2312/7223)
+2026-09-13T02:13:45.6023443Z Updating files:  33% (2384/7223)
+2026-09-13T02:13:45.6047712Z Updating files:  34% (2456/7223)
+2026-09-13T02:13:45.6076317Z Updating files:  35% (2529/7223)
+2026-09-13T02:13:45.6108819Z Updating files:  36% (2601/7223)
+2026-09-13T02:13:45.6137718Z Updating files:  37% (2673/7223)
+2026-09-13T02:13:45.6168329Z Updating files:  38% (2745/7223)
+2026-09-13T02:13:45.6196206Z Updating files:  39% (2817/7223)
+2026-09-13T02:13:45.6221691Z Updating files:  40% (2890/7223)
+2026-09-13T02:13:45.6250788Z Updating files:  41% (2962/7223)
+2026-09-13T02:13:45.6281383Z Updating files:  42% (3034/7223)
+2026-09-13T02:13:45.6309611Z Updating files:  43% (3106/7223)
+2026-09-13T02:13:45.6336625Z Updating files:  44% (3179/7223)
+2026-09-13T02:13:45.6369245Z Updating files:  45% (3251/7223)
+2026-09-13T02:13:45.6403168Z Updating files:  46% (3323/7223)
+2026-09-13T02:13:45.6435215Z Updating files:  47% (3395/7223)
+2026-09-13T02:13:45.6466984Z Updating files:  48% (3468/7223)
+2026-09-13T02:13:45.6496382Z Updating files:  49% (3540/7223)
+2026-09-13T02:13:45.6518957Z Updating files:  50% (3612/7223)
+2026-09-13T02:13:45.6544781Z Updating files:  51% (3684/7223)
+2026-09-13T02:13:45.6571825Z Updating files:  52% (3756/7223)
+2026-09-13T02:13:45.6605266Z Updating files:  53% (3829/7223)
+2026-09-13T02:13:45.6634291Z Updating files:  54% (3901/7223)
+2026-09-13T02:13:45.6662863Z Updating files:  55% (3973/7223)
+2026-09-13T02:13:45.6693549Z Updating files:  56% (4045/7223)
+2026-09-13T02:13:45.6725695Z Updating files:  57% (4118/7223)
+2026-09-13T02:13:45.6759185Z Updating files:  58% (4190/7223)
+2026-09-13T02:13:45.6778883Z Updating files:  59% (4262/7223)
+2026-09-13T02:13:45.6801761Z Updating files:  60% (4334/7223)
+2026-09-13T02:13:45.6823984Z Updating files:  61% (4407/7223)
+2026-09-13T02:13:45.6855510Z Updating files:  62% (4479/7223)
+2026-09-13T02:13:45.6882061Z Updating files:  63% (4551/7223)
+2026-09-13T02:13:45.6909151Z Updating files:  64% (4623/7223)
+2026-09-13T02:13:45.6938799Z Updating files:  65% (4695/7223)
+2026-09-13T02:13:45.6959119Z Updating files:  66% (4768/7223)
+2026-09-13T02:13:45.6988902Z Updating files:  67% (4840/7223)
+2026-09-13T02:13:45.7008124Z Updating files:  68% (4912/7223)
+2026-09-13T02:13:45.7034587Z Updating files:  69% (4984/7223)
+2026-09-13T02:13:45.7054773Z Updating files:  70% (5057/7223)
+2026-09-13T02:13:45.7078916Z Updating files:  71% (5129/7223)
+2026-09-13T02:13:45.7124176Z Updating files:  72% (5201/7223)
+2026-09-13T02:13:45.7153487Z Updating files:  73% (5273/7223)
+2026-09-13T02:13:45.7179480Z Updating files:  74% (5346/7223)
+2026-09-13T02:13:45.7202971Z Updating files:  75% (5418/7223)
+2026-09-13T02:13:45.7225217Z Updating files:  76% (5490/7223)
+2026-09-13T02:13:45.7247772Z Updating files:  77% (5562/7223)
+2026-09-13T02:13:45.7272167Z Updating files:  78% (5634/7223)
+2026-09-13T02:13:45.7294071Z Updating files:  79% (5707/7223)
+2026-09-13T02:13:45.7318543Z Updating files:  80% (5779/7223)
+2026-09-13T02:13:45.7353625Z Updating files:  81% (5851/7223)
+2026-09-13T02:13:45.7384092Z Updating files:  82% (5923/7223)
+2026-09-13T02:13:45.7405934Z Updating files:  83% (5996/7223)
+2026-09-13T02:13:45.7428625Z Updating files:  84% (6068/7223)
+2026-09-13T02:13:45.7453891Z Updating files:  85% (6140/7223)
+2026-09-13T02:13:45.7484285Z Updating files:  86% (6212/7223)
+2026-09-13T02:13:45.7514373Z Updating files:  87% (6285/7223)
+2026-09-13T02:13:45.7546713Z Updating files:  88% (6357/7223)
+2026-09-13T02:13:45.7579329Z Updating files:  89% (6429/7223)
+2026-09-13T02:13:45.7610662Z Updating files:  90% (6501/7223)
+2026-09-13T02:13:45.7640177Z Updating files:  91% (6573/7223)
+2026-09-13T02:13:45.7670173Z Updating files:  92% (6646/7223)
+2026-09-13T02:13:45.7701304Z Updating files:  93% (6718/7223)
+2026-09-13T02:13:45.7740338Z Updating files:  94% (6790/7223)
+2026-09-13T02:13:45.8258954Z Updating files:  95% (6862/7223)
+2026-09-13T02:13:45.8297069Z Updating files:  96% (6935/7223)
+2026-09-13T02:13:45.8339812Z Updating files:  97% (7007/7223)
+2026-09-13T02:13:45.8379687Z Updating files:  98% (7079/7223)
+2026-09-13T02:13:45.8430488Z Updating files:  99% (7151/7223)
+2026-09-13T02:13:45.8430835Z Updating files: 100% (7223/7223)
+2026-09-13T02:13:45.8431158Z Updating files: 100% (7223/7223), done.
+2026-09-13T02:13:45.8496572Z Note: switching to 'refs/remotes/pull/10/merge'.
+2026-09-13T02:13:45.8496859Z 
+2026-09-13T02:13:45.8497088Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-13T02:13:45.8497808Z changes and commit them, and you can discard any commits you make in this
+2026-09-13T02:13:45.8498383Z state without impacting any branches by switching back to a branch.
+2026-09-13T02:13:45.8498713Z 
+2026-09-13T02:13:45.8498938Z If you want to create a new branch to retain commits you create, you may
+2026-09-13T02:13:45.8499495Z do so (now or later) by using -c with the switch command. Example:
+2026-09-13T02:13:45.8499809Z 
+2026-09-13T02:13:45.8499912Z   git switch -c <new-branch-name>
+2026-09-13T02:13:45.8500058Z 
+2026-09-13T02:13:45.8500140Z Or undo this operation with:
+2026-09-13T02:13:45.8500270Z 
+2026-09-13T02:13:45.8500339Z   git switch -
+2026-09-13T02:13:45.8500441Z 
+2026-09-13T02:13:45.8500610Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-13T02:13:45.8500840Z 
+2026-09-13T02:13:45.8501111Z HEAD is now at 171e8d0 Merge 2f5359a048c5b48fbeaf8d505fcec32d00effa5f into 6734945b60f9f943194ef21fec6cf93e32f6cded
+2026-09-13T02:13:45.8944615Z ##[endgroup]
+2026-09-13T02:13:45.9195177Z [command]/usr/bin/git log -1 --format=%H
+2026-09-13T02:13:45.9215684Z 171e8d02ffcc4d41f734a1cf99bcd49cebc879d8
+2026-09-13T02:13:45.9436621Z ##[group]Run actions/setup-node@v6
+2026-09-13T02:13:45.9436854Z with:
+2026-09-13T02:13:45.9437039Z   node-version: 22
+2026-09-13T02:13:45.9437221Z   cache: npm
+2026-09-13T02:13:45.9437398Z   check-latest: false
+2026-09-13T02:13:45.9439262Z   token: ***
+2026-09-13T02:13:45.9439441Z   package-manager-cache: true
+2026-09-13T02:13:45.9439648Z ##[endgroup]
+2026-09-13T02:13:46.0544009Z Found in cache @ /opt/hostedtoolcache/node/22.23.2/x64
+2026-09-13T02:13:46.0547014Z ##[group]Environment details
+2026-09-13T02:13:46.7713274Z node: v22.23.2
+2026-09-13T02:13:46.7713607Z npm: 10.9.8
+2026-09-13T02:13:46.7713867Z yarn: 1.22.22
+2026-09-13T02:13:46.7715227Z ##[endgroup]
+2026-09-13T02:13:46.7729417Z [command]/opt/hostedtoolcache/node/22.23.2/x64/bin/npm config get cache
+2026-09-13T02:13:47.0288181Z /home/runner/.npm
+2026-09-13T02:13:47.2257177Z Cache hit for: node-cache-Linux-x64-npm-3630544eff7653cf182eb6704fb9169b23b36db950209dae2a52ef6460e202b3
+2026-09-13T02:13:48.4596288Z Received 41943040 of 215938881 (19.4%), 40.0 MBs/sec
+2026-09-13T02:13:49.4077462Z Received 215938881 of 215938881 (100.0%), 105.7 MBs/sec
+2026-09-13T02:13:49.4078585Z Cache Size: ~206 MB (215938881 B)
+2026-09-13T02:13:49.4131026Z [command]/usr/bin/tar -xf /home/runner/work/_temp/6e7d5055-c82a-4437-809d-9e51777c864e/cache.tzst -P -C /home/runner/work/doppler/doppler --use-compress-program unzstd
+2026-09-13T02:13:49.6822159Z Cache restored successfully
+2026-09-13T02:13:49.6913863Z Cache restored from key: node-cache-Linux-x64-npm-3630544eff7653cf182eb6704fb9169b23b36db950209dae2a52ef6460e202b3
+2026-09-13T02:13:49.7086173Z ##[group]Run npm ci
+2026-09-13T02:13:49.7086436Z [36;1mnpm ci[0m
+2026-09-13T02:13:49.7130374Z shell: /usr/bin/bash -e {0}
+2026-09-13T02:13:49.7130606Z ##[endgroup]
+2026-09-13T02:13:54.6338440Z npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+2026-09-13T02:14:00.8129290Z npm error code 1
+2026-09-13T02:14:00.8130229Z npm error path /home/runner/work/doppler/doppler/node_modules/onnxruntime-node
+2026-09-13T02:14:00.8130922Z npm error command failed
+2026-09-13T02:14:00.8131603Z npm error command sh -c node ./script/install
+2026-09-13T02:14:00.8132118Z npm error node:internal/process/promises:394
+2026-09-13T02:14:00.8132639Z npm error     triggerUncaughtException(err, true /* fromPromise */);
+2026-09-13T02:14:00.8132949Z npm error     ^
+2026-09-13T02:14:00.8133128Z npm error
+2026-09-13T02:14:00.8133356Z npm error AggregateError [ETIMEDOUT]: 
+2026-09-13T02:14:00.8133809Z npm error     at internalConnectMultiple (node:net:1135:18)
+2026-09-13T02:14:00.8134204Z npm error     at internalConnectMultiple (node:net:1211:5)
+2026-09-13T02:14:00.8134896Z npm error     at Timeout.internalConnectMultipleTimeout (node:net:1743:5)
+2026-09-13T02:14:00.8135465Z npm error     at listOnTimeout (node:internal/timers:587:11)
+2026-09-13T02:14:00.8136027Z npm error     at process.processTimers (node:internal/timers:521:7) {
+2026-09-13T02:14:00.8136493Z npm error   code: 'ETIMEDOUT',
+2026-09-13T02:14:00.8136822Z npm error   [errors]: [
+2026-09-13T02:14:00.8137235Z npm error     Error: connect ETIMEDOUT 150.171.109.229:443
+2026-09-13T02:14:00.8137755Z npm error         at createConnectionError (node:net:1679:14)
+2026-09-13T02:14:00.8138360Z npm error         at Timeout.internalConnectMultipleTimeout (node:net:1738:38)
+2026-09-13T02:14:00.8139009Z npm error         at listOnTimeout (node:internal/timers:587:11)
+2026-09-13T02:14:00.8139618Z npm error         at process.processTimers (node:internal/timers:521:7) {
+2026-09-13T02:14:00.8140137Z npm error       errno: -110,
+2026-09-13T02:14:00.8140519Z npm error       code: 'ETIMEDOUT',
+2026-09-13T02:14:00.8140893Z npm error       syscall: 'connect',
+2026-09-13T02:14:00.8141310Z npm error       address: '150.171.109.229',
+2026-09-13T02:14:00.8141754Z npm error       port: 443
+2026-09-13T02:14:00.8142044Z npm error     },
+2026-09-13T02:14:00.8142636Z npm error     Error: connect ENETUNREACH 2603:1061:14:e2::1:443 - Local (:::0)
+2026-09-13T02:14:00.8143331Z npm error         at internalConnectMultiple (node:net:1207:16)
+2026-09-13T02:14:00.8144097Z npm error         at Timeout.internalConnectMultipleTimeout (node:net:1743:5)
+2026-09-13T02:14:00.8144970Z npm error         at listOnTimeout (node:internal/timers:587:11)
+2026-09-13T02:14:00.8145658Z npm error         at process.processTimers (node:internal/timers:521:7) {
+2026-09-13T02:14:00.8146165Z npm error       errno: -101,
+2026-09-13T02:14:00.8146562Z npm error       code: 'ENETUNREACH',
+2026-09-13T02:14:00.8146998Z npm error       syscall: 'connect',
+2026-09-13T02:14:00.8147463Z npm error       address: '2603:1061:14:e2::1',
+2026-09-13T02:14:00.8147865Z npm error       port: 443
+2026-09-13T02:14:00.8148182Z npm error     }
+2026-09-13T02:14:00.8148454Z npm error   ]
+2026-09-13T02:14:00.8148944Z npm error }
+2026-09-13T02:14:00.8149200Z npm error
+2026-09-13T02:14:00.8149505Z npm error Node.js v22.23.2
+2026-09-13T02:14:00.8150296Z npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-09-13T02_13_49_767Z-debug-0.log
+2026-09-13T02:14:00.9031157Z ##[error]Process completed with exit code 1.
+2026-09-13T02:14:00.9127058Z ##[group]Run actions/upload-artifact@v6
+2026-09-13T02:14:00.9127289Z with:
+2026-09-13T02:14:00.9127477Z   name: installed-consumer-candidate
+2026-09-13T02:14:00.9128171Z   path: /home/runner/work/_temp/doppler-candidate/*.tgz
+/home/runner/work/_temp/doppler-candidate/*.json
+/home/runner/work/_temp/doppler-candidate/consumer/*.js
+/home/runner/work/_temp/doppler-candidate/consumer/*.json
+
+2026-09-13T02:14:00.9128838Z   if-no-files-found: error
+2026-09-13T02:14:00.9129037Z   compression-level: 6
+2026-09-13T02:14:00.9129226Z   overwrite: false
+2026-09-13T02:14:00.9129407Z   include-hidden-files: false
+2026-09-13T02:14:00.9129607Z ##[endgroup]
+2026-09-13T02:14:01.0453731Z ##[error]No files were found with the provided path: /home/runner/work/_temp/doppler-candidate/*.tgz
+/home/runner/work/_temp/doppler-candidate/*.json
+/home/runner/work/_temp/doppler-candidate/consumer/*.js
+/home/runner/work/_temp/doppler-candidate/consumer/*.json. No artifacts will be uploaded.
+2026-09-13T02:14:01.0692667Z Post job cleanup.
+2026-09-13T02:14:01.1415226Z [command]/usr/bin/git version
+2026-09-13T02:14:01.1444910Z git version 2.55.0
+2026-09-13T02:14:01.1565793Z Temporarily overriding HOME='/home/runner/work/_temp/f997a368-1ac4-4527-90b8-abcc49fa2653' before making global git config changes
+2026-09-13T02:14:01.1605332Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-13T02:14:01.1625402Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/doppler/doppler
+2026-09-13T02:14:01.1685884Z Removing SSH command configuration
+2026-09-13T02:14:01.1686800Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-13T02:14:01.1689187Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-13T02:14:01.1776786Z Removing HTTP extra header
+2026-09-13T02:14:01.1782226Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-13T02:14:01.1813865Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-13T02:14:01.2125476Z Removing includeIf entries pointing to credentials config files
+2026-09-13T02:14:01.2145390Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-13T02:14:01.2166641Z includeif.gitdir:/home/runner/work/doppler/doppler/.git.path
+2026-09-13T02:14:01.2189212Z includeif.gitdir:/home/runner/work/doppler/doppler/.git/worktrees/*.path
+2026-09-13T02:14:01.2190166Z includeif.gitdir:/github/workspace/.git.path
+2026-09-13T02:14:01.2190895Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-13T02:14:01.2245988Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/doppler/doppler/.git.path
+2026-09-13T02:14:01.2247012Z /home/runner/work/_temp/git-credentials-59bd47e9-427a-401b-8cd7-0e01caf001be.config
+2026-09-13T02:14:01.2248958Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/doppler/doppler/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-59bd47e9\-427a\-401b\-8cd7\-0e01caf001be\.config
+2026-09-13T02:14:01.2250870Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/doppler/doppler/.git/worktrees/*.path
+2026-09-13T02:14:01.2264243Z /home/runner/work/_temp/git-credentials-59bd47e9-427a-401b-8cd7-0e01caf001be.config
+2026-09-13T02:14:01.2331625Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/doppler/doppler/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-59bd47e9\-427a\-401b\-8cd7\-0e01caf001be\.config
+2026-09-13T02:14:01.2370713Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-09-13T02:14:01.2407318Z /github/runner_temp/git-credentials-59bd47e9-427a-401b-8cd7-0e01caf001be.config
+2026-09-13T02:14:01.2425388Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-59bd47e9\-427a\-401b\-8cd7\-0e01caf001be\.config
+2026-09-13T02:14:01.2495075Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-13T02:14:01.2515215Z /github/runner_temp/git-credentials-59bd47e9-427a-401b-8cd7-0e01caf001be.config
+2026-09-13T02:14:01.2606108Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-59bd47e9\-427a\-401b\-8cd7\-0e01caf001be\.config
+2026-09-13T02:14:01.2608304Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-13T02:14:01.2776424Z Removing credentials config '/home/runner/work/_temp/git-credentials-59bd47e9-427a-401b-8cd7-0e01caf001be.config'
+2026-09-13T02:14:01.2895144Z Cleaning up orphan processes
+

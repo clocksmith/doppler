@@ -55,6 +55,7 @@ import {
   getLogitsWeights,
 } from './generator/logits-config.js';
 import { releaseSharedAttentionState } from './generator/attention-lifecycle.js';
+import { resetSequenceState } from './sequence-state.js';
 import {
   assertTokenIdsInRange,
   assertTokenIdInRange,
@@ -69,6 +70,7 @@ import {
 } from './generator-runtime.js';
 
 import { resolveSamplingConfig } from './sampling-config.js';
+import { matchesStopSequence } from './stopping.js';
 import { decodeReadback, getLogitsHealth } from './debug-utils/index.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
 import { resolveDeferredRoundingWindowTokens } from './finiteness-policy.js';
@@ -445,8 +447,7 @@ export class PipelineGenerator {
     if (!Array.isArray(stopSequences) || stopSequences.length === 0) {
       return false;
     }
-    const fullText = this._state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-    return stopSequences.some((sequence) => fullText.endsWith(sequence));
+    return matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, stopSequences);
   }
 
   _shouldStopAfterAppendedToken(generatedIds, tokenId, opts, runtime) {
@@ -499,20 +500,7 @@ export class PipelineGenerator {
    * Only valid when no decode is in progress.
    */
   resetToSeqLen(seqLen) {
-    if (this._state.isGenerating) {
-      throw new Error('InferencePipeline.resetToSeqLen: cannot reset while generation is in progress');
-    }
-    const target = Math.max(0, Math.floor(Number(seqLen) || 0));
-    if (!Number.isFinite(target)) {
-      throw new Error('InferencePipeline.resetToSeqLen: seqLen must be a finite non-negative integer');
-    }
-    if (target > this._state.currentSeqLen) {
-      throw new Error(
-        `InferencePipeline.resetToSeqLen: target ${target} exceeds currentSeqLen ${this._state.currentSeqLen}`
-      );
-    }
-    this._state.kvCache?.truncate?.(target);
-    this._state.currentSeqLen = target;
+    resetSequenceState(this._state, seqLen);
   }
 
   async _createDiffusionGemmaSelfConditioningEmbeddings(canvasIds, selfConditioningLogits, opts) {

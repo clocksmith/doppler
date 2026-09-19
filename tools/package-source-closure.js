@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { collectModuleSpecifiers, collectRelativeAssetSpecifiers } from './lib/module-dependencies.js';
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE_DIR = path.join(ROOT_DIR, 'src');
@@ -29,11 +30,6 @@ const ALWAYS_IGNORED_SOURCE_PREFIXES = Object.freeze([
   'debug/reference/',
   'gpu/kernels/codegen/',
 ]);
-const MODULE_SPECIFIER_PATTERNS = Object.freeze([
-  /\b(?:import|export)\s+(?:type\s+)?(?:[^'";]*?\sfrom\s*)?['"]([^'"]+)['"]/gu,
-  /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/gu,
-]);
-const RELATIVE_FILE_LITERAL_PATTERN = /['"`]((?:\.\.\/|\.\/)[^'"`\n]+\.(?:d\.ts|js|json|html|wgsl))['"`]/gu;
 
 function normalizePath(filePath) {
   return path.relative(ROOT_DIR, filePath).split(path.sep).join('/');
@@ -106,29 +102,6 @@ function collectEntrypoints(packageJson) {
   return { runtime, types };
 }
 
-function collectModuleSpecifiers(source) {
-  const output = new Set();
-  for (const pattern of MODULE_SPECIFIER_PATTERNS) {
-    pattern.lastIndex = 0;
-    for (;;) {
-      const match = pattern.exec(source);
-      if (!match) break;
-      output.add(match[1]);
-    }
-  }
-  return output;
-}
-
-function collectRelativeFileLiterals(source) {
-  const output = new Set();
-  RELATIVE_FILE_LITERAL_PATTERN.lastIndex = 0;
-  for (;;) {
-    const match = RELATIVE_FILE_LITERAL_PATTERN.exec(source);
-    if (!match) break;
-    output.add(match[1]);
-  }
-  return output;
-}
 
 async function resolveRuntimeDependency(importerPath, rawSpecifier) {
   const specifier = stripQueryAndHash(rawSpecifier);
@@ -187,7 +160,7 @@ async function scanRuntimeGraph(entrypoints) {
     runtimeFiles.add(currentRepoPath);
     const source = await fs.readFile(currentPath, 'utf8');
 
-    for (const specifier of collectModuleSpecifiers(source)) {
+    for (const specifier of collectModuleSpecifiers(source, currentPath)) {
       if (!isLocalSpecifier(specifier)) continue;
       const resolved = await resolveRuntimeDependency(currentPath, specifier);
       if (!resolved) {
@@ -202,7 +175,7 @@ async function scanRuntimeGraph(entrypoints) {
       }
     }
 
-    for (const specifier of collectRelativeFileLiterals(source)) {
+    for (const specifier of collectRelativeAssetSpecifiers(source, currentPath)) {
       const resolved = await resolveRuntimeDependency(currentPath, specifier);
       if (!resolved) continue;
       const resolvedRepoPath = normalizePath(resolved);
@@ -232,7 +205,7 @@ async function scanTypeGraph(entrypoints) {
     }
     typeFiles.add(currentRepoPath);
     const source = await fs.readFile(currentPath, 'utf8');
-    for (const specifier of collectModuleSpecifiers(source)) {
+    for (const specifier of collectModuleSpecifiers(source, currentPath)) {
       if (!isLocalSpecifier(specifier)) continue;
       const resolved = await resolveTypeDependency(currentPath, specifier);
       if (!resolved) {

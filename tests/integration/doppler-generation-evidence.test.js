@@ -89,6 +89,10 @@ const pipeline = {
   async generateTokenIds(prompt, options) {
     if (prompt === 'hello') {
       assert.deepEqual(options, {
+        ...runtimeConfig.inference.sampling,
+        stopSequences: [],
+        useSpeculative: false,
+        seed: undefined,
         maxTokens: 4,
         temperature: 0,
         topK: 1,
@@ -97,7 +101,10 @@ const pipeline = {
       });
     } else {
       assert.deepEqual(prompt, [{ role: 'user', content: 'hello' }]);
-      assert.deepEqual(options, { maxTokens: 2 });
+      assert.deepEqual(options, {
+        ...runtimeConfig.inference.sampling, maxTokens: 2,
+        stopSequences: [], useSpeculative: false, useChatTemplate: true, seed: undefined,
+      });
     }
     return {
       tokenIds: [101, 202],
@@ -161,6 +168,7 @@ assert.equal(evidence.generationConfig.temperature, 0);
 assert.equal(evidence.generationConfig.topK, 1);
 assert.equal(evidence.generationConfig.topP, 1);
 assert.equal(evidence.generationConfig.repetitionPenalty, 1.1);
+assert.equal(evidence.generationConfig.presencePenalty, 0);
 assert.equal(evidence.generationConfig.useChatTemplate, false);
 assert.equal(
   evidence.generationConfigHash,
@@ -395,3 +403,23 @@ await assert.rejects(streamHandle.inspect.generate('test', {
 }), /Observer failure/);
 assert.doesNotThrow(() => emitToken(999, ''), 'Failed runs close their event stream');
 console.log('doppler-generation-evidence inspection streaming: ok');
+
+{
+  let executed;
+  const model = createModelHandle({
+    ...pipeline,
+    async generateTokenIds(_prompt, options) {
+      executed = options;
+      assert.equal(Object.isFrozen(options), true);
+      assert.equal(Object.isFrozen(options.suppressTokenIds), true);
+      return { tokenIds: [101], stats };
+    },
+  }, { modelId: 'request-parity', manifestHash: 'a'.repeat(64) });
+  const zero = await model.generateWithEvidence('request', { presencePenalty: 0 });
+  const changed = await model.generateWithEvidence('request', { presencePenalty: 0.75 });
+  assert.equal(executed.presencePenalty, 0.75);
+  for (const key of Object.keys(runtimeConfig.inference.sampling)) {
+    assert.deepEqual(changed.generationConfig[key], executed[key], `evidence records executed ${key}`);
+  }
+  assert.notEqual(zero.generationConfigHash, changed.generationConfigHash);
+}

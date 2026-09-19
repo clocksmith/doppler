@@ -68,7 +68,7 @@ interface BufferMetadata {
  * Buffer Pool for efficient GPU memory reuse
  */
 export declare class BufferPool {
-  constructor(debugMode?: boolean, schemaConfig?: BufferPoolConfigSchema);
+  constructor(debugMode?: boolean, schemaConfig?: BufferPoolConfigSchema, device?: GPUDevice | null);
 
   /**
    * Get or create a buffer of the specified size
@@ -168,12 +168,12 @@ export declare class BufferPool {
  * Get the global buffer pool for the current device epoch.
  * If the active device has changed or was lost, a fresh global pool is created.
  */
-export function getBufferPool(): BufferPool;
+export function getBufferPool(device?: GPUDevice | null): BufferPool;
 
 /**
  * Destroy the global buffer pool
  */
-export function destroyBufferPool(): void;
+export function destroyBufferPool(device?: GPUDevice | null): void;
 
 // Convenience exports for common operations
 export declare const createStagingBuffer: (size: number) => GPUBuffer;

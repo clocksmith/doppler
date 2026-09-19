@@ -3,3 +3,4 @@ export { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validat
 export type { GenerationInput, GenerationOptions, ResolvedGenerationOptions, GenerationOutput, GenerationCompletion } from '../config/generation-contract.js';
 export type { DopplerCapsuleOpenOptions } from './runtime/index.js';
 export type { DopplerRuntimeSession } from './runtime/composition-root.js';
+export { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from './runtime/capsule-operation-stream.js';

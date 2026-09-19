@@ -1,4 +1,5 @@
 import { BaseTokenizer } from './base.js';
+import { createBundledIncrementalDecoder } from './bundled/incremental-decoder.js';
 import { log } from '../../debug/index.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { inferBundledTokenizerBehaviorFlags } from './behavior-flags.js';
@@ -101,7 +102,6 @@ export class TransformersTokenizer extends BaseTokenizer {
     this.#modelId = config.modelId;
   }
 
-  
   setTokenizer(tokenizer) {
     this.#tokenizer = tokenizer;
     if (tokenizer.model?.vocab) {
@@ -109,7 +109,6 @@ export class TransformersTokenizer extends BaseTokenizer {
     }
   }
 
-  
   async load(_modelId) {
     // DOPPLER uses bundled tokenizers only - no external CDN dependencies
     throw new Error(
@@ -119,7 +118,6 @@ export class TransformersTokenizer extends BaseTokenizer {
     );
   }
 
-  
   encode(text) {
     if (!this.#tokenizer) {
       throw new Error('Tokenizer not initialized');
@@ -132,7 +130,6 @@ export class TransformersTokenizer extends BaseTokenizer {
     return Array.from(result);
   }
 
-  
   decode(ids, skipSpecialTokens = true, trim = true) {
     if (!this.#tokenizer) {
       throw new Error('Tokenizer not initialized');
@@ -142,7 +139,6 @@ export class TransformersTokenizer extends BaseTokenizer {
     return trim ? result.trim() : result;
   }
 
-  
   batchEncode(texts) {
     return texts.map(t => this.encode(t));
   }
@@ -155,31 +151,18 @@ export class TransformersTokenizer extends BaseTokenizer {
 
 
 export class BundledTokenizer extends BaseTokenizer {
-  
   #vocab = new Map();
-  
   #reverseVocab = new Map();
-  
   #merges = [];
-  
   #mergeRanks = new Map();
-  
   #scores = [];
-  
   #tokenTypes = [];
-  
   #type = null;
-  
   #byteTokens = new Map();
-  
   #specialTokenPatterns = [];
-  
   #specialTokenIds = new Set();
-  
   #addSpacePrefix = true;
-  
   #spacePrefixChar = '▁';
-  
   #byteDecoder = null;
 
   #byteEncoder = null;
@@ -194,7 +177,6 @@ export class BundledTokenizer extends BaseTokenizer {
 
   #wordPieceMaxChars = 100;
 
-  
   constructor(config = {}) {
     // BundledTokenizer gets vocabSize from load(), so defer validation
     super({
@@ -225,7 +207,6 @@ export class BundledTokenizer extends BaseTokenizer {
     this.vocabSize = 0;
   }
 
-  
   isSpecialToken(tokenId) {
     if (this.#specialTokenIds.size > 0) {
       return this.#specialTokenIds.has(tokenId);
@@ -233,7 +214,6 @@ export class BundledTokenizer extends BaseTokenizer {
     return super.isSpecialToken(tokenId);
   }
 
-  
   #getUnkTokenId() {
     if (this.specialTokens.unk == null) {
       throw new Error('[Tokenizer] Missing unk token in tokenizer metadata.');
@@ -253,7 +233,6 @@ export class BundledTokenizer extends BaseTokenizer {
     }
   }
 
-  
   #loadHuggingFaceFormat(hf) {
     const model = hf.model;
     if (typeof model.type !== 'string') {
@@ -451,7 +430,6 @@ export class BundledTokenizer extends BaseTokenizer {
     }
   }
 
-  
   #loadBundledFormat(tokenizerJson) {
     if (typeof tokenizerJson.type !== 'string') {
       throw new Error('[Tokenizer] Missing tokenizer.type in bundled tokenizer JSON.');
@@ -596,13 +574,11 @@ export class BundledTokenizer extends BaseTokenizer {
     log.info('Tokenizer', `Loaded ${this.vocabSize} tokens (${this.#type})`);
   }
 
-  
   encode(text) {
     if (this.#vocab.size === 0) {
       throw new Error('BundledTokenizer not loaded');
     }
 
-    
     const ids = [];
 
     if (this.addBosToken) {
@@ -633,20 +609,17 @@ export class BundledTokenizer extends BaseTokenizer {
     return ids;
   }
 
-  
   #splitOnSpecialTokens(text) {
     if (this.#specialTokenPatterns.length === 0) {
       return [{ text, isSpecial: false }];
     }
 
-    
     const segments = [];
     let remaining = text;
 
     while (remaining.length > 0) {
       // Find the EARLIEST special token match
       let earliestIdx = Infinity;
-      
       let earliestToken = null;
 
       for (const { content, id } of this.#specialTokenPatterns) {
@@ -678,7 +651,6 @@ export class BundledTokenizer extends BaseTokenizer {
     return segments;
   }
 
-  
   #encodeUnigram(text) {
     if (text.length === 0) return [];
 
@@ -698,7 +670,6 @@ export class BundledTokenizer extends BaseTokenizer {
     if (n === 0) return [];
 
     // Viterbi: best[i] = {score, prev, tokenLen} for position i
-    
     const best = new Array(n + 1).fill(null);
     best[0] = { score: 0, prev: -1, tokenLen: 0 };
 
@@ -728,7 +699,6 @@ export class BundledTokenizer extends BaseTokenizer {
     }
 
     // Backtrack to get tokens
-    
     const tokens = [];
     let pos = n;
     while (pos > 0) {
@@ -749,7 +719,6 @@ export class BundledTokenizer extends BaseTokenizer {
     return tokens.reverse();
   }
 
-  
   #encodeBPE(text) {
     if (text.length === 0) return [];
 
@@ -839,9 +808,7 @@ export class BundledTokenizer extends BaseTokenizer {
     return pretokens.length > 0 ? pretokens : [text];
   }
 
-  
   #encodeBPEGreedy(text) {
-    
     const ids = [];
     let pos = 0;
 
@@ -882,7 +849,6 @@ export class BundledTokenizer extends BaseTokenizer {
     return ids;
   }
 
-  
   #bpeTokenize(text) {
     if (text.length === 0) return [];
 
@@ -891,7 +857,6 @@ export class BundledTokenizer extends BaseTokenizer {
 
     while (tokens.length > 1) {
       let minRank = Infinity;
-      
       let minPair = null;
 
       for (let i = 0; i < tokens.length - 1; i++) {
@@ -906,7 +871,6 @@ export class BundledTokenizer extends BaseTokenizer {
       if (!minPair) break;
 
       const [first, second] = minPair.split(' ');
-      
       const newTokens = [];
       let i = 0;
       while (i < tokens.length) {
@@ -924,13 +888,23 @@ export class BundledTokenizer extends BaseTokenizer {
     return tokens;
   }
 
-  
+  createIncrementalDecoder() {
+    if (this.#vocab.size === 0) throw new Error('BundledTokenizer not loaded');
+    return createBundledIncrementalDecoder({
+      tokenForId: id => this.isSpecialToken(id) ? undefined : this.#reverseVocab.get(id),
+      byteLevel: this.#type === 'bpe' && this.#useByteLevelEncoding,
+      byteDecoder: this.#byteDecoder,
+      wordPiece: this.#type === 'wordpiece',
+      splitEveryCharacter: this.#splitEveryCharacter,
+      wordPiecePrefix: this.#wordPiecePrefix,
+    });
+  }
+
   decode(ids, skipSpecialTokens = true, trim = true) {
     if (this.#vocab.size === 0) {
       throw new Error('BundledTokenizer not loaded');
     }
 
-    
     const tokens = [];
     for (const id of ids) {
       if (skipSpecialTokens && this.isSpecialToken(id)) {

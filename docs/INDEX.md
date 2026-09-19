@@ -59,6 +59,7 @@ Primary documentation index.
 
 - [API Docs Index](api/index.md) - canonical public API navigation.
 - [Capsule Runtime API](api/root.md) - signed-Capsule application facade.
+- [Incremental Capsule Streams](capsule-streaming.md) - explicit v2 migration, decoding, reconstruction, transport and measurement.
 - [Compatibility API](api/compat.md) - explicit legacy manifest-loading facade.
 - [Advanced Root Exports](api/advanced-root-exports.md) - root-level loaders, adapters, and advanced exports.
 - [Loaders API](api/loaders.md) - explicit loader and manifest/bootstrap helpers.

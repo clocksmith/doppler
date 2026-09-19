@@ -1,4 +1,5 @@
 import { resolveGenerationOptions, validateGenerationInput } from '../../config/generation-contract.js';
+import { resolveCapsuleStreamFormat } from '../../config/capsule-operation.js';
 
 const text = (value) => typeof value === 'string' && value.trim().length > 0;
 const texts = (value) => Array.isArray(value) && value.length > 0 && value.every(text);
@@ -11,18 +12,36 @@ export function createCapsuleOperationAdapters({ program, generate, rerank, embe
         validateGenerationInput(input);
         resolveGenerationOptions(options);
       },
-      async *execute({ input, options }, signal) {
+      async *execute({ schema, input, options }, signal) {
+        const incremental = resolveCapsuleStreamFormat(schema).incremental;
+        if (incremental && typeof program.createIncrementalDecoder !== 'function') {
+          throw new Error('Operation request v2 requires a program with incremental tokenizer decoding.');
+        }
+        const decoder = incremental ? program.createIncrementalDecoder() : null;
         const tokenIds = [];
-        const iterator = generate({ ...input, ...options, signal });
+        const textParts = [];
+        const iterator = generate({ ...input, ...options, signal }, { incremental });
         try {
           while (true) {
             const next = await iterator.next();
-            if (next.done) return { text: program.decodeTokens(tokenIds), tokenIds, ...next.value };
+            if (next.done) {
+              if (decoder) {
+                const text = decoder.finish();
+                if (text) { textParts.push(text); yield { delta: { tokenIds: [], text } }; }
+              }
+              return { text: decoder ? textParts.join('') : program.decodeTokens(tokenIds), tokenIds, ...next.value };
+            }
             const tokenId = next.value;
             requireValue(Number.isSafeInteger(tokenId) && tokenId >= 0, 'Invalid generated token ID.');
             tokenIds.push(tokenId);
-            const output = { text: program.decodeTokens(tokenIds), tokenIds: [...tokenIds] };
-            yield { delta: { tokenId }, output };
+            if (decoder) {
+              const text = decoder.push(tokenId);
+              if (text) textParts.push(text);
+              yield { delta: { tokenIds: [tokenId], text } };
+            } else {
+              const output = { text: program.decodeTokens(tokenIds), tokenIds: [...tokenIds] };
+              yield { delta: { tokenId }, output };
+            }
           }
         } finally { await iterator.return?.(); }
       },
@@ -32,7 +51,8 @@ export function createCapsuleOperationAdapters({ program, generate, rerank, embe
         requireValue(texts(input.texts), 'embed requires a non-empty texts array.');
         requireValue(input.application && typeof input.application === 'object', 'embed requires its signed application binding.');
       },
-      async *execute({ input, options }, signal) {
+      async *execute({ schema, input, options }, signal) {
+        const incremental = resolveCapsuleStreamFormat(schema).incremental;
         const embeddings = [];
         for (const value of input.texts) {
           signal.throwIfAborted();
@@ -42,7 +62,8 @@ export function createCapsuleOperationAdapters({ program, generate, rerank, embe
           requireValue(!embeddings.length || result.embedding.length === embeddings[0].embedding.length, 'Capsule embed returned inconsistent vector dimensions.');
           embeddings.push(result);
           // A completed batch item is partial job output, never acceptance.
-          yield { delta: { itemIndex: embeddings.length - 1 }, output: { embeddings: [...embeddings] } };
+          yield incremental ? { delta: { itemIndex: embeddings.length - 1, item: result } }
+            : { delta: { itemIndex: embeddings.length - 1 }, output: { embeddings: [...embeddings] } };
         }
         return { embeddings };
       },

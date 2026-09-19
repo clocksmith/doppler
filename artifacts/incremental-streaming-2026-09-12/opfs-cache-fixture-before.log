@@ -1,0 +1,24 @@
+[89.6ms][OPFSCache] Cache validation failed (network unavailable); refusing cached model "opfs-cache-contract-model"
+[117.6ms][OPFSCache] Cache integrity failed for "opfs-cache-contract-model"; metadata-only refresh refused
+[117.8ms][OPFSCache] Cache stale: "opfs-cache-contract-model" manifest/shards changed; deleting old version and re-importing
+[117.9ms][OPFSCache] Deleted stale OPFS cache for "opfs-cache-contract-model"
+[118.7ms][Downloader] IndexedDB unavailable, download resume will not work
+[119.0ms][OPFSCache] Import failed: Insufficient storage: need 1 B, have 0 B
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+false !== true
+
+    at file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/integration/opfs-cache-contract.test.js:144:10 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

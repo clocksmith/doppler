@@ -164,3 +164,12 @@ export function loadAuxText(filename: string): Promise<string | null>;
 export function deleteFileFromStore(filename: string): Promise<boolean>;
 
 export function cleanup(): Promise<void>;
+export function openModelReadSession(modelId?: string): Promise<import('./model-read-session.js').ModelReadSession>;
+export type ModelStoreSession = Pick<typeof import('./shard-manager.js'),
+  'writeShard' | 'createShardWriter' | 'createFileWriter' | 'loadShard' | 'loadShardRange'
+  | 'streamShardRange' | 'shardExists' | 'getShardStoredSize' | 'deleteShard'
+  | 'loadFileFromStore' | 'loadFileRangeFromStore' | 'streamFileFromStore' | 'getFileStoredSize'
+  | 'deleteFileFromStore' | 'saveManifest' | 'loadManifestFromStore' | 'saveTokenizer'
+  | 'saveTokenizerModel' | 'saveAuxFile' | 'loadAuxFile' | 'loadAuxText' | 'listFilesInStore'>
+  & { readonly modelId: string; close(): Promise<void> };
+export function openModelStoreSession(modelId: string, manifest: RDRRManifest): Promise<ModelStoreSession>;

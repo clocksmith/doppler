@@ -6,6 +6,11 @@ import { GENERATION_CONTRACT } from './generation-contract.js';
 export const CAPSULE_OPERATION_REQUEST_SCHEMA = 'doppler.capsule-operation-request/v1';
 export const CAPSULE_OPERATION_RECEIPT_SCHEMA = 'doppler.capsule-operation-receipt/v1';
 export const CAPSULE_OPERATION_EVENT_SCHEMA = 'doppler.capsule-operation-event/v1';
+export const CAPSULE_OPERATION_STREAM_FORMATS = freezeCapsuleV2(catalog.streamFormats);
+export function resolveCapsuleStreamFormat(schema) {
+  if (!Object.hasOwn(CAPSULE_OPERATION_STREAM_FORMATS, schema)) throw new Error('Unsupported Capsule operation request schema.');
+  return CAPSULE_OPERATION_STREAM_FORMATS[schema];
+}
 export const CAPSULE_OPERATIONS = freezeCapsuleV2({ ...catalog.operations, generate: {
   ...catalog.operations.generate,
   inputFields: Object.keys(GENERATION_CONTRACT.input),
@@ -41,7 +46,7 @@ export function assertCapsuleOperationFields(value, fields, label) {
 export function snapshotCapsuleOperationRequest(value) {
   const request = normalizeCapsuleObservation(value);
   assertCapsuleOperationFields(request, ['schema', 'operation', 'input', 'options', 'assignment', 'limits', 'adapterSet'], 'Capsule operation request');
-  if (request.schema !== CAPSULE_OPERATION_REQUEST_SCHEMA) throw new Error('Unsupported Capsule operation request schema.');
+  resolveCapsuleStreamFormat(request.schema);
   assertCapsuleOperationFields(request.operation, ['name', 'version'], 'Capsule operation');
   const definition = CAPSULE_OPERATIONS[request.operation.name];
   if (!Object.hasOwn(CAPSULE_OPERATIONS, request.operation.name) || definition.version !== request.operation.version) {

@@ -79,9 +79,9 @@ export function getTokenizerModelPath(tokenizer) {
 // IndexedDB Operations
 // ============================================================================
 
-export async function fileExistsInStore(path) {
+export async function fileExistsInStore(path, readFile = loadFileFromStore) {
   try {
-    await loadFileFromStore(path);
+    await readFile(path);
     return true;
   } catch (error) {
     const message = String(error?.message || '');

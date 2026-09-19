@@ -2,7 +2,7 @@ import type { CapsuleAdapterArtifactStore, PreparedCapsuleAdapterExecution } fro
 import type { CapsuleOperationRequest } from '../../config/capsule-operation.js';
 import type { CapsuleOperationAdapter } from './capsule-operation-adapters.js';
 export interface CapsuleOperationEvent {
-  schema: 'doppler.capsule-operation-event/v1';
+  schema: 'doppler.capsule-operation-event/v1' | 'doppler.capsule-operation-event/v2';
   operation: CapsuleOperationRequest['operation'];
   requestHash: string;
   assignmentHash: string | null;
@@ -11,7 +11,7 @@ export interface CapsuleOperationEvent {
   eventDigest: string;
   status: 'partial' | 'completed';
   delta?: unknown;
-  output: unknown;
+  output?: unknown;
   receipt?: Record<string, unknown>;
 }
 export function createCapsuleOperationExecutor(ports: {

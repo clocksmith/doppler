@@ -1,0 +1,13 @@
+{
+  "schema": "doppler.shared-archive-ci-record/v1",
+  "passed": true,
+  "archiveSha256": "c21230a20471c8beb9fa414a326b7a2da889a4ef9d07c13f3f23e8db9a1ca962",
+  "localAndRemoteTarballsIdentical": true,
+  "sourceRevision": "68c7883404cce93c85854acbf47cfa466b24bd1a",
+  "ciFixtureRevision": "179ddd0ff8caccfb12fed810a725b2e0340185b6",
+  "reploidRevision": "2aac9a2d5595b79ba0e03a16b12f5c1646c549eb",
+  "runUrl": "https://github.com/clocksmith/doppler/actions/runs/34738987245",
+  "artifactId": 10311957186,
+  "artifactZipSha256": "75c003f3aedaddaac346169b35151aba5f55022f66d64c37c547cf8c31f353ec",
+  "scope": "Installed standalone and Reploid contracts; public Reploid transport, actual WebRTC and native journal replay. Injected model programs. Doppler tarball is identical to the physical candidate; physical receipts retain their original Reploid source scope."
+}

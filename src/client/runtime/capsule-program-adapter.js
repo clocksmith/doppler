@@ -1,3 +1,4 @@
+import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
 import { observeInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
 
@@ -10,19 +11,9 @@ function arraysEqual(left, right) {
 
 function toPipelineOptions(options, signal) {
   return {
-    maxTokens: options.maxTokens,
-    maxSeqLen: options.maxSeqLen,
-    temperature: options.temperature,
-    topP: options.topP,
-    topK: options.topK,
-    repetitionPenalty: options.repetitionPenalty,
-    presencePenalty: options.presencePenalty,
-    repetitionPenaltyWindow: options.repetitionPenaltyWindow,
-    ...(Number.isFinite(options.seed) ? { seed: options.seed } : {}),
-    suppressSpecialTokens: options.suppressSpecialTokens,
-    suppressSpecialLikeTokens: options.suppressSpecialLikeTokens,
-    suppressTokenIds: options.suppressTokenIds,
-    stopSequences: options.stopSequences,
+    ...Object.fromEntries(Object.keys(GENERATION_CONTRACT.options)
+      .filter(key => options[key] !== undefined).map(key => [key, options[key]])),
+    // The prompt has already been prepared by the session controller.
     useChatTemplate: false,
     signal,
   };
@@ -66,6 +57,10 @@ export function createCapsuleProgramAdapter(modelHandle, capsule, targetPlan) {
 
     tokenize(prompt, options = {}) {
       return modelHandle.advanced.tokenizePrompt(prompt, options);
+    },
+
+    createIncrementalDecoder() {
+      return modelHandle.advanced.createIncrementalDecoder();
     },
 
     decodeTokens(tokenIds) {

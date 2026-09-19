@@ -1,0 +1,28 @@
+
+Running 13 tests using 1 worker
+
+[1A[2K(node:1557575) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:1557575) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:26:1 › verified adapter bytes survive browser replacement with the supplier unavailable
+[1A[2K[2/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:50:65 › reviewed public task uses room discovery and WebRTC while private retrieval stays local (doppler.pack/v2)
+[1A[2K[3/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:50:65 › reviewed public task uses room discovery and WebRTC while private retrieval stays local (doppler.capsule/v2)
+[1A[2K[4/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:114:1 › common operations cross real WebRTC between browser contexts, with bounded large-message framing
+[1A[2K[5/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:151:1 › Verification Worker accepts complete-job modules and modified execution boundaries
+[1A[2K[6/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:175:1 › durable provider responses survive a complete browser-process replacement
+[1A[2K[7/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:252:1 › native attempt claims fence concurrent writers and enforce retention limits
+[1A[2K[8/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:290:1 › native attempt states bind numbered requests and retain expiry before cleanup
+[1A[2K[9/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:331:1 › legacy unfinished records migrate as interrupted and never become runnable
+[1A[2K[10/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:358:1 › a stalled native transaction aborts within configured storage bounds
+[1A[2K[11/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:383:1 › a replacement provider prevents the still-running writer from publishing completion
+[1A[2K[12/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:411:1 › a corrupted durable response cannot enter provider replay even after another delivery
+[1A[2K[13/13] [chromium] › tests/e2e/peer-pack-jobs.spec.js:455:1 › journal delta appends transfer approximately linear bytes
+[1A[2K[chromium] › tests/e2e/peer-pack-jobs.spec.js:455:1 › journal delta appends transfer approximately linear bytes
+{"journalCopyVolume":[{"count":64,"writes":99991,"reads":56532},{"count":128,"writes":200172,"reads":113200},{"count":256,"writes":400858,"reads":226717}]}
+
+[1A[2K  13 passed (35.8s)

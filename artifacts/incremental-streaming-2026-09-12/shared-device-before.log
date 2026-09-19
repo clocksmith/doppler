@@ -1,0 +1,102 @@
+TAP version 13
+# Subtest: closing a session waits for its pending readback and preserves another session on the same device
+ok 1 - closing a session waits for its pending readback and preserves another session on the same device
+  ---
+  duration_ms: 33.168628
+  type: 'test'
+  ...
+# Subtest: device loss during readback prevents token delivery and invalidates both sessions
+not ok 2 - device loss during readback prevents token delivery and invalidates both sessions
+  ---
+  duration_ms: 9.061116
+  type: 'test'
+  location: '/home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:66:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'DOPPLER_GPU_DEVICE_LOST'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:74:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: device loss while a program is being constructed rejects opening and closes the late program
+not ok 3 - device loss while a program is being constructed rejects opening and closes the late program
+  ---
+  duration_ms: 5.582704
+  type: 'test'
+  location: '/home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:80:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'DOPPLER_GPU_DEVICE_LOST'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:86:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: failed buffer replacement cannot resurrect the released slot
+not ok 4 - failed buffer replacement cannot resurrect the released slot
+  ---
+  duration_ms: 0.595752
+  type: 'test'
+  location: '/home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:91:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    cannot write a released buffer
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    Object.writeBuffer (file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:20:46)
+    Object.writeSlot (file:///home/x/deco/worktrees/doppler-consumer-streaming/src/client/runtime/resource-binder.js:114:20)
+    TestContext.<anonymous> (file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:97:39)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a failed program-slot release still cleans other slots and closes the program
+not ok 5 - a failed program-slot release still cleans other slots and closes the program
+  ---
+  duration_ms: 0.278525
+  type: 'test'
+  location: '/home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:100:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/x/deco/worktrees/doppler-consumer-streaming/tests/runtime/capsule-shared-device.test.js:109:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 1
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54.480707

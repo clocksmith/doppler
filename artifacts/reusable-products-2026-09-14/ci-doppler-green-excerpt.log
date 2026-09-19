@@ -1,0 +1,647 @@
+8:45.7386848Z # tests 1
+2026-09-14T21:18:45.7387169Z # suites 0
+2026-09-14T21:18:45.7387501Z # pass 1
+2026-09-14T21:18:45.7387829Z # fail 0
+2026-09-14T21:18:46.6606531Z # inspect-prefill-logits-receipt.test: ok
+2026-09-14T21:18:46.6606975Z # Subtest: test module initialization completed
+2026-09-14T21:18:46.6607390Z ok 1 - test module initialization completed
+2026-09-14T21:18:46.6607686Z   ---
+2026-09-14T21:18:46.6608496Z   type: 'test'
+2026-09-14T21:18:46.6608699Z   ...
+2026-09-14T21:18:46.6617980Z 1..1
+2026-09-14T21:18:46.6618362Z # tests 1
+2026-09-14T21:18:46.7856512Z # Subtest: test module initialization completed
+2026-09-14T21:18:46.7856926Z ok 1 - test module initialization completed
+2026-09-14T21:18:46.7857223Z   ---
+2026-09-14T21:18:46.7857443Z   duration_ms: 0.901964
+2026-09-14T21:18:46.7858056Z 1..1
+2026-09-14T21:18:46.7858269Z # tests 1
+2026-09-14T21:18:46.7858467Z # suites 0
+2026-09-14T21:18:46.7858661Z # pass 1
+2026-09-14T21:18:47.2116460Z # duration_ms 175.622177
+2026-09-14T21:18:47.2116908Z [node-tests] ok: tests/tooling/litert-package-runtime.test.js
+2026-09-14T21:18:47.4857415Z TAP version 13
+2026-09-14T21:18:47.4858027Z # materialize-source-manifest.test: ok
+2026-09-14T21:18:47.4859250Z   ---
+2026-09-14T21:18:47.4859459Z   duration_ms: 1.07697
+2026-09-14T21:18:47.4859690Z   type: 'test'
+2026-09-14T21:18:47.4859895Z   ...
+2026-09-14T21:18:47.4860075Z 1..1
+2026-09-14T21:18:47.6712460Z # todo 0
+2026-09-14T21:18:47.6712698Z # duration_ms 122.32674
+2026-09-14T21:18:47.6713079Z [node-tests] ok: tests/tooling/model-family-intake.test.js
+2026-09-14T21:18:47.9439885Z TAP version 13
+2026-09-14T21:18:47.9440953Z # Subtest: test module initialization completed
+2026-09-14T21:18:47.9441369Z ok 1 - test module initialization completed
+2026-09-14T21:18:47.9441680Z   ---
+2026-09-14T21:18:47.9441888Z   duration_ms: 0.929105
+2026-09-14T21:18:47.9443388Z # pass 1
+2026-09-14T21:18:47.9443569Z # fail 0
+2026-09-14T21:18:47.9443759Z # cancelled 0
+2026-09-14T21:18:47.9443963Z # skipped 0
+2026-09-14T21:18:50.9006746Z # todo 0
+2026-09-14T21:18:50.9006959Z # duration_ms 878.256333
+2026-09-14T21:18:50.9007344Z [node-tests] ok: tests/tooling/node-source-runtime.test.js
+2026-09-14T21:18:52.7567073Z TAP version 13
+2026-09-14T21:18:52.7568633Z # [node-tests] script: second
+2026-09-14T21:18:52.7569121Z # [node-tests] script: second
+2026-09-14T21:18:52.7569651Z # [node-tests] script: first
+2026-09-14T21:18:52.7570184Z # [node-tests] script: complex
+2026-09-14T21:18:52.7570676Z # [node-tests] script: hooked
+2026-09-14T21:18:52.7574934Z # [node-tests] script: environment
+2026-09-14T21:18:52.7575469Z # [node-tests] script: assignment
+2026-09-14T21:18:52.7575987Z # node-test-discovery.test: ok
+2026-09-14T21:18:52.7576589Z # Subtest: test module initialization completed
+2026-09-14T21:18:52.7580462Z # todo 0
+2026-09-14T21:18:52.7580671Z # duration_ms 1793.694735
+2026-09-14T21:18:52.7581050Z [node-tests] ok: tests/tooling/node-test-discovery.test.js
+2026-09-14T21:18:53.1222480Z TAP version 13
+2026-09-14T21:18:53.4383342Z   type: 'test'
+2026-09-14T21:18:53.4383692Z   ...
+2026-09-14T21:18:53.4384011Z 1..1
+2026-09-14T21:18:53.4384326Z # tests 1
+2026-09-14T21:18:53.9956567Z   type: 'test'
+2026-09-14T21:18:53.9956915Z   ...
+2026-09-14T21:18:53.9957236Z 1..1
+2026-09-14T21:18:53.9957566Z # tests 1
+2026-09-14T21:18:53.9960023Z # duration_ms 363.2852
+2026-09-14T21:18:53.9960697Z [node-tests] ok: tests/tooling/product-readiness-report.test.js
+2026-09-14T21:18:54.3785619Z TAP version 13
+2026-09-14T21:18:54.3786129Z # production-release.test: ok
+2026-09-14T21:18:54.3788090Z   ---
+2026-09-14T21:18:54.3788483Z   duration_ms: 1.326937
+2026-09-14T21:18:54.3788934Z   type: 'test'
+2026-09-14T21:18:54.3789283Z   ...
+2026-09-14T21:18:54.6887249Z # program-bundle-exporter.test: ok
+2026-09-14T21:18:54.6887693Z # Subtest: test module initialization completed
+2026-09-14T21:18:54.6888098Z ok 1 - test module initialization completed
+2026-09-14T21:18:54.6888400Z   ---
+2026-09-14T21:18:57.2389855Z # duration_ms 573.914578
+2026-09-14T21:18:57.2390269Z [node-tests] ok: tests/tooling/qualify-sequence-capsule.test.js
+2026-09-14T21:18:57.3692344Z TAP version 13
+2026-09-14T21:18:57.3692949Z # quickstart-registry-sync-contract.test: ok
+2026-09-14T21:18:57.3693402Z # Subtest: test module initialization completed
+2026-09-14T21:18:57.3693853Z ok 1 - test module initialization completed
+2026-09-14T21:18:57.3694156Z   ---
+2026-09-14T21:18:57.3694365Z   duration_ms: 1.014233
+2026-09-14T21:18:57.3694593Z   type: 'test'
+2026-09-14T21:18:57.3694796Z   ...
+2026-09-14T21:18:57.3694973Z 1..1
+2026-09-14T21:18:57.3695152Z # tests 1
+2026-09-14T21:18:57.3695336Z # suites 0
+2026-09-14T21:18:57.3695527Z # pass 1
+2026-09-14T21:18:57.3695711Z # fail 0
+2026-09-14T21:18:57.3695901Z # cancelled 0
+2026-09-14T21:18:57.3696104Z # skipped 0
+2026-09-14T21:18:57.3696291Z # todo 0
+2026-09-14T21:18:57.3696500Z # duration_ms 68.117297
+2026-09-14T21:18:57.3696986Z [node-tests] ok: tests/tooling/quickstart-registry-sync-contract.test.js
+2026-09-14T21:18:57.9232577Z TAP version 13
+2026-09-14T21:18:57.9233217Z # rdrr-integrity-refresh.test: ok
+2026-09-14T21:18:57.9236626Z   ...
+2026-09-14T21:18:57.9236938Z 1..1
+2026-09-14T21:18:57.9237257Z # tests 1
+2026-09-14T21:18:57.9237584Z # suites 0
+2026-09-14T21:18:58.1486680Z ok 1 - test module initialization completed
+2026-09-14T21:18:58.1486970Z   ---
+2026-09-14T21:18:58.1487183Z   duration_ms: 0.96911
+2026-09-14T21:18:58.1487415Z   type: 'test'
+2026-09-14T21:18:58.1487613Z   ...
+2026-09-14T21:18:58.6468764Z ok 1 - test module initialization completed
+2026-09-14T21:18:58.6469068Z   ---
+2026-09-14T21:18:58.6469273Z   duration_ms: 1.016227
+2026-09-14T21:18:58.6469500Z   type: 'test'
+2026-09-14T21:18:58.6469698Z   ...
+2026-09-14T21:18:58.6469887Z 1..1
+2026-09-14T21:18:58.6470070Z # tests 1
+2026-09-14T21:18:58.6470255Z # suites 0
+2026-09-14T21:18:58.6471232Z # todo 0
+2026-09-14T21:18:58.6471442Z # duration_ms 169.331072
+2026-09-14T21:18:58.6471871Z [node-tests] ok: tests/tooling/record-provider-conformance.test.js
+2026-09-14T21:18:58.9253144Z TAP version 13
+2026-09-14T21:18:58.9256337Z # suites 0
+2026-09-14T21:18:58.9256693Z # pass 1
+2026-09-14T21:18:58.9257070Z # fail 0
+2026-09-14T21:18:58.9257300Z # cancelled 0
+2026-09-14T21:18:59.4568743Z # skipped 0
+2026-09-14T21:18:59.4569103Z # todo 0
+2026-09-14T21:18:59.4576746Z # duration_ms 217.871911
+2026-09-14T21:18:59.4577324Z [node-tests] ok: tests/tooling/record-signed-revocation-authority-evaluation.test.js
+2026-09-14T21:19:00.4277054Z   ---
+2026-09-14T21:19:00.4277265Z   duration_ms: 0.904469
+2026-09-14T21:19:00.4277512Z   type: 'test'
+2026-09-14T21:19:00.4277718Z   ...
+2026-09-14T21:19:00.4278506Z # pass 1
+2026-09-14T21:19:00.4278692Z # fail 0
+2026-09-14T21:19:00.4278891Z # cancelled 0
+2026-09-14T21:19:00.4279089Z # skipped 0
+2026-09-14T21:19:02.0398402Z ok 1 - test module initialization completed
+2026-09-14T21:19:02.0398699Z   ---
+2026-09-14T21:19:02.0398908Z   duration_ms: 1.077862
+2026-09-14T21:19:02.0399152Z   type: 'test'
+2026-09-14T21:19:02.0401861Z [node-tests] ok: tests/tooling/reranker-kernel-closure.test.js
+2026-09-14T21:19:02.1666469Z TAP version 13
+2026-09-14T21:19:02.1667186Z # reranker lifecycle observation preserves submissions, records ignored aborts and restores hooks on failure
+2026-09-14T21:19:02.1667850Z # Subtest: test module initialization completed
+2026-09-14T21:19:02.1668790Z   duration_ms: 1.043338
+2026-09-14T21:19:02.1669024Z   type: 'test'
+2026-09-14T21:19:02.1669230Z   ...
+2026-09-14T21:19:02.1669410Z 1..1
+2026-09-14T21:19:02.1669591Z # tests 1
+2026-09-14T21:19:02.1669776Z # suites 0
+2026-09-14T21:19:02.1669968Z # pass 1
+2026-09-14T21:19:02.1670151Z # fail 0
+2026-09-14T21:19:02.1670340Z # cancelled 0
+2026-09-14T21:19:02.6635383Z # reranker-reference-schedule.test: ok
+2026-09-14T21:19:02.6636169Z # Subtest: test module initialization completed
+2026-09-14T21:19:02.6637006Z ok 1 - test module initialization completed
+2026-09-14T21:19:02.6637615Z   ---
+2026-09-14T21:19:02.6638901Z   ...
+2026-09-14T21:19:02.6639269Z 1..1
+2026-09-14T21:19:02.6639641Z # tests 1
+2026-09-14T21:19:02.6639990Z # suites 0
+2026-09-14T21:19:03.0836637Z # todo 0
+2026-09-14T21:19:03.0836990Z # duration_ms 356.694901
+2026-09-14T21:19:03.0837707Z [node-tests] ok: tests/tooling/restore-capsule-baseline.test.js
+2026-09-14T21:19:03.2206255Z TAP version 13
+2026-09-14T21:19:04.3239009Z # runtime-optimization.test: ok
+2026-09-14T21:19:04.3239691Z # Subtest: test module initialization completed
+2026-09-14T21:19:04.3240412Z ok 1 - test module initialization completed
+2026-09-14T21:19:04.3240917Z   ---
+2026-09-14T21:19:04.3241276Z   duration_ms: 1.020034
+2026-09-14T21:19:04.3241690Z   type: 'test'
+2026-09-14T21:19:04.3242040Z   ...
+2026-09-14T21:19:04.3242597Z 1..1
+2026-09-14T21:19:04.6511504Z   ...
+2026-09-14T21:19:04.6511692Z 1..1
+2026-09-14T21:19:04.6511873Z # tests 1
+2026-09-14T21:19:04.6512057Z # suites 0
+2026-09-14T21:19:04.6512502Z # pass 1
+2026-09-14T21:19:04.6512693Z # fail 0
+2026-09-14T21:19:04.6512881Z # cancelled 0
+2026-09-14T21:19:04.6513083Z # skipped 0
+2026-09-14T21:19:05.3626010Z # Subtest: test module initialization completed
+2026-09-14T21:19:05.3626940Z ok 1 - test module initialization completed
+2026-09-14T21:19:05.3627683Z   ---
+2026-09-14T21:19:05.3628049Z   duration_ms: 1.026726
+2026-09-14T21:19:05.4936497Z   type: 'test'
+2026-09-14T21:19:05.4936999Z   ...
+2026-09-14T21:19:05.4937186Z 1..1
+2026-09-14T21:19:05.4937376Z # tests 1
+2026-09-14T21:19:07.7141677Z # suites 0
+2026-09-14T21:19:07.7141869Z # pass 1
+2026-09-14T21:19:07.7142060Z # fail 0
+2026-09-14T21:19:07.7142480Z # cancelled 0
+2026-09-14T21:19:08.7556788Z   ...
+2026-09-14T21:19:08.7556970Z 1..1
+2026-09-14T21:19:08.7557158Z # tests 1
+2026-09-14T21:19:08.7557349Z # suites 0
+2026-09-14T21:19:08.9966610Z # pass 1
+2026-09-14T21:19:08.9966929Z # fail 0
+2026-09-14T21:19:08.9967254Z # cancelled 0
+2026-09-14T21:19:08.9967612Z # skipped 0
+2026-09-14T21:19:08.9968325Z # duration_ms 176.611606
+2026-09-14T21:19:08.9969037Z [node-tests] ok: tests/tooling/source-runtime-bundle.test.js
+2026-09-14T21:19:09.1631564Z TAP version 13
+2026-09-14T21:19:09.1631962Z # source-runtime-converter-config.test: ok
+2026-09-14T21:19:09.8106410Z # source-truth-input-files.test: ok (synthetic source intake, no qualification)
+2026-09-14T21:19:09.8106971Z # Subtest: test module initialization completed
+2026-09-14T21:19:09.8107379Z ok 1 - test module initialization completed
+2026-09-14T21:19:09.8107679Z   ---
+2026-09-14T21:19:10.3375010Z   ...
+2026-09-14T21:19:10.3375369Z 1..1
+2026-09-14T21:19:10.3375747Z # tests 1
+2026-09-14T21:19:10.3376101Z # suites 0
+2026-09-14T21:19:12.0192470Z 1..1
+2026-09-14T21:19:12.0192691Z # tests 1
+2026-09-14T21:19:12.0192883Z # suites 0
+2026-09-14T21:19:12.0193072Z # pass 1
+2026-09-14T21:19:12.0194484Z [node-tests] ok: tests/tooling/trainer-artifact-handoff.test.js
+2026-09-14T21:19:12.1927692Z TAP version 13
+2026-09-14T21:19:12.1928287Z # training-bench-wrapper-contract.test: ok
+2026-09-14T21:19:12.1936503Z # Subtest: test module initialization completed
+2026-09-14T21:19:12.1936965Z ok 1 - test module initialization completed
+2026-09-14T21:19:12.1937279Z   ---
+2026-09-14T21:19:12.1937496Z   duration_ms: 1.096607
+2026-09-14T21:19:12.3386660Z   duration_ms: 0.876447
+2026-09-14T21:19:12.3386900Z   type: 'test'
+2026-09-14T21:19:12.3387099Z   ...
+2026-09-14T21:19:12.3387289Z 1..1
+2026-09-14T21:19:12.7316666Z ok 1 - test module initialization completed
+2026-09-14T21:19:12.7316985Z   ---
+2026-09-14T21:19:12.7317204Z   duration_ms: 1.061312
+2026-09-14T21:19:12.7317459Z   type: 'test'
+2026-09-14T21:19:12.7318246Z # suites 0
+2026-09-14T21:19:12.7318469Z # pass 1
+2026-09-14T21:19:12.7318660Z # fail 0
+2026-09-14T21:19:12.7318897Z # cancelled 0
+2026-09-14T21:19:12.8636505Z 1..1
+2026-09-14T21:19:12.8636695Z # tests 1
+2026-09-14T21:19:12.8636889Z # suites 0
+2026-09-14T21:19:12.8637093Z # pass 1
+2026-09-14T21:19:12.8637482Z # cancelled 0
+2026-09-14T21:19:12.8637693Z # skipped 0
+2026-09-14T21:19:12.8637899Z # todo 0
+2026-09-14T21:19:12.8638432Z # duration_ms 67.586889
+2026-09-14T21:19:12.8638869Z [node-tests] ok: tests/tooling/wgsl-author-execution-plan.test.js
+2026-09-14T21:19:12.9939935Z TAP version 13
+2026-09-14T21:19:12.9940286Z # wgsl-author-package.test: ok
+2026-09-14T21:19:12.9940692Z # Subtest: test module initialization completed
+2026-09-14T21:19:12.9941119Z ok 1 - test module initialization completed
+2026-09-14T21:19:12.9941425Z   ---
+2026-09-14T21:19:13.1539465Z   ---
+2026-09-14T21:19:13.1539694Z   duration_ms: 1.075478
+2026-09-14T21:19:13.1539939Z   type: 'test'
+2026-09-14T21:19:13.1540150Z   ...
+2026-09-14T21:19:13.5826433Z   ...
+2026-09-14T21:19:13.5826944Z 1..1
+2026-09-14T21:19:13.5827137Z # tests 1
+2026-09-14T21:19:13.5827325Z # suites 0
+2026-09-14T21:19:14.1203173Z ok 1 - test module initialization completed
+2026-09-14T21:19:14.1203569Z   ---
+2026-09-14T21:19:14.1203792Z   duration_ms: 1.105374
+2026-09-14T21:19:14.1204034Z   type: 'test'
+2026-09-14T21:19:14.3063464Z TAP version 13
+2026-09-14T21:19:14.3064069Z # attention-backward-gqa.test: ok
+2026-09-14T21:19:14.3064810Z # Subtest: test module initialization completed
+2026-09-14T21:19:14.3065596Z ok 1 - test module initialization completed
+2026-09-14T21:19:14.3068910Z # pass 1
+2026-09-14T21:19:14.3069244Z # fail 0
+2026-09-14T21:19:14.3069604Z # cancelled 0
+2026-09-14T21:19:14.3070012Z # skipped 0
+2026-09-14T21:19:14.3070348Z # todo 0
+2026-09-14T21:19:15.9200326Z # fail 0
+2026-09-14T21:19:15.9200690Z # cancelled 0
+2026-09-14T21:19:15.9201100Z # skipped 0
+2026-09-14T21:19:15.9201467Z # todo 0
+2026-09-14T21:19:16.0500274Z # Subtest: test module initialization completed
+2026-09-14T21:19:16.0500694Z ok 1 - test module initialization completed
+2026-09-14T21:19:16.0500996Z   ---
+2026-09-14T21:19:16.0501208Z   duration_ms: 1.046254
+2026-09-14T21:19:23.9508260Z   ---
+2026-09-14T21:19:23.9508469Z   duration_ms: 1.053607
+2026-09-14T21:19:23.9508707Z   type: 'test'
+2026-09-14T21:19:23.9508906Z   ...
+2026-09-14T21:19:24.2636545Z   duration_ms: 1.062544
+2026-09-14T21:19:24.2636943Z   type: 'test'
+2026-09-14T21:19:24.2637612Z   ...
+2026-09-14T21:19:24.2637945Z 1..1
+2026-09-14T21:19:24.8186792Z 1..1
+2026-09-14T21:19:24.8186977Z # tests 1
+2026-09-14T21:19:24.8187212Z # suites 0
+2026-09-14T21:19:24.8187429Z # pass 1
+2026-09-14T21:19:25.3687713Z # cancelled 0
+2026-09-14T21:19:25.3688069Z # skipped 0
+2026-09-14T21:19:25.3688394Z # todo 0
+2026-09-14T21:19:25.3688738Z # duration_ms 64.640721
+2026-09-14T21:19:25.6726667Z   type: 'test'
+2026-09-14T21:19:25.6726980Z   ...
+2026-09-14T21:19:25.6727271Z 1..1
+2026-09-14T21:19:25.6727583Z # tests 1
+2026-09-14T21:19:25.6729432Z # todo 0
+2026-09-14T21:19:25.6729769Z # duration_ms 240.113644
+2026-09-14T21:19:25.6730181Z [node-tests] ok: tests/training/runner-state-cleanup.test.js
+2026-09-14T21:19:25.9756543Z TAP version 13
+2026-09-14T21:19:25.9760865Z   ...
+2026-09-14T21:19:25.9761169Z 1..1
+2026-09-14T21:19:25.9761473Z # tests 1
+2026-09-14T21:19:25.9761795Z # suites 0
+2026-09-14T21:20:53.4362726Z ok 2 - synthetic teacher receipts enforce admission, balancing and provenance
+2026-09-14T21:20:53.4363169Z   ---
+2026-09-14T21:20:53.4363382Z   duration_ms: 62289.279364
+2026-09-14T21:20:53.4363626Z   type: 'test'
+2026-09-14T21:20:53.4366437Z # pass 2
+2026-09-14T21:20:53.4366913Z # fail 0
+2026-09-14T21:20:53.4367108Z # cancelled 0
+2026-09-14T21:20:53.4367314Z # skipped 1
+2026-09-14T21:20:53.9676453Z # Subtest: test module initialization completed
+2026-09-14T21:20:53.9676904Z ok 1 - test module initialization completed
+2026-09-14T21:20:53.9677259Z   ---
+2026-09-14T21:20:53.9677493Z   duration_ms: 0.954672
+2026-09-14T21:20:54.0989173Z # todo 0
+2026-09-14T21:20:54.0989389Z # duration_ms 67.696591
+2026-09-14T21:20:54.0989796Z [node-tests] ok: tests/training/teacher-trace-dataset.test.js
+2026-09-14T21:20:54.2261008Z TAP version 13
+2026-09-14T21:20:55.3516327Z # duration_ms 87.891139
+2026-09-14T21:20:55.3516994Z [node-tests] ok: tests/training/wgsl-repair-contract.test.js
+2026-09-14T21:20:55.4768926Z TAP version 13
+2026-09-14T21:20:55.4769499Z # wgsl-repair-v10-policy.test: ok
+2026-09-14T21:20:55.4770180Z # Subtest: retained V10 token-budget derivation bytes match their frozen digest
+2026-09-14T21:20:55.4771398Z ok 1 - retained V10 token-budget derivation bytes match their frozen digest # SKIP Local evidence unavailable: reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1/train-anchor.jsonl
+2026-09-14T21:20:55.4774280Z ok 2 - test module initialization completed
+2026-09-14T21:20:55.4774569Z   ---
+2026-09-14T21:20:55.4774768Z   duration_ms: 0.357818
+2026-09-14T21:20:55.4774994Z   type: 'test'
+2026-09-14T21:20:55.4776151Z # fail 0
+2026-09-14T21:20:55.4776369Z # cancelled 0
+2026-09-14T21:20:55.4776632Z # skipped 1
+2026-09-14T21:20:55.4776862Z # todo 0
+2026-09-14T21:20:56.0313531Z # todo 0
+2026-09-14T21:20:56.0313754Z # duration_ms 490.326902
+2026-09-14T21:20:56.0314193Z [node-tests] ok: tests/training/wgsl-repair-v11-policy.test.js
+2026-09-14T21:20:56.1558239Z TAP version 13
+2026-09-14T21:20:56.5779368Z # tests 1
+2026-09-14T21:20:56.5779695Z # suites 0
+2026-09-14T21:20:56.5780025Z # pass 1
+2026-09-14T21:20:56.5780341Z # fail 0
+2026-09-14T21:20:56.7082077Z   ---
+2026-09-14T21:20:56.7082680Z   duration_ms: 0.856692
+2026-09-14T21:20:56.7083087Z   type: 'test'
+2026-09-14T21:20:56.7083438Z   ...
+2026-09-14T21:20:57.0167814Z # todo 0
+2026-09-14T21:20:57.0168029Z # duration_ms 75.969783
+2026-09-14T21:20:57.0168431Z [node-tests] ok: tests/training/wgsl-v12-final-results.test.js
+2026-09-14T21:20:57.1420365Z TAP version 13
+2026-09-14T21:20:57.3964476Z   ...
+2026-09-14T21:20:57.3964694Z 1..2
+2026-09-14T21:20:57.3964908Z # tests 2
+2026-09-14T21:20:57.3965133Z # suites 0
+2026-09-14T21:20:58.1747175Z TAP version 13
+2026-09-14T21:20:58.1747695Z # wgsl-writer-v2-corpus.test: ok
+2026-09-14T21:20:58.1748119Z # Subtest: test module initialization completed
+2026-09-14T21:20:58.1748530Z ok 1 - test module initialization completed
+2026-09-14T21:20:58.3489520Z 1..1
+2026-09-14T21:20:58.3489697Z # tests 1
+2026-09-14T21:20:58.3489905Z # suites 0
+2026-09-14T21:20:58.3490099Z # pass 1
+2026-09-14T21:20:58.4882966Z   ---
+2026-09-14T21:20:58.4883323Z   duration_ms: 1.169863
+2026-09-14T21:20:58.4883736Z   type: 'test'
+2026-09-14T21:20:58.4884082Z   ...
+2026-09-14T21:20:59.0586464Z # Subtest: test module initialization completed
+2026-09-14T21:20:59.0586917Z ok 1 - test module initialization completed
+2026-09-14T21:20:59.0587230Z   ---
+2026-09-14T21:20:59.0587442Z   duration_ms: 1.350982
+2026-09-14T21:20:59.1925613Z # Subtest: WGSL writer V3 confirmation halts before hashing nonfinite evidence
+2026-09-14T21:20:59.1926694Z ok 1 - WGSL writer V3 confirmation halts before hashing nonfinite evidence
+2026-09-14T21:20:59.1927349Z   ---
+2026-09-14T21:20:59.1927691Z   duration_ms: 8.191783
+2026-09-14T21:20:59.1928077Z   type: 'test'
+2026-09-14T21:20:59.1928284Z   ...
+2026-09-14T21:20:59.4166500Z # duration_ms 161.20484
+2026-09-14T21:20:59.4166908Z [node-tests] ok: tests/training/wgsl-writer-v3-contract.test.js
+2026-09-14T21:20:59.5663777Z TAP version 13
+2026-09-14T21:20:59.5664381Z # Subtest: test module initialization completed
+2026-09-14T21:20:59.5668159Z [node-tests] ok: tests/training/wgsl-writer-v3-reconciliation.test.js
+2026-09-14T21:20:59.6983452Z TAP version 13
+2026-09-14T21:20:59.6983768Z # sha256.test: ok
+2026-09-14T21:20:59.6984125Z # Subtest: test module initialization completed
+2026-09-14T21:20:59.6984552Z ok 1 - test module initialization completed
+2026-09-14T21:20:59.6984847Z   ---
+2026-09-14T21:20:59.6985055Z   duration_ms: 1.562387
+2026-09-14T21:20:59.6985285Z   type: 'test'
+2026-09-14T21:20:59.6985486Z   ...
+2026-09-14T21:20:59.6985664Z 1..1
+2026-09-14T21:20:59.6985843Z # tests 1
+2026-09-14T21:20:59.6986034Z # suites 0
+2026-09-14T21:20:59.6986219Z # pass 1
+2026-09-14T21:20:59.6986401Z # fail 0
+2026-09-14T21:20:59.6986588Z # cancelled 0
+2026-09-14T21:20:59.6986790Z # skipped 0
+2026-09-14T21:20:59.6986982Z # todo 0
+2026-09-14T21:20:59.6987188Z # duration_ms 68.254048
+2026-09-14T21:20:59.6987499Z [node-tests] ok: tests/utils/sha256.test.js
+2026-09-14T21:20:59.6987812Z [node-tests] ok: 802 files
+2026-09-14T21:20:59.6988162Z [node-tests] script: capsule-v2:check
+2026-09-14T21:20:59.6988799Z [node-tests] already passed in this check invocation: 36 files
+2026-09-14T21:20:59.6989283Z [node-tests] no matching tests found
+2026-09-14T21:20:59.7177385Z ##[group]Run npm run test:gpu:browser
+2026-09-14T21:20:59.7177727Z npm run test:gpu:browser
+2026-09-14T21:21:07.8968774Z     "workload": "kernels",
+2026-09-14T21:21:07.8969442Z     "intent": "verify",
+2026-09-14T21:21:07.8970106Z     "action": null,
+2026-09-14T21:21:07.8970737Z     "inferenceInput": null,
+2026-09-14T21:21:07.8989061Z     "trainingBenchSteps": null,
+2026-09-14T21:21:07.8989691Z     "checkpointEvery": null,
+2026-09-14T21:21:07.8990348Z     "workloadType": null,
+2026-09-14T21:21:07.8990924Z     "modelUrl": null,
+2026-09-14T21:21:07.8996428Z     "outputDir": null,
+2026-09-14T21:21:07.8996991Z     "convertPayload": null,
+2026-09-14T21:21:07.8997593Z     "workloadPath": null,
+2026-09-14T21:21:07.8998161Z     "runRoot": null,
+2026-09-14T21:21:07.9006439Z     "timestamp": null,
+2026-09-14T21:21:07.9006999Z     "searchParams": null,
+2026-09-14T21:21:07.9007588Z     "baselineProvider": null,
+2026-09-14T21:21:07.9008394Z     "observedProvider": null,
+2026-09-14T21:21:07.9014635Z       {
+2026-09-14T21:21:07.9014969Z         "name": "matmul_f32",
+2026-09-14T21:21:07.9015402Z         "passed": true,
+2026-09-14T21:21:07.9015794Z         "duration": 126
+2026-09-14T21:21:07.9025331Z       {
+2026-09-14T21:21:07.9025698Z         "name": "matmul_f32_unaligned",
+2026-09-14T21:21:07.9026159Z         "passed": true,
+2026-09-14T21:21:07.9026529Z         "duration": 3
+2026-09-14T21:21:07.9029301Z       {
+2026-09-14T21:21:07.9029691Z         "name": "upsample2d_backward",
+2026-09-14T21:21:07.9030154Z         "passed": true,
+2026-09-14T21:21:07.9030517Z         "duration": 19
+2026-09-14T21:21:07.9058864Z       },
+2026-09-14T21:21:07.9059169Z       {
+2026-09-14T21:21:07.9059644Z         "name": "prefix_embedding_override_glmocr_geometry",
+2026-09-14T21:21:07.9060201Z         "passed": true,
+2026-09-14T21:21:07.9068754Z       {
+2026-09-14T21:21:07.9069115Z         "name": "scatter_add",
+2026-09-14T21:21:07.9069514Z         "passed": true,
+2026-09-14T21:21:07.9069870Z         "duration": 17
+2026-09-14T21:21:07.9070293Z       },
+2026-09-14T21:21:07.9070590Z       {
+2026-09-14T21:21:07.9072538Z       {
+2026-09-14T21:21:07.9072869Z         "name": "attention",
+2026-09-14T21:21:07.9073281Z         "passed": true,
+2026-09-14T21:21:07.9073661Z         "duration": 1793
+2026-09-14T21:21:07.9096602Z       {
+2026-09-14T21:21:07.9096903Z         "name": "bias_add",
+2026-09-14T21:21:07.9097298Z         "passed": true,
+2026-09-14T21:21:07.9097665Z         "duration": 16
+2026-09-14T21:21:07.9136770Z       },
+2026-09-14T21:21:07.9136957Z       {
+2026-09-14T21:21:07.9137148Z         "name": "split_qkv",
+2026-09-14T21:21:07.9137501Z         "passed": true,
+2026-09-14T21:21:07.9146472Z         "passed": true,
+2026-09-14T21:21:07.9146946Z         "duration": 18
+2026-09-14T21:21:07.9147384Z       },
+2026-09-14T21:21:07.9147747Z       {
+2026-09-14T21:21:07.9156599Z       },
+2026-09-14T21:21:07.9156920Z       {
+2026-09-14T21:21:07.9157341Z         "name": "fused_matmul_residual",
+2026-09-14T21:21:07.9157892Z         "passed": false,
+2026-09-14T21:21:07.9163242Z         "duration": 166
+2026-09-14T21:21:07.9163694Z       },
+2026-09-14T21:21:07.9177875Z       {
+2026-09-14T21:21:07.9178345Z         "name": "attention_tiered",
+2026-09-14T21:21:07.9186565Z         "passed": false,
+2026-09-14T21:21:07.9186972Z         "skipped": true,
+2026-09-14T21:21:07.9187260Z         "duration": 1
+2026-09-14T21:21:07.9187478Z       },
+2026-09-14T21:21:07.9192948Z         "passed": true,
+2026-09-14T21:21:07.9193169Z         "duration": 7
+2026-09-14T21:21:07.9193381Z       },
+2026-09-14T21:21:07.9193559Z       {
+2026-09-14T21:21:07.9196709Z       "maxWorkgroupStorageSize": 32768,
+2026-09-14T21:21:07.9196993Z       "adapterInfo": {
+2026-09-14T21:21:07.9197223Z         "vendor": "google",
+2026-09-14T21:21:07.9197507Z         "architecture": "swiftshader",
+2026-09-14T21:21:07.9223214Z               "trackAllocations": false,
+2026-09-14T21:21:07.9223693Z               "logExpensiveOps": false,
+2026-09-14T21:21:07.9224013Z               "strictMode": false
+2026-09-14T21:21:07.9224277Z             }
+2026-09-14T21:21:07.9236707Z           },
+2026-09-14T21:21:07.9236905Z           "harness": {
+2026-09-14T21:21:07.9237132Z             "mode": "verify",
+2026-09-14T21:21:07.9237406Z             "workload": "kernels",
+2026-09-14T21:21:07.9240641Z                 "dims": {
+2026-09-14T21:21:07.9240869Z                   "M": 128,
+2026-09-14T21:21:07.9241102Z                   "K": 512,
+2026-09-14T21:21:07.9241338Z                   "H": 1024,
+2026-09-14T21:21:07.9246615Z                 ]
+2026-09-14T21:21:07.9246955Z               },
+2026-09-14T21:21:07.9247165Z               "rbac": {
+2026-09-14T21:21:07.9247418Z                 "enforced": true,
+2026-09-14T21:21:07.9251495Z               ],
+2026-09-14T21:21:07.9251696Z               "gates": {
+2026-09-14T21:21:07.9251970Z                 "schemaValidation": true,
+2026-09-14T21:21:07.9252553Z                 "metadataValidation": true,
+2026-09-14T21:21:07.9255438Z               "ranking": {
+2026-09-14T21:21:07.9255698Z                 "mode": "policy",
+2026-09-14T21:21:07.9255949Z                 "signals": {
+2026-09-14T21:21:07.9256249Z                   "qualityEvidenceWeight": 0.35,
+2026-09-14T21:21:07.9258458Z                 "enabled": true
+2026-09-14T21:21:07.9258698Z               },
+2026-09-14T21:21:07.9258930Z               "recommendations": {
+2026-09-14T21:21:07.9259212Z                 "enabled": true,
+2026-09-14T21:21:07.9263188Z                 "enforced": true,
+2026-09-14T21:21:07.9263469Z                 "signedLinks": true
+2026-09-14T21:21:07.9263723Z               }
+2026-09-14T21:21:07.9263924Z             },
+2026-09-14T21:21:07.9266667Z                 "burstMultiplier": 2
+2026-09-14T21:21:07.9266922Z               },
+2026-09-14T21:21:07.9267126Z               "billing": {
+2026-09-14T21:21:07.9267396Z                 "meteringEnabled": false,
+2026-09-14T21:21:07.9268902Z             },
+2026-09-14T21:21:07.9269122Z             "compliance": {
+2026-09-14T21:21:07.9269385Z               "enabled": false,
+2026-09-14T21:21:07.9269667Z               "auditLog": {
+2026-09-14T21:21:07.9269937Z                 "immutable": true,
+2026-09-14T21:21:07.9270231Z                 "retentionDays": 3650,
+2026-09-14T21:21:07.9270525Z                 "legalHold": true
+2026-09-14T21:21:07.9276719Z               "attestations": {
+2026-09-14T21:21:07.9276984Z                 "required": true,
+2026-09-14T21:21:07.9277235Z                 "formats": [
+2026-09-14T21:21:07.9277481Z                   "slsa-v1"
+2026-09-14T21:21:07.9279404Z             "developerEcosystem": {
+2026-09-14T21:21:07.9279694Z               "enabled": true,
+2026-09-14T21:21:07.9279937Z               "sdks": {
+2026-09-14T21:21:07.9280161Z                 "js": true,
+2026-09-14T21:21:07.9281062Z               },
+2026-09-14T21:21:07.9281269Z               "ciHooks": {
+2026-09-14T21:21:07.9281556Z                 "publishVerifyPromote": true
+2026-09-14T21:21:07.9281841Z               },
+2026-09-14T21:21:07.9296718Z             },
+2026-09-14T21:21:07.9296926Z             "reliability": {
+2026-09-14T21:21:07.9297189Z               "enabled": true,
+2026-09-14T21:21:07.9297436Z               "edgeRelay": {
+2026-09-14T21:21:07.9298459Z               "failover": {
+2026-09-14T21:21:07.9298694Z                 "tiers": [
+2026-09-14T21:21:07.9298927Z                   "peer",
+2026-09-14T21:21:07.9299160Z                   "relay",
+2026-09-14T21:21:07.9316662Z             "fusedMatmul": {
+2026-09-14T21:21:07.9316930Z               "maxMediumN": 4096,
+2026-09-14T21:21:07.9317204Z               "maxMediumK": 8192,
+2026-09-14T21:21:07.9317457Z               "colsPerWg": 4
+2026-09-14T21:21:07.9327332Z               "heapTestSizes": [
+2026-09-14T21:21:07.9327593Z                 17179869184,
+2026-09-14T21:21:07.9327839Z                 8589934592,
+2026-09-14T21:21:07.9328074Z                 4294967296,
+2026-09-14T21:21:07.9330344Z                 536870912,
+2026-09-14T21:21:07.9330569Z                 268435456,
+2026-09-14T21:21:07.9330795Z                 134217728
+2026-09-14T21:21:07.9331021Z               ],
+2026-09-14T21:21:07.9334764Z               "vramBudgetBytes": 4294967296,
+2026-09-14T21:21:07.9334897Z               "ramBudgetBytes": 17179869184
+2026-09-14T21:21:07.9334981Z             }
+2026-09-14T21:21:07.9335070Z           },
+2026-09-14T21:21:07.9336815Z           },
+2026-09-14T21:21:07.9336916Z           "intentBundle": {
+2026-09-14T21:21:07.9337012Z             "enabled": false,
+2026-09-14T21:21:07.9337130Z             "bundleUrl": null,
+2026-09-14T21:21:07.9343609Z             }
+2026-09-14T21:21:07.9343692Z           },
+2026-09-14T21:21:07.9343794Z           "distribution": {
+2026-09-14T21:21:07.9343931Z             "concurrentDownloads": 3,
+2026-09-14T21:21:07.9344550Z             "maxChunkSizeBytes": 8388608,
+2026-09-14T21:21:07.9344669Z             "cdnBasePath": null,
+2026-09-14T21:21:07.9344766Z             "sourceOrder": [
+2026-09-14T21:21:07.9344860Z               "cache",
+2026-09-14T21:21:07.9346884Z                 "onFailure": "terminal"
+2026-09-14T21:21:07.9346972Z               }
+2026-09-14T21:21:07.9347061Z             },
+2026-09-14T21:21:07.9347175Z             "sourceDecision": {
+2026-09-14T21:21:07.9356848Z                 "peerId": null,
+2026-09-14T21:21:07.9356979Z                 "requestTimeoutMs": 2500,
+2026-09-14T21:21:07.9357118Z                 "maxPayloadBytes": 67108864,
+2026-09-14T21:21:07.9357243Z                 "selectPeer": null,
+2026-09-14T21:21:07.9358564Z                 "maxConsecutiveFailures": 3,
+2026-09-14T21:21:07.9358693Z                 "quarantineMs": 30000
+2026-09-14T21:21:07.9358784Z               }
+2026-09-14T21:21:07.9358872Z             },
+2026-09-14T21:21:07.9362596Z             "enabled": true,
+2026-09-14T21:21:07.9362694Z             "layersAhead": 1,
+2026-09-14T21:21:07.9362793Z             "maxShards": 8,
+2026-09-14T21:21:07.9362953Z             "allowRangeLoaderPrefetch": false
+2026-09-14T21:21:07.9366722Z           "tokenizer": {},
+2026-09-14T21:21:07.9366993Z           "largeWeights": {
+2026-09-14T21:21:07.9367099Z             "enabled": true,
+2026-09-14T21:21:07.9367222Z             "safetyRatio": 0.9,
+2026-09-14T21:21:07.9368949Z             "tiering": {
+2026-09-14T21:21:07.9369046Z               "mode": "off",
+2026-09-14T21:21:07.9369159Z               "hotWindow": 1024,
+2026-09-14T21:21:07.9369322Z               "coldPageSize": 256,
+2026-09-14T21:21:07.9369441Z               "coldDtype": "f16",
+2026-09-14T21:21:07.9369553Z               "compression": {
+2026-09-14T21:21:07.9369666Z                 "mode": "none",
+2026-09-14T21:21:07.9369783Z                 "blockSize": 1,
+2026-09-14T21:21:07.9369898Z                 "bitWidth": 4,
+2026-09-14T21:21:07.9370012Z                 "prodMode": false
+2026-09-14T21:21:07.9370103Z               },
+2026-09-14T21:21:07.9370597Z             },
+2026-09-14T21:21:07.9370696Z             "quantization": {
+2026-09-14T21:21:07.9370794Z               "mode": "none",
+2026-09-14T21:21:07.9370895Z               "bitWidth": 4,
+2026-09-14T21:21:07.9371177Z           },
+2026-09-14T21:21:07.9371269Z           "diffusion": {},
+2026-09-14T21:21:07.9371389Z           "diffusionGemma": {},
+2026-09-14T21:21:07.9371484Z           "energy": {},
+2026-09-14T21:21:07.9376815Z             "type": null,
+2026-09-14T21:21:07.9376911Z             "thinking": false
+2026-09-14T21:21:07.9377000Z           },
+2026-09-14T21:21:07.9377096Z           "session": {
+2026-09-14T21:21:07.9386842Z             "hbmBandwidthBytesPerSec": 4800000000000,
+2026-09-14T21:21:07.9386958Z             "fp16Tflops": 1979
+2026-09-14T21:21:07.9387044Z           },
+2026-09-14T21:21:07.9387137Z           "cpuSpec": {
+2026-09-14T21:21:07.9387613Z             "memoryBandwidthBytesPerSec": 546000000000
+2026-09-14T21:21:07.9387693Z           },
+2026-09-14T21:21:07.9387790Z           "topology": {
+2026-09-14T21:21:07.9387885Z             "gpuCount": 1,
+2026-09-14T21:21:14.4346094Z   },
+2026-09-14T21:21:14.4346570Z   "shellManifestDigest": "sha256:2a46919549ec621a520cbadfd7c558fdb6b07716ddb2bef6895b92f779f91266",
+2026-09-14T21:21:14.4347115Z   "fatalConsoleErrors": []
+2026-09-14T21:21:14.4347369Z }
+2026-09-14T21:21:14.4656472Z Post job cleanup.
+2026-09-14T21:21:14.5813164Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-4b5809eba812ae963bfd4c3ab4767baebbb696b7068da7e16c479c67600077ed, not saving cache.
+2026-09-14T21:21:14.5964841Z Post job cleanup.
+2026-09-14T21:21:14.6798004Z [command]/usr/bin/git version
+2026-09-14T21:21:14.6886430Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/doppler/doppler
+2026-09-14T21:21:14.6918089Z Removing SSH command configuration
+2026-09-14T21:21:14.6925089Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-14T21:21:14.6960314Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-14T21:21:14.7215435Z Removing HTTP extra header
+2026-09-14T21:21:14.7220952Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-14T21:21:14.7560140Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-14T21:21:14.7566937Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/doppler/doppler/.git.path
+2026-09-14T21:21:14.7593542Z /home/runner/work/_temp/git-credentials-77604f5a-bb76-48dd-8ab0-a225b4814e33.config
+2026-09-14T21:21:14.7615682Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/doppler/doppler/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-77604f5a\-bb76\-48dd\-8ab0\-a225b4814e33\.config
+2026-09-14T21:21:14.7834904Z /github/runner_temp/git-credentials-77604f5a-bb76-48dd-8ab0-a225b4814e33.config
+2026-09-14T21:21:14.7846951Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-77604f5a\-bb76\-48dd\-8ab0\-a225b4814e33\.config
+2026-09-14T21:21:14.7886705Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-14T21:21:14.7913876Z /github/runner_temp/git-credentials-77604f5a-bb76-48dd-8ab0-a225b4814e33.config

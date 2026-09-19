@@ -1,7 +1,7 @@
 
 
 import { log } from '../../debug/index.js';
-import { getSharedDeviceEpoch } from '../device-state.js';
+import { isDeviceLost, observeDeviceLoss } from '../device-state.js';
 import { getScopedShaderSource } from './shader-source-scope.js';
 
 // ============================================================================
@@ -14,7 +14,8 @@ const MAX_SHADER_MODULE_CACHE_SIZE = 256;
 // Map maintains insertion order; eviction deletes the oldest (first) key.
 const shaderSourceCache = new Map();
 
-const shaderModuleCache = new Map();
+let shaderModuleCaches = new WeakMap();
+let shaderModuleCount = 0;
 
 function evictOldest(map, maxSize) {
   while (map.size > maxSize) {
@@ -29,7 +30,6 @@ function touchCacheEntry(map, key, value) {
   map.set(key, value);
 }
 
-let moduleCacheEpoch = -1;
 const deviceIds = new WeakMap();
 let nextDeviceId = 1;
 
@@ -46,12 +46,21 @@ function getDeviceId(device) {
   return id;
 }
 
-function ensureModuleCacheEpoch() {
-  const epoch = getSharedDeviceEpoch();
-  if (epoch !== moduleCacheEpoch) {
-    shaderModuleCache.clear();
-    moduleCacheEpoch = epoch;
-  }
+function moduleCacheFor(device) {
+  observeDeviceLoss(device);
+  if (!device || isDeviceLost(device)) throw new Error('Shader cache requires a live GPU device.');
+  let cache = shaderModuleCaches.get(device);
+  if (cache) return cache;
+  cache = new Map();
+  shaderModuleCaches.set(device, cache);
+  const caches = shaderModuleCaches;
+  const clear = () => {
+    if (caches === shaderModuleCaches) shaderModuleCount -= cache.size;
+    cache.clear();
+    caches.delete(device);
+  };
+  device.lost?.then(clear, clear);
+  return cache;
 }
 
 // ============================================================================
@@ -200,7 +209,7 @@ export async function getShaderModule(
   shaderFile,
   label
 ) {
-  ensureModuleCacheEpoch();
+  const shaderModuleCache = moduleCacheFor(device);
   const scoped = getScopedShaderSource(shaderFile);
   const cacheKey = `${getDeviceId(device)}:${shaderFile}:${scoped?.digest ?? 'runtime'}`;
   const cached = shaderModuleCache.get(cacheKey);
@@ -215,12 +224,17 @@ export async function getShaderModule(
   })();
 
   shaderModuleCache.set(cacheKey, compilePromise);
+  const beforeEviction = shaderModuleCache.size;
   evictOldest(shaderModuleCache, MAX_SHADER_MODULE_CACHE_SIZE);
+  shaderModuleCount += 1 - (beforeEviction - shaderModuleCache.size);
 
   try {
-    return await compilePromise;
+    const module = await compilePromise;
+    if (isDeviceLost(device)) throw new Error('Device lost while compiling shader.');
+    return module;
   } catch (err) {
-    shaderModuleCache.delete(cacheKey);
+    if (shaderModuleCache.get(cacheKey) === compilePromise && shaderModuleCache.delete(cacheKey)
+      && shaderModuleCaches.get(device) === shaderModuleCache) shaderModuleCount--;
     throw err;
   }
 }
@@ -232,14 +246,14 @@ export async function getShaderModule(
 
 export function clearShaderCaches() {
   shaderSourceCache.clear();
-  shaderModuleCache.clear();
-  moduleCacheEpoch = getSharedDeviceEpoch();
+  shaderModuleCaches = new WeakMap();
+  shaderModuleCount = 0;
 }
 
 
-export function getShaderCacheStats() {
+export function getShaderCacheStats(device = null) {
   return {
     sources: shaderSourceCache.size,
-    modules: shaderModuleCache.size,
+    modules: device ? (shaderModuleCaches.get(device)?.size ?? 0) : shaderModuleCount,
   };
 }

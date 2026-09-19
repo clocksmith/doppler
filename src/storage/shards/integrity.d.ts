@@ -28,6 +28,7 @@ export function computeHash(data: Uint8Array | ArrayBuffer, algorithm: HashAlgor
 export function createStreamingHasher(algorithm: HashAlgorithm): Promise<StreamingHasher>;
 export function requireManifestHashAlgorithm(manifest: RDRRManifest, context: string): HashAlgorithm;
 export function createTensorIntegrityController(dependencies: {
+  getShardInfo?: typeof import('../../formats/rdrr/index.js').getShardInfo;
   readBackendFileRange(filename: string, offset: number, length: number | null): Promise<ArrayBuffer>;
   loadTensorsFromStore(): Promise<string | null>;
 }): TensorIntegrityController;

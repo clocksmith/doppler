@@ -1,0 +1,18 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+13 !== 18
+
+    at file:///home/x/deco/worktrees/reploid-consumer-streaming/tests/fixtures/doppler-installed-library-check.js:42:8 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 13,
+  expected: 18,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

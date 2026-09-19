@@ -99,7 +99,7 @@ Doppler source code is **JavaScript** with **declaration files** (.d.ts) for eve
 
 | File | Contains |
 |------|----------|
-| `module.js` | Clean code, no type annotations |
+| `module.js` | Executable JavaScript; checked boundary modules may import declaration types through JSDoc |
 | `module.d.ts` | Comprehensive type definitions |
 
 ### Why JavaScript
@@ -115,7 +115,7 @@ Doppler source code is **JavaScript** with **declaration files** (.d.ts) for eve
 
 | Reason | Explanation |
 |--------|-------------|
-| **Type context for agents** | Agents read .d.ts files directly. No JSDoc pollution in JS |
+| **Type context for agents** | Canonical contracts live in .d.ts; strict implementation annotations reference those contracts |
 | **Consumer compatibility** | Type-aware consumers can import Doppler with full type safety via `.d.ts` |
 | **Self-documenting** | Types describe interfaces without runtime cost |
 
@@ -132,7 +132,7 @@ and internal refactor contracts, and tests must preserve observable behavior.
 
 | Format | Use For |
 |--------|---------|
-| **JavaScript (.js)** | All source code (clean, no type annotations) |
+| **JavaScript (.js)** | All source code; no TypeScript syntax or build migration |
 | **Declaration files (.d.ts)** | Type specs for source modules (`src/`, `demo/`) |
 | **JSON (.json)** | Static config assets, manifests, fixtures |
 | **WGSL (.wgsl)** | GPU shaders |
@@ -802,16 +802,19 @@ npm run source:architecture:check
 npm run source:architecture:check -- --base <git-revision>
 ```
 
-The style gate rejects JSDoc in governed JavaScript modules so types and API
-descriptions remain in sibling declaration files. It also enforces mechanically
+The style gate permits implementation type annotations only in the explicit
+strict roots in `tsconfig.source-strict.json`. These import canonical contracts
+from sibling declarations; API descriptions remain in declarations. Strict roots
+enable `noImplicitAny` and `strictNullChecks` and include negative-use tests.
+`tools/policies/source-type-debt.json` inventories unchecked implementations and
+existing declaration `any` use; additions fail the type gate. It also enforces mechanically
 detectable execution-plane invariants: every typed-array numeric candidate is
 classified in the source-compute policy; production runtime tensor compute and
 readback/compute/upload paths are rejected; stale or missing classifications
 fail; runtime geometry inference, raw runtime logging outside allowed
 entrypoints, unowned policy/default construction, and imprecise sibling
 declarations fail.
-`npm run source:style:sync` removes inherited implementation JSDoc after
-declaration coverage is complete.
+`npm run source:style:sync` preserves annotations in checked strict roots.
 
 The architecture gate rejects unknown or ambiguous source owners, dependency
 cycles, forbidden dependency edges for every production owner,

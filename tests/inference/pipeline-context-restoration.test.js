@@ -30,6 +30,17 @@ const {
 } = await import('../../src/gpu/device.js');
 const { EnergyPipeline } = await import('../../src/experimental/energy/pipeline.js');
 
+{
+  const original = getRuntimeConfig();
+  const a = {}, b = {};
+  applyPipelineContexts(a, { runtimeConfig: { inference: { sampling: { temperature: 0.25 } } } });
+  applyPipelineContexts(b, { runtimeConfig: { inference: { sampling: { temperature: 0.75 } } } });
+  restorePipelineContexts(a);
+  assert.equal(getRuntimeConfig().inference.sampling.temperature, 0.75);
+  restorePipelineContexts(b);
+  assert.deepEqual(getRuntimeConfig(), original, 'out-of-order cleanup cannot resurrect a closed context');
+}
+
 class FakeBuffer {}
 globalThis.GPUBuffer = FakeBuffer;
 
@@ -73,6 +84,17 @@ function createFakeDevice(label) {
   restorePipelineContexts(target);
   assert.equal(getDevice(), null, 'closing a lost pipeline must not restore its destroyed device');
   assert.throws(() => setDevice(device), /lost GPU device/);
+  const priorConfig = getRuntimeConfig();
+  const { kernelTrace } = await import('../../src/inference/pipelines/text/kernel-trace.js');
+  const priorTrace = kernelTrace.captureState();
+  assert.throws(() => applyPipelineContexts({}, {
+    gpu: { device },
+    runtimeConfig: { inference: { sampling: { temperature: 0.123 } },
+      shared: { debug: { kernelTrace: { enabled: true } } } },
+  }), /lost GPU device/);
+  assert.equal(getRuntimeConfig(), priorConfig, 'failed scope setup restores configuration');
+  assert.deepEqual(kernelTrace.captureState(), priorTrace, 'failed scope setup restores trace state');
+  assert.equal(getDevice(), null);
 }
 
 {

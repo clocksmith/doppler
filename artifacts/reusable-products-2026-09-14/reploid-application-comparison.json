@@ -1,0 +1,821 @@
+{
+  "reploid-main-baseline.json": {
+    "sourceRevision": "df5c188e9502c84f877aa0c95cefa733d8161fd0",
+    "sourceResultSha256": "5e614f5f61d5dc10cc5d217844f88bf0b178f17b8c4e4129651b350c18883cdd",
+    "passedTests": 2461,
+    "failedTests": 59,
+    "skippedTests": 36,
+    "failedFiles": [
+      {
+        "path": "integration/agent-loop.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "AgentLoop - Integration Tests provider recovery should throttle provider requests from model config",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called 1 times, but got 0 times\n    at /home/x/deco/reploid/tests/integration/agent-loop.test.js:1235:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          },
+          {
+            "name": "AgentLoop - Integration Tests provider recovery should throttle every LLM call inside a cycle",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called 1 times, but got 0 times\n    at /home/x/deco/reploid/tests/integration/agent-loop.test.js:1271:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          },
+          {
+            "name": "AgentLoop - Integration Tests provider recovery should wait the configured interval between successful cycles",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called 1 times, but got 0 times\n    at /home/x/deco/reploid/tests/integration/agent-loop.test.js:1307:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "integration/vfs.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "VFS - Integration Tests init should open database connection",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called with arguments: [ 'reploid-vfs-v0--poolday', 1 ]\n\nNumber of calls: 0\n\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1487:10)\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1700:25)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:142:37\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests init should log successful connection",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called with arguments: [ '[VFS] Database connected' ]\n\nNumber of calls: 0\n\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1487:10)\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1700:25)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:148:37\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests init should reuse existing connection",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called 1 times, but got 0 times\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:156:37\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests write should write file to storage",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:161:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests write should normalize path",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:170:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests write should record file size",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:178:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests write should record update timestamp",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:186:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests write should set type as file",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:196:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests write should handle backslashes in path",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:204:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests read should read file content",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:214:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests read should throw for non-existent file",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:222:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests read should normalize path before reading",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:227:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests delete should remove file from storage",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:237:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests delete should log deletion",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:245:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests list should list files in directory",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:253:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests list should default to root directory",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:265:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests list should handle directory with trailing slash",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:273:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests list should return empty array for empty directory",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:281:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests stat should return file metadata",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:289:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests stat should return null for non-existent file",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:308:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests exists should return true for existing file",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:316:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests exists should return false for non-existent file",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:324:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests isEmpty should return true when no files exist",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:332:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests isEmpty should return false when files exist",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:340:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests mkdir should log debug message",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called with arguments: [ '[VFS] mkdir /my-dir (virtual)' ]\n\nNumber of calls: 0\n\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1487:10)\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1700:25)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:359:38"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests clear should remove all files",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:364:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests path normalization should throw for null path",
+            "messages": [
+              "Error: expected [Function] to throw error including 'Invalid path' but got 'VFS path is required'\n    at _Assertion.__VITEST_REJECTS__ (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1747:17)\n    at _Assertion.propertyGetter (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1659:22)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:378:9\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests path normalization should throw for undefined path",
+            "messages": [
+              "Error: expected [Function] to throw error including 'Invalid path' but got 'VFS path is required'\n    at _Assertion.__VITEST_REJECTS__ (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1747:17)\n    at _Assertion.propertyGetter (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1659:22)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:383:9\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests path normalization should throw for non-string path",
+            "messages": [
+              "Error: expected [Function] to throw error including 'Invalid path' but got 'VFS path is required'\n    at _Assertion.__VITEST_REJECTS__ (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1747:17)\n    at _Assertion.propertyGetter (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1659:22)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:388:9\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests path normalization should trim whitespace from path",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:391:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests CRUD operations flow should support full file lifecycle",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:401:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests CRUD operations flow should handle nested directory structure",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:420:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests concurrent operations should handle multiple simultaneous writes",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:435:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          },
+          {
+            "name": "VFS - Integration Tests concurrent operations should handle read while writing",
+            "messages": [
+              "Error: STACK_TRACE_ERROR\n    at task (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1784:27)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1817:16)\n    at Object.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1563:28)\n    at chain (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:599:14)\n    at /home/x/deco/reploid/tests/integration/vfs.test.js:445:7\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:40\n    at runWithSuite (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2258:8)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1889:10)\n    at Object.collect (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1893:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "unit/boot-seed.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "boot seed manifest keeps Zero lightweight while X absorbs the Zero boot surface",
+            "messages": [
+              "AssertionError: expected 133 to be less than or equal to 69\n    at /home/x/deco/reploid/tests/unit/boot-seed.test.js:161:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "unit/module-metadata.test.js",
+        "message": "The URL must be of scheme file",
+        "failedAssertions": []
+      },
+      {
+        "path": "unit/p2p-transport.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "pool p2p transport helpers settles a connecting transport when explicitly closed",
+            "messages": [
+              "Error: expected Error: requester_connection_retry to match object { …(2) }\n    at _Assertion.__VITEST_REJECTS__ (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1747:17)\n    at _Assertion.propertyGetter (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1659:22)\n    at /home/x/deco/reploid/tests/unit/p2p-transport.test.js:343:29\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "unit/self-runtime.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "Self Runtime parks immediately in remote-slot mode when no local executor exists",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:77:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime exposes bridge events to the host shell",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:118:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime seeds kernel prompt and tabula-rasa blueprints into bootstrap context",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:133:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime parks retryable provider quota errors instead of failing the run",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:167:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime auto-resumes a parked remote slot when a peer host appears",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:196:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime records done as a milestone and continues running",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:235:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime accepts DONE as a milestone alias and records it",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:272:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime parks on an explicit idle directive",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:304:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime ignores plain text and continues running",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:337:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime caps large tool observations before feeding them back into context",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:382:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime executes batched tool calls and caps the batch at five",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:433:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime counts only bridge-verified anchor observations toward qAnchor",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:519:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime replay-scores archived candidates when anchor observations arrive later",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:569:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime starts adjacent read-only tools through one scheduler group",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:617:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime keeps mutation tools as barriers between read groups",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:675:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime honors PLAN after dependencies before running dependent tools",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:758:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime parks repeated milestone-only cycles with no new tool work",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:806:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime records a milestone when tools and done are sent in the same response",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:848:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime does not record a milestone for a plain tool batch with no done directive",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/reploid/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/reploid/self/runtime.js:24:33)\n    at /home/x/deco/reploid/tests/unit/self-runtime.test.js:892:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "unit/webrtc-swarm.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "WebRTCSwarm Feature Flag should check REPLOID_SWARM_ENABLED feature flag",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called with arguments: [ StringContaining \"Disabled\" ]\n\nReceived:\n\n  1st vi.fn() call:\n\n  [\n-   StringContaining \"Disabled\",\n+   \"[WebRTCSwarm] Initializing - peerId: peer_mu1pfwda_ufnlbywu, room: reploid-swarm-public\",\n  ]\n\n  2nd vi.fn() call:\n\n  [\n-   StringContaining \"Disabled\",\n+   \"[WebRTCSwarm] Connecting to ws://localhost:3000/signaling\",\n  ]\n\n  3rd vi.fn() call:\n\n  [\n-   StringContaining \"Disabled\",\n+   \"[WebRTCSwarm] Reconnecting in 1000ms (attempt 1)\",\n  ]\n\n\nNumber of calls: 3\n\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1487:10)\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1700:25)\n    at /home/x/deco/reploid/tests/unit/webrtc-swarm.test.js:261:33\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "reploid-reconciled-baseline.json": {
+    "sourceRevision": "10bde195b892b3b5d0db0935b8af057712de445a",
+    "sourceResultSha256": "933d54578e648e43641540fea8fa1f3741d482654d5bcdc13a15a79d365b1d6f",
+    "passedTests": 2506,
+    "failedTests": 24,
+    "skippedTests": 36,
+    "failedFiles": [
+      {
+        "path": "integration/agent-loop.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "AgentLoop - Integration Tests provider recovery should throttle provider requests from model config",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called 1 times, but got 0 times\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/integration/agent-loop.test.js:1235:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          },
+          {
+            "name": "AgentLoop - Integration Tests provider recovery should throttle every LLM call inside a cycle",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called 1 times, but got 0 times\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/integration/agent-loop.test.js:1271:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          },
+          {
+            "name": "AgentLoop - Integration Tests provider recovery should wait the configured interval between successful cycles",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called 1 times, but got 0 times\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/integration/agent-loop.test.js:1307:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "unit/boot-seed.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "boot seed manifest keeps Zero lightweight while X absorbs the Zero boot surface",
+            "messages": [
+              "AssertionError: expected 133 to be less than or equal to 69\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/boot-seed.test.js:161:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "unit/module-metadata.test.js",
+        "message": "The URL must be of scheme file",
+        "failedAssertions": []
+      },
+      {
+        "path": "unit/self-runtime.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "Self Runtime parks immediately in remote-slot mode when no local executor exists",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:77:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime exposes bridge events to the host shell",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:118:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime seeds kernel prompt and tabula-rasa blueprints into bootstrap context",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:133:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime parks retryable provider quota errors instead of failing the run",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:167:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime auto-resumes a parked remote slot when a peer host appears",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:196:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime records done as a milestone and continues running",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:235:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime accepts DONE as a milestone alias and records it",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:272:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime parks on an explicit idle directive",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:304:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime ignores plain text and continues running",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:337:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime caps large tool observations before feeding them back into context",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:382:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime executes batched tool calls and caps the batch at five",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:433:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime counts only bridge-verified anchor observations toward qAnchor",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:519:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime replay-scores archived candidates when anchor observations arrive later",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:569:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime starts adjacent read-only tools through one scheduler group",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:617:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime keeps mutation tools as barriers between read groups",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:675:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime honors PLAN after dependencies before running dependent tools",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:758:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime parks repeated milestone-only cycles with no new tool work",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:806:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime records a milestone when tools and done are sent in the same response",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:848:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime does not record a milestone for a plain tool batch with no done directive",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:892:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "unit/webrtc-swarm.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "WebRTCSwarm Feature Flag should check REPLOID_SWARM_ENABLED feature flag",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called with arguments: [ StringContaining \"Disabled\" ]\n\nReceived:\n\n  1st vi.fn() call:\n\n  [\n-   StringContaining \"Disabled\",\n+   \"[WebRTCSwarm] Initializing - peerId: peer_mu1ph5hp_zvyj8j5u, room: reploid-swarm-public\",\n  ]\n\n  2nd vi.fn() call:\n\n  [\n-   StringContaining \"Disabled\",\n+   \"[WebRTCSwarm] Connecting to ws://localhost:3000/signaling\",\n  ]\n\n  3rd vi.fn() call:\n\n  [\n-   StringContaining \"Disabled\",\n+   \"[WebRTCSwarm] Reconnecting in 1000ms (attempt 1)\",\n  ]\n\n\nNumber of calls: 3\n\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1487:10)\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1700:25)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/webrtc-swarm.test.js:261:33\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "reploid-provider-final.json": {
+    "sourceRevision": "150fc4f59bb7383b24e379b2bd7c92e901ed7a08",
+    "sourceResultSha256": "abcf12aa5a61f3258056e5a137053438999d6aa9baf9a2d6e9d231a3009072a8",
+    "passedTests": 2512,
+    "failedTests": 25,
+    "skippedTests": 36,
+    "failedFiles": [
+      {
+        "path": "integration/agent-loop.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "AgentLoop - Integration Tests provider recovery should throttle provider requests from model config",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called 1 times, but got 0 times\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/integration/agent-loop.test.js:1235:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          },
+          {
+            "name": "AgentLoop - Integration Tests provider recovery should throttle every LLM call inside a cycle",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called 1 times, but got 0 times\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/integration/agent-loop.test.js:1271:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          },
+          {
+            "name": "AgentLoop - Integration Tests provider recovery should wait the configured interval between successful cycles",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called 1 times, but got 0 times\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/integration/agent-loop.test.js:1307:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "unit/boot-seed.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "boot seed manifest keeps Zero lightweight while X absorbs the Zero boot surface",
+            "messages": [
+              "AssertionError: expected 133 to be less than or equal to 69\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/boot-seed.test.js:161:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "unit/pool-hosted-diagnostic.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "hosted diagnostic sequence episode recovers an expired attempt, transports input outside the coordinator, and reaches accepted quorum",
+            "messages": [
+              "Error: ring reveal phase is not open\n    at unwrap (/home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/pool-hosted-diagnostic.test.js:61:19)\n    at runCommitReveal (/home/x/deco/worktrees/reploid-consumer-streaming/self/pool/provider-client.js:425:26)\n    at Object.executeAssignment (/home/x/deco/worktrees/reploid-consumer-streaming/self/pool/provider-client.js:568:36)\n    at Object.runWorkerStep (/home/x/deco/worktrees/reploid-consumer-streaming/self/pool/provider-client.js:648:29)\n    at async Promise.all (index 0)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/pool-hosted-diagnostic.test.js:296:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "unit/self-runtime.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "Self Runtime parks immediately in remote-slot mode when no local executor exists",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:77:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime exposes bridge events to the host shell",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:118:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime seeds kernel prompt and tabula-rasa blueprints into bootstrap context",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:133:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime parks retryable provider quota errors instead of failing the run",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:167:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime auto-resumes a parked remote slot when a peer host appears",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:196:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime records done as a milestone and continues running",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:235:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime accepts DONE as a milestone alias and records it",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:272:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime parks on an explicit idle directive",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:304:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime ignores plain text and continues running",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:337:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime caps large tool observations before feeding them back into context",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:382:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime executes batched tool calls and caps the batch at five",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:433:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime counts only bridge-verified anchor observations toward qAnchor",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:519:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime replay-scores archived candidates when anchor observations arrive later",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:569:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime starts adjacent read-only tools through one scheduler group",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:617:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime keeps mutation tools as barriers between read groups",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:675:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime honors PLAN after dependencies before running dependent tools",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:758:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime parks repeated milestone-only cycles with no new tool work",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:806:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime records a milestone when tools and done are sent in the same response",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:848:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          },
+          {
+            "name": "Self Runtime does not record a milestone for a plain tool batch with no done directive",
+            "messages": [
+              "TypeError: Owned resources must implement close()\n    at createReploid (/home/x/deco/worktrees/reploid-consumer-streaming/self/vendor/reploid/index.js:22:54)\n    at Module.createSelfRuntime (/home/x/deco/worktrees/reploid-consumer-streaming/self/runtime.js:24:33)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/self-runtime.test.js:892:21\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "unit/webrtc-swarm.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "WebRTCSwarm Feature Flag should check REPLOID_SWARM_ENABLED feature flag",
+            "messages": [
+              "AssertionError: expected \"vi.fn()\" to be called with arguments: [ StringContaining \"Disabled\" ]\n\nReceived:\n\n  1st vi.fn() call:\n\n  [\n-   StringContaining \"Disabled\",\n+   \"[WebRTCSwarm] Initializing - peerId: peer_mu1q75xt_w363w7wr, room: reploid-swarm-public\",\n  ]\n\n  2nd vi.fn() call:\n\n  [\n-   StringContaining \"Disabled\",\n+   \"[WebRTCSwarm] Connecting to ws://localhost:3000/signaling\",\n  ]\n\n  3rd vi.fn() call:\n\n  [\n-   StringContaining \"Disabled\",\n+   \"[WebRTCSwarm] Reconnecting in 1000ms (attempt 1)\",\n  ]\n\n\nNumber of calls: 3\n\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1487:10)\n    at Proxy.<anonymous> (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///home/x/deco/reploid/node_modules/vitest/node_modules/chai/index.js:1700:25)\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/webrtc-swarm.test.js:261:33\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "reploid-application-final.json": {
+    "sourceRevision": "94b2eb1f028b1dcb3b65ca3241d2f5600260f694",
+    "sourceResultSha256": "b2090da30812e0336faf92b3c8515393697aa402a3807e9289303a8c6dccd52e",
+    "passedTests": 2537,
+    "failedTests": 1,
+    "skippedTests": 36,
+    "failedFiles": [
+      {
+        "path": "unit/boot-seed.test.js",
+        "message": "",
+        "failedAssertions": [
+          {
+            "name": "boot seed manifest keeps Zero lightweight while X absorbs the Zero boot surface",
+            "messages": [
+              "AssertionError: expected 133 to be less than or equal to 69\n    at /home/x/deco/worktrees/reploid-consumer-streaming/tests/unit/boot-seed.test.js:161:34\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remoteFinal": {
+    "sourceRevision": "775a7ae0c024a4777349bad83ced6576cc1ab538",
+    "runId": 34897514920,
+    "passedTests": 2536,
+    "failedTests": 2,
+    "skippedTests": 36,
+    "failedFiles": [
+      "tests/unit/boot-seed.test.js",
+      "tests/unit/pool-hosted-diagnostic.test.js"
+    ]
+  },
+  "owners": [
+    {
+      "failure": "Zero boot seed has 133 files against the unchanged 69-file ceiling",
+      "owner": "Reploid Runtime Configuration, Runtime Host and Generated Browser Assets",
+      "status": "open; reproduced on current main and reconciled branch; acceptance ceiling unchanged"
+    },
+    {
+      "failure": "Hosted diagnostic commit/reveal: ring reveal phase is not open",
+      "owner": "Reploid Poolday provider and coordinator commit/reveal lifecycle",
+      "status": "open; reproduced in remote full suite; focused passing rerun does not resolve it; root cause not established"
+    }
+  ]
+}

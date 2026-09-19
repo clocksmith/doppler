@@ -3,17 +3,36 @@ import { validateRuntimeConfig, validateRuntimeOverrides } from './param-validat
 import { isPlainObject } from '../formats/plain-object.js';
 
 let runtimeConfig = createDopplerConfig().runtime;
+const runtimeScopes = [];
 setKernelThresholds(runtimeConfig.shared.kernelThresholds);
 
 export function getRuntimeConfig() {
-  return runtimeConfig;
+  return runtimeScopes.at(-1)?.config ?? runtimeConfig;
 }
 
 export function setRuntimeConfig(overrides) {
+  runtimeConfig = resolveRuntimeConfig(overrides);
+  setKernelThresholds(getRuntimeConfig().shared.kernelThresholds);
+  return runtimeConfig;
+}
+
+// Defaults affect future sessions; compatibility execution leases its snapshot.
+export function enterRuntimeConfig(config) {
+  validateRuntimeConfig(config);
+  const entry = { config, active: true };
+  runtimeScopes.push(entry);
+  setKernelThresholds(config.shared.kernelThresholds);
+  return () => {
+    entry.active = false;
+    while (runtimeScopes.length && !runtimeScopes.at(-1).active) runtimeScopes.pop();
+    setKernelThresholds(getRuntimeConfig().shared.kernelThresholds);
+  };
+}
+
+// Pure resolution is also used by session owners; it never installs defaults.
+export function resolveRuntimeConfig(overrides) {
   if (overrides === undefined || overrides === null) {
-    runtimeConfig = createDopplerConfig().runtime;
-    setKernelThresholds(runtimeConfig.shared.kernelThresholds);
-    return runtimeConfig;
+    return createDopplerConfig().runtime;
   }
 
   if (!isPlainObject(overrides)) {
@@ -26,15 +45,20 @@ export function setRuntimeConfig(overrides) {
   const merged = createDopplerConfig({ runtime: overrides }).runtime;
 
   validateRuntimeConfig(merged);
-  runtimeConfig = merged;
-  setKernelThresholds(runtimeConfig.shared.kernelThresholds);
-  return runtimeConfig;
+  return merged;
+}
+
+export function snapshotRuntimeConfig(config) {
+  function freeze(value) {
+    if (!Array.isArray(value) && !isPlainObject(value)) return value;
+    for (const child of Object.values(value)) freeze(child);
+    return Object.freeze(value);
+  }
+  return freeze(resolveRuntimeConfig(config));
 }
 
 export function resetRuntimeConfig() {
-  runtimeConfig = createDopplerConfig().runtime;
-  setKernelThresholds(runtimeConfig.shared.kernelThresholds);
-  return runtimeConfig;
+  return setRuntimeConfig();
 }
 
 function assertNoDeprecatedRuntimeKeys(overrides) {

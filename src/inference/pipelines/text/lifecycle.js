@@ -43,7 +43,7 @@ import {
   resetLinearAttentionRuntime,
   restoreLinearAttentionRuntime,
 } from './linear-attention.js';
-import { getDopplerLoader } from '../../../loader/doppler-loader.js';
+import { createDopplerLoader } from '../../../loader/doppler-loader.js';
 import { registerPipeline, getPipelineFactory } from '../registry.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { createObservationContext } from '../../observation-context.js';
@@ -77,8 +77,8 @@ export async function initialize(contexts = {}) {
       runtimeConfig,
       commandContext: this.commandContext,
     });
-    this.dopplerLoader = contexts.loader || null;
-    this.ownsDopplerLoader = contexts.ownsLoader === true;
+    this.dopplerLoader = contexts.loader ?? createDopplerLoader(runtimeConfig.loading);
+    this.ownsDopplerLoader = contexts.loader ? contexts.ownsLoader === true : true;
     this.runtimeOverrides = contexts.runtimeConfig == null
       ? null
       : (typeof structuredClone === 'function'
@@ -477,7 +477,7 @@ export async function _loadWeights() {
 
     this.layerRouterWeights = result.layerRouterWeights;
 
-    this.dopplerLoader = result.loader ?? getDopplerLoader(this.runtimeConfig.loading);
+    this.dopplerLoader = result.loader ?? this.dopplerLoader;
     this.stats.loadTiming = result.loadTiming ?? this.dopplerLoader?.getLoadTiming?.() ?? null;
 
     if ((this.modelConfig).useMoE && this.moeRouter) {
@@ -600,7 +600,8 @@ export async function _initConvLayerStates() {
   }
 
 export async function _loadVisionWeights() {
-    const loader = this.dopplerLoader ?? getDopplerLoader(this.runtimeConfig.loading);
+    const loader = this.dopplerLoader;
+    if (!loader) throw new Error('Vision weights require the model-owned loader.');
     const vc = this.visionConfig;
     const depth = vc.depth;
 
@@ -721,7 +722,8 @@ export async function _ensureVisionWeightsLoaded() {
   }
 
 export async function _loadAudioWeights() {
-    const loader = this.dopplerLoader ?? getDopplerLoader(this.runtimeConfig.loading);
+    const loader = this.dopplerLoader;
+    if (!loader) throw new Error('Audio weights require the model-owned loader.');
     const ac = this.audioConfig;
     const depth = ac.depth;
 

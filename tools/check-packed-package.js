@@ -8,6 +8,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } from '../tests/helpers/capsule-v2-fixture.js';
+import { createInstalledAdapterFixture } from '../tests/helpers/installed-adapter-fixture.js';
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const commandLog = [];
@@ -209,6 +210,8 @@ async function assertInstalledFiles(consumerDir, packageJson) {
 }
 
 async function runEmbeddingCapsuleSmoke(consumerDir) {
+  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/consumer-evidence.js'),
+    path.join(consumerDir, 'consumer-evidence.js'));
   await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-embedding-consumer.js'),
     path.join(consumerDir, 'embedding-smoke.js'));
   const fixture = await createSignedCapsuleFixture({ operation: 'embed', manifest: {
@@ -224,6 +227,21 @@ async function runEmbeddingCapsuleSmoke(consumerDir) {
   process.stdout.write(run(process.execPath, ['embedding-smoke.js'], { cwd: consumerDir }));
 }
 
+async function runGenerationCapsuleSmoke(consumerDir) {
+  const fixture = await createSignedCapsuleFixture();
+  await fs.writeFile(path.join(consumerDir, 'generation-fixture.json'), JSON.stringify({
+    capsule: fixture.capsule, trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
+    artifacts: [...fixture.artifactBytes].map(([id, bytes]) => [id, [...bytes]]),
+  }));
+  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-generation-consumer.js'),
+    path.join(consumerDir, 'generation-smoke.js'));
+  process.stdout.write(run(process.execPath, ['generation-smoke.js'], { cwd: consumerDir }));
+  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-browser-host-consumer.js'),
+    path.join(consumerDir, 'browser-host-smoke.js'));
+  process.stdout.write(run(process.execPath, ['--conditions=browser', 'browser-host-smoke.js'], { cwd: consumerDir }));
+  await fs.writeFile(path.join(consumerDir, 'adapter-fixture.json'), JSON.stringify(await createInstalledAdapterFixture()));
+}
+
 async function runCliSmokes(consumerDir, packageJson) {
   const packageDir = path.join(consumerDir, 'node_modules', packageJson.name);
   for (const [name, target] of Object.entries(packageJson.bin ?? {})) {
@@ -233,16 +251,24 @@ async function runCliSmokes(consumerDir, packageJson) {
 }
 
 export function parsePackageSmokeArgs(argv) {
-  if (argv.length === 0) return { retain: null };
-  if (argv.length === 2 && argv[0] === '--retain' && argv[1] && !argv[1].startsWith('--')) {
-    return { retain: path.resolve(argv[1]) };
+  const options = { retain: null, archive: null };
+  for (let index = 0; index < argv.length; index += 2) {
+    const key = { '--retain': 'retain', '--archive': 'archive' }[argv[index]];
+    const value = argv[index + 1];
+    if (!key || options[key] || !value || value.startsWith('--')) {
+      throw new Error('Usage: node tools/check-packed-package.js [--retain <new-bundle-directory>] [--archive <exact-tarball>]');
+    }
+    options[key] = path.resolve(value);
   }
-  throw new Error('Usage: node tools/check-packed-package.js [--retain <new-bundle-directory>]');
+  return options;
 }
 
 async function main() {
   const options = parsePackageSmokeArgs(process.argv.slice(2));
-  const packageJson = JSON.parse(await fs.readFile(path.join(ROOT_DIR, 'package.json'), 'utf8'));
+  const packageJson = options.archive
+    ? JSON.parse(run('tar', ['-xOf', options.archive, 'package/package.json']))
+    : JSON.parse(await fs.readFile(path.join(ROOT_DIR, 'package.json'), 'utf8'));
+  if (packageJson.name !== 'doppler-gpu') throw new Error('Candidate archive must contain doppler-gpu.');
   const tempRoot = options.retain ?? await fs.mkdtemp(path.join(tmpdir(), 'doppler-package-smoke-'));
   if (options.retain) {
     await fs.mkdir(path.dirname(tempRoot), { recursive: true });
@@ -266,7 +292,7 @@ async function main() {
       };
       await fs.writeFile(path.join(tempRoot, 'source-state.json'), JSON.stringify(source, null, 2));
     }
-    const packageOutput = run(
+    const packageOutput = options.archive ? null : run(
       npmCommand,
       [
         'pack',
@@ -278,16 +304,23 @@ async function main() {
         path.join(tempRoot, 'npm-cache'),
       ]
     );
-    if (!packageOutput.trim()) {
+    if (packageOutput !== null && !packageOutput.trim()) {
       throw new Error('npm pack returned no JSON package metadata.');
     }
-    const packed = JSON.parse(packageOutput)[0];
+    const archiveBytes = options.archive ? await fs.readFile(options.archive) : null;
+    const packed = archiveBytes ? {
+      filename: path.basename(options.archive), size: archiveBytes.length,
+      integrity: `sha512-${createHash('sha512').update(archiveBytes).digest('base64')}`,
+      entryCount: run('tar', ['-tf', options.archive]).trim().split('\n').length, unpackedSize: null,
+    } : JSON.parse(packageOutput)[0];
     const tarballPath = path.join(tempRoot, packed.filename);
+    if (archiveBytes) await fs.writeFile(tarballPath, archiveBytes, { flag: 'wx' });
     receipt.package = {
-      filename: packed.filename, integrity: packed.integrity, sizeBytes: packed.size,
+      filename: packed.filename, version: packageJson.version, integrity: packed.integrity, sizeBytes: packed.size,
+      source: options.archive ? 'provided-immutable-archive' : 'local-npm-pack',
       sha256: createHash('sha256').update(await fs.readFile(tarballPath)).digest('hex'),
     };
-    if (options.retain) await fs.writeFile(path.join(tempRoot, 'npm-pack.json'), packageOutput);
+    if (options.retain) await fs.writeFile(path.join(tempRoot, 'npm-pack.json'), packageOutput ?? JSON.stringify([packed], null, 2));
     const consumerDir = path.join(tempRoot, 'consumer');
     await fs.mkdir(consumerDir, { recursive: true });
     await fs.writeFile(
@@ -320,6 +353,7 @@ async function main() {
     await runCliSmokes(consumerDir, packageJson);
     receipt.applicationFiles = await runElectronCapsuleSmoke(consumerDir);
     await runEmbeddingCapsuleSmoke(consumerDir);
+    await runGenerationCapsuleSmoke(consumerDir);
     await writeTypeSmoke(consumerDir, packageJson);
     receipt.passed = true;
     console.log(

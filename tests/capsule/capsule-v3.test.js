@@ -87,7 +87,10 @@ assert.equal(closes, 1);
 await assert.rejects(session.encodeSequence('MKT'), /closed/);
 
 const corruptRuntime = createDopplerRuntime({
-  device: { getProfile: () => ({ surface: 'test-webgpu', maxBufferSize: 1024 }) }, trustedSigners,
+  device: {
+    getDevice: () => ({ createBuffer() { throw new Error('Corrupt artifacts must never allocate GPU buffers.'); } }),
+    getProfile: () => ({ surface: 'test-webgpu', maxBufferSize: 1024 }),
+  }, trustedSigners,
   artifactStore: { hashArtifact: fixture.artifactStore.hashArtifact, readArtifact: async (artifact) => new Uint8Array(artifact.sizeBytes) },
   programFactory: async () => { throw new Error('must not execute corrupt bytes'); },
 });
