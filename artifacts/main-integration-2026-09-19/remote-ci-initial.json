@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "commit": "478572229f6837af6623ef8d544a5cc0c052f244",
+  "runId": 35469056760,
+  "jobId": 105966574315,
+  "failures": [
+    "2026-09-19T20:59:43.0406951Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ",
+    "2026-09-19T20:59:51.2036446Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ",
+    "2026-09-19T20:59:52.0406963Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ",
+    "2026-09-19T21:00:08.3632755Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ",
+    "2026-09-19T21:00:26.4013629Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ",
+    "2026-09-19T21:00:30.5627924Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ",
+    "2026-09-19T21:00:32.9879483Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ",
+    "2026-09-19T21:00:34.8052276Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ",
+    "2026-09-19T21:00:58.0530441Z npm package packed-size budget exceeded: 2149817 > 2147886",
+    "2026-09-19T21:01:30.9657703Z source architecture check failed:",
+    "2026-09-19T21:01:30.9659726Z - gpu/device.js: adds a soft-limit review without a matching DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION digest",
+    "2026-09-19T21:01:30.9661682Z - storage/downloader.js: adds a soft-limit review without a matching DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION digest",
+    "2026-09-19T21:01:30.9663505Z - storage/shard-manager.js: adds a soft-limit review without a matching DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION digest",
+    "2026-09-19T21:01:30.9665447Z - client/model-host/source-loading.js: adds a soft-limit review without a matching DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION digest",
+    "2026-09-19T21:01:30.9668208Z - converter/execution-graph-transforms.js: adds a soft-limit review without a matching DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION digest",
+    "2026-09-19T21:01:30.9670130Z - storage/download/http-transport.js: adds a soft-limit review without a matching DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION digest",
+    "2026-09-19T21:01:30.9672275Z - inference/pipelines/text/lifecycle.js: raises reviewedLines from 839 to 841 without a matching DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION digest",
+    "2026-09-19T21:07:55.3583788Z [node-tests] 2 independent script checks failed: [node-tests] public:boundaries:check failed: exit 1; [node-tests] source:architecture:check failed: exit 1",
+    "2026-09-19T21:07:55.3794255Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: ",
+    "2026-09-19T21:08:03.3587996Z   DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION: "
+  ],
+  "observations": [
+    "2026-09-19T21:01:17.9713128Z packed package smoke passed (1858 files, 2149817 bytes packed, 11301865 bytes unpacked)",
+    "2026-09-19T21:04:53.9943826Z #       \"failed\": 0,",
+    "2026-09-19T21:04:53.9954011Z #         \"failed\": 0,",
+    "2026-09-19T21:04:54.3803047Z #     \"failed\": 0",
+    "2026-09-19T21:07:55.3581562Z [node-tests] ok: 843 files",
+    "2026-09-19T21:08:03.3059223Z     \"passed\": 71,",
+    "2026-09-19T21:08:03.3059432Z     \"failed\": 0,",
+    "2026-09-19T21:08:03.3059636Z     \"skipped\": 15,"
+  ],
+  "installedConsumersRun": {
+    "id": 35469056748,
+    "conclusion": "success"
+  }
+}

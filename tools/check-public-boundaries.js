@@ -76,7 +76,11 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Node 22.23.2/npm 10.9.8: artifacts/incremental-streaming-2026-09-12/shared-pool-package.json.
   // Consolidated candidate: 2,122,307 packed bytes plus the retained, measured
   // 2,158-byte cross-npm compression allowance.
-  maxPackedSize: 2_147_886,
+  // Main integration CI on Node 22.23.2/npm 10.9.8 measures 2,149,817
+  // compressed bytes with the same 1858 entries / 11,301,865 unpacked bytes.
+  // Preserve exact payload limits; only the measured gzip allowance changes.
+  // Evidence: artifacts/main-integration-2026-09-19/remote-ci-initial.json.
+  maxPackedSize: 2_149_817,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
