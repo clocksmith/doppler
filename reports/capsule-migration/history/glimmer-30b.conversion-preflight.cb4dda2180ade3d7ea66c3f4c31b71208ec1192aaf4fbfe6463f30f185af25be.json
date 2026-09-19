@@ -1,0 +1,99 @@
+{
+  "schema": "doppler.manifest-conversion-preflight-receipt/v1",
+  "modelId": "muse-glimmer-30b-text-f16-af32",
+  "entryPointId": "text.generate",
+  "author": {
+    "kind": "tool",
+    "actor": "doppler-manifest-conversion-preflight"
+  },
+  "semanticEvidence": {
+    "sourceModelIRHash": "sha256:2f2d89c0cd20b9ad6a8c6374148c3188d42451db2bf8a8b59152946f6fefdef2",
+    "modelIRHash": "sha256:e5a72acbf9903b52ee860fa6bce657e712607b911a7f905482c36d0295c0a3ff",
+    "conversionConfigDigest": "sha256:e2273b70e9c43c02c90b6443499ac22bdfaa5928a4b64cec98eebc00c96604b7"
+  },
+  "tensorClosureEvidence": {
+    "receiptDigest": "sha256:b36f1e3d8335a0c36ed71185a0bd125e4c0673e95739a2eca36a215ccdd500bb",
+    "expectedTensorCount": 627,
+    "observedTensorCount": 627
+  },
+  "sourceAcquisitionEvidence": {
+    "receiptDigest": "sha256:195a80161679da782ade8c31bdfcd4180defde7454387ec5ccead0e0512e4f5b",
+    "fileCount": 9,
+    "totalBytes": 59581794166,
+    "weightShardCount": 2
+  },
+  "sourceEvidence": {
+    "checkpointId": "meta-models/Muse-Glimmer-30B",
+    "repository": "meta-models/Muse-Glimmer-30B",
+    "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68",
+    "headerEvidenceDigest": "sha256:844bc94bb0c305d3c1de4bed978e9ff2a8fe1a9d663f190367e6016a91f6366d",
+    "sourceDtypes": [
+      "BF16"
+    ],
+    "sourceQuantization": "bf16",
+    "scopedTensorCount": 627,
+    "tensorDescriptorDigest": "sha256:cc8dd5eb5c554b9f76be528e1619fc297eec793a949c6f58db9bc864e3660f88",
+    "tensorRoles": {
+      "embedding": 1,
+      "lm_head": 1,
+      "matmul": 416,
+      "norm": 209
+    },
+    "weightIndex": {
+      "schema": "doppler.safetensors-index-evidence/v1",
+      "tensorCount": 1436,
+      "totalSize": 59553253376,
+      "shardCounts": {
+        "model-00001-of-00002.safetensors": 1347,
+        "model-00002-of-00002.safetensors": 89
+      }
+    }
+  },
+  "conversionPlan": {
+    "executionVersion": "v1",
+    "modelType": "transformer",
+    "sourceQuantization": "bf16",
+    "manifestQuantization": "F16",
+    "quantizationInfo": {
+      "weights": "f16",
+      "embeddings": "f16",
+      "compute": "f32",
+      "variantTag": "f16-af32"
+    },
+    "inferenceDigest": "sha256:4e70eeeedf189dc2b8598a9401dfdc064511e3a695788043f11740cea50935fd",
+    "executionDigest": "sha256:ca468a9626e5e5704f647cf8fa18c79aae803a71b3cdc30063e723cb7a5e0d76",
+    "commandCount": 35,
+    "commandsByPhase": {
+      "both": 5,
+      "decode": 15,
+      "prefill": 15
+    },
+    "commandsBySection": {
+      "layer": 30,
+      "postLayer": 4,
+      "preLayer": 1
+    },
+    "kernelClosure": [
+      "attention_decode_online_f16kv.wgsl#main",
+      "attention_streaming_f16kv.wgsl#main",
+      "gather_f16.wgsl#main",
+      "matmul_f16w_f32a.wgsl#main",
+      "matmul_gemv_subgroup.wgsl#main_multicol",
+      "matmul_gemv_subgroup.wgsl#main_vec4",
+      "residual.wgsl#main",
+      "rmsnorm.wgsl#main",
+      "rope.wgsl#main",
+      "sample.wgsl#sample_single_pass",
+      "silu.wgsl#main"
+    ]
+  },
+  "dispositions": {
+    "headerPreflightPassed": true,
+    "weightBodiesRequired": true,
+    "weightBodiesPresent": true,
+    "conversionExecuted": false,
+    "qualificationStarted": false,
+    "capsuleEligible": false
+  },
+  "receiptDigest": "sha256:cb4dda2180ade3d7ea66c3f4c31b71208ec1192aaf4fbfe6463f30f185af25be"
+}

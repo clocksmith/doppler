@@ -19,7 +19,8 @@ globalThis.GPUMapMode = {
 };
 
 const { configurePerfGuards } = await import('../../src/gpu/perf-guards.js');
-const { setDevice } = await import('../../src/gpu/device.js');
+const { setDevice, getDevice } = await import('../../src/gpu/device.js');
+const { registerBufferDevice } = await import('../../src/gpu/device-state.js');
 const {
   acquireBuffer,
   destroyBufferPool,
@@ -201,6 +202,8 @@ function createExternalTensor(values, shape, label) {
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     initialBytes: bytes,
   });
+  // Raw test buffers bypass device.createBuffer's ownership registration.
+  registerBufferDevice(buffer, getDevice());
   return createTensor(buffer, 'f32', shape, label);
 }
 

@@ -124,6 +124,15 @@ export function findArchitecturePolicyRelaxations(currentPolicy, baselinePolicy)
   for (const relativePath of addedValues(currentPolicy?.facades, baselinePolicy?.facades)) {
     relaxations.push(`facade exception added ${relativePath}`);
   }
+  for (const [facade, dependencies] of Object.entries(currentPolicy?.facadeDependencies ?? {})) {
+    // A previously unrestricted facade becomes an exact edge inventory. Once
+    // inventoried, adding an edge is a policy relaxation like any other import.
+    if (!(baselinePolicy?.facades ?? []).includes(facade)) continue;
+    if (!baselinePolicy?.facadeDependencies?.[facade]) continue;
+    for (const dependency of addedValues(dependencies, baselinePolicy.facadeDependencies[facade])) {
+      relaxations.push(`facade dependency added ${facade}->${dependency}`);
+    }
+  }
   for (const owner of removedValues(
     currentPolicy?.compatibilityOnlyOwners,
     baselinePolicy?.compatibilityOnlyOwners

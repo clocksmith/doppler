@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "packageName": "doppler-gpu",
+  "version": "0.6.2",
+  "entryCount": 1806,
+  "packedBytes": 2122307,
+  "unpackedBytes": 10938448,
+  "sha256": "d9a548b68c33ec6afa73cc00302015839e82c8d7b11a5691f68c9eee6b3dad2a",
+  "bundleRoot": "/var/tmp/doppler-architecture-consolidation-acceptance-20260919",
+  "inventory": "/var/tmp/doppler-architecture-consolidation-acceptance-20260919/npm-pack.json",
+  "sourceMismatches": [],
+  "evidence": "Installed synthetic contract acceptance, not physical qualification."
+}

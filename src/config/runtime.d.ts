@@ -13,6 +13,7 @@ import type { RuntimeConfigSchema } from './schema/index.js';
  * Get the active runtime config (merged with defaults).
  */
 export function getRuntimeConfig(): RuntimeConfigSchema;
+export function enterRuntimeConfig(config: RuntimeConfigSchema): () => void;
 
 /**
  * Set the active runtime config.
@@ -26,3 +27,6 @@ export function setRuntimeConfig(
  * Reset runtime config to defaults.
  */
 export function resetRuntimeConfig(): RuntimeConfigSchema;
+
+export function resolveRuntimeConfig(overrides?: Partial<RuntimeConfigSchema> | null): RuntimeConfigSchema;
+export function snapshotRuntimeConfig(config: RuntimeConfigSchema): Readonly<RuntimeConfigSchema>;

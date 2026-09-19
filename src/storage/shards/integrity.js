@@ -1,6 +1,6 @@
 import {
   buildTensorBlockMerkleRoot,
-  getShardInfo,
+  getShardInfo as getDefaultShardInfo,
   parseTensorMap,
 } from '../../formats/rdrr/index.js';
 import { log } from '../../debug/index.js';
@@ -145,6 +145,7 @@ export function requireManifestHashAlgorithm(manifest, context) {
 }
 
 export function createTensorIntegrityController({
+  getShardInfo = getDefaultShardInfo,
   readBackendFileRange,
   loadTensorsFromStore,
 }) {

@@ -43,6 +43,9 @@ experimental/internal in the subsystem support matrix.
 
 ### Implementation boundaries
 
+See [execution ownership and dependency checks](architecture-consolidation.md)
+for resource lifetimes, compatibility scopes and the generated dependency views.
+
 - `src/converter/`: source interpretation, lowering, candidate evaluation, and
   immutable Capsule construction. `src/tooling/model-capsule-forge.js` owns file,
   qualification-input, signing-key, and command orchestration around that engine.

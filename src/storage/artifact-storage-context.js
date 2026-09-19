@@ -1,7 +1,7 @@
 import {
   DIRECT_SOURCE_RUNTIME_MODE,
-  createSourceStorageContext,
-} from '../tooling/source-runtime-bundle.js';
+} from '../formats/source-runtime.js';
+import { createSourceStorageContext } from './source-storage-context.js';
 import { createStreamingHasher } from './shard-manager.js';
 import { createOpfsStore } from './backends/opfs-store.js';
 import { normalizeModelId } from './normalize-model-id.js';

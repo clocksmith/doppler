@@ -23,7 +23,12 @@ assert.match(automaticCi, /^name: Default Green Chain$/m);
 assert.match(automaticCi, /^  check-green:$/m);
 assert.match(automaticCi, /pull_request:/);
 assert.match(automaticCi, /push:/);
-assert.match(automaticCi, /npm run ci:check/);
+for (const command of ['test:ci', 'kernels:check', 'check:green']) {
+  const step = automaticCi.split(/\n      - name:/).find(block => block.includes(`run: npm run ${command}\n`));
+  assert(step, `automatic CI must run ${command}`);
+  assert(step.includes("!cancelled() && steps.dependencies.outcome == 'success'"),
+    `${command} must preserve setup prerequisites without hiding behind unrelated failures`);
+}
 assert.match(automaticCi, /npm ci/);
 assert.match(automaticCi, /playwright install --with-deps chromium/);
 assert.match(automaticCi, /npm run test:gpu:browser/);

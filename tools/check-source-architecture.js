@@ -6,11 +6,10 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { readJsonAtGitRef, resolvePolicyBaseRef } from './lib/policy-base.js';
 import { validateArchitecturePolicyDelta } from './lib/source-architecture-debt.js';
+import { collectModuleSpecifiers, collectStronglyConnectedComponents, buildDependencyGraph } from './lib/module-dependencies.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const policyPath = path.join(repoRoot, 'tools/policies/source-architecture-policy.json');
-const importPattern = /\b(?:import|export)\s+(?:[^'\"]*?\sfrom\s*)?['\"]([^'\"]+)['\"]/g;
-const dynamicImportPattern = /\bimport\s*\(\s*['\"]([^'\"]+)['\"]\s*\)/g;
 const facadeImplementationPattern = /^\s*(?:export\s+)?(?:async\s+)?(?:function|class|const|let|var)\b/m;
 const genericModulePattern = /(?:^|\/)(?:utils|helpers)\.js$|-(?:utils|helpers|shared)\.js$|\.shared\.js$|(?:^|\/)shared-runtime\.schema\.js$/;
 const governedExtensions = new Set(['.js', '.d.ts', '.wgsl']);
@@ -41,16 +40,7 @@ async function walk(directory) {
 }
 
 function collectSpecifiers(source) {
-  const values = [];
-  for (const pattern of [importPattern, dynamicImportPattern]) {
-    pattern.lastIndex = 0;
-    for (;;) {
-      const match = pattern.exec(source);
-      if (!match) break;
-      values.push(match[1]);
-    }
-  }
-  return values;
+  return collectModuleSpecifiers(source);
 }
 
 function ownerFor(sourceRoot, targetPath) {
@@ -96,50 +86,6 @@ async function relativeImportExists(filePath, specifier) {
   return false;
 }
 
-function collectStronglyConnectedComponents(graph) {
-  let nextIndex = 0;
-  const indices = new Map();
-  const lowLinks = new Map();
-  const stack = [];
-  const onStack = new Set();
-  const components = [];
-
-  function visit(node) {
-    indices.set(node, nextIndex);
-    lowLinks.set(node, nextIndex);
-    nextIndex += 1;
-    stack.push(node);
-    onStack.add(node);
-
-    for (const dependency of graph.get(node) ?? []) {
-      if (!graph.has(dependency)) continue;
-      if (!indices.has(dependency)) {
-        visit(dependency);
-        lowLinks.set(node, Math.min(lowLinks.get(node), lowLinks.get(dependency)));
-      } else if (onStack.has(dependency)) {
-        lowLinks.set(node, Math.min(lowLinks.get(node), indices.get(dependency)));
-      }
-    }
-
-    if (lowLinks.get(node) !== indices.get(node)) return;
-    const component = [];
-    for (;;) {
-      const current = stack.pop();
-      onStack.delete(current);
-      component.push(current);
-      if (current === node) break;
-    }
-    if (component.length > 1 || (graph.get(node) ?? []).includes(node)) {
-      components.push(component);
-    }
-  }
-
-  for (const node of graph.keys()) {
-    if (!indices.has(node)) visit(node);
-  }
-  return components;
-}
-
 function collectPackageSourceEntryPoints(packageJson) {
   const entries = [];
   function collect(value) {
@@ -178,7 +124,11 @@ async function collectExternalSourceRoots(policy, sourceRoot, sourceFiles) {
 async function validateProductionGraph(policy, sourceRoot, files, facadePaths, errors) {
   const sourceFiles = new Set(files.filter((filePath) => path.extname(filePath) === '.js'));
   const fullGraph = new Map();
-  const cycleGraph = new Map();
+  const declarations = JSON.parse(await fs.readFile(path.join(repoRoot, 'tools/policies/module-dependencies.json'), 'utf8'));
+  const parsed = await buildDependencyGraph(repoRoot, [...sourceFiles], declarations);
+  for (const diagnostic of parsed.diagnostics.filter(item => item.kind === 'syntax' || item.kind === 'unresolved')) {
+    errors.push(`${diagnostic.file}:${diagnostic.line}: ${diagnostic.kind}: ${diagnostic.expression}`);
+  }
   const experimentalBridges = new Map(Object.entries(policy.experimentalBridges ?? {}));
   const observedExperimentalBridges = new Set();
 
@@ -186,9 +136,10 @@ async function validateProductionGraph(policy, sourceRoot, files, facadePaths, e
     const relative = toPosix(path.relative(sourceRoot, filePath));
     const source = await fs.readFile(filePath, 'utf8');
     const dependencies = [];
-    for (const specifier of collectSpecifiers(source)) {
+    for (const { specifier, target, kind } of parsed.graph.get(filePath) ?? []) {
       if (!specifier.startsWith('.')) continue;
-      const imported = resolveSourceImport(filePath, specifier, sourceFiles);
+      if (kind === 'asset' && !target) continue;
+      const imported = sourceFiles.has(target) ? target : null;
       if (!imported) {
         if (!await relativeImportExists(filePath, specifier)) {
           errors.push(`${relative}: unresolved relative import ${specifier}`);
@@ -209,15 +160,6 @@ async function validateProductionGraph(policy, sourceRoot, files, facadePaths, e
       }
     }
     fullGraph.set(filePath, [...new Set(dependencies)]);
-    if (!facadePaths.has(relative)) {
-      cycleGraph.set(
-        filePath,
-        [...new Set(dependencies)].filter((dependency) => {
-          const dependencyRelative = toPosix(path.relative(sourceRoot, dependency));
-          return !facadePaths.has(dependencyRelative);
-        })
-      );
-    }
   }
 
   for (const relative of experimentalBridges.keys()) {
@@ -226,7 +168,7 @@ async function validateProductionGraph(policy, sourceRoot, files, facadePaths, e
     }
   }
 
-  for (const component of collectStronglyConnectedComponents(cycleGraph)) {
+  for (const component of collectStronglyConnectedComponents(fullGraph)) {
     const members = component
       .map((filePath) => toPosix(path.relative(sourceRoot, filePath)))
       .sort();
@@ -407,20 +349,28 @@ async function main() {
 
     if (path.extname(relative) !== '.js') continue;
     if (genericModulePattern.test(relative)) observedGenericModules.add(relative);
-    if (facadePaths.has(relative)) continue;
     const fromOwner = declaredOwnerFor(policy, sourceRoot, filePath);
     const allowedOwners = policy.allowedDependencies?.[fromOwner];
     if (!Array.isArray(allowedOwners)) {
       errors.push(`${relative}: owner ${String(fromOwner)} lacks an allowed dependency policy`);
       continue;
     }
+    const observedFacadeEdges = new Set();
     for (const specifier of collectSpecifiers(source)) {
       if (!specifier.startsWith('.')) continue;
       const sourceFiles = new Set(files.filter((candidate) => path.extname(candidate) === '.js'));
       const imported = resolveSourceImport(filePath, specifier, sourceFiles);
       if (!imported) continue;
+      const dependencyRelative = toPosix(path.relative(sourceRoot, imported));
+      if (facadePaths.has(relative)) {
+        observedFacadeEdges.add(dependencyRelative);
+        if (!policy.facadeDependencies?.[relative]?.includes(dependencyRelative)) {
+          errors.push(`${relative}: forwarding dependency ${dependencyRelative} is not declared`);
+        }
+      }
       const toOwner = declaredOwnerFor(policy, sourceRoot, imported);
-      if (!toOwner || allowedOwners.includes(toOwner)) continue;
+      if (!toOwner || fromOwner === toOwner || allowedOwners.includes(toOwner)) continue;
+      if (facadePaths.has(relative) && policy.facadeDependencies?.[relative]?.includes(dependencyRelative)) continue;
       const key = exceptionKey(relative, toOwner);
       const exception = exceptions.get(key);
       if (exception) {
@@ -428,6 +378,11 @@ async function main() {
         continue;
       }
       errors.push(`${relative}: dependency on ${toOwner} violates ${fromOwner} ownership boundary`);
+    }
+    if (facadePaths.has(relative)) {
+      for (const declared of policy.facadeDependencies?.[relative] ?? []) {
+        if (!observedFacadeEdges.has(declared)) errors.push(`${relative}: stale forwarding dependency ${declared}`);
+      }
     }
   }
 

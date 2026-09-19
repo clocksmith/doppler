@@ -7,7 +7,7 @@ import {
 } from '../formats/rdrr/index.js';
 
 import {
-  openModelStore,
+  openModelStoreSession,
   shardExists,
   loadShard,
   loadFileFromStore,
@@ -69,6 +69,7 @@ export { inspectModelDownloadResume } from './download/resume-inspection.js';
 
 
 const activeDownloads = new Map();
+const openingDownloads = new Set();
 
 export async function downloadModel(
   baseUrl,
@@ -111,446 +112,462 @@ export async function downloadModel(
   // Use override modelId for storage, or fall back to manifest's modelId
   const storageModelId = overrideModelId || manifest.modelId;
 
-  // Open model directory
-  await openModelStore(storageModelId);
+  // The complete download owns one store; other loads cannot retarget it.
+  const store = await openModelStoreSession(storageModelId, manifest);
+  if (openingDownloads.has(storageModelId)) {
+    await store.close();
+    throw new Error(`A download for ${storageModelId} is already active.`);
+  }
+  openingDownloads.add(storageModelId);
+  const { shardExists, loadShard, loadFileFromStore, deleteShard, deleteFileFromStore,
+    saveManifest, saveTokenizer, saveTokenizerModel } = store;
+  try {
 
-  // Check for existing download state
-  const manifestVersionSet = buildManifestVersionSet(manifest);
-  let state = await loadDownloadState(storageModelId);
-  if (!state) {
-    state = {
-      modelId: storageModelId,
-      baseUrl,
-      manifest,
-      manifestVersionSet,
-      completedShards: new Set(),
-      startTime: Date.now(),
-      status: 'downloading',
-      sourceStats: createDefaultSourceStats(),
-      lastSource: null,
-      lastSourcePath: null,
-    };
-  } else {
-    state.status = 'downloading';
-    const savedVersionSet = typeof state.manifestVersionSet === 'string'
-      ? state.manifestVersionSet
-      : buildManifestVersionSet(state.manifest);
-    if (savedVersionSet !== manifestVersionSet) {
-      log.warn('Downloader', `Manifest version-set changed for ${storageModelId}, resetting cached shards`);
+    // Check for existing download state
+    const manifestVersionSet = buildManifestVersionSet(manifest);
+    let state = await loadDownloadState(storageModelId);
+    if (!state) {
+      state = {
+        modelId: storageModelId,
+        baseUrl,
+        manifest,
+        manifestVersionSet,
+        completedShards: new Set(),
+        startTime: Date.now(),
+        status: 'downloading',
+        sourceStats: createDefaultSourceStats(),
+        lastSource: null,
+        lastSourcePath: null,
+      };
+    } else {
+      state.status = 'downloading';
+      const savedVersionSet = typeof state.manifestVersionSet === 'string'
+        ? state.manifestVersionSet
+        : buildManifestVersionSet(state.manifest);
+      if (savedVersionSet !== manifestVersionSet) {
+        log.warn('Downloader', `Manifest version-set changed for ${storageModelId}, resetting cached shards`);
+        for (const idx of state.completedShards) {
+          if (externalSignal?.aborted) throw createAbortError();
+          if (directSourceArtifact) {
+            const sourceEntry = directSourceArtifact.sourceFiles[idx];
+            if (sourceEntry) {
+              await deleteFileFromStore(sourceEntry.path);
+            }
+          } else {
+            await deleteShard(idx);
+          }
+        }
+        state.completedShards.clear();
+      }
+      state.manifest = manifest;
+      state.manifestVersionSet = manifestVersionSet;
+      state.baseUrl = baseUrl;
+      state.sourceStats = normalizeSourceStats(state.sourceStats);
+      state.lastSource = typeof state.lastSource === 'string' ? state.lastSource : null;
+      state.lastSourcePath = typeof state.lastSourcePath === 'string' ? state.lastSourcePath : null;
+      // Check which shards actually exist (in case OPFS was cleared)
       for (const idx of state.completedShards) {
         if (externalSignal?.aborted) throw createAbortError();
         if (directSourceArtifact) {
           const sourceEntry = directSourceArtifact.sourceFiles[idx];
-          if (sourceEntry) {
-            await deleteFileFromStore(sourceEntry.path);
+          if (!sourceEntry || !(await fileExistsInStore(sourceEntry.path, loadFileFromStore))) {
+            state.completedShards.delete(idx);
           }
-        } else {
-          await deleteShard(idx);
+          continue;
         }
-      }
-      state.completedShards.clear();
-    }
-    state.manifest = manifest;
-    state.manifestVersionSet = manifestVersionSet;
-    state.baseUrl = baseUrl;
-    state.sourceStats = normalizeSourceStats(state.sourceStats);
-    state.lastSource = typeof state.lastSource === 'string' ? state.lastSource : null;
-    state.lastSourcePath = typeof state.lastSourcePath === 'string' ? state.lastSourcePath : null;
-    // Check which shards actually exist (in case OPFS was cleared)
-    for (const idx of state.completedShards) {
-      if (externalSignal?.aborted) throw createAbortError();
-      if (directSourceArtifact) {
-        const sourceEntry = directSourceArtifact.sourceFiles[idx];
-        if (!sourceEntry || !(await fileExistsInStore(sourceEntry.path))) {
+        if (!(await shardExists(idx))) {
           state.completedShards.delete(idx);
         }
-        continue;
       }
-      if (!(await shardExists(idx))) {
-        state.completedShards.delete(idx);
-      }
-    }
-    // Verify hashes for completed shards; drop and re-download corrupt shards
-    for (const idx of Array.from(state.completedShards)) {
-      if (externalSignal?.aborted) throw createAbortError();
-      try {
-        if (directSourceArtifact) {
-          const sourceEntry = directSourceArtifact.sourceFiles[idx];
-          if (!sourceEntry?.hash) {
-            continue;
+      // Verify hashes for completed shards; drop and re-download corrupt shards
+      for (const idx of Array.from(state.completedShards)) {
+        if (externalSignal?.aborted) throw createAbortError();
+        try {
+          if (directSourceArtifact) {
+            const sourceEntry = directSourceArtifact.sourceFiles[idx];
+            if (!sourceEntry?.hash) {
+              continue;
+            }
+            const payload = await loadFileFromStore(sourceEntry.path);
+            const computedHash = await computeAssetHash(payload, sourceEntry.hashAlgorithm);
+            if (computedHash !== sourceEntry.hash) {
+              throw new Error(
+                `Hash mismatch for source asset ${sourceEntry.path}: expected ${sourceEntry.hash}, got ${computedHash}`
+              );
+            }
+          } else {
+            await loadShard(idx, { verify: true });
           }
-          const payload = await loadFileFromStore(sourceEntry.path);
-          const computedHash = await computeAssetHash(payload, sourceEntry.hashAlgorithm);
-          if (computedHash !== sourceEntry.hash) {
-            throw new Error(
-              `Hash mismatch for source asset ${sourceEntry.path}: expected ${sourceEntry.hash}, got ${computedHash}`
-            );
+        } catch (err) {
+          log.warn('Downloader', `Shard ${idx} failed verification, re-downloading`);
+          state.completedShards.delete(idx);
+          if (directSourceArtifact) {
+            const sourceEntry = directSourceArtifact.sourceFiles[idx];
+            if (sourceEntry) {
+              await deleteFileFromStore(sourceEntry.path);
+            }
+          } else {
+            await deleteShard(idx);
           }
-        } else {
-          await loadShard(idx, { verify: true });
-        }
-      } catch (err) {
-        log.warn('Downloader', `Shard ${idx} failed verification, re-downloading`);
-        state.completedShards.delete(idx);
-        if (directSourceArtifact) {
-          const sourceEntry = directSourceArtifact.sourceFiles[idx];
-          if (sourceEntry) {
-            await deleteFileFromStore(sourceEntry.path);
-          }
-        } else {
-          await deleteShard(idx);
         }
       }
     }
-  }
 
-  let verifiedDownloadedBytes = 0;
-  for (const idx of state.completedShards) {
-    const info = trackedShards[idx];
-    if (info) verifiedDownloadedBytes += Number(info.size || 0);
-  }
-  const requiredDownloadBytes = Math.max(0, trackedTotalBytes - verifiedDownloadedBytes);
-  const spaceCheck = await checkSpaceAvailable(requiredDownloadBytes);
-  if (!spaceCheck.hasSpace) {
-    throw new QuotaExceededError(requiredDownloadBytes, spaceCheck.info.available);
-  }
-  if (externalSignal?.aborted) {
-    throw createAbortError();
-  }
-
-  // Create abort controller
-  const abortController = new AbortController();
-  const abortFromExternalSignal = () => {
-    abortController.abort();
-  };
-  if (externalSignal && typeof externalSignal.addEventListener === 'function') {
-    externalSignal.addEventListener('abort', abortFromExternalSignal, { once: true });
-    if (externalSignal.aborted) abortFromExternalSignal();
-  }
-  activeDownloads.set(storageModelId, {
-    state,
-    abortController
-  });
-
-  const totalShards = trackedShards.length;
-  const requiredEncoding = getRequiredContentEncoding();
-  
-  const pendingShards = [];
-
-  // Find shards that need downloading
-  for (let i = 0; i < totalShards; i++) {
-    if (!state.completedShards.has(i)) {
-      pendingShards.push(i);
+    let verifiedDownloadedBytes = 0;
+    for (const idx of state.completedShards) {
+      const info = trackedShards[idx];
+      if (info) verifiedDownloadedBytes += Number(info.size || 0);
     }
-  }
-
-  // Progress tracking
-  let downloadedBytes = 0;
-  for (const idx of state.completedShards) {
-    const info = trackedShards[idx];
-    if (info) downloadedBytes += info.size;
-  }
-
-  
-  const speedTracker = {
-    lastBytes: downloadedBytes,
-    lastTime: Date.now(),
-    speed: 0
-  };
-  
-  const shardProgress = new Map();
-  let lastProgressUpdate = 0; // Throttle progress callbacks
-
-  
-  const updateProgress = (currentShard, force = false) => {
-    const now = Date.now();
-
-    // Throttle progress updates (unless forced for completion events)
-    if (!force && now - lastProgressUpdate < getProgressUpdateIntervalMs()) {
-      return;
+    const requiredDownloadBytes = Math.max(0, trackedTotalBytes - verifiedDownloadedBytes);
+    const spaceCheck = await checkSpaceAvailable(requiredDownloadBytes);
+    if (!spaceCheck.hasSpace) {
+      throw new QuotaExceededError(requiredDownloadBytes, spaceCheck.info.available);
     }
-    lastProgressUpdate = now;
-
-    const timeDelta = (now - speedTracker.lastTime) / 1000;
-    if (timeDelta >= 1) {
-      speedTracker.speed = (downloadedBytes - speedTracker.lastBytes) / timeDelta;
-      speedTracker.lastBytes = downloadedBytes;
-      speedTracker.lastTime = now;
-    }
-
-    if (onProgress) {
-      onProgress({
-        modelId: storageModelId,
-        manifest,
-        totalShards,
-        completedShards:  (state).completedShards.size,
-        totalBytes: trackedTotalBytes,
-        downloadedBytes,
-        percent: trackedTotalBytes > 0 ? (downloadedBytes / trackedTotalBytes) * 100 : 0,
-        status:  (state).status,
-        currentShard,
-        speed: speedTracker.speed,
-        lastSource: state.lastSource ?? null,
-        lastSourcePath: state.lastSourcePath ?? null,
-        sourceStats: normalizeSourceStats(state.sourceStats),
-      });
-    }
-  };
-
-  // Download shards with concurrency control
-  const downloadQueue = [...pendingShards];
-  
-  const inFlight = new Set();
-
-  const downloadNext = async () => {
-    if (downloadQueue.length === 0 || abortController.signal.aborted) {
-      return;
-    }
-
-    const shardIndex =  (downloadQueue.shift());
-    inFlight.add(shardIndex);
-    updateProgress(shardIndex);
-
-    try {
-      if (directSourceArtifact) {
-        const sourceAsset = directSourceArtifact.sourceFiles[shardIndex];
-        if (!sourceAsset) {
-          throw new Error(`Invalid source asset index: ${shardIndex}`);
-        }
-        const result = await downloadSourceAsset(
-          joinArtifactUrl(baseUrl, sourceAsset.path),
-          sourceAsset,
-          {
-            signal: abortController.signal,
-            onProgress: (receivedBytes) => {
-              const prev = shardProgress.get(shardIndex) || 0;
-              const delta = Math.max(0, receivedBytes - prev);
-              shardProgress.set(shardIndex, receivedBytes);
-              downloadedBytes += delta;
-              updateProgress(shardIndex);
-            },
-          }
-        );
-
-        const source = typeof result.source === 'string' ? result.source : 'unknown';
-        const sourceStats = normalizeSourceStats(state.sourceStats);
-        if (source in sourceStats) {
-          sourceStats[source] += 1;
-        } else {
-          sourceStats.unknown += 1;
-        }
-        state.sourceStats = sourceStats;
-        state.lastSource = source;
-        state.lastSourcePath = typeof result.path === 'string' ? result.path : null;
-
-        const observedBytes = shardProgress.get(shardIndex) || 0;
-        const shardBytes = sourceAsset.size ?? result.bytes ?? observedBytes;
-        if (shardBytes > observedBytes) {
-          downloadedBytes += shardBytes - observedBytes;
-        }
-      } else {
-        const shardInfo = manifest.shards[shardIndex];
-        if (!shardInfo) {
-          throw new Error(`Invalid shard index: ${shardIndex}`);
-        }
-        const algorithm = manifest.hashAlgorithm;
-        if (!algorithm) {
-          throw new Error('Manifest missing hashAlgorithm for download verification.');
-        }
-        const expectedHash = getExpectedShardHash(shardInfo, algorithm);
-        if (!expectedHash) {
-          throw new Error(`Shard ${shardIndex} is missing hash in manifest`);
-        }
-        const expectedSize = Number.isFinite(shardInfo.size) ? Math.floor(shardInfo.size) : null;
-        const result = await downloadShard(baseUrl, shardIndex, shardInfo, {
-          signal: abortController.signal,
-          algorithm,
-          requiredEncoding,
-          expectedHash,
-          expectedSize,
-          expectedManifestVersionSet: manifestVersionSet,
-          writeToStore: true,
-          onProgress: ( p) => {
-            const prev = shardProgress.get(shardIndex) || 0;
-            const delta = Math.max(0, p.receivedBytes - prev);
-            shardProgress.set(shardIndex, p.receivedBytes);
-            downloadedBytes += delta;
-            updateProgress(shardIndex);
-          }
-        });
-
-        if (result.hash !== expectedHash) {
-          await deleteShard(shardIndex);
-          throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${result.hash}`);
-        }
-
-        await persistDownloadedShardIfNeeded(result, shardIndex);
-
-        const source = typeof result.source === 'string' ? result.source : 'unknown';
-        const sourceStats = normalizeSourceStats(state.sourceStats);
-        if (source in sourceStats) {
-          sourceStats[source] += 1;
-        } else {
-          sourceStats.unknown += 1;
-        }
-        state.sourceStats = sourceStats;
-        state.lastSource = source;
-        state.lastSourcePath = typeof result.path === 'string' ? result.path : null;
-
-        const observedBytes = shardProgress.get(shardIndex) || 0;
-        const shardBytes = shardInfo.size ?? result.bytes ?? observedBytes;
-        if (shardBytes > observedBytes) {
-          downloadedBytes += shardBytes - observedBytes;
-        }
-      }
-
-      // Update state
-       (state).completedShards.add(shardIndex);
-      shardProgress.delete(shardIndex);
-
-      // Save progress
-      await saveDownloadState( (state));
-      updateProgress(null, true); // Force update on shard completion
-
-    } catch (error) {
-      if ( (error).name === 'AbortError') {
-         (state).status = 'paused';
-        await saveDownloadState( (state));
-        throw error;
-      }
-      // Re-add to queue for retry (will be handled by next attempt)
-      throw error;
-    } finally {
-      inFlight.delete(shardIndex);
-    }
-  };
-
-  // Track errors from concurrent downloads
-  
-  const downloadErrors = [];
-
-  try {
-    // Process queue with concurrency limit
-    
-    const downloadPromises = new Set();
-
-    while (downloadQueue.length > 0 || inFlight.size > 0) {
-      if (abortController.signal.aborted) break;
-
-      // Start new downloads up to concurrency limit
-      while (inFlight.size < concurrency && downloadQueue.length > 0) {
-        const promise = downloadNext().catch(( error) => {
-          // Collect errors instead of swallowing them
-          if (error.name !== 'AbortError') {
-            downloadErrors.push(error);
-            log.error('Downloader', `Shard download failed: ${error.message}`);
-          }
-        });
-        downloadPromises.add(promise);
-        promise.finally(() => downloadPromises.delete(promise));
-      }
-
-      // Wait a bit before checking again
-      await new Promise(r => setTimeout(r, 100));
-    }
-
-    // Wait for any remaining downloads to complete
-    await Promise.all([...downloadPromises]);
-
-    if (abortController.signal.aborted) {
+    if (externalSignal?.aborted) {
       throw createAbortError();
     }
 
-    // Verify all shards completed
-    if (state.completedShards.size === totalShards) {
-      state.status = 'completed';
+    // Create abort controller
+    const abortController = new AbortController();
+    const abortFromExternalSignal = () => {
+      abortController.abort();
+    };
+    if (externalSignal && typeof externalSignal.addEventListener === 'function') {
+      externalSignal.addEventListener('abort', abortFromExternalSignal, { once: true });
+      if (externalSignal.aborted) abortFromExternalSignal();
+    }
+    activeDownloads.set(storageModelId, {
+      state,
+      abortController
+    });
 
-      // Save manifest to OPFS
-      await saveManifest(manifestJson);
+    const totalShards = trackedShards.length;
+    const requiredEncoding = getRequiredContentEncoding();
 
-      if (directSourceArtifact) {
-        for (const asset of directSourceArtifact.auxiliaryFiles) {
-          const alreadyPresent = await fileExistsInStore(asset.path);
-          if (alreadyPresent) {
-            continue;
-          }
-          await downloadSourceAsset(joinArtifactUrl(baseUrl, asset.path), asset, {
-            signal: abortController.signal,
-            onProgress: (receivedBytes) => {
-              const previous = shardProgress.get(asset.path) || 0;
-              const delta = Math.max(0, receivedBytes - previous);
-              shardProgress.set(asset.path, receivedBytes);
-              downloadedBytes += delta;
-              updateProgress(null);
-            },
-          });
-          const observedBytes = shardProgress.get(asset.path) || 0;
-          shardProgress.delete(asset.path);
-          const assetBytes = asset.size ?? observedBytes;
-          if (assetBytes > observedBytes) {
-            downloadedBytes += assetBytes - observedBytes;
-          }
-          updateProgress(null, true);
-        }
-      } else {
-        // Download tokenizer assets if specified
-        const tokenizer =  (manifest.tokenizer);
-        if (isTokenizerJsonRequired(tokenizer)) {
-          const tokenizerUrl = `${baseUrl}/${ (tokenizer).file}`;
-          log.verbose('Downloader', `Fetching bundled tokenizer from ${tokenizerUrl}`);
-          const tokenizerResponse = await fetchWithRetry(tokenizerUrl, {
-            signal: abortController.signal,
-          });
-          const tokenizerJson = await tokenizerResponse.text();
-          await saveTokenizer(tokenizerJson);
-          log.verbose('Downloader', 'Saved bundled tokenizer.json');
-        }
+    const pendingShards = [];
 
-        const sentencepieceModel = getTokenizerModelPath(tokenizer);
-        if (sentencepieceModel) {
-          const modelUrl = `${baseUrl}/${sentencepieceModel}`;
-          log.verbose('Downloader', `Fetching sentencepiece model from ${modelUrl}`);
-          const modelResponse = await fetchWithRetry(modelUrl, {
-            signal: abortController.signal,
-          });
-          const modelBuffer = await modelResponse.arrayBuffer();
-          await saveTokenizerModel(modelBuffer);
-          log.verbose('Downloader', 'Saved tokenizer.model');
-        }
+    // Find shards that need downloading
+    for (let i = 0; i < totalShards; i++) {
+      if (!state.completedShards.has(i)) {
+        pendingShards.push(i);
+      }
+    }
+
+    // Progress tracking
+    let downloadedBytes = 0;
+    for (const idx of state.completedShards) {
+      const info = trackedShards[idx];
+      if (info) downloadedBytes += info.size;
+    }
+
+
+    const speedTracker = {
+      lastBytes: downloadedBytes,
+      lastTime: Date.now(),
+      speed: 0
+    };
+
+    const shardProgress = new Map();
+    let lastProgressUpdate = 0; // Throttle progress callbacks
+
+
+    const updateProgress = (currentShard, force = false) => {
+      const now = Date.now();
+
+      // Throttle progress updates (unless forced for completion events)
+      if (!force && now - lastProgressUpdate < getProgressUpdateIntervalMs()) {
+        return;
+      }
+      lastProgressUpdate = now;
+
+      const timeDelta = (now - speedTracker.lastTime) / 1000;
+      if (timeDelta >= 1) {
+        speedTracker.speed = (downloadedBytes - speedTracker.lastBytes) / timeDelta;
+        speedTracker.lastBytes = downloadedBytes;
+        speedTracker.lastTime = now;
       }
 
-      // Clean up download state
-      await deleteDownloadState(storageModelId);
+      if (onProgress) {
+        onProgress({
+          modelId: storageModelId,
+          manifest,
+          totalShards,
+          completedShards:  (state).completedShards.size,
+          totalBytes: trackedTotalBytes,
+          downloadedBytes,
+          percent: trackedTotalBytes > 0 ? (downloadedBytes / trackedTotalBytes) * 100 : 0,
+          status:  (state).status,
+          currentShard,
+          speed: speedTracker.speed,
+          lastSource: state.lastSource ?? null,
+          lastSourcePath: state.lastSourcePath ?? null,
+          sourceStats: normalizeSourceStats(state.sourceStats),
+        });
+      }
+    };
 
-      updateProgress(null, true); // Force final update
-      return true;
+    // Download shards with concurrency control
+    const downloadQueue = [...pendingShards];
+
+    const inFlight = new Set();
+
+    const downloadNext = async () => {
+      if (downloadQueue.length === 0 || abortController.signal.aborted) {
+        return;
+      }
+
+      const shardIndex =  (downloadQueue.shift());
+      inFlight.add(shardIndex);
+      updateProgress(shardIndex);
+
+      try {
+        if (directSourceArtifact) {
+          const sourceAsset = directSourceArtifact.sourceFiles[shardIndex];
+          if (!sourceAsset) {
+            throw new Error(`Invalid source asset index: ${shardIndex}`);
+          }
+          const result = await downloadSourceAsset(
+            joinArtifactUrl(baseUrl, sourceAsset.path),
+            sourceAsset,
+            {
+              store,
+              signal: abortController.signal,
+              onProgress: (receivedBytes) => {
+                const prev = shardProgress.get(shardIndex) || 0;
+                const delta = Math.max(0, receivedBytes - prev);
+                shardProgress.set(shardIndex, receivedBytes);
+                downloadedBytes += delta;
+                updateProgress(shardIndex);
+              },
+            }
+          );
+
+          const source = typeof result.source === 'string' ? result.source : 'unknown';
+          const sourceStats = normalizeSourceStats(state.sourceStats);
+          if (source in sourceStats) {
+            sourceStats[source] += 1;
+          } else {
+            sourceStats.unknown += 1;
+          }
+          state.sourceStats = sourceStats;
+          state.lastSource = source;
+          state.lastSourcePath = typeof result.path === 'string' ? result.path : null;
+
+          const observedBytes = shardProgress.get(shardIndex) || 0;
+          const shardBytes = sourceAsset.size ?? result.bytes ?? observedBytes;
+          if (shardBytes > observedBytes) {
+            downloadedBytes += shardBytes - observedBytes;
+          }
+        } else {
+          const shardInfo = manifest.shards[shardIndex];
+          if (!shardInfo) {
+            throw new Error(`Invalid shard index: ${shardIndex}`);
+          }
+          const algorithm = manifest.hashAlgorithm;
+          if (!algorithm) {
+            throw new Error('Manifest missing hashAlgorithm for download verification.');
+          }
+          const expectedHash = getExpectedShardHash(shardInfo, algorithm);
+          if (!expectedHash) {
+            throw new Error(`Shard ${shardIndex} is missing hash in manifest`);
+          }
+          const expectedSize = Number.isFinite(shardInfo.size) ? Math.floor(shardInfo.size) : null;
+          const result = await downloadShard(baseUrl, shardIndex, shardInfo, {
+            store,
+            transport: options.transport,
+            signal: abortController.signal,
+            algorithm,
+            requiredEncoding,
+            expectedHash,
+            expectedSize,
+            expectedManifestVersionSet: manifestVersionSet,
+            writeToStore: true,
+            onProgress: ( p) => {
+              const prev = shardProgress.get(shardIndex) || 0;
+              const delta = Math.max(0, p.receivedBytes - prev);
+              shardProgress.set(shardIndex, p.receivedBytes);
+              downloadedBytes += delta;
+              updateProgress(shardIndex);
+            }
+          });
+
+          if (result.hash !== expectedHash) {
+            await deleteShard(shardIndex);
+            throw new Error(`Hash mismatch for shard ${shardIndex}: expected ${expectedHash}, got ${result.hash}`);
+          }
+
+          await persistDownloadedShardIfNeeded(result, shardIndex, { writeShardFn: store.writeShard });
+
+          const source = typeof result.source === 'string' ? result.source : 'unknown';
+          const sourceStats = normalizeSourceStats(state.sourceStats);
+          if (source in sourceStats) {
+            sourceStats[source] += 1;
+          } else {
+            sourceStats.unknown += 1;
+          }
+          state.sourceStats = sourceStats;
+          state.lastSource = source;
+          state.lastSourcePath = typeof result.path === 'string' ? result.path : null;
+
+          const observedBytes = shardProgress.get(shardIndex) || 0;
+          const shardBytes = shardInfo.size ?? result.bytes ?? observedBytes;
+          if (shardBytes > observedBytes) {
+            downloadedBytes += shardBytes - observedBytes;
+          }
+        }
+
+        // Update state
+         (state).completedShards.add(shardIndex);
+        shardProgress.delete(shardIndex);
+
+        // Save progress
+        await saveDownloadState( (state));
+        updateProgress(null, true); // Force update on shard completion
+
+      } catch (error) {
+        if ( (error).name === 'AbortError') {
+           (state).status = 'paused';
+          await saveDownloadState( (state));
+          throw error;
+        }
+        // Re-add to queue for retry (will be handled by next attempt)
+        throw error;
+      } finally {
+        inFlight.delete(shardIndex);
+      }
+    };
+
+    // Track errors from concurrent downloads
+
+    const downloadErrors = [];
+
+    try {
+      // Process queue with concurrency limit
+
+      const downloadPromises = new Set();
+
+      while (downloadQueue.length > 0 || inFlight.size > 0) {
+        if (abortController.signal.aborted) break;
+
+        // Start new downloads up to concurrency limit
+        while (inFlight.size < concurrency && downloadQueue.length > 0) {
+          const promise = downloadNext().catch(( error) => {
+            // Collect errors instead of swallowing them
+            if (error.name !== 'AbortError') {
+              downloadErrors.push(error);
+              log.error('Downloader', `Shard download failed: ${error.message}`);
+            }
+          });
+          downloadPromises.add(promise);
+          promise.finally(() => downloadPromises.delete(promise));
+        }
+
+        // Wait a bit before checking again
+        await new Promise(r => setTimeout(r, 100));
+      }
+
+      // Wait for any remaining downloads to complete
+      await Promise.all([...downloadPromises]);
+
+      if (abortController.signal.aborted) {
+        throw createAbortError();
+      }
+
+      // Verify all shards completed
+      if (state.completedShards.size === totalShards) {
+        state.status = 'completed';
+
+        // Save manifest to OPFS
+        await saveManifest(manifestJson);
+
+        if (directSourceArtifact) {
+          for (const asset of directSourceArtifact.auxiliaryFiles) {
+            const alreadyPresent = await fileExistsInStore(asset.path, loadFileFromStore);
+            if (alreadyPresent) {
+              continue;
+            }
+            await downloadSourceAsset(joinArtifactUrl(baseUrl, asset.path), asset, {
+              store,
+              signal: abortController.signal,
+              onProgress: (receivedBytes) => {
+                const previous = shardProgress.get(asset.path) || 0;
+                const delta = Math.max(0, receivedBytes - previous);
+                shardProgress.set(asset.path, receivedBytes);
+                downloadedBytes += delta;
+                updateProgress(null);
+              },
+            });
+            const observedBytes = shardProgress.get(asset.path) || 0;
+            shardProgress.delete(asset.path);
+            const assetBytes = asset.size ?? observedBytes;
+            if (assetBytes > observedBytes) {
+              downloadedBytes += assetBytes - observedBytes;
+            }
+            updateProgress(null, true);
+          }
+        } else {
+          // Download tokenizer assets if specified
+          const tokenizer =  (manifest.tokenizer);
+          if (isTokenizerJsonRequired(tokenizer)) {
+            const tokenizerUrl = `${baseUrl}/${ (tokenizer).file}`;
+            log.verbose('Downloader', `Fetching bundled tokenizer from ${tokenizerUrl}`);
+            const tokenizerResponse = await fetchWithRetry(tokenizerUrl, {
+              signal: abortController.signal,
+            });
+            const tokenizerJson = await tokenizerResponse.text();
+            await saveTokenizer(tokenizerJson);
+            log.verbose('Downloader', 'Saved bundled tokenizer.json');
+          }
+
+          const sentencepieceModel = getTokenizerModelPath(tokenizer);
+          if (sentencepieceModel) {
+            const modelUrl = `${baseUrl}/${sentencepieceModel}`;
+            log.verbose('Downloader', `Fetching sentencepiece model from ${modelUrl}`);
+            const modelResponse = await fetchWithRetry(modelUrl, {
+              signal: abortController.signal,
+            });
+            const modelBuffer = await modelResponse.arrayBuffer();
+            await saveTokenizerModel(modelBuffer);
+            log.verbose('Downloader', 'Saved tokenizer.model');
+          }
+        }
+
+        // Clean up download state
+        await deleteDownloadState(storageModelId);
+
+        updateProgress(null, true); // Force final update
+        return true;
+      }
+
+      // If we have errors and not all shards completed, report them
+      if (downloadErrors.length > 0) {
+        const errorMessages = downloadErrors.map(e => e.message).join('; ');
+        throw new Error(`Download incomplete: ${downloadErrors.length} shard(s) failed. Errors: ${errorMessages}`);
+      }
+
+      return false;
+
+    } catch (error) {
+      const aborted = abortController.signal.aborted || (error).name === 'AbortError';
+      state.status = aborted ? 'paused' : 'error';
+      if (aborted) {
+        delete state.error;
+      } else {
+        state.error =  (error).message;
+      }
+      await saveDownloadState(state);
+      if (aborted && (error).name !== 'AbortError') throw createAbortError();
+      throw error;
+
+    } finally {
+      if (externalSignal && typeof externalSignal.removeEventListener === 'function') {
+        externalSignal.removeEventListener('abort', abortFromExternalSignal);
+      }
+      activeDownloads.delete(storageModelId);
     }
-
-    // If we have errors and not all shards completed, report them
-    if (downloadErrors.length > 0) {
-      const errorMessages = downloadErrors.map(e => e.message).join('; ');
-      throw new Error(`Download incomplete: ${downloadErrors.length} shard(s) failed. Errors: ${errorMessages}`);
-    }
-
-    return false;
-
-  } catch (error) {
-    const aborted = abortController.signal.aborted || (error).name === 'AbortError';
-    state.status = aborted ? 'paused' : 'error';
-    if (aborted) {
-      delete state.error;
-    } else {
-      state.error =  (error).message;
-    }
-    await saveDownloadState(state);
-    if (aborted && (error).name !== 'AbortError') throw createAbortError();
-    throw error;
-
   } finally {
-    if (externalSignal && typeof externalSignal.removeEventListener === 'function') {
-      externalSignal.removeEventListener('abort', abortFromExternalSignal);
-    }
-    activeDownloads.delete(storageModelId);
+    openingDownloads.delete(storageModelId);
+    await store.close();
   }
 }
 
@@ -684,7 +701,7 @@ export async function checkDownloadNeeded(modelId) {
 
   const directSourceArtifact = resolveSourceArtifact(state.manifest);
   const totalShards = directSourceArtifact ? directSourceArtifact.sourceFiles.length : state.manifest.shards.length;
-  
+
   const missingShards = [];
 
   for (let i = 0; i < totalShards; i++) {

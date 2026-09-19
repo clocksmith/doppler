@@ -4,31 +4,20 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sha256Hex } from '../src/utils/sha256.js';
+import { buildDependencyGraph, collectReachable } from './lib/module-dependencies.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const entrypoint = path.join(repoRoot, 'src/capsule-runtime.js');
 const receiptPath = path.join(repoRoot, 'reports/capsule-runtime/runtime-closure.json');
+const declarations = JSON.parse(await fs.readFile(path.join(repoRoot, 'tools/policies/module-dependencies.json'), 'utf8'));
 const forbidden = [
   '/src/converter/', '/src/training/', '/src/experimental/', '/src/models/',
   '/src/tooling/', '/src/cli/', '/src/client/provider.js', '/src/config/conversion/',
 ];
-const importPattern = /(?:import|export)\s+(?:[^'";]*?\s+from\s+)?['"]([^'"]+)['"]/g;
 
-async function collect(file, files) {
-  const normalized = path.resolve(file);
-  if (files.has(normalized)) return;
-  files.add(normalized);
-  const source = await fs.readFile(normalized, 'utf8');
-  for (const match of source.matchAll(importPattern)) {
-    const specifier = match[1];
-    if (!specifier.startsWith('.')) continue;
-    const dependency = path.resolve(path.dirname(normalized), specifier);
-    await collect(dependency, files);
-  }
-}
-
-const files = new Set();
-await collect(entrypoint, files);
+const { graph, diagnostics } = await buildDependencyGraph(repoRoot, [entrypoint], declarations);
+if (diagnostics.length) throw new Error(`Runtime closure requires explicit dependencies: ${JSON.stringify(diagnostics)}`);
+const files = collectReachable(graph, [entrypoint]);
 const records = [];
 for (const file of [...files].sort()) {
   const source = await fs.readFile(file);
@@ -44,6 +33,7 @@ const forbiddenFiles = records.filter((record) => forbidden.some((segment) => (
 const receipt = {
   schema: 'doppler.capsule-runtime-closure/v1',
   entrypoint: 'src/capsule-runtime.js',
+  scope: 'injected-runtime-core; host-supplied executors are inventoried separately',
   fileCount: records.length,
   sourceBytes: records.reduce((total, record) => total + record.sizeBytes, 0),
   forbiddenPatterns: forbidden,

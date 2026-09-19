@@ -1,4 +1,5 @@
 import { isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
+import { matchesStopSequence } from '../stopping.js';
 import { markWarmed as markKernelCacheWarmed } from '../../../../gpu/kernel-selection-cache.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
 import {
@@ -39,7 +40,6 @@ import {
   extractEmbeddingFromHidden,
   extractTokenEmbeddingsFromHidden,
 } from '../generator-runtime.js';
-import { resolveSamplingConfig } from '../sampling-config.js';
 import {
   advanceDecodeStepCount,
   createTsirFixtureState,
@@ -91,6 +91,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     if (this._state.isGenerating) throw new Error('Generation already in progress');
 
     validateCallTimeOptions(options);
+    const opts = resolveGenerateOptions(this._state, options);
     this._resetReplayPrefillRuntimeState();
     this._state.isGenerating = true;
     this._resetDecodeRuntimeState();
@@ -129,11 +130,9 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     this._state.stats.ttftMs = 0;
     const startTime = performance.now();
 
-    const opts = resolveGenerateOptions(this._state, options);
     opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
     // Validate and normalize sampling parameters through single source of truth
-    const samplingConfig = resolveSamplingConfig(options, this._state.runtimeConfig);
-    Object.assign(opts, samplingConfig);
+    const samplingConfig = opts;
     opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this._state, samplingConfig);
     const diagnosticsEnabled = options?.diagnostics?.enabled === true
       || this._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
@@ -326,6 +325,7 @@ export async function generateTokenIds(prompt, options = {}) {
     if (this._state.isGenerating) throw new Error('Generation already in progress');
 
     validateCallTimeOptions(options);
+    const opts = resolveGenerateOptions(this._state, options);
     this._resetReplayPrefillRuntimeState();
     this._state.isGenerating = true;
     this._resetDecodeRuntimeState();
@@ -363,11 +363,9 @@ export async function generateTokenIds(prompt, options = {}) {
     this._state.stats.stopTokenId = null;
     this._state.stats.ttftMs = 0;
     const startTime = performance.now();
-    const opts = resolveGenerateOptions(this._state, options);
     opts.onLogits = typeof options.onLogits === 'function' ? options.onLogits : null;
     // Validate and normalize sampling parameters through single source of truth
-    const samplingConfig = resolveSamplingConfig(options, this._state.runtimeConfig);
-    Object.assign(opts, samplingConfig);
+    const samplingConfig = opts;
     opts.suppressTokenIds = resolveSuppressedSamplingTokenIds(this._state, samplingConfig);
     const diagnosticsEnabled = options?.diagnostics?.enabled === true
       || this._state.runtimeConfig?.shared?.harness?.mode === 'diagnose';
@@ -671,12 +669,9 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
             }
           }
           if (batchTokens.length > 0 && options.onBatch) options.onBatch(batchTokens);
-          if (opts.stopSequences.length > 0) {
-            const fullText = this._state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-            if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
-              this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
-              break;
-            }
+          if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
+            this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
+            break;
           }
           if (hitStop) {
             this._recordStopReason('stop-token', stopTokenId);
@@ -768,12 +763,9 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           break;
         }
         if (tokensGenerated >= opts.maxTokens) break;
-        if (opts.stopSequences.length > 0) {
-          const fullText = this._state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
-            this._recordStopReason('stop-sequence', baseToken);
-            break;
-          }
+        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
+          this._recordStopReason('stop-sequence', baseToken);
+          break;
         }
 
         for (let specIndex = 0; specIndex < speculativeBurstTokens; specIndex += 1) {
@@ -815,24 +807,18 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
             this._recordStopReason('stop-token', specToken);
             break;
           }
-          if (opts.stopSequences.length > 0) {
-            const fullText = this._state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-            if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
-              this._recordStopReason('stop-sequence', specToken);
-              break;
-            }
+          if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
+            this._recordStopReason('stop-sequence', specToken);
+            break;
           }
         }
         if (isStopToken(generatedIds[generatedIds.length - 1], stopTokenIds, eosToken)) {
           this._recordStopReason('stop-token', generatedIds[generatedIds.length - 1]);
           break;
         }
-        if (opts.stopSequences.length > 0) {
-          const fullText = this._state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
-            this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
-            break;
-          }
+        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
+          this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
+          break;
         }
       } else {
         const tokenStart = performance.now();
@@ -890,12 +876,9 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           this._recordStopReason('stop-token', nextToken);
           break;
         }
-        if (opts.stopSequences.length > 0) {
-          const fullText = this._state.tokenizer.decode(generatedIds.slice(stopSequenceStart), false);
-          if (opts.stopSequences.some((seq) => fullText.endsWith(seq))) {
-            this._recordStopReason('stop-sequence', nextToken);
-            break;
-          }
+        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
+          this._recordStopReason('stop-sequence', nextToken);
+          break;
         }
       }
     }

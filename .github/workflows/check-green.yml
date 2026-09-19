@@ -34,19 +34,32 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
+        id: dependencies
         run: npm ci
 
       - name: Install Chromium
+        id: chromium
         run: npx playwright install --with-deps chromium
 
       - name: Sync package source closure
         run: npm run package:closure:sync
 
+      - name: Run CI contract tests
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run test:ci
+
+      - name: Check kernel registries
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run kernels:check
+
       - name: Run repository acceptance checks
-        run: npm run ci:check
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        run: npm run check:green
 
       - name: Run browser WebGPU kernel contract
+        if: ${{ !cancelled() && steps.chromium.outcome == 'success' }}
         run: npm run test:gpu:browser
 
       - name: Run demo UI and offline PWA contract
+        if: ${{ !cancelled() && steps.chromium.outcome == 'success' }}
         run: npm run test:demo:contract

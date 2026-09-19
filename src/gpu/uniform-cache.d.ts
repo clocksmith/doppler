@@ -40,7 +40,7 @@ export declare class UniformBufferCache {
   private readonly maxEntries: number;
   private readonly maxAgeMs: number;
 
-  constructor(maxEntries?: number, maxAgeMs?: number);
+  constructor(maxEntries?: number, maxAgeMs?: number, device?: GPUDevice | null);
 
   /**
    * Get or create a uniform buffer with the given contents.
@@ -94,14 +94,14 @@ export function releaseUniformBuffer(buffer: GPUBuffer): void;
 /**
  * Get the global uniform buffer cache instance
  */
-export function getUniformCache(): UniformBufferCache;
+export function getUniformCache(device?: GPUDevice | null): UniformBufferCache;
 
 /**
  * Get stats for the current global uniform cache without creating one.
  */
-export function getUniformCacheStats(): (UniformCacheStats & { hitRate: string; pendingDestruction: number }) | null;
+export function getUniformCacheStats(device?: GPUDevice | null): (UniformCacheStats & { hitRate: string; pendingDestruction: number }) | null;
 
 /**
  * Reset the global uniform cache (useful for testing or device loss)
  */
-export function resetUniformCache(): void;
+export function resetUniformCache(device?: GPUDevice | null): void;

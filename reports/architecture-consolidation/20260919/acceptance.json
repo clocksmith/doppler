@@ -1,0 +1,177 @@
+{
+  "schema": "doppler.architecture-consolidation-acceptance/v1",
+  "createdAtUtc": "2026-09-19T20:18:17.062Z",
+  "component": "doppler",
+  "intent": "preserved",
+  "boundaryEffects": [
+    "configuration/converter: execution transforms owned by preparation",
+    "formats/storage/tooling: neutral source contracts and scoped byte ownership below orchestration",
+    "client runtime/model-host: source ingestion owned by host",
+    "inference/tooling: test harness owned by tooling",
+    "gpu/memory/loader: originating device and loaded-model resources",
+    "repository tooling/tests/docs: shared dependency model, strict-boundary debt ratchet, independent CI checks"
+  ],
+  "source": {
+    "branch": "fix/architecture-consolidation",
+    "baseline": "a5d7a7d2",
+    "reconciledMain": "086b49dd",
+    "worktreeChanges": true,
+    "committed": false,
+    "published": false
+  },
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-fE+fKapsGGmosByxMPQ5mgDGsaSB5oSLGxCDF6l+4Dd1nh9hwC5d/3WgCQZa0VxSDjcc87OADdOYcVGHqpBdFw==",
+    "sizeBytes": 2122307,
+    "source": "local-npm-pack",
+    "sha256": "d9a548b68c33ec6afa73cc00302015839e82c8d7b11a5691f68c9eee6b3dad2a"
+  },
+  "packageInventory": {
+    "entryCount": 1806,
+    "packedBytes": 2122307,
+    "unpackedBytes": 10938448,
+    "path": "/var/tmp/doppler-architecture-consolidation-acceptance-20260919/npm-pack.json",
+    "sourceMismatches": []
+  },
+  "authorization": {
+    "environmentVariable": "DOPPLER_ARCHITECTURE_DEBT_AUTHORIZATION",
+    "digest": "sha256:66797cdee28d91342930af4179ca9cc290da31cdd7634bce1786aaabe1a6fc4f",
+    "remoteSettingsChanged": false
+  },
+  "checks": [
+    {
+      "command": "npm run check:green",
+      "passed": true,
+      "logPath": "/tmp/doppler-check-green-final.log",
+      "logSha256": "sha256:4245fb502342ede16011548f5b25be6819223639a47523de381c0a03ba33c633"
+    },
+    {
+      "command": "npm run test:ci",
+      "passed": true,
+      "logPath": "/tmp/doppler-test-ci-acceptance.log",
+      "logSha256": "sha256:278c34d9aa12c6ba009d7f82d0c9b60f553002be05c0bf0ec7e682659ad6665a"
+    },
+    {
+      "command": "npm run kernels:check",
+      "passed": true,
+      "logPath": "/tmp/doppler-kernels-final.log",
+      "logSha256": "sha256:2c69cb03a86f3e111383cc2b54a83970b41ff15c1d0d12d17df91a4076588a46"
+    },
+    {
+      "command": "npm run test:gpu:browser",
+      "passed": true,
+      "logPath": "/tmp/doppler-browser-kernels-final.log",
+      "logSha256": "sha256:2dd41d3f1471c46830165e19a4a0645b7ec0b853b03819749567a00a20e5dc02"
+    },
+    {
+      "command": "npm run test:demo:contract",
+      "passed": true,
+      "logPath": "/tmp/doppler-demo-final.log",
+      "logSha256": "sha256:57ddca7bdf4dbb3de6651fe028a018fce4a66bb5824515b80411101d41f2b90b"
+    },
+    {
+      "command": "node tools/check-packed-package.js --retain /var/tmp/doppler-architecture-consolidation-acceptance-20260919",
+      "passed": true,
+      "logPath": "/tmp/doppler-installed-acceptance.log",
+      "logSha256": "sha256:69194cb220a328d0484990b890c3224ebf7b966d9d38cb9542eaf838e8823a38"
+    }
+  ],
+  "unitTestFiles": 809,
+  "browserKernelContract": {
+    "backend": "configured SwiftShader software adapter",
+    "passed": 71,
+    "failed": 0,
+    "skipped": 15
+  },
+  "typeChecking": {
+    "strictRoots": 6,
+    "uncheckedImplementations": 1008,
+    "wholesaleStrictMigration": false
+  },
+  "installedReploid": {
+    "revision": "19bc359ef1b7606fde3132ab2f37920f4891e6e5",
+    "passed": true,
+    "phaseCalls": 64,
+    "released": 64,
+    "streamingPassed": true,
+    "libraryPassed": true,
+    "realBrowserTransportPassed": true,
+    "transportEvidenceClass": "installed-doppler-injected-program-real-webrtc-native-indexeddb",
+    "peerReceipt": "/var/tmp/doppler-architecture-consolidation-acceptance-20260919/reploid-browser-receipt.json",
+    "peerReceiptSha256": "sha256:eef9b92cc08dd5b934c0cc3c44643276b32de4eff31a21c456a28739b3c50f3d"
+  },
+  "physical": [
+    {
+      "lane": "physical",
+      "receiptPath": "/var/tmp/doppler-architecture-consolidation-acceptance-physical-20260919/receipt.json",
+      "receiptSha256": "sha256:567efacee5f734a7d07156ff5d88059d94ac3e3a34de16562621b382b7a5da43",
+      "passed": true,
+      "browserVersion": "146.0.7680.177",
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": true
+          }
+        ]
+      },
+      "modelId": "qwen-3-embedding-0-6b-f16-af32",
+      "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c",
+      "embeddingCount": 2,
+      "embeddingDimensions": [
+        1024,
+        1024
+      ],
+      "sharedSessions": {
+        "firstClosed": true,
+        "sameExecutionDevice": true,
+        "secondOutputIdentical": true
+      },
+      "cleanupErrors": []
+    },
+    {
+      "lane": "standalone",
+      "receiptPath": "/var/tmp/doppler-architecture-consolidation-acceptance-standalone-20260919/receipt.json",
+      "receiptSha256": "sha256:f3b1ef7f07242990adc03dc1c967fbcabf598b0905cdeca64b24f2be72834683",
+      "passed": true,
+      "browserVersion": "146.0.7680.177",
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": true
+          }
+        ]
+      },
+      "modelId": "qwen-3-embedding-0-6b-f16-af32",
+      "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c",
+      "embeddingCount": 2,
+      "embeddingDimensions": [
+        1024,
+        1024
+      ],
+      "sharedSessions": null,
+      "cleanupErrors": []
+    }
+  ],
+  "consumerVectorComparison": {
+    "sameInput": true,
+    "samePackage": true,
+    "exactEmbeddingVectorsEqual": true,
+    "maxAbsoluteDifference": 0,
+    "comparedValues": 2048,
+    "wholeReceiptsEqual": false,
+    "note": "Receipts include independently recorded release-verification times; this compares numerical vectors, not receipt identity."
+  },
+  "limits": [
+    "Physical evidence is limited to retained Qwen3 0.6B embedding on the recorded AMD/browser tuple, not new model, fleet or performance qualification.",
+    "Legacy engine helpers remain behind serialized compatibility scopes; this is not an independent minimal interpreter or a claim of parallel old-engine execution.",
+    "Unchecked JavaScript and declaration any debt remain inventoried and ratcheted; only listed strict roots are implementation-checked.",
+    "Retained local Capsule authorization preserves existing signatures; no release publication, remote CI variable change or claim promotion."
+  ]
+}

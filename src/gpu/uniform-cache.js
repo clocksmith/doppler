@@ -1,7 +1,10 @@
 
 
-import { getDevice, getDeviceEpoch } from './device.js';
+import { getDevice } from './device.js';
+import { isDeviceLost, observeDeviceLoss, registerBufferDevice } from './device-state.js';
 import { getRuntimeConfig } from '../config/runtime.js';
+
+const uniformOwners = new WeakMap();
 
 
 function hashUniformBytes(view) {
@@ -62,18 +65,24 @@ export class UniformBufferCache {
 
   
   #maxAgeMs;
+  #device;
 
   
   constructor(
     maxEntries = getRuntimeConfig().shared.gpuCache.uniformCacheMaxEntries,
-    maxAgeMs = getRuntimeConfig().shared.gpuCache.uniformCacheMaxAgeMs
+    maxAgeMs = getRuntimeConfig().shared.gpuCache.uniformCacheMaxAgeMs,
+    device = getDevice()
   ) {
     this.#maxEntries = maxEntries;
     this.#maxAgeMs = maxAgeMs;
+    this.#device = device;
+    observeDeviceLoss(device);
+    device?.lost?.then(() => this.clear(), () => this.clear());
   }
 
   
   getOrCreate(data, label) {
+    if (isDeviceLost(this.#device)) throw new Error('Uniform cache GPU device is lost.');
     const dataView = new Uint8Array(data);
     const baseKey = `${data.byteLength}:${hashUniformBytes(dataView)}`;
     let key = baseKey;
@@ -97,7 +106,7 @@ export class UniformBufferCache {
     // Cache miss - create new buffer
     this.#stats.misses++;
 
-    const device = getDevice();
+    const device = this.#device;
     if (!device) {
       throw new Error('GPU device not initialized');
     }
@@ -107,7 +116,14 @@ export class UniformBufferCache {
       size: data.byteLength,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
-    device.queue.writeBuffer(buffer, 0, data);
+    try {
+      registerBufferDevice(buffer, device);
+      device.queue.writeBuffer(buffer, 0, data);
+    } catch (error) {
+      buffer.destroy();
+      throw error;
+    }
+    uniformOwners.set(buffer, this);
 
     // Evict if at capacity
     if (this.#cache.size >= this.#maxEntries) {
@@ -218,8 +234,8 @@ export class UniformBufferCache {
 
 
 export function releaseUniformBuffer(buffer) {
-  const cache = getUniformCache();
-  if (cache.isCached(buffer)) {
+  const cache = uniformOwners.get(buffer);
+  if (cache) {
     cache.release(buffer);
   } else {
     buffer.destroy();
@@ -228,31 +244,25 @@ export function releaseUniformBuffer(buffer) {
 
 // Global singleton instance
 
-let globalUniformCache = null;
-let globalUniformCacheEpoch = -1;
+const deviceUniformCaches = new WeakMap();
 
 
-export function getUniformCache() {
-  const epoch = getDeviceEpoch();
-  if (!globalUniformCache || globalUniformCacheEpoch !== epoch) {
-    if (globalUniformCache) {
-      globalUniformCache.clear();
-    }
-    globalUniformCache = new UniformBufferCache();
-    globalUniformCacheEpoch = epoch;
+export function getUniformCache(device = getDevice()) {
+  if (!device || isDeviceLost(device)) throw new Error('Uniform cache requires a live GPU device.');
+  let cache = deviceUniformCaches.get(device);
+  if (!cache) {
+    cache = new UniformBufferCache(undefined, undefined, device);
+    deviceUniformCaches.set(device, cache);
   }
-  return globalUniformCache;
+  return cache;
 }
 
-export function getUniformCacheStats() {
-  return globalUniformCache ? globalUniformCache.getStats() : null;
+export function getUniformCacheStats(device = getDevice()) {
+  return deviceUniformCaches.get(device)?.getStats() ?? null;
 }
 
 
-export function resetUniformCache() {
-  if (globalUniformCache) {
-    globalUniformCache.clear();
-    globalUniformCache = null;
-  }
-  globalUniformCacheEpoch = -1;
+export function resetUniformCache(device = getDevice()) {
+  deviceUniformCaches.get(device)?.clear();
+  if (device) deviceUniformCaches.delete(device);
 }

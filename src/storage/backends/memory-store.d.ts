@@ -14,6 +14,8 @@ export interface MemoryWriteStreamOptions {
 }
 
 export interface MemoryStore {
+  openModelSession(modelId: string, options?: { create?: boolean }): Promise<MemoryStore>;
+  close(): Promise<void>;
   init(): Promise<void>;
   openModel(modelId: string, options?: { create?: boolean }): Promise<null>;
   getCurrentModelId(): string | null;

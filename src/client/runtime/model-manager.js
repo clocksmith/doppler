@@ -9,6 +9,7 @@ import {
 } from '../../storage/shard-manager.js';
 import { getManifest, parseManifest, getManifestUrl } from '../../formats/rdrr/index.js';
 import { downloadModel } from '../../storage/downloader.js';
+import { downloadShardWithOptionalDistribution } from '../../tooling/distribution-shard-transport.js';
 import { requestPersistence, getStorageReport } from '../../storage/quota.js';
 import { initDevice, getKernelCapabilities, getDeviceLimits, destroyDevice, getDevice } from '../../gpu/device.js';
 import { prepareKernelRuntime } from '../../gpu/kernel-runtime.js';
@@ -16,7 +17,7 @@ import { createPipeline } from '../../inference/pipelines/text.js';
 import { log } from '../../debug/index.js';
 import { DopplerCapabilities } from './types.js';
 import { GB, HEADER_READ_SIZE } from '../../config/schema/index.js';
-import { resolveBridgeSourceRuntimeBundle } from './source-runtime.js';
+import { resolveBridgeSourceRuntimeBundle } from '../model-host/source-loading.js';
 import { getRuntimeConfig } from '../../config/runtime.js';
 import { assertBundledResolutionNotRevoked } from '../../config/revocation-policy.js';
 import {
@@ -384,7 +385,9 @@ export async function loadModel(modelId, modelUrl = null, onProgress = null, loc
 
       if (!integrity.valid && modelUrl) {
         log.info('DopplerProvider', `Model not cached, downloading from ${modelUrl}`);
-        const success = await downloadModel(modelUrl, onProgress);
+        const success = await downloadModel(modelUrl, onProgress, {
+          transport: downloadShardWithOptionalDistribution,
+        });
         if (!success) {
           throw new Error('Failed to download model');
         }

@@ -16,6 +16,9 @@ Persist, retrieve, verify, and transport artifact bytes through explicit storage
 ## Scope
 
 - OPFS, IndexedDB, memory, file, and HTTP artifact storage mechanisms.
+- Source storage context construction consumes neutral format metadata directly, without importing source preparation or host tooling.
+- Scoped reads and download writers retain one backend/model and manifest; closing or cancelling a session never changes another session's selection.
+- HTTP acquisition is owned here. Optional peer transports are supplied by a host, never imported from orchestration tooling.
 
 ## Contracts
 

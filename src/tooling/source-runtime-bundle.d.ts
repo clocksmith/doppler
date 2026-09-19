@@ -75,40 +75,10 @@ export interface SourceRuntimeTensor {
   } | null;
 }
 
-export interface SourceRuntimeFile {
-  path: string;
-  size: number;
-  hash?: string | null;
-  hashAlgorithm?: string | null;
-  kind?: string | null;
-}
-
-export interface SourceRuntimeShardSource {
-  index: number;
-  path: string;
-  filename: string;
-  size: number;
-  hash: string;
-  hashAlgorithm: string;
-}
-
-export interface SourceRuntimeTokenizerMetadata {
-  jsonPath: string | null;
-  configPath: string | null;
-  modelPath: string | null;
-}
-
-export interface SourceRuntimeMetadata {
-  mode: 'direct-source';
-  schema: 'direct-source/v1';
-  schemaVersion: 1;
-  sourceKind: SourceArtifactKind | 'rdrr' | null;
-  hashAlgorithm: string;
-  pathSemantics: 'runtime-local' | 'artifact-relative';
-  sourceFiles: SourceRuntimeShardSource[];
-  auxiliaryFiles: SourceRuntimeFile[];
-  tokenizer: SourceRuntimeTokenizerMetadata;
-}
+export type { SourceRuntimeFile, SourceRuntimeShardSource, SourceRuntimeTokenizerMetadata, SourceRuntimeMetadata } from '../formats/source-runtime.js';
+import type { SourceRuntimeFile, SourceRuntimeShardSource, SourceRuntimeMetadata } from '../formats/source-runtime.js';
+export { createSourceStorageContext } from '../storage/source-storage-context.js';
+export type { CreateSourceStorageContextOptions, SourceStorageContext } from '../storage/source-storage-context.js';
 
 export interface BuildSourceRuntimeBundleOptions {
   modelId: string;
@@ -156,54 +126,3 @@ export declare function buildSourceRuntimeBundle(
 export declare function getSourceRuntimeMetadata(
   manifest: RuntimeModelContract | Record<string, unknown> | null | undefined
 ): SourceRuntimeMetadata | null;
-
-export interface CreateSourceStorageContextOptions {
-  model?: RuntimeModelContract | null;
-  manifest?: RuntimeModelContract | null;
-  shardSources?: SourceRuntimeShardSource[] | null;
-  readRange: (
-    path: string,
-    offset: number,
-    length: number
-  ) => Promise<ArrayBuffer | Uint8Array>;
-  streamRange?: (
-    path: string,
-    offset: number,
-    length: number,
-    options?: { chunkBytes?: number }
-  ) => AsyncIterable<ArrayBuffer | Uint8Array>;
-  readText?: (path: string) => Promise<string | Record<string, unknown> | null | undefined>;
-  readBinary?: (path: string) => Promise<ArrayBuffer | Uint8Array>;
-  close?: (() => Promise<void>) | null;
-  tokenizerJsonPath?: string | null;
-  tokenizerConfigPath?: string | null;
-  tokenizerModelPath?: string | null;
-  verifyHashes?: boolean;
-  sourceHashesTrusted?: boolean;
-}
-
-export interface SourceStorageContext {
-  preflight?: () => Promise<void>;
-  loadShard: (index: number) => Promise<ArrayBuffer | Uint8Array>;
-  loadShardRange: ((
-    index: number,
-    offset?: number,
-    length?: number | null
-  ) => Promise<ArrayBuffer | Uint8Array>) | null;
-  streamShardRange: ((
-    index: number,
-    offset?: number,
-    length?: number | null,
-    options?: { chunkBytes?: number }
-  ) => AsyncIterable<Uint8Array>) | null;
-  loadTokenizerJson: (() => Promise<Record<string, unknown> | null>) | null;
-  loadTokenizerModel: ((pathHint?: string) => Promise<ArrayBuffer | null>) | null;
-  loadAuxiliaryFile: ((path: string) => Promise<ArrayBuffer | null>) | null;
-  loadTensorsJson?: (() => Promise<string | Record<string, unknown> | null>) | null;
-  verifyHashes: boolean;
-  close?: (() => Promise<void>) | null;
-}
-
-export declare function createSourceStorageContext(
-  options: CreateSourceStorageContextOptions
-): SourceStorageContext;

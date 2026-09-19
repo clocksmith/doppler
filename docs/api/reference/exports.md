@@ -297,6 +297,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `createOpfsStore`
   - `deleteModel`
   - `deleteStorageEntry`
+  - `downloadShardWithOptionalDistribution`
   - `ensureModelCached`
   - `ensureModelCachedSource`
   - `exportModelToDirectory`
@@ -314,7 +315,9 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `loadTokenizerFromStore`
   - `loadTokenizerModelFromStore`
   - `ModelDownloadResumeInspection`
+  - `openModelReadSession`
   - `openModelStore`
+  - `openModelStoreSession`
   - `OpfsStore`
   - `OpfsStoreConfig`
   - `registerModel`
