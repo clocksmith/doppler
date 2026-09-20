@@ -3,9 +3,14 @@
   "checkGreen": {
     "command": "npm run check:green",
     "exitCode": 0,
-    "unitTestFiles": 850
+    "unitTestFiles": 850,
+    "scope": "Final runtime and demo source, including Tokens notice and shared-backing publication race regression."
   },
   "logs": [
+    {
+      "path": "/var/tmp/doppler-memory-final-green.log",
+      "sha256": "ee0037a9ac96737f91bfdfa332690eb73653b2bd449e17e72aa326d89bcccf05"
+    },
     {
       "path": "/var/tmp/doppler-memory-blocks-green.log",
       "sha256": "3bd9c7e19e89297272e4a94dcb39379ab7b661d9a49669cffe28dd443dec494d"
@@ -30,9 +35,24 @@
   "physicalAcceptance": {
     "originalUnbounded": "blocks-physical-summary.json",
     "separate4GiBCache": "blocks-4gib-physical-summary.json",
+    "policyComparison": "policy-comparison.json",
+    "embeddingAndReranking": "embedding-reranking-physical-summary.json",
+    "zeroDeltaAdapter": "adapter-physical-summary.json",
     "passed": true,
-    "completedReferenceMatchesPerRun": 4,
-    "scope": "Retained Qwen3-4B generation Capsule; Linux Chrome 146.0.7680.177; physical AMD RDNA-3 adapter. Cache budget is not a total model memory bound."
+    "completedReferenceComparisons": {
+      "originalGeneration": 4,
+      "generation4GiBCache": 4,
+      "embedding": 4,
+      "reranking": 4,
+      "zeroDeltaAdapter": 7
+    },
+    "scope": "Retained Qwen3-4B generation and zero-delta adapter fixture, plus Qwen3-0.6B embedding/reranking Capsules; Linux Chrome 146.0.7680.177; physical AMD RDNA-3 adapter. Cache budget is not a total model memory bound. Nonzero adapter correctness remains unqualified."
+  },
+  "remoteCodeAcceptance": {
+    "commit": "8ca78db6",
+    "fullChain": "https://github.com/clocksmith/doppler/actions/runs/35486424339",
+    "installedConsumers": "https://github.com/clocksmith/doppler/actions/runs/35486424350",
+    "conclusion": "success"
   },
   "browserChecks": {
     "demoContract": {

@@ -1,0 +1,126 @@
+{
+  "schema": "doppler.memory-loading-policy-comparison/v1",
+  "archiveSha256": "b2ba7dbf7a18df458a702881439d2f9195b8b2a6a864f5fed2fa51afba831f6c",
+  "runs": [
+    {
+      "run": "physical",
+      "elapsedMs": 490552,
+      "pipelineLoadLog": [
+        "[262653.4ms][Pipeline] Model loaded successfully (132999ms)",
+        "[469284.2ms][Pipeline] Model loaded successfully (131851ms)"
+      ],
+      "loads": [
+        {
+          "sourceBytes": 8050837118,
+          "hashedBytes": 8050837118,
+          "backingBytes": 8050837118,
+          "snapshotCopiedBytes": 8050837118,
+          "metadataRetainedBytes": 5698022,
+          "returnedBytes": 16106849387,
+          "copiedBytes": 24163384527,
+          "evictions": 0,
+          "sourceReadMs": 5061.799997806549,
+          "hashingMs": 121797.59999465942,
+          "copyingMs": 5947.600004673004
+        },
+        {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "backingBytes": 8050837118,
+          "snapshotCopiedBytes": 0,
+          "metadataRetainedBytes": 5698022,
+          "returnedBytes": 16101486302,
+          "copiedBytes": 16107184324,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 4827.599986553192
+        }
+      ],
+      "cancellation": {
+        "id": "cancellation",
+        "passed": true,
+        "boundary": "after-partial",
+        "partials": 1,
+        "completions": 0,
+        "error": {
+          "name": "GenerationError",
+          "message": "Acceptance cancellation after partial output."
+        }
+      },
+      "cleanup": [
+        {
+          "backingBytes": 0,
+          "retainedBytes": 0
+        },
+        {
+          "backingBytes": 0,
+          "retainedBytes": 0
+        }
+      ]
+    },
+    {
+      "run": "physical-4gib",
+      "elapsedMs": 478945,
+      "pipelineLoadLog": [
+        "[255508.2ms][Pipeline] Model loaded successfully (128541ms)",
+        "[457031.3ms][Pipeline] Model loaded successfully (125163ms)"
+      ],
+      "loads": [
+        {
+          "sourceBytes": 8050837118,
+          "hashedBytes": 8050837118,
+          "backingBytes": 8050837118,
+          "snapshotCopiedBytes": 8050837118,
+          "metadataRetainedBytes": 5698022,
+          "returnedBytes": 16106849387,
+          "copiedBytes": 24163384527,
+          "evictions": 0,
+          "sourceReadMs": 4850.599995136261,
+          "hashingMs": 119376.4999909401,
+          "copyingMs": 5839.400016784668
+        },
+        {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "backingBytes": 8050837118,
+          "snapshotCopiedBytes": 0,
+          "metadataRetainedBytes": 5698022,
+          "returnedBytes": 16101486302,
+          "copiedBytes": 16107184324,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 3709.9999985694885
+        }
+      ],
+      "cancellation": {
+        "id": "cancellation",
+        "passed": true,
+        "boundary": "after-partial",
+        "partials": 1,
+        "completions": 0,
+        "error": {
+          "name": "GenerationError",
+          "message": "Acceptance cancellation after partial output."
+        }
+      },
+      "cleanup": [
+        {
+          "backingBytes": 0,
+          "retainedBytes": 0
+        },
+        {
+          "backingBytes": 0,
+          "retainedBytes": 0
+        }
+      ]
+    }
+  ],
+  "measurementLimits": [
+    "Backing bytes are logical leases per session; shared bytes must not be summed as unique allocations.",
+    "Pipeline load timers exclude prior Capsule acquisition/verification; elapsedMs includes the entire lifecycle sequence.",
+    "Single acceptance runs, not paired throughput benchmarks; no speedup claim.",
+    "Copying counters are cumulative transferred bytes, not simultaneous allocation or physical residency."
+  ]
+}

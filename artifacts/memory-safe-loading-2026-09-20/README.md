@@ -6,7 +6,8 @@ retained archive below. Each produces four exact matches to the frozen 107-token
 reference. The historical checkpoints explain why hashing alone was insufficient
 and why the subsequent backing-store change was required. This is scoped Qwen3-4B
 generation acceptance on Linux/Chrome 146.0.7680.177 with an AMD RDNA-3 adapter,
-not universal model, hardware, Bun, embedding, or adapter qualification.
+not universal model/hardware qualification or Bun support. The additional
+embedding, reranking, and adapter scopes are recorded separately below.
 
 ## Hashing-only checkpoint
 
@@ -139,8 +140,42 @@ the changed storage lifecycle and observation fields.
 
 ## Final integration acceptance
 
+`policy-comparison.json` compares the original and 4 GiB control separately for
+source reads, hashing, owned backing, metadata retention, returned slices, copy
+counts, pipeline-load timing, cancellation, and cleanup. Both retain 5,698,022
+metadata-cache bytes per open session and share the same 8,050,837,118-byte backing.
+The original pipeline-load timers are 132,999/131,851 ms for the two sessions;
+the control reports 128,541/125,163 ms. These timers exclude earlier Capsule
+verification, and single acceptance runs do not establish a speed improvement.
+
+The same installed archive also passes embedding and reranking lifecycle
+acceptance in `embedding-reranking-physical-summary.json`. All four requests per
+model pass the unchanged frozen numerical comparisons. Cancellation, rejected
+preparation, and second-session execution after first close pass. The embedding
+and reranking stores respectively share 1,200,631,926 and 944,814,227 backing bytes;
+their second sessions add zero source reads, verified-store hashing, or backing
+copies. These are retained local-use evaluations, not renewed release signatures.
+
+The separate adapter-capable Capsule passes against this same archive in
+`adapter-physical-summary.json`: seven completed requests exactly match the
+frozen 107-token reference, including execution with the adapter, base execution
+after unload, failed preparation, cancellation, and execution after first-session
+close. Its explicit 4 GiB cache policy is unchanged. The second session shares
+8,050,846,001 backing bytes with no additional store-level source reads, hashing,
+or backing copies. Both closes report zero remaining backing leases/cache bytes.
+This remains a zero-delta rank-one fixture, not nonzero-adapter qualification.
+
+These bounded loading acceptance gates are complete for archive
+`b2ba7dbf7a18df458a702881439d2f9195b8b2a6a864f5fed2fa51afba831f6c`.
+Publication and expanded hardware/model support are not authorized by this result.
+
 The installed-consumer workflow for runtime commit `00d6e6ee` passes:
 [GitHub Actions run](https://github.com/clocksmith/doppler/actions/runs/35485721486).
+At final code commit `8ca78db6`, both the
+[full remote chain](https://github.com/clocksmith/doppler/actions/runs/35486424339)
+and [installed consumers](https://github.com/clocksmith/doppler/actions/runs/35486424350)
+pass. Subsequent changes in this acceptance handoff only retain evidence and its
+bounded diagnostic; they do not change the accepted runtime or demo source.
 The final browser WebGPU suite passes in its declared SwiftShader lane with
 unsupported-capability skips; that suite does not replace the physical model runs.
 
@@ -152,6 +187,8 @@ The incoming UI, defaults, and execution policy are preserved. The real-page
 errors. This is UI contract evidence, not another physical generation run.
 The final shell digest is
 `sha256:bba14ee9eee6e1a5c753c13ed3e6c427833922a78fe28b066de28e83f69379a1`.
+The final `npm run check:green` rerun also exits zero with 850 test files passing,
+including the publication-race regression and the corrected Tokens notice.
 
 The `doppler-debug` protocol kept the repair measurement-led: reproduce after
 hashing alone, then change backing ownership only after the original case still
@@ -162,3 +199,20 @@ Acceptance evidence: `npm run test:demo:contract`,
 `npm run demo:reachability:check`, `npm run typecheck:source`,
 `npm run catscan:check`, and `checks.json`.
 Boundary effects: none; notice presentation follows existing observation policy.
+
+## Next startup investigation: duplicated shard verification
+
+`node artifacts/memory-safe-loading-2026-09-20/range-copy-probe.js` reproduces
+16,777,216 returned bytes for one 8,388,608-byte shard. The first two 4 MiB reads
+originate in artifact-storage-context's verification loop; the final 8 MiB read
+originates in loadShardRange. The retained `range-copy-probe.json` records those
+call sites. The Capsule adapter currently enables that verification loop even
+though its artifact store owns already-verified backing. This bounded diagnostic
+explains a duplicate-pass mechanism consistent with the physical copy counters;
+it is not yet an installed-runtime speedup or a complete allocation profile.
+
+Any optimization must first prove manifest shard size/hash agreement with the
+Capsule's owned snapshot. An arbitrary remembered digest, mutable source, or an
+unchecked `hashesTrusted` flag must not bypass verification. Startup changes,
+optional chunked acquisition with event-loop cancellation, pool accounting, and
+explicit operation classification remain separate from this accepted archive.
