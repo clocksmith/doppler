@@ -1,0 +1,18 @@
+{
+  "schema": "doppler.consolidation-package-audit/v1",
+  "nodeVersion": "22.23.2",
+  "npmVersion": "10.9.8",
+  "entryCount": 1864,
+  "packedSize": 2157826,
+  "unpackedSize": 11332310,
+  "addedEntries": [
+    "src/gpu/kernels/shader-source-scope.d.ts",
+    "src/inference/pipelines/shader-scoped-pipeline.d.ts",
+    "src/inference/pipelines/text/embedding-batch.js",
+    "src/inference/pipelines/text/pipeline.d.ts",
+    "src/inference/pipelines/text/pipeline.js"
+  ],
+  "removedEntries": [],
+  "candidateArchiveSha256": "6471f5acbe00fa89435bc12016cd149969cdb19f78d2ef856c9245b11d9d9bf2",
+  "scope": "Existing text class moves below family dispatch to break the observed lazy-import cycle. Explicit operation and independent batch scheduling contracts add checked behavior; no tensor algorithms or shader bytes change."
+}

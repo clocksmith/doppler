@@ -34,6 +34,7 @@ function deviceFixture(label) {
 }
 
 class LifecyclePipeline {
+  operationContract = { read: 'execution', stream: 'streaming', observe: 'inspection' };
   async initialize(contexts) {
     this.runtimeConfig = applyPipelineContexts(this, contexts, {
       assignGpuContext: true, assignStorageContext: true,

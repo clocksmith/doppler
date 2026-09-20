@@ -1,0 +1,717 @@
+{
+  "schema": "doppler.startup-verification-physical-summary/v1",
+  "passed": true,
+  "originalReceiptPath": "/var/tmp/doppler-consolidation-contracts-20260920/physical-adapter/receipt.json",
+  "originalReceiptSha256": "10672165aa362f9e69289f57af101d8244001b18e0d4367f5afad91c9b1f5d43",
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-uG56pmuV6YZxveG3G0YoTRfNgIdUz2DT1tgfylHfqj2pVT1h5Wj9+rvvrLJmC4ACXb9/au0JVx2g8kD4Ngjxqg==",
+    "sizeBytes": 2153752,
+    "source": "local-npm-pack",
+    "sha256": "6471f5acbe00fa89435bc12016cd149969cdb19f78d2ef856c9245b11d9d9bf2"
+  },
+  "browserVersion": "146.0.7680.177",
+  "startedAtUtc": "2026-09-20T14:49:35.715Z",
+  "completedAtUtc": "2026-09-20T14:53:30.740Z",
+  "elapsedMs": 235025,
+  "runnerRevision": "f110eb4d4d07b9c301646cbc3c836d5ef5afc44e",
+  "runnerSha256": "2dda637907d4fc02465ac6d24de1d09911a6f4ae91e0514700f23a8cab915a19",
+  "lifecycleFixtureSha256": "f3c794bab1bb769a45a33c4d22deca9e507840b2de245567d90c0d0c74dbe829",
+  "memoryProbeSha256": "302f1f1d1bbea594d86c2103a2bc2a5ba329c5dacd3c4e9390184de4b56642a1",
+  "pipelineLoadLog": [
+    "[73280.3ms][Pipeline] Model loaded successfully (3968ms)",
+    "[213684.0ms][Pipeline] Model loaded successfully (3827ms)"
+  ],
+  "results": [
+    {
+      "operation": "generate",
+      "passed": true,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": true
+          }
+        ]
+      },
+      "capsule": {
+        "schema": "doppler.capsule/v2",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "semanticRoot": "sha256:d52064672d0f564e7c7d4c896a7e03a39ec85f4f1dc6b139a1a450fbb93dac48",
+        "envelopeDigest": "sha256:46e4c9833dbbd6a33d56d1cff6f03c4fdf9446a64e5735113b92e14b7fdf12d4",
+        "artifactClosureDigest": "sha256:1893027dd12ad2a53b474da12b7db5dec334d0d1f39e45a2abf77f22bb75b46a"
+      },
+      "targetPlanDigest": "sha256:4e22547a271133150ad1b30f3fc4832dda8955489478ecf57a5241dc42211c74",
+      "checks": [
+        {
+          "id": "failed-adapter-preparation",
+          "passed": true,
+          "error": "Acceptance adapter preparation read failure."
+        },
+        {
+          "id": "cancelled-model-preparation",
+          "passed": true,
+          "error": {
+            "name": "Error",
+            "message": "Acceptance cancels preparation after target selection."
+          }
+        },
+        {
+          "id": "cancellation",
+          "passed": true,
+          "boundary": "after-partial",
+          "partials": 1,
+          "completions": 0,
+          "error": {
+            "name": "GenerationError",
+            "message": "Acceptance cancellation after partial output."
+          }
+        },
+        {
+          "id": "second-session-survives-first-close",
+          "passed": true
+        }
+      ],
+      "observations": [
+        {
+          "phase": "repeat-0",
+          "outputSha256": "e0c629f36956829a4cee92665c1661622f4fd4d6b996db8e021e7f17866affd8",
+          "tokenCount": 107,
+          "tokenIdsSha256": "abf0b52b0c69d477537ebe160032c4585c287e04456a47f490f2133a19ffee62",
+          "matchesFrozenReference": true
+        },
+        {
+          "phase": "repeat-1",
+          "outputSha256": "e0c629f36956829a4cee92665c1661622f4fd4d6b996db8e021e7f17866affd8",
+          "tokenCount": 107,
+          "tokenIdsSha256": "abf0b52b0c69d477537ebe160032c4585c287e04456a47f490f2133a19ffee62",
+          "matchesFrozenReference": true
+        },
+        {
+          "phase": "base-after-adapter-unload",
+          "outputSha256": "e0c629f36956829a4cee92665c1661622f4fd4d6b996db8e021e7f17866affd8",
+          "tokenCount": 107,
+          "tokenIdsSha256": "abf0b52b0c69d477537ebe160032c4585c287e04456a47f490f2133a19ffee62",
+          "matchesFrozenReference": true
+        },
+        {
+          "phase": "base-after-failed-adapter-preparation",
+          "outputSha256": "e0c629f36956829a4cee92665c1661622f4fd4d6b996db8e021e7f17866affd8",
+          "tokenCount": 107,
+          "tokenIdsSha256": "abf0b52b0c69d477537ebe160032c4585c287e04456a47f490f2133a19ffee62",
+          "matchesFrozenReference": true
+        },
+        {
+          "phase": "after-cancellation-and-failed-preparation",
+          "outputSha256": "e0c629f36956829a4cee92665c1661622f4fd4d6b996db8e021e7f17866affd8",
+          "tokenCount": 107,
+          "tokenIdsSha256": "abf0b52b0c69d477537ebe160032c4585c287e04456a47f490f2133a19ffee62",
+          "matchesFrozenReference": true
+        },
+        {
+          "phase": "base-after-adapter-cancellation",
+          "outputSha256": "e0c629f36956829a4cee92665c1661622f4fd4d6b996db8e021e7f17866affd8",
+          "tokenCount": 107,
+          "tokenIdsSha256": "abf0b52b0c69d477537ebe160032c4585c287e04456a47f490f2133a19ffee62",
+          "matchesFrozenReference": true
+        },
+        {
+          "phase": "second-after-first-close",
+          "outputSha256": "e0c629f36956829a4cee92665c1661622f4fd4d6b996db8e021e7f17866affd8",
+          "tokenCount": 107,
+          "tokenIdsSha256": "abf0b52b0c69d477537ebe160032c4585c287e04456a47f490f2133a19ffee62",
+          "matchesFrozenReference": true
+        }
+      ]
+    }
+  ],
+  "progress": [
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 0,
+          "destroyedBytes": 0,
+          "liveBytes": 0,
+          "peakLiveBytes": 0,
+          "createdCount": 0,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 13954739,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:4e22547a271133150ad1b30f3fc4832dda8955489478ecf57a5241dc42211c74"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8,
+          "destroyedBytes": 8,
+          "liveBytes": 0,
+          "peakLiveBytes": 8,
+          "createdCount": 2,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 16320974,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "capsule-validation-complete",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "semanticRoot": "sha256:d52064672d0f564e7c7d4c896a7e03a39ec85f4f1dc6b139a1a450fbb93dac48",
+        "artifactMetrics": {
+          "sourceBytes": 8050846001,
+          "hashedBytes": 8050846001,
+          "copiedBytes": 8050846001,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 0,
+          "returnedBytes": 0,
+          "evictions": 0,
+          "sourceReadMs": 1956.6999864578247,
+          "hashingMs": 64568.600018024445,
+          "copyingMs": 1832.9999799728394,
+          "backingBytes": 8050846001,
+          "peakBackingBytes": 8050846001,
+          "backingFiles": 149,
+          "snapshotCopiedBytes": 8050846001,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536,
+          "peakSourceChunkBytes": 1048576,
+          "streamedSourceBytes": 8050846001,
+          "verificationYields": 7677
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8,
+          "destroyedBytes": 8,
+          "liveBytes": 0,
+          "peakLiveBytes": 8,
+          "createdCount": 2,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 8088286288,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "initial-execution-identity-bound",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "identityDigest": "sha256:76c4717de4a89bedf3cbbf25663cd2aad0083ae86e26e9379034229990e00fe9"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 10520164696,
+          "destroyedBytes": 72,
+          "liveBytes": 10520164624,
+          "peakLiveBytes": 10520164688,
+          "createdCount": 553,
+          "liveCount": 550,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9180290741,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "capsule-load-complete",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "artifactMetrics": {
+          "sourceBytes": 8050846001,
+          "hashedBytes": 8050846001,
+          "copiedBytes": 16118471942,
+          "retainedBytes": 5702930,
+          "peakRetainedBytes": 5702930,
+          "returnedBytes": 8061923011,
+          "evictions": 0,
+          "sourceReadMs": 1956.6999864578247,
+          "hashingMs": 64568.600018024445,
+          "copyingMs": 3773.8999886512756,
+          "backingBytes": 8050846001,
+          "peakBackingBytes": 8050846001,
+          "backingFiles": 149,
+          "snapshotCopiedBytes": 8050846001,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536,
+          "peakSourceChunkBytes": 1048576,
+          "streamedSourceBytes": 8050846001,
+          "verificationYields": 7677
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 10520164696,
+          "destroyedBytes": 72,
+          "liveBytes": 10520164624,
+          "peakLiveBytes": 10520164688,
+          "createdCount": 553,
+          "liveCount": 550,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9182081237,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "repeat-0"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 12678105148,
+          "destroyedBytes": 1894304564,
+          "liveBytes": 10783800584,
+          "peakLiveBytes": 11012378696,
+          "createdCount": 46748,
+          "liveCount": 871,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9187870806,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "repeat-1"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 14572419960,
+          "destroyedBytes": 3788619376,
+          "liveBytes": 10783800584,
+          "peakLiveBytes": 11013832936,
+          "createdCount": 92863,
+          "liveCount": 871,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9185248804,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "base-after-adapter-unload"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 16438914580,
+          "destroyedBytes": 5655048364,
+          "liveBytes": 10783866216,
+          "peakLiveBytes": 11013832936,
+          "createdCount": 138545,
+          "liveCount": 871,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9188246571,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "base-after-failed-adapter-preparation"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 18305343664,
+          "destroyedBytes": 7521477448,
+          "liveBytes": 10783866216,
+          "peakLiveBytes": 11013832936,
+          "createdCount": 184227,
+          "liveCount": 871,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9188248907,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 18305343664,
+          "destroyedBytes": 7521477448,
+          "liveBytes": 10783866216,
+          "peakLiveBytes": 11013832936,
+          "createdCount": 184227,
+          "liveCount": 871,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9194649494,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:4e22547a271133150ad1b30f3fc4832dda8955489478ecf57a5241dc42211c74"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 18305343664,
+          "destroyedBytes": 7521477448,
+          "liveBytes": 10783866216,
+          "peakLiveBytes": 11013832936,
+          "createdCount": 184227,
+          "liveCount": 871,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9196548794,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "after-cancellation-and-failed-preparation"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 21168216560,
+          "destroyedBytes": 10384415976,
+          "liveBytes": 10783800584,
+          "peakLiveBytes": 11013898568,
+          "createdCount": 230546,
+          "liveCount": 871,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9186472276,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "base-after-adapter-cancellation"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 23034711180,
+          "destroyedBytes": 12250844964,
+          "liveBytes": 10783866216,
+          "peakLiveBytes": 11013898568,
+          "createdCount": 276228,
+          "liveCount": 871,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9188055487,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 24242670732,
+          "destroyedBytes": 12250844964,
+          "liveBytes": 11991825768,
+          "peakLiveBytes": 11991825768,
+          "createdCount": 276300,
+          "liveCount": 943,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9217346099,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:4e22547a271133150ad1b30f3fc4832dda8955489478ecf57a5241dc42211c74"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 24242670732,
+          "destroyedBytes": 12250844964,
+          "liveBytes": 11991825768,
+          "peakLiveBytes": 11991825768,
+          "createdCount": 276300,
+          "liveCount": 943,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9213263963,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "capsule-validation-complete",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "semanticRoot": "sha256:d52064672d0f564e7c7d4c896a7e03a39ec85f4f1dc6b139a1a450fbb93dac48",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 0,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 0,
+          "returnedBytes": 0,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 0,
+          "backingBytes": 8050846001,
+          "peakBackingBytes": 8050846001,
+          "backingFiles": 149,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 8050846001,
+          "peakSnapshotBlockBytes": 0,
+          "peakSourceChunkBytes": 0,
+          "streamedSourceBytes": 0,
+          "verificationYields": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 24242670732,
+          "destroyedBytes": 12250844964,
+          "liveBytes": 11991825768,
+          "peakLiveBytes": 11991825768,
+          "createdCount": 276300,
+          "liveCount": 943,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9215127107,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "initial-execution-identity-bound",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "identityDigest": "sha256:76c4717de4a89bedf3cbbf25663cd2aad0083ae86e26e9379034229990e00fe9"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 33512924124,
+          "destroyedBytes": 14591336244,
+          "liveBytes": 18921587880,
+          "peakLiveBytes": 21262079160,
+          "createdCount": 276768,
+          "liveCount": 1298,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9212583288,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "capsule-load-complete",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 8062262856,
+          "retainedBytes": 5702930,
+          "peakRetainedBytes": 5702930,
+          "returnedBytes": 8056559926,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 1854.6999979019165,
+          "backingBytes": 8050846001,
+          "peakBackingBytes": 8050846001,
+          "backingFiles": 149,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 8050846001,
+          "peakSnapshotBlockBytes": 0,
+          "peakSourceChunkBytes": 0,
+          "streamedSourceBytes": 0,
+          "verificationYields": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 33512924124,
+          "destroyedBytes": 14591336244,
+          "liveBytes": 18921587880,
+          "peakLiveBytes": 21262079160,
+          "createdCount": 276768,
+          "liveCount": 1298,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9214455324,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "capsule-session-closed",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "targetPlanDigest": "sha256:4e22547a271133150ad1b30f3fc4832dda8955489478ecf57a5241dc42211c74",
+        "artifactMetrics": {
+          "sourceBytes": 8050846001,
+          "hashedBytes": 8050846001,
+          "copiedBytes": 16118471942,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 5702930,
+          "returnedBytes": 8061923011,
+          "evictions": 0,
+          "sourceReadMs": 1956.6999864578247,
+          "hashingMs": 64568.600018024445,
+          "copyingMs": 3773.8999886512756,
+          "backingBytes": 0,
+          "peakBackingBytes": 8050846001,
+          "backingFiles": 0,
+          "snapshotCopiedBytes": 8050846001,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536,
+          "peakSourceChunkBytes": 1048576,
+          "streamedSourceBytes": 8050846001,
+          "verificationYields": 7677
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 33512924124,
+          "destroyedBytes": 14591336244,
+          "liveBytes": 18921587880,
+          "peakLiveBytes": 21262079160,
+          "createdCount": 276768,
+          "liveCount": 1298,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9216326476,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "second-after-first-close"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 35670864568,
+          "destroyedBytes": 24887063984,
+          "liveBytes": 10783800584,
+          "peakLiveBytes": 21262079160,
+          "createdCount": 322953,
+          "liveCount": 871,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9187311218,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "capsule-session-closed",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+        "targetPlanDigest": "sha256:4e22547a271133150ad1b30f3fc4832dda8955489478ecf57a5241dc42211c74",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 8062262856,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 5702930,
+          "returnedBytes": 8056559926,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 1854.6999979019165,
+          "backingBytes": 0,
+          "peakBackingBytes": 8050846001,
+          "backingFiles": 0,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 8050846001,
+          "peakSnapshotBlockBytes": 0,
+          "peakSourceChunkBytes": 0,
+          "streamedSourceBytes": 0,
+          "verificationYields": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 35670864568,
+          "destroyedBytes": 35670853824,
+          "liveBytes": 10744,
+          "peakLiveBytes": 21262079160,
+          "createdCount": 322953,
+          "liveCount": 258,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9193183422,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "stage": "after-session-cleanup",
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 35670864568,
+          "destroyedBytes": 35670853824,
+          "liveBytes": 10744,
+          "peakLiveBytes": 21262079160,
+          "createdCount": 322953,
+          "liveCount": 258,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 9193241050,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    }
+  ],
+  "cleanupErrors": [],
+  "measurementLimits": [
+    "Pipeline-load timers exclude prior Capsule verification; elapsedMs covers the complete lifecycle sequence, not single-request TTFT.",
+    "Local repository/UI checks also ran during the investigation; model runs were sequential. These are local acceptance/tuning observations, not a vendor benchmark or confidence interval.",
+    "GPU counters observe explicit destruction, not physical driver residency or garbage collection.",
+    "Per-session backing leases must not be summed as unique allocation. Cache budgets exclude backing and loader/GPU resources."
+  ]
+}

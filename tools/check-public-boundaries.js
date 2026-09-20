@@ -52,7 +52,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // rotary source contracts and experimental training; no repository tools.
   // Evidence: artifacts/main-integration-2026-09-19/package-audit.json.
   // The explicit backing-owner port includes its existing declaration in closure.
-  maxEntryCount: 1859,
+  maxEntryCount: 1864,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -102,7 +102,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: artifacts/bounded-consolidation-2026-09-20/hash-package-audit.json.
   // Owned KV/decode/QKV/RoPE cleanup and allocation-class observations.
   // Evidence: artifacts/bounded-consolidation-2026-09-20/cleanup-package-audit.json.
-  maxPackedSize: 2_156_634,
+  // Explicit operation contracts, checked scheduling, and cycle-free model dispatch.
+  // Evidence: artifacts/bounded-consolidation-2026-09-20/contracts-package-audit.json.
+  maxPackedSize: 2_157_826,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -116,7 +118,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Main's public reset forwarding method and declaration add exactly 114 bytes
   // in two existing files; all other archive entries are byte-identical.
   // Evidence: artifacts/release-acceptance-2026-09-19/main-package-audit.json.
-  maxUnpackedSize: 11_328_616,
+  maxUnpackedSize: 11_332_310,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

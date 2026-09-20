@@ -1,0 +1,744 @@
+{
+  "schema": "doppler.startup-verification-physical-summary/v1",
+  "passed": true,
+  "originalReceiptPath": "/var/tmp/doppler-consolidation-contracts-20260920/physical-reploid/receipt.json",
+  "originalReceiptSha256": "8148e9c589f1daeaeb0d612660a829a42f4cf6e16790f1a9b45607b7236a37a3",
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-uG56pmuV6YZxveG3G0YoTRfNgIdUz2DT1tgfylHfqj2pVT1h5Wj9+rvvrLJmC4ACXb9/au0JVx2g8kD4Ngjxqg==",
+    "sizeBytes": 2153752,
+    "source": "local-npm-pack",
+    "sha256": "6471f5acbe00fa89435bc12016cd149969cdb19f78d2ef856c9245b11d9d9bf2"
+  },
+  "browserVersion": "146.0.7680.177",
+  "reploidRevision": "67a64fb16661eaa0a8ef34314f3fea824af5be94",
+  "startedAtUtc": "2026-09-20T14:53:31.055Z",
+  "completedAtUtc": "2026-09-20T14:54:23.581Z",
+  "elapsedMs": 52526,
+  "runnerRevision": "f110eb4d4d07b9c301646cbc3c836d5ef5afc44e",
+  "runnerSha256": "2dda637907d4fc02465ac6d24de1d09911a6f4ae91e0514700f23a8cab915a19",
+  "lifecycleFixtureSha256": null,
+  "memoryProbeSha256": "302f1f1d1bbea594d86c2103a2bc2a5ba329c5dacd3c4e9390184de4b56642a1",
+  "pipelineLoadLog": [
+    "[33935.7ms][Pipeline] Model loaded successfully (18246ms)",
+    "[51479.8ms][Pipeline] Model loaded successfully (17429ms)"
+  ],
+  "results": [
+    {
+      "operation": "embed",
+      "passed": true,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": true
+          }
+        ]
+      },
+      "capsule": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "envelopeDigest": "sha256:32503db6b070ac78d0355bc6d9538bcd0a660543f1867f754543013b5de0f86e",
+        "artifactClosureDigest": "sha256:987b6e88da6e461449bc5c9c69c90a57d1c81a49ba7bba983ac184f8f9bfe8b3"
+      },
+      "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c",
+      "sharedSessions": {
+        "deviceRequests": 6,
+        "devices": [
+          {
+            "id": 0,
+            "executions": [
+              "first",
+              "second"
+            ]
+          },
+          {
+            "id": 1,
+            "executions": []
+          },
+          {
+            "id": 2,
+            "executions": []
+          },
+          {
+            "id": 3,
+            "executions": []
+          },
+          {
+            "id": 4,
+            "executions": []
+          },
+          {
+            "id": 5,
+            "executions": []
+          }
+        ],
+        "firstClosed": true,
+        "sameExecutionDevice": true,
+        "secondOutputIdentical": true,
+        "secondReceipt": {
+          "schema": "doppler.capsule-operation-receipt/v1",
+          "capsule": {
+            "schema": "doppler.capsule/v3",
+            "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+            "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+            "envelopeDigest": "sha256:32503db6b070ac78d0355bc6d9538bcd0a660543f1867f754543013b5de0f86e",
+            "artifactClosureDigest": "sha256:987b6e88da6e461449bc5c9c69c90a57d1c81a49ba7bba983ac184f8f9bfe8b3"
+          },
+          "modelId": "qwen-3-embedding-0-6b-f16-af32",
+          "targetId": "webgpu-f32-f16-subgroups",
+          "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c",
+          "artifactReceipts": [
+            {
+              "artifactId": "conversion-config:qwen-3-embedding-0-6b-f16-af32.json:5ab3291fa100",
+              "hash": "sha256:5ab3291fa10089d6ccc7458c097bef30d8f0dc6939139aa5e0bdb8a83fc584fc",
+              "sizeBytes": 11667
+            },
+            {
+              "artifactId": "host-source:text-generation-d7abaa224ec64128.js:d7abaa224ec6",
+              "hash": "sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15",
+              "sizeBytes": 1096
+            },
+            {
+              "artifactId": "manifest:manifest.json:4a9c96e34fda",
+              "hash": "sha256:4a9c96e34fda3d97e6dab0989c5f40333bc2f6cc31a7e5f3cfef7dc85e118c34",
+              "sizeBytes": 130192
+            },
+            {
+              "artifactId": "reference-report:qualification.json:dac89baf692c",
+              "hash": "sha256:dac89baf692c4db2b43330164f1b3086be38fb9e568d3f6c9fb9c0b22c43b16c",
+              "sizeBytes": 2095724
+            },
+            {
+              "artifactId": "tokenizer:tokenizer.json:fc0c640dde6f",
+              "hash": "sha256:fc0c640dde6fe5c2892af6be480ac6728483fefba8bddb5e3bbeab523201666d",
+              "sizeBytes": 5363482
+            },
+            {
+              "artifactId": "weight-shard:shard_00000.bin:36e00991c46a",
+              "hash": "sha256:36e00991c46afe56d860d15d73b6eeabd5915ccaeff78fbf7bde3053667bdbd6",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00001.bin:1c9b1052b8bf",
+              "hash": "sha256:1c9b1052b8bfd5042322e3b67d5122b06c459da60981f28a91f81db38706c2ba",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00002.bin:035976534ff9",
+              "hash": "sha256:035976534ff964ca651fbe76e8b5a14eb87aa4b66289cc7a3103f01c6a6f0861",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00003.bin:2b82ae70dd31",
+              "hash": "sha256:2b82ae70dd3126088f6537106304e5915066e21ab3f8e0e0eaf8d21374e16866",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00004.bin:246662f4e022",
+              "hash": "sha256:246662f4e0227e1b204e6507ed78872a451227e893fbe28a6ef3bafb0bca338e",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00005.bin:d0c36c86a944",
+              "hash": "sha256:d0c36c86a94423d2b34cf34a22026ebae969cb937f487d7d1368b523c8b8e995",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00006.bin:d324522b57c3",
+              "hash": "sha256:d324522b57c329bad4a6ba6be94b4087c27efd788a9a9497020df0844c6ad038",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00007.bin:11aac1d91394",
+              "hash": "sha256:11aac1d913945d3261597ed6d764b79b0e5aa5a33d6d73486d98b925cd23941f",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00008.bin:78e8556c2420",
+              "hash": "sha256:78e8556c2420b424b267a0472996b9f93867549435c8b77d00f8cce6803ba4f9",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00009.bin:0227f3e2facd",
+              "hash": "sha256:0227f3e2facd788cdc25421386f51cb1ac94b6c8e72b68a11162001cb03ce374",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00010.bin:e40522964016",
+              "hash": "sha256:e405229640164d6564154ca44329c3fcfdaddaf8307a18212c62cb2b77c6759f",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00011.bin:e1ba701fcaf1",
+              "hash": "sha256:e1ba701fcaf18b63b1e53af92fb661be45c23e04fe6f6feda764700eb9b348d9",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00012.bin:2577faadfc67",
+              "hash": "sha256:2577faadfc670ccb9054de4232d392239bd2b4d166697141f8080ce10e5247ad",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00013.bin:56be7580a932",
+              "hash": "sha256:56be7580a932adb5c11b8c624ed2a62a16ac47f1262cffc27581bdd202568596",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00014.bin:33875466bf91",
+              "hash": "sha256:33875466bf914d205e47dcd429cf309bef579528e32d92163b4df25d1d392f30",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00015.bin:9bb977a6c752",
+              "hash": "sha256:9bb977a6c752981ac627396c76fc33500ce76fd72d147062bfdfb03baf8cb5f6",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00016.bin:5213cd18b8a3",
+              "hash": "sha256:5213cd18b8a393082bd29bae73b09e443db42e41e43defbc871aed30be56c19f",
+              "sizeBytes": 67108864
+            },
+            {
+              "artifactId": "weight-shard:shard_00017.bin:2be4677369d1",
+              "hash": "sha256:2be4677369d1f526626ab72b4b9eab74afef7794c02c3bfcba5142b5ff19099e",
+              "sizeBytes": 50702336
+            },
+            {
+              "artifactId": "wgsl-source:attn_decode-4feba111cc381d0a.wgsl:4feba111cc38",
+              "hash": "sha256:4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035",
+              "sizeBytes": 7779
+            },
+            {
+              "artifactId": "wgsl-source:attn_stream-d34e8bbe9bbaed91.wgsl:d34e8bbe9bba",
+              "hash": "sha256:d34e8bbe9bbaed91c8d6beacde896538e14ec222ebae8eec8a195944cde87b8a",
+              "sizeBytes": 5743
+            },
+            {
+              "artifactId": "wgsl-source:embed-838e3c69451d02fe.wgsl:838e3c69451d",
+              "hash": "sha256:838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15",
+              "sizeBytes": 2538
+            },
+            {
+              "artifactId": "wgsl-source:embedding_pool_f32-085f75855a89fd66.wgsl:085f75855a89",
+              "hash": "sha256:085f75855a89fd6612f225529d4e6e82f03888f938c04e8f40aba46bbfd2ea3b",
+              "sizeBytes": 1009
+            },
+            {
+              "artifactId": "wgsl-source:f16_decode_gemv-78b78ec9a73766b5.wgsl:78b78ec9a737",
+              "hash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+              "sizeBytes": 2558
+            },
+            {
+              "artifactId": "wgsl-source:f16_prefill_tiled-569971d79c3ea3ae.wgsl:569971d79c3e",
+              "hash": "sha256:569971d79c3ea3ae9e632a06befe43bc9d9a1a657ddd53357368fa24b073cd7d",
+              "sizeBytes": 7142
+            },
+            {
+              "artifactId": "wgsl-source:gather_f16_vec4-a500eb8ca2a1ff7d.wgsl:a500eb8ca2a1",
+              "hash": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+              "sizeBytes": 2810
+            },
+            {
+              "artifactId": "wgsl-source:kv_cache_write_f32_to_f16-fdba1f04c135d44d.wgsl:fdba1f04c135",
+              "hash": "sha256:fdba1f04c135d44d67fdc160b59e5a243abd0d47e54fa928c7cc115ed2f15afd",
+              "sizeBytes": 861
+            },
+            {
+              "artifactId": "wgsl-source:l2_normalize-b1cde39825fffccf.wgsl:b1cde39825ff",
+              "hash": "sha256:b1cde39825fffccfd791c8764d30b1b3cb092dcbffc9134261da6b1f8f9ff470",
+              "sizeBytes": 1415
+            },
+            {
+              "artifactId": "wgsl-source:residual_vec4-04781252bb73f1a2.wgsl:04781252bb73",
+              "hash": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb",
+              "sizeBytes": 1366
+            },
+            {
+              "artifactId": "wgsl-source:residual-e5d606c42ae57cb7.wgsl:e5d606c42ae5",
+              "hash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698",
+              "sizeBytes": 1712
+            },
+            {
+              "artifactId": "wgsl-source:rmsnorm_qk-954bd142119d8583.wgsl:954bd142119d",
+              "hash": "sha256:954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3",
+              "sizeBytes": 3462
+            },
+            {
+              "artifactId": "wgsl-source:rmsnorm-57c810ce293ec2ae.wgsl:57c810ce293e",
+              "hash": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+              "sizeBytes": 15770
+            },
+            {
+              "artifactId": "wgsl-source:rope_precompute-0aaf0cbdceb87986.wgsl:0aaf0cbdceb8",
+              "hash": "sha256:0aaf0cbdceb879861872b1bd60e0d8a78818b67511c7bbb8157d7804b929500a",
+              "sizeBytes": 2598
+            },
+            {
+              "artifactId": "wgsl-source:rope_qk-fe7f16a865b94ce0.wgsl:fe7f16a865b9",
+              "hash": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c",
+              "sizeBytes": 3259
+            },
+            {
+              "artifactId": "wgsl-source:rope-a4472c7134a08c77.wgsl:a4472c7134a0",
+              "hash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d",
+              "sizeBytes": 12251
+            },
+            {
+              "artifactId": "wgsl-source:silu-e14958d8bd06dd50.wgsl:e14958d8bd06",
+              "hash": "sha256:e14958d8bd06dd50596fef718ca5731366d24ee78f13c547c600cac4723cd1b8",
+              "sizeBytes": 3390
+            },
+            {
+              "artifactId": "wgsl-source:split_qkv-f65c37cee36ee2b2.wgsl:f65c37cee36e",
+              "hash": "sha256:f65c37cee36ee2b213d5377d2aa5c5a2d2e20c7b6d1f162e112efd388599ec23",
+              "sizeBytes": 2058
+            },
+            {
+              "artifactId": "program-bundle:program-bundle.json:2c95f335c1e6",
+              "hash": "sha256:2c95f335c1e6558ec7eddaaa1f59fb68007029a73b71f67f5fcb0dea006d439e",
+              "sizeBytes": 1399020
+            }
+          ],
+          "releaseEventDigest": "sha256:0fd8ab37bba5d810b1560b334cd8d158d3527edaaab7416fde60e329f8d3e021",
+          "releaseAuthorization": {
+            "mode": "retained-local",
+            "verifiedAtUtc": "2026-09-20T14:53:31.264Z",
+            "eventExpired": true,
+            "unseenRevocations": "unknown",
+            "retainedLocalUse": {
+              "schema": "doppler.capsule-retained-local-use/v1",
+              "capsule": {
+                "schema": "doppler.capsule/v3",
+                "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+                "envelopeDigest": "sha256:32503db6b070ac78d0355bc6d9538bcd0a660543f1867f754543013b5de0f86e"
+              },
+              "releaseEventDigest": "sha256:0fd8ab37bba5d810b1560b334cd8d158d3527edaaab7416fde60e329f8d3e021",
+              "applicationDigest": "sha256:3171510bbb2ce5642549a1d62475cd80343745f09fc59a55903b6f0606e3e895",
+              "acknowledgeUnseenRevocations": true,
+              "acceptedAtUtc": "2026-09-07T17:28:42.184Z"
+            }
+          },
+          "runtimeVersion": "0.6.2",
+          "operation": {
+            "name": "embed",
+            "version": 1
+          },
+          "requestHash": "sha256:8fcd55326e73d0d00f53c2b47ceb066da1bcec6458d80e4244b6de5870538765",
+          "assignmentHash": null,
+          "inputHash": "sha256:28e586e12bca40c63ef614a7c73662ac61612e8e2bceaa48ef7dc1152d9933a8",
+          "outputHash": "sha256:8570728e024389b32ab788fc70d5482aab2d4e889fa5a88d3cd79ecdac7178e7",
+          "receiptDigest": "sha256:ddf89059bbaa25520692f877c6b76239055d2e68f3dfe087d9606e65f43faf5f"
+        }
+      }
+    }
+  ],
+  "progress": [
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 0,
+          "destroyedBytes": 0,
+          "liveBytes": 0,
+          "peakLiveBytes": 0,
+          "createdCount": 0,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 34748615,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8,
+          "destroyedBytes": 8,
+          "liveBytes": 0,
+          "peakLiveBytes": 8,
+          "createdCount": 2,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 24867944,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-validation-complete",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "artifactMetrics": {
+          "sourceBytes": 1200631926,
+          "hashedBytes": 1200631926,
+          "copiedBytes": 1200631926,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 0,
+          "returnedBytes": 0,
+          "evictions": 0,
+          "sourceReadMs": 450.5000066757202,
+          "hashingMs": 14196.899998664856,
+          "copyingMs": 387.1999912261963,
+          "backingBytes": 1200631926,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 42,
+          "snapshotCopiedBytes": 1200631926,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536,
+          "peakSourceChunkBytes": 1048576,
+          "streamedSourceBytes": 1200631926,
+          "verificationYields": 1143
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8,
+          "destroyedBytes": 8,
+          "liveBytes": 0,
+          "peakLiveBytes": 8,
+          "createdCount": 2,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 1234175458,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "initial-execution-identity-bound",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "identityDigest": "sha256:5b27ec07388897973c1dd013b62d38d0729c69a41d36633e2cdc6b9fba3885ad"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2382840152,
+          "destroyedBytes": 72,
+          "liveBytes": 2382840080,
+          "peakLiveBytes": 2382840144,
+          "createdCount": 433,
+          "liveCount": 430,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2418521447,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-load-complete",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "artifactMetrics": {
+          "sourceBytes": 1200631926,
+          "hashedBytes": 1200631926,
+          "copiedBytes": 3605873021,
+          "retainedBytes": 5571395,
+          "peakRetainedBytes": 5571395,
+          "returnedBytes": 2399669700,
+          "evictions": 0,
+          "sourceReadMs": 450.5000066757202,
+          "hashingMs": 14196.899998664856,
+          "copyingMs": 943.7999892234802,
+          "backingBytes": 1200631926,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 42,
+          "snapshotCopiedBytes": 1200631926,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536,
+          "peakSourceChunkBytes": 1048576,
+          "streamedSourceBytes": 1200631926,
+          "verificationYields": 1143
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2382840152,
+          "destroyedBytes": 72,
+          "liveBytes": 2382840080,
+          "peakLiveBytes": 2382840144,
+          "createdCount": 433,
+          "liveCount": 430,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2419928895,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2382840152,
+          "destroyedBytes": 72,
+          "liveBytes": 2382840080,
+          "peakLiveBytes": 2382840144,
+          "createdCount": 433,
+          "liveCount": 430,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2441313839,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 3322364248,
+          "destroyedBytes": 72,
+          "liveBytes": 3322364176,
+          "peakLiveBytes": 3322364176,
+          "createdCount": 489,
+          "liveCount": 486,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2334928293,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-validation-complete",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 0,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 0,
+          "returnedBytes": 0,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 0,
+          "backingBytes": 1200631926,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 42,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 1200631926,
+          "peakSnapshotBlockBytes": 0,
+          "peakSourceChunkBytes": 0,
+          "streamedSourceBytes": 0,
+          "verificationYields": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 3322364248,
+          "destroyedBytes": 72,
+          "liveBytes": 3322364176,
+          "peakLiveBytes": 3322364176,
+          "createdCount": 489,
+          "liveCount": 486,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2336265773,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "initial-execution-identity-bound",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "identityDigest": "sha256:5b27ec07388897973c1dd013b62d38d0729c69a41d36633e2cdc6b9fba3885ad"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4765680040,
+          "destroyedBytes": 72,
+          "liveBytes": 4765679968,
+          "peakLiveBytes": 4765679968,
+          "createdCount": 863,
+          "liveCount": 860,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2420273992,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-load-complete",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 2399877613,
+          "retainedBytes": 5571395,
+          "peakRetainedBytes": 5571395,
+          "returnedBytes": 2394306218,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 549.7999987602234,
+          "backingBytes": 1200631926,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 42,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 1200631926,
+          "peakSnapshotBlockBytes": 0,
+          "peakSourceChunkBytes": 0,
+          "streamedSourceBytes": 0,
+          "verificationYields": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4765680040,
+          "destroyedBytes": 72,
+          "liveBytes": 4765679968,
+          "peakLiveBytes": 4765679968,
+          "createdCount": 863,
+          "liveCount": 860,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2421618956,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-session-closed",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c",
+        "artifactMetrics": {
+          "sourceBytes": 1200631926,
+          "hashedBytes": 1200631926,
+          "copiedBytes": 3605873021,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 5571395,
+          "returnedBytes": 2399669700,
+          "evictions": 0,
+          "sourceReadMs": 450.5000066757202,
+          "hashingMs": 14196.899998664856,
+          "copyingMs": 943.7999892234802,
+          "backingBytes": 0,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 0,
+          "snapshotCopiedBytes": 1200631926,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536,
+          "peakSourceChunkBytes": 1048576,
+          "streamedSourceBytes": 1200631926,
+          "verificationYields": 1143
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4815042928,
+          "destroyedBytes": 2427679800,
+          "liveBytes": 2387363128,
+          "peakLiveBytes": 4777162312,
+          "createdCount": 1530,
+          "liveCount": 525,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2333654091,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-session-closed",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 2399877613,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 5571395,
+          "returnedBytes": 2394306218,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 549.7999987602234,
+          "backingBytes": 0,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 0,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 1200631926,
+          "peakSnapshotBlockBytes": 0,
+          "peakSourceChunkBytes": 0,
+          "streamedSourceBytes": 0,
+          "verificationYields": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4855360272,
+          "destroyedBytes": 4855359464,
+          "liveBytes": 808,
+          "peakLiveBytes": 4777162312,
+          "createdCount": 2034,
+          "liveCount": 28,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2340493870,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "stage": "after-session-cleanup",
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4855360272,
+          "destroyedBytes": 4855359464,
+          "liveBytes": 808,
+          "peakLiveBytes": 4777162312,
+          "createdCount": 2034,
+          "liveCount": 28,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2340548578,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    }
+  ],
+  "cleanupErrors": [],
+  "measurementLimits": [
+    "Pipeline-load timers exclude prior Capsule verification; elapsedMs covers the complete lifecycle sequence, not single-request TTFT.",
+    "Local repository/UI checks also ran during the investigation; model runs were sequential. These are local acceptance/tuning observations, not a vendor benchmark or confidence interval.",
+    "GPU counters observe explicit destruction, not physical driver residency or garbage collection.",
+    "Per-session backing leases must not be summed as unique allocation. Cache budgets exclude backing and loader/GPU resources."
+  ]
+}

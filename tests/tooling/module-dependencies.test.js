@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, writeFile, rm, readFile, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { parseModuleDependencies, buildDependencyGraph, collectStronglyConnectedComponents, collectReachable } from '../../tools/lib/module-dependencies.js';
@@ -27,6 +27,20 @@ const graph = new Map([['A', ['forward']], ['forward', ['B']], ['B', ['A']], ['t
 assert.deepEqual(collectStronglyConnectedComponents(graph).map(group => group.sort()), [['A', 'B', 'forward']]);
 assert.deepEqual([...collectReachable(graph, ['A'])].sort(), ['A', 'B', 'forward']);
 assert.deepEqual([...collectReachable(graph, ['test'])].sort(), ['onlyTest', 'test']);
+
+// Computed model-family selection is a canonical rule asset, not a guessed
+// dependency list. Every declared target must exist and match the rule exactly.
+const repositoryRoot = path.resolve(import.meta.dirname, '../..');
+const declarations = JSON.parse(await readFile(path.join(repositoryRoot, 'tools/policies/module-dependencies.json'), 'utf8'));
+const rules = JSON.parse(await readFile(path.join(repositoryRoot, 'src/rules/inference/config.rules.json'), 'utf8'));
+const lazyModules = [...new Set(rules.pipelineModules.flatMap(rule => rule.value))];
+assert.deepEqual(declarations['src/inference/pipelines/text.js']['import(modulePath)'], lazyModules);
+for (const name of lazyModules) await access(path.resolve(repositoryRoot, 'src/inference/pipelines', name));
+const pipelineGraph = await buildDependencyGraph(repositoryRoot, ['src/inference/pipelines/text.js'], declarations);
+assert(!pipelineGraph.diagnostics.some(item => item.file === 'src/inference/pipelines/text.js'));
+const sourceGraph = new Map([...pipelineGraph.graph].map(([file, edges]) =>
+  [file, edges.filter(edge => edge.kind !== 'type').map(edge => edge.target).filter(Boolean)]));
+assert.deepEqual(collectStronglyConnectedComponents(sourceGraph), []);
 
 const root = await mkdtemp(path.join(tmpdir(), 'doppler-dependency-fixture-'));
 try {

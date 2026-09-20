@@ -19,7 +19,7 @@
   },
   {
    "path": "inference/config.rules.json",
-   "digest": "sha256:c774e14366d68cab96fa64c91000237ffed46fa9aacac3ebb10969102e3f279e"
+   "digest": "sha256:b9a654366b6c25de0c37a27c0b0b7c671ef3d0ed2f9c744c5fa95b1fc4c95b3a"
   },
   {
    "path": "inference/dtype.rules.json",
@@ -571,7 +571,7 @@
       }
      },
      "value": [
-      "./diffusion/pipeline.js"
+      "./diffusion/index.js"
      ]
     },
     {
@@ -583,7 +583,7 @@
       }
      },
      "value": [
-      "./energy/pipeline.js"
+      "./energy/index.js"
      ]
     },
     {

@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { installCapabilityMemoryProbe } from '../fixtures/installed-capability-memory.js';
 
-const context = vm.createContext({});
+const context = vm.createContext({ setTimeout });
 vm.runInContext(`
   class GPUBuffer { constructor(size) { this.size = size; } destroy() {} }
   class GPUDevice {
-    constructor() { this.lost = new Promise(resolve => { this.lose = resolve; }); }
+    constructor() { this.lost = new Promise(resolve => { this.lose = resolve; });
+      this.queue = { onSubmittedWorkDone: async () => {} }; }
     createBuffer({ size }) { if (size < 0) throw new RangeError('Injected GPU allocation failure'); return new GPUBuffer(size); }
     destroy() {}
   }
@@ -34,4 +35,5 @@ assert.equal(metrics().liveCount, 0);
 assert.equal(metrics().destroyedBytes, 300);
 assert.equal(metrics().peakLiveBytes, 300);
 assert.deepEqual(labels(), [], 'observation metadata does not accumulate closed allocation labels');
+assert.deepEqual(JSON.parse(JSON.stringify(await vm.runInContext('settleCapabilityGPU()', context))), []);
 console.log('installed-capability-memory: passed (instrumentation doubles, not physical evidence)');

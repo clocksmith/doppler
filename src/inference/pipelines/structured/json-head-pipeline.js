@@ -1,4 +1,4 @@
-import { InferencePipeline } from '../text.js';
+import { InferencePipeline } from '../text/pipeline.js';
 import { registerPipeline } from '../registry.js';
 import { createInitializedPipeline } from '../factory.js';
 

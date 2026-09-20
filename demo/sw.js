@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:66e7c889cdaf7b2805eccde85a7669b705b86dd8d84dbb4fd2c66c11419137b5';
-const CACHE_NAME = 'doppler-demo-shell-66e7c889cdaf7b28';
+const SHELL_MANIFEST_DIGEST = 'sha256:c4a51d2da6895486e60ee9ea7dc6fd6f0323ec2637419fe97656bd2d64d05d57';
+const CACHE_NAME = 'doppler-demo-shell-c4a51d2da6895486';
 const APP_SHELL = Object.freeze([
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
@@ -486,6 +486,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/drift-policy.js",
   "/src/inference/pipelines/text/dtype-contract.js",
   "/src/inference/pipelines/text/embed.js",
+  "/src/inference/pipelines/text/embedding-batch.js",
   "/src/inference/pipelines/text/embedding-contract.js",
   "/src/inference/pipelines/text/embedding-extraction.js",
   "/src/inference/pipelines/text/embedding-normalization.js",
@@ -574,6 +575,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/per-layer/materialize.js",
   "/src/inference/pipelines/text/per-layer/plan.js",
   "/src/inference/pipelines/text/pipeline-load-timing.js",
+  "/src/inference/pipelines/text/pipeline.js",
   "/src/inference/pipelines/text/probes.js",
   "/src/inference/pipelines/text/resolved-runtime-session.js",
   "/src/inference/pipelines/text/sampling-config.js",
