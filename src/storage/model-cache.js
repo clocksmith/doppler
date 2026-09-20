@@ -642,7 +642,7 @@ export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null
   });
 }
 
-export function loadPersistentModelSource(modelId) {
+export function loadPersistentModelSource(modelId, onProgress = null) {
   return runCacheOperation(modelId, onProgress, async () => {
     if (!isOPFSAvailable() || !await modelExists(modelId)) {
       return null;

@@ -8,6 +8,7 @@ import {
   deleteFileFromStore,
   openModelStore,
 } from '../../src/storage/shard-manager.js';
+import { loadPersistentModelSource } from '../../src/storage/model-cache.js';
 import { ensureModelCachedSource } from '../../src/tooling/opfs-cache.js';
 
 const originalFetch = globalThis.fetch;
@@ -257,6 +258,18 @@ try {
   )));
   assert.ok(hitEvents.some((event) => event.stage === 'cache-hit'));
   await hit.storageContext.close();
+
+  const persistentEvents = [];
+  const persistent = await loadPersistentModelSource(
+    modelId,
+    (event) => persistentEvents.push(event)
+  );
+  assert.equal(persistent.cacheState, 'verified-hit');
+  assert.equal(persistent.fromCache, true);
+  assert.equal(persistent.manifestHash, expectedManifestHash);
+  assert.ok(persistentEvents.some((event) => event.stage === 'cache-queued'));
+  assert.ok(persistentEvents.some((event) => event.stage === 'cache-start'));
+  await persistent.storageContext.close();
 
   await openModelStore(modelId);
   await deleteFileFromStore('model-00001-of-00001.bin');

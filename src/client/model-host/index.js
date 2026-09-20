@@ -205,7 +205,10 @@ export function createDopplerRuntimeService({
 
     emitLoadProgress(userProgress, 'manifest', 15, 'Fetching manifest');
     const persistentSource = options.cache === 'opfs' && !isNodeRuntime()
-      ? await loadPersistentModelSource(resolved.modelId)
+      ? await loadPersistentModelSource(
+        resolved.modelId,
+        (event) => emitPersistentCacheProgress(userProgress, event)
+      )
       : null;
     const manifestPayload = persistentSource
       ? {
