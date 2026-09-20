@@ -59,3 +59,64 @@ pass. Generated dependency and runtime-closure inventories are synchronized.
 The measured merged package remains 1,858 files (see package-audit.json).
 This newer merged source is not the archive in the running physical test.
 Full check:green is still running at this checkpoint. No release publication.
+
+## Measurement-led backing repair (after checkpoint)
+
+The first backing experiment used immutable Blobs, but the installed physical
+test failed before load with NotReadableError. An isolated 512 MiB Blob failed
+with the same error; chrome://blob-internals reported ERR_OUT_OF_MEMORY. The
+Blob design is rejected, not shipped as a successful repair. See
+blob-rejected-summary.json and the retained backing-config.json. Chromium's
+[Blob storage design](https://chromium.googlesource.com/chromium/src/+/HEAD/storage/browser/blob/README.md)
+describes its separate memory/disk quotas; available host RAM alone does not
+establish that this representation works.
+
+The replacement owns private 64 KiB byte blocks and shares only completed,
+verified snapshots among live stores belonging to one explicit host-service
+owner. Public APIs cannot obtain or mutate those blocks. Each store separately
+validates its signed closure and permissions. Pending acquisitions and their
+cancellation remain independent. The final lease removes shared backing; no
+unrestricted global cache or durable disk dependency is introduced.
+
+The optional byte cache accelerates full metadata reads; weight ranges use
+owned backing directly. Its limit remains unchanged (including null/unbounded
+in the original reproduction), but cache eviction no longer triggers source
+acquisition or rehashing. Backing is model-sized memory, separately measured,
+not a claim that a 4 GiB cache bounds total model memory.
+
+Focused retention/allocation tests cover shared leases, out-of-order and repeated
+close, source/caller mutation, fresh-store corruption, cancellation isolation,
+fixed snapshot-block allocation, and failed-read retries. The installed package
+test caught a missing declaration in the initial block-backed archive. The
+generated package closure now includes that declaration (one additional entry,
+no new runtime module). The corrected installed-package test passes.
+
+The corrected candidate is retained at
+/var/tmp/doppler-memory-blocks-v2-20260920; blocks-config.json runs the original
+physical case without changing browser, model, references, or retention settings.
+The original physical case now passes (blocks-physical-summary.json): all four
+completed requests match the frozen 107-token reference, including second-session
+execution after first-session close. Cancellation/rejected preparation checks pass.
+The first session reads and hashes 8,050,837,118 artifact bytes; the second reads,
+hashes, and copies zero additional backing bytes. Each close reports zero remaining
+backing leases and byte-cache retention. The runtime archive SHA-256 is
+`b2ba7dbf7a18df458a702881439d2f9195b8b2a6a864f5fed2fa51afba831f6c`.
+
+The second `npm run check:green` exits zero with 850 unit test files passing.
+Focused allocation tests and the CI-toolchain package budget also pass. Incoming
+UI defaults are preserved; two stale tests now expect X-Ray/perplexity to start
+disabled. The separate 4 GiB retention control is running against the same archive
+(blocks-4gib-config.json); its result is not implied by the original-case pass.
+
+GPU observation at final close reports 4,949,428,824 bytes created but not explicitly
+destroyed (486 objects), separately from backing leases. Device-pool lifetime,
+garbage collection, and physical driver residency are not equivalent to session
+ownership; this is not a claim that close immediately returns all process/GPU RAM.
+The browser context subsequently closes without a cleanup error. No GPU pooling
+policy or completed session-exclusion mechanism was changed.
+
+Component: doppler.runtime-source.client, doppler.docs, doppler.tests,
+doppler.repository-tooling. Intent: preserved. Boundary effects: host supplies
+an opaque backing owner to Capsule execution; permissions and session state are
+not shared. API documentation and generated package/runtime inventories track
+the changed storage lifecycle and observation fields.

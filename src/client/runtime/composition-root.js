@@ -111,7 +111,7 @@ export function createDopplerRuntime(ports) {
         assertDeviceAvailable();
         const targetPlanDigest = hashTargetPlan(selectedPlan);
         emit(observer, { type: 'target-selected', capsuleId: capsule.capsuleId, targetId: selectedPlan.targetId, targetPlanDigest });
-        verifiedStore = createVerifiedCapsuleArtifactStore(capsule, artifactStore, options);
+        verifiedStore = createVerifiedCapsuleArtifactStore(capsule, artifactStore, options, ports.artifactBacking);
         const artifactReceipts = await verifyCapsuleV2Artifacts(capsule, verifiedStore);
         assertDeviceAvailable();
         verification = freezeCapsuleV2({ ...verification, artifactReceipts });
@@ -307,7 +307,8 @@ export function createDopplerRuntime(ports) {
                 commandExecutor.clearPipelineCache();
                 verifiedStore.close();
               }
-              emit(observer, { type: 'capsule-session-closed', capsuleId: capsule.capsuleId, targetPlanDigest });
+              emit(observer, { type: 'capsule-session-closed', capsuleId: capsule.capsuleId, targetPlanDigest,
+                artifactMetrics: verifiedStore.getMetrics() });
             });
           },
         };

@@ -1,0 +1,11 @@
+{
+  "schema": "doppler.memory-loading-package-audit/v1",
+  "baselineRevision": "b2677303",
+  "toolchain": { "node": "22.23.2", "npm": "10.9.8" },
+  "entryCount": 1859,
+  "packedBytes": 2152816,
+  "unpackedBytes": 11314302,
+  "addedEntries": ["src/client/runtime/verified-capsule-artifact-store.d.ts"],
+  "runtimeModuleCountChange": 0,
+  "scope": "Private verified block snapshots, explicit host leases, and close metrics. Package inventory only; no publication."
+}

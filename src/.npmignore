@@ -37,7 +37,6 @@ client/runtime/node-quickstart-cache.d.ts
 client/runtime/source-runtime.d.ts
 client/runtime/source-runtime.js
 client/runtime/storage.d.ts
-client/runtime/verified-capsule-artifact-store.d.ts
 config/capsule-adapter-policy.d.ts
 config/capsule-sequence-receipt.d.ts
 config/capsule-v0-trusted-signers.d.ts

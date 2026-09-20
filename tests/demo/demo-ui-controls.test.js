@@ -21,8 +21,8 @@ assert.match(html, /id="model-select-action"/);
 assert.match(modelsSource, /from 'doppler-gpu\/compat'/);
 
 assert.equal((html.match(/id="xray-toggle-all"/g) ?? []).length, 1);
-assert.match(html, /<span class="chat-toggle-label">X-Ray<\/span>\s*<input id="xray-toggle-all" type="checkbox" checked>/);
-assert.match(html, /<span class="chat-toggle-label">Perplexity<\/span>\s*<input id="set-word-quality" type="checkbox" checked>/);
+assert.match(html, /<span class="chat-toggle-label">X-Ray<\/span>\s*<input id="xray-toggle-all" type="checkbox">/);
+assert.match(html, /<span class="chat-toggle-label">Perplexity<\/span>\s*<input id="set-word-quality" type="checkbox">/);
 assert.match(html, /chat-controls-summary-state">Standard/);
 assert.match(html, /Enabled · 5 evidence panels/);
 assert.doesNotMatch(html, /capture-transcript|export-transcript|set-token-press/);

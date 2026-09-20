@@ -56,6 +56,8 @@ const report = { schema: 'doppler.installed-capabilities-acceptance-result/v1', 
   runnerSha256: createHash('sha256').update(await fs.readFile(new URL(import.meta.url))).digest('hex'),
   lifecycleFixtureSha256: config.lifecycle ? createHash('sha256').update(await fs.readFile(
     new URL('../tests/fixtures/installed-capability-lifecycle.js', import.meta.url))).digest('hex') : null,
+  memoryProbeSha256: config.measureMemory === true ? createHash('sha256').update(await fs.readFile(
+    new URL('../tests/fixtures/installed-capability-memory.js', import.meta.url))).digest('hex') : null,
   scope: 'Physical local browser execution of retained models; no new model or fleet qualification.' };
 if (config.reploidRoot) {
   report.reploidRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: config.reploidRoot, encoding: 'utf8' }).trim();
@@ -272,8 +274,12 @@ try {
     } finally {
       clearTimeout(timeout);
       if (config.measureMemory === true && !page.isClosed()) {
-        report.progress.push({ operation: row.descriptor.request.operation.name, stage: 'after-session-cleanup',
-          memory: await page.evaluate(() => readCapabilityMemory()) });
+        try {
+          report.progress.push({ operation: row.descriptor.request.operation.name, stage: 'after-session-cleanup',
+            memory: await page.evaluate(() => readCapabilityMemory()) });
+        } catch (error) {
+          report.logs.push({ type: 'memory-observation-failed', text: error.message });
+        }
       }
       await page.close();
       await fs.writeFile(path.join(config.outputDir, 'progress.json'), JSON.stringify(report.results, null, 2));
