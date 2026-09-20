@@ -197,6 +197,7 @@ export declare class InferencePipeline extends PipelineState {
 
   unload(): Promise<void>;
 
+  /** Rejects changes during generation or after unloading; retains revocation checks. */
   setLoRAAdapter(adapter: LoRAAdapter | null): void;
 
   getActiveLoRA(): LoRAAdapter | null;

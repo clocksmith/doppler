@@ -33,6 +33,27 @@ are exercised in `tests/inference/pipeline-session-interleaving.test.js` and
 `tests/integration/doppler-scoped-session.test.js`; these use resource doubles,
 not physical model execution.
 
+The existing pipeline scope also owns operation exclusion. Adapter preparation
+and activation are one exclusive operation; active or queued execution rejects
+adapter changes and external state resets before mutation. Preparation rejects
+new execution on the same owner, while other owners retain their own state.
+Multiple handles for the same pipeline share this guard. Generation, embedding
+and reranking retain the scope through evidence construction; their internal
+pipeline calls do not acquire a second scope. Reranking's internal per-document
+reset remains permitted, without allowing application callbacks to reset it.
+The compatibility adapter provider uses the same owner: rejected attach/detach
+operations leave its registry unchanged, and temporary adapter restoration stays
+inside the operation, before unloading can begin.
+
+Closing seals the owner synchronously, rejects queued work when it reaches the
+execution boundary, and waits for active work and adapter preparation to settle
+before unloading. A prepared adapter cannot activate after close or device loss.
+This does not forcibly interrupt adapter I/O or submitted GPU commands. Consumers
+must finish or return paused streams before awaiting their close. Preparation
+failures preserve their original error, and cleanup cannot restore loader
+metadata after unload. These contracts are exercised by
+`tests/integration/lora-session-ownership.test.js` using non-physical fixtures.
+
 The pipeline classes remain compatibility surfaces. Sampling normalization,
 stop-sequence detection and sequence rollback have independently testable inputs;
 other extracted model-step functions still retain their existing numerical

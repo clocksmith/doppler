@@ -357,6 +357,7 @@ let releaseStream;
 let emitToken;
 let observedOptions;
 let streamCalls = 0;
+let streamStarted = Promise.withResolvers();
 const streamHandle = createModelHandle({
   ...pipeline,
   manifest: { ...pipeline.manifest, tokenizer: { type: 'test', digest: 'fixture' } },
@@ -365,7 +366,7 @@ const streamHandle = createModelHandle({
     observedOptions = options;
     emitToken = options.onToken;
     options.onToken?.(101, '');
-    await new Promise((resolve) => { releaseStream = resolve; });
+    await new Promise((resolve) => { releaseStream = resolve; streamStarted.resolve(); });
     options.onToken?.(202, '');
     return { tokenIds: [101, 202], stats };
   },
@@ -376,6 +377,7 @@ await assert.rejects(streamHandle.inspect.generate('test', { generation: { onTok
 assert.equal(streamCalls, 0);
 const events = [];
 const streamedResult = streamHandle.inspect.generate('test', { onEvent: (event) => events.push(event) });
+await streamStarted.promise;
 assert.deepEqual(events, [{ type: 'token', tokenId: 101, index: 0 }]);
 assert.equal(observedOptions.disableCommandBatching, undefined);
 assert.equal(observedOptions.profile, undefined);
@@ -390,7 +392,9 @@ assert.equal(events.at(-1).type, 'inspection-complete');
 assert.equal(events.at(-1).receipt, streamedReceipt);
 emitToken(999, '');
 assert.equal(events.length, 3, 'Events after completion are ignored');
+streamStarted = Promise.withResolvers();
 const unstreamedResult = streamHandle.inspect.generate('test');
+await streamStarted.promise;
 releaseStream();
 const unstreamedReceipt = await unstreamedResult;
 assert.deepEqual(streamedReceipt.generationEvidence, unstreamedReceipt.generationEvidence);
@@ -398,10 +402,12 @@ assert.deepEqual(streamedReceipt.fingerprint, unstreamedReceipt.fingerprint);
 
 const abortedEvents = [];
 const streamController = new AbortController();
+streamStarted = Promise.withResolvers();
 const abortedResult = streamHandle.inspect.generate('test', {
   generation: { signal: streamController.signal },
   onEvent: (event) => abortedEvents.push(event),
 });
+await streamStarted.promise;
 streamController.abort();
 emitToken(999, '');
 releaseStream();

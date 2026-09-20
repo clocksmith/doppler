@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.adapter-session-ownership-package-audit/v1",
+  "baseline": "f86d97cd",
+  "node": "22.23.2",
+  "npm": "10.9.8",
+  "archive": "/var/tmp/doppler-lora-ownership-final.RFlNt4/doppler-gpu-0.6.2.tgz",
+  "sha256": "88f030627cdba99f9a81ffc5b5287d1ba9441f3cac638c506eded46d49cbeec7",
+  "entryCount": 1858,
+  "packedBytes": 2151228,
+  "unpackedBytes": 11307872,
+  "inventoryUnchanged": true,
+  "changes": [
+    { "path": "src/client/model-host/model-session.d.ts", "beforeBytes": 11559, "afterBytes": 11726, "deltaBytes": 167 },
+    { "path": "src/client/model-host/model-session.js", "beforeBytes": 22240, "afterBytes": 22898, "deltaBytes": 658 },
+    { "path": "src/client/runtime/lora.js", "beforeBytes": 8385, "afterBytes": 8596, "deltaBytes": 211 },
+    { "path": "src/client/runtime/scoped-session.js", "beforeBytes": 9162, "afterBytes": 9324, "deltaBytes": 162 },
+    { "path": "src/client/wrap-pipeline-handle.js", "beforeBytes": 9306, "afterBytes": 9682, "deltaBytes": 376 },
+    { "path": "src/inference/pipelines/shader-scoped-pipeline.js", "beforeBytes": 2154, "afterBytes": 5943, "deltaBytes": 3789 },
+    { "path": "src/inference/pipelines/text.d.ts", "beforeBytes": 8600, "afterBytes": 8690, "deltaBytes": 90 },
+    { "path": "src/inference/pipelines/text.js", "beforeBytes": 22870, "afterBytes": 23082, "deltaBytes": 212 }
+  ]
+}

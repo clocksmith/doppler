@@ -230,7 +230,9 @@ export function createScopedModelSession(handle) {
         closed = true;
         // Publish one cleanup task before calling the host, including when its
         // unload throws synchronously. Every caller observes the same outcome.
-        closeTask = Promise.resolve().then(() => handle.unload());
+        let resolveClose, rejectClose;
+        closeTask = new Promise((resolve, reject) => { resolveClose = resolve; rejectClose = reject; });
+        try { resolveClose(handle.unload()); } catch (error) { rejectClose(error); }
       }
       await closeTask;
     },
