@@ -133,3 +133,43 @@ references. Physical driver residency and garbage collection remain unmeasured.
 
 Component: `doppler.runtime-source.formats`. Intent: preserved. Boundary effects:
 none. No shader, model computation, release promotion, or npm publication change.
+
+## GPU ownership repair
+
+The hash candidate's final generation observation retained 4,949,428,824 bytes
+across 486 GPU buffers: 2,264,924,160 fused QKV bytes, 2,415,919,104 KV bytes,
+268,435,456 RoPE bytes, decode buffers, and small device caches. Allocation labels
+were checked against their allocation and release sites; they are not residency.
+
+The cleanup archive is
+`e3a23607790a01339fd4472f07540aa7fc49dde2968d46946e47c2199d106d41`, retained at
+`/var/tmp/doppler-consolidation-cleanup-20260920/doppler-gpu-0.6.2.tgz`.
+Unload now destroys session KV and decode resources, registers fused QKV buffers
+with the existing model loader, and releases reference-counted RoPE leases through
+their originating pools. Closing one session preserves other leases. Partial
+allocation and preparation failures release acquired buffers; loader cleanup
+failure does not prevent session or storage cleanup. Retention policy is unchanged.
+
+The original four-request sequence and two extra reopen/run/close cycles all
+match the frozen 107-token reference. Final observed buffers plateau at 10,840
+bytes across 258 objects: cached uniforms plus the two four-byte attention
+fallback buffers. The intermediate first-reopen close observation still saw
+8,443,421,784 bytes awaiting asynchronous reclamation; the subsequent cycle and
+final snapshot return to exactly 10,840. Session close is not a GPU-idle barrier.
+No synchronous GC or physical driver-residency claim is made.
+
+The same cleanup archive passes the separate 4 GiB, embedding/reranking,
+zero-delta adapter, and current Reploid cases. Generation now includes extra
+cycles, so its 359,418 ms elapsed time is not comparable to the prior four-request
+experiment. Raw receipts and all checkpoints remain bound by the summaries.
+
+Focused ownership regressions, device-loss/deferred completion tests, installed
+exports/types/synthetic consumers, architecture and source-style checks passed.
+The source type inventory removes two unchecked declaration `any` occurrences.
+No new policy exception or pool retention limit was needed; redundant blank lines
+were normalized without splitting private pool state.
+
+Component: `doppler.runtime-source.inference.pipelines.text`,
+`doppler.runtime-source.memory`. Intent: preserved. Boundary effects: originating
+resource ownership and additive pool allocation observations; no tensor or shader
+changes. A host owns device shutdown; session unload never destroys its device.

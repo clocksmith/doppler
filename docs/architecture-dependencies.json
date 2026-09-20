@@ -4251,6 +4251,7 @@
         "tests/inference/pipeline-session-config.test.js",
         "tests/inference/pipeline-session-interleaving.test.js",
         "tests/inference/pipeline-shader-scope.test.js",
+        "tests/inference/pipeline-unload-resources.test.js",
         "tests/inference/postnorm-contract.test.js",
         "tests/inference/prefill-output-ownership.test.js",
         "tests/inference/presence-penalty.test.js",
@@ -5847,7 +5848,7 @@
     {
       "file": "src/inference/pipelines/text.js",
       "kind": "dynamic",
-      "line": 622,
+      "line": 619,
       "expression": "import(modulePath)"
     },
     {

@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.consolidation-package-audit/v1",
+  "nodeVersion": "22.23.2",
+  "npmVersion": "10.9.8",
+  "entryCount": 1859,
+  "packedSize": 2156634,
+  "unpackedSize": 11328616,
+  "addedEntries": [
+    "src/inference/pipelines/text/init-rope.d.ts"
+  ],
+  "removedEntries": [],
+  "changedEntries": [
+    "src/inference/decode-buffers.js",
+    "src/inference/pipelines/text/init-qkv-fusion.js",
+    "src/inference/pipelines/text/init-rope.js",
+    "src/inference/pipelines/text/init.d.ts",
+    "src/inference/pipelines/text/lifecycle.js",
+    "src/inference/pipelines/text/state.d.ts",
+    "src/inference/pipelines/text/state.js",
+    "src/inference/pipelines/text.js",
+    "src/memory/buffer-pool.d.ts",
+    "src/memory/buffer-pool.js"
+  ],
+  "candidateArchiveSha256": "e3a23607790a01339fd4472f07540aa7fc49dde2968d46946e47c2199d106d41",
+  "measurement": "CI-toolchain repack of the installed immutable candidate; identical entry set and unpacked bytes, different compression toolchain."
+}

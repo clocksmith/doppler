@@ -88,15 +88,17 @@ try {
     qkvProj: null,
   });
 
+  const ownedBuffers = new Set();
   fuseQKVWeights(layerWeights, {
     numLayers: 1,
     numHeads: 1,
     numKVHeads: 1,
     headDim: 4,
     hiddenSize: 4,
-  });
+  }, null, { ownedBuffers });
 
   const fused = layerWeights.get('layer_0').qkvProj;
+  assert.equal(ownedBuffers.has(fused.buffer), true, 'generated weights belong to the loaded model owner');
   assert.ok(fused, 'expected fused QKV weight');
   assert.equal(fused.dtype, 'f16');
   assert.deepEqual(Array.from(fused.shape), [12, 4]);
@@ -315,6 +317,24 @@ try {
     'QKV fusion must preserve the independently loaded gate projection'
   );
   assert.deepEqual(Array.from(separateGateFused.qkvProj.shape), [12, 4]);
+
+  // Failure after creating the fused tensor must not leave partial weights alive.
+  const failingDevice = createFakeDevice();
+  const allocated = [];
+  failingDevice.createBuffer = descriptor => {
+    const buffer = new GPUBuffer(descriptor); allocated.push(buffer); return buffer;
+  };
+  const failure = new Error('injected QKV submit failure');
+  failingDevice.queue.submit = () => { throw failure; };
+  setDevice(failingDevice, { platformConfig: null });
+  const rejected = new Map([['layer_0', { qProj, kProj, vProj }]]);
+  const rejectedOwner = new Set();
+  assert.throws(() => fuseQKVWeights(rejected, {
+    numLayers: 1, numHeads: 1, numKVHeads: 1, headDim: 4, hiddenSize: 4,
+  }, null, { ownedBuffers: rejectedOwner }), error => error === failure);
+  assert(allocated.length > 0 && allocated.every(buffer => buffer.destroyed));
+  assert.equal(rejectedOwner.size, 0);
+  assert.equal(rejected.get('layer_0').qkvProj, undefined);
 } finally {
   setDevice(null, { platformConfig: null });
 }

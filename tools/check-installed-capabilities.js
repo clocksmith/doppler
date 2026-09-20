@@ -234,7 +234,7 @@ try {
         });
         return { completed, partials, runtimeVersion: DOPPLER_VERSION };
       }, { descriptor, consumer: config.consumer, shared: config.sharedSessionOperation === descriptor.request.operation.name,
-        lifecycle: config.lifecycle ? { repeatRuns: config.lifecycle.repeatRuns, cancellation: row.cancellation,
+        lifecycle: config.lifecycle ? { repeatRuns: config.lifecycle.repeatRuns, reopenCycles: config.lifecycle.reopenCycles, cancellation: row.cancellation,
           ...(row.adapter ? { adapter: row.adapter } : {}) } : null });
       assert.equal(result.runtimeVersion, bundle.package.version);
       assert.equal(result.completed.status, 'completed');

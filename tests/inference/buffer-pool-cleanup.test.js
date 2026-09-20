@@ -18,7 +18,7 @@ globalThis.GPUMapMode = {
   WRITE: 1 << 1,
 };
 
-const { BufferPool, BufferUsage } = await import('../../src/memory/buffer-pool.js');
+const { BufferPool, BufferUsage, PersistentBufferSet } = await import('../../src/memory/buffer-pool.js');
 const { DEFAULT_BUFFER_POOL_CONFIG } = await import('../../src/config/schema/buffer-pool.schema.js');
 const { setDevice } = await import('../../src/gpu/device.js');
 
@@ -120,6 +120,36 @@ function createFakeDevice(options = {}) {
 
 async function flushMicrotasks() {
   await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+{
+  const device = createFakeDevice();
+  let finish;
+  device.queue.onSubmittedWorkDone = () => new Promise(resolve => { finish = resolve; });
+  setDevice(device, { platformConfig: null });
+  const pool = new BufferPool(false, createSchemaConfig());
+  pool.configure({ enablePooling: true });
+  const model = pool.acquire(64, BufferUsage.STORAGE, 'model');
+  const owners = new PersistentBufferSet([model]);
+  const request = pool.acquire(64, BufferUsage.STORAGE, 'request');
+  let resources = pool.getStats().resources;
+  assert.equal(resources.retainedModel.count, 1);
+  assert.equal(resources.active.count, 1);
+  pool.release(request);
+  assert.equal(pool.getStats().resources.reusable.count, 1);
+  owners.clear();
+  pool.discard(model);
+  resources = pool.getStats().resources;
+  assert.equal(resources.retainedModel.count, 0);
+  assert.equal(resources.deferredCleanup.bytes, model.size);
+  assert.equal(model.destroyed, false, 'Submitted work still owns deferred cleanup.');
+  finish();
+  await flushMicrotasks();
+  assert.equal(model.destroyed, true);
+  assert.equal(pool.getStats().resources.deferredCleanup.count, 0);
+  pool.destroy();
+  finish();
+  await flushMicrotasks();
 }
 
 {

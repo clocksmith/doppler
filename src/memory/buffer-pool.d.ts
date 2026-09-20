@@ -11,6 +11,11 @@ import type { BufferPoolConfigSchema } from '../config/schema/index.js';
  * Pool statistics
  */
 export interface PoolStats {
+  /** Pool-owned allocations only; direct session/device allocations are separate. */
+  resources: Record<'retainedModel' | 'active' | 'reusable' | 'deferredCleanup', {
+    bytes: number;
+    count: number;
+  }>;
   allocations: number;
   reuses: number;
   totalBytesAllocated: number;

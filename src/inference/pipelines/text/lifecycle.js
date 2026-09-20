@@ -491,6 +491,7 @@ export async function _loadWeights() {
     if (this.useGPU && this.modelConfig) {
       const session = this.runtimeConfig?.inference?.session ?? null;
       fuseQKVWeights(result.layerWeights, this.modelConfig, this.resolvedKernelPath, {
+        ownedBuffers: this.dopplerLoader.gpuBuffers,
         allowQ4K: session?.useFusedQKVSplitQKNorm === true
           || session?.useFusedQKVSplitQKNormRoPE === true,
       });

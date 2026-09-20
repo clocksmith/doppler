@@ -138,6 +138,9 @@ function resolveBiasStorageFormat(weight, expectedElements) {
 }
 
 export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, options = {}) {
+  if (Object.hasOwn(options, 'ownedBuffers') && typeof options.ownedBuffers?.add !== 'function') {
+    throw new Error('QKV fusion requires the loaded model buffer owner.');
+  }
   const device = getDevice();
   if (!device) {
     log.debug('QKV Fusion', 'No GPU device, skipping fusion');
@@ -261,126 +264,140 @@ export function fuseQKVWeights(layerWeights, modelConfig, kernelPath = null, opt
 
     // Create fused QKV buffer: [qkvSize, hiddenSize] row-major.
     // attentionOutputGate models keep Q rows in qkvProj and gate rows in qGateProj.
-    const qkvBuffer = device.createBuffer({
-      label: `layer_${l}_qkv_proj`,
-      size: qBytes + kFormat.byteLength + vFormat.byteLength,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    });
-    const qGateBuffer = hasAttentionOutputGate && !hasSeparateGateProjection
-      ? device.createBuffer({
-        label: `layer_${l}_q_gate_proj`,
-        size: qGateBytes,
-        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-      })
-      : null;
-
-    let qBiasFormat = null;
-    let kBiasFormat = null;
-    let vBiasFormat = null;
-    let qkvBiasBuffer = null;
-    if (presentProjectionBiases === projectionBiases.length) {
-      qBiasFormat = resolveBiasStorageFormat(weights.qProjBias, qSize);
-      kBiasFormat = resolveBiasStorageFormat(weights.kProjBias, kSize);
-      vBiasFormat = resolveBiasStorageFormat(weights.vProjBias, vSize);
-      const biasFormatsMatch = qBiasFormat
-        && kBiasFormat
-        && vBiasFormat
-        && qBiasFormat.dtype === kBiasFormat.dtype
-        && qBiasFormat.dtype === vBiasFormat.dtype;
-      if (!biasFormatsMatch) {
-        log.debug('QKV Fusion', `Layer ${l}: inconsistent Q/K/V projection bias formats, skipping`);
-        qkvBuffer.destroy();
-        qGateBuffer?.destroy();
-        continue;
-      }
-      qkvBiasBuffer = device.createBuffer({
-        label: `layer_${l}_qkv_proj_bias`,
-        size: qBiasFormat.byteLength + kBiasFormat.byteLength + vBiasFormat.byteLength,
+    const allocated = [];
+    const allocate = descriptor => {
+      const buffer = device.createBuffer(descriptor);
+      allocated.push(buffer);
+      return buffer;
+    };
+    let committed = false;
+    try {
+      const qkvBuffer = allocate({
+        label: `layer_${l}_qkv_proj`,
+        size: qBytes + kFormat.byteLength + vFormat.byteLength,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
       });
-    }
+      const qGateBuffer = hasAttentionOutputGate && !hasSeparateGateProjection
+        ? allocate({
+          label: `layer_${l}_q_gate_proj`,
+          size: qGateBytes,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        })
+        : null;
 
-    const encoder = device.createCommandEncoder({ label: 'qkv_fusion' });
-    if (hasAttentionOutputGate && !hasSeparateGateProjection) {
-      for (let head = 0; head < numHeads; head++) {
-        const srcHeadOffset = head * headDim * 2 * qFormat.bytesPerRow;
-        const dstHeadOffset = head * headDim * qFormat.bytesPerRow;
-        const headBytes = headDim * qFormat.bytesPerRow;
+      let qBiasFormat = null;
+      let kBiasFormat = null;
+      let vBiasFormat = null;
+      let qkvBiasBuffer = null;
+      if (presentProjectionBiases === projectionBiases.length) {
+        qBiasFormat = resolveBiasStorageFormat(weights.qProjBias, qSize);
+        kBiasFormat = resolveBiasStorageFormat(weights.kProjBias, kSize);
+        vBiasFormat = resolveBiasStorageFormat(weights.vProjBias, vSize);
+        const biasFormatsMatch = qBiasFormat
+          && kBiasFormat
+          && vBiasFormat
+          && qBiasFormat.dtype === kBiasFormat.dtype
+          && qBiasFormat.dtype === vBiasFormat.dtype;
+        if (!biasFormatsMatch) {
+          log.debug('QKV Fusion', `Layer ${l}: inconsistent Q/K/V projection bias formats, skipping`);
+          continue;
+        }
+        qkvBiasBuffer = allocate({
+          label: `layer_${l}_qkv_proj_bias`,
+          size: qBiasFormat.byteLength + kBiasFormat.byteLength + vBiasFormat.byteLength,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        });
+      }
+
+      const encoder = device.createCommandEncoder({ label: 'qkv_fusion' });
+      if (hasAttentionOutputGate && !hasSeparateGateProjection) {
+        for (let head = 0; head < numHeads; head++) {
+          const srcHeadOffset = head * headDim * 2 * qFormat.bytesPerRow;
+          const dstHeadOffset = head * headDim * qFormat.bytesPerRow;
+          const headBytes = headDim * qFormat.bytesPerRow;
+          encoder.copyBufferToBuffer(
+            qProj.buffer,
+            srcHeadOffset,
+            qkvBuffer,
+            dstHeadOffset,
+            headBytes
+          );
+          encoder.copyBufferToBuffer(
+            qProj.buffer,
+            srcHeadOffset + headBytes,
+            qGateBuffer,
+            dstHeadOffset,
+            headBytes
+          );
+        }
+      } else {
         encoder.copyBufferToBuffer(
-          qProj.buffer,
-          srcHeadOffset,
-          qkvBuffer,
-          dstHeadOffset,
-          headBytes
-        );
-        encoder.copyBufferToBuffer(
-          qProj.buffer,
-          srcHeadOffset + headBytes,
-          qGateBuffer,
-          dstHeadOffset,
-          headBytes
+          qProj.buffer, 0,
+          qkvBuffer, 0,
+          qBytes
         );
       }
-    } else {
       encoder.copyBufferToBuffer(
-        qProj.buffer, 0,
-        qkvBuffer, 0,
-        qBytes
-      );
-    }
-    encoder.copyBufferToBuffer(
-      kProj.buffer, 0,
-      qkvBuffer, qBytes,
-      kFormat.byteLength
-    );
-    encoder.copyBufferToBuffer(
-      vProj.buffer, 0,
-      qkvBuffer, qBytes + kFormat.byteLength,
-      vFormat.byteLength
-    );
-    if (qkvBiasBuffer) {
-      encoder.copyBufferToBuffer(qBiasFormat.buffer, 0, qkvBiasBuffer, 0, qBiasFormat.byteLength);
-      encoder.copyBufferToBuffer(
-        kBiasFormat.buffer,
-        0,
-        qkvBiasBuffer,
-        qBiasFormat.byteLength,
-        kBiasFormat.byteLength
+        kProj.buffer, 0,
+        qkvBuffer, qBytes,
+        kFormat.byteLength
       );
       encoder.copyBufferToBuffer(
-        vBiasFormat.buffer,
-        0,
-        qkvBiasBuffer,
-        qBiasFormat.byteLength + kBiasFormat.byteLength,
-        vBiasFormat.byteLength
+        vProj.buffer, 0,
+        qkvBuffer, qBytes + kFormat.byteLength,
+        vFormat.byteLength
       );
-    }
-    device.queue.submit([encoder.finish()]);
+      if (qkvBiasBuffer) {
+        encoder.copyBufferToBuffer(qBiasFormat.buffer, 0, qkvBiasBuffer, 0, qBiasFormat.byteLength);
+        encoder.copyBufferToBuffer(
+          kBiasFormat.buffer,
+          0,
+          qkvBiasBuffer,
+          qBiasFormat.byteLength,
+          kBiasFormat.byteLength
+        );
+        encoder.copyBufferToBuffer(
+          vBiasFormat.buffer,
+          0,
+          qkvBiasBuffer,
+          qBiasFormat.byteLength + kBiasFormat.byteLength,
+          vBiasFormat.byteLength
+        );
+      }
+      device.queue.submit([encoder.finish()]);
 
-    // Store fused buffer, sizes, and dtype
-    weights.qkvProj = createWeightBuffer(
-      qkvBuffer,
-      dtype,
-      layout,
-      fusedShape,
-      `layer_${l}_qkv_proj`
-    );
-    weights.qkvSizes = [qSize, kSize, vSize];
-    weights.qkvDtype = dtype;
-    if (qkvBiasBuffer) {
-      tagBufferDtype(qkvBiasBuffer, qBiasFormat.dtype);
-      weights.qkvProjBias = qkvBiasBuffer;
-    }
-    if (qGateBuffer) {
-      weights.qGateProj = createWeightBuffer(
-        qGateBuffer,
+      // Store fused buffer, sizes, and dtype
+      weights.qkvProj = createWeightBuffer(
+        qkvBuffer,
         dtype,
         layout,
-        [qSize, hiddenSize],
-        `layer_${l}_q_gate_proj`
+        fusedShape,
+        `layer_${l}_qkv_proj`
       );
+      weights.qkvSizes = [qSize, kSize, vSize];
+      weights.qkvDtype = dtype;
+      if (qkvBiasBuffer) {
+        tagBufferDtype(qkvBiasBuffer, qBiasFormat.dtype);
+        weights.qkvProjBias = qkvBiasBuffer;
+      }
+      if (qGateBuffer) {
+        weights.qGateProj = createWeightBuffer(
+          qGateBuffer,
+          dtype,
+          layout,
+          [qSize, hiddenSize],
+          `layer_${l}_q_gate_proj`
+        );
+      }
+      for (const buffer of allocated) options.ownedBuffers?.add(buffer);
+      committed = true;
+      fusedCount++;
+    } finally {
+      if (!committed) for (const buffer of allocated) {
+        try { buffer.destroy(); }
+        catch (error) { log.warn('QKV Fusion', `Failed to release an uncommitted weight: ${error.message}`); }
+      }
     }
-    fusedCount++;
   }
 
   log.debug('QKV Fusion', `Fused ${fusedCount}/${numLayers} layers`);
