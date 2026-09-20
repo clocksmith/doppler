@@ -1,0 +1,23 @@
+{
+  "schema": "doppler.consolidation-package-audit/v1",
+  "nodeVersion": "22.23.2",
+  "npmVersion": "10.9.8",
+  "entryCount": 1858,
+  "packedSize": 2155180,
+  "unpackedSize": 11324026,
+  "addedEntries": [],
+  "removedEntries": [
+    "src/tooling/capsule-v2.d.ts"
+  ],
+  "changedEntries": [
+    "src/client/runtime/capsule-acquisition.d.ts",
+    "src/client/runtime/composition-root.d.ts",
+    "src/client/runtime/fetch-capsule-artifact-store.d.ts",
+    "src/client/runtime/fetch-capsule-artifact-store.js",
+    "src/client/runtime/verified-capsule-artifact-store.d.ts",
+    "src/client/runtime/verified-capsule-artifact-store.js",
+    "src/config/capsule-loading.d.ts",
+    "src/config/capsule-loading.schema.json",
+    "src/tooling/node-capsule-artifact-store.js"
+  ]
+}

@@ -1,2 +1,5 @@
-export interface CapsuleLoadingPolicy { loadTimeoutMs: number | null; maxMetadataBytes: number; maxRetainedArtifactBytes: number | null }
+export interface CapsuleLoadingPolicy {
+  loadTimeoutMs: number | null; maxMetadataBytes: number; maxRetainedArtifactBytes: number | null;
+  maxAcquisitionChunkBytes: number; verificationYieldBytes: number;
+}
 export declare function normalizeCapsuleLoadingPolicy(options: Partial<CapsuleLoadingPolicy>): Readonly<CapsuleLoadingPolicy>;

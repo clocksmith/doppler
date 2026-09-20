@@ -1,0 +1,81 @@
+{
+  "schema": "doppler.consolidation-loading-checks/v1",
+  "passed": true,
+  "baseRevision": "1ab605f2c732b739301b8ce0b0334130cbc32ee4",
+  "packageSha256": "58a38aa3eed85a62682ec0a6c2232217c896a7a76393335f6f3a73d46f560de1",
+  "commands": [
+    {
+      "command": "npm run check:green",
+      "exitCode": 1,
+      "testFilesPassed": 854,
+      "reason": "Generated Capsule inventory stale after BYOB correction; corrected with runtime:closure:sync.",
+      "log": {
+        "path": "/var/tmp/doppler-consolidation-loading-green.log",
+        "sha256": "92480bfa244ddda19bf7c1c4e27efbdf8a226e935afddbbc6bdd04a93013ee24"
+      }
+    },
+    {
+      "command": "npm run check:green",
+      "exitCode": 0,
+      "testFilesPassed": 854,
+      "log": {
+        "path": "/var/tmp/doppler-consolidation-loading-green-rerun.log",
+        "sha256": "1f031cc350fa9046c61b0d79acc72932bcbcb72a2035689bb8def88ab4760ed2"
+      }
+    },
+    {
+      "command": "npm run test:demo:contract",
+      "exitCode": 0,
+      "physicalExecution": false,
+      "log": {
+        "path": "/var/tmp/doppler-consolidation-loading-demo.log",
+        "sha256": "504ff69ea30c4747eee54070995ffd038b3cf37cad8060ac1274d2893b7e0e49"
+      }
+    },
+    {
+      "command": "node tools/check-packed-package.js",
+      "exitCode": 0,
+      "physicalExecution": false,
+      "log": {
+        "path": "/var/tmp/doppler-consolidation-stream-v2-package.log",
+        "sha256": "bc62d9ff38e485b391231931f5ebe88e306dc5fc086022b6138c05044329126d"
+      }
+    },
+    {
+      "command": "node tools/check-source-types.js",
+      "exitCode": 0,
+      "strictRoots": 9,
+      "uncheckedImplementations": 1047
+    },
+    {
+      "command": "npm run source:dependencies:check",
+      "exitCode": 0,
+      "files": 2448,
+      "testOnly": 51,
+      "diagnostics": 88
+    },
+    {
+      "command": "npm run catscan:check",
+      "exitCode": 0
+    }
+  ],
+  "physicalSummaries": [
+    "loading-baseline-summary.json",
+    "loading-bounded-summary.json",
+    "loading-bounded-4gib-summary.json",
+    "loading-bounded-embedding-reranking-summary.json",
+    "loading-bounded-adapter-summary.json",
+    "loading-bounded-reploid-summary.json"
+  ],
+  "retainedFailures": [
+    "loading-rejected-default-reader-summary.json",
+    "loading-reploid-request-mismatch-summary.json"
+  ],
+  "remainingConsolidation": [
+    "Measure the isolated hash-state-read optimization in an installed candidate.",
+    "Attribute GPU retention and repair the reproduced pipeline unload omissions.",
+    "Replace reflective operation contracts and prove a selected ambient-independent path.",
+    "Resolve selected dependency dispositions and qualify useful nonzero adapter or model work."
+  ],
+  "publication": false
+}

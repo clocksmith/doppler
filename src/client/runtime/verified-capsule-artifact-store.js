@@ -1,6 +1,6 @@
 import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
 import { createSha256Hasher } from '../../formats/sha256.js';
-import { assertCapsuleLoadActive, waitForCapsuleRead } from './capsule-acquisition.js';
+import { assertCapsuleLoadActive, createCapsuleLoadScope, waitForCapsuleRead } from './capsule-acquisition.js';
 import { normalizeCapsuleLoadingPolicy } from '../../config/capsule-loading.js';
 
 // Explicit host owners only; no process-wide content lookup or mutable backing port.
@@ -20,18 +20,21 @@ export function createCapsuleArtifactBacking() {
 
 export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}, backing = createCapsuleArtifactBacking()) {
   if (typeof source?.readArtifact !== 'function') throw new Error('Capsule execution requires artifactStore.readArtifact().');
+  if (source.streamArtifact != null && typeof source.streamArtifact !== 'function') throw new Error('Capsule streamArtifact must be a function.');
   const shared = backingOwners.get(backing);
   if (!shared) throw new Error('Capsule backing must be an owned createCapsuleArtifactBacking() handle.');
-  const { maxRetainedArtifactBytes } = normalizeCapsuleLoadingPolicy(options);
+  const { maxRetainedArtifactBytes, maxAcquisitionChunkBytes, verificationYieldBytes } = normalizeCapsuleLoadingPolicy(options);
   const artifacts = new Map(capsule.artifacts.map(artifact => [artifact.artifactId, Object.freeze(structuredClone(artifact))]));
   const verified = new Map();
   const snapshots = new Map();
   const pending = new Map();
+  const acquisitions = new Set();
   let closed = false;
   const metrics = { sourceBytes: 0, hashedBytes: 0, copiedBytes: 0, retainedBytes: 0, peakRetainedBytes: 0, returnedBytes: 0,
     evictions: 0, sourceReadMs: 0, hashingMs: 0, copyingMs: 0,
     backingBytes: 0, peakBackingBytes: 0, backingFiles: 0, snapshotCopiedBytes: 0,
-    sharedBackingBytes: 0, peakSnapshotBlockBytes: 0 };
+    sharedBackingBytes: 0, peakSnapshotBlockBytes: 0,
+    peakSourceChunkBytes: 0, streamedSourceBytes: 0, verificationYields: 0 };
   function assertActive() {
     if (closed) throw new Error('Verified Capsule artifact store is closed.');
     assertCapsuleLoadActive(options.signal);
@@ -64,55 +67,104 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
     let task = pending.get(declared.hash);
     if (!task) {
       task = (async () => {
-        let started = performance.now();
-        const payload = await waitForCapsuleRead(source.readArtifact(declared, options), options.signal);
-        metrics.sourceReadMs += performance.now() - started;
-        assertActive();
-        if (!(payload instanceof Uint8Array) && !(payload instanceof ArrayBuffer)) throw new Error('Capsule artifact source must return bytes.');
-        const bytes = payload instanceof Uint8Array ? payload : new Uint8Array(payload);
-        metrics.sourceBytes += bytes.byteLength;
-        if (bytes.byteLength !== declared.sizeBytes) throw new Error(`Capsule artifact hash or size mismatch for "${declared.path}".`);
+        const acquisition = createCapsuleLoadScope(options);
+        acquisitions.add(acquisition);
         const chunks = [];
-        const hasher = createSha256Hasher();
-        // Only owned blocks are hashed; a digest never authenticates mutable source
-        // bytes. Each detached allocation is independent of the artifact's size.
-        for (let offset = 0; offset < bytes.length; offset += BLOCK_BYTES) {
-          assertActive();
-          started = performance.now();
-          const chunk = Uint8Array.from(bytes.subarray(offset, offset + BLOCK_BYTES));
-          metrics.copyingMs += performance.now() - started;
-          metrics.copiedBytes += chunk.length;
-          metrics.snapshotCopiedBytes += chunk.length;
-          metrics.peakSnapshotBlockBytes = Math.max(metrics.peakSnapshotBlockBytes, chunk.length);
-          started = performance.now();
-          hasher.update(chunk);
-          metrics.hashingMs += performance.now() - started;
-          metrics.hashedBytes += chunk.length;
-          chunks.push(chunk);
-        }
-        if (`sha256:${hasher.digestHex()}` !== declared.hash) throw new Error(`Capsule artifact hash or size mismatch for "${declared.path}".`);
-        assertActive();
-        const snapshot = Object.freeze({ size: bytes.length,
-          readRange(offset, length) {
-            const result = new Uint8Array(length);
-            let copied = 0;
-            while (copied < length) {
-              const position = offset + copied;
-              const chunk = chunks[Math.floor(position / BLOCK_BYTES)];
-              const local = position % BLOCK_BYTES;
-              const count = Math.min(chunk.length - local, length - copied);
-              result.set(chunk.subarray(local, local + count), copied);
-              copied += count;
+        let iterator;
+        let completed = false;
+        let yieldTimer;
+        try {
+          const streamed = typeof source.streamArtifact === 'function';
+          let started = performance.now();
+          if (streamed) {
+            iterator = source.streamArtifact(declared, { ...acquisition.options, maxChunkBytes: maxAcquisitionChunkBytes })[Symbol.asyncIterator]();
+          } else {
+            const payload = await waitForCapsuleRead(source.readArtifact(declared, acquisition.options), acquisition.options.signal);
+            if (!(payload instanceof Uint8Array) && !(payload instanceof ArrayBuffer)) throw new Error('Capsule artifact source must return bytes.');
+            iterator = [payload instanceof Uint8Array ? payload : new Uint8Array(payload)][Symbol.iterator]();
+          }
+          metrics.sourceReadMs += performance.now() - started;
+          const hasher = createSha256Hasher();
+          let size = 0;
+          let sinceYield = 0;
+          let hostTask;
+          while (true) {
+            assertActive();
+            started = performance.now();
+            const { value: bytes, done } = await waitForCapsuleRead(Promise.resolve(iterator.next()), acquisition.options.signal);
+            metrics.sourceReadMs += performance.now() - started;
+            assertActive();
+            if (done) break;
+            if (!(bytes instanceof Uint8Array) || (streamed && bytes.length === 0)) throw new Error('Capsule artifact source must return nonempty byte chunks.');
+            if (streamed && bytes.buffer.byteLength > maxAcquisitionChunkBytes) throw new Error('Capsule artifact chunk exceeds its acquisition limit.');
+            metrics.peakSourceChunkBytes = Math.max(metrics.peakSourceChunkBytes, bytes.buffer.byteLength);
+            metrics.sourceBytes += bytes.byteLength;
+            if (streamed) metrics.streamedSourceBytes += bytes.byteLength;
+            if (bytes.byteLength > declared.sizeBytes - size) throw new Error(`Capsule artifact hash or size mismatch for "${declared.path}".`);
+            // Hash only private storage, never a replaceable source view. Reblock
+            // arbitrary transport boundaries into the existing fixed-size backing.
+            for (let offset = 0; offset < bytes.length;) {
+              assertActive();
+              if (!hostTask) hostTask = new Promise(resolve => { yieldTimer = setTimeout(resolve, 0); });
+              const local = size % BLOCK_BYTES;
+              started = performance.now();
+              if (local === 0) chunks.push(new Uint8Array(Math.min(BLOCK_BYTES, declared.sizeBytes - size)));
+              const chunk = chunks[chunks.length - 1];
+              const count = Math.min(chunk.length - local, bytes.length - offset);
+              chunk.set(bytes.subarray(offset, offset + count), local);
+              metrics.copyingMs += performance.now() - started;
+              metrics.copiedBytes += count;
+              metrics.snapshotCopiedBytes += count;
+              metrics.peakSnapshotBlockBytes = Math.max(metrics.peakSnapshotBlockBytes, chunk.length);
+              started = performance.now();
+              hasher.update(chunk.subarray(local, local + count));
+              metrics.hashingMs += performance.now() - started;
+              metrics.hashedBytes += count;
+              offset += count; size += count; sinceYield += count;
+              if (sinceYield >= verificationYieldBytes) {
+                await hostTask;
+                hostTask = null; sinceYield = 0; metrics.verificationYields++;
+                assertActive();
+              }
             }
-            return result;
-          },
-        });
-        // Only completed verification is shared. Racing preparations retain their
-        // independent source cancellation; a successful publisher wins ownership.
-        const existing = shared.get(declared.hash);
-        const entry = existing ?? { snapshot, references: 0 };
-        if (!existing) shared.set(declared.hash, entry);
-        return admit(declared, entry, Boolean(existing));
+          }
+          if (size !== declared.sizeBytes || `sha256:${hasher.digestHex()}` !== declared.hash) throw new Error(`Capsule artifact hash or size mismatch for "${declared.path}".`);
+          assertActive();
+          const snapshot = Object.freeze({ size,
+            readRange(offset, length) {
+              const result = new Uint8Array(length);
+              let copied = 0;
+              while (copied < length) {
+                const position = offset + copied;
+                const chunk = chunks[Math.floor(position / BLOCK_BYTES)];
+                const local = position % BLOCK_BYTES;
+                const count = Math.min(chunk.length - local, length - copied);
+                result.set(chunk.subarray(local, local + count), copied);
+                copied += count;
+              }
+              return result;
+            },
+          });
+          // Only completed verification is shared. Racing preparations retain their
+          // independent source cancellation; a successful publisher wins ownership.
+          const existing = shared.get(declared.hash);
+          const entry = existing ?? { snapshot, references: 0 };
+          if (!existing) shared.set(declared.hash, entry);
+          const result = admit(declared, entry, Boolean(existing));
+          completed = true;
+          return result;
+        } finally {
+          clearTimeout(yieldTimer);
+          if (!completed) {
+            acquisition.abort(new DOMException('Artifact acquisition ended.', 'AbortError'));
+            chunks.length = 0;
+            // A non-cooperative pending next() must not prevent cancellation.
+            // Built-in transports observe the signal and release in finally.
+            try { Promise.resolve(iterator?.return?.()).catch(() => {}); } catch {}
+          }
+          acquisitions.delete(acquisition);
+          acquisition.close();
+        }
       })();
       pending.set(declared.hash, task);
       const remove = () => { if (pending.get(declared.hash) === task) pending.delete(declared.hash); };
@@ -164,6 +216,7 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
     getMetrics() { return Object.freeze({ ...metrics }); },
     close() {
       closed = true; verified.clear(); pending.clear();
+      for (const acquisition of acquisitions) acquisition.abort(new Error('Verified Capsule artifact store is closed.'));
       for (const [hash, entry] of snapshots) {
         if (--entry.references === 0 && shared.get(hash) === entry) shared.delete(hash);
       }

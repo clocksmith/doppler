@@ -111,6 +111,25 @@ deadline listeners are detached when opening finishes. Execution has its own
 per-operation cancellation control. Electron translates opening cancellation to
 its existing `DOPPLER_ELECTRON_CANCELLED` error.
 
+Sources may additionally implement `streamArtifact(artifact, options)` returning
+an async iterable of ordered, nonempty `Uint8Array` chunks. Options include
+`signal`, `onLoadProgress`, and the required `maxChunkBytes` bound. Each chunk's
+entire backing buffer must fit that bound; a small view of a large allocation is
+not bounded acquisition. The source must honor cancellation, release on iterator
+return, and keep the yielded bytes stable until the next pull. HTTP and Node file
+adapters implement this port; peer hosts can supply it without importing peer
+coordination into inference. A failed stream is rejected, never silently retried
+through whole-file acquisition. Existing `readArtifact()` sources remain valid
+but their complete source allocation is not bounded by this streaming contract.
+
+`maxAcquisitionChunkBytes` defaults to 1 MiB and bounds one outstanding source
+chunk per acquisition. `verificationYieldBytes` defaults to 1 MiB; verification
+returns to host timer tasks at that byte interval, including for whole-file
+sources. Timers are scheduled before the batch to overlap their delay with work;
+this is not microtask-only yielding or an off-thread throughput claim. Multiple
+independent acquisitions have separate workspace and cancellation. Private 64 KiB
+blocks become shared backing only after the complete size and digest match.
+
 The internal verified store owns immutable, private byte-block snapshots of
 admitted artifacts. It copies and hashes at most 64 KiB per owned block; source
 buffers and returned arrays cannot mutate those blocks. Range reads allocate only
@@ -155,6 +174,10 @@ source reads include work performed inside the supplied artifact adapter.
 `sharedBackingBytes` counts leases on existing verified backing, not new memory;
 do not sum per-session leased bytes as unique allocation. `peakSnapshotBlockBytes`
 measures the largest owned block, separately from fixed SHA state/schedule workspace.
+`peakSourceChunkBytes` reports the largest input backing buffer (including the
+whole input for legacy sources); `streamedSourceBytes` counts streamed input, and
+`verificationYields` counts completed host-task yields. Source byte counters may
+include rejected input; they are work counters, not proof of accepted identity.
 These counters exclude HTTP internals, manifest hashing, GPU upload, driver
 allocation, and total process memory. They establish copy/verification work, not
 a measured latency or peak-memory improvement. Capsule acquisition does not provide

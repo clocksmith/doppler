@@ -794,6 +794,7 @@ sw.d.ts
 sw.js
 tooling-experimental-exports.browser.d.ts
 tooling-exports.browser.d.ts
+tooling/capsule-v2.d.ts
 tooling/capsule.d.ts
 tooling/command-api-constants.d.ts
 tooling/command-api-family-normalizers.d.ts

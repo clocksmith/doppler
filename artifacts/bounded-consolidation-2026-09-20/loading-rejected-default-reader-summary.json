@@ -1,0 +1,111 @@
+{
+  "schema": "doppler.startup-verification-physical-summary/v1",
+  "passed": false,
+  "originalReceiptPath": "/var/tmp/doppler-consolidation-stream-20260920/physical/receipt.json",
+  "originalReceiptSha256": "ee2e72859fa441949bdb41683673fe51f6f5bbda6db81f578cd016dc0649491a",
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-JEhqZuZFTIZxtj52pq02mDuUfgjbHLaQOPKzVWPwt4/7gUHna35A3D1BdrUMVGufn5ODh0IVoc+hGHlUu4gvQQ==",
+    "sizeBytes": 2150946,
+    "source": "local-npm-pack",
+    "sha256": "9e9564a42fa87dc34820dedb02c843f09d50aa5222d92f3abb1ca6b33ecf3be4"
+  },
+  "browserVersion": "146.0.7680.177",
+  "startedAtUtc": "2026-09-20T13:36:14.284Z",
+  "completedAtUtc": "2026-09-20T13:36:14.850Z",
+  "elapsedMs": 566,
+  "runnerRevision": "1ab605f2c732b739301b8ce0b0334130cbc32ee4",
+  "runnerSha256": "99ccccfe9055a491a70da918ba1d920ce2db07609e1a79e54a061cc5efd27d14",
+  "lifecycleFixtureSha256": "b793a0bb36b8d87dcf07300c3ed077abeab3d2c65877ce6b2a218ef508c01705",
+  "memoryProbeSha256": "3a70eb50f18b2b9820d7caefa0c3298c1a5778339a682c6c1a01b0061cfab304",
+  "pipelineLoadLog": [],
+  "results": [
+    {
+      "operation": "generate",
+      "passed": false,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": true
+          }
+        ]
+      },
+      "error": {
+        "message": "page.evaluate: Error: Capsule response chunk exceeds its acquisition limit.\n    at Object.streamArtifact (http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/fetch-capsule-artifact-store.js:43:96)\n    at async waitForCapsuleRead (http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/capsule-acquisition.js:47:12)\n    at async http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:94:44",
+        "stack": "page.evaluate: Error: Capsule response chunk exceeds its acquisition limit.\n    at Object.streamArtifact (http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/fetch-capsule-artifact-store.js:43:96)\n    at async waitForCapsuleRead (http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/capsule-acquisition.js:47:12)\n    at async http://127.0.0.1:38815/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:94:44\n    at /home/x/deco/doppler/tools/check-installed-capabilities.js:126:27"
+      }
+    }
+  ],
+  "progress": [
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-081a4e03adbdc572"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 0,
+          "destroyedBytes": 0,
+          "liveBytes": 0,
+          "peakLiveBytes": 0,
+          "createdCount": 0,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 16065560,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-081a4e03adbdc572",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:2983e5f3b9a9c2e03825ba0168c5c8272788a30e1879fcfd67d0836ed5b5b496"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8,
+          "destroyedBytes": 8,
+          "liveBytes": 0,
+          "peakLiveBytes": 8,
+          "createdCount": 2,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 16531833,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "generate",
+      "stage": "after-session-cleanup",
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8,
+          "destroyedBytes": 8,
+          "liveBytes": 0,
+          "peakLiveBytes": 8,
+          "createdCount": 2,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 18389686,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    }
+  ],
+  "cleanupErrors": [],
+  "measurementLimits": [
+    "Pipeline-load timers exclude prior Capsule verification; elapsedMs covers the complete lifecycle sequence, not single-request TTFT.",
+    "Local repository/UI checks also ran during the investigation; model runs were sequential. These are local acceptance/tuning observations, not a vendor benchmark or confidence interval.",
+    "GPU counters observe explicit destruction, not physical driver residency or garbage collection.",
+    "Per-session backing leases must not be summed as unique allocation. Cache budgets exclude backing and loader/GPU resources."
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "node": "v22.22.1",
+  "bytes": 16777216,
+  "sha256": "d6ec4dea60a1edd0acf720bc96cf1505c6baa110f0d0ad8e8be9f19e72bc4ab8",
+  "samples": [
+    {
+      "warmup": true,
+      "elapsedMs": 419.392558,
+      "MiBPerSecond": 38.15041467664765
+    },
+    {
+      "warmup": false,
+      "elapsedMs": 443.88964000000004,
+      "MiBPerSecond": 36.04499532811804
+    },
+    {
+      "warmup": false,
+      "elapsedMs": 412.64000999999996,
+      "MiBPerSecond": 38.77471794361386
+    },
+    {
+      "warmup": false,
+      "elapsedMs": 375.0510340000001,
+      "MiBPerSecond": 42.66086092166326
+    }
+  ],
+  "scope": "Local pure-JavaScript hashing only; excludes acquisition, copying, yielding, and model execution. Other repository checks and physical acceptance were active. This is not an isolated before/after performance comparison.",
+  "implementationChanged": false
+}
