@@ -467,3 +467,18 @@
     grid-area: value;
   }
 }
+
+/* The overview stays readable; full evidence is available on demand. */
+#xray-container { padding: 12px 0; color: #333; }
+#xray-container .xray-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+}
+.xray-overview > div { padding: 14px; border: 1px solid var(--doppler-line); border-radius: 10px; background: var(--doppler-soft-surface); box-shadow: var(--doppler-inset); }
+.xray-overview dt { font: 11px/1.5 var(--font-mono); color: #666; }
+.xray-overview dd { margin: 6px 0 0; font: 600 16px/1.5 var(--font-mono); font-variant-numeric: tabular-nums; }
+#xray-container .xray-section { border-top: 1px solid var(--doppler-line); padding: 12px 0; }
+#xray-container .xray-section-header { display: flex; align-items: center; justify-content: space-between; margin: 0; padding: 4px 0; color: inherit; cursor: pointer; font: 600 12px/1.5 var(--font-mono); }
+#xray-container .xray-content { margin: 12px 0 0; padding: 14px; max-height: 320px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--doppler-soft-surface); border-radius: 8px; font: 12px/1.6 var(--font-mono); }

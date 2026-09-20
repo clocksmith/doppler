@@ -1,256 +1,184 @@
-// Doppler Interactive Token Generation Inspector Component
-
+// Token inspection stays separate from the readable answer.
+const PAGE_SIZE = 48;
 let currentTokens = [];
 let selectedIndex = 0;
 let inspectorActive = false;
 let boundContainer = null;
 let boundCardContainer = null;
 
-function formatPct(val) {
-  if (typeof val !== 'number' || !Number.isFinite(val)) return '—';
-  return `${(val * 100).toFixed(1)}%`;
+function pct(value) {
+  return Number.isFinite(value) ? (value * 100).toFixed(1) + '%' : 'Unavailable';
 }
 
-function formatSurprisal(val) {
-  if (typeof val !== 'number' || !Number.isFinite(val)) return '—';
-  return `${val.toFixed(2)} nats`;
+function button(text, action, disabled = false) {
+  const element = document.createElement('button');
+  element.type = 'button';
+  element.className = 'token-inspector-nav-btn';
+  element.textContent = text;
+  element.disabled = disabled;
+  element.addEventListener('click', action);
+  return element;
 }
 
-function getConfidenceClass(probability) {
-  if (typeof probability !== 'number') return 'conf-med';
-  if (probability >= 0.85) return 'conf-high';
-  if (probability >= 0.55) return 'conf-med';
-  if (probability >= 0.25) return 'conf-low';
-  return 'conf-rare';
-}
-
-function formatDisplayToken(text) {
-  if (!text) return '∅';
-  // Represent leading spaces visibly
-  if (text.startsWith(' ')) {
-    return `·${text.slice(1)}`;
-  }
-  if (text === '\n') return '↵\\n';
-  return text;
-}
-
-export function isTokenInspectorActive() {
-  return inspectorActive;
-}
+export function isTokenInspectorActive() { return inspectorActive; }
 
 export function setTokenInspectorActive(active) {
   inspectorActive = Boolean(active);
-  if (boundContainer) {
-    boundContainer.hidden = !inspectorActive;
-  }
-  if (boundCardContainer) {
-    boundCardContainer.hidden = !inspectorActive || !currentTokens.length;
-  }
+  if (boundContainer) boundContainer.hidden = !inspectorActive || !currentTokens.length;
+  if (boundCardContainer) boundCardContainer.hidden = !inspectorActive || !currentTokens.length;
 }
 
-export function selectToken(index) {
-  if (!currentTokens.length) return;
-  selectedIndex = Math.max(0, Math.min(currentTokens.length - 1, index));
-  
-  if (boundContainer) {
-    const chips = boundContainer.querySelectorAll('.token-chip');
-    chips.forEach((chip, idx) => {
-      chip.classList.toggle('is-selected', idx === selectedIndex);
-      if (idx === selectedIndex) {
-        chip.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
-      }
-    });
-  }
-
+export function selectToken(index, { focus = false } = {}) {
+  if (!currentTokens.length || !Number.isFinite(index)) return;
+  selectedIndex = Math.max(0, Math.min(currentTokens.length - 1, Math.trunc(index)));
+  renderPage();
   renderTokenCard();
+  if (focus) boundContainer?.querySelector('[aria-pressed="true"]')?.focus({ preventScroll: true });
+}
+
+function renderPage() {
+  if (!boundContainer) return;
+  const start = Math.floor(selectedIndex / PAGE_SIZE) * PAGE_SIZE;
+  const end = Math.min(currentTokens.length, start + PAGE_SIZE);
+  const toolbar = document.createElement('div');
+  toolbar.className = 'token-page-toolbar';
+  const label = document.createElement('span');
+  label.textContent = 'Tokens ' + (start + 1) + '-' + end + ' of ' + currentTokens.length;
+  label.setAttribute('role', 'status');
+  const actions = document.createElement('div');
+  actions.className = 'token-inspector-nav-btns';
+  actions.append(
+    button('Previous page', () => selectToken(start - PAGE_SIZE), start === 0),
+    button('Next page', () => selectToken(end), end === currentTokens.length)
+  );
+  toolbar.append(label, actions);
+  const list = document.createElement('div');
+  list.className = 'token-chip-list';
+  list.setAttribute('role', 'group');
+  list.setAttribute('aria-label', 'Output tokens. Use arrow keys to change selection.');
+  for (let index = start; index < end; index++) {
+    const token = currentTokens[index];
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'token-chip';
+    chip.classList.toggle('is-selected', index === selectedIndex);
+    chip.dataset.tokenIndex = String(index);
+    chip.tabIndex = index === selectedIndex ? 0 : -1;
+    chip.setAttribute('aria-pressed', String(index === selectedIndex));
+    const display = token.text === '\n' ? '\\n'
+      : token.text === '' ? '[empty]'
+        : String(token.text ?? '').replaceAll('\n', '\\n').replaceAll('\t', '\\t');
+    chip.textContent = display || '[empty]';
+    chip.title = 'Token ' + (index + 1) + ', ID ' + token.tokenId + ', probability ' + pct(token.probability);
+    chip.setAttribute('aria-label', chip.title + ': ' + JSON.stringify(token.text));
+    const surprise = Number.isFinite(token.probability) && token.probability > 0
+      ? Math.min(1, -Math.log(token.probability) / 8) : 1;
+    chip.style.setProperty('--token-surprisal', String(surprise));
+    chip.addEventListener('click', () => selectToken(index, { focus: true }));
+    list.append(chip);
+  }
+  boundContainer.replaceChildren(toolbar, list);
 }
 
 function renderTokenCard() {
   if (!boundCardContainer) return;
   const token = currentTokens[selectedIndex];
-  if (!token) {
-    boundCardContainer.replaceChildren();
-    return;
-  }
-
+  if (!token) { boundCardContainer.replaceChildren(); return; }
   const card = document.createElement('div');
   card.className = 'token-inspector-card';
-
-  // Card Header
   const header = document.createElement('div');
   header.className = 'token-inspector-card-header';
-
-  const primary = document.createElement('div');
-  primary.className = 'token-inspector-primary';
-
-  const badge = document.createElement('span');
+  const identity = document.createElement('div');
+  identity.className = 'token-inspector-primary';
+  const badge = document.createElement('code');
   badge.className = 'token-inspector-badge';
-  badge.textContent = JSON.stringify(token.text);
-
-  const idInfo = document.createElement('span');
-  idInfo.className = 'token-inspector-id';
-  idInfo.textContent = `ID #${token.tokenId ?? '—'} · Step ${selectedIndex + 1}/${currentTokens.length}`;
-
-  primary.append(badge, idInfo);
-
-  const metrics = document.createElement('div');
+  badge.textContent = JSON.stringify(token.text ?? '');
+  const id = document.createElement('span');
+  id.className = 'token-inspector-id';
+  id.textContent = 'Token ' + (selectedIndex + 1) + '/' + currentTokens.length + ' - ID ' + token.tokenId;
+  identity.append(badge, id);
+  const metrics = document.createElement('span');
   metrics.className = 'token-inspector-metrics';
-
-  const confPill = document.createElement('div');
-  confPill.className = 'token-metric-pill';
-  confPill.innerHTML = `
-    <span class="token-metric-label">Confidence</span>
-    <span class="token-metric-val" style="color: ${token.probability >= 0.8 ? '#059669' : (token.probability >= 0.5 ? '#2563eb' : '#d97706')}">${formatPct(token.probability)}</span>
-  `;
-
-  const surprisalPill = document.createElement('div');
-  surprisalPill.className = 'token-metric-pill';
-  surprisalPill.innerHTML = `
-    <span class="token-metric-label">Surprisal</span>
-    <span class="token-metric-val">${formatSurprisal(token.surprisal)}</span>
-  `;
-
-  metrics.append(confPill, surprisalPill);
-  header.append(primary, metrics);
+  metrics.textContent = 'Probability ' + pct(token.probability) + ' / Surprisal '
+    + (Number.isFinite(token.surprisal) ? token.surprisal.toFixed(2) + ' nats' : 'unavailable');
+  header.append(identity, metrics);
   card.append(header);
-
-  // Candidates Distribution Section
-  const candidatesSection = document.createElement('div');
-  candidatesSection.className = 'token-inspector-candidates';
-
-  const candTitle = document.createElement('div');
-  candTitle.className = 'token-candidates-title';
-  candTitle.innerHTML = `
-    <span>Alternative Candidates Evaluated at this Step</span>
-    <span style="font-weight: 500; font-size: 10px; color: #64748b;">Top ${token.topCandidates?.length || 0} distribution</span>
-  `;
-  candidatesSection.append(candTitle);
-
-  const candList = document.createElement('div');
-  candList.className = 'token-candidates-list';
-
-  const candidates = Array.isArray(token.topCandidates) && token.topCandidates.length > 0
-    ? token.topCandidates
-    : [{ tokenId: token.tokenId, text: token.text, probability: token.probability ?? 1, logit: 0 }];
-
-  candidates.forEach((cand, rankIdx) => {
-    const isWinner = cand.tokenId === token.tokenId || cand.text === token.text;
+  const title = document.createElement('strong');
+  title.className = 'token-candidates-title';
+  title.textContent = 'Top alternatives';
+  const candidates = document.createElement('div');
+  candidates.className = 'token-candidates-list';
+  for (const [rank, candidate] of (token.topCandidates || []).entries()) {
     const row = document.createElement('div');
-    row.className = `token-candidate-row${isWinner ? ' is-winner' : ''}`;
-
-    const rank = document.createElement('span');
-    rank.className = 'token-candidate-rank';
-    rank.textContent = `#${rankIdx + 1}`;
-
-    const text = document.createElement('span');
+    const selected = candidate.tokenId === token.tokenId;
+    row.className = 'token-candidate-row' + (selected ? ' is-winner' : '');
+    const position = document.createElement('span');
+    position.textContent = String(rank + 1);
+    const text = document.createElement('code');
     text.className = 'token-candidate-text';
-    text.textContent = JSON.stringify(cand.text);
-    text.title = `Token ID #${cand.tokenId} ${isWinner ? '(Sampled)' : ''}`;
-
-    const barBg = document.createElement('div');
-    barBg.className = 'token-candidate-bar-bg';
-    const barFill = document.createElement('div');
-    barFill.className = 'token-candidate-bar-fill';
-    const pct = Math.max(0, Math.min(100, (cand.probability ?? 0) * 100));
-    barFill.style.width = `${pct}%`;
-    barBg.append(barFill);
-
-    const pctLabel = document.createElement('span');
-    pctLabel.className = 'token-candidate-pct';
-    pctLabel.textContent = formatPct(cand.probability);
-
-    row.append(rank, text, barBg, pctLabel);
-    candList.append(row);
-  });
-
-  candidatesSection.append(candList);
-  card.append(candidatesSection);
-
-  // Navigation footer
+    text.textContent = JSON.stringify(candidate.text ?? '');
+    text.title = 'ID ' + candidate.tokenId + (selected ? ' (sampled)' : '');
+    const track = document.createElement('span');
+    track.className = 'token-candidate-bar-bg';
+    const fill = document.createElement('span');
+    fill.className = 'token-candidate-bar-fill';
+    fill.style.width = Math.max(0, Math.min(100, (candidate.probability ?? 0) * 100)) + '%';
+    track.append(fill);
+    const value = document.createElement('span');
+    value.className = 'token-candidate-pct';
+    value.textContent = pct(candidate.probability);
+    row.append(position, text, track, value);
+    candidates.append(row);
+  }
+  if (!candidates.childElementCount) candidates.textContent = 'No candidate probabilities recorded.';
+  card.append(title, candidates);
   const nav = document.createElement('div');
   nav.className = 'token-inspector-nav';
-
-  const hint = document.createElement('span');
-  hint.className = 'token-inspector-hint';
-  hint.textContent = 'Use ← / → arrow keys to step through tokens';
-
-  const navBtns = document.createElement('div');
-  navBtns.className = 'token-inspector-nav-btns';
-
-  const prevBtn = document.createElement('button');
-  prevBtn.type = 'button';
-  prevBtn.className = 'token-inspector-nav-btn';
-  prevBtn.textContent = '← Prev';
-  prevBtn.disabled = selectedIndex <= 0;
-  prevBtn.addEventListener('click', () => selectToken(selectedIndex - 1));
-
-  const nextBtn = document.createElement('button');
-  nextBtn.type = 'button';
-  nextBtn.className = 'token-inspector-nav-btn';
-  nextBtn.textContent = 'Next →';
-  nextBtn.disabled = selectedIndex >= currentTokens.length - 1;
-  nextBtn.addEventListener('click', () => selectToken(selectedIndex + 1));
-
-  navBtns.append(prevBtn, nextBtn);
-  nav.append(hint, navBtns);
+  const jumpLabel = document.createElement('label');
+  jumpLabel.textContent = 'Go to token ';
+  const jump = document.createElement('input');
+  jump.type = 'number';
+  jump.min = '1';
+  jump.max = String(currentTokens.length);
+  jump.step = '1';
+  jump.value = String(selectedIndex + 1);
+  jump.addEventListener('change', () => {
+    if (jump.checkValidity() && jump.value !== '') selectToken(jump.valueAsNumber - 1, { focus: true });
+  });
+  jumpLabel.append(jump);
+  const actions = document.createElement('div');
+  actions.className = 'token-inspector-nav-btns';
+  actions.append(
+    button('Previous', () => selectToken(selectedIndex - 1, { focus: true }), selectedIndex === 0),
+    button('Next', () => selectToken(selectedIndex + 1, { focus: true }), selectedIndex === currentTokens.length - 1)
+  );
+  nav.append(jumpLabel, actions);
   card.append(nav);
-
   boundCardContainer.replaceChildren(card);
 }
 
 export function renderTokenInspector(tokens, streamContainer, cardContainer) {
   currentTokens = Array.isArray(tokens) ? tokens : [];
+  selectedIndex = 0;
   boundContainer = streamContainer;
   boundCardContainer = cardContainer;
-  selectedIndex = 0;
-
+  streamContainer?.replaceChildren();
+  cardContainer?.replaceChildren();
   if (!streamContainer) return;
-  streamContainer.replaceChildren();
-
-  if (!currentTokens.length) {
-    if (cardContainer) cardContainer.replaceChildren();
-    return;
-  }
-
-  currentTokens.forEach((token, idx) => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = `token-chip ${getConfidenceClass(token.probability)}`;
-    chip.dataset.tokenIndex = String(idx);
-    chip.title = `Token #${token.tokenId}: "${token.text}" · ${formatPct(token.probability)} confidence`;
-
-    // Whitespace handling
-    if (token.text && token.text.startsWith(' ')) {
-      const ws = document.createElement('span');
-      ws.className = 'token-ws';
-      ws.textContent = '·';
-      chip.append(ws);
-      chip.append(document.createTextNode(token.text.slice(1)));
-    } else {
-      chip.textContent = token.text || '';
-    }
-
-    chip.addEventListener('click', () => {
-      selectToken(idx);
-    });
-
-    streamContainer.append(chip);
-  });
-
-  selectToken(0);
+  streamContainer.onkeydown = (event) => {
+    if (!inspectorActive || !event.target.closest('.token-chip') || event.altKey || event.ctrlKey || event.metaKey) return;
+    const targets = {
+      ArrowLeft: selectedIndex - 1,
+      ArrowRight: selectedIndex + 1,
+      Home: 0,
+      End: currentTokens.length - 1,
+      PageUp: selectedIndex - PAGE_SIZE,
+      PageDown: selectedIndex + PAGE_SIZE,
+    };
+    if (!(event.key in targets)) return;
+    event.preventDefault();
+    selectToken(targets[event.key], { focus: true });
+  };
+  if (currentTokens.length) selectToken(0);
+  setTokenInspectorActive(inspectorActive);
 }
-
-// Global keyboard arrow navigation listener
-if (typeof window !== 'undefined') window.addEventListener('keydown', (e) => {
-  if (!inspectorActive || !currentTokens.length) return;
-  // Ignore if typing in input
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
-
-  if (e.key === 'ArrowLeft') {
-    e.preventDefault();
-    selectToken(selectedIndex - 1);
-  } else if (e.key === 'ArrowRight') {
-    e.preventDefault();
-    selectToken(selectedIndex + 1);
-  }
-});

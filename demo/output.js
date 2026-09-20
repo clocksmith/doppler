@@ -2,8 +2,8 @@ import { state } from './ui/state.js';
 import {
   renderTokenInspector,
   setTokenInspectorActive,
-  isTokenInspectorActive,
 } from './ui/token-inspector/index.js';
+import { renderChatMarkdown } from './ui/chat-markdown.js';
 
 function $(id) { return document.getElementById(id); }
 
@@ -17,7 +17,7 @@ function scrollChatToLatest() {
   if (surface) surface.scrollTop = surface.scrollHeight;
 }
 
-function createChatMessage(message) {
+function createChatMessage(message, quality = null) {
   const article = document.createElement('article');
   const role = message?.role === 'user' ? 'user' : 'assistant';
   article.className = `chat-message chat-message--${role}`;
@@ -29,7 +29,9 @@ function createChatMessage(message) {
 
   const body = document.createElement('div');
   body.className = 'chat-message-text';
-  body.textContent = typeof message?.content === 'string' ? message.content : '';
+  const content = typeof message?.content === 'string' ? message.content : '';
+  if (role === 'assistant') renderChatMarkdown(body, content, quality);
+  else body.textContent = content;
   article.appendChild(body);
   return article;
 }
@@ -54,7 +56,13 @@ function createEmptyState() {
 function resetLiveAssistant() {
   const liveMessage = $('live-assistant-message');
   const output = $('output-text');
-  if (output) output.textContent = '';
+  if (output) {
+    output.textContent = '';
+    output.classList.remove('chat-markdown');
+  }
+  $('word-quality-output')?.replaceChildren();
+  $('word-quality-legend')?.setAttribute('hidden', '');
+  renderTokenInspection([]);
   if (liveMessage) liveMessage.hidden = true;
   showWordQuality(false);
   const inspectorView = $('token-inspector-view');
@@ -62,7 +70,7 @@ function resetLiveAssistant() {
   setTokenInspectorActive(false);
 }
 
-export function renderChatMessages(messages) {
+export function renderChatMessages(messages, annotations = state.conversationAnnotations) {
   resetLiveAssistant();
   const thread = $('chat-thread');
   if (!thread) return;
@@ -72,8 +80,11 @@ export function renderChatMessages(messages) {
     thread.appendChild(createEmptyState());
     return;
   }
-  for (const message of visibleMessages) {
-    thread.appendChild(createChatMessage(message));
+  for (const [index, message] of visibleMessages.entries()) {
+    const annotation = annotations[index];
+    const quality = state.wordQualityEnabled && annotation?.text === message.content
+      ? annotation.quality : null;
+    thread.appendChild(createChatMessage(message, quality));
   }
   scrollChatToLatest();
 }
@@ -96,7 +107,7 @@ export function renderImportedChat(output, prompt = null) {
     messages.push({ role: 'assistant', content: output });
   }
   resetLiveAssistant();
-  renderChatMessages(messages);
+  renderChatMessages(messages, []);
 }
 
 export function setPhase(label) {
@@ -117,6 +128,7 @@ export function createOutputStream(decodeTokenIds, signal) {
   const surface = document.querySelector('.chat-surface');
   const liveMessage = $('live-assistant-message');
   const textNode = document.createTextNode('');
+  output.classList.remove('chat-markdown');
   output.replaceChildren(textNode);
   liveMessage?.setAttribute('aria-busy', 'true');
   const tokenIds = [];
@@ -157,6 +169,7 @@ export function createOutputStream(decodeTokenIds, signal) {
     try {
       if (typeof finalText === 'string') updateText(finalText);
       else flush();
+      renderChatMarkdown(output, textNode.data);
     } finally {
       liveMessage?.setAttribute('aria-busy', 'false');
     }
@@ -193,45 +206,20 @@ export function showWordQuality(show) {
   if (liveMessage && show) liveMessage.hidden = false;
   if (plain) plain.hidden = show;
   if (qualityOutput) qualityOutput.hidden = !show;
+  const legend = $('word-quality-legend');
+  if (legend) legend.hidden = !show;
 }
 
-export function renderWordQuality(quality) {
+export function renderWordQuality(quality, text = state.lastInspection?.outputText ?? '') {
   const output = $('word-quality-output');
-  if (!output) return;
-  output.replaceChildren();
-  const words = Array.isArray(quality?.words) ? quality.words : [];
-  for (const word of words) {
-    const span = document.createElement('span');
-    span.className = 'word-quality';
-    span.textContent = word.text;
-    const height = Number.isFinite(word.rollingPerplexity)
-      ? Math.min(1, Math.log1p(word.rollingPerplexity) / 8)
-      : 0;
-    span.style.setProperty('--word-surprisal', String(height));
-    span.title = [
-      `Summed word surprisal: ${Number.isFinite(word.summedSurprisal) ? word.summedSurprisal.toFixed(4) : 'unavailable'}`,
-      `Rolling perplexity (${word.rollingWindow.size} ${word.rollingWindow.unit}): ${Number.isFinite(word.rollingPerplexity) ? word.rollingPerplexity.toFixed(4) : 'unavailable'}`,
-      `Cumulative sequence perplexity: ${Number.isFinite(word.cumulativePerplexity) ? word.cumulativePerplexity.toFixed(4) : 'unavailable'}`,
-      `Subword tokens: ${word.tokenCount}`,
-    ].join('\n');
-    output.append(span, document.createTextNode(' '));
-  }
+  if (output) renderChatMarkdown(output, text, quality);
 }
 
 export function showTokenInspectorView(show) {
-  const plain = $('output-text');
-  const qualityOutput = $('word-quality-output');
   const inspectorView = $('token-inspector-view');
-  const liveMessage = $('live-assistant-message');
-  if (liveMessage && show) liveMessage.hidden = false;
-  if (inspectorView) inspectorView.hidden = !show;
-  setTokenInspectorActive(show);
-  if (show) {
-    if (plain) plain.hidden = true;
-    if (qualityOutput) qualityOutput.hidden = true;
-  } else {
-    if (plain) plain.hidden = false;
-  }
+  const hasTokens = Boolean($('token-stream-container')?.childElementCount);
+  if (inspectorView) inspectorView.hidden = !show || !hasTokens;
+  setTokenInspectorActive(show && hasTokens);
 }
 
 export function renderTokenInspection(tokens) {
