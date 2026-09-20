@@ -141,7 +141,8 @@ function compressBlock(hashState, schedule, bytes, offset) {
     ) >>> 0;
   }
 
-  let [a, b, c, d, e, f, g, h] = hashState;
+  let a = hashState[0], b = hashState[1], c = hashState[2], d = hashState[3];
+  let e = hashState[4], f = hashState[5], g = hashState[6], h = hashState[7];
 
   for (let index = 0; index < 64; index += 1) {
     const sigma1 = (
