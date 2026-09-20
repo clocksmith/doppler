@@ -1,5 +1,5 @@
 import { getDevice } from '../../../gpu/device.js';
-import { isBufferActive } from '../../../memory/buffer-pool.js';
+import { isBufferActive, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
 import { log } from '../../../debug/index.js';
 import { runRoPEPrecompute } from '../../../gpu/kernels/rope-precompute.js';
@@ -56,6 +56,30 @@ function isSameRoPEScalingConfig(
 }
 
 const GPU_ROPE_BUFFER_CACHE = new WeakMap();
+const GPU_ROPE_LEASES = new WeakMap();
+
+function acquireRoPELease(entry) {
+  const lease = { ...entry.buffers };
+  entry.references += 1;
+  GPU_ROPE_LEASES.set(lease, entry);
+  return lease;
+}
+
+function releaseRoPEBuffers(buffers) {
+  for (const buffer of new Set(Object.values(buffers))) {
+    if (buffer && isBufferActive(buffer)) releaseBuffer(buffer);
+  }
+}
+
+export function releaseRoPEFrequencies(lease) {
+  const entry = lease && GPU_ROPE_LEASES.get(lease);
+  if (!entry) return;
+  GPU_ROPE_LEASES.delete(lease);
+  entry.references -= 1;
+  if (entry.references !== 0) return;
+  if (entry.cache.get(entry.key) === entry) entry.cache.delete(entry.key);
+  releaseRoPEBuffers(entry.buffers);
+}
 function isLiveCachedRopeBuffer(buffer) {
   return buffer == null || isBufferActive(buffer);
 }
@@ -217,10 +241,10 @@ export async function initRoPEFrequencies(config, useGPU) {
     perDeviceCache = new Map();
     GPU_ROPE_BUFFER_CACHE.set(device, perDeviceCache);
   }
-  const cachedBuffers = perDeviceCache.get(cacheKey);
-  if (cachedBuffers) {
-    if (hasLiveCachedGpuRopeBuffers(cachedBuffers)) {
-      return cachedBuffers;
+  const cachedEntry = perDeviceCache.get(cacheKey);
+  if (cachedEntry) {
+    if (hasLiveCachedGpuRopeBuffers(cachedEntry.buffers)) {
+      return acquireRoPELease(cachedEntry);
     }
     perDeviceCache.delete(cacheKey);
   }
@@ -252,7 +276,8 @@ export async function initRoPEFrequencies(config, useGPU) {
     resolvedLocalScaling
   );
   if (hasDistinctLocalTheta || hasDistinctLocalScaling || hasDistinctLocalDim) {
-    localFreqs = await computeRoPEFreqsForTheta(
+    try {
+      localFreqs = await computeRoPEFreqsForTheta(
       resolvedLocalTheta,
       resolvedLocalRotaryDim,
       resolvedLocalFrequencyBaseDim,
@@ -261,7 +286,11 @@ export async function initRoPEFrequencies(config, useGPU) {
       resolvedLocalScalingType,
       resolvedLocalScaling,
       null
-    );
+      );
+    } catch (error) {
+      releaseRoPEBuffers(globalFreqs);
+      throw error;
+    }
     log.debug(
       'Pipeline',
       `Dual RoPE: local theta=${resolvedLocalTheta}, global theta=${ropeTheta}, ` +
@@ -299,8 +328,9 @@ export async function initRoPEFrequencies(config, useGPU) {
     localCos: localFreqs?.cos ?? null,
     localSin: localFreqs?.sin ?? null,
   };
-  perDeviceCache.set(cacheKey, buffers);
-  return buffers;
+  const entry = { buffers, references: 0, cache: perDeviceCache, key: cacheKey };
+  perDeviceCache.set(cacheKey, entry);
+  return acquireRoPELease(entry);
 }
 
 
@@ -334,6 +364,8 @@ export async function _initRoPE() {
       ropeScaling: config.ropeScaling,
       ropeLocalScaling: config.ropeLocalScaling,
     }, this.useGPU);
+    releaseRoPEFrequencies(this.ropeFrequencyLease);
+    this.ropeFrequencyLease = ropeBuffers;
     this.ropeFreqsCos = ropeBuffers.cos;
     this.ropeFreqsSin = ropeBuffers.sin;
     this.ropeLocalCos = ropeBuffers.localCos ?? null;

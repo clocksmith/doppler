@@ -4,20 +4,14 @@ import { getDevice } from '../gpu/device.js';
 import { selectRuleValue } from '../rules/rule-registry.js';
 import { padToQ4KBlock } from '../config/schema/index.js';
 
-
-
-
 export class DecodeBufferManager {
   
   buffers = null;
 
-  
   config = null;
 
-  
   pingPongIndex = 0;
 
-  
   ensureBuffers(config) {
     if (config.enablePingPong == null) {
       throw new Error('DecodeBufferManager requires enablePingPong in config.');
@@ -63,42 +57,53 @@ export class DecodeBufferManager {
     const hiddenBytes = paddedHiddenSize * bytesPerElement;
     const intermediateBytes = paddedIntermediateSize * bytesPerElement;
 
-    const hidden = device.createBuffer({
-      label: 'decode_hidden',
-      size: hiddenBytes,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-    });
-
-    const attnOutput = device.createBuffer({
-      label: 'decode_attn_output',
-      size: hiddenBytes,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-    });
-
-    const ffnIntermediate = device.createBuffer({
-      label: 'decode_ffn_intermediate',
-      size: intermediateBytes,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-    });
-
-    this.buffers = { hidden, attnOutput, ffnIntermediate };
-    this.config = normalizedConfig;
-
-    // Allocate alternate hidden buffer for ping-pong if enabled
-    if (normalizedConfig.enablePingPong) {
-      this.buffers.hiddenAlt = device.createBuffer({
-        label: 'decode_hidden_alt',
+    const allocated = [];
+    const create = descriptor => {
+      const buffer = device.createBuffer(descriptor);
+      allocated.push(buffer);
+      return buffer;
+    };
+    try {
+      const hidden = create({
+        label: 'decode_hidden',
         size: hiddenBytes,
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
       });
+
+      const attnOutput = create({
+        label: 'decode_attn_output',
+        size: hiddenBytes,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+      });
+
+      const ffnIntermediate = create({
+        label: 'decode_ffn_intermediate',
+        size: intermediateBytes,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+      });
+
+      const buffers = { hidden, attnOutput, ffnIntermediate };
+
+      // Allocate alternate hidden buffer for ping-pong if enabled
+      if (normalizedConfig.enablePingPong) {
+        buffers.hiddenAlt = create({
+          label: 'decode_hidden_alt',
+          size: hiddenBytes,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+        });
+      }
+
+      this.buffers = buffers;
+      this.config = normalizedConfig;
+      this.pingPongIndex = 0;
+
+      return this.buffers;
+    } catch (error) {
+      for (const buffer of allocated) buffer.destroy();
+      throw error;
     }
-
-    this.pingPongIndex = 0;
-
-    return this.buffers;
   }
 
-  
   getHiddenBuffer() {
     if (!this.buffers) return null;
     if (this.buffers.hiddenAlt && this.pingPongIndex === 1) {
@@ -107,7 +112,6 @@ export class DecodeBufferManager {
     return this.buffers.hidden;
   }
 
-  
   getOutputHiddenBuffer() {
     if (!this.buffers) return null;
     if (this.buffers.hiddenAlt) {
@@ -117,34 +121,28 @@ export class DecodeBufferManager {
     return this.buffers.hidden;
   }
 
-  
   swapPingPong() {
     if (this.buffers?.hiddenAlt) {
       this.pingPongIndex = 1 - this.pingPongIndex;
     }
   }
 
-  
   resetPingPong() {
     this.pingPongIndex = 0;
   }
 
-  
   getAttnOutputBuffer() {
     return this.buffers?.attnOutput ?? null;
   }
 
-  
   getFFNIntermediateBuffer() {
     return this.buffers?.ffnIntermediate ?? null;
   }
 
-  
   hasBuffers() {
     return this.buffers !== null;
   }
 
-  
   getStats() {
     if (!this.config) return null;
     const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', {
@@ -157,7 +155,6 @@ export class DecodeBufferManager {
     return { hiddenBytes, intermediateBytes, totalBytes, activationDtype: this.config.activationDtype };
   }
 
-  
   ownsBuffer(buffer) {
     if (!this.buffers) return false;
     return buffer === this.buffers.hidden
@@ -166,7 +163,6 @@ export class DecodeBufferManager {
       || buffer === this.buffers.ffnIntermediate;
   }
 
-  
   release() {
     if (this.buffers) {
       this.buffers.hidden.destroy();

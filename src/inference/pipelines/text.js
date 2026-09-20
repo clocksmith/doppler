@@ -54,6 +54,7 @@ import { assertBundledAdapterAuthorized } from '../../config/revocation-policy.j
 import { assertNotAborted } from './text/abort-contract.js';
 export { AbortError, isAbortError } from './text/abort-contract.js';
 import { destroyMoERouter } from './text/pipeline-load-timing.js';
+import { releaseRoPEFrequencies } from './text/init-rope.js';
 export { buildConservativeMultimodalGenerationOptions } from './text/modality-token-contract.js';
 import { initConvLayerState } from './text/ops.js';
 import { destroyPleBufferCache, destroyPleRuntimeCache } from './text/per-layer-inputs.js';
@@ -478,40 +479,36 @@ export class InferencePipeline extends PipelineState {
   async unload() {
     const storageContext = this.storageContext;
     this.storageContext = null;
-    await destroyEmulation(this.emulation);
+    const emulation = this.emulation;
     this.emulation = null;
-    this.decodeRing?.release();
-    this.kvCache?.clear();
-    destroyPleRuntimeCache(this.weights.get('per_layer_inputs'));
-    destroyPleBufferCache(this.pleCache);
-    this.pleCache = null;
-    this.plePrefetchPending = null;
-    this.weights.clear();
-    this.expertWeights.clear();
-    if (this.ownsDopplerLoader && this.dopplerLoader) {
-      await this.dopplerLoader.unload();
-    }
+    const cache = this.kvCache;
+    this.kvCache = null;
+    const loader = this.ownsDopplerLoader ? this.dopplerLoader : null;
     this.dopplerLoader = null;
     this.ownsDopplerLoader = false;
-    this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime);
+    this.isLoaded = false;
+    const errors = [];
+    const cleanup = async action => {
+      try { await action(); } catch (error) { errors.push(error); }
+    };
+    await cleanup(() => destroyEmulation(emulation));
+    await cleanup(() => cache?.destroy());
+    await cleanup(() => this.releaseGPUResources());
+    const ropeLease = this.ropeFrequencyLease;
+    this.ropeFrequencyLease = null;
+    this.ropeFreqsCos = this.ropeFreqsSin = this.ropeLocalCos = this.ropeLocalSin = null;
+    await cleanup(() => releaseRoPEFrequencies(ropeLease));
+    this.weights.clear();
+    this.expertWeights.clear();
+    await cleanup(() => loader?.unload());
+    await cleanup(() => { this.linearAttentionRuntime = resetLinearAttentionRuntime(this.linearAttentionRuntime); });
     this.lora = null;
     this.revocationIdentity = null;
-    destroyMoERouter(this.moeRouter);
-    this.moeRouter = null;
-    if (this.finitenessBuffer) {
-      this.finitenessBuffer.destroy();
-      this.finitenessBuffer = null;
-    }
-    if (this.sampleReadbackBuffer) {
-      this.sampleReadbackBuffer.destroy();
-      this.sampleReadbackBuffer = null;
-    }
-    if (typeof storageContext?.close === 'function') {
-      await storageContext.close();
-    }
-    this.isLoaded = false;
+    await cleanup(() => storageContext?.close?.());
     this.currentSeqLen = 0;
-    restorePipelineContexts(this);
+    await cleanup(() => restorePipelineContexts(this));
+    if (errors.length === 1) throw errors[0];
+    if (errors.length > 1) throw new AggregateError(errors, 'Pipeline resource cleanup failed.', { cause: errors[0] });
     log.info('Pipeline', 'Unloaded');
   }
 

@@ -5,11 +5,19 @@ export function installCapabilityMemoryProbe() {
     createdCount: 0, liveCount: 0, failedAllocations: 0 };
   const buffers = new WeakMap();
   const devices = new WeakMap();
+  const liveLabels = new Map();
+  function changeLabel(labels, label, bytes, count) {
+    const entry = labels.get(label) ?? { bytes: 0, count: 0 };
+    entry.bytes += bytes; entry.count += count;
+    if (entry.count) labels.set(label, entry); else labels.delete(label);
+  }
   function closeDevice(state) {
     if (!state || state.closed) return;
     metrics.destroyedBytes += state.bytes;
     metrics.liveBytes -= state.bytes;
     metrics.liveCount -= state.count;
+    for (const [label, entry] of state.labels) changeLabel(liveLabels, label, -entry.bytes, -entry.count);
+    state.labels.clear();
     state.closed = true;
   }
   const create = GPUDevice.prototype.createBuffer;
@@ -21,12 +29,15 @@ export function installCapabilityMemoryProbe() {
     catch (error) { metrics.failedAllocations++; throw error; }
     let device = devices.get(this);
     if (!device) {
-      device = { bytes: 0, count: 0, closed: false };
+      device = { bytes: 0, count: 0, closed: false, labels: new Map() };
       devices.set(this, device);
       this.lost.then(() => closeDevice(device));
     }
     const size = buffer.size;
-    buffers.set(buffer, { size, device, destroyed: false });
+    const label = descriptor.label ?? '';
+    buffers.set(buffer, { size, label, device, destroyed: false });
+    changeLabel(liveLabels, label, size, 1);
+    changeLabel(device.labels, label, size, 1);
     device.bytes += size; device.count++;
     metrics.createdBytes += size; metrics.createdCount++;
     metrics.liveBytes += size; metrics.liveCount++;
@@ -39,6 +50,8 @@ export function installCapabilityMemoryProbe() {
     if (buffer && !buffer.destroyed && !buffer.device.closed) {
       buffer.destroyed = true;
       buffer.device.bytes -= buffer.size; buffer.device.count--;
+      changeLabel(liveLabels, buffer.label, -buffer.size, -1);
+      changeLabel(buffer.device.labels, buffer.label, -buffer.size, -1);
       metrics.destroyedBytes += buffer.size;
       metrics.liveBytes -= buffer.size; metrics.liveCount--;
     }
@@ -51,6 +64,8 @@ export function installCapabilityMemoryProbe() {
   };
   globalThis.readCapabilityMemory = () => ({
     gpuBuffers: { ...metrics },
+    // Allocation sites, not an inference that a label establishes current ownership.
+    liveBufferLabels: [...liveLabels].map(([label, entry]) => ({ label, ...entry })),
     jsHeapUsedBytes: performance.memory?.usedJSHeapSize ?? null,
     scope: 'Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace.',
   });

@@ -622,7 +622,6 @@ inference/pipelines/text/index.d.ts
 inference/pipelines/text/index.js
 inference/pipelines/text/init-chat-templates.d.ts
 inference/pipelines/text/init-qkv-fusion.d.ts
-inference/pipelines/text/init-rope.d.ts
 inference/pipelines/text/kernel-trace.d.ts
 inference/pipelines/text/layer-execution-contract.d.ts
 inference/pipelines/text/layer-input-execution.d.ts

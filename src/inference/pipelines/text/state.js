@@ -162,6 +162,7 @@ export class PipelineState {
     this.baseUrl = null;
 
     // RoPE frequency buffers (global for full_attention layers)
+    this.ropeFrequencyLease = null;
 
     this.ropeFreqsCos = null;
 

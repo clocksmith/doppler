@@ -1128,7 +1128,6 @@
     "src/inference/pipelines/text/generator/text.d.ts": 25,
     "src/inference/pipelines/text/generator/training.d.ts": 7,
     "src/inference/pipelines/text/init-chat-templates.d.ts": 12,
-    "src/inference/pipelines/text/init-qkv-fusion.d.ts": 2,
     "src/inference/pipelines/text/layer-input-execution.d.ts": 11,
     "src/inference/pipelines/text/layer-plan-gpu.d.ts": 9,
     "src/inference/pipelines/text/lifecycle.d.ts": 9,

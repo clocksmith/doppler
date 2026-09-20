@@ -100,7 +100,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: artifacts/bounded-consolidation-2026-09-20/loading-package-audit.json.
   // Direct SHA state reads avoid per-block iteration; one shipped file changes.
   // Evidence: artifacts/bounded-consolidation-2026-09-20/hash-package-audit.json.
-  maxPackedSize: 2_155_210,
+  // Owned KV/decode/QKV/RoPE cleanup and allocation-class observations.
+  // Evidence: artifacts/bounded-consolidation-2026-09-20/cleanup-package-audit.json.
+  maxPackedSize: 2_156_634,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -114,7 +116,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Main's public reset forwarding method and declaration add exactly 114 bytes
   // in two existing files; all other archive entries are byte-identical.
   // Evidence: artifacts/release-acceptance-2026-09-19/main-package-audit.json.
-  maxUnpackedSize: 11_324_138,
+  maxUnpackedSize: 11_328_616,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

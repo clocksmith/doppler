@@ -156,7 +156,6 @@ export class BufferPool {
 
   #destroyed = false;
 
-  
   constructor(debugMode = false, schemaConfig, device = getDevice()) {
     if (!schemaConfig) {
       throw new Error('BufferPool requires schemaConfig from runtime.shared.bufferPool.');
@@ -216,7 +215,6 @@ export class BufferPool {
     return this.#device;
   }
 
-  
   acquire(size, usage = BufferUsage.STORAGE, label = 'pooled_buffer') {
     const device = this.#getBoundDevice();
     if (!device) {
@@ -312,7 +310,6 @@ export class BufferPool {
     return buffer;
   }
 
-  
   release(buffer) {
     if (!this.#activeBuffers.has(buffer)) {
       log.warn('BufferPool', 'Releasing buffer not tracked as active');
@@ -321,7 +318,6 @@ export class BufferPool {
     this.#releaseTrackedBuffer(buffer, true);
   }
 
-  
   discard(buffer) {
     if (!this.#activeBuffers.has(buffer)) {
       log.warn('BufferPool', 'Discarding buffer not tracked as active');
@@ -330,12 +326,10 @@ export class BufferPool {
     this.#releaseTrackedBuffer(buffer, false);
   }
 
-  
   isActiveBuffer(buffer) {
     return this.#activeBuffers.has(buffer);
   }
 
-  
   getRequestedSize(buffer) {
     return this.#requestedSizes.get(buffer) ?? buffer.size;
   }
@@ -396,7 +390,6 @@ export class BufferPool {
     this.#traceRelease(buffer, requestedSize, pooled);
   }
 
-  
   #deferDestroy(buffer) {
     this.#pendingDestruction.add(buffer);
     if (this.#destructionScheduled) {
@@ -423,7 +416,6 @@ export class BufferPool {
       });
   }
 
-  
   #getFromPool(bucket, usage) {
     const usagePool = this.#pools.get(usage);
     if (!usagePool) return null;
@@ -438,7 +430,6 @@ export class BufferPool {
     return buffer;
   }
 
-  
   #getTotalPooledCount() {
     return this.#totalPooledBuffers;
   }
@@ -501,7 +492,6 @@ export class BufferPool {
     return false;
   }
 
-  
   #trackBuffer(buffer, size, usage, label) {
     
     const metadata = {
@@ -553,7 +543,6 @@ export class BufferPool {
     );
   }
 
-  
   detectLeaks(thresholdMs = 60000) {
     if (!this.#debugMode) {
       log.warn('BufferPool', 'Leak detection requires debug mode');
@@ -576,24 +565,20 @@ export class BufferPool {
     return leaks;
   }
 
-  
   createStagingBuffer(size) {
     return this.acquire(size, BufferUsage.STAGING_READ, 'staging_read');
   }
 
-  
   createUploadBuffer(size) {
     return this.acquire(size, BufferUsage.STAGING_WRITE, 'staging_write');
   }
 
-  
   createUniformBuffer(size) {
     // Uniform buffers have stricter alignment (256 bytes typically)
     const alignedSize = alignTo(size, 256);
     return this.acquire(alignedSize, BufferUsage.UNIFORM, 'uniform');
   }
 
-  
   uploadData(buffer, data, offset = 0) {
     const device = this.#getBoundDevice();
     if (!device) {
@@ -602,12 +587,10 @@ export class BufferPool {
     device.queue.writeBuffer(buffer, offset,  (data));
   }
 
-  
   async readBuffer(buffer, size = buffer.size) {
     return this.readBufferSlice(buffer, 0, size);
   }
 
-  
   async readBufferSlice(buffer, offset = 0, size = buffer.size - offset) {
     if (!allowReadback('BufferPool.readBuffer')) {
       return new ArrayBuffer(0);
@@ -670,7 +653,6 @@ export class BufferPool {
     }
   }
 
-  
   clearPool() {
     for (const usagePool of this.#pools.values()) {
       for (const bucketPool of usagePool.values()) {
@@ -687,7 +669,6 @@ export class BufferPool {
     // should still be destroyed after submitted work completes.
   }
 
-  
   destroy() {
     if (this.#destroyed) return;
     this.#destroyed = true;
@@ -706,11 +687,27 @@ export class BufferPool {
     this.#requestedSizes.clear();
   }
 
-  
   getStats() {
     const budget = this.#getBudgetConfig();
+    const resources = {
+      retainedModel: { bytes: 0, count: 0 },
+      active: { bytes: 0, count: 0 },
+      reusable: { bytes: 0, count: 0 },
+      deferredCleanup: { bytes: 0, count: 0 },
+    };
+    const account = (group, buffer) => { group.bytes += buffer.size; group.count += 1; };
+    for (const buffer of this.#activeBuffers) {
+      account(isPersistentBuffer(buffer) ? resources.retainedModel : resources.active, buffer);
+    }
+    for (const usagePool of this.#pools.values()) {
+      for (const bucket of usagePool.values()) {
+        for (const buffer of bucket) account(resources.reusable, buffer);
+      }
+    }
+    for (const buffer of this.#pendingDestruction) account(resources.deferredCleanup, buffer);
     return {
       ...this.#stats,
+      resources,
       activeBuffers: this.#activeBuffers.size,
       pooledBuffers: this.#getTotalPooledCount(),
       budgetMaxBytes: budget.maxTotalBytes,
@@ -723,7 +720,6 @@ export class BufferPool {
     };
   }
 
-  
   getLabelStats() {
     const totals = new Map();
     for (const buffer of this.#activeBuffers) {
@@ -737,7 +733,6 @@ export class BufferPool {
     return Array.from(totals.values());
   }
 
-  
   configure(config) {
     Object.assign(this.#config, config);
   }

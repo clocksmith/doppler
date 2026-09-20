@@ -114,6 +114,19 @@ export async function runInstalledCapabilityLifecycle(host, descriptor, hooks, p
     require(first.closed && !second.closed, 'Closing the first session must not close the second.');
     await execute(second, 'second-after-first-close');
     checks.push({ id: 'second-session-survives-first-close', passed: true });
+    if (policy.reopenCycles != null) {
+      require(Number.isSafeInteger(policy.reopenCycles) && policy.reopenCycles > 0,
+        'Reopen cycles must be a positive integer.');
+      await second.close();
+      await hooks.onProgress?.({ type: 'acceptance-cycle-closed', cycle: 0 });
+      for (let cycle = 1; cycle <= policy.reopenCycles; cycle++) {
+        const reopened = await open();
+        await execute(reopened, `reopened-${cycle}`);
+        await reopened.close();
+        await hooks.onProgress?.({ type: 'acceptance-cycle-closed', cycle });
+      }
+      checks.push({ id: 'repeated-open-execute-close', passed: true, cycles: policy.reopenCycles });
+    }
     return { completed: observations[0].completed, partials: observations[0].partials,
       lifecycle: { checks, observations, modelManifest } };
   } catch (error) { failure = error; throw error; }

@@ -103,6 +103,7 @@ export class PipelineState {
 
   // RoPE frequency buffers (global for full_attention layers)
   ropeFreqsCos: Float32Array | GPUBuffer | null;
+  ropeFrequencyLease: import('./init-rope.js').GPURoPEBuffers | null;
   ropeFreqsSin: Float32Array | GPUBuffer | null;
   // Local RoPE frequencies for sliding_attention layers (Gemma 3: 10K theta vs 1M global)
   ropeLocalCos: Float32Array | GPUBuffer | null;

@@ -31,6 +31,7 @@ const { setDevice } = await import('../../src/gpu/device.js');
 const { destroyBufferPool, getBufferPool } = await import('../../src/memory/buffer-pool.js');
 const { _initRoPE } = await import('../../src/inference/pipelines/text/lifecycle.js');
 const { initRoPEFrequencies } = await import('../../src/inference/pipelines/text/init.js');
+const { releaseRoPEFrequencies } = await import('../../src/inference/pipelines/text/init-rope.js');
 const { createShaderSourceScope, runWithShaderSourceScope } = await import('../../src/gpu/kernels/shader-source-scope.js');
 
 function createFakeDevice() {
@@ -194,6 +195,40 @@ const ropeConfig = {
   assert.equal(second.localSin, null);
   assert.ok(device.createdBuffers.length > createdBuffersAfterFirst);
   assert.ok(device.writeBufferCount > writeBufferCountAfterFirst);
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice();
+  resetRuntimeState(device);
+  const first = await initRoPEFrequencies(ropeConfig, true);
+  const second = await initRoPEFrequencies(ropeConfig, true);
+  assert.notEqual(first, second, 'Each acquisition owns a distinct lease.');
+  releaseRoPEFrequencies(first);
+  releaseRoPEFrequencies(first);
+  assert.equal(second.cos.destroyed, false, 'Another session still owns these tables.');
+  // Release must use the originating pool even after a different device is bound.
+  const otherDevice = createFakeDevice();
+  setDevice(otherDevice, { platformConfig: null });
+  releaseRoPEFrequencies(second);
+  await device.queue.onSubmittedWorkDone();
+  assert.equal(second.cos.destroyed, true);
+  assert.equal(second.sin.destroyed, true);
+  setDevice(device, { platformConfig: null });
+  const reopened = await initRoPEFrequencies(ropeConfig, true);
+  assert.notEqual(reopened.cos, first.cos);
+  releaseRoPEFrequencies(reopened);
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice();
+  resetRuntimeState(device);
+  await assert.rejects(() => initRoPEFrequencies({
+    ...ropeConfig, ropeLocalTheta: 10000, ropeLocalScalingType: 'unsupported',
+  }, true));
+  assert.equal(getBufferPool().getStats().activeBuffers, 0,
+    'Failed local-table preparation releases completed global tables.');
   resetRuntimeState();
 }
 

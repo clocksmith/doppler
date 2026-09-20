@@ -364,6 +364,8 @@ export function fuseQKVWeights(
   kernelPath?: KernelPathSchema | null,
   options?: {
     allowQ4K?: boolean;
+    /** Generated weights join the same lifetime as their loaded source weights. */
+    ownedBuffers?: Pick<Set<GPUBuffer>, 'add'>;
   }
 ): void;
 
