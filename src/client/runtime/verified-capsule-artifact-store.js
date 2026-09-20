@@ -5,7 +5,12 @@ import { normalizeCapsuleLoadingPolicy } from '../../config/capsule-loading.js';
 
 // Explicit host owners only; no process-wide content lookup or mutable backing port.
 const backingOwners = new WeakMap();
+const verifiedStores = new WeakSet();
 const BLOCK_BYTES = 65536;
+
+export function isVerifiedCapsuleArtifactStore(store) {
+  return verifiedStores.has(store);
+}
 
 export function createCapsuleArtifactBacking() {
   const owner = Object.freeze({});
@@ -147,7 +152,7 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
     metrics.copyingMs += performance.now() - started;
     return result;
   }
-  return {
+  const store = Object.freeze({
     readArtifact(artifact) { return readArtifactRange(artifact, 0, resolveArtifact(artifact).sizeBytes); },
     readArtifactRange,
     async hashArtifact(artifact) {
@@ -165,5 +170,7 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
       snapshots.clear();
       metrics.retainedBytes = 0; metrics.backingBytes = 0; metrics.backingFiles = 0;
     },
-  };
+  });
+  verifiedStores.add(store);
+  return store;
 }

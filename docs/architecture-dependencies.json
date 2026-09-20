@@ -4529,6 +4529,7 @@
         "tests/runtime/capsule-artifact-allocation.test.js",
         "tests/runtime/capsule-artifact-retention.test.js",
         "tests/runtime/capsule-artifact-source.test.js",
+        "tests/runtime/capsule-artifact-verification-reuse.test.js",
         "tests/runtime/capsule-embedding.test.js",
         "tests/runtime/capsule-forecast.test.js",
         "tests/runtime/capsule-gpu-token-selection.test.js",

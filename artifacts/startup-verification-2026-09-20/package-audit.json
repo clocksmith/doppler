@@ -1,0 +1,18 @@
+{
+  "schema": "doppler.startup-package-audit/v1",
+  "nodeVersion": "22.23.2",
+  "npmVersion": "10.9.8",
+  "entryCount": 1859,
+  "packedSize": 2153114,
+  "unpackedSize": 11315405,
+  "addedEntries": [],
+  "changedEntries": [
+    "src/client/runtime/capsule-artifact-source.js",
+    "src/client/runtime/verified-capsule-artifact-store.js",
+    "src/client/runtime/verified-capsule-artifact-store.d.ts",
+    "src/storage/artifact-storage-context.js"
+  ],
+  "baselinePackedSize": 2152816,
+  "baselineUnpackedSize": 11314302,
+  "scope": "CI-toolchain npm pack audit; no new runtime modules, tools, or fixtures shipped. Physical candidate archive separately pinned by installed receipt."
+}

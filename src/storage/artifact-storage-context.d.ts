@@ -7,6 +7,15 @@ export declare const ARTIFACT_FORMAT_DIRECT_SOURCE: 'direct-source';
 
 export type ArtifactFormat = typeof ARTIFACT_FORMAT_RDRR | typeof ARTIFACT_FORMAT_DIRECT_SOURCE;
 
+/** Canonical RDRR path, size, and digest normalization used by storage readers. */
+export declare function buildRDRRShardSources(manifest: RDRRManifest): Array<{
+  index: number;
+  path: string;
+  size: number;
+  hash: string | null;
+  hashAlgorithm: 'sha256' | 'blake3';
+}>;
+
 export interface CreateArtifactStorageContextOptions {
   manifest: RDRRManifest;
   expectedFormat?: ArtifactFormat | null;
