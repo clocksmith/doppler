@@ -5,6 +5,7 @@ export function installCapabilityMemoryProbe() {
     createdCount: 0, liveCount: 0, failedAllocations: 0 };
   const buffers = new WeakMap();
   const devices = new WeakMap();
+  const deviceReferences = new Set();
   const liveLabels = new Map();
   function changeLabel(labels, label, bytes, count) {
     const entry = labels.get(label) ?? { bytes: 0, count: 0 };
@@ -31,6 +32,7 @@ export function installCapabilityMemoryProbe() {
     if (!device) {
       device = { bytes: 0, count: 0, closed: false, labels: new Map() };
       devices.set(this, device);
+      deviceReferences.add(new WeakRef(this));
       this.lost.then(() => closeDevice(device));
     }
     const size = buffer.size;
@@ -69,4 +71,16 @@ export function installCapabilityMemoryProbe() {
     jsHeapUsedBytes: performance.memory?.usedJSHeapSize ?? null,
     scope: 'Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace.',
   });
+  globalThis.settleCapabilityGPU = async () => {
+    const pending = [];
+    for (const reference of deviceReferences) {
+      const device = reference.deref();
+      if (!device) { deviceReferences.delete(reference); continue; }
+      pending.push(device.queue.onSubmittedWorkDone());
+    }
+    const results = await Promise.allSettled(pending);
+    // Allow already scheduled resource-owner completion callbacks to run.
+    await new Promise(resolve => setTimeout(resolve, 0));
+    return results.filter(result => result.status === 'rejected').map(result => String(result.reason));
+  };
 }

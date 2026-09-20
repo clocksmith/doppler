@@ -15,7 +15,7 @@ function pipeline(temperature) {
       await Promise.resolve();
       yield getRuntimeConfig().inference.sampling.temperature;
     },
-  }, null);
+  }, null, { read: 'execution', stream: 'streaming' });
 }
 try {
   const a = pipeline(0.25), b = pipeline(0.75);

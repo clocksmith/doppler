@@ -1,76 +1,18 @@
-import { getDevice, initDevice, getKernelCapabilities } from '../../../gpu/device.js';
-import { getUniformCacheStats } from '../../../gpu/uniform-cache.js';
-import { getBufferPool as getGlobalBufferPool, readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
-import { log } from '../../../debug/index.js';
-import { configurePerfGuards } from '../../../gpu/perf-guards.js';
-import { MoERouter } from '../../moe-router.js';
-import { DecodeBufferManager } from '../../decode-buffers.js';
-import { DecodeRing } from '../../decode-ring.js';
-import { applyPipelineContexts, restorePipelineContexts } from '../context.js';
-import { createInitializedPipeline } from '../factory.js';
-import { PipelineState } from './state.js';
-import { PipelineGenerator } from './generator.js';
-import { parseModelConfig } from './config.js';
-import {
-  initRoPEFrequencies,
-  createKVCache,
-  loadWeights,
-  initMoERouter,
-  initSpeculativeDecoder,
-  fuseQKVWeights,
-  initEmulation,
-  destroyEmulation,
-} from './init.js';
+import { readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
+
 import { formatChatMessages } from './chat-format.js';
-import {
-  runKernelWarmup,
-  applyModelBatchingRuntimeDefaults,
-  resolveKernelPathState,
-  initTokenizerFromManifest,
-  assertManifestComputeLaneBinding,
-} from './model-load.js';
-import { resolvePerLayerInputsSession } from './generator/session-context.js';
-import { getKernelPathActivationDtype } from '../../../config/kernel-path-loader.js';
-import { applyPipelineDebugConfig } from './debug-utils.js';
-import { resolveLayerPipeline } from './layer-plan.js';
-import { compileExecutionPlanState, resolveActiveExecutionPlan } from './execution-plan.js';
-import { assertDtypeConsistency } from './dtype-contract.js';
-import { applyExecutionV1RuntimeConfig, hasExecutionV1 } from './execution-v1.js';
-import { getPlatform } from '../../../config/platforms/loader.js';
-import {
-  createLinearAttentionRuntime,
-  hasLinearAttentionLayers,
-  resetLinearAttentionRuntime,
-  restoreLinearAttentionRuntime,
-} from './linear-attention.js';
-import { getDopplerLoader } from '../../../loader/doppler-loader.js';
-import { registerPipeline, getPipelineFactory } from '../registry.js';
-import { selectRuleValue } from '../../../rules/rule-registry.js';
-import { createObservationContext } from '../../observation-context.js';
-import { createResolvedRuntimeSession } from './resolved-runtime-session.js';
-import { assertBundledAdapterAuthorized } from '../../../config/revocation-policy.js';
+
 import { assertNotAborted } from './abort-contract.js';
+import { executeEmbeddingBatch } from './embedding-batch.js';
 import {
   buildConservativeMultimodalGenerationOptions,
   expandImagePlaceholderTokenIds,
   resolveMultimodalMaxTokens,
   resolveSingleSpecialTokenId,
 } from './modality-token-contract.js';
-import { initConvLayerState } from './ops.js';
+
 import { createTensor } from '../../../gpu/tensor.js';
 import { runEmbeddingPool } from '../../../gpu/kernels/embedding-pool.js';
-import { destroyPleBufferCache, destroyPleRuntimeCache } from './per-layer-inputs.js';
-import {
-  initialize as initializeImpl,
-  loadModel as loadModelImpl,
-  _loadWeights as _loadWeightsImpl,
-  _initRoPE as _initRoPEImpl,
-  _initConvLayerStates as _initConvLayerStatesImpl,
-  _loadVisionWeights as _loadVisionWeightsImpl,
-  _ensureVisionWeightsLoaded as _ensureVisionWeightsLoadedImpl,
-  _loadAudioWeights as _loadAudioWeightsImpl,
-  _ensureAudioWeightsLoaded as _ensureAudioWeightsLoadedImpl,
-} from './lifecycle.js';
 
 async function readMeanPooledEmbedding(featuresBuffer, numTokens, hiddenSize, label) {
   const pooled = await runEmbeddingPool(
@@ -341,18 +283,8 @@ export async function embed(prompt, options = {}) {
   }
 
 export async function embedBatch(prompts, options = {}) {
-    if (!Array.isArray(prompts)) {
-      throw new Error('embedBatch expects an array of prompts');
-    }
-    assertNotAborted(options?.signal);
     const batchOptions = { ...options, __skipStateSnapshot: true };
-    const outputs = [];
-    for (const prompt of prompts) {
-      // Check between every prompt so a superseded revision drops the rest.
-      assertNotAborted(options?.signal);
-      outputs.push(await this.embed(prompt, batchOptions));
-    }
-    return outputs;
+    return executeEmbeddingBatch(prompts, batchOptions, prompt => this.embed(prompt, batchOptions));
   }
 
 export async function encodeSequence(sequence, options = {}) {

@@ -1,4 +1,13 @@
 {
+  "src/inference/browser-harness/model-initialization.js": {
+    "import(NODE_SOURCE_RUNTIME_MODULE_PATH)": ["../../tooling/node-source-runtime.js"]
+  },
+  "src/inference/pipelines/text.js": {
+    "import(modulePath)": ["./diffusion-gemma/pipeline.js", "./diffusion/index.js", "./energy/index.js", "./structured/json-head-pipeline.js", "./energy-head/row-head-pipeline.js"]
+  },
+  "src/inference/pipelines/structured/json-head-pipeline.js": {
+    "import(nodeModule('crypto'))": ["node:crypto"]
+  },
   "src/formats/load-json.js": {
     "import(nodeModule('fs/promises'))": ["node:fs/promises"],
     "import(nodeModule('url'))": ["node:url"]

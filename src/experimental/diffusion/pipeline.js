@@ -239,6 +239,11 @@ async function applyGuidance(uncond, cond, guidanceScale, size, options = {}) {
 }
 
 export class DiffusionPipeline {
+  operationContract = Object.freeze({
+    generate: 'execution', generateCPU: 'execution', generateGPU: 'execution',
+    ensureVaeWeights: 'execution', ensureTextEncoderWeights: 'execution', ensureTransformerWeights: 'execution',
+    releaseTextEncoderWeights: 'mutation', releaseTransformerWeights: 'mutation',
+  });
   
   runtimeConfig = null;
   

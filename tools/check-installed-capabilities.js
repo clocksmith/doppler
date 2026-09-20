@@ -108,7 +108,12 @@ try {
       if (descriptor.openOptions.releasePolicy) descriptor.openOptions.releasePolicy.now = new Date().toISOString();
       console.log(JSON.stringify({ stage: 'open-and-execute', operation: descriptor.request.operation.name, hardware }));
       await page.exposeFunction('reportCapabilityProgress', async progress => {
+        const settledMemory = config.measureMemory === true && progress.type === 'acceptance-cycle-closed'
+          ? await page.evaluate(async () => ({
+            completionErrors: await settleCapabilityGPU(), ...readCapabilityMemory(),
+          })) : null;
         report.progress.push({ operation: descriptor.request.operation.name, progress,
+          ...(settledMemory ? { settledMemory } : {}),
           ...(config.measureMemory === true ? { memory: await page.evaluate(() => readCapabilityMemory()) } : {}) });
         await fs.writeFile(path.join(config.outputDir, 'loading-progress.json'), JSON.stringify(report.progress, null, 2));
         console.log(JSON.stringify({ operation: descriptor.request.operation.name, progress }));

@@ -174,6 +174,7 @@ async function readTensorToFloat32(tensor) {
 }
 
 export class EnergyPipeline {
+  operationContract = Object.freeze({ generate: 'execution' });
   runtimeConfig = null;
   manifest = null;
   stats = {};

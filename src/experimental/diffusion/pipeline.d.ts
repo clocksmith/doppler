@@ -8,6 +8,7 @@ import type { DiffusionRequest, DiffusionResult, DiffusionStats, DiffusionRuntim
 import type { DiffusionWeightLoader, DiffusionWeightEntry } from '../../inference/pipelines/diffusion/weights.js';
 
 export declare class DiffusionPipeline {
+  readonly operationContract: import('../../inference/pipelines/shader-scoped-pipeline.js').PipelineOperationContract;
   runtimeConfig: { inference?: { diffusion?: DiffusionRuntimeConfig } } | null;
   manifest: Record<string, unknown> | null;
   diffusionState: Record<string, unknown> | null;

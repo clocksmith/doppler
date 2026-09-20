@@ -3,6 +3,8 @@ import { matchesStopSequence } from '../../src/inference/pipelines/text/stopping
 import { getCachedPipeline } from '../../src/gpu/kernels/pipeline-cache.js';
 import { getBufferPool } from '../../src/memory/buffer-pool.js';
 import { generationRequestEvidence } from '../../src/inference/pipelines/text/generation-request.js';
+import { executeEmbeddingBatch } from '../../src/inference/pipelines/text/embedding-batch.js';
+import { scopePipelineShaders } from '../../src/inference/pipelines/shader-scoped-pipeline.js';
 
 // Compile-only negative contracts: removing a required field or confusing a
 // request/model/device owner must make this check fail (unused expect-error).
@@ -16,6 +18,12 @@ matchesStopSequence({ decode: () => '' }, [], 0, [4]);
 getCachedPipeline('matmul', 'f32', null, getBufferPool());
 // @ts-expect-error Partial sampling knobs are not a resolved execution request.
 generationRequestEvidence({ presencePenalty: 0.5 });
+// @ts-expect-error Ownership is declared, not inferred from function syntax.
+scopePipelineShaders({}, null, { work: 'async' });
+// @ts-expect-error Shutdown cannot bypass compatibility resource cleanup.
+scopePipelineShaders({}, null, { unload: { kind: 'shutdown', context: 'explicit' } });
+// @ts-expect-error Token IDs are not embedding prompt strings.
+executeEmbeddingBatch([42], {}, async prompt => prompt);
 
 /** @param {import('../../src/storage/model-read-session.js').ModelReadSession} store */
 function checkStore(store) {

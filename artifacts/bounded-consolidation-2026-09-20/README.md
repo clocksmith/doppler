@@ -1,8 +1,12 @@
-# Bounded consolidation: loading acceptance
+# Bounded consolidation acceptance
 
 This is the first independently reviewable change in the requested consolidation,
 not a claim that GPU attribution, operation contracts, cleanup, or model work is
 finished. No publication or release promotion is performed.
+
+The sections below retain the sequence of independently qualified candidates;
+the final operation-contract candidate is described at the end. Earlier package
+identities and observations are not rewritten to represent later implementations.
 
 ## Reproduced problem and repair
 
@@ -173,3 +177,88 @@ Component: `doppler.runtime-source.inference.pipelines.text`,
 `doppler.runtime-source.memory`. Intent: preserved. Boundary effects: originating
 resource ownership and additive pool allocation observations; no tensor or shader
 changes. A host owns device shutdown; session unload never destroys its device.
+
+## Explicit operations and bounded dependency cleanup
+
+The final candidate archive is
+`6471f5acbe00fa89435bc12016cd149969cdb19f78d2ef856c9245b11d9d9bf2`, retained at
+`/var/tmp/doppler-consolidation-contracts-20260920/doppler-gpu-0.6.2.tgz`.
+The installed source comparison checks all 1,824 shipped source entries against
+the working candidate. `contracts-package-audit.json` records the separate CI
+toolchain package-budget measurement; it is not the identity of another physical
+test archive.
+
+Pipeline methods now declare execution, streaming, mutation, inspection, reset,
+or shutdown behavior. Function syntax and `constructor.name` no longer determine
+ownership. Existing owners, aliases, adapter exclusion, late-activation rejection,
+restoration, iterator cleanup, and repeated-close behavior remain in place.
+Coverage checks require exposed family methods to declare their behavior. Tests
+include ordinary functions returning promises and wrapped iterators.
+
+Embedding batch scheduling has explicit prompt/request/execution ports and no
+ambient configuration or shader state. Its session lease spans the batch, while
+each legacy embedding call still acquires the compatibility scope. A deterministic
+two-session test observes A1, B, A2 with correct per-session settings and restored
+ambient state. This permits interleaving between prompts, not independent or
+simultaneous GPU computation. Serialization remains around dependent compute.
+
+Resolving selected computed imports exposed obsolete energy/diffusion module
+paths and a dispatcher-to-derived-class-to-base-class cycle. Rule paths now point
+to existing entrypoints; the unchanged text base classes live below dispatch.
+Public text imports remain forwarding-compatible. Unused execution imports were
+removed; numerical algorithms and shader bytes were not changed. The strict
+source set grows to 11 roots without expanding the 1,047-module unchecked debt.
+
+Cleanup dispositions live in the existing source-architecture inventory. Training,
+distribution, energy, hotswap, and the source-loading compatibility entry are
+retained with actual consumer evidence and migration requirements. No experiment
+was deleted merely because it appeared test-only. The graph still reports 85
+computed/unresolved diagnostics and is not claimed complete. In particular, the
+training-suite computed edge exposes an undeclared quarantine bridge; resolving
+its acquisition/assembly dependency needs a separate bounded repair, not a broad
+exception or an assertion that the implementation is dead.
+
+Final generation acceptance includes the original sequence and two reopen cycles.
+All six outputs match the frozen 107-token reference. After queue completion and
+a host-task turn, every cycle retains exactly 10,840 bytes in 258 observed GPU
+objects, all attributed to small device caches. Queue completion reports no
+errors. This adds an idle observation without changing session close into a GPU
+barrier, forcing garbage collection, trimming pools, or claiming driver residency.
+
+Run each `contracts-*-config.json` using
+`node tools/check-installed-capabilities.js`. Summaries preserve the exact archive,
+original receipt hash, fixture identities, unchanged numerical comparisons, and
+measurement limits. Generation, the separate 4 GiB control, embedding/reranking,
+zero-delta adapter, and Reploid all pass on that same archive. The adapter fixture
+remains zero-delta lifecycle acceptance,
+not qualification of a learned adapter. Publication and model promotion remain
+explicit decisions.
+
+`contracts-checks.json` records the successful full `npm run check:green` rerun
+(856 test files plus independent gates), installed public export/type smoke,
+demo contract check, and focused boundary checks. The earlier run also passed
+856 files but failed the stale package budget; its log identity is retained.
+The measured CI-toolchain budget was corrected and the complete chain rerun.
+
+Component: `doppler.runtime-source.inference.pipelines.text`,
+`doppler.runtime-source.experimental`, `doppler.repository-tooling`.
+Intent: preserved. Boundary effects: explicit operation contracts, independent
+batch scheduling, and base-class dependency direction; compatible public exports.
+
+## Useful-model follow-up intake (not qualified)
+
+The retained WGSL-repair seed29 adapter is a concrete nonzero candidate:
+`artifacts/wgsl-repair/v12/external20/seed29/checkpoint-001200.adapters.safetensors`,
+232,808,939 bytes, SHA-256
+`0d9ab8e1348a3fcdd6ef2973b624cc1a3d962de90a571976a5a222df27b69394`.
+Independent streamed Node crypto agrees with the catalog identity. The artifact
+contains 256 F32 tensors and nonzero sampled data; that establishes neither
+quality nor installed-runtime parity.
+
+Its runtime manifest pins `Qwen/Qwen3.5-9B` revision
+`c202236235762e1c871ad0ccb60c8ee5ba337b9a` and the
+`qwen-3-5-9b-f16-af32` base. That base is absent from the inspected local HF/RDRR
+roots. Historical portability evidence is retained, not relabeled as qualification
+of this archive. Acquiring that pinned base or selecting a supplied approved
+candidate is the next model-work decision. No model download, retraining,
+catalog promotion, or learned-adapter acceptance is represented as completed here.

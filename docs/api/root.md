@@ -343,6 +343,25 @@ and adapter cleanup before disposing the program and verified storage. It does
 not promise immediate GPU termination. Callers must exhaust or close iterators;
 partial output remains provisional until the completed record is validated.
 
+The legacy pipeline adapter classifies methods with explicit operation contracts
+(execution, streaming, mutation/reset, inspection, shutdown), never function
+constructor names. Newly exposed methods require a declaration. Finish or return
+paused advanced pipeline iterators before awaiting their unload operation.
+
+Embedding batch scheduling owns only a copied prompt list, request cancellation,
+and an injected embedding operation. It no longer holds ambient configuration or
+shader scope across the complete batch: another session may execute between
+prompts. Each numerical embedding call still uses the protected compatibility
+scope. This is not a claim of simultaneous independent GPU inference.
+
+Session unload releases its KV/decode buffers and model-owned fused weights;
+shared RoPE buffers remain live until their last lease closes. Pool observations
+separate retained model buffers, other active allocations, reusable idle buffers,
+and deferred destruction. Those counts exclude direct allocations outside the
+pool and do not measure driver residency. Closing a session never destroys a
+shared device. A device-owning host may trim its pool or destroy its own device
+only after its consumers finish; borrowed devices remain the caller's responsibility.
+
 ## TargetPlan v2 initialization gate
 
 For a `doppler.target-plan/v2` target, `programFactory` must return a program

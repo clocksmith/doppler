@@ -7,6 +7,7 @@
 import type { EnergyRequest, EnergyResult, EnergyStats } from './types.js';
 
 export declare class EnergyPipeline {
+  readonly operationContract: import('../../inference/pipelines/shader-scoped-pipeline.js').PipelineOperationContract;
   runtimeConfig: Record<string, unknown> | null;
   manifest: Record<string, unknown> | null;
   stats: EnergyStats;

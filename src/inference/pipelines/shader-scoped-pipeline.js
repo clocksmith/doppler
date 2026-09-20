@@ -7,7 +7,32 @@ import { applyPipelineContexts } from './context.js';
 import { isDeviceLost } from '../../gpu/device-state.js';
 
 const owners = new WeakMap();
-const synchronousMutations = new Set(['setLoRAAdapter', 'reset', 'resetGenerationState', 'resetToSeqLen']);
+// Method syntax is not an ownership contract: forwarding/wrapped functions may
+// return promises or iterators. Families declare differences explicitly.
+export const PIPELINE_OPERATIONS = Object.freeze({
+  initialize: 'execution', loadModel: 'execution',
+  transcribeImage: 'execution', transcribeVideo: 'execution', transcribeAudio: 'execution',
+  generate: 'streaming', generateTokens: 'streaming', generateWithPrefixKV: 'streaming',
+  generateTokenIds: 'execution', decodeStepLogits: 'execution',
+  prefillWithToken: 'execution', decodeStepWithToken: 'execution',
+  advanceWithToken: 'execution', advanceWithTokenAndEmbedding: 'execution',
+  prefillKVOnly: 'execution', prefillForLoRATraining: 'execution',
+  computeDiffusionGemmaCanvasLogits: 'execution', computeDiffusionGemmaCanvasStep: 'execution',
+  prefillWithEmbedding: 'execution', prefillWithLogits: 'execution',
+  prefillWithTokenLogits: 'execution', prefillWithTokenLogitsFromKV: 'execution',
+  embed: 'execution', embedBatch: Object.freeze({ kind: 'execution', context: 'explicit' }), encodeSequence: 'execution',
+  embedImage: 'execution', embedAudio: 'execution',
+  setLoRAAdapter: 'mutation', setPreloadedWeights: 'mutation', applyKVCacheSnapshot: 'mutation',
+  reset: 'reset', resetForBatch: 'reset', resetGenerationState: 'reset', resetToSeqLen: 'reset',
+  releaseGPUResources: 'mutation', unload: 'shutdown',
+  getStats: 'inspection', getBatchingStats: 'inspection', getMemoryStats: 'inspection',
+  getKVCacheStats: 'inspection', getBufferPool: 'inspection', getActiveLoRA: 'inspection',
+  getKernelCapabilities: 'inspection',
+  inferJSON: 'execution', infer: 'execution', scoreRows: 'execution',
+  assertReady: 'inspection', resolveCoreOptions: 'inspection',
+  resetCoreEncoder: 'execution', appendCoreEncoderTokens: 'execution',
+});
+const operationKinds = new Set(['execution', 'streaming', 'mutation', 'reset', 'inspection', 'shutdown']);
 
 function assertOpen(owner) {
   if (owner.closing) throw new Error('Pipeline is closing or closed; reload the model before starting work.');
@@ -39,9 +64,10 @@ export async function runPipelineOperation(pipeline, action) {
   return runOperation(owner, 'execute', () => action(owner.pipeline));
 }
 
-async function runOperation(owner, key, action) {
+async function runOperation(owner, key, action, explicit = false) {
   const release = beginOperation(owner);
   try {
+    if (explicit) return await action();
     return await runWithShaderSourceScope(owner.scope, () => invoke(owner.pipeline, key, () => {
       assertOpen(owner);
       return action();
@@ -114,32 +140,43 @@ async function* stream(pipeline, operation, action) {
   try { yield* action(); } finally { restore(); }
 }
 
-export function scopePipelineShaders(pipeline, scope) {
+export function scopePipelineShaders(pipeline, scope, operations = pipeline.operationContract) {
   const existing = owners.get(pipeline);
   if (existing) {
     if (scope !== undefined && scope !== existing.scope) throw new Error('Pipeline shader scope is already bound.');
     return existing.proxy;
   }
-  const owner = { pipeline, scope: scope === undefined ? getStorageShaderSourceScope(pipeline.storageContext) : scope,
+  const contract = Object.freeze({ ...PIPELINE_OPERATIONS, ...operations });
+  for (const [method, definition] of Object.entries(contract)) {
+    const kind = typeof definition === 'string' ? definition : definition?.kind;
+    if (!operationKinds.has(kind)) throw new Error(`Invalid pipeline operation contract for ${method}: ${kind}`);
+    if (typeof definition !== 'string' && (kind !== 'execution' || definition.context !== 'explicit')) {
+      throw new Error(`Invalid explicit pipeline operation contract for ${method}.`);
+    }
+    if (typeof definition !== 'string') Object.freeze(definition);
+  }
+  const owner = { pipeline, contract, scope: scope === undefined ? getStorageShaderSourceScope(pipeline.storageContext) : scope,
     pending: 0, mutating: false, closing: false, closeTask: null, onIdle: null, proxy: null };
   const methods = new Map();
   const proxy = new Proxy(pipeline, {
     get(target, key) {
       const value = Reflect.get(target, key, target);
-      if (typeof value !== 'function') return value;
+      if (typeof value !== 'function' || key === 'constructor') return value;
       if (methods.get(key)?.original === value) return methods.get(key).bound;
-      // Text pipelines retain synchronous forwarding methods for their
-      // generation controller. Preserve the controller's async/stream shape.
-      const kind = value.constructor.name === 'Function' && typeof target.generator?.[key] === 'function'
-        ? target.generator[key].constructor.name : value.constructor.name;
+      const definition = Object.hasOwn(contract, key) ? contract[key] : null;
+      const kind = typeof definition === 'string' ? definition : definition?.kind;
+      if (!kind) throw new Error(`Pipeline method ${String(key)} requires an explicit operation contract.`);
       let bound;
-      if (key === 'unload') {
+      if (kind === 'shutdown') {
         bound = (...args) => closeOwner(owner, () => value.apply(target, args));
-      } else if (kind === 'AsyncGeneratorFunction') {
+      } else if (kind === 'streaming') {
         bound = (...args) => streamOperation(owner, key, () => value.apply(target, args));
-      } else if (kind === 'AsyncFunction') {
-        bound = (...args) => runOperation(owner, key, () => value.apply(target, args));
-      } else if (synchronousMutations.has(key)) {
+      } else if (kind === 'execution') {
+        const explicit = definition?.context === 'explicit';
+        // Explicit orchestrators call only declared services through the guarded
+        // view. Each legacy compute call still acquires compatibility scope.
+        bound = (...args) => runOperation(owner, key, () => value.apply(explicit ? proxy : target, args), explicit);
+      } else if (kind === 'mutation' || kind === 'reset') {
         bound = (...args) => { assertMutable(owner); return value.apply(target, args); };
       } else {
         bound = value.bind(target);

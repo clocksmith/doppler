@@ -354,17 +354,49 @@
     ]
   },
   "sourceRoot": "src",
+  "cleanupDecisions": {
+    "inference/pipelines/text/execution.js": {
+      "decision": "retain",
+      "consumerEvidence": ["inference/pipelines/text.js delegates public embedding and multimodal operations here", "tests/inference/pipeline-operation-contract.test.js tests independent embedding scheduling"],
+      "migration": "Remove unused loader, factory, registry, model-lifecycle and generator imports left by extraction; retain execution imports and public forwarding methods. No public path removal."
+    },
+    "experimental/training": {
+      "decision": "retain",
+      "consumerEvidence": ["package.json exports ./training", "training.js and training-browser.js expose training APIs", "tooling/node-command-execution.js loads operator-command", "inference/browser-harness/benchmark-execution.js imports TRAINING_SUITE_MODULE_PATH pointing to experimental/training/suite.js; this remains an explicit graph diagnostic"],
+      "migration": "Retain. The inspected computed edge reveals an undeclared quarantine bridge; routing it through tooling/test-harness creates a cycle because suite/plan needs initializeInference. Separate training acquisition from harness assembly before admitting that edge. This inventory is not a complete production graph or evidence that training is dead. Public retirement requires versioned export and command migration."
+    },
+    "experimental/distribution": {
+      "decision": "retain",
+      "consumerEvidence": ["tooling-experimental-exports.shared.js exposes optional injected transports", "tooling/distribution-shard-transport.js and tooling/test-harness.js load shard delivery"],
+      "migration": "Keep optional transport outside storage and inference. Reploid supplies transport policy; no core peer-discovery dependency is introduced."
+    },
+    "experimental/energy": {
+      "decision": "retain",
+      "consumerEvidence": ["rules/inference/config.rules.json pipelineModules selects energy", "inference/pipelines/energy/index.js forwards the selected implementation"],
+      "migration": "Retain the experimental registration. Computed selection is declared in the shared dependency inventory; test-only graph status was incomplete evidence."
+    },
+    "experimental/hotswap": {
+      "decision": "retain",
+      "consumerEvidence": ["inference/pipelines/text/generator/text.js lazily loads intent-bundle", "tooling/test-harness.js loads manifest, runtime and intent-bundle"],
+      "migration": "Retain until these consumers migrate; do not classify the implementation as unused or silently promote it to stable inference."
+    },
+    "client/runtime/source-runtime.js": {
+      "decision": "retain",
+      "consumerEvidence": ["facadeDependencies declares forwarding to client/model-host/source-loading.js", "tests import the compatibility source-runtime path"],
+      "migration": "Implementation already relocated to model-host; retain forwarding until a versioned retirement. No duplicate implementation remains to delete."
+    }
+  },
   "softLineLimit": 750,
   "lineLimit": 999,
   "topLevelOwners": {
     "cli": "command-line entrypoints and presentation",
     "client": "public client APIs and provider surfaces",
-    "config": "schemas, resolved configuration, and configuration transforms",
-    "converter": "artifact conversion and manifest materialization",
+    "config": "schemas, immutable defaults, validation, and pure configuration resolution",
+    "converter": "source interpretation, execution-changing preparation, artifact conversion, and manifest materialization",
     "debug": "logging, tracing, and diagnostic observation",
     "errors": "shared error contracts",
     "experimental": "quarantined non-core subsystem implementations",
-    "formats": "artifact and external-format parsing",
+    "formats": "artifact and external byte formats, neutral descriptions, and hashing",
     "generation": "generation-facing API composition",
     "gpu": "WebGPU device, command, and kernel mechanisms",
     "inference": "model execution plans and inference orchestration",

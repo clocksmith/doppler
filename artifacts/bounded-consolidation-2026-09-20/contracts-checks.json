@@ -1,0 +1,94 @@
+{
+  "schema": "doppler.consolidation-contracts-checks/v1",
+  "passed": true,
+  "baseRevision": "f110eb4d4d07b9c301646cbc3c836d5ef5afc44e",
+  "packageSha256": "6471f5acbe00fa89435bc12016cd149969cdb19f78d2ef856c9245b11d9d9bf2",
+  "commands": [
+    {
+      "command": "npm run check:green",
+      "exitCode": 1,
+      "testFilesPassed": 856,
+      "reason": "Measured final package has 1,864 entries versus the prior 1,859-entry budget. Updated the budget from a separate CI-toolchain package measurement.",
+      "log": {
+        "path": "/var/tmp/doppler-consolidation-contracts-green.log",
+        "sha256": "891ad8c08202bee68a2635ee30359a8816ae94cc64c911062fddf6b408a9994b"
+      }
+    },
+    {
+      "command": "npm run check:green",
+      "exitCode": 0,
+      "testFilesPassed": 856,
+      "log": {
+        "path": "/var/tmp/doppler-consolidation-contracts-green-rerun.log",
+        "sha256": "342d5db0163212466b2fa3df84aac3ce738a844ab1f62714998ecad770c3d3f9"
+      }
+    },
+    {
+      "command": "node tools/check-public-boundaries.js",
+      "exitCode": 0,
+      "log": {
+        "path": "/var/tmp/doppler-consolidation-contracts-public-rerun.log",
+        "sha256": "8531ed4f92eedc1eb23667ac4ac4d7b7d9ae3d8ad7cbe674b4254c2f5601f2f0"
+      }
+    },
+    {
+      "command": "npm run demo:shell:check",
+      "exitCode": 0,
+      "log": {
+        "path": "/var/tmp/doppler-consolidation-contracts-demo.log",
+        "sha256": "3bfb6c6515bc9ae41e0299cde20e56042f794c07c5e07ad71e80aae5a6e605ec"
+      }
+    },
+    {
+      "command": "node tools/check-packed-package.js",
+      "exitCode": 0,
+      "log": {
+        "path": "/var/tmp/doppler-consolidation-contracts-package.log",
+        "sha256": "a1b42603ca424c45c34cb674d484abadda90bdb4f8e63a6f823f13f0bbe9c33e"
+      }
+    },
+    {
+      "command": "npm run catscan:check",
+      "exitCode": 0
+    },
+    {
+      "command": "node tools/check-source-types.js",
+      "exitCode": 0,
+      "strictRoots": 11,
+      "uncheckedImplementations": 1047
+    },
+    {
+      "command": "npm run source:dependencies:check",
+      "exitCode": 0,
+      "files": 2452,
+      "testOnly": 50,
+      "diagnostics": 85
+    },
+    {
+      "command": "npm run test:demo:contract",
+      "exitCode": 0,
+      "log": {
+        "path": "/var/tmp/doppler-consolidation-contracts-demo-contract.log",
+        "sha256": "f7501942bc995e0ea75c6a2dd5198ae5258c06c72d8ea0d7855dcb187210c933"
+      }
+    }
+  ],
+  "physicalSummaries": [
+    "contracts-generation-summary.json",
+    "contracts-4gib-summary.json",
+    "contracts-embedding-reranking-summary.json",
+    "contracts-adapter-summary.json",
+    "contracts-reploid-summary.json"
+  ],
+  "scope": {
+    "mathematicsChanged": false,
+    "shaderBytesChanged": false,
+    "publicPathsRemoved": [],
+    "ambientIndependentPath": "Embedding batch scheduling; individual numerical calls remain serialized in compatibility scope.",
+    "gpuObservation": "Every generation close cycle settles at 10,840 observed live bytes in 258 attributed small device-cache buffers; not physical driver residency.",
+    "remainingGraphDebt": "85 computed/unresolved diagnostics, including the inspected training-suite quarantine bridge; the graph is not complete.",
+    "learnedAdapterQualification": "Not completed; retained nonzero seed29 artifact identity verified, pinned Qwen3.5-9B base absent locally."
+  },
+  "publication": false,
+  "modelPromotion": false
+}
