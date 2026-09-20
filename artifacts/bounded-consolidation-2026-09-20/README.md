@@ -99,3 +99,37 @@ Component: `doppler.runtime-source.client`, `doppler.runtime-source.config`,
 artifact-reader contract and loading policy; no computation, shader, trust,
 pooling, or execution-selection changes. Acceptance commands and outcomes are
 recorded alongside this file.
+
+## Isolated hash throughput improvement
+
+The next candidate changes only `src/formats/sha256.js` inside the installed
+archive: eight direct typed-array state reads replace destructuring before each
+compression block. Round computation, incremental ownership, API, and results
+are unchanged. The retained independent Node and Chrome probes above isolate
+this change and check every result against Node crypto.
+
+Archive `26f459dcaef8301601f15495df3b4103f9f3f1bb32cbd32bc7538cfb82d17616`
+is retained at `/var/tmp/doppler-consolidation-hash-20260920/doppler-gpu-0.6.2.tgz`.
+`hash-package-audit.json` records the installed file comparison. Generation,
+4 GiB control, embedding/reranking, zero-delta adapter, and current Reploid
+acceptance all pass against this same archive and unchanged numerical references.
+Run each `hash-*-config.json` with `node tools/check-installed-capabilities.js`.
+
+The generation experiment falls from 227,220 to 168,483 ms; initial hashing falls
+from 120,677.1 to 61,639.3 ms. These remain complete lifecycle and verification
+measurements, not TTFT claims. Bounded acquisition and second-session reuse remain
+intact. This qualifies the hash change, not the later GPU cleanup changes.
+
+Focused SHA-256 tests cover empty/padding/chunk boundaries, offset views, a
+537,919,488-byte input, and independent crypto agreement. Streaming cancellation,
+installed public exports/types, architecture, dependency, style, package-budget,
+and closure checks pass. The preceding loading commit's full 854-file green run
+is retained separately; it is not represented as a rerun on this hash candidate.
+
+The GPU observation fixture gained allocation labels after the generation run;
+later receipts record its different hash. Labels identify allocation sites, not
+current ownership. They do not change the installed runtime or mathematical
+references. Physical driver residency and garbage collection remain unmeasured.
+
+Component: `doppler.runtime-source.formats`. Intent: preserved. Boundary effects:
+none. No shader, model computation, release promotion, or npm publication change.
