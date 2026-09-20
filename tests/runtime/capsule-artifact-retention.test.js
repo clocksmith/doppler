@@ -110,4 +110,22 @@ await assert.rejects(cancelledRead, /cancel first only/);
 cancelled.close(); pendingSource.resolve(payloads.get('c'));
 assert.deepEqual(await survivor.readArtifact(c), payloads.get('c'));
 survivor.close();
+
+// A pending read must not acquire a second lease if another store publishes the
+// same content before that read finishes. Otherwise final close leaks backing.
+const racingOwner = createCapsuleArtifactBacking();
+const racingRead = Promise.withResolvers();
+const slow = createVerifiedCapsuleArtifactStore({ artifacts }, { readArtifact: () => racingRead.promise }, {}, racingOwner);
+const fast = createVerifiedCapsuleArtifactStore({ artifacts }, source, {}, racingOwner);
+const slowFirst = slow.hashArtifact(c);
+await fast.hashArtifact(c);
+const slowSecond = slow.hashArtifact(c);
+fast.close();
+racingRead.resolve(payloads.get('c'));
+await Promise.all([slowFirst, slowSecond]);
+slow.close();
+payloads.get('c').fill(0);
+const afterRace = createVerifiedCapsuleArtifactStore({ artifacts }, source, {}, racingOwner);
+await assert.rejects(afterRace.hashArtifact(c), /hash or size mismatch/, 'final close must not leave a duplicate lease');
+afterRace.close();
 console.log('capsule-artifact-retention.test: passed');
