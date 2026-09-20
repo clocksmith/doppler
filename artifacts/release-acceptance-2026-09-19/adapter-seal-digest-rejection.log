@@ -1,0 +1,11 @@
+file:///home/x/deco/doppler/src/tooling/program-bundle/wgsl-closure.js:208
+      throw new Error(
+            ^
+
+Error: program bundle export: kernel digest mismatch for matmul_f32.wgsl#main. execution declares sha256:035020f650612fd6f8ac8322b86ec921c64a85ac802b7f4c0fd2dfd3a4c8a1f2, source has sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8.
+    at buildWgslClosure (file:///home/x/deco/doppler/src/tooling/program-bundle/wgsl-closure.js:208:13)
+    at async buildProgramBundle (file:///home/x/deco/doppler/src/tooling/program-bundle.js:369:19)
+    at async writeProgramBundle (file:///home/x/deco/doppler/src/tooling/program-bundle.js:505:36)
+    at async file:///home/x/deco/doppler/tools/build-token-selection-evaluation-capsule.js:81:16
+
+Node.js v22.22.1

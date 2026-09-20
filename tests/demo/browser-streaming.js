@@ -18,9 +18,6 @@ export async function checkDemoStreaming(page) {
       __demoContract.emitTokens([1]);
     });
     await page.waitForFunction(() => document.querySelector('#output-text').textContent === 'Contract');
-    await page.waitForFunction(() => document.querySelectorAll('.token-chip').length === 1);
-    assert.equal(await page.locator('#token-inspector-view').isVisible(), true);
-    assert.equal(await page.locator('.token-chip').first().textContent(), 'Contract');
     assert.equal(await page.textContent('#output-phase'), 'Generating');
     assert.equal(await page.locator('#export-btn').isDisabled(), true);
     assert.equal(await page.locator('#stop-btn').isVisible(), true);
@@ -28,15 +25,16 @@ export async function checkDemoStreaming(page) {
 
     await page.evaluate(() => __demoContract.emitTokens([2, 3, ...Array(80).fill(4)]));
     await page.waitForFunction(() => document.querySelector('#output-text').textContent.includes('Another line.'));
-    await page.waitForFunction(() => document.querySelectorAll('.token-chip').length === 83);
     await page.evaluate(() => { document.querySelector('.chat-surface').scrollTop = 0; });
     await page.evaluate(() => __demoContract.emitTokens([5]));
     await page.waitForFunction(() => document.querySelector('#output-text').textContent.endsWith('🙂'));
     assert.equal(await page.locator('.chat-surface').evaluate((el) => el.scrollTop), 0, 'Streaming respects a reader scrolling up');
+    assert.equal(await page.evaluate(() => __streamNodes.text === __streamNodes.output.firstChild), true,
+      'Streaming updates the existing text node until final Markdown rendering');
 
     if (outcome === 'complete') {
       await page.evaluate(() => __demoContract.completeStream());
-      await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Complete'));
+      await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Complete');
       assert.equal(await page.locator('#export-btn').isEnabled(), true);
     } else if (outcome === 'stop') {
       await page.click('#stop-btn');
@@ -53,14 +51,15 @@ export async function checkDemoStreaming(page) {
       const nodes = globalThis.__streamNodes;
       return nodes.output === document.querySelector('#output-text')
         && nodes.history === document.querySelector('#chat-thread').firstChild;
-    }), true, 'Streaming and completion preserve the output and conversation containers');
+    }), true, 'Final Markdown rendering preserves the output container and conversation nodes');
+    assert.equal(await page.locator('#output-text').evaluate(el => el.classList.contains('chat-markdown')), true);
     await page.evaluate(() => __demoContract.emitTokens([1, 2, 3]));
     await page.evaluate(() => new Promise(requestAnimationFrame));
     assert.equal(await page.textContent('#output-text'), text, 'Late events cannot overwrite a settled answer');
     if (outcome !== 'complete') assert.equal(await page.locator('#export-btn').isDisabled(), true);
     await page.fill('#prompt-input', 'Next turn');
     await page.click('#run-btn');
-    await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Complete'));
+    await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Complete');
     assert.ok((await page.textContent('#chat-thread')).includes(text.trim()), 'The next run preserves partial and complete answers');
     await page.click('#clear-history-btn');
   }
@@ -111,6 +110,38 @@ export async function checkDemoStreaming(page) {
     scheduled: 1, partial: 'Hi ', stopped: 'Hi 🙂', pending: 0, decodes: 2,
     finalPending: 0, final: 'Authoritative final text',
   });
+  const markdown = await page.evaluate(async () => {
+    const base = location.pathname.startsWith('/doppler/') ? '/doppler' : '';
+    const { renderChatMarkdown } = await import(`${base}/demo/ui/chat-markdown.js`);
+    const container = document.createElement('div');
+    renderChatMarkdown(container, [
+      '**First** and _second_.', '', '3. Three', '4. Four', '',
+      '[Safe](https://example.com/) [Unsafe](javascript:alert%281%29)', '',
+      '<img src=x onerror=alert(1)> ![Image](https://example.com/image.png)', '',
+      '```js', '<script>alert(1)</script>', '```',
+    ].join('\n'), { words: [{ text: 'First', rollingPerplexity: 2, summedSurprisal: 1,
+      cumulativePerplexity: 2, tokenCount: 1, rollingWindow: { size: 1, unit: 'words' } }] });
+    return {
+      strong: container.querySelector('strong')?.textContent,
+      emphasis: container.querySelector('em')?.textContent,
+      start: container.querySelector('ol')?.start,
+      items: [...container.querySelectorAll('li')].map(el => el.textContent),
+      links: [...container.querySelectorAll('a')].map(el => ({ href: el.href, rel: el.rel, target: el.target })),
+      unsafeElements: container.querySelectorAll('script, img, [onerror]').length,
+      inertHtml: container.textContent.includes('<img src=x onerror=alert(1)>'),
+      code: container.querySelector('pre code')?.textContent,
+      quality: container.querySelector('strong .word-quality')?.textContent,
+      disclaimer: container.querySelector('.word-quality')?.title.includes('not factual accuracy'),
+    };
+  });
+  assert.deepEqual(markdown, {
+    strong: 'First', emphasis: 'second', start: 3, items: ['Three', 'Four'],
+    links: [
+      { href: 'https://example.com/', rel: 'noopener noreferrer', target: '_blank' },
+      { href: 'https://example.com/image.png', rel: 'noopener noreferrer', target: '_blank' },
+    ],
+    unsafeElements: 0, inertHtml: true, code: '<script>alert(1)</script>', quality: 'First', disclaimer: true,
+  }, 'Markdown preserves formatting and source-bound observations without executing generated HTML or URLs');
   assert.equal(page.url(), url);
   assert.equal(navigations, 0, 'No page reload or navigation during streaming');
   page.off('framenavigated', onNavigation);

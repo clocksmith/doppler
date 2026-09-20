@@ -1,0 +1,14 @@
+{
+  "id": "qwen3-4b-layer0-qproj-zero-delta-r1",
+  "baseModel": "qwen-3-4b-instruct-2507-f16-af32-closed-development",
+  "rank": 1,
+  "alpha": 2,
+  "targetModules": [
+    "q_proj"
+  ],
+  "checksum": "sha256:85607675ba904a98dc1438a6387cc081eb5431e99e9e93bc4b448afe590f962d",
+  "checksumAlgorithm": "sha256",
+  "weightsFormat": "safetensors",
+  "weightsPath": "zero-delta.safetensors",
+  "weightsSize": 26888
+}

@@ -14,6 +14,13 @@ Stop flushes pending text and retains the partial answer without publishing a
 completed receipt. Completion reconciles the text with the receipt, then displays
 word quality, X-Ray evidence, and final timing. Image attachment and live token-rate
 controls are not offered.
+The current UI starts with X-Ray and Perplexity selected (saved preferences take
+precedence) and a 256-token output limit. These defaults select diagnostic
+observation, not performance-representative timing. The user can deselect both
+to use `demo/always-on`. Completed assistant messages render inert Markdown;
+word-quality annotations stay attached to their source text. Clear conversation
+resets model state before removing the conversation and its evidence, and keeps
+the loaded model available. A reset failure leaves the conversation intact.
 Run options expose sampling and observation choices; profile-owned policy is
 shown under read-only details. Diagnostic timing notices remain visible whenever
 X-Ray or word quality is selected. Loading, generation, cancellation, receipt

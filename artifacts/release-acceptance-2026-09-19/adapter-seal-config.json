@@ -1,0 +1,23 @@
+{
+  "probePath": "/var/tmp/doppler-release-acceptance.JTuaHr/adapter-preseal-4/receipt.json",
+  "previousQualificationPath": "/var/tmp/doppler-capsule-gpu-selection-20260915/qualified/qualification.json",
+  "previousReleasePath": "/var/tmp/doppler-capsule-gpu-selection-20260915/qualified/release.json",
+  "sourceTranscriptPath": "/var/tmp/reploid-qwen4b-source-20260908/capsule-evidence-closed-development/source-transcript.json",
+  "outputDir": "/var/tmp/doppler-release-acceptance.JTuaHr/adapter-qualified-v3",
+  "authority": "doppler-local-adapter-fixture-evaluation-20260919",
+  "createdAtUtc": "2026-09-19T00:00:00.000Z",
+  "tokenSelection": {
+    "schema": "doppler.capsule-token-selection/v1",
+    "generationContract": "doppler.generation-contract/v1",
+    "logitsDtype": "f32",
+    "kernelModules": ["sample", "rep_penalty", "logit_suppress"]
+  },
+  "adapterExecution": {
+    "schema": "doppler.capsule-adapter-execution/v1",
+    "maxAdapters": 1,
+    "combination": "single",
+    "formats": ["peft_safetensors"],
+    "operations": ["generate"],
+    "kernelModules": ["adapter_matmul", "adapter_scale", "residual"]
+  }
+}

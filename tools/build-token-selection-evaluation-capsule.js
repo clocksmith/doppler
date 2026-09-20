@@ -8,14 +8,18 @@ import { fileURLToPath } from 'node:url';
 import { writeProgramBundle } from '../src/tooling/program-bundle.js';
 import { forgeModelCapsule } from '../src/tooling/model-capsule-forge.js';
 import { hashTargetPlan } from '../src/config/target-plan.js';
+import { getCapsuleIdentity } from '../src/config/capsule.js';
+import { resolveCapsuleAdapterSet } from '../src/config/capsule-adapters.js';
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 
 const read = async file => JSON.parse(await fs.readFile(file, 'utf8'));
 const config = await read(process.argv[2]);
+assert.equal(new Date(config.createdAtUtc).toISOString(), config.createdAtUtc, 'createdAtUtc must be a canonical ISO instant');
 const probe = await read(config.probePath);
 const previous = await read(config.previousQualificationPath);
 const reference = await read(config.sourceTranscriptPath);
 assert(probe.passed && probe.sourceParity?.passed && !probe.hardware.isFallbackAdapter);
+if (config.adapterExecution) assert(probe.adapterPreparation?.passed, 'Physical adapter preparation evidence required');
 assert.deepEqual(probe.sourceParity.promptTokenIds, reference.promptTokenIds);
 assert.deepEqual(probe.sourceParity.tokenIds, reference.generatedTokenIds);
 assert.deepEqual(probe.sourceParity.tokenIds, previous.metrics.referenceTranscript.tokens.ids);
@@ -56,12 +60,15 @@ const qualification = {
       expectedTranscriptHash: hashBytesSha256(await fs.readFile(config.sourceTranscriptPath)) } },
   evidence: { probePath: config.probePath, probeHash: hashBytesSha256(await fs.readFile(config.probePath)),
     runtimeArchive: probe.package, referenceRendering: 'Identical token IDs and tokenizer; text retained from the reference.',
-    scope: 'Internal AMD Chrome greedy source parity and frozen workload equivalence; no publication, fleet qualification or external adoption.' },
+    scope: config.adapterExecution
+      ? 'Internal AMD Chrome zero-delta PEFT fixture and base greedy parity; no trained-adapter quality, nonzero adapter parity, publication or fleet qualification.'
+      : 'Internal AMD Chrome greedy source parity and frozen workload equivalence; no publication, fleet qualification or external adoption.',
+    ...(config.adapterExecution ? { adapterPreparation: probe.adapterPreparation } : {}) },
 };
 await write('qualification.json', qualification);
 const release = await read(config.previousReleasePath);
 const workloadHash = computeCanonicalSha256({ prompt: qualification.metrics.prompt, tokenIds: reference.generatedTokenIds });
-release.application = { applicationId: 'doppler-gpu-token-selection-evaluation', applicationRevision: `sha256:${probe.probeSha256}`,
+release.application = { applicationId: config.adapterExecution ? 'doppler-adapter-fixture-evaluation' : 'doppler-gpu-token-selection-evaluation', applicationRevision: `sha256:${probe.probeSha256}`,
   applicationRevisionDigest: `sha256:${probe.probeSha256}`, workload: { id: 'frozen-source-generation', digest: workloadHash },
   oracle: { id: 'pinned-source-token-reference', digest: qualification.metrics.sourceParity.expectedTranscriptHash } };
 release.exclusions.known = [{ code: 'unsupported-device', scope: 'outside-observed-chrome-amd',
@@ -78,11 +85,32 @@ const bundle = await writeProgramBundle({ repoRoot, manifestPath, modelDir: path
 const forge = { repoRoot, manifestPath, modelDir: path.dirname(manifestPath), programBundlePath: bundle.outputPath,
   initialExecutionIdentityPath: config.probePath, referenceReportPath: path.join(output, 'qualification.json'),
   releaseManifestPath: path.join(output, 'release.json'), outputPath: path.join(output, 'distribution/capsule.json'),
-  tokenSelection: config.tokenSelection, signingPrivateKeyPath: path.join(output, 'custody/private-key.json'),
+  tokenSelection: config.tokenSelection, ...(config.adapterExecution ? { adapterExecution: config.adapterExecution } : {}),
+  signingPrivateKeyPath: path.join(output, 'custody/private-key.json'),
   signingPublicKeyPath: path.join(output, 'custody/public-key.json'), signingAuthority: config.authority, allowDevelopmentSigner: false };
 await write('forge-config.json', forge);
 const result = await forgeModelCapsule(forge);
 const capsule = await read(forge.outputPath);
+if (config.adapterExecution) {
+  const manifest = await read(probe.config.adapterManifestPath);
+  const bytes = await fs.readFile(path.join(probe.config.sourceRoot, manifest.weightsPath));
+  const digest = hashBytesSha256(bytes);
+  assert.equal(digest, probe.adapterPreparation.sourceDigest);
+  assert.equal(digest, manifest.checksum);
+  assert.equal(bytes.length, manifest.weightsSize);
+  manifest.weightsPath = 'adapters/zero-delta.safetensors';
+  const adapter = { schema: 'doppler.capsule-adapter/v1',
+    identity: computeCanonicalSha256({ manifest, purpose: 'controlled-zero-delta-fixture' }),
+    baseModel: { ...getCapsuleIdentity(capsule), modelId: capsule.modelId },
+    format: 'peft_safetensors', manifest,
+    artifact: { artifactId: manifest.id, role: 'lora-weights', path: manifest.weightsPath,
+      hash: digest, sizeBytes: bytes.length } };
+  resolveCapsuleAdapterSet([adapter], { capsule: { ...capsule, ...getCapsuleIdentity(capsule) },
+    targetPlan: capsule.targetPlans[0], operation: 'generate' });
+  await fs.mkdir(path.join(output, 'distribution/adapters'));
+  await fs.writeFile(path.join(output, 'distribution', manifest.weightsPath), bytes, { flag: 'wx' });
+  await write('adapter-descriptor.json', adapter);
+}
 await write('open-options.json', { trustedSigners: { [config.authority]: publicKey }, acceptedTargetPlanDigests: capsule.targetPlans.map(hashTargetPlan) });
 await write('build-receipt.json', { result, physicalCapsuleExecution: false, publication: false, sourceProbe: qualification.evidence });
 console.log(JSON.stringify(result));
