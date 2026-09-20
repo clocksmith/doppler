@@ -1,5 +1,6 @@
-import { createArtifactStorageContext } from '../../storage/artifact-storage-context.js';
+import { createArtifactStorageContext, buildRDRRShardSources } from '../../storage/artifact-storage-context.js';
 import { createShaderSourceScope, bindStorageShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
+import { isVerifiedCapsuleArtifactStore } from './verified-capsule-artifact-store.js';
 
 export async function createCapsuleArtifactSource(capsule, artifactStore) {
   const manifestArtifact = capsule.artifacts.find((artifact) => artifact.artifactId === capsule.program.manifestArtifactId);
@@ -22,10 +23,22 @@ export async function createCapsuleArtifactSource(capsule, artifactStore) {
     return artifact;
   };
   const read = (path) => artifactStore.readArtifact(resolveArtifact(path));
+  const shards = buildRDRRShardSources(manifest);
+  const hashesTrusted = isVerifiedCapsuleArtifactStore(artifactStore)
+    && shards.every(shard => shard.hashAlgorithm === 'sha256');
+  if (hashesTrusted) {
+    for (const shard of shards) {
+      const receipt = await artifactStore.hashArtifact(resolveArtifact(shard.path));
+      if (receipt.hash !== `sha256:${shard.hash}` || receipt.sizeBytes !== shard.size) {
+        throw new Error(`Capsule manifest shard hash or size mismatch for "${shard.path}".`);
+      }
+    }
+  }
   const storageContext = createArtifactStorageContext({
     manifest,
     expectedFormat: 'rdrr',
     verifyHashes: true,
+    hashesTrusted,
     async readRange(path, offset, length) {
       if (typeof artifactStore.readArtifactRange === 'function') {
         const bytes = await artifactStore.readArtifactRange(resolveArtifact(path), offset, length);

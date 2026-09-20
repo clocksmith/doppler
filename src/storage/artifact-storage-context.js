@@ -147,7 +147,7 @@ function resolveManifestTokenizerPaths(manifest) {
   };
 }
 
-function buildRDRRShardSources(manifest) {
+export function buildRDRRShardSources(manifest) {
   const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
   if (shards.length === 0) {
     throw new Error(

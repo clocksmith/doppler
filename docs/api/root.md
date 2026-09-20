@@ -135,7 +135,14 @@ its logical byte count is not a physical RAM measurement.
 rehashing a retained file. `readArtifactRange()` returns only an owned requested slice;
 neither callers nor source buffers can mutate verified backing. Externally supplied
 hash claims are never trusted by Capsule opening. Manifest-level shard checks remain
-separate because they bind another identity.
+separate because they bind another identity. For a factory-created verified store,
+the Capsule adapter compares each SHA-256 manifest shard's normalized path, size,
+and digest against the store's owned snapshot receipt. Matching identities reuse
+that verification without reading and hashing the shard a second time. The store
+interface is immutable, so its byte readers cannot be replaced after this check.
+An arbitrary port, copied interface, or proxy does not gain this ownership guarantee
+by advertising a digest method. Such ports, and manifests using BLAKE3 shard
+digests, retain byte-level manifest verification. Mismatched identities fail closed.
 
 Observer events `capsule-validation-complete` and `capsule-load-complete` include
 `artifactMetrics`: source bytes read, bytes hashed by the verified store, bytes

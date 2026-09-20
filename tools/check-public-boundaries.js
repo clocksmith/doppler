@@ -94,7 +94,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: artifacts/memory-safe-loading-2026-09-20/package-audit.json.
   // Private block backing and host leases, measured with the same CI toolchain.
   // Evidence: artifacts/memory-safe-loading-2026-09-20/blocks-package-audit.json.
-  maxPackedSize: 2_152_816,
+  // Owned-snapshot verification reuse: four existing shipped files change.
+  // Evidence: artifacts/startup-verification-2026-09-20/package-audit.json.
+  maxPackedSize: 2_153_114,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -108,7 +110,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Main's public reset forwarding method and declaration add exactly 114 bytes
   // in two existing files; all other archive entries are byte-identical.
   // Evidence: artifacts/release-acceptance-2026-09-19/main-package-audit.json.
-  maxUnpackedSize: 11_314_302,
+  maxUnpackedSize: 11_315_405,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

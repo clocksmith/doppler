@@ -1,0 +1,2590 @@
+{
+  "schema": "doppler.startup-verification-physical-summary/v1",
+  "passed": true,
+  "originalReceiptPath": "/var/tmp/doppler-startup-reuse-20260920/physical-embedding-reranking/receipt.json",
+  "originalReceiptSha256": "6ae7a2eae553f3f19f56575a479c7250297b3764c15921b340644394d82d3a60",
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-Q4jbnbwEkQFGFVpu27u/LE5wD1/fBbiSx1voDSqYVy16dd1OC/PhDslxqWngvfjdw8lVrXz8BKToKQ+eDBQHTw==",
+    "sizeBytes": 2149158,
+    "source": "local-npm-pack",
+    "sha256": "c3166b1a6a480f52dd0661b67b427f6918eb004b015da84d31bbc86ccb57f13c"
+  },
+  "browserVersion": "146.0.7680.177",
+  "startedAtUtc": "2026-09-20T03:54:41.537Z",
+  "completedAtUtc": "2026-09-20T03:56:37.932Z",
+  "elapsedMs": 116395,
+  "runnerRevision": "37a6d117fd85d0f4b748ac939775fb467538922d",
+  "runnerSha256": "99ccccfe9055a491a70da918ba1d920ce2db07609e1a79e54a061cc5efd27d14",
+  "lifecycleFixtureSha256": "b793a0bb36b8d87dcf07300c3ed077abeab3d2c65877ce6b2a218ef508c01705",
+  "memoryProbeSha256": "3a70eb50f18b2b9820d7caefa0c3298c1a5778339a682c6c1a01b0061cfab304",
+  "pipelineLoadLog": [
+    "[38748.1ms][Pipeline] Model loaded successfully (17321ms)",
+    "[67922.5ms][Pipeline] Model loaded successfully (16631ms)",
+    "[28357.9ms][Pipeline] Model loaded successfully (13133ms)",
+    "[43267.1ms][Pipeline] Model loaded successfully (12878ms)"
+  ],
+  "results": [
+    {
+      "operation": "embed",
+      "passed": true,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": false
+          },
+          {
+            "available": true
+          }
+        ]
+      },
+      "capsule": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "envelopeDigest": "sha256:32503db6b070ac78d0355bc6d9538bcd0a660543f1867f754543013b5de0f86e",
+        "artifactClosureDigest": "sha256:987b6e88da6e461449bc5c9c69c90a57d1c81a49ba7bba983ac184f8f9bfe8b3"
+      },
+      "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c",
+      "checks": [
+        {
+          "id": "cancelled-model-preparation",
+          "passed": true,
+          "error": {
+            "name": "Error",
+            "message": "Acceptance cancels preparation after target selection."
+          }
+        },
+        {
+          "id": "cancellation",
+          "passed": true,
+          "boundary": "after-partial",
+          "partials": 1,
+          "completions": 0,
+          "error": {
+            "name": "GenerationError",
+            "message": "Acceptance cancellation after partial output."
+          }
+        },
+        {
+          "id": "second-session-survives-first-close",
+          "passed": true
+        }
+      ],
+      "comparisons": [
+        {
+          "phase": "repeat-0",
+          "passed": true,
+          "checks": [
+            {
+              "id": "text.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.0.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000052094459533691406,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.1.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006141513586044312,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.2.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005928054451942444,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.3.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.3.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005342438817024231,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.4.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.4.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006327405571937561,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.5.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.5.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000048160552978515625,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.6.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.6.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006464123725891113,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.7.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.7.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006420980207622051,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.8.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.8.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006396695971488953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.9.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.9.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006864964962005615,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.10.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.10.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006782403215765953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.11.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.11.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006010383367538452,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.12.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.12.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004207342863082886,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.13.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.13.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004716729745268822,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.14.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.14.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004564458504319191,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.15.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.15.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.0000626295804977417,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.16.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.16.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000054696283768862486,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.17.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.17.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00007062498480081558,
+              "tolerance": 0.02
+            }
+          ]
+        },
+        {
+          "phase": "repeat-1",
+          "passed": true,
+          "checks": [
+            {
+              "id": "text.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.0.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000052094459533691406,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.1.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006141513586044312,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.2.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005928054451942444,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.3.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.3.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005342438817024231,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.4.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.4.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006327405571937561,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.5.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.5.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000048160552978515625,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.6.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.6.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006464123725891113,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.7.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.7.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006420980207622051,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.8.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.8.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006396695971488953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.9.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.9.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006864964962005615,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.10.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.10.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006782403215765953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.11.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.11.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006010383367538452,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.12.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.12.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004207342863082886,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.13.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.13.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004716729745268822,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.14.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.14.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004564458504319191,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.15.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.15.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.0000626295804977417,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.16.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.16.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000054696283768862486,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.17.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.17.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00007062498480081558,
+              "tolerance": 0.02
+            }
+          ]
+        },
+        {
+          "phase": "after-cancellation-and-failed-preparation",
+          "passed": true,
+          "checks": [
+            {
+              "id": "text.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.0.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000052094459533691406,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.1.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006141513586044312,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.2.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005928054451942444,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.3.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.3.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005342438817024231,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.4.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.4.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006327405571937561,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.5.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.5.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000048160552978515625,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.6.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.6.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006464123725891113,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.7.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.7.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006420980207622051,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.8.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.8.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006396695971488953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.9.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.9.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006864964962005615,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.10.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.10.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006782403215765953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.11.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.11.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006010383367538452,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.12.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.12.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004207342863082886,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.13.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.13.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004716729745268822,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.14.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.14.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004564458504319191,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.15.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.15.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.0000626295804977417,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.16.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.16.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000054696283768862486,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.17.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.17.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00007062498480081558,
+              "tolerance": 0.02
+            }
+          ]
+        },
+        {
+          "phase": "second-after-first-close",
+          "passed": true,
+          "checks": [
+            {
+              "id": "text.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.0.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000052094459533691406,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.1.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006141513586044312,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.2.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005928054451942444,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.3.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.3.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005342438817024231,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.4.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.4.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006327405571937561,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.5.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.5.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000048160552978515625,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.6.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.6.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006464123725891113,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.7.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.7.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006420980207622051,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.8.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.8.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006396695971488953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.9.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.9.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006864964962005615,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.10.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.10.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006782403215765953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.11.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.11.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006010383367538452,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.12.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.12.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004207342863082886,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.13.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.13.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004716729745268822,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.14.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.14.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004564458504319191,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.15.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.15.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.0000626295804977417,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.16.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.16.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000054696283768862486,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.17.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.17.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00007062498480081558,
+              "tolerance": 0.02
+            }
+          ]
+        }
+      ],
+      "observations": [
+        {
+          "phase": "repeat-0",
+          "outputSha256": "16577797aba22c7070ad5edfa7e7ac50dec51089dea6ea63640978b9be13e677"
+        },
+        {
+          "phase": "repeat-1",
+          "outputSha256": "16577797aba22c7070ad5edfa7e7ac50dec51089dea6ea63640978b9be13e677"
+        },
+        {
+          "phase": "after-cancellation-and-failed-preparation",
+          "outputSha256": "16577797aba22c7070ad5edfa7e7ac50dec51089dea6ea63640978b9be13e677"
+        },
+        {
+          "phase": "second-after-first-close",
+          "outputSha256": "16577797aba22c7070ad5edfa7e7ac50dec51089dea6ea63640978b9be13e677"
+        }
+      ]
+    },
+    {
+      "operation": "rerank",
+      "passed": true,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": true
+          }
+        ]
+      },
+      "capsule": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "semanticRoot": "sha256:4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "envelopeDigest": "sha256:bdaa28c214bd5ae65bb04945eb3aa07a0937f2c3fa81cf54de39b5fc2d21876a",
+        "artifactClosureDigest": "sha256:a32ad7bad893bb14a4221eeb97a47c0b6646ab270800fccbf902c6803272d0b0"
+      },
+      "targetPlanDigest": "sha256:b900f8b3ab71bb6600687d71a919881f402f42ff076fb37524b67b0b4981c661",
+      "checks": [
+        {
+          "id": "cancelled-model-preparation",
+          "passed": true,
+          "error": {
+            "name": "Error",
+            "message": "Acceptance cancels preparation after target selection."
+          }
+        },
+        {
+          "id": "cancellation",
+          "passed": true,
+          "boundary": "pre-aborted",
+          "partials": 0,
+          "completions": 0,
+          "error": {
+            "name": "GenerationError",
+            "message": "Acceptance cancellation before execution."
+          }
+        },
+        {
+          "id": "second-session-survives-first-close",
+          "passed": true
+        }
+      ],
+      "comparisons": [
+        {
+          "phase": "repeat-0",
+          "passed": true,
+          "checks": [
+            {
+              "id": "document.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.0.trueLogit",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.falseLogit",
+              "passed": true,
+              "expected": 13.806695938110352,
+              "actual": 14.374336242675781,
+              "absoluteError": 0.5676403045654297,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.score",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.probability",
+              "passed": true,
+              "expected": 0.9999999990055641,
+              "actual": 0.9999999990786257,
+              "absoluteError": 7.30615568045323e-11,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.1.trueLogit",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.falseLogit",
+              "passed": true,
+              "expected": 12.97671127319336,
+              "actual": 12.962911605834961,
+              "absoluteError": 0.013799667358398438,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.score",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.probability",
+              "passed": true,
+              "expected": 0.982062162339427,
+              "actual": 0.9786765360960985,
+              "absoluteError": 0.003385626243328499,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.2.trueLogit",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.falseLogit",
+              "passed": true,
+              "expected": 13.337125778198242,
+              "actual": 12.909036636352539,
+              "absoluteError": 0.4280891418457031,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.score",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.probability",
+              "passed": true,
+              "expected": 0.9569202694214454,
+              "actual": 0.9441695950944614,
+              "absoluteError": 0.012750674326983957,
+              "tolerance": 0.05
+            },
+            {
+              "id": "ranking.exact",
+              "passed": true,
+              "expected": [
+                0,
+                1,
+                2
+              ],
+              "actual": [
+                0,
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "phase": "repeat-1",
+          "passed": true,
+          "checks": [
+            {
+              "id": "document.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.0.trueLogit",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.falseLogit",
+              "passed": true,
+              "expected": 13.806695938110352,
+              "actual": 14.374336242675781,
+              "absoluteError": 0.5676403045654297,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.score",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.probability",
+              "passed": true,
+              "expected": 0.9999999990055641,
+              "actual": 0.9999999990786257,
+              "absoluteError": 7.30615568045323e-11,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.1.trueLogit",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.falseLogit",
+              "passed": true,
+              "expected": 12.97671127319336,
+              "actual": 12.962911605834961,
+              "absoluteError": 0.013799667358398438,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.score",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.probability",
+              "passed": true,
+              "expected": 0.982062162339427,
+              "actual": 0.9786765360960985,
+              "absoluteError": 0.003385626243328499,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.2.trueLogit",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.falseLogit",
+              "passed": true,
+              "expected": 13.337125778198242,
+              "actual": 12.909036636352539,
+              "absoluteError": 0.4280891418457031,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.score",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.probability",
+              "passed": true,
+              "expected": 0.9569202694214454,
+              "actual": 0.9441695950944614,
+              "absoluteError": 0.012750674326983957,
+              "tolerance": 0.05
+            },
+            {
+              "id": "ranking.exact",
+              "passed": true,
+              "expected": [
+                0,
+                1,
+                2
+              ],
+              "actual": [
+                0,
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "phase": "after-cancellation-and-failed-preparation",
+          "passed": true,
+          "checks": [
+            {
+              "id": "document.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.0.trueLogit",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.falseLogit",
+              "passed": true,
+              "expected": 13.806695938110352,
+              "actual": 14.374336242675781,
+              "absoluteError": 0.5676403045654297,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.score",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.probability",
+              "passed": true,
+              "expected": 0.9999999990055641,
+              "actual": 0.9999999990786257,
+              "absoluteError": 7.30615568045323e-11,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.1.trueLogit",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.falseLogit",
+              "passed": true,
+              "expected": 12.97671127319336,
+              "actual": 12.962911605834961,
+              "absoluteError": 0.013799667358398438,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.score",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.probability",
+              "passed": true,
+              "expected": 0.982062162339427,
+              "actual": 0.9786765360960985,
+              "absoluteError": 0.003385626243328499,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.2.trueLogit",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.falseLogit",
+              "passed": true,
+              "expected": 13.337125778198242,
+              "actual": 12.909036636352539,
+              "absoluteError": 0.4280891418457031,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.score",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.probability",
+              "passed": true,
+              "expected": 0.9569202694214454,
+              "actual": 0.9441695950944614,
+              "absoluteError": 0.012750674326983957,
+              "tolerance": 0.05
+            },
+            {
+              "id": "ranking.exact",
+              "passed": true,
+              "expected": [
+                0,
+                1,
+                2
+              ],
+              "actual": [
+                0,
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "phase": "second-after-first-close",
+          "passed": true,
+          "checks": [
+            {
+              "id": "document.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.0.trueLogit",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.falseLogit",
+              "passed": true,
+              "expected": 13.806695938110352,
+              "actual": 14.374336242675781,
+              "absoluteError": 0.5676403045654297,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.score",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.probability",
+              "passed": true,
+              "expected": 0.9999999990055641,
+              "actual": 0.9999999990786257,
+              "absoluteError": 7.30615568045323e-11,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.1.trueLogit",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.falseLogit",
+              "passed": true,
+              "expected": 12.97671127319336,
+              "actual": 12.962911605834961,
+              "absoluteError": 0.013799667358398438,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.score",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.probability",
+              "passed": true,
+              "expected": 0.982062162339427,
+              "actual": 0.9786765360960985,
+              "absoluteError": 0.003385626243328499,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.2.trueLogit",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.falseLogit",
+              "passed": true,
+              "expected": 13.337125778198242,
+              "actual": 12.909036636352539,
+              "absoluteError": 0.4280891418457031,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.score",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.probability",
+              "passed": true,
+              "expected": 0.9569202694214454,
+              "actual": 0.9441695950944614,
+              "absoluteError": 0.012750674326983957,
+              "tolerance": 0.05
+            },
+            {
+              "id": "ranking.exact",
+              "passed": true,
+              "expected": [
+                0,
+                1,
+                2
+              ],
+              "actual": [
+                0,
+                1,
+                2
+              ]
+            }
+          ]
+        }
+      ],
+      "observations": [
+        {
+          "phase": "repeat-0",
+          "outputSha256": "48404bc493326bfd375e1a56c2a01a15870c8c48a78118f0bbaabddfc1143b70"
+        },
+        {
+          "phase": "repeat-1",
+          "outputSha256": "3519fd06ac531fc894d6a1ad5ff2de32fa3eac2b0169010c275119c978314fd3"
+        },
+        {
+          "phase": "after-cancellation-and-failed-preparation",
+          "outputSha256": "179a89a62c50412c7e2cb86afd5c3ca5938c1b25924f170ff3ad12fef7aa3a47"
+        },
+        {
+          "phase": "second-after-first-close",
+          "outputSha256": "01c000e4933163bf31fc3410da965780dbd427faca76aba342770fcb8bed21ac"
+        }
+      ]
+    }
+  ],
+  "progress": [
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 0,
+          "destroyedBytes": 0,
+          "liveBytes": 0,
+          "peakLiveBytes": 0,
+          "createdCount": 0,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 28527034,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8,
+          "destroyedBytes": 8,
+          "liveBytes": 0,
+          "peakLiveBytes": 8,
+          "createdCount": 2,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 32304467,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-validation-complete",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "artifactMetrics": {
+          "sourceBytes": 1200631926,
+          "hashedBytes": 1200631926,
+          "copiedBytes": 1200631926,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 0,
+          "returnedBytes": 0,
+          "evictions": 0,
+          "sourceReadMs": 858.2999997138977,
+          "hashingMs": 18617.5000166893,
+          "copyingMs": 342.49998235702515,
+          "backingBytes": 1200631926,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 42,
+          "snapshotCopiedBytes": 1200631926,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8,
+          "destroyedBytes": 8,
+          "liveBytes": 0,
+          "peakLiveBytes": 8,
+          "createdCount": 2,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 1235376919,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "initial-execution-identity-bound",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "identityDigest": "sha256:5b27ec07388897973c1dd013b62d38d0729c69a41d36633e2cdc6b9fba3885ad"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2383036760,
+          "destroyedBytes": 72,
+          "liveBytes": 2383036688,
+          "peakLiveBytes": 2383036752,
+          "createdCount": 434,
+          "liveCount": 431,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2331855470,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-load-complete",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "artifactMetrics": {
+          "sourceBytes": 1200631926,
+          "hashedBytes": 1200631926,
+          "copiedBytes": 3605873021,
+          "retainedBytes": 5571395,
+          "peakRetainedBytes": 5571395,
+          "returnedBytes": 2399669700,
+          "evictions": 0,
+          "sourceReadMs": 858.2999997138977,
+          "hashingMs": 18617.5000166893,
+          "copyingMs": 910.999981880188,
+          "backingBytes": 1200631926,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 42,
+          "snapshotCopiedBytes": 1200631926,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2383036760,
+          "destroyedBytes": 72,
+          "liveBytes": 2383036688,
+          "peakLiveBytes": 2383036752,
+          "createdCount": 434,
+          "liveCount": 431,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2331866194,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "repeat-0"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 3579744368,
+          "destroyedBytes": 1169360360,
+          "liveBytes": 2410384008,
+          "peakLiveBytes": 2439282984,
+          "createdCount": 6253,
+          "liveCount": 690,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2326520527,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "repeat-1"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4897609232,
+          "destroyedBytes": 2490567560,
+          "liveBytes": 2407041672,
+          "peakLiveBytes": 2439282984,
+          "createdCount": 11848,
+          "liveCount": 690,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2360251337,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4897609232,
+          "destroyedBytes": 2490567560,
+          "liveBytes": 2407041672,
+          "peakLiveBytes": 2439282984,
+          "createdCount": 11848,
+          "liveCount": 690,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2361109766,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4910716432,
+          "destroyedBytes": 2490567560,
+          "liveBytes": 2420148872,
+          "peakLiveBytes": 2439282984,
+          "createdCount": 11894,
+          "liveCount": 736,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2377144339,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "after-cancellation-and-failed-preparation"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 6348381184,
+          "destroyedBytes": 3942715768,
+          "liveBytes": 2405665416,
+          "peakLiveBytes": 2439282984,
+          "createdCount": 17713,
+          "liveCount": 690,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2328080681,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 6348381184,
+          "destroyedBytes": 3942715768,
+          "liveBytes": 2405665416,
+          "peakLiveBytes": 2439282984,
+          "createdCount": 17713,
+          "liveCount": 690,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2355793063,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 7287905280,
+          "destroyedBytes": 3942715768,
+          "liveBytes": 3345189512,
+          "peakLiveBytes": 3345189512,
+          "createdCount": 17769,
+          "liveCount": 746,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2349212751,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-validation-complete",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 0,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 0,
+          "returnedBytes": 0,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 0,
+          "backingBytes": 1200631926,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 42,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 1200631926,
+          "peakSnapshotBlockBytes": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 7287905280,
+          "destroyedBytes": 3942715768,
+          "liveBytes": 3345189512,
+          "peakLiveBytes": 3345189512,
+          "createdCount": 17769,
+          "liveCount": 746,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2349221975,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "initial-execution-identity-bound",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "identityDigest": "sha256:5b27ec07388897973c1dd013b62d38d0729c69a41d36633e2cdc6b9fba3885ad"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8752586064,
+          "destroyedBytes": 3942715784,
+          "liveBytes": 4809870280,
+          "peakLiveBytes": 4809870280,
+          "createdCount": 18210,
+          "liveCount": 1186,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2360860062,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-load-complete",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 2399877613,
+          "retainedBytes": 5571395,
+          "peakRetainedBytes": 5571395,
+          "returnedBytes": 2394306218,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 558.9000005722046,
+          "backingBytes": 1200631926,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 42,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 1200631926,
+          "peakSnapshotBlockBytes": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8752586064,
+          "destroyedBytes": 3942715784,
+          "liveBytes": 4809870280,
+          "peakLiveBytes": 4809870280,
+          "createdCount": 18210,
+          "liveCount": 1186,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2360870598,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-session-closed",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c",
+        "artifactMetrics": {
+          "sourceBytes": 1200631926,
+          "hashedBytes": 1200631926,
+          "copiedBytes": 3605873021,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 5571395,
+          "returnedBytes": 2399669700,
+          "evictions": 0,
+          "sourceReadMs": 858.2999997138977,
+          "hashingMs": 18617.5000166893,
+          "copyingMs": 910.999981880188,
+          "backingBytes": 0,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 0,
+          "snapshotCopiedBytes": 1200631926,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8752586064,
+          "destroyedBytes": 5157168072,
+          "liveBytes": 3595417992,
+          "peakLiveBytes": 4809870280,
+          "createdCount": 18210,
+          "liveCount": 784,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2360889386,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "second-after-first-close"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 9928119280,
+          "destroyedBytes": 6326528360,
+          "liveBytes": 3601590920,
+          "peakLiveBytes": 4809870280,
+          "createdCount": 23766,
+          "liveCount": 780,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2329653713,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "progress": {
+        "type": "capsule-session-closed",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "targetPlanDigest": "sha256:392da54def8f3b06ae7442d746c5ee6c08408fb71521dd0a2b38f6da90b6768c",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 2399877613,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 5571395,
+          "returnedBytes": 2394306218,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 558.9000005722046,
+          "backingBytes": 0,
+          "peakBackingBytes": 1200631926,
+          "backingFiles": 0,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 1200631926,
+          "peakSnapshotBlockBytes": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 9928119280,
+          "destroyedBytes": 7545699448,
+          "liveBytes": 2382419832,
+          "peakLiveBytes": 4809870280,
+          "createdCount": 23766,
+          "liveCount": 377,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2347293045,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "embed",
+      "stage": "after-session-cleanup",
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 9928119280,
+          "destroyedBytes": 7545699448,
+          "liveBytes": 2382419832,
+          "peakLiveBytes": 4809870280,
+          "createdCount": 23766,
+          "liveCount": 377,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2347301477,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 0,
+          "destroyedBytes": 0,
+          "liveBytes": 0,
+          "peakLiveBytes": 0,
+          "createdCount": 0,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 21783971,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:b900f8b3ab71bb6600687d71a919881f402f42ff076fb37524b67b0b4981c661"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8,
+          "destroyedBytes": 8,
+          "liveBytes": 0,
+          "peakLiveBytes": 8,
+          "createdCount": 2,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 25635593,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-validation-complete",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "semanticRoot": "sha256:4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "artifactMetrics": {
+          "sourceBytes": 944814227,
+          "hashedBytes": 944814227,
+          "copiedBytes": 944814227,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 0,
+          "returnedBytes": 0,
+          "evictions": 0,
+          "sourceReadMs": 635.2000012397766,
+          "hashingMs": 13894.999997615814,
+          "copyingMs": 244.90000009536743,
+          "backingBytes": 944814227,
+          "peakBackingBytes": 944814227,
+          "backingFiles": 41,
+          "snapshotCopiedBytes": 944814227,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 8,
+          "destroyedBytes": 8,
+          "liveBytes": 0,
+          "peakLiveBytes": 8,
+          "createdCount": 2,
+          "liveCount": 0,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 965211146,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "initial-execution-identity-bound",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "identityDigest": "sha256:4fda18a05188a2ddd6cabaf07ceca89e1d7070f4c90ba522839aff3eee493d7e"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 1429555800,
+          "destroyedBytes": 1864,
+          "liveBytes": 1429553936,
+          "peakLiveBytes": 1429554000,
+          "createdCount": 631,
+          "liveCount": 516,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2122693673,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-load-complete",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "artifactMetrics": {
+          "sourceBytes": 944814227,
+          "hashedBytes": 944814227,
+          "copiedBytes": 2843797779,
+          "retainedBytes": 5628647,
+          "peakRetainedBytes": 5628647,
+          "returnedBytes": 1893354905,
+          "evictions": 0,
+          "sourceReadMs": 635.2000012397766,
+          "hashingMs": 13894.999997615814,
+          "copyingMs": 677.7999939918518,
+          "backingBytes": 944814227,
+          "peakBackingBytes": 944814227,
+          "backingFiles": 41,
+          "snapshotCopiedBytes": 944814227,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 1429555800,
+          "destroyedBytes": 1864,
+          "liveBytes": 1429553936,
+          "peakLiveBytes": 1429554000,
+          "createdCount": 631,
+          "liveCount": 516,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2122704397,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-rerank-complete",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "receiptDigest": "sha256:f2cae845e5daba664f0a2f54fe73577d6befa9edd073a6ec775d845e01b57d21"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 1840210432,
+          "destroyedBytes": 370935720,
+          "liveBytes": 1469274712,
+          "peakLiveBytes": 1504533048,
+          "createdCount": 1416,
+          "liveCount": 602,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2076956412,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "repeat-0"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 1840210432,
+          "destroyedBytes": 370935720,
+          "liveBytes": 1469274712,
+          "peakLiveBytes": 1504533048,
+          "createdCount": 1416,
+          "liveCount": 602,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2076994144,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-rerank-complete",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "receiptDigest": "sha256:cbad39df45ee41eaa16af7e9b8e83f8c2c28f12de4804084b41ab8c2cb4be1f8"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2211144384,
+          "destroyedBytes": 741869576,
+          "liveBytes": 1469274808,
+          "peakLiveBytes": 1505057400,
+          "createdCount": 2118,
+          "liveCount": 605,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2068441401,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "repeat-1"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2211144384,
+          "destroyedBytes": 741869576,
+          "liveBytes": 1469274808,
+          "peakLiveBytes": 1505057400,
+          "createdCount": 2118,
+          "liveCount": 605,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2068457577,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2211144384,
+          "destroyedBytes": 741869576,
+          "liveBytes": 1469274808,
+          "peakLiveBytes": 1505057400,
+          "createdCount": 2118,
+          "liveCount": 605,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2076990115,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:b900f8b3ab71bb6600687d71a919881f402f42ff076fb37524b67b0b4981c661"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2229232320,
+          "destroyedBytes": 741869576,
+          "liveBytes": 1487362744,
+          "peakLiveBytes": 1505057400,
+          "createdCount": 2152,
+          "liveCount": 639,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2093440763,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-rerank-complete",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "receiptDigest": "sha256:05bf77b28e8fcdbd6ba9d7eff73bc42b35464aaf3afed8b744a6aae74f8019ba"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2582078336,
+          "destroyedBytes": 1112803432,
+          "liveBytes": 1469274904,
+          "peakLiveBytes": 1505057496,
+          "createdCount": 2820,
+          "liveCount": 608,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2071403124,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "after-cancellation-and-failed-preparation"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2582078336,
+          "destroyedBytes": 1112803432,
+          "liveBytes": 1469274904,
+          "peakLiveBytes": 1505057496,
+          "createdCount": 2820,
+          "liveCount": 608,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2071419740,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-validation-started",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2582078336,
+          "destroyedBytes": 1112803432,
+          "liveBytes": 1469274904,
+          "peakLiveBytes": 1505057496,
+          "createdCount": 2820,
+          "liveCount": 608,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2079154038,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "target-selected",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "targetPlanDigest": "sha256:b900f8b3ab71bb6600687d71a919881f402f42ff076fb37524b67b0b4981c661"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2699518848,
+          "destroyedBytes": 1112803432,
+          "liveBytes": 1586715416,
+          "peakLiveBytes": 1586715416,
+          "createdCount": 2876,
+          "liveCount": 664,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2097349606,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-validation-complete",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "semanticRoot": "sha256:4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 0,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 0,
+          "returnedBytes": 0,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 0,
+          "backingBytes": 944814227,
+          "peakBackingBytes": 944814227,
+          "backingFiles": 41,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 944814227,
+          "peakSnapshotBlockBytes": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 2699518848,
+          "destroyedBytes": 1112803432,
+          "liveBytes": 1586715416,
+          "peakLiveBytes": 1586715416,
+          "createdCount": 2876,
+          "liveCount": 664,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2097358594,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "initial-execution-identity-bound",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "identityDigest": "sha256:4fda18a05188a2ddd6cabaf07ceca89e1d7070f4c90ba522839aff3eee493d7e"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4045057232,
+          "destroyedBytes": 1112805304,
+          "liveBytes": 2932251928,
+          "peakLiveBytes": 2932251992,
+          "createdCount": 3501,
+          "liveCount": 1175,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2106698044,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-load-complete",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 1893620467,
+          "retainedBytes": 5628647,
+          "peakRetainedBytes": 5628647,
+          "returnedBytes": 1887991820,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 433.19999837875366,
+          "backingBytes": 944814227,
+          "peakBackingBytes": 944814227,
+          "backingFiles": 41,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 944814227,
+          "peakSnapshotBlockBytes": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4045057232,
+          "destroyedBytes": 1112805304,
+          "liveBytes": 2932251928,
+          "peakLiveBytes": 2932251992,
+          "createdCount": 3501,
+          "liveCount": 1175,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2106707228,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-session-closed",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "targetPlanDigest": "sha256:b900f8b3ab71bb6600687d71a919881f402f42ff076fb37524b67b0b4981c661",
+        "artifactMetrics": {
+          "sourceBytes": 944814227,
+          "hashedBytes": 944814227,
+          "copiedBytes": 2843797779,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 5628647,
+          "returnedBytes": 1893354905,
+          "evictions": 0,
+          "sourceReadMs": 635.2000012397766,
+          "hashingMs": 13894.999997615814,
+          "copyingMs": 677.7999939918518,
+          "backingBytes": 0,
+          "peakBackingBytes": 944814227,
+          "backingFiles": 0,
+          "snapshotCopiedBytes": 944814227,
+          "sharedBackingBytes": 0,
+          "peakSnapshotBlockBytes": 65536
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4045057232,
+          "destroyedBytes": 2434204600,
+          "liveBytes": 1610852632,
+          "peakLiveBytes": 2932251992,
+          "createdCount": 3501,
+          "liveCount": 689,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2106763388,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-rerank-complete",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "targetId": "webgpu-f32-f16-subgroups",
+        "receiptDigest": "sha256:0882865e3b3aa590c80fb651a940be0e1339cee102df855477fb379a6d30db67"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4412850064,
+          "destroyedBytes": 2805138456,
+          "liveBytes": 1607711608,
+          "peakLiveBytes": 2932251992,
+          "createdCount": 4184,
+          "liveCount": 673,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2116878425,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "acceptance-operation-completed",
+        "phase": "second-after-first-close"
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4412850064,
+          "destroyedBytes": 2805138456,
+          "liveBytes": 1607711608,
+          "peakLiveBytes": 2932251992,
+          "createdCount": 4184,
+          "liveCount": 673,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2116894865,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "progress": {
+        "type": "capsule-session-closed",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "targetPlanDigest": "sha256:b900f8b3ab71bb6600687d71a919881f402f42ff076fb37524b67b0b4981c661",
+        "artifactMetrics": {
+          "sourceBytes": 0,
+          "hashedBytes": 0,
+          "copiedBytes": 1893620467,
+          "retainedBytes": 0,
+          "peakRetainedBytes": 5628647,
+          "returnedBytes": 1887991820,
+          "evictions": 0,
+          "sourceReadMs": 0,
+          "hashingMs": 0,
+          "copyingMs": 433.19999837875366,
+          "backingBytes": 0,
+          "peakBackingBytes": 944814227,
+          "backingFiles": 0,
+          "snapshotCopiedBytes": 0,
+          "sharedBackingBytes": 944814227,
+          "peakSnapshotBlockBytes": 0
+        }
+      },
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4412850064,
+          "destroyedBytes": 4135975208,
+          "liveBytes": 276874856,
+          "peakLiveBytes": 2932251992,
+          "createdCount": 4184,
+          "liveCount": 177,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2119803869,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    },
+    {
+      "operation": "rerank",
+      "stage": "after-session-cleanup",
+      "memory": {
+        "gpuBuffers": {
+          "createdBytes": 4412850064,
+          "destroyedBytes": 4135975208,
+          "liveBytes": 276874856,
+          "peakLiveBytes": 2932251992,
+          "createdCount": 4184,
+          "liveCount": 177,
+          "failedAllocations": 0
+        },
+        "jsHeapUsedBytes": 2090964405,
+        "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
+      }
+    }
+  ],
+  "cleanupErrors": [],
+  "measurementLimits": [
+    "Pipeline-load timers exclude prior Capsule verification; elapsedMs covers the complete lifecycle sequence, not single-request TTFT.",
+    "Local repository/UI checks also ran during the investigation; model runs were sequential. These are local acceptance/tuning observations, not a vendor benchmark or confidence interval.",
+    "GPU counters observe explicit destruction, not physical driver residency or garbage collection.",
+    "Per-session backing leases must not be summed as unique allocation. Cache budgets exclude backing and loader/GPU resources."
+  ]
+}
