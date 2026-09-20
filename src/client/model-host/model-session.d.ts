@@ -177,6 +177,7 @@ export interface DopplerModelHandle {
   ): Promise<DopplerRerankEvidence>;
   encodeSequence(sequence: string, options?: SequenceEncodeOptions): Promise<SequenceEncodeResult>;
   resetGenerationState(): void;
+  /** Exclusive with execution and resets; closing prevents late activation. */
   loadLoRA(adapter: LoRAManifest | RDRRManifest | string, loadOptions?: LoRALoadOptions): Promise<void>;
   activateLoRAFromTrainingOutput(
     trainingOutput:
@@ -197,6 +198,7 @@ export interface DopplerModelHandle {
     reason: string | null;
   }>;
   unloadLoRA(): Promise<void>;
+  /** Seal the owner immediately, drain active work, and share one cleanup outcome. */
   unload(): Promise<void>;
   readonly activeLoRAIdentity: Readonly<Record<string, unknown>> | null;
   readonly activeLoRA: string | null;

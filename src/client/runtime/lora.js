@@ -1,6 +1,7 @@
 import { log } from '../../debug/index.js';
 import { getDopplerLoader } from '../../loader/doppler-loader.js';
 import { fetchArrayBuffer, readOPFSFile, writeOPFSFile } from './storage.js';
+import { updatePipelineAdapter } from '../../inference/pipelines/shader-scoped-pipeline.js';
 
 let loraModulePromise = null;
 
@@ -108,25 +109,26 @@ export async function loadLoRAAdapterForPipeline(pipeline, adapter, loadOptions 
     throw new Error('No model loaded. Call load() first.');
   }
 
-  const options = createLoRALoadOptions(loadOptions);
-  let lora;
-  if (typeof adapter === 'string') {
-    const { loadLoRAFromUrl } = await getExperimentalLoRAModule();
-    lora = await loadLoRAFromUrl(adapter, options);
-  } else if (adapter?.adapterType === 'lora' || adapter?.modelType === 'lora') {
-    const loader = pipeline.dopplerLoader || getDopplerLoader();
-    await loader.init();
-    const loaded = await loader.loadLoRAWeights(adapter);
-    lora = loaded?.adapter ?? loaded;
-  } else {
-    const { loadLoRAFromManifest } = await getExperimentalLoRAModule();
-    lora = await loadLoRAFromManifest(adapter, options);
-  }
-
-  assertLoRABaseModelForPipeline(pipeline, lora);
-  assertLoRATargetsForPipeline(pipeline, lora);
-  pipeline.setLoRAAdapter(lora);
-  log.info('doppler', `LoRA adapter loaded: ${lora.name}`);
+  const activated = await updatePipelineAdapter(pipeline, async () => {
+    const options = createLoRALoadOptions(loadOptions);
+    let lora;
+    if (typeof adapter === 'string') {
+      const { loadLoRAFromUrl } = await getExperimentalLoRAModule();
+      lora = await loadLoRAFromUrl(adapter, options);
+    } else if (adapter?.adapterType === 'lora' || adapter?.modelType === 'lora') {
+      const loader = pipeline.dopplerLoader || getDopplerLoader();
+      await loader.init();
+      const loaded = await loader.loadLoRAWeights(adapter);
+      lora = loaded?.adapter ?? loaded;
+    } else {
+      const { loadLoRAFromManifest } = await getExperimentalLoRAModule();
+      lora = await loadLoRAFromManifest(adapter, options);
+    }
+    assertLoRABaseModelForPipeline(pipeline, lora);
+    assertLoRATargetsForPipeline(pipeline, lora);
+    return lora;
+  });
+  log.info('doppler', `LoRA adapter loaded: ${activated.name}`);
 }
 
 async function readLocalJson(path) {
@@ -260,7 +262,7 @@ export async function activateLoRAFromTrainingOutputForPipeline(pipeline, traini
 
 export async function unloadLoRAAdapterForPipeline(pipeline) {
   if (!pipeline) return;
-  pipeline.setLoRAAdapter(null);
+  await updatePipelineAdapter(pipeline, () => null);
   log.info('doppler', 'LoRA adapter unloaded');
 }
 

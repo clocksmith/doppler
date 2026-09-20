@@ -512,6 +512,8 @@ export class InferencePipeline extends PipelineState {
   }
 
   setLoRAAdapter(adapter) {
+    if (this.isGenerating) throw new Error('Cannot change LoRA adapter while generation is in progress.');
+    if (this.isLoaded === false) throw new Error('Cannot change LoRA adapter on an unloaded pipeline.');
     assertBundledAdapterAuthorized(adapter);
     this.lora = adapter;
   }

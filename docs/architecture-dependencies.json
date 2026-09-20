@@ -4376,6 +4376,7 @@
         "tests/integration/litert-gemma4-task-ple-scale.test.js",
         "tests/integration/lora-activation-contract.test.js",
         "tests/integration/lora-loader-contract.test.js",
+        "tests/integration/lora-session-ownership.test.js",
         "tests/integration/model-manager-contract.test.js",
         "tests/integration/node-browser-command-relay-contract.test.js",
         "tests/integration/node-command-runtime-gating.test.js",
@@ -5833,7 +5834,7 @@
     {
       "file": "src/inference/pipelines/text.js",
       "kind": "dynamic",
-      "line": 616,
+      "line": 618,
       "expression": "import(modulePath)"
     },
     {

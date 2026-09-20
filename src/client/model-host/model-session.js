@@ -7,6 +7,7 @@ import { getKernelCapabilities } from '../../gpu/device.js';
 import { formatChatMessages } from '../../inference/pipelines/text/chat-format.js';
 import { applyChatTemplate } from '../../inference/pipelines/text/init-chat-templates.js';
 import { resolveTextGenerationRequest, generationRequestEvidence } from '../../inference/pipelines/text/generation-request.js';
+import { scopePipelineShaders, runPipelineOperation } from '../../inference/pipelines/shader-scoped-pipeline.js';
 import { collectModelRerankScores } from '../runtime/model-rerank.js';
 import {
   MODEL_INSPECTION_RECEIPT_SCHEMA,
@@ -173,6 +174,7 @@ function assertActiveAdapterUnchanged(pipeline, expected) {
 }
 
 export function createModelHandle(pipeline, resolved) {
+  pipeline = scopePipelineShaders(pipeline);
   const resolutionPolicy = resolveResolutionPolicy(resolved.resolutionPolicy);
   assertArtifactVariantAllowed(resolutionPolicy, resolved.manifestHash);
   const assertRaw = (apiName) => assertUnreceiptedExecutionAllowed(
@@ -181,106 +183,114 @@ export function createModelHandle(pipeline, resolved) {
   );
 
   async function generateWithEvidence(prompt, options = {}) {
-    assertExecutionMayStart(resolutionPolicy);
-    const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
     assertSupportedGenerationOptions(options);
     const executionOptions = resolveTextGenerationRequest(options, pipeline.runtimeConfig, pipeline.modelConfig);
     const generationConfig = resolveGenerationConfigEvidence(executionOptions, options);
-    const result = await pipeline.generateTokenIds(prompt, executionOptions);
-    const tokenIds = Array.from(result?.tokenIds || [], Number);
-    const outputText = decodeGeneratedTokens(pipeline, tokenIds);
-    const stats = result?.stats || pipeline.getStats?.() || null;
-    const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
-      ? pipeline.getKernelCapabilities()
-      : getKernelCapabilities();
-    const backendIdentity = buildGenerationBackendIdentity({
-      deviceInfo: kernelCapabilities?.adapterInfo || null,
-      kernelCapabilities,
-      stats,
-    });
-    assertActiveAdapterUnchanged(pipeline, activeAdapter);
-    return buildGenerationEvidence({
-      outputText,
-      tokenIds,
-      generationConfig,
-      logicalModelId: resolved.logicalModelId ?? resolved.modelId,
-      modelId: resolved.modelId,
-      manifestHash: resolved.manifestHash || null,
-      resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
-      activeAdapter,
-      backendIdentity,
-      stats,
-      resolutionPolicy,
+    return runPipelineOperation(pipeline, async (pipeline) => {
+      assertExecutionMayStart(resolutionPolicy);
+      const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
+      const result = await pipeline.generateTokenIds(prompt, executionOptions);
+      const tokenIds = Array.from(result?.tokenIds || [], Number);
+      const outputText = decodeGeneratedTokens(pipeline, tokenIds);
+      const stats = result?.stats || pipeline.getStats?.() || null;
+      const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
+        ? pipeline.getKernelCapabilities()
+        : getKernelCapabilities();
+      const backendIdentity = buildGenerationBackendIdentity({
+        deviceInfo: kernelCapabilities?.adapterInfo || null,
+        kernelCapabilities,
+        stats,
+      });
+      assertActiveAdapterUnchanged(pipeline, activeAdapter);
+      return buildGenerationEvidence({
+        outputText,
+        tokenIds,
+        generationConfig,
+        logicalModelId: resolved.logicalModelId ?? resolved.modelId,
+        modelId: resolved.modelId,
+        manifestHash: resolved.manifestHash || null,
+        resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
+        activeAdapter,
+        backendIdentity,
+        stats,
+        resolutionPolicy,
+      });
     });
   }
 
   async function embedWithEvidence(prompt, options = {}) {
-    assertExecutionMayStart(resolutionPolicy);
-    const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
-    const result = await pipeline.embed(prompt, options);
-    const stats = pipeline.getStats?.() || null;
-    const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
-      ? pipeline.getKernelCapabilities()
-      : getKernelCapabilities();
-    const backendIdentity = buildGenerationBackendIdentity({
-      deviceInfo: kernelCapabilities?.adapterInfo || null,
-      kernelCapabilities,
-      stats,
-    });
-    assertActiveAdapterUnchanged(pipeline, activeAdapter);
-    return buildEmbeddingEvidence({
-      prompt,
-      result,
-      logicalModelId: resolved.logicalModelId ?? resolved.modelId,
-      modelId: resolved.modelId,
-      manifestHash: resolved.manifestHash || null,
-      resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
-      activeAdapter,
-      backendIdentity,
-      stats,
-      resolutionPolicy,
+    return runPipelineOperation(pipeline, async (pipeline) => {
+      assertExecutionMayStart(resolutionPolicy);
+      const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
+      const result = await pipeline.embed(prompt, options);
+      const stats = pipeline.getStats?.() || null;
+      const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
+        ? pipeline.getKernelCapabilities()
+        : getKernelCapabilities();
+      const backendIdentity = buildGenerationBackendIdentity({
+        deviceInfo: kernelCapabilities?.adapterInfo || null,
+        kernelCapabilities,
+        stats,
+      });
+      assertActiveAdapterUnchanged(pipeline, activeAdapter);
+      return buildEmbeddingEvidence({
+        prompt,
+        result,
+        logicalModelId: resolved.logicalModelId ?? resolved.modelId,
+        modelId: resolved.modelId,
+        manifestHash: resolved.manifestHash || null,
+        resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
+        activeAdapter,
+        backendIdentity,
+        stats,
+        resolutionPolicy,
+      });
     });
   }
 
   async function rerankWithEvidence(query, documents, options = {}) {
-    assertExecutionMayStart(resolutionPolicy);
-    const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
-    const { normalizedQuery, normalizedDocuments, scores, ranking } = await collectModelRerankScores(
-      pipeline, query, documents, options
-    );
-    const stats = pipeline.getStats?.() || null;
-    const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
-      ? pipeline.getKernelCapabilities()
-      : getKernelCapabilities();
-    const backendIdentity = buildGenerationBackendIdentity({
-      deviceInfo: kernelCapabilities?.adapterInfo || null,
-      kernelCapabilities,
-      stats,
+    documents = Array.isArray(documents) ? [...documents] : documents;
+    options = { ...options };
+    return runPipelineOperation(pipeline, async (pipeline) => {
+      assertExecutionMayStart(resolutionPolicy);
+      const activeAdapter = getActiveLoRAIdentityForPipeline(pipeline);
+      const { normalizedQuery, normalizedDocuments, scores, ranking } = await collectModelRerankScores(
+        pipeline, query, documents, options
+      );
+      const stats = pipeline.getStats?.() || null;
+      const kernelCapabilities = typeof pipeline.getKernelCapabilities === 'function'
+        ? pipeline.getKernelCapabilities()
+        : getKernelCapabilities();
+      const backendIdentity = buildGenerationBackendIdentity({
+        deviceInfo: kernelCapabilities?.adapterInfo || null,
+        kernelCapabilities,
+        stats,
+      });
+      assertActiveAdapterUnchanged(pipeline, activeAdapter);
+      const identity = await buildResolutionIdentity({
+        logicalModelId: resolved.logicalModelId ?? resolved.modelId,
+        modelId: resolved.modelId,
+        manifestHash: resolved.manifestHash || null,
+        resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
+        activeAdapter,
+        backendIdentity,
+        resolutionPolicy,
+      });
+      return {
+        schema: RERANK_EVIDENCE_SCHEMA,
+        query: normalizedQuery,
+        documents: normalizedDocuments,
+        scores,
+        ranking,
+        inputHash: hashEvidenceValue({ query: normalizedQuery, documents: normalizedDocuments }),
+        outputHash: hashEvidenceValue({ scores, ranking }),
+        resolution: identity.resolution,
+        executionIdentity: identity.executionIdentity,
+        backendIdentity,
+        backendIdentityHash: hashEvidenceValue(backendIdentity),
+        stats: snapshotModelEvidenceStats(stats),
+      };
     });
-    assertActiveAdapterUnchanged(pipeline, activeAdapter);
-    const identity = await buildResolutionIdentity({
-      logicalModelId: resolved.logicalModelId ?? resolved.modelId,
-      modelId: resolved.modelId,
-      manifestHash: resolved.manifestHash || null,
-      resolvedRuntimeSessionId: pipeline.resolvedRuntimeSession?.id ?? null,
-      activeAdapter,
-      backendIdentity,
-      resolutionPolicy,
-    });
-    return {
-      schema: RERANK_EVIDENCE_SCHEMA,
-      query: normalizedQuery,
-      documents: normalizedDocuments,
-      scores,
-      ranking,
-      inputHash: hashEvidenceValue({ query: normalizedQuery, documents: normalizedDocuments }),
-      outputHash: hashEvidenceValue({ scores, ranking }),
-      resolution: identity.resolution,
-      executionIdentity: identity.executionIdentity,
-      backendIdentity,
-      backendIdentityHash: hashEvidenceValue(backendIdentity),
-      stats: snapshotModelEvidenceStats(stats),
-    };
   }
 
   const handle = {

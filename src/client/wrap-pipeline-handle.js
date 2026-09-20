@@ -1,4 +1,5 @@
 import { LORA_MODULE_ALIASES } from '../inference/pipelines/text/lora.js';
+import { scopePipelineShaders, runPipelineOperation, updatePipelineAdapter } from '../inference/pipelines/shader-scoped-pipeline.js';
 
 async function collectText(iterable) {
   let result = '';
@@ -110,6 +111,7 @@ export function wrapPipelineAsHandle(pipeline, resolved = {}) {
   if (!pipeline || typeof pipeline.generate !== 'function') {
     throw new Error('wrapPipelineAsHandle requires a loaded pipeline with a generate() method.');
   }
+  pipeline = scopePipelineShaders(pipeline);
 
   return {
     get loaded() {
@@ -188,6 +190,7 @@ export function wrapPipelineAsDreamProvider(pipeline, resolved = {}) {
   if (typeof pipeline.getActiveLoRA !== 'function') {
     throw new Error('wrapPipelineAsDreamProvider requires pipeline.getActiveLoRA().');
   }
+  pipeline = scopePipelineShaders(pipeline);
 
   const adapters = new Map();
 
@@ -205,10 +208,11 @@ export function wrapPipelineAsDreamProvider(pipeline, resolved = {}) {
       return resolved.device || pipeline.gpuContext?.device || pipeline.device || null;
     },
     async attachLoraAdapter(adapter) {
-      const { finalizeLoRAAdapter } = await import('../experimental/adapters/lora-loader.js');
-      const normalized = await finalizeLoRAAdapter(normalizeDreamLoraAdapter(adapter));
+      const normalized = await updatePipelineAdapter(pipeline, async () => {
+        const { finalizeLoRAAdapter } = await import('../experimental/adapters/lora-loader.js');
+        return finalizeLoRAAdapter(normalizeDreamLoraAdapter(adapter));
+      });
       adapters.set(normalized.name, normalized);
-      pipeline.setLoRAAdapter(normalized);
       return {
         adapterId: normalized.name,
         rank: normalized.rank,
@@ -223,9 +227,9 @@ export function wrapPipelineAsDreamProvider(pipeline, resolved = {}) {
       if (id && !adapters.has(id)) {
         throw new Error(`wrapPipelineAsDreamProvider: cannot detach unknown LoRA adapter "${id}".`);
       }
+      await updatePipelineAdapter(pipeline, () => null);
       if (id) adapters.delete(id);
       if (!id) adapters.clear();
-      pipeline.setLoRAAdapter(null);
       return { detached: true, adapterId: id };
     },
     async generate(request = {}) {
@@ -242,19 +246,21 @@ export function wrapPipelineAsDreamProvider(pipeline, resolved = {}) {
       if (loraAdapterId && !targetAdapter) {
         throw new Error(`wrapPipelineAsDreamProvider.generate requested unknown LoRA adapter "${loraAdapterId}".`);
       }
-      const previousAdapter = pipeline.getActiveLoRA();
-      pipeline.setLoRAAdapter(targetAdapter);
-      try {
-        const text = await collectText(pipeline.generate(prompt, samplingOptions));
-        return {
-          text,
-          useLora: Boolean(targetAdapter),
-          baseModelId: getPipelineModelId(pipeline, resolved),
-          loraAdapterId,
-        };
-      } finally {
-        pipeline.setLoRAAdapter(previousAdapter || null);
-      }
+      return runPipelineOperation(pipeline, async (pipeline) => {
+        const previousAdapter = pipeline.getActiveLoRA();
+        pipeline.setLoRAAdapter(targetAdapter);
+        try {
+          const text = await collectText(pipeline.generate(prompt, samplingOptions));
+          return {
+            text,
+            useLora: Boolean(targetAdapter),
+            baseModelId: getPipelineModelId(pipeline, resolved),
+            loraAdapterId,
+          };
+        } finally {
+          pipeline.setLoRAAdapter(previousAdapter || null);
+        }
+      });
     },
   };
 }
