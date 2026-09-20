@@ -16,9 +16,10 @@ function $(id) { return document.getElementById(id); }
 function refreshRuntimeNotice() {
   const xrayEnabled = $('xray-toggle-all')?.checked === true;
   const wordQualityEnabled = $('set-word-quality')?.checked === true;
+  const tokenInspectorActive = state.tokenInspectorActive;
   const summary = document.querySelector('.chat-controls-summary-state');
   if (summary) {
-    summary.textContent = [xrayEnabled && 'X-Ray', wordQualityEnabled && 'Word quality']
+    summary.textContent = [xrayEnabled && 'X-Ray', wordQualityEnabled && 'Word quality', tokenInspectorActive && 'Tokens']
       .filter(Boolean).join(' · ') || 'Standard';
   }
   const xraySummary = $('xray-summary-state');
@@ -34,11 +35,12 @@ function refreshRuntimeNotice() {
   if (!el) return;
   const text = getXrayRuntimeNoticeText({
     wordQualityEnabled,
+    tokenInspectorActive,
     traceEnabled: $('set-trace')?.checked === true,
     profilingEnabled: isXrayProfilingNeeded(),
   });
   el.textContent = text ?? '';
-  el.hidden = !xrayEnabled && !wordQualityEnabled;
+  el.hidden = !xrayEnabled && !wordQualityEnabled && !tokenInspectorActive;
 }
 
 async function init() {
@@ -63,6 +65,7 @@ async function init() {
   // Wire sample inspection
   $('sample-run-btn')?.addEventListener('click', () => {
     loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
+    refreshRuntimeNotice();
   });
 
   // Wire token inspector toggle
@@ -76,6 +79,7 @@ async function init() {
       inspectorToggle.classList.toggle('is-active', state.tokenInspectorActive);
       inspectorToggle.setAttribute('aria-pressed', String(state.tokenInspectorActive));
       showTokenInspectorView(state.tokenInspectorActive);
+      refreshRuntimeNotice();
     });
   }
 

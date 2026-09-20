@@ -48,3 +48,8 @@ assert.equal(
 );
 
 console.log('xray-runtime-notice.test: ok');
+
+assert.equal(
+  getXrayRuntimeNoticeText({ tokenInspectorActive: true, wordQualityEnabled: false, profilingEnabled: false }),
+  'Guided quality inspection captures token probabilities and changes execution. Compare quality only when the canonical fingerprint matches.'
+);

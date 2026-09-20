@@ -1,4 +1,14 @@
-# Incremental hashing checkpoint
+# Memory-safe loading acceptance
+
+Final physical status: the original unbounded-retention two-session case and the
+separate 4 GiB byte-cache control both pass through installed public APIs on the
+retained archive below. Each produces four exact matches to the frozen 107-token
+reference. The historical checkpoints explain why hashing alone was insufficient
+and why the subsequent backing-store change was required. This is scoped Qwen3-4B
+generation acceptance on Linux/Chrome 146.0.7680.177 with an AMD RDNA-3 adapter,
+not universal model, hardware, Bun, embedding, or adapter qualification.
+
+## Hashing-only checkpoint
 
 Component: doppler.runtime-source.formats, doppler.runtime-source.storage,
 doppler.tests, doppler.repository-tooling. Intent: preserved.
@@ -46,7 +56,7 @@ cancellation/rejected preparation, all matching the frozen tokens. Opening the
 second session failed at `Uint8Array.from` in verified-capsule-artifact-store.js:41,
 not SHA padding. Full error, measurements, and observations are in
 hash-only-physical-receipt.json. This establishes the need for the next verified
-backing-store repair; the original allocation gate remains open. No backing-store
+backing-store repair; the original allocation gate remained open at this checkpoint. No backing-store
 change preceded this result. Memory instrumentation measures WebGPU object
 lifetimes, not physical driver residency. Source/copy/hash/retention counters
 remain separate; a low hashing workspace does not imply low total retention.
@@ -57,8 +67,8 @@ Fast-forwarded to f0ce543f, preserving incoming UI, live-token evidence, and
 cache progress changes. Focused incoming generation-evidence and OPFS tests
 pass. Generated dependency and runtime-closure inventories are synchronized.
 The measured merged package remains 1,858 files (see package-audit.json).
-This newer merged source is not the archive in the running physical test.
-Full check:green is still running at this checkpoint. No release publication.
+This newer merged source was not the hashing-only physical archive.
+Full check:green was still running at this checkpoint. No release publication.
 
 ## Measurement-led backing repair (after checkpoint)
 
@@ -105,8 +115,14 @@ backing leases and byte-cache retention. The runtime archive SHA-256 is
 The second `npm run check:green` exits zero with 850 unit test files passing.
 Focused allocation tests and the CI-toolchain package budget also pass. Incoming
 UI defaults are preserved; two stale tests now expect X-Ray/perplexity to start
-disabled. The separate 4 GiB retention control is running against the same archive
-(blocks-4gib-config.json); its result is not implied by the original-case pass.
+disabled. The separate 4 GiB retention control also passes against the same archive
+(blocks-4gib-config.json and blocks-4gib-physical-summary.json). It completes all
+four reference requests with zero cache evictions. Across both sessions the store
+reads and hashes 8,050,837,118 source bytes once, rather than reacquiring artifacts
+after eviction. The second session adds zero source reads, hashed bytes, or backing
+copies; returned slices and GPU materialization remain separately measured work.
+The original run takes 490,552 ms and the control 478,945 ms; these are acceptance
+durations, not a controlled performance comparison.
 
 GPU observation at final close reports 4,949,428,824 bytes created but not explicitly
 destroyed (486 objects), separately from backing leases. Device-pool lifetime,
@@ -120,3 +136,29 @@ doppler.repository-tooling. Intent: preserved. Boundary effects: host supplies
 an opaque backing owner to Capsule execution; permissions and session state are
 not shared. API documentation and generated package/runtime inventories track
 the changed storage lifecycle and observation fields.
+
+## Final integration acceptance
+
+The installed-consumer workflow for runtime commit `00d6e6ee` passes:
+[GitHub Actions run](https://github.com/clocksmith/doppler/actions/runs/35485721486).
+The final browser WebGPU suite passes in its declared SwiftShader lane with
+unsupported-capability skips; that suite does not replace the physical model runs.
+
+The real-page demo contract exposed a stale expectation of the incoming UI defaults
+and a notice that ignored the enabled Tokens observer. The notice now describes
+the actual guided-quality policy, including after loading the sample inspection.
+The incoming UI, defaults, and execution policy are preserved. The real-page
+`npm run test:demo:contract` passes with mocked model execution and no fatal console
+errors. This is UI contract evidence, not another physical generation run.
+The final shell digest is
+`sha256:bba14ee9eee6e1a5c753c13ed3e6c427833922a78fe28b066de28e83f69379a1`.
+
+The `doppler-debug` protocol kept the repair measurement-led: reproduce after
+hashing alone, then change backing ownership only after the original case still
+failed. No numerical kernels or frozen references changed. No release is published.
+
+Component: doppler.demo, doppler.tests. Intent: preserved.
+Acceptance evidence: `npm run test:demo:contract`,
+`npm run demo:reachability:check`, `npm run typecheck:source`,
+`npm run catscan:check`, and `checks.json`.
+Boundary effects: none; notice presentation follows existing observation policy.

@@ -17,8 +17,35 @@
     {
       "path": "/var/tmp/doppler-memory-sha-final.log",
       "sha256": "1d0ca13a4d42d1e9a1e5841a1913b7440594fb7db8abd7f735decb3f3fa032b6"
+    },
+    {
+      "path": "/var/tmp/doppler-memory-demo-browser-final.log",
+      "sha256": "3d1209289e9689298da7a85a92c63e5ccb261a12bf08ebe4590c3ca0101e9da2"
+    },
+    {
+      "path": "/var/tmp/doppler-memory-gpu-browser.log",
+      "sha256": "fc6149d35eeda61f1b7cb823c2a2fa93af91c4ae8b5db75b3d2691369453c6bb"
     }
   ],
+  "physicalAcceptance": {
+    "originalUnbounded": "blocks-physical-summary.json",
+    "separate4GiBCache": "blocks-4gib-physical-summary.json",
+    "passed": true,
+    "completedReferenceMatchesPerRun": 4,
+    "scope": "Retained Qwen3-4B generation Capsule; Linux Chrome 146.0.7680.177; physical AMD RDNA-3 adapter. Cache budget is not a total model memory bound."
+  },
+  "browserChecks": {
+    "demoContract": {
+      "command": "npm run test:demo:contract",
+      "exitCode": 0,
+      "executionClass": "mocked-contract"
+    },
+    "gpuContract": {
+      "command": "npm run test:gpu:browser",
+      "exitCode": 0,
+      "executionClass": "SwiftShader with declared unsupported-capability skips"
+    }
+  },
   "sourceParity": {
     "matchedChangedShippedFiles": 5,
     "archiveSha256": "b2ba7dbf7a18df458a702881439d2f9195b8b2a6a864f5fed2fa51afba831f6c"

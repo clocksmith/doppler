@@ -116,7 +116,7 @@ export function getXrayRuntimeNoticeText(options = {}) {
   if (options.profilingEnabled) {
     return 'Deep X-Ray modifies execution and enables GPU timestamp queries. Its timings are diagnostic, not representative throughput.';
   }
-  if (options.wordQualityEnabled) {
+  if (options.wordQualityEnabled || options.tokenInspectorActive) {
     return 'Guided quality inspection captures token probabilities and changes execution. Compare quality only when the canonical fingerprint matches.';
   }
   return 'Always-on evidence records existing wall timing without GPU timestamp queries. This is the performance-representative observation tier.';

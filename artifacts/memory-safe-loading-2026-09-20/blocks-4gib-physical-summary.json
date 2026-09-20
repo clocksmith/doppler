@@ -2,8 +2,8 @@
   "schema": "doppler.memory-loading-physical-summary/v1",
   "passed": true,
   "browserVersion": "146.0.7680.177",
-  "originalReceiptPath": "/var/tmp/doppler-memory-blocks-v2-20260920/physical/receipt.json",
-  "originalReceiptSha256": "169dd093c51d173a529ecfa14bdb79fca75a88ece09aafe559aaedb4c94fd528",
+  "originalReceiptPath": "/var/tmp/doppler-memory-blocks-v2-20260920/physical-4gib/receipt.json",
+  "originalReceiptSha256": "9c2fa7f14075103f4752b619121118e617963f5a5ef1ab0b2a3662e830539c7f",
   "package": {
     "filename": "doppler-gpu-0.6.2.tgz",
     "version": "0.6.2",
@@ -12,11 +12,11 @@
     "source": "local-npm-pack",
     "sha256": "b2ba7dbf7a18df458a702881439d2f9195b8b2a6a864f5fed2fa51afba831f6c"
   },
-  "startedAtUtc": "2026-09-20T02:56:15.964Z",
-  "completedAtUtc": "2026-09-20T03:04:26.516Z",
+  "startedAtUtc": "2026-09-20T03:04:59.118Z",
+  "completedAtUtc": "2026-09-20T03:12:58.063Z",
   "runnerSha256": "99ccccfe9055a491a70da918ba1d920ce2db07609e1a79e54a061cc5efd27d14",
   "memoryProbeSha256": "3a70eb50f18b2b9820d7caefa0c3298c1a5778339a682c6c1a01b0061cfab304",
-  "retentionBytes": null,
+  "retentionBytes": 4294967296,
   "results": [
     {
       "passed": true,
@@ -100,7 +100,7 @@
           "liveCount": 0,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 16364757,
+        "jsHeapUsedBytes": 16439517,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -122,7 +122,7 @@
           "liveCount": 0,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 16552894,
+        "jsHeapUsedBytes": 16492862,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -140,9 +140,9 @@
           "peakRetainedBytes": 0,
           "returnedBytes": 0,
           "evictions": 0,
-          "sourceReadMs": 5061.799997806549,
-          "hashingMs": 121797.59999465942,
-          "copyingMs": 2262.7000007629395,
+          "sourceReadMs": 4850.599995136261,
+          "hashingMs": 119376.4999909401,
+          "copyingMs": 2211.600013256073,
           "backingBytes": 8050837118,
           "peakBackingBytes": 8050837118,
           "backingFiles": 147,
@@ -161,7 +161,7 @@
           "liveCount": 0,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 8091431825,
+        "jsHeapUsedBytes": 8090752567,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -183,7 +183,7 @@
           "liveCount": 553,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9236336623,
+        "jsHeapUsedBytes": 9178929138,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -200,9 +200,9 @@
           "peakRetainedBytes": 5698022,
           "returnedBytes": 16106849387,
           "evictions": 0,
-          "sourceReadMs": 5061.799997806549,
-          "hashingMs": 121797.59999465942,
-          "copyingMs": 5947.600004673004,
+          "sourceReadMs": 4850.599995136261,
+          "hashingMs": 119376.4999909401,
+          "copyingMs": 5839.400016784668,
           "backingBytes": 8050837118,
           "peakBackingBytes": 8050837118,
           "backingFiles": 147,
@@ -221,7 +221,7 @@
           "liveCount": 553,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9236347347,
+        "jsHeapUsedBytes": 9178939862,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -241,7 +241,7 @@
           "liveCount": 871,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9189325478,
+        "jsHeapUsedBytes": 9186539654,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -261,7 +261,7 @@
           "liveCount": 871,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9187406832,
+        "jsHeapUsedBytes": 9189664308,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -281,7 +281,7 @@
           "liveCount": 907,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9191814763,
+        "jsHeapUsedBytes": 9194193475,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -303,7 +303,7 @@
           "liveCount": 907,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9191823735,
+        "jsHeapUsedBytes": 9194202447,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -323,7 +323,7 @@
           "liveCount": 871,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9187529614,
+        "jsHeapUsedBytes": 9190480264,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -343,7 +343,7 @@
           "liveCount": 943,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9204841806,
+        "jsHeapUsedBytes": 9204653453,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -365,7 +365,7 @@
           "liveCount": 943,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9204850998,
+        "jsHeapUsedBytes": 9204662645,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -404,7 +404,7 @@
           "liveCount": 943,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9204859970,
+        "jsHeapUsedBytes": 9204671617,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -426,7 +426,7 @@
           "liveCount": 1493,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9190093907,
+        "jsHeapUsedBytes": 9260408825,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -445,7 +445,7 @@
           "evictions": 0,
           "sourceReadMs": 0,
           "hashingMs": 0,
-          "copyingMs": 4827.599986553192,
+          "copyingMs": 3709.9999985694885,
           "backingBytes": 8050837118,
           "peakBackingBytes": 8050837118,
           "backingFiles": 147,
@@ -464,7 +464,7 @@
           "liveCount": 1493,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9190104655,
+        "jsHeapUsedBytes": 9260419573,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -482,9 +482,9 @@
           "peakRetainedBytes": 5698022,
           "returnedBytes": 16106849387,
           "evictions": 0,
-          "sourceReadMs": 5061.799997806549,
-          "hashingMs": 121797.59999465942,
-          "copyingMs": 5947.600004673004,
+          "sourceReadMs": 4850.599995136261,
+          "hashingMs": 119376.4999909401,
+          "copyingMs": 5839.400016784668,
           "backingBytes": 0,
           "peakBackingBytes": 8050837118,
           "backingFiles": 0,
@@ -503,7 +503,7 @@
           "liveCount": 1493,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9190113627,
+        "jsHeapUsedBytes": 9260428545,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -523,7 +523,7 @@
           "liveCount": 985,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9187328469,
+        "jsHeapUsedBytes": 9187375800,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -543,7 +543,7 @@
           "evictions": 0,
           "sourceReadMs": 0,
           "hashingMs": 0,
-          "copyingMs": 4827.599986553192,
+          "copyingMs": 3709.9999985694885,
           "backingBytes": 0,
           "peakBackingBytes": 8050837118,
           "backingFiles": 0,
@@ -562,7 +562,7 @@
           "liveCount": 486,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9189850513,
+        "jsHeapUsedBytes": 9189886564,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     },
@@ -579,7 +579,7 @@
           "liveCount": 486,
           "failedAllocations": 0
         },
-        "jsHeapUsedBytes": 9189859285,
+        "jsHeapUsedBytes": 9189895336,
         "scope": "Observed WebGPU object lifetimes and browser-reported JS heap; not physical driver residency or hashing workspace."
       }
     }
@@ -588,6 +588,6 @@
   "measurementLimits": [
     "GPU liveBytes means created minus explicit destroy/device loss observed by the probe; garbage collection and driver residency are not measured.",
     "Closing releases backing leases, not a synchronous browser heap reclamation guarantee.",
-    "Per-session backingBytes includes shared leases; sum snapshotCopiedBytes for newly allocated backing, not backingBytes across sessions."
+    "Cache budget excludes shared model-sized backing and loader/GPU resources."
   ]
 }
