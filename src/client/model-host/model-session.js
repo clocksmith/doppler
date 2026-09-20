@@ -13,6 +13,7 @@ import {
   MODEL_INSPECTION_RECEIPT_SCHEMA,
   aggregateWordPerplexity,
   buildComparisonFingerprint,
+  buildInspectionTokenRecord,
   buildInspectionTokenRecords,
   listObservationPolicies,
   resolveObservationPolicy,
@@ -527,17 +528,28 @@ export function createModelHandle(pipeline, resolved) {
       }
       let streaming = typeof options.onEvent === 'function';
       let tokenIndex = 0;
-      if (streaming) {
-        generationOptions.onToken = (tokenId) => {
-          if (streaming && !generationOptions.signal?.aborted) {
-            options.onEvent({ type: 'token', tokenId, index: tokenIndex++ });
-          }
-        };
-      }
+      const topKSize = Number.isInteger(options.topKSize) ? options.topKSize : 5;
       const logitsByStep = [];
       if (policy.requiredCaptures.includes('selected-token-probabilities')) {
         generationOptions.onLogits = (logits) => {
           logitsByStep.push(Float32Array.from(logits));
+        };
+      }
+      if (streaming) {
+        generationOptions.onToken = (tokenId) => {
+          if (streaming && !generationOptions.signal?.aborted) {
+            const index = tokenIndex++;
+            const logits = logitsByStep[index] ?? null;
+            const token = logits
+              ? buildInspectionTokenRecord(tokenId, logits, pipeline.tokenizer, topKSize, index)
+              : null;
+            options.onEvent({
+              type: 'token',
+              tokenId,
+              index,
+              ...(token ? { token } : {}),
+            });
+          }
         };
       }
       const startedAt = performance.now();
@@ -555,7 +567,7 @@ export function createModelHandle(pipeline, resolved) {
           evidence.tokenIds,
           logitsByStep,
           pipeline.tokenizer,
-          Number.isInteger(options.topKSize) ? options.topKSize : 5
+          topKSize
         )
         : [];
       const quality = policy.perplexity

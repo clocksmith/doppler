@@ -95,11 +95,11 @@
   --z-modal: 10000;
 
   /* === ACCENT === */
-  /* Prism: full-spectrum conic gradient. Max one per page.
+  /* Prism: blue, purple, and red accent gradient. Max one per page.
      Requires @property --prism-angle above for CSS animation. */
   --prism: conic-gradient(
     from var(--prism-angle, 0deg),
-    #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0080ff, #8000ff, #ff0080, #ff0000
+    #2563eb, #7958db, #d13b4d, #7958db, #2563eb
   );
 }
 

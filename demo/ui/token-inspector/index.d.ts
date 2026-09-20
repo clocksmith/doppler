@@ -8,4 +8,5 @@ export interface InspectedToken {
 export declare function isTokenInspectorActive(): boolean;
 export declare function setTokenInspectorActive(active: boolean): void;
 export declare function selectToken(index: number): void;
+export declare function appendTokenInspectorToken(token: InspectedToken, streamContainer?: HTMLElement | null, cardContainer?: HTMLElement | null): void;
 export declare function renderTokenInspector(tokens: InspectedToken[], streamContainer: HTMLElement, cardContainer: HTMLElement): void;

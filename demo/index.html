@@ -234,11 +234,11 @@
           <div class="chat-toolbar-main">
             <label class="chat-toggle" title="Show every inference-internals panel.">
               <span class="chat-toggle-label">X-Ray</span>
-              <input id="xray-toggle-all" type="checkbox" checked>
+              <input id="xray-toggle-all" type="checkbox">
             </label>
             <label class="chat-toggle" title="Show summed word surprisal, rolling perplexity, and cumulative sequence perplexity.">
               <span class="chat-toggle-label">Perplexity</span>
-              <input id="set-word-quality" type="checkbox" checked>
+              <input id="set-word-quality" type="checkbox">
             </label>
             <button id="settings-toggle" class="btn btn-ghost btn-small" type="button" aria-expanded="false" aria-controls="settings-panel">Advanced</button>
           </div>
@@ -359,7 +359,7 @@
         </div>
         <div class="input-actions">
           <label class="output-limit" for="set-max-tokens">
-            Output limit
+            <span>Output limit</span>
             <select id="set-max-tokens" aria-label="Maximum output tokens">
               <option value="128">128 tokens</option>
               <option value="256" selected>256 tokens</option>

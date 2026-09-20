@@ -9,13 +9,13 @@
   text-decoration-skip-ink: auto;
   cursor: help;
 }
-.word-quality--unavailable { text-decoration-color: #92928a; text-decoration-style: dotted; }
+.word-quality--unavailable { text-decoration-color: #929292; text-decoration-style: dotted; }
 .word-quality-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
   font: 11px/1.6 var(--font-mono);
-  color: #66665f;
+  color: #666666;
 }
 .word-quality-legend[hidden] { display: none; }
 .quality-low { text-decoration: underline 2px #2563eb; text-underline-offset: 4px; }

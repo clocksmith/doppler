@@ -26,6 +26,8 @@ Models returned by `dr.load()` expose
 promise is pending, `onEvent` receives ordered `{ type: 'token', tokenId, index }`
 events, including the first generated token and stop tokens. These observations
 preserve the selected decode batching and do not request extra GPU readbacks.
+Policies that already capture selected-token probabilities add an optional `token`
+record to each live event; it is the same record retained by the completed receipt.
 
 Buffer IDs and decode them together with `model.advanced.decodeTokenIds(ids)`;
 individual tokens can contain incomplete Unicode bytes or context-sensitive

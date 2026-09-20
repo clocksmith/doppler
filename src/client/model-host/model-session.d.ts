@@ -229,6 +229,8 @@ export interface DopplerModelHandle {
           type: 'token';
           tokenId: number;
           index: number;
+          /** Present when the selected observation policy captures token probabilities. */
+          token?: DopplerInspectionTokenRecord;
         } | {
           type: 'inspection-complete';
           receipt: DopplerModelInspectionReceipt;

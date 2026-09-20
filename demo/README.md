@@ -28,8 +28,10 @@ the root `dr` API from `doppler-gpu`. Runtime-profile controls use
 code may not import the compatibility `doppler-gpu/tooling` barrel.
 
 `model.inspect.generate(prompt, { onEvent, generation, policyId })` emits ordered
-`{ type: 'token', tokenId, index }` events during generation, including the first
-and stop tokens. Consumers decode IDs using `model.advanced.decodeTokenIds(ids)`;
+`{ type: 'token', tokenId, index, token? }` events during generation, including
+the first and stop tokens. Probability-capturing policies attach the matching
+inspection token record so interfaces can render confidence as the answer arrives.
+Consumers decode IDs using `model.advanced.decodeTokenIds(ids)`;
 an ID is not necessarily a complete character. Events do not change decode
 batching or request extra GPU readbacks. Callbacks are synchronous and should
 buffer work. The final `{ type: 'inspection-complete', receipt }` event and returned

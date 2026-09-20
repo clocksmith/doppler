@@ -44,7 +44,7 @@ function setStatus(text, busy) {
 
 function resolvePolicyId() {
   if (isXrayEnabled()) return 'demo/deep-xray';
-  if (state.wordQualityEnabled) return 'demo/guided-quality';
+  if (state.wordQualityEnabled || state.tokenInspectorActive) return 'demo/guided-quality';
   return 'demo/always-on';
 }
 
@@ -101,7 +101,7 @@ export async function runGeneration() {
           setPhase('Generating');
           setPrefillProgress(100);
         }
-        stream.push(event.tokenId);
+        stream.push(event.tokenId, event.token ?? null);
       },
       generation: {
         temperature: settings.temperature,

@@ -7,9 +7,9 @@ let onChangeCallback = null;
 
 function readPreference() {
   try {
-    return localStorage.getItem(XRAY_STORAGE_KEY) !== 'false';
+    return localStorage.getItem(XRAY_STORAGE_KEY) === 'true';
   } catch {
-    return true;
+    return false;
   }
 }
 
