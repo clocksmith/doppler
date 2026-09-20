@@ -211,3 +211,13 @@ it does not claim submitted GPU commands were interrupted. This pass qualifies
 the controlled fixture and explicit 4 GiB retention policy only. The earlier
 1,200,000 ms bounded control remains a timeout, and the unbounded allocation
 failure remains a failed gate. Historical receipts have not been rewritten.
+
+## Successor loading acceptance (2026-09-20)
+
+The [memory-safe loading record](../memory-safe-loading-2026-09-20/README.md)
+retains a new installed archive with the incremental-hashing and owned-backing
+repairs. Its original unbounded two-session case and separate 4 GiB control pass,
+as do the unchanged embedding, reranking, and seven-operation zero-delta adapter
+fixtures. The loading blocker is closed for that exact candidate; this historical
+archive's failures and limitations above remain unchanged. Nonzero adapters,
+additional hardware, startup optimizations, and publication are separate decisions.
