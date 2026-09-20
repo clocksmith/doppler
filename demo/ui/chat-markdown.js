@@ -1,7 +1,13 @@
 // Chat Markdown uses DOM construction only. HTML and image embeds stay inert.
 // Source offsets keep recorded word-quality data attached to the right text.
+/**
+ * @param {HTMLElement} container
+ * @param {string} source
+ * @param {import('./chat-markdown.js').ChatMarkdownQuality | null} quality
+ */
 export function renderChatMarkdown(container, source, quality = null) {
   const text = String(source ?? '').replace(/\r\n?/g, '\n');
+  /** @type {Array<{ start: number, end: number, word: NonNullable<import('./chat-markdown.js').ChatMarkdownQuality['words']>[number] }>} */
   const ranges = [];
   let cursor = 0;
   for (const word of quality?.words || []) {
@@ -12,6 +18,7 @@ export function renderChatMarkdown(container, source, quality = null) {
     cursor = start + word.text.length;
   }
 
+  /** @param {HTMLElement} parent @param {string} value @param {number} offset */
   function appendText(parent, value, offset) {
     let position = 0;
     for (const range of ranges) {
@@ -24,12 +31,14 @@ export function renderChatMarkdown(container, source, quality = null) {
       const word = range.word;
       span.className = 'word-quality';
       span.textContent = value.slice(start, end);
-      const available = Number.isFinite(word.rollingPerplexity);
+      const perplexity = word.rollingPerplexity;
+      const available = typeof perplexity === 'number' && Number.isFinite(perplexity);
       span.classList.toggle('word-quality--unavailable', !available);
       span.style.setProperty('--word-surprisal', String(
-        available ? Math.min(1, Math.log1p(word.rollingPerplexity) / 8) : 0
+        available ? Math.min(1, Math.log1p(perplexity) / 8) : 0
       ));
-      const number = (v) => Number.isFinite(v) ? v.toFixed(3) : 'unavailable';
+      /** @param {number | null} v */
+      const number = (v) => typeof v === 'number' && Number.isFinite(v) ? v.toFixed(3) : 'unavailable';
       span.title = [
         'Perplexity measures model surprise, not factual accuracy.',
         'Rolling perplexity: ' + number(word.rollingPerplexity),
@@ -43,6 +52,7 @@ export function renderChatMarkdown(container, source, quality = null) {
     parent.append(document.createTextNode(value.slice(position)));
   }
 
+  /** @param {HTMLElement} parent @param {string} value @param {number} offset */
   function inline(parent, value, offset) {
     const pattern = /`([^`\n]+)`|\*\*([^*\n]+)\*\*|__([^_\n]+)__|\*([^*\n]+)\*|_([^_\n]+)_|\[([^\]\n]+)\]\(([^)\s]+)\)/g;
     let previous = 0;
@@ -58,9 +68,9 @@ export function renderChatMarkdown(container, source, quality = null) {
         try {
           const url = new URL(match[7], document.baseURI);
           if (!['https:', 'http:', 'mailto:'].includes(url.protocol)) throw new Error('Unsupported link');
-          element.href = url.href;
-          element.target = '_blank';
-          element.rel = 'noopener noreferrer';
+          element.setAttribute('href', url.href);
+          element.setAttribute('target', '_blank');
+          element.setAttribute('rel', 'noopener noreferrer');
         } catch {
           appendText(parent, match[0], offset + match.index);
           previous = match.index + match[0].length;
@@ -82,6 +92,7 @@ export function renderChatMarkdown(container, source, quality = null) {
   });
   const fragment = document.createDocumentFragment();
   const listPattern = /^(\s*)([-+*]|\d+[.)])\s+(.*)$/;
+  /** @param {string} value */
   const beginsBlock = (value) => /^\s*$|^ {0,3}(?:#{1,6}\s|`{3,}|~{3,}|> ?|(?:-{3,}|\*{3,}|_{3,})\s*$)/.test(value)
     || listPattern.test(value);
   let index = 0;
@@ -123,7 +134,7 @@ export function renderChatMarkdown(container, source, quality = null) {
     if (list) {
       const ordered = /^\d/.test(list[2]);
       const node = document.createElement(ordered ? 'ol' : 'ul');
-      if (ordered) node.start = Number.parseInt(list[2], 10);
+      if (ordered) node.setAttribute('start', String(Number.parseInt(list[2], 10)));
       while (index < lines.length) {
         const item = lines[index].value.match(listPattern);
         if (!item || /^\d/.test(item[2]) !== ordered) break;

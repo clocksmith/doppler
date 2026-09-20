@@ -1,0 +1,32 @@
+
+> doppler-gpu@0.6.2 test:demo:contract
+> node tools/demo-contract-smoke.js
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Visible controls must have readable foreground/background pairs
++ actual - expected
+
++ [
++   {
++     id: 'token-inspector-toggle',
++     ratio: 1.1639584401632352
++   }
++ ]
+- []
+
+    at assertControlContrast (file:///home/x/deco/doppler/tests/demo/browser-controls.js:53:10)
+    at async checkDemoControls (file:///home/x/deco/doppler/tests/demo/browser-controls.js:81:3)
+    at async main (file:///home/x/deco/doppler/tools/demo-contract-smoke.js:203:5)
+    at async file:///home/x/deco/doppler/tools/demo-contract-smoke.js:243:1 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [ { id: 'token-inspector-toggle', ratio: 1.1639584401632352 } ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

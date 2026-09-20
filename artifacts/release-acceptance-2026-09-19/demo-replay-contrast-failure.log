@@ -1,0 +1,45 @@
+
+> doppler-gpu@0.6.2 test:demo:contract
+> node tools/demo-contract-smoke.js
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Visible controls must have readable foreground/background pairs
++ actual - expected
+
++ [
++   {
++     background: 'rgba(0, 0, 0, 0) linear-gradient(145deg, rgb(255, 255, 255), rgb(238, 238, 233)) repeat scroll 0% 0% / auto padding-box border-box',
++     color: 'rgb(255, 255, 255)',
++     disabled: false,
++     id: 'precision-replay-toggle',
++     opacity: 0.777,
++     ratio: 1
++   }
++ ]
+- []
+
+    at assertControlContrast (file:///home/x/deco/doppler/tests/demo/browser-controls.js:56:10)
+    at async checkDemoControls (file:///home/x/deco/doppler/tests/demo/browser-controls.js:244:3)
+    at async main (file:///home/x/deco/doppler/tools/demo-contract-smoke.js:203:5)
+    at async file:///home/x/deco/doppler/tools/demo-contract-smoke.js:243:1 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    {
+      id: 'precision-replay-toggle',
+      ratio: 1,
+      color: 'rgb(255, 255, 255)',
+      background: 'rgba(0, 0, 0, 0) linear-gradient(145deg, rgb(255, 255, 255), rgb(238, 238, 233)) repeat scroll 0% 0% / auto padding-box border-box',
+      opacity: 0.777,
+      disabled: false
+    }
+  ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

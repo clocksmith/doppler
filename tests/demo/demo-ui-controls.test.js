@@ -12,8 +12,8 @@ const wordQualityStyles = readFileSync(
   'utf8'
 );
 
-assert.match(html, /Local AI you can inspect\./);
-assert.match(html, /Runs in this browser/);
+assert.match(html, /<h1 class="app-brand-name">Doppler<\/h1>/);
+assert.match(html, /aria-label="Doppler project links"/);
 assert.match(html, /id="inspection-workspace"/);
 assert.match(html, /src="\/demo\/demo\.js"/);
 assert.match(html, /id="model-select"/);
@@ -21,8 +21,8 @@ assert.match(html, /id="model-select-action"/);
 assert.match(modelsSource, /from 'doppler-gpu\/compat'/);
 
 assert.equal((html.match(/id="xray-toggle-all"/g) ?? []).length, 1);
-assert.match(html, /<span class="chat-toggle-label">X-Ray<\/span>\s*<input id="xray-toggle-all" type="checkbox">/);
-assert.match(html, /<span class="chat-toggle-label">Word quality<\/span>\s*<input id="set-word-quality" type="checkbox">/);
+assert.match(html, /<span class="chat-toggle-label">X-Ray<\/span>\s*<input id="xray-toggle-all" type="checkbox" checked>/);
+assert.match(html, /<span class="chat-toggle-label">Perplexity<\/span>\s*<input id="set-word-quality" type="checkbox" checked>/);
 assert.match(html, /chat-controls-summary-state">Standard/);
 assert.match(html, /Enabled · 5 evidence panels/);
 assert.doesNotMatch(html, /capture-transcript|export-transcript|set-token-press/);
@@ -32,8 +32,8 @@ assert.match(wordQualityStyles, /\.word-quality/);
 assert.doesNotMatch(wordQualityStyles, /\.tp-token|\.tp-alternatives/);
 assert.match(settingsSource, /doppler\.demo\.word-quality-enabled/);
 
-assert.match(html, /id="set-max-tokens"[^>]*value="1024"/);
-assert.match(settingsSource, /DEMO_DEFAULT_MAX_TOKENS = 1024/);
+assert.match(html, /<select id="set-max-tokens"[\s\S]*?<option value="256" selected>/);
+assert.match(settingsSource, /DEMO_DEFAULT_MAX_TOKENS = 256/);
 assert.match(html, /id="shuffle-btn"[^>]*>[\s\S]*Example<\/button>/);
 // Inspection accepts text and returns completed timing; don't offer disconnected controls.
 assert.doesNotMatch(html, /id="image-drop"|id="set-live-toks"/);

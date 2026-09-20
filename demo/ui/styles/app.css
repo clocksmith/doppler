@@ -1295,9 +1295,10 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   font-size: var(--font-size-sm);
 }
 
-.precision-replay-toggle[aria-expanded="true"] {
-  background: var(--fg);
-  color: var(--bg);
+.app-shell .precision-replay-toggle[aria-expanded="true"] {
+  background: #222222;
+  color: #ffffff;
+  opacity: 1;
 }
 
 /* --- Status indicator --- */
@@ -1739,7 +1740,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 /* Reading first, inspection alongside it. */
 .app-shell a, .app-shell a:visited { color: inherit; text-decoration-color: currentColor; }
 .app-shell a:hover { text-decoration-thickness: 2px; }
-.app-shell .btn:not(.btn-primary):not(:disabled) {
+.app-shell .btn:not(.btn-primary):not(.is-active):not([aria-expanded="true"]):not(:disabled) {
   background: linear-gradient(145deg, #ffffff, #eeeee9);
   border-color: #d2d2cc;
   box-shadow: 2px 2px 5px #1919100b, -2px -2px 5px #ffffffb8;

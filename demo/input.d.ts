@@ -2,7 +2,11 @@ export function getPrompt(): any;
 export function setPromptValue(value: any): void;
 export function clearPrompt(): void;
 export function buildConversationRequest(prompt: any, options?: {}): import("./conversation.js").ConversationRequest;
-export function recordConversationTurn(request: any, output: any, options?: { render?: boolean }): void;
+export function recordConversationTurn(request: any, output: any, options?: {
+    render?: boolean;
+    quality?: import('./ui/chat-markdown.js').ChatMarkdownQuality | null;
+}): void;
+export function clearConversation(): Promise<void>;
 export function clearConversationHistory(): void;
 export function restoreConversationHistory(messages: any): void;
 export function resetConversationForModel(modelId: any): void;

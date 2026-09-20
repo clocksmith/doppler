@@ -1,0 +1,12 @@
+file:///home/x/deco/doppler/src/config/capsule-v2.js:353
+  if (!validation.ok) throw new Error(`Failed to build valid Doppler Capsule v2: ${validation.errors.join('; ')}`);
+                            ^
+
+Error: Failed to build valid Doppler Capsule v2: createdAtUtc must be an ISO instant.
+    at buildCapsuleV2 (file:///home/x/deco/doppler/src/config/capsule-v2.js:353:29)
+    at stagePackage (file:///home/x/deco/doppler/src/converter/forge-stages.js:760:19)
+    at runForgePipeline (file:///home/x/deco/doppler/src/converter/forge-stages.js:799:20)
+    at async forgeModelCapsule (file:///home/x/deco/doppler/src/tooling/model-capsule-forge.js:426:46)
+    at async file:///home/x/deco/doppler/tools/build-token-selection-evaluation-capsule.js:91:16
+
+Node.js v22.22.1
