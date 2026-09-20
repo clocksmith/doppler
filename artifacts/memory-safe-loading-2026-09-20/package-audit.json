@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.memory-loading-package-audit/v1",
+  "baselineRevision": "79eed662c50a50b3f21352bb39f34d5a7028143a",
+  "mergedRevision": "f0ce543f",
+  "toolchain": { "node": "22.23.2", "npm": "10.9.8" },
+  "entryCount": 1858,
+  "packedBytes": 2151469,
+  "unpackedBytes": 11308950,
+  "hashOnlyUnpackedBytes": 11307803,
+  "incomingPayloadDeltaBytes": 1147,
+  "incomingChanges": [
+    { "path": "src/client/inspection.d.ts", "deltaBytes": 298 },
+    { "path": "src/client/inspection.js", "deltaBytes": 146 },
+    { "path": "src/client/model-host/index.js", "deltaBytes": 85 },
+    { "path": "src/client/model-host/model-session.d.ts", "deltaBytes": 140 },
+    { "path": "src/client/model-host/model-session.js", "deltaBytes": 395 },
+    { "path": "src/storage/model-cache.d.ts", "deltaBytes": 64 },
+    { "path": "src/storage/model-cache.js", "deltaBytes": 19 }
+  ],
+  "scope": "Package inventory only; not physical acceptance or publication."
+}

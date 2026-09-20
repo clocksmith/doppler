@@ -6,6 +6,7 @@ import {
 import { log } from '../../debug/index.js';
 import { createHasher as createBlake3Hasher, hash as blake3Hash } from '../blake3.js';
 import { isRequestedRangeInsideTensor } from './index.js';
+import { createSha256Hasher, sha256BytesHex } from '../../formats/sha256.js';
 
 let blake3Module = null;
 let hashAlgorithm = null;
@@ -38,35 +39,8 @@ async function initBlake3(requiredAlgorithm = null) {
   );
   hashAlgorithm = 'sha256';
   blake3Module = {
-    hash: async (data) => {
-      const hashBuffer = await crypto.subtle.digest(
-        'SHA-256',
-        data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)
-      );
-      return new Uint8Array(hashBuffer);
-    },
-    createHasher: () => {
-      const chunks = [];
-      return {
-        update(data) {
-          if (!(data instanceof Uint8Array) && !(data instanceof ArrayBuffer)) {
-            throw new Error('SHA-256 fallback hasher: update() requires Uint8Array or ArrayBuffer');
-          }
-          chunks.push(new Uint8Array(data));
-        },
-        async finalize() {
-          const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-          const combined = new Uint8Array(totalLength);
-          let offset = 0;
-          for (const chunk of chunks) {
-            combined.set(chunk, offset);
-            offset += chunk.length;
-          }
-          const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
-          return new Uint8Array(hashBuffer);
-        },
-      };
-    },
+    hash: async (data) => hexToBytes(await computeSHA256(data)),
+    createHasher: createSha256StreamingHasher,
   };
 }
 
@@ -96,8 +70,17 @@ export async function computeBlake3(data) {
 
 export async function computeSHA256(data) {
   const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
-  const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-  return bytesToHex(new Uint8Array(await crypto.subtle.digest('SHA-256', buffer)));
+  return sha256BytesHex(bytes);
+}
+
+function createSha256StreamingHasher() {
+  const hasher = createSha256Hasher();
+  return {
+    update(data) {
+      hasher.update(data instanceof ArrayBuffer ? new Uint8Array(data) : data);
+    },
+    async finalize() { return hasher.digest(); },
+  };
 }
 
 export async function computeHash(data, algorithm) {
@@ -112,22 +95,7 @@ export async function createStreamingHasher(algorithm) {
     throw new Error('createStreamingHasher requires an explicit hash algorithm.');
   }
   if (algorithm === 'sha256') {
-    const chunks = [];
-    return {
-      update(data) {
-        chunks.push(new Uint8Array(data));
-      },
-      async finalize() {
-        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-        const combined = new Uint8Array(totalLength);
-        let offset = 0;
-        for (const chunk of chunks) {
-          combined.set(chunk, offset);
-          offset += chunk.length;
-        }
-        return new Uint8Array(await crypto.subtle.digest('SHA-256', combined));
-      },
-    };
+    return createSha256StreamingHasher();
   }
   await initBlake3('blake3');
   return blake3Module.createHasher();

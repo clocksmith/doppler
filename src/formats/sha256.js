@@ -32,29 +32,6 @@ function rotateRight32(value, bits) {
   return (value >>> bits) | (value << (32 - bits));
 }
 
-function toSha256PaddedBytesFromData(data) {
-  const bitLength = BigInt(data.length) * 8n;
-  const padBytes = (64 - ((data.length + 1 + 8) % 64)) % 64;
-  const totalLength = data.length + 1 + padBytes + 8;
-  const padded = new Uint8Array(totalLength);
-
-  padded.set(data, 0);
-  padded[data.length] = 0x80;
-
-  for (let index = 0; index < 8; index += 1) {
-    const shift = BigInt(56 - index * 8);
-    padded[totalLength - 8 + index] = Number((bitLength >> shift) & 0xffn);
-  }
-
-  return padded;
-}
-
-function toSha256PaddedBytes(value) {
-  const message = String(value ?? '');
-  const encoder = new TextEncoder();
-  return toSha256PaddedBytesFromData(encoder.encode(message));
-}
-
 function appendWordsFromBytes(words, bytes, offset) {
   for (let index = 0; index < 16; index += 1) {
     const byteOffset = offset + index * 4;
@@ -68,82 +45,136 @@ function appendWordsFromBytes(words, bytes, offset) {
 }
 
 export function sha256Hex(value) {
-  const padded = toSha256PaddedBytes(value);
-  return sha256PaddedBytesHex(padded);
+  return sha256BytesHex(new TextEncoder().encode(String(value ?? '')));
 }
 
 export function sha256BytesHex(bytes) {
   if (!(bytes instanceof Uint8Array)) {
     throw new Error('sha256BytesHex requires a Uint8Array.');
   }
-  return sha256PaddedBytesHex(toSha256PaddedBytesFromData(bytes));
+  const hasher = createSha256Hasher();
+  hasher.update(bytes);
+  return hasher.digestHex();
 }
 
-function sha256PaddedBytesHex(padded) {
-  const hashState = INITIAL_STATE.slice();
+export function createSha256Hasher() {
+  const hashState = new Uint32Array(INITIAL_STATE);
   const schedule = new Uint32Array(64);
+  const tail = new Uint8Array(64);
+  let tailLength = 0;
+  let byteLength = 0n;
 
-  for (let offset = 0; offset < padded.length; offset += 64) {
-    appendWordsFromBytes(schedule, padded, offset);
-
-    for (let index = 16; index < 64; index += 1) {
-      const s0 = (
-        rotateRight32(schedule[index - 15], 7)
-        ^ rotateRight32(schedule[index - 15], 18)
-        ^ (schedule[index - 15] >>> 3)
-      ) >>> 0;
-      const s1 = (
-        rotateRight32(schedule[index - 2], 17)
-        ^ rotateRight32(schedule[index - 2], 19)
-        ^ (schedule[index - 2] >>> 10)
-      ) >>> 0;
-      schedule[index] = (
-        schedule[index - 16]
-        + s0
-        + schedule[index - 7]
-        + s1
-      ) >>> 0;
+  function update(bytes) {
+    if (!(bytes instanceof Uint8Array)) throw new Error('SHA-256 update requires a Uint8Array.');
+    byteLength += BigInt(bytes.byteLength);
+    let offset = 0;
+    if (tailLength) {
+      const count = Math.min(64 - tailLength, bytes.length);
+      tail.set(bytes.subarray(0, count), tailLength);
+      tailLength += count;
+      offset = count;
+      if (tailLength === 64) {
+        compressBlock(hashState, schedule, tail, 0);
+        tailLength = 0;
+      }
     }
-
-    let [a, b, c, d, e, f, g, h] = hashState;
-
-    for (let index = 0; index < 64; index += 1) {
-      const sigma1 = (
-        rotateRight32(e, 6)
-        ^ rotateRight32(e, 11)
-        ^ rotateRight32(e, 25)
-      ) >>> 0;
-      const choose = ((e & f) ^ (~e & g)) >>> 0;
-      const temp1 = (h + sigma1 + choose + ROUND_CONSTANTS[index] + schedule[index]) >>> 0;
-      const sigma0 = (
-        rotateRight32(a, 2)
-        ^ rotateRight32(a, 13)
-        ^ rotateRight32(a, 22)
-      ) >>> 0;
-      const majority = ((a & b) ^ (a & c) ^ (b & c)) >>> 0;
-      const temp2 = (sigma0 + majority) >>> 0;
-
-      h = g;
-      g = f;
-      f = e;
-      e = (d + temp1) >>> 0;
-      d = c;
-      c = b;
-      b = a;
-      a = (temp1 + temp2) >>> 0;
+    for (; offset + 64 <= bytes.length; offset += 64) {
+      compressBlock(hashState, schedule, bytes, offset);
     }
-
-    hashState[0] = (hashState[0] + a) >>> 0;
-    hashState[1] = (hashState[1] + b) >>> 0;
-    hashState[2] = (hashState[2] + c) >>> 0;
-    hashState[3] = (hashState[3] + d) >>> 0;
-    hashState[4] = (hashState[4] + e) >>> 0;
-    hashState[5] = (hashState[5] + f) >>> 0;
-    hashState[6] = (hashState[6] + g) >>> 0;
-    hashState[7] = (hashState[7] + h) >>> 0;
+    if (offset < bytes.length) {
+      tail.set(bytes.subarray(offset), tailLength);
+      tailLength += bytes.length - offset;
+    }
   }
 
-  return hashState
-    .map((value32) => value32.toString(16).padStart(8, '0'))
-    .join('');
+  function finalState() {
+    // Snapshot only fixed-size state: digest may repeat or be followed by update.
+    const result = new Uint32Array(hashState);
+    const padding = new Uint8Array(tailLength < 56 ? 64 : 128);
+    padding.set(tail.subarray(0, tailLength));
+    padding[tailLength] = 0x80;
+    const bitLength = byteLength * 8n;
+    for (let index = 0; index < 8; index++) {
+      padding[padding.length - 8 + index] = Number((bitLength >> BigInt(56 - index * 8)) & 0xffn);
+    }
+    for (let offset = 0; offset < padding.length; offset += 64) {
+      compressBlock(result, schedule, padding, offset);
+    }
+    return result;
+  }
+
+  return Object.freeze({
+    update,
+    digestHex() {
+      return Array.from(finalState(), value => value.toString(16).padStart(8, '0')).join('');
+    },
+    digest() {
+      const state = finalState();
+      const bytes = new Uint8Array(32);
+      for (let index = 0; index < bytes.length; index++) {
+        bytes[index] = state[index >>> 2] >>> (24 - (index % 4) * 8);
+      }
+      return bytes;
+    },
+  });
+}
+
+function compressBlock(hashState, schedule, bytes, offset) {
+  appendWordsFromBytes(schedule, bytes, offset);
+
+  for (let index = 16; index < 64; index += 1) {
+    const s0 = (
+      rotateRight32(schedule[index - 15], 7)
+      ^ rotateRight32(schedule[index - 15], 18)
+      ^ (schedule[index - 15] >>> 3)
+    ) >>> 0;
+    const s1 = (
+      rotateRight32(schedule[index - 2], 17)
+      ^ rotateRight32(schedule[index - 2], 19)
+      ^ (schedule[index - 2] >>> 10)
+    ) >>> 0;
+    schedule[index] = (
+      schedule[index - 16]
+      + s0
+      + schedule[index - 7]
+      + s1
+    ) >>> 0;
+  }
+
+  let [a, b, c, d, e, f, g, h] = hashState;
+
+  for (let index = 0; index < 64; index += 1) {
+    const sigma1 = (
+      rotateRight32(e, 6)
+      ^ rotateRight32(e, 11)
+      ^ rotateRight32(e, 25)
+    ) >>> 0;
+    const choose = ((e & f) ^ (~e & g)) >>> 0;
+    const temp1 = (h + sigma1 + choose + ROUND_CONSTANTS[index] + schedule[index]) >>> 0;
+    const sigma0 = (
+      rotateRight32(a, 2)
+      ^ rotateRight32(a, 13)
+      ^ rotateRight32(a, 22)
+    ) >>> 0;
+    const majority = ((a & b) ^ (a & c) ^ (b & c)) >>> 0;
+    const temp2 = (sigma0 + majority) >>> 0;
+
+    h = g;
+    g = f;
+    f = e;
+    e = (d + temp1) >>> 0;
+    d = c;
+    c = b;
+    b = a;
+    a = (temp1 + temp2) >>> 0;
+  }
+
+  hashState[0] = (hashState[0] + a) >>> 0;
+  hashState[1] = (hashState[1] + b) >>> 0;
+  hashState[2] = (hashState[2] + c) >>> 0;
+  hashState[3] = (hashState[3] + d) >>> 0;
+  hashState[4] = (hashState[4] + e) >>> 0;
+  hashState[5] = (hashState[5] + f) >>> 0;
+  hashState[6] = (hashState[6] + g) >>> 0;
+  hashState[7] = (hashState[7] + h) >>> 0;
 }
