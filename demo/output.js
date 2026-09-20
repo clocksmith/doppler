@@ -48,9 +48,17 @@ function createEmptyState() {
   mark.textContent = 'D';
 
   const heading = document.createElement('strong');
-  heading.textContent = state.model ? 'Start a conversation.' : 'Load a model to begin.';
+  heading.textContent = state.model ? 'Start a conversation.' : 'Load a model to chat.';
 
-  empty.append(mark, heading);
+  const sample = document.createElement('button');
+  sample.id = 'sample-run-btn';
+  sample.className = 'btn btn-ghost sample-run-btn';
+  sample.type = 'button';
+  sample.textContent = 'Explore a recorded sample';
+  const note = document.createElement('small');
+  note.textContent = 'No model download required.';
+
+  empty.append(mark, heading, sample, note);
   return empty;
 }
 
@@ -210,13 +218,11 @@ export function showWordQuality(show) {
   const plain = $('output-text');
   const qualityOutput = $('word-quality-output');
   const liveMessage = $('live-assistant-message');
-  const hasTokens = Boolean($('token-stream-container')?.childElementCount);
-  const tokensVisible = state.tokenInspectorActive && hasTokens;
   if (liveMessage && show) liveMessage.hidden = false;
-  if (plain) plain.hidden = show || tokensVisible;
-  if (qualityOutput) qualityOutput.hidden = !show || tokensVisible;
+  if (plain) plain.hidden = show;
+  if (qualityOutput) qualityOutput.hidden = !show;
   const legend = $('word-quality-legend');
-  if (legend) legend.hidden = !show || tokensVisible;
+  if (legend) legend.hidden = !show;
 }
 
 export function renderWordQuality(quality, text = state.lastInspection?.outputText ?? '') {
@@ -233,12 +239,7 @@ export function showTokenInspectorView(show) {
   const visible = Boolean(show && hasTokens);
   if (inspectorView) inspectorView.hidden = !visible;
   setTokenInspectorActive(visible);
-  if (visible) {
-    if (plain) plain.hidden = true;
-    if (qualityOutput) qualityOutput.hidden = true;
-    if (legend) legend.hidden = true;
-    return;
-  }
+  // Token inspection supplements the formatted answer instead of replacing it.
   const showQuality = state.wordQualityEnabled && Boolean(qualityOutput?.childElementCount);
   if (plain) plain.hidden = showQuality;
   if (qualityOutput) qualityOutput.hidden = !showQuality;

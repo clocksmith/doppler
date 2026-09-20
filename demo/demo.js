@@ -1,11 +1,11 @@
-import { boot } from './boot.js';
+import { boot, setBootStatus, stopBootProgress, updateBootModelProgress } from './boot.js';
 import { reloadActiveModel, setModelCallbacks } from './models.js';
 import { initInput, setRunHandler } from './input.js';
 import { initSettings } from './settings.js';
 import { initReport } from './report.js';
 import { onModelLoaded, runGeneration, stopGeneration, loadSampleInspection } from './core.js';
 import { SAMPLE_INSPECTION_RECEIPT } from './data/sample-inspection.js';
-import { showTokenInspectorView } from './output.js';
+import { renderChatMessages, renderWordQuality, showTokenInspectorView, showWordQuality } from './output.js';
 import { state } from './ui/state.js';
 import { initPrecisionReplay } from './ui/precision-replay/index.js';
 import { initXray, getXrayRuntimeNoticeText, isXrayProfilingNeeded } from './ui/xray/index.js';
@@ -17,14 +17,10 @@ function refreshRuntimeNotice() {
   const xrayEnabled = $('xray-toggle-all')?.checked === true;
   const wordQualityEnabled = $('set-word-quality')?.checked === true;
   const tokenInspectorActive = state.tokenInspectorActive;
-  const summary = document.querySelector('.chat-controls-summary-state');
-  if (summary) {
-    summary.textContent = [xrayEnabled && 'X-Ray', wordQualityEnabled && 'Word quality', tokenInspectorActive && 'Tokens']
-      .filter(Boolean).join(' · ') || 'Standard';
-  }
+
   const xraySummary = $('xray-summary-state');
   if (xraySummary) {
-    xraySummary.textContent = xrayEnabled ? 'Enabled · 5 evidence panels' : 'Disabled';
+    xraySummary.textContent = xrayEnabled ? 'Timing, tokens, execution' : 'Disabled';
   }
   if (xrayEnabled) {
     const inspectionWorkspace = $('inspection-workspace');
@@ -49,11 +45,13 @@ async function init() {
   // Wire model callbacks
   setModelCallbacks({
     onLoaded: onModelLoaded,
-    onDownloadProgress: null,
+    onDownloadProgress: updateBootModelProgress,
   });
 
   // Init UI modules
+  setBootStatus('Loading runtime profile...');
   await initSettings({ requireDefaultProfile: true, onProfileChange: reloadActiveModel });
+  setBootStatus('Preparing chat...');
   initReport();
   await initInput();
   flushPwaLaunchState();
@@ -63,7 +61,8 @@ async function init() {
   $('stop-btn')?.addEventListener('click', stopGeneration);
 
   // Wire sample inspection
-  $('sample-run-btn')?.addEventListener('click', () => {
+  $('chat-thread')?.addEventListener('click', (event) => {
+    if (!event.target.closest('#sample-run-btn')) return;
     loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
     refreshRuntimeNotice();
   });
@@ -71,25 +70,33 @@ async function init() {
   // Wire token inspector toggle
   const inspectorToggle = $('token-inspector-toggle');
   if (inspectorToggle) {
-    state.tokenInspectorActive = true;
-    inspectorToggle.classList.add('is-active');
-    inspectorToggle.setAttribute('aria-pressed', 'true');
-    inspectorToggle.addEventListener('click', () => {
-      state.tokenInspectorActive = !state.tokenInspectorActive;
-      inspectorToggle.classList.toggle('is-active', state.tokenInspectorActive);
-      inspectorToggle.setAttribute('aria-pressed', String(state.tokenInspectorActive));
+    state.tokenInspectorActive = inspectorToggle.checked;
+    inspectorToggle.addEventListener('change', () => {
+      state.tokenInspectorActive = inspectorToggle.checked;
       showTokenInspectorView(state.tokenInspectorActive);
       refreshRuntimeNotice();
     });
   }
 
   // Init xray (reads URL ?xray= flags, wires the all-panels checkbox)
+  setBootStatus('Preparing inspection tools...');
   try {
     initXray({ onChange: refreshRuntimeNotice });
   } catch {
     // xray init is optional
   }
-  $('set-word-quality')?.addEventListener('change', refreshRuntimeNotice);
+  $('set-word-quality')?.addEventListener('change', () => {
+    const liveMessage = $('live-assistant-message');
+    if (liveMessage?.hidden) {
+      renderChatMessages(state.conversationHistory);
+    } else {
+      const receipt = state.lastInspection;
+      const quality = state.wordQualityEnabled && receipt?.quality != null;
+      if (quality) renderWordQuality(receipt.quality, receipt.outputText);
+      showWordQuality(quality);
+    }
+    refreshRuntimeNotice();
+  });
   $('set-trace')?.addEventListener('change', refreshRuntimeNotice);
   refreshRuntimeNotice();
 
@@ -104,11 +111,9 @@ async function init() {
 }
 
 function showInitError(message) {
-  const statusEl = $('boot-status');
+  setBootStatus('Initialization failed');
+  stopBootProgress(true);
   const errorEl = $('boot-error');
-  if (statusEl) {
-    statusEl.textContent = 'Initialization failed';
-  }
   if (errorEl) {
     errorEl.textContent = message || 'Unable to initialize demo runtime.';
     errorEl.hidden = false;

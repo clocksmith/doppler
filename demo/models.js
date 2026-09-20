@@ -32,11 +32,19 @@ function setProgress(event) {
   const bar = $('model-select-progress');
   const fill = bar?.querySelector('.model-card-progress-fill');
   const label = $('model-select-progress-label');
-  const percent = Math.max(0, Math.min(100, Number(event?.percent ?? 0)));
   if (row) row.hidden = !event;
-  if (bar) bar.setAttribute('aria-valuenow', String(Math.round(percent)));
-  if (fill) fill.style.width = `${percent}%`;
-  if (label) label.textContent = `${Math.round(percent)}%`;
+  // The public API's percentages are milestones across unlike phases, not a
+  // measured total. Show activity and the reported work without a false 0-100%.
+  const message = typeof event?.message === 'string' ? event.message.trim() : '';
+  if (bar) {
+    bar.removeAttribute('aria-valuenow');
+    bar.dataset.indeterminate = String(Boolean(event));
+    bar.setAttribute('aria-valuetext', message || 'Loading model');
+  }
+  if (fill) fill.style.width = event ? '35%' : '0%';
+  if (label) label.textContent = event ? 'Loading' : '';
+  const detail = $('model-select-detail');
+  if (detail && event) detail.textContent = message || 'Loading model...';
   onProgress?.(event);
 }
 
@@ -97,7 +105,7 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
   state.modelStatus[entry.modelId] = 'loading';
   syncModelControls();
   setStatus('Loading model…', true);
-  setProgress({ percent: 0, message: 'Preparing model' });
+  setProgress({ phase: 'prepare', message: 'Preparing model' });
   try {
     const model = await dr.load(entry.modelId, {
       cache: 'opfs',

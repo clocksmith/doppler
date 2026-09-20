@@ -717,6 +717,26 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   opacity: var(--opacity-soft);
 }
 
+.model-select-progress-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.model-card-progress[data-indeterminate="true"] .model-card-progress-fill {
+  animation: model-loading-activity 1800ms ease-in-out infinite alternate;
+  transition: none;
+}
+
+@keyframes model-loading-activity {
+  from { transform: translateX(0); }
+  to { transform: translateX(185%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .model-card-progress[data-indeterminate="true"] .model-card-progress-fill {
+    animation: none;
+  }
+}
+
 .btn-small {
   gap: var(--space-xs);
   padding: var(--space-xxs) var(--space-xs);
@@ -1074,197 +1094,97 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 }
 
 .chat-toolbar {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: var(--doppler-inset);
-  white-space: nowrap;
-}
-
-.chat-controls {
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-.chat-controls > summary {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-sm);
-  min-height: 38px;
-  padding: 6px 10px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--font-tracking-label);
-  text-transform: uppercase;
-}
-
-.chat-controls-summary-state {
-  font-weight: var(--font-weight-normal);
-  letter-spacing: normal;
-  text-transform: none;
-  opacity: var(--opacity-soft);
-}
-
-.chat-controls[open] {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.chat-toolbar:has(.chat-controls[open]) {
-  grid-template-columns: auto minmax(0, 1fr);
-}
-
-.chat-toolbar:has(.chat-controls[open]) .chat-controls {
-  grid-column: 2 / -1;
-}
-
-.chat-toolbar:has(.chat-controls[open]) .chat-toolbar-run {
-  grid-column: 1 / -1;
-  width: 100%;
-  padding: 8px 2px 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.18);
-}
-
-.chat-controls[open] > summary {
-  flex: 0 0 auto;
-  margin: 0;
-  border-color: var(--doppler-line);
-  background: #ffffff;
-  color: #111111;
-  box-shadow: var(--doppler-shadow-sm);
-}
-
-.chat-controls .chat-toolbar-main {
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
-
-.chat-toolbar-main,
-.chat-toolbar-run {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  min-width: 0;
-}
-
-.chat-toolbar-main {
-  flex-shrink: 0;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 4px;
 }
 
 .chat-toolbar-run {
-  display: grid;
-  grid-template-columns: auto minmax(0, auto) auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.chat-run-status {
+  display: grid;
+  gap: 2px;
   min-width: 0;
   font: 12px/1.5 var(--font-mono);
 }
 
-.chat-heading {
-  margin: 0;
+.chat-run-status:has(.output-phase:empty):has(.output-toks:empty) {
+  display: none;
 }
 
-.chat-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  min-height: 38px;
-  padding: 6px 10px;
-  border: 1px solid var(--doppler-line);
-  border-radius: 10px;
-  background: #ffffff;
-  box-shadow: var(--doppler-shadow-sm);
-  cursor: pointer;
-}
-
-.chat-toggle-label {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--font-tracking-label);
-  text-transform: uppercase;
-}
-
-.chat-toggle:has(input:checked),
-#settings-toggle[aria-expanded="true"] {
-  background: #ffffff;
-  color: #111111;
-  border-color: #000000;
-  box-shadow: var(--doppler-inset);
-}
-
-.chat-toolbar-run .output-toks {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.chat-heading { margin: 0; }
 
 .settings-panel {
   display: none;
   width: 100%;
   box-sizing: border-box;
   flex-direction: column;
-  gap: var(--space-sm);
-  padding: var(--space-md);
-  border: var(--border-sm) solid var(--doppler-line);
+  gap: 24px;
+  padding: clamp(16px, 3vw, 24px);
+  border: 1px solid var(--doppler-line);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--doppler-surface);
+  box-shadow: var(--doppler-inset);
 }
 
-.settings-panel.is-open {
-  display: flex;
+.settings-panel.is-open { display: flex; }
+
+.settings-group {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
-.profile-details > summary {
+.settings-group + .settings-group {
+  padding-top: 20px;
+  border-top: 1px solid var(--doppler-line);
+}
+
+.settings-group legend {
+  padding: 0 0 12px;
+  font: 600 13px/1.5 var(--font-mono);
+}
+
+.settings-panel small {
+  display: block;
+  color: #555555;
+  font: 12px/1.5 var(--font-sans);
+}
+
+.inspection-setting {
   display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding-block: var(--space-sm);
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--doppler-line);
+  border-radius: 10px;
   cursor: pointer;
-  font-size: var(--font-size-sm);
 }
 
-.profile-details > summary > span {
-  opacity: var(--opacity-soft);
+.inspection-setting:has(input:checked) {
+  border-color: #999999;
+  box-shadow: var(--doppler-inset);
 }
 
-.xray-shell {
-  border-block: var(--border-sm) solid var(--doppler-line);
-}
-
-.xray-shell > summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  padding-block: var(--space-xs);
-  cursor: pointer;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--font-tracking-label);
-  text-transform: uppercase;
-}
-
-.xray-shell[open] > summary {
-  border-bottom: var(--border-sm) dotted var(--fg);
-}
-
-.xray-summary-state {
-  font-weight: var(--font-weight-normal);
-  letter-spacing: normal;
-  text-transform: none;
-  opacity: var(--opacity-soft);
-}
+.inspection-setting input { margin: 3px 0 0; accent-color: #222222; }
+.inspection-setting strong { display: block; margin-bottom: 4px; font-size: 13px; }
+.profile-values :disabled { opacity: 1; color: #555555; background: #f5f5f5; }
+#token-inspector-view { grid-column: 1 / -1; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--doppler-line); }
+.chat-empty small { font-size: 12px; color: #555555; }
 
 .settings-grid {
   display: grid;
@@ -1738,39 +1658,10 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
     font-size: var(--font-size-base);
   }
 
-  .chat-toolbar {
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-  }
-
-  .chat-toolbar-main,
-  .chat-toolbar-run {
-    width: 100%;
-  }
-
-  .chat-controls[open] {
-    display: grid;
-    grid-column: 1 / -1;
-    grid-template-columns: 1fr;
-  }
-
-  .chat-toolbar:has(.chat-controls[open]) .chat-controls {
-    grid-column: 1 / -1;
-    width: 100%;
-  }
-
-  .chat-toolbar-main {
-    flex-wrap: wrap;
-    overflow-x: visible;
-  }
-
-  .chat-toolbar-run {
-    grid-column: 1 / -1;
-    grid-template-columns: 1fr;
-    justify-items: start;
-    justify-content: flex-start;
-    padding: 8px 4px 2px;
-  }
+  .chat-toolbar-run { justify-content: flex-start; }
+  .chat-run-status { flex-basis: 100%; }
+  .chat-toolbar-run .output-toks { white-space: normal; }
+  .settings-panel .settings-grid { grid-template-columns: 1fr; }
 
   .settings-grid {
     grid-template-columns: 1fr;
@@ -1805,16 +1696,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .chat-toolbar {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .chat-toolbar-run {
-    grid-column: 1 / -1;
-    width: 100%;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    padding-top: 4px;
-  }
+  .chat-toolbar-run { flex-wrap: wrap; }
 }
 
 /* Reading first, inspection alongside it. */
@@ -1827,11 +1709,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 }
 .app-shell .btn:active:not(:disabled),
 .app-shell .btn[aria-pressed="true"] { box-shadow: var(--doppler-inset); }
-.app-shell .token-inspector-btn.is-active:not(:disabled) {
-  border-color: #111111;
-  background: #111111;
-  color: #ffffff;
-}
+
 .app-shell .precision-replay-toggle[aria-expanded="true"]:not(:disabled) {
   border-color: #111111;
   background: #111111;

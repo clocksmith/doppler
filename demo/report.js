@@ -1,5 +1,6 @@
 import { state } from './ui/state.js';
 import { restoreConversationHistory } from './input.js';
+import { updateXrayPanels } from './ui/xray/index.js';
 import {
   setFinalStats,
   setPhase,
@@ -16,7 +17,9 @@ export function buildReport() {
   return {
     schema: 'doppler.demo-report/v1',
     timestamp: new Date().toISOString(),
-    modelId: state.modelId,
+    modelId: state.lastInspection?.fingerprint?.identity?.artifact?.modelId
+      ?? (run.mode === 'sample-inspection' ? null : state.modelId),
+    inspection: state.lastInspection ?? null,
     settings: { ...(run.config ?? state.settings) },
     preset: state.preset,
     generationMode: run.wordQuality?.enabled ? 'guided_quality' : 'plain',
@@ -81,7 +84,8 @@ export function importReportData(value) {
   const report = validateImportedReport(value);
   const output = getReportOutput(report);
   state.lastImportedReport = report;
-  state.lastInspection = null;
+  state.lastInspection = report.inspection && typeof report.inspection === 'object'
+    && !Array.isArray(report.inspection) ? report.inspection : null;
   state.lastInferenceStats = null;
   delete globalThis.__DOPPLER_DEMO_EVIDENCE__;
   $('xray-container')?.replaceChildren();
@@ -107,6 +111,7 @@ export function importReportData(value) {
       ...(output ? [{ role: 'assistant', content: output }] : []),
     ]);
   }
+  updateXrayPanels();
   setPhase('Imported report');
   setFinalStats(state.lastRun);
   setExportEnabled(true);

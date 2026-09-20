@@ -94,6 +94,28 @@
       word-break: break-word;
     }
 
+    .boot-progress {
+      display: grid;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .boot-detail,
+    .boot-timing {
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .boot-timing {
+      opacity: 0.65;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .boot-overlay[data-failed="true"] .boot-d4-loading > span {
+      animation-play-state: paused;
+    }
+
     @keyframes doppler-d4-overlay-a {
       0%, 3% { transform: scale(1) translate(0px, 0px); opacity: 1; }
       22%, 28% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
@@ -131,6 +153,7 @@
   <link rel="stylesheet" href="/demo/ui/word-quality/styles.css">
   <link rel="stylesheet" href="/demo/ui/xray/styles.css">
   <link rel="stylesheet" href="/demo/ui/token-inspector/styles.css">
+  <link rel="stylesheet" href="/demo/ui/styles/demo-components.css">
   <script type="importmap">
     {
       "imports": {
@@ -159,7 +182,11 @@
         <span class="boot-d4-c">D</span>
         <span class="boot-d4-d">A</span>
       </span>
-      <div id="boot-status" class="boot-status" role="status" aria-live="polite">Checking WebGPU...</div>
+      <div class="boot-progress" role="status" aria-live="polite" aria-atomic="true">
+        <div id="boot-status" class="boot-status">Loading demo modules...</div>
+        <div id="boot-detail" class="boot-detail" hidden></div>
+      </div>
+      <div id="boot-timing" class="boot-timing" aria-live="off" hidden></div>
     </div>
     <div id="boot-error" class="boot-error" hidden></div>
   </div>
@@ -187,10 +214,10 @@
       </div>
     </header>
 
-    <main class="demo-flow">
+<main class="demo-flow demo-stack">
     <!-- Model picker -->
-    <section id="model-picker" class="model-picker flow-card" aria-labelledby="model-picker-label">
-      <div class="model-picker-heading">
+<section id="model-picker" class="model-picker flow-card demo-panel demo-stack" aria-labelledby="model-picker-label">
+<div class="model-picker-heading demo-row">
         <div>
           <label id="model-picker-label" class="flow-title" for="model-select">Model</label>
         </div>
@@ -216,111 +243,115 @@
       </details>
     </section>
 
-    <section class="chat-workspace flow-card" aria-labelledby="chat-heading">
-      <div class="chat-heading-row">
+<section class="chat-workspace flow-card demo-panel demo-stack" aria-labelledby="chat-heading">
+<div class="chat-heading-row demo-row">
         <div>
           <h2 id="chat-heading" class="flow-title chat-heading">Chat</h2>
         </div>
       </div>
       <div class="chat-toolbar">
-        <button id="token-inspector-toggle" class="btn btn-small token-inspector-btn is-active" type="button" aria-pressed="true" title="Toggle interactive token generation inspector">
-          Tokens
-        </button>
-        <details id="chat-controls" class="chat-controls">
-          <summary>
-            <span>Run options</span>
-            <span class="chat-controls-summary-state">Standard</span>
-          </summary>
-          <div class="chat-toolbar-main">
-            <label class="chat-toggle" title="Show every inference-internals panel.">
-              <span class="chat-toggle-label">X-Ray</span>
-              <input id="xray-toggle-all" type="checkbox">
-            </label>
-            <label class="chat-toggle" title="Show summed word surprisal, rolling perplexity, and cumulative sequence perplexity.">
-              <span class="chat-toggle-label">Perplexity</span>
-              <input id="set-word-quality" type="checkbox">
-            </label>
-            <button id="settings-toggle" class="btn btn-ghost btn-small" type="button" aria-expanded="false" aria-controls="settings-panel">Advanced</button>
+        <button id="settings-toggle" class="btn btn-ghost btn-small" type="button" aria-expanded="false" aria-controls="settings-panel">Advanced</button>
+        <div class="chat-toolbar-run">
+          <div class="chat-run-status" role="status" aria-live="polite">
+            <span id="output-phase" class="output-phase"></span>
+            <span id="output-toks" class="output-toks"></span>
           </div>
-        </details>
-        <div class="chat-toolbar-run" aria-live="polite">
-          <span id="output-phase" class="output-phase"></span>
-          <span id="output-toks" class="output-toks"></span>
           <button id="clear-history-btn" class="btn btn-ghost btn-small" type="button" title="Clear conversation, KV cache, and generation state. Keeps the model loaded." disabled>Clear conversation</button>
         </div>
       </div>
 
       <div id="runtime-notice" class="runtime-notice" role="status" hidden></div>
 
-      <div id="settings-panel" class="settings-panel">
-        <!-- Profile — loads a full runtime config, populates fields below -->
-        <div class="setting-field">
-          <label for="set-profile" title="Runtime profile. Loads batching, KV cache, debug, and tracing defaults.">Profile</label>
-          <select id="set-profile">
-            <option value="profiles/default">default</option>
-            <option value="profiles/throughput">throughput</option>
-            <option value="profiles/verbose-trace">verbose-trace</option>
-            <option value="profiles/production">production</option>
-            <option value="profiles/low-memory">low-memory</option>
-            <option value="profiles/trace-layers">trace-layers</option>
-          </select>
-        </div>
-        <div id="settings-error" class="runtime-notice" role="alert" hidden></div>
-
-        <!-- Sampling and max token fields are per-run options. Other fields display profile-owned runtime policy. -->
-        <div class="settings-grid">
-          <div class="setting-field">
-            <label for="set-temperature" title="inference.sampling.temperature — 0 = greedy. Higher = more random.">Temperature</label>
-            <input id="set-temperature" type="number" min="0" max="2" step="0.1" value="1.0">
-          </div>
-          <div class="setting-field">
-            <label for="set-top-k" title="inference.sampling.topK — Limits to K most probable tokens.">Top K</label>
-            <input id="set-top-k" type="number" min="1" step="1" value="50">
-          </div>
-          <div class="setting-field">
-            <label for="set-top-p" title="inference.sampling.topP — 1.0 = disabled. Nucleus sampling threshold.">Top P</label>
-            <input id="set-top-p" type="number" min="0" max="1" step="0.05" value="0.95">
-          </div>
-        </div>
-        <details class="profile-details">
-          <summary>Profile details <span>Read only</span></summary>
+<div id="settings-panel" class="settings-panel demo-panel demo-panel--inset demo-stack">
+        <fieldset class="settings-group">
+          <legend>Response</legend>
           <div class="settings-grid">
             <div class="setting-field">
-              <label for="set-batch-max-tokens" title="inference.batching.maxTokens — Tokens per GPU dispatch. Higher = throughput, more VRAM.">Batch Size</label>
-              <input id="set-batch-max-tokens" type="number" min="1" step="1" value="64">
+              <label for="set-temperature">Temperature</label>
+              <input id="set-temperature" type="number" min="0" max="2" step="0.1" value="1.0" aria-describedby="temperature-help">
+              <small id="temperature-help">0 selects the most likely token; higher adds randomness.</small>
             </div>
             <div class="setting-field">
-              <label for="set-readback" title="inference.batching.readbackInterval — Steps between GPU readbacks. 0 = end-only.">Readback</label>
-              <input id="set-readback" type="number" min="0" step="1" value="0" placeholder="0 = end only">
+              <label for="set-top-k">Top K</label>
+              <input id="set-top-k" type="number" min="1" step="1" value="50" aria-describedby="top-k-help">
+              <small id="top-k-help">Number of candidate tokens to consider.</small>
             </div>
             <div class="setting-field">
-              <label for="set-kv-dtype" title="inference.kvcache.kvDtype — f16 halves memory. f32 is full precision.">KV Dtype</label>
-              <select id="set-kv-dtype">
-                <option value="">profile default</option>
+              <label for="set-top-p">Top P</label>
+              <input id="set-top-p" type="number" min="0" max="1" step="0.05" value="0.95" aria-describedby="top-p-help">
+              <small id="top-p-help">Candidate probability cutoff; 1 keeps all.</small>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="settings-group">
+          <legend>Inspection</legend>
+          <div class="settings-grid">
+            <label class="inspection-setting" for="token-inspector-toggle">
+              <input id="token-inspector-toggle" type="checkbox" checked>
+              <span><strong>Tokens</strong><small>Inspect token probabilities below the answer.</small></span>
+            </label>
+            <label class="inspection-setting" for="set-word-quality">
+              <input id="set-word-quality" type="checkbox" checked>
+              <span><strong>Perplexity</strong><small>Underline model surprise, not accuracy.</small></span>
+            </label>
+            <label class="inspection-setting" for="xray-toggle-all">
+              <input id="xray-toggle-all" type="checkbox" checked>
+              <span><strong>X-Ray</strong><small>Capture execution details and diagnostic timings.</small></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="settings-group">
+          <legend>Runtime</legend>
+          <div class="setting-field">
+            <label for="set-profile">Runtime profile</label>
+            <select id="set-profile" aria-describedby="profile-help">
+              <option value="profiles/default">Default</option>
+              <option value="profiles/throughput">Throughput</option>
+              <option value="profiles/verbose-trace">Verbose trace</option>
+              <option value="profiles/production">Production</option>
+              <option value="profiles/low-memory">Low memory</option>
+              <option value="profiles/trace-layers">Trace layers</option>
+            </select>
+            <small id="profile-help">Changing profile reloads the active model. Values below are set by the profile.</small>
+          </div>
+          <div id="settings-error" class="runtime-notice" role="alert" hidden></div>
+          <div class="settings-grid profile-values">
+            <div class="setting-field">
+              <label for="set-batch-max-tokens">Batch tokens</label>
+              <input id="set-batch-max-tokens" type="number" min="1" step="1" value="64" disabled>
+            </div>
+            <div class="setting-field">
+              <label for="set-readback">Readback interval</label>
+              <input id="set-readback" type="number" min="0" step="1" value="0" disabled>
+            </div>
+            <div class="setting-field">
+              <label for="set-kv-dtype">KV cache precision</label>
+              <select id="set-kv-dtype" disabled>
+                <option value="">Profile default</option>
                 <option value="f16">f16</option>
                 <option value="f32">f32</option>
               </select>
             </div>
             <div class="setting-field">
-              <label for="set-kv-max-seq" title="inference.kvcache.maxSeqLen — Pre-allocated cache length. 0 = model default.">KV Max Seq</label>
-              <input id="set-kv-max-seq" type="number" min="0" step="256" value="0">
+              <label for="set-kv-max-seq">KV cache length</label>
+              <input id="set-kv-max-seq" type="number" min="0" step="256" value="0" disabled>
             </div>
             <div class="setting-field">
-              <label for="set-log-level" title="shared.debug.logLevel.defaultLogLevel — Console verbosity.">Log Level</label>
-              <select id="set-log-level">
-                <option value="silent">silent</option>
-                <option value="error">error</option>
-                <option value="info" selected>info</option>
-                <option value="verbose">verbose</option>
+              <label for="set-log-level">Log level</label>
+              <select id="set-log-level" disabled>
+                <option value="silent">Silent</option>
+                <option value="error">Errors</option>
+                <option value="info" selected>Info</option>
+                <option value="verbose">Verbose</option>
               </select>
             </div>
           </div>
-          <div class="settings-checkboxes">
-            <label class="checkbox-label checkbox-label--inline" title="Capture per-kernel and per-layer timing. Required for X-Ray decode/kernel panels. Adds overhead.">
-              <input id="set-trace" type="checkbox"> Trace
-            </label>
-          </div>
-        </details>
+          <label class="checkbox-label checkbox-label--inline">
+            <input id="set-trace" type="checkbox" disabled> Trace (profile controlled)
+          </label>
+        </fieldset>
       </div>
 
       <!-- Output -->
@@ -330,7 +361,9 @@
           <div id="chat-thread" class="chat-thread" aria-live="polite">
             <div id="chat-empty" class="chat-empty">
               <span class="chat-empty-mark" aria-hidden="true">D</span>
-              <strong>Load a model to begin.</strong>
+              <strong>Load a model to chat.</strong>
+              <button id="sample-run-btn" class="btn btn-ghost sample-run-btn" type="button">Explore a recorded sample</button>
+              <small>No model download required.</small>
             </div>
           </div>
           <article id="live-assistant-message" class="chat-message chat-message--assistant" aria-live="polite" aria-atomic="false" hidden>
@@ -369,32 +402,26 @@
               <option value="4096">4,096 tokens</option>
             </select>
           </label>
-          <button id="sample-run-btn" class="btn btn-ghost sample-run-btn" type="button" title="Inspect the included sample without loading a model">Inspect sample</button>
-          <button id="shuffle-btn" class="btn btn-ghost" type="button" title="Use another example prompt">&#x21BB; Example</button>
-          <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Load a model to send"><span aria-hidden="true">&#x25B8;</span> Send</button>
+          <button id="shuffle-btn" class="btn btn-ghost" type="button" title="Put an example in the message box">Try a prompt</button>
+          <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Load a model to send">Send</button>
           <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
         </div>
       </section>
     </section>
     </main>
 
-    <details id="inspection-workspace" class="inspection-workspace">
-      <summary>
-        <span>
-          <strong>Run details</strong>
-        </span>
-      </summary>
-      <div class="inspection-workspace-body">
-      <details id="xray-shell" class="xray-shell" open hidden>
-      <summary>
-        <span>Inference X-Ray</span>
-        <span id="xray-summary-state" class="xray-summary-state">Enabled · 5 evidence panels</span>
-      </summary>
-      <div id="xray-container" hidden></div>
-      </details>
+    <section id="inspection-workspace" class="inspection-workspace" aria-label="Run inspection">
+<div class="inspection-workspace-body demo-stack">
+<section id="xray-shell" class="xray-shell demo-panel demo-stack" aria-labelledby="xray-heading" hidden>
+<header class="xray-heading demo-row">
+          <h2 id="xray-heading">Inference X-Ray</h2>
+          <span id="xray-summary-state" class="xray-summary-state">Timing, tokens, execution</span>
+        </header>
+        <div id="xray-container" hidden></div>
+      </section>
 
     <!-- Report -->
-    <div class="report-bar">
+<div class="report-bar demo-panel demo-row">
       <div class="report-intro">
         <strong>Run receipt</strong>
       </div>
@@ -402,14 +429,17 @@
         <button id="export-btn" class="btn btn-ghost" disabled>Export receipt</button>
         <button id="import-btn" class="btn btn-ghost" type="button">Open receipt</button>
         <input id="import-file" type="file" accept="application/json,.json" hidden>
-        <button id="precision-replay-toggle" class="btn btn-ghost precision-replay-toggle" type="button" aria-expanded="false" aria-controls="precision-replay-panel" title="Expand checked-in precision evidence.">Precision replay</button>
-        <span id="precision-replay-status" class="precision-replay-status">Loading evidence...</span>
+
       </div>
     </div>
 
-    <section class="precision-replay-area">
+    <section class="precision-replay-area demo-panel demo-stack" aria-label="Stored precision comparison">
+      <div class="precision-replay-heading demo-row">
+        <button id="precision-replay-toggle" class="btn btn-ghost precision-replay-toggle" type="button" aria-expanded="false" aria-controls="precision-replay-panel" title="Expand checked-in precision evidence.">Stored precision replay</button>
+        <span id="precision-replay-status" class="precision-replay-status">Loading evidence...</span>
+      </div>
       <div id="precision-replay-panel" class="precision-replay-panel" hidden>
-        <p class="precision-replay-note">Checked-in Gemma 3 270M scores; no model load.</p>
+<p class="precision-replay-note">Stored Gemma 3 270M precision comparisons. Separate from this conversation; no model runs here.</p>
         <div id="precision-replay-stats" class="precision-replay-stats"></div>
         <div class="precision-replay-controls">
           <div class="setting-field">
@@ -456,12 +486,12 @@
       </div>
     </section>
       </div>
-    </details>
+    </section>
 
   </div>
 
   <dialog id="remove-model-dialog" class="confirm-dialog">
-    <form method="dialog" class="confirm-dialog-panel">
+<form method="dialog" class="confirm-dialog-panel demo-panel">
       <div class="type-label">Remove model</div>
       <p id="remove-model-message" class="confirm-dialog-message"></p>
       <p id="remove-model-detail" class="confirm-dialog-detail"></p>
