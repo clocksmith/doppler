@@ -1,7 +1,22 @@
 // Chat Markdown uses DOM construction only. HTML and image embeds stay inert.
 // Source offsets keep recorded word-quality data attached to the right text.
+/**
+ * @typedef {object} ChatMarkdownWordQuality
+ * @property {string} text
+ * @property {number | null} summedSurprisal
+ * @property {number | null} rollingPerplexity
+ * @property {number | null} cumulativePerplexity
+ * @property {{ unit: 'words' | 'tokens', size: number } | undefined} [rollingWindow]
+ */
+
+/**
+ * @param {HTMLElement} container
+ * @param {unknown} source
+ * @param {{ words?: ChatMarkdownWordQuality[] } | null} [quality]
+ */
 export function renderChatMarkdown(container, source, quality = null) {
   const text = String(source ?? '').replace(/\r\n?/g, '\n');
+  /** @type {Array<{ start: number, end: number, word: ChatMarkdownWordQuality }>} */
   const ranges = [];
   let cursor = 0;
   for (const word of quality?.words || []) {
@@ -12,6 +27,11 @@ export function renderChatMarkdown(container, source, quality = null) {
     cursor = start + word.text.length;
   }
 
+  /**
+   * @param {HTMLElement | DocumentFragment} parent
+   * @param {string} value
+   * @param {number} offset
+   */
   function appendText(parent, value, offset) {
     let position = 0;
     for (const range of ranges) {
@@ -24,12 +44,14 @@ export function renderChatMarkdown(container, source, quality = null) {
       const word = range.word;
       span.className = 'word-quality';
       span.textContent = value.slice(start, end);
-      const available = Number.isFinite(word.rollingPerplexity);
+      const rollingPerplexity = word.rollingPerplexity;
+      const available = typeof rollingPerplexity === 'number' && Number.isFinite(rollingPerplexity);
       span.classList.toggle('word-quality--unavailable', !available);
       span.style.setProperty('--word-surprisal', String(
-        available ? Math.min(1, Math.log1p(word.rollingPerplexity) / 8) : 0
+        available ? Math.min(1, Math.log1p(rollingPerplexity) / 8) : 0
       ));
-      const number = (v) => Number.isFinite(v) ? v.toFixed(3) : 'unavailable';
+      /** @param {number | null | undefined} value */
+      const number = (value) => Number.isFinite(value) ? Number(value).toFixed(3) : 'unavailable';
       span.title = [
         'Perplexity measures model surprise, not factual accuracy.',
         'Rolling perplexity: ' + number(word.rollingPerplexity),
@@ -43,6 +65,11 @@ export function renderChatMarkdown(container, source, quality = null) {
     parent.append(document.createTextNode(value.slice(position)));
   }
 
+  /**
+   * @param {HTMLElement} parent
+   * @param {string} value
+   * @param {number} offset
+   */
   function inline(parent, value, offset) {
     const pattern = /`([^`\n]+)`|\*\*([^*\n]+)\*\*|__([^_\n]+)__|\*([^*\n]+)\*|_([^_\n]+)_|\[([^\]\n]+)\]\(([^)\s]+)\)/g;
     let previous = 0;
@@ -54,7 +81,7 @@ export function renderChatMarkdown(container, source, quality = null) {
       else if (match[4] != null || match[5] != null) { tag = 'em'; content = match[4] ?? match[5]; prefix = 1; }
       else { tag = 'a'; content = match[6]; prefix = 1; }
       const element = document.createElement(tag);
-      if (tag === 'a') {
+      if (tag === 'a' && element instanceof HTMLAnchorElement) {
         try {
           const url = new URL(match[7], document.baseURI);
           if (!['https:', 'http:', 'mailto:'].includes(url.protocol)) throw new Error('Unsupported link');
@@ -82,6 +109,7 @@ export function renderChatMarkdown(container, source, quality = null) {
   });
   const fragment = document.createDocumentFragment();
   const listPattern = /^(\s*)([-+*]|\d+[.)])\s+(.*)$/;
+  /** @param {string} value */
   const beginsBlock = (value) => /^\s*$|^ {0,3}(?:#{1,6}\s|`{3,}|~{3,}|> ?|(?:-{3,}|\*{3,}|_{3,})\s*$)/.test(value)
     || listPattern.test(value);
   let index = 0;
@@ -123,7 +151,7 @@ export function renderChatMarkdown(container, source, quality = null) {
     if (list) {
       const ordered = /^\d/.test(list[2]);
       const node = document.createElement(ordered ? 'ol' : 'ul');
-      if (ordered) node.start = Number.parseInt(list[2], 10);
+      if (node instanceof HTMLOListElement) node.start = Number.parseInt(list[2], 10);
       while (index < lines.length) {
         const item = lines[index].value.match(listPattern);
         if (!item || /^\d/.test(item[2]) !== ordered) break;

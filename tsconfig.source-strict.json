@@ -13,6 +13,7 @@
   },
   "include": [],
   "files": [
+    "demo/ui/chat-markdown.js",
     "src/inference/pipelines/text/sequence-state.js",
     "src/inference/pipelines/text/stopping.js",
     "src/inference/pipelines/text/sampling-config.js",

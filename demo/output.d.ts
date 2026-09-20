@@ -7,7 +7,10 @@ export declare function setPrefillProgress(percent: number): void;
 export declare function createOutputStream(
   decodeTokenIds: (tokenIds: number[]) => string,
   signal?: AbortSignal
-): { push(tokenId: number): void; finish(finalText?: string): string };
+): {
+  push(tokenId: number, token?: import('./ui/token-inspector/index.js').InspectedToken | null): void;
+  finish(finalText?: string): string;
+};
 export declare function clearOutput(): void;
 export declare function showTokenInspectorView(show: boolean): void;
 export declare function renderTokenInspection(tokens: import('./ui/token-inspector/index.js').InspectedToken[]): void;

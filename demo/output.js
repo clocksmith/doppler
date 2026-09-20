@@ -1,5 +1,6 @@
 import { state } from './ui/state.js';
 import {
+  appendTokenInspectorToken,
   renderTokenInspector,
   setTokenInspectorActive,
 } from './ui/token-inspector/index.js';
@@ -130,6 +131,8 @@ export function createOutputStream(decodeTokenIds, signal) {
   const textNode = document.createTextNode('');
   output.classList.remove('chat-markdown');
   output.replaceChildren(textNode);
+  renderTokenInspection([]);
+  setTokenInspectorActive(state.tokenInspectorActive);
   liveMessage?.setAttribute('aria-busy', 'true');
   const tokenIds = [];
   let frame = null;
@@ -181,9 +184,13 @@ export function createOutputStream(decodeTokenIds, signal) {
   if (signal?.aborted) finish();
 
   return {
-    push(tokenId) {
+    push(tokenId, token = null) {
       if (closed) return;
       tokenIds.push(tokenId);
+      if (token) {
+        appendTokenInspectorToken(token, $('token-stream-container'), $('token-inspector-card-container'));
+        if (state.tokenInspectorActive) showTokenInspectorView(true);
+      }
       dirty = true;
       if (frame === null) frame = requestAnimationFrame(flush);
     },
@@ -203,11 +210,13 @@ export function showWordQuality(show) {
   const plain = $('output-text');
   const qualityOutput = $('word-quality-output');
   const liveMessage = $('live-assistant-message');
+  const hasTokens = Boolean($('token-stream-container')?.childElementCount);
+  const tokensVisible = state.tokenInspectorActive && hasTokens;
   if (liveMessage && show) liveMessage.hidden = false;
-  if (plain) plain.hidden = show;
-  if (qualityOutput) qualityOutput.hidden = !show;
+  if (plain) plain.hidden = show || tokensVisible;
+  if (qualityOutput) qualityOutput.hidden = !show || tokensVisible;
   const legend = $('word-quality-legend');
-  if (legend) legend.hidden = !show;
+  if (legend) legend.hidden = !show || tokensVisible;
 }
 
 export function renderWordQuality(quality, text = state.lastInspection?.outputText ?? '') {
@@ -216,10 +225,24 @@ export function renderWordQuality(quality, text = state.lastInspection?.outputTe
 }
 
 export function showTokenInspectorView(show) {
+  const plain = $('output-text');
+  const qualityOutput = $('word-quality-output');
+  const legend = $('word-quality-legend');
   const inspectorView = $('token-inspector-view');
   const hasTokens = Boolean($('token-stream-container')?.childElementCount);
-  if (inspectorView) inspectorView.hidden = !show || !hasTokens;
-  setTokenInspectorActive(show && hasTokens);
+  const visible = Boolean(show && hasTokens);
+  if (inspectorView) inspectorView.hidden = !visible;
+  setTokenInspectorActive(visible);
+  if (visible) {
+    if (plain) plain.hidden = true;
+    if (qualityOutput) qualityOutput.hidden = true;
+    if (legend) legend.hidden = true;
+    return;
+  }
+  const showQuality = state.wordQualityEnabled && Boolean(qualityOutput?.childElementCount);
+  if (plain) plain.hidden = showQuality;
+  if (qualityOutput) qualityOutput.hidden = !showQuality;
+  if (legend) legend.hidden = !showQuality;
 }
 
 export function renderTokenInspection(tokens) {

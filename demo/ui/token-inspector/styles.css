@@ -1,125 +1,117 @@
-/* Neutral controls; red and blue are reserved for probability information. */
+/* Inline evidence view: readable text first, details only on selection. */
 .token-inspector-view {
   display: grid;
   gap: 12px;
   width: 100%;
   min-width: 0;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--doppler-line);
 }
 .token-inspector-view[hidden],
 .token-stream-container[hidden],
 #token-inspector-card-container[hidden] { display: none; }
 .token-stream-container {
-  display: grid;
-  gap: 14px;
+  display: block;
   min-width: 0;
-  padding: 16px;
-  border: 1px solid var(--doppler-line);
-  border-radius: 12px;
-  background: var(--doppler-soft-surface);
-  box-shadow: var(--doppler-inset);
-}
-.token-page-toolbar, .token-inspector-nav {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font: 12px/1.5 var(--font-mono);
-  color: #555550;
-}
-.token-inspector-nav-btns { display: flex; flex-wrap: wrap; gap: 8px; }
-.token-chip-list { display: flex; flex-wrap: wrap; gap: 7px 5px; }
-.token-chip {
-  --token-surprisal: 0;
-  padding: 5px 8px;
-  min-height: 34px;
-  border: 1px solid #d2d2cc;
-  border-bottom: 2px solid color-mix(in srgb, #2563eb, #c43838 calc(var(--token-surprisal) * 100%));
-  border-radius: 6px;
-  background: #fafaf8;
-  color: #222;
-  font: 13px/1.5 var(--font-mono);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.8;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  max-width: 100%;
-  cursor: pointer;
   user-select: text;
 }
-.token-chip:hover { background: #fff; border-color: #777; }
-.token-chip.is-selected {
-  background: #292927;
-  color: #fff;
-  border-color: #292927;
-  outline: 2px solid #292927;
-  outline-offset: 2px;
+.token-chip {
+  --token-surprisal: 0.5;
+  appearance: none;
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  white-space: pre-wrap;
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.24em;
+  text-decoration-color: color-mix(in srgb, #2563eb, #d13b4d calc(var(--token-surprisal) * 100%));
+  text-decoration-skip-ink: auto;
+  cursor: pointer;
 }
-.token-chip:focus-visible { outline: 3px solid #555; outline-offset: 3px; }
+.token-chip--unavailable {
+  text-decoration-color: #929292;
+  text-decoration-style: dotted;
+}
+.token-chip:hover,
+.token-chip.is-selected {
+  background: transparent;
+  text-decoration-thickness: 3px;
+}
+.token-chip:focus-visible { outline: 2px solid #5966d9; outline-offset: 3px; }
 .token-inspector-card {
   display: grid;
-  gap: 16px;
-  padding: 18px;
-  border: 1px solid var(--doppler-line);
-  border-radius: 12px;
-  background: var(--doppler-surface);
-  box-shadow: var(--doppler-shadow);
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--doppler-line) 70%, transparent);
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: var(--doppler-inset);
 }
-.token-inspector-card-header { display: grid; gap: 12px; }
-.token-inspector-primary { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; }
+.token-inspector-card-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+.token-inspector-primary { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-width: 0; }
 .token-inspector-badge {
   max-width: 100%;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: #292927;
+  padding: 4px 8px;
+  border-radius: 7px;
+  background: #111111;
   color: #fff;
-  font: 14px/1.5 var(--font-mono);
+  font: 13px/1.5 var(--font-mono);
   overflow-wrap: anywhere;
 }
-.token-inspector-id, .token-inspector-metrics { font: 12px/1.6 var(--font-mono); color: #555550; }
-.token-candidates-title { font: 600 12px/1.5 var(--font-mono); color: #333; }
-.token-candidates-list { display: grid; gap: 10px; font-size: 12px; }
+.token-inspector-id,
+.token-inspector-metrics { font: 12px/1.6 var(--font-mono); color: #555555; }
+.token-candidates > summary {
+  min-height: 32px;
+  padding: 4px 0;
+  font: 600 12px/1.5 var(--font-mono);
+  cursor: pointer;
+}
+.token-candidates-list { display: grid; gap: 8px; padding-top: 8px; }
 .token-candidate-row {
   display: grid;
   grid-template-columns: 2ch minmax(60px, 1fr) minmax(40px, 1fr) 7ch;
-  gap: 10px;
   align-items: center;
+  gap: 10px;
   font: 12px/1.5 var(--font-mono);
-  color: #555550;
+  color: #555555;
 }
-.token-candidate-text { white-space: pre-wrap; overflow-wrap: anywhere; color: #222; }
+.token-candidate-text { white-space: pre-wrap; overflow-wrap: anywhere; color: #111111; }
 .token-candidate-row.is-winner { font-weight: 700; }
-.token-candidate-bar-bg { position: relative; height: 6px; background: #e3e3dd; border-radius: 3px; overflow: hidden; }
-.token-candidate-bar-fill { position: absolute; inset: 0 auto 0 0; background: #92928a; }
-.token-candidate-row.is-winner .token-candidate-bar-fill { background: #333; }
+.token-candidate-bar-bg { position: relative; height: 5px; background: #e5e5e5; border-radius: 999px; overflow: hidden; }
+.token-candidate-bar-fill { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #5169e8, #d13b4d); }
 .token-candidate-pct { text-align: right; font-variant-numeric: tabular-nums; }
-.token-inspector-nav { border-top: 1px solid var(--doppler-line); padding-top: 14px; }
-.token-inspector-nav input {
-  width: 7ch;
-  padding: 6px;
-  border: 1px solid #c6c6c0;
-  border-radius: 5px;
-  font: inherit;
-  color: #222;
-  background: #fafaf8;
-}
+.token-inspector-nav { display: flex; justify-content: flex-end; gap: 8px; }
 .token-inspector-nav-btn {
-  padding: 6px 10px;
-  min-height: 34px;
-  border: 1px solid #c6c6c0;
-  border-radius: 6px;
-  background: #fafaf8;
-  color: #333;
+  min-height: 32px;
+  padding: 5px 10px;
+  border: 1px solid var(--doppler-line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111111;
   font: 12px/1.5 var(--font-mono);
+  box-shadow: var(--doppler-shadow);
   cursor: pointer;
 }
-.token-inspector-nav-btn:hover:not(:disabled) { background: #fff; border-color: #777; }
-.token-inspector-nav-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-@media (pointer: coarse) {
-  .token-chip, .token-inspector-nav-btn { min-height: 44px; }
-}
+.token-inspector-nav-btn:disabled { opacity: 0.42; cursor: not-allowed; box-shadow: none; }
 @media (max-width: 600px) {
-  .token-inspector-card, .token-stream-container { padding: 12px; }
-  .token-candidate-row { gap: 6px; }
+  .token-inspector-card-header { grid-template-columns: 1fr; }
+  .token-candidate-row { grid-template-columns: 2ch minmax(60px, 1fr) 6ch; gap: 6px; }
+  .token-candidate-bar-bg { display: none; }
 }

@@ -327,17 +327,24 @@ export function aggregateWordPerplexity(tokenRecords, options = {}) {
   };
 }
 
+export function buildInspectionTokenRecord(tokenId, logits, tokenizer, topKSize = 5, index = 0) {
+  const probability = selectedProbability(logits, tokenId);
+  return {
+    index,
+    tokenId,
+    text: String(tokenizer.decode([tokenId], true, false)),
+    probability,
+    surprisal: probability && probability > 0 ? -Math.log(probability) : null,
+    topCandidates: topCandidates(logits, tokenizer, topKSize),
+  };
+}
+
 export function buildInspectionTokenRecords(tokenIds, logitsByStep, tokenizer, topKSize = 5) {
-  return tokenIds.map((tokenId, index) => {
-    const logits = logitsByStep[index] ?? null;
-    const probability = selectedProbability(logits, tokenId);
-    return {
-      index,
-      tokenId,
-      text: String(tokenizer.decode([tokenId], true, false)),
-      probability,
-      surprisal: probability && probability > 0 ? -Math.log(probability) : null,
-      topCandidates: topCandidates(logits, tokenizer, topKSize),
-    };
-  });
+  return tokenIds.map((tokenId, index) => buildInspectionTokenRecord(
+    tokenId,
+    logitsByStep[index] ?? null,
+    tokenizer,
+    topKSize,
+    index
+  ));
 }

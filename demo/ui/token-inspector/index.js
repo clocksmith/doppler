@@ -1,13 +1,13 @@
-// Token inspection stays separate from the readable answer.
-const PAGE_SIZE = 48;
+// Inline token telemetry keeps the generated answer readable. Selecting an
+// underlined token reveals its evidence without duplicating the whole answer.
 let currentTokens = [];
-let selectedIndex = 0;
+let selectedIndex = -1;
 let inspectorActive = false;
 let boundContainer = null;
 let boundCardContainer = null;
 
 function pct(value) {
-  return Number.isFinite(value) ? (value * 100).toFixed(1) + '%' : 'Unavailable';
+  return Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : 'Unavailable';
 }
 
 function button(text, action, disabled = false) {
@@ -20,72 +20,68 @@ function button(text, action, disabled = false) {
   return element;
 }
 
+function tokenButton(token, index) {
+  const element = document.createElement('button');
+  element.type = 'button';
+  element.className = 'token-chip';
+  element.dataset.tokenIndex = String(index);
+  element.tabIndex = index === selectedIndex ? 0 : -1;
+  element.setAttribute('aria-pressed', String(index === selectedIndex));
+  element.textContent = String(token?.text ?? '') || '\u200b';
+  const surprise = Number.isFinite(token?.surprisal)
+    ? Math.min(1, Math.max(0, token.surprisal / 8))
+    : 0.5;
+  element.style.setProperty('--token-surprisal', String(surprise));
+  element.classList.toggle('token-chip--unavailable', !Number.isFinite(token?.probability));
+  element.title = [
+    `Token ${index + 1} · ID ${token?.tokenId ?? 'unavailable'}`,
+    `Probability ${pct(token?.probability)}`,
+    'Select for alternatives',
+  ].join('\n');
+  element.setAttribute('aria-label', `${element.title}: ${JSON.stringify(token?.text ?? '')}`);
+  element.addEventListener('click', () => selectToken(index, { focus: true }));
+  return element;
+}
+
+function syncSelection() {
+  boundContainer?.querySelectorAll('.token-chip').forEach((element, index) => {
+    const selected = index === selectedIndex;
+    element.classList.toggle('is-selected', selected);
+    element.setAttribute('aria-pressed', String(selected));
+    element.tabIndex = selected ? 0 : -1;
+  });
+}
+
 export function isTokenInspectorActive() { return inspectorActive; }
 
 export function setTokenInspectorActive(active) {
   inspectorActive = Boolean(active);
-  if (boundContainer) boundContainer.hidden = !inspectorActive || !currentTokens.length;
-  if (boundCardContainer) boundCardContainer.hidden = !inspectorActive || !currentTokens.length;
+  if (boundContainer) boundContainer.hidden = !inspectorActive || currentTokens.length === 0;
+  if (boundCardContainer) {
+    boundCardContainer.hidden = !inspectorActive || selectedIndex < 0 || currentTokens.length === 0;
+  }
 }
 
 export function selectToken(index, { focus = false } = {}) {
   if (!currentTokens.length || !Number.isFinite(index)) return;
   selectedIndex = Math.max(0, Math.min(currentTokens.length - 1, Math.trunc(index)));
-  renderPage();
+  syncSelection();
   renderTokenCard();
+  setTokenInspectorActive(inspectorActive);
   if (focus) boundContainer?.querySelector('[aria-pressed="true"]')?.focus({ preventScroll: true });
-}
-
-function renderPage() {
-  if (!boundContainer) return;
-  const start = Math.floor(selectedIndex / PAGE_SIZE) * PAGE_SIZE;
-  const end = Math.min(currentTokens.length, start + PAGE_SIZE);
-  const toolbar = document.createElement('div');
-  toolbar.className = 'token-page-toolbar';
-  const label = document.createElement('span');
-  label.textContent = 'Tokens ' + (start + 1) + '-' + end + ' of ' + currentTokens.length;
-  label.setAttribute('role', 'status');
-  const actions = document.createElement('div');
-  actions.className = 'token-inspector-nav-btns';
-  actions.append(
-    button('Previous page', () => selectToken(start - PAGE_SIZE), start === 0),
-    button('Next page', () => selectToken(end), end === currentTokens.length)
-  );
-  toolbar.append(label, actions);
-  const list = document.createElement('div');
-  list.className = 'token-chip-list';
-  list.setAttribute('role', 'group');
-  list.setAttribute('aria-label', 'Output tokens. Use arrow keys to change selection.');
-  for (let index = start; index < end; index++) {
-    const token = currentTokens[index];
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'token-chip';
-    chip.classList.toggle('is-selected', index === selectedIndex);
-    chip.dataset.tokenIndex = String(index);
-    chip.tabIndex = index === selectedIndex ? 0 : -1;
-    chip.setAttribute('aria-pressed', String(index === selectedIndex));
-    const display = token.text === '\n' ? '\\n'
-      : token.text === '' ? '[empty]'
-        : String(token.text ?? '').replaceAll('\n', '\\n').replaceAll('\t', '\\t');
-    chip.textContent = display || '[empty]';
-    chip.title = 'Token ' + (index + 1) + ', ID ' + token.tokenId + ', probability ' + pct(token.probability);
-    chip.setAttribute('aria-label', chip.title + ': ' + JSON.stringify(token.text));
-    const surprise = Number.isFinite(token.probability) && token.probability > 0
-      ? Math.min(1, -Math.log(token.probability) / 8) : 1;
-    chip.style.setProperty('--token-surprisal', String(surprise));
-    chip.addEventListener('click', () => selectToken(index, { focus: true }));
-    list.append(chip);
-  }
-  boundContainer.replaceChildren(toolbar, list);
 }
 
 function renderTokenCard() {
   if (!boundCardContainer) return;
   const token = currentTokens[selectedIndex];
-  if (!token) { boundCardContainer.replaceChildren(); return; }
-  const card = document.createElement('div');
+  if (!token) {
+    boundCardContainer.replaceChildren();
+    return;
+  }
+
+  const card = document.createElement('aside');
   card.className = 'token-inspector-card';
+  card.setAttribute('aria-label', `Evidence for token ${selectedIndex + 1}`);
   const header = document.createElement('div');
   header.className = 'token-inspector-card-header';
   const identity = document.createElement('div');
@@ -95,90 +91,90 @@ function renderTokenCard() {
   badge.textContent = JSON.stringify(token.text ?? '');
   const id = document.createElement('span');
   id.className = 'token-inspector-id';
-  id.textContent = 'Token ' + (selectedIndex + 1) + '/' + currentTokens.length + ' - ID ' + token.tokenId;
+  id.textContent = `Token ${selectedIndex + 1}/${currentTokens.length} · ID ${token.tokenId ?? 'unavailable'}`;
   identity.append(badge, id);
   const metrics = document.createElement('span');
   metrics.className = 'token-inspector-metrics';
-  metrics.textContent = 'Probability ' + pct(token.probability) + ' / Surprisal '
-    + (Number.isFinite(token.surprisal) ? token.surprisal.toFixed(2) + ' nats' : 'unavailable');
+  metrics.textContent = `Probability ${pct(token.probability)} · Surprisal ${
+    Number.isFinite(token.surprisal) ? `${token.surprisal.toFixed(2)} nats` : 'unavailable'
+  }`;
   header.append(identity, metrics);
   card.append(header);
-  const title = document.createElement('strong');
-  title.className = 'token-candidates-title';
-  title.textContent = 'Top alternatives';
-  const candidates = document.createElement('div');
-  candidates.className = 'token-candidates-list';
-  for (const [rank, candidate] of (token.topCandidates || []).entries()) {
-    const row = document.createElement('div');
-    const selected = candidate.tokenId === token.tokenId;
-    row.className = 'token-candidate-row' + (selected ? ' is-winner' : '');
-    const position = document.createElement('span');
-    position.textContent = String(rank + 1);
-    const text = document.createElement('code');
-    text.className = 'token-candidate-text';
-    text.textContent = JSON.stringify(candidate.text ?? '');
-    text.title = 'ID ' + candidate.tokenId + (selected ? ' (sampled)' : '');
-    const track = document.createElement('span');
-    track.className = 'token-candidate-bar-bg';
-    const fill = document.createElement('span');
-    fill.className = 'token-candidate-bar-fill';
-    fill.style.width = Math.max(0, Math.min(100, (candidate.probability ?? 0) * 100)) + '%';
-    track.append(fill);
-    const value = document.createElement('span');
-    value.className = 'token-candidate-pct';
-    value.textContent = pct(candidate.probability);
-    row.append(position, text, track, value);
-    candidates.append(row);
+
+  const alternatives = Array.isArray(token.topCandidates) ? token.topCandidates : [];
+  if (alternatives.length) {
+    const details = document.createElement('details');
+    details.className = 'token-candidates';
+    const summary = document.createElement('summary');
+    summary.textContent = 'Top alternatives';
+    const list = document.createElement('div');
+    list.className = 'token-candidates-list';
+    for (const [rank, candidate] of alternatives.entries()) {
+      const row = document.createElement('div');
+      row.className = `token-candidate-row${candidate.tokenId === token.tokenId ? ' is-winner' : ''}`;
+      const position = document.createElement('span');
+      position.textContent = String(rank + 1);
+      const text = document.createElement('code');
+      text.className = 'token-candidate-text';
+      text.textContent = JSON.stringify(candidate.text ?? '');
+      const track = document.createElement('span');
+      track.className = 'token-candidate-bar-bg';
+      const fill = document.createElement('span');
+      fill.className = 'token-candidate-bar-fill';
+      fill.style.width = `${Math.max(0, Math.min(100, (candidate.probability ?? 0) * 100))}%`;
+      track.append(fill);
+      const value = document.createElement('span');
+      value.className = 'token-candidate-pct';
+      value.textContent = pct(candidate.probability);
+      row.append(position, text, track, value);
+      list.append(row);
+    }
+    details.append(summary, list);
+    card.append(details);
   }
-  if (!candidates.childElementCount) candidates.textContent = 'No candidate probabilities recorded.';
-  card.append(title, candidates);
+
   const nav = document.createElement('div');
   nav.className = 'token-inspector-nav';
-  const jumpLabel = document.createElement('label');
-  jumpLabel.textContent = 'Go to token ';
-  const jump = document.createElement('input');
-  jump.type = 'number';
-  jump.min = '1';
-  jump.max = String(currentTokens.length);
-  jump.step = '1';
-  jump.value = String(selectedIndex + 1);
-  jump.addEventListener('change', () => {
-    if (jump.checkValidity() && jump.value !== '') selectToken(jump.valueAsNumber - 1, { focus: true });
-  });
-  jumpLabel.append(jump);
-  const actions = document.createElement('div');
-  actions.className = 'token-inspector-nav-btns';
-  actions.append(
+  nav.append(
     button('Previous', () => selectToken(selectedIndex - 1, { focus: true }), selectedIndex === 0),
     button('Next', () => selectToken(selectedIndex + 1, { focus: true }), selectedIndex === currentTokens.length - 1)
   );
-  nav.append(jumpLabel, actions);
   card.append(nav);
   boundCardContainer.replaceChildren(card);
 }
 
-export function renderTokenInspector(tokens, streamContainer, cardContainer) {
-  currentTokens = Array.isArray(tokens) ? tokens : [];
-  selectedIndex = 0;
-  boundContainer = streamContainer;
-  boundCardContainer = cardContainer;
-  streamContainer?.replaceChildren();
-  cardContainer?.replaceChildren();
-  if (!streamContainer) return;
-  streamContainer.onkeydown = (event) => {
+function bindContainers(streamContainer, cardContainer) {
+  boundContainer = streamContainer ?? boundContainer;
+  boundCardContainer = cardContainer ?? boundCardContainer;
+  if (!boundContainer) return;
+  boundContainer.onkeydown = (event) => {
     if (!inspectorActive || !event.target.closest('.token-chip') || event.altKey || event.ctrlKey || event.metaKey) return;
     const targets = {
       ArrowLeft: selectedIndex - 1,
       ArrowRight: selectedIndex + 1,
       Home: 0,
       End: currentTokens.length - 1,
-      PageUp: selectedIndex - PAGE_SIZE,
-      PageDown: selectedIndex + PAGE_SIZE,
     };
     if (!(event.key in targets)) return;
     event.preventDefault();
     selectToken(targets[event.key], { focus: true });
   };
-  if (currentTokens.length) selectToken(0);
+}
+
+export function appendTokenInspectorToken(token, streamContainer = null, cardContainer = null) {
+  bindContainers(streamContainer, cardContainer);
+  if (!boundContainer || !token) return;
+  const index = currentTokens.length;
+  currentTokens.push(token);
+  boundContainer.append(tokenButton(token, index));
+  setTokenInspectorActive(inspectorActive);
+}
+
+export function renderTokenInspector(tokens, streamContainer, cardContainer) {
+  bindContainers(streamContainer, cardContainer);
+  currentTokens = Array.isArray(tokens) ? tokens : [];
+  selectedIndex = -1;
+  boundContainer?.replaceChildren(...currentTokens.map(tokenButton));
+  boundCardContainer?.replaceChildren();
   setTokenInspectorActive(inspectorActive);
 }

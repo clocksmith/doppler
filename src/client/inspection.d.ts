@@ -111,6 +111,14 @@ export declare function buildInspectionTokenRecords(
   tokenizer: { decode(ids: readonly number[], skipSpecialTokens?: boolean, cleanUp?: boolean): string },
   topKSize?: number
 ): DopplerInspectionTokenRecord[];
+
+export declare function buildInspectionTokenRecord(
+  tokenId: number,
+  logits: Float32Array | null,
+  tokenizer: { decode(ids: readonly number[], skipSpecialTokens?: boolean, cleanUpTokenizationSpaces?: boolean): string },
+  topKSize?: number,
+  index?: number,
+): DopplerInspectionTokenRecord;
 export declare function aggregateWordPerplexity(
   tokenRecords: DopplerInspectionTokenRecord[],
   options?: { windowUnit?: 'words' | 'tokens'; windowSize?: number }

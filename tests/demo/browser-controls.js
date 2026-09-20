@@ -55,6 +55,48 @@ async function assertControlContrast(page) {
 
 export async function checkDemoControls(page) {
   await page.locator('#chat-controls > summary').click();
+  assert.equal(await page.locator('#token-inspector-view').isVisible(), true);
+  assert.equal(await page.locator('.token-chip').count(), 3);
+  assert.equal(await page.locator('#output-text').isVisible(), false, 'Token evidence replaces the duplicate plain answer');
+  assert.equal(await page.locator('.token-chip').first().evaluate((element) => (
+    getComputedStyle(element).textDecorationLine.includes('underline')
+  )), true, 'Generated tokens use confidence underlines instead of boxes');
+  const desktopGeometry = await page.evaluate(() => {
+    const box = (selector) => document.querySelector(selector).getBoundingClientRect();
+    const select = box('#set-max-tokens');
+    const actions = ['#sample-run-btn', '#shuffle-btn', '#run-btn'].map(box);
+    const toolbar = box('.chat-toolbar');
+    const optionItems = [
+      '#token-inspector-toggle',
+      '#chat-controls > summary',
+      '#xray-toggle-all',
+      '#set-word-quality',
+      '#settings-toggle',
+    ].map((selector) => box(selector));
+    const statusItems = ['#output-phase', '#output-toks', '#clear-history-btn'].map((selector) => box(selector));
+    return {
+      composerBottoms: [select.bottom, ...actions.map((rect) => rect.bottom)],
+      toolbarHeight: toolbar.height,
+      optionCenters: optionItems.map((rect) => rect.top + rect.height / 2),
+      statusCenters: statusItems.map((rect) => rect.top + rect.height / 2),
+      optionsBottom: Math.max(...optionItems.map((rect) => rect.bottom)),
+      statusTop: Math.min(...statusItems.map((rect) => rect.top)),
+    };
+  });
+  assert.ok(
+    Math.max(...desktopGeometry.composerBottoms) - Math.min(...desktopGeometry.composerBottoms) <= 2,
+    'Composer controls share one bottom edge'
+  );
+  assert.ok(desktopGeometry.toolbarHeight <= 116, 'Expanded run options stay compact');
+  assert.ok(
+    Math.max(...desktopGeometry.optionCenters) - Math.min(...desktopGeometry.optionCenters) <= 2,
+    'Expanded run options share one center line'
+  );
+  assert.ok(
+    Math.max(...desktopGeometry.statusCenters) - Math.min(...desktopGeometry.statusCenters) <= 2,
+    'Completion status and clear action share one center line'
+  );
+  assert.ok(desktopGeometry.optionsBottom <= desktopGeometry.statusTop, 'Status rail cannot overlap run options');
   await page.locator('#xray-toggle-all').focus();
   await page.keyboard.press('Space');
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), true);
@@ -101,21 +143,21 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#settings-error').isVisible(), true, 'Profile failure is visible');
   await page.evaluate(() => { __demoContract.failLoad = false; });
 
-  await page.fill('#set-max-tokens', '0');
+  await page.fill('#set-top-k', '0');
   await page.fill('#prompt-input', 'Preserve invalid input.');
   const beforeInvalid = await page.evaluate(() => __demoContract.calls.length);
   await page.click('#run-btn');
   assert.equal(await page.evaluate(() => __demoContract.calls.length), beforeInvalid);
   assert.equal(await page.inputValue('#prompt-input'), 'Preserve invalid input.');
-  await page.fill('#set-max-tokens', '8');
-  await page.fill('#set-temperature', '0.4');
   await page.fill('#set-top-k', '7');
+  await page.selectOption('#set-max-tokens', '128');
+  await page.fill('#set-temperature', '0.4');
   await page.fill('#set-top-p', '0.8');
   await completeRun(page, 'Apply sampling.');
   assert.deepEqual(await page.evaluate(() => {
     const { temperature, topK, topP, maxTokens } = __demoContract.calls.at(-1).generation;
     return { temperature, topK, topP, maxTokens };
-  }), { temperature: 0.4, topK: 7, topP: 0.8, maxTokens: 8 });
+  }), { temperature: 0.4, topK: 7, topP: 0.8, maxTokens: 128 });
   await page.locator('#settings-toggle').click();
   assert.equal(await page.locator('#settings-panel').isVisible(), false);
 
@@ -126,7 +168,7 @@ export async function checkDemoControls(page) {
   await page.locator('#prompt-input').press('Shift+Enter');
   assert.equal(await page.inputValue('#prompt-input'), 'Keyboard\n');
   await page.locator('#prompt-input').press('Enter');
-  await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Complete');
+  await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Complete'));
 
   const report = await exportedReport(page);
   assert.equal(report.output, 'Contract generation passed.');
@@ -157,7 +199,7 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#export-btn').isDisabled(), true, 'Cancellation cannot publish a late receipt');
   await page.click('#clear-history-btn');
   assert.equal(await page.locator('.chat-message-text').count(), 0);
-  assert.equal(await page.locator('#clear-history-btn').isDisabled(), true);
+  assert.equal(await page.locator('#clear-history-btn').isEnabled(), true, 'Loaded model state remains resettable');
 
   await checkDemoStreaming(page);
 
@@ -256,7 +298,19 @@ export async function checkDemoControls(page) {
     await page.setViewportSize({ width, height: 1000 });
     await page.emulateMedia({ colorScheme: width === 390 ? 'dark' : 'light' });
     await assertControlContrast(page);
-    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `No page overflow at ${width}px`);
+    const horizontalLayout = await page.evaluate(() => ({
+      fits: document.documentElement.scrollWidth <= innerWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      offenders: [...document.querySelectorAll('body *')]
+        .filter((element) => element.getBoundingClientRect().right > innerWidth + 1)
+        .slice(0, 8)
+        .map((element) => element.id || element.className || element.tagName),
+    }));
+    assert.equal(
+      horizontalLayout.fits,
+      true,
+      `No page overflow at ${width}px: ${JSON.stringify(horizontalLayout)}`
+    );
   }
   for (const button of await page.locator('button:visible:not(:disabled)').all()) {
     await button.hover();

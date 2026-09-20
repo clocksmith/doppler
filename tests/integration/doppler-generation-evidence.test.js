@@ -419,6 +419,33 @@ await assert.rejects(streamHandle.inspect.generate('test', {
 assert.doesNotThrow(() => emitToken(999, ''), 'Failed runs close their event stream');
 console.log('doppler-generation-evidence inspection streaming: ok');
 
+// Probability-capturing policies attach the matching token record to the live
+// event so evidence UIs do not have to wait for the completed receipt.
+{
+  const probabilityHandle = createModelHandle({
+    ...pipeline,
+    manifest: { ...pipeline.manifest, tokenizer: { type: 'test', digest: 'fixture' } },
+    async generateTokenIds(_prompt, options) {
+      const logits = new Float32Array([0, 3, 1]);
+      options.onLogits?.(logits, { tokenId: 1, inputTokenCount: 0 });
+      options.onToken?.(1, '[1]');
+      return { tokenIds: [1], stats };
+    },
+  }, { modelId: 'probability-stream-test', manifestHash: 'a'.repeat(64) });
+  const probabilityEvents = [];
+  const receipt = await probabilityHandle.inspect.generate('test', {
+    policyId: 'demo/guided-quality',
+    onEvent: (event) => probabilityEvents.push(event),
+  });
+  assert.equal(probabilityEvents[0].type, 'token');
+  assert.equal(probabilityEvents[0].token.text, '[1]');
+  assert.equal(probabilityEvents[0].token.index, 0);
+  assert.equal(probabilityEvents[0].token.tokenId, 1);
+  assert.ok(probabilityEvents[0].token.probability > 0.8);
+  assert.deepEqual(probabilityEvents[0].token, receipt.tokens[0]);
+}
+console.log('doppler-generation-evidence probability streaming: ok');
+
 {
   let executed;
   const model = createModelHandle({
