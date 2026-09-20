@@ -10,6 +10,7 @@ import { createStaticFileServer } from '../src/tooling/node-browser-command-runn
 import { evaluateEmbeddingReference, assertEmbeddingSourceIdentity } from '../src/config/embedding-reference.js';
 import { evaluateRerankReference, assertRerankSourceIdentity } from '../src/config/rerank-reference.js';
 import { resolveCapsuleEmbeddingContract } from '../src/config/embedding-contract.js';
+import { installCapabilityMemoryProbe } from '../tests/fixtures/installed-capability-memory.js';
 
 const read = async file => JSON.parse(await fs.readFile(file, 'utf8'));
 const config = await read(process.argv[2]);
@@ -49,7 +50,7 @@ if (config.lifecycle) await fs.copyFile(new URL('../tests/fixtures/installed-cap
 await fs.writeFile(path.join(consumer, 'capabilities.html'), `<!doctype html><title>Installed Capsule capabilities</title><script type="importmap">${JSON.stringify({ imports })}</script>`);
 await fs.mkdir(config.outputDir);
 const report = { schema: 'doppler.installed-capabilities-acceptance-result/v1', passed: false,
-  startedAtUtc: new Date().toISOString(), package: bundle.package, config, results: [], logs: [],
+  startedAtUtc: new Date().toISOString(), package: bundle.package, config, results: [], logs: [], progress: [],
   fixtureSource: await read(path.join(config.bundleRoot, 'source-state.json')),
   runnerRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: new URL('..', import.meta.url), encoding: 'utf8' }).trim(),
   runnerSha256: createHash('sha256').update(await fs.readFile(new URL(import.meta.url))).digest('hex'),
@@ -73,6 +74,7 @@ try {
   report.browserVersion = browser.version();
   for (const [index, row] of config.models.entries()) {
     const page = await browser.newPage();
+    if (config.measureMemory === true) await page.addInitScript(installCapabilityMemoryProbe);
     let timedOut = false;
     let hardware = null;
     let result = null;
@@ -103,7 +105,10 @@ try {
       descriptor.capsuleUrl = `${server.baseUrl}/models/${index}/${row.capsuleFile}`;
       if (descriptor.openOptions.releasePolicy) descriptor.openOptions.releasePolicy.now = new Date().toISOString();
       console.log(JSON.stringify({ stage: 'open-and-execute', operation: descriptor.request.operation.name, hardware }));
-      await page.exposeFunction('reportCapabilityProgress', progress => {
+      await page.exposeFunction('reportCapabilityProgress', async progress => {
+        report.progress.push({ operation: descriptor.request.operation.name, progress,
+          ...(config.measureMemory === true ? { memory: await page.evaluate(() => readCapabilityMemory()) } : {}) });
+        await fs.writeFile(path.join(config.outputDir, 'loading-progress.json'), JSON.stringify(report.progress, null, 2));
         console.log(JSON.stringify({ operation: descriptor.request.operation.name, progress }));
       });
       await page.exposeFunction('persistCapabilityCheckpoint', async checkpoint => {
@@ -266,6 +271,10 @@ try {
         error: { message: timedOut ? `Consumer exceeded ${config.timeoutMs}ms: ${error.message}` : error.message, stack: error.stack } });
     } finally {
       clearTimeout(timeout);
+      if (config.measureMemory === true && !page.isClosed()) {
+        report.progress.push({ operation: row.descriptor.request.operation.name, stage: 'after-session-cleanup',
+          memory: await page.evaluate(() => readCapabilityMemory()) });
+      }
       await page.close();
       await fs.writeFile(path.join(config.outputDir, 'progress.json'), JSON.stringify(report.results, null, 2));
     }
