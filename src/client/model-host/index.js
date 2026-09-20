@@ -31,6 +31,7 @@ import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { getKernelCapabilities, initDevice } from '../../gpu/device.js';
 import { runWithShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
 import { createDopplerRuntime } from '../runtime/composition-root.js';
+import { createCapsuleArtifactBacking } from '../runtime/verified-capsule-artifact-store.js';
 import { createCapsuleProgramAdapter } from '../runtime/capsule-program-adapter.js';
 import { createCapsuleArtifactSource } from '../runtime/capsule-artifact-source.js';
 import { resolveProgramLoadRuntimeConfig } from '../../config/initial-execution-identity.js';
@@ -187,6 +188,7 @@ export function createDopplerRuntimeService({
 
   const convenienceModelCache = new Map();
   const inFlightLoadCache = new Map();
+  const capsuleArtifactBacking = createCapsuleArtifactBacking();
 
   function clearModelCache() {
     convenienceModelCache.clear();
@@ -400,6 +402,7 @@ export function createDopplerRuntimeService({
       const capsuleRuntime = createDopplerRuntime({
         device,
         artifactStore: resolvedCapsule.artifactStore,
+        artifactBacking: capsuleArtifactBacking,
         trustedSigners: options.trustedSigners ?? {},
         cache: options.verificationCache ?? null,
         observer: options.observer ?? null,

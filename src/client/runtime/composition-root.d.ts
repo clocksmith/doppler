@@ -14,6 +14,7 @@ import type { CapsuleOperationEvent } from './capsule-operation-executor.js';
 import type { CapsuleForecastRequest, CapsuleForecastResult } from './capsule-forecast.js';
 import type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-embedding.js';
 import type { CapsuleAcquisitionOptions } from './capsule-acquisition.js';
+import type { CapsuleArtifactBacking } from './verified-capsule-artifact-store.js';
 export type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-embedding.js';
 
 export { createForecastProgramFactory } from './capsule-forecast-program.js';
@@ -28,6 +29,7 @@ export interface CapsuleSessionOptions extends TargetPlanSelectionPolicy, Capsul
 }
 
 export interface RuntimePorts {
+  artifactBacking?: CapsuleArtifactBacking;
   device: object;
   capsuleSource?: { fetchCapsule(id: string, options?: object): Promise<DopplerCapsule> };
   artifactStore: {

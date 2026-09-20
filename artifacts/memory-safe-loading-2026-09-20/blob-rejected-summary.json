@@ -1,0 +1,43 @@
+{
+  "schema": "doppler.memory-loading-physical-summary/v1",
+  "passed": false,
+  "originalReceiptPath": "/var/tmp/doppler-memory-backing-20260920/physical/receipt.json",
+  "originalReceiptSha256": "dbe158ad9e091c457fa215b01c12e0c6c967a594e79ee33dc67be55cf781f725",
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-JdzOoz2YE8d5zZ6tUrQPIoxGhdzvQdGP0XQWFhind1LRFXJthQNQRJ2It85bbGD/1G83AvwwmdNEqjwrb1ZWow==",
+    "sizeBytes": 2148001,
+    "source": "local-npm-pack",
+    "sha256": "d811f15b367044653a273e4f32fcecc8920f66762e6aa8b2653372d7e857f472"
+  },
+  "startedAtUtc": "2026-09-20T02:46:38.896Z",
+  "completedAtUtc": "2026-09-20T02:46:50.038Z",
+  "results": [
+    {
+      "error": {
+        "message": "page.evaluate: NotReadableError: The requested file could not be read, typically due to permission problems that have occurred after a reference to a file was acquired.",
+        "stack": "page.evaluate: NotReadableError: The requested file could not be read, typically due to permission problems that have occurred after a reference to a file was acquired.\n    at /home/x/deco/doppler/tools/check-installed-capabilities.js:126:27"
+      },
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": false
+          },
+          {
+            "available": true
+          }
+        ]
+      }
+    }
+  ],
+  "isolatedProbe": {
+    "inputBytes": 536870912,
+    "result": "NotReadableError",
+    "blobInternals": "BlobStatus::ERR_OUT_OF_MEMORY: Not enough memory or disk space available for blob.",
+    "scope": "Observed in fresh Chrome contexts and a fresh persistent profile. Blob implementation rejected, not qualified."
+  }
+}

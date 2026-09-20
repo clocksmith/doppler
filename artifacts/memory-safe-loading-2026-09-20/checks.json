@@ -1,0 +1,27 @@
+{
+  "schema": "doppler.memory-loading-checks/v1",
+  "checkGreen": {
+    "command": "npm run check:green",
+    "exitCode": 0,
+    "unitTestFiles": 850
+  },
+  "logs": [
+    {
+      "path": "/var/tmp/doppler-memory-blocks-green.log",
+      "sha256": "3bd9c7e19e89297272e4a94dcb39379ab7b661d9a49669cffe28dd443dec494d"
+    },
+    {
+      "path": "/var/tmp/doppler-memory-backing-focused.log",
+      "sha256": "7e0dd5eee86c6cfa0cb78280aac405b79d81230e6a86b2c822878d974b8bc22d"
+    },
+    {
+      "path": "/var/tmp/doppler-memory-sha-final.log",
+      "sha256": "1d0ca13a4d42d1e9a1e5841a1913b7440594fb7db8abd7f735decb3f3fa032b6"
+    }
+  ],
+  "sourceParity": {
+    "matchedChangedShippedFiles": 5,
+    "archiveSha256": "b2ba7dbf7a18df458a702881439d2f9195b8b2a6a864f5fed2fa51afba831f6c"
+  },
+  "publication": false
+}

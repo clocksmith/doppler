@@ -111,18 +111,29 @@ deadline listeners are detached when opening finishes. Execution has its own
 per-operation cancellation control. Electron translates opening cancellation to
 its existing `DOPPLER_ELECTRON_CANCELLED` error.
 
-The internal verified store owns a detached copy of every admitted artifact.
+The internal verified store owns immutable, private byte-block snapshots of
+admitted artifacts. It copies and hashes at most 64 KiB per owned block; source
+buffers and returned arrays cannot mutate those blocks. Range reads allocate only
+their requested output; full-file reads still require space for that file.
 The loading policy defaults `maxRetainedArtifactBytes` to `null` (unlimited).
-A nonnegative byte limit bounds cached verified files using least-recently-used
-eviction. Files larger than the limit are verified for the active read without
-being cached; zero disables retention. A later read of an evicted file acquires
-and verifies its bytes again. The limit excludes active reads, returned slices,
-loader allocations, and GPU memory. Use a persistent artifact source when repeat
-network acquisition is undesirable.
+A nonnegative byte limit bounds the optional full-file metadata byte cache using
+least-recently-used eviction; zero disables that cache, not verified backing.
+Weight shards use their backing directly, avoiding another retained JavaScript
+copy alongside model resources. Eviction never triggers reacquisition or rehashing
+while the store owns its immutable snapshot. A new store verifies its source
+again after the final owner releases its snapshot. The limit excludes owned
+backing, active reads, returned slices, loader allocations, and GPU memory.
+Sessions opened by one host service share completed, verified snapshots by
+content hash and exact size, while retaining independent authorization, cache,
+cancellation, and cleanup. No source digest claim is trusted. Concurrent pending
+acquisitions remain independent; only completed verification is shared. The
+final store close releases backing references; no process-global content cache
+or browser disk quota is required. Backing still occupies model-sized memory;
+its logical byte count is not a physical RAM measurement.
 
 `hashArtifact()` reports that internally computed verification without copying or
 rehashing a retained file. `readArtifactRange()` returns only an owned requested slice;
-neither callers nor source buffers can mutate retained bytes. Externally supplied
+neither callers nor source buffers can mutate verified backing. Externally supplied
 hash claims are never trusted by Capsule opening. Manifest-level shard checks remain
 separate because they bind another identity.
 
@@ -132,6 +143,11 @@ copied there, retained and peak-retained bytes, and bytes returned to consumers.
 `evictions` counts removed cached files. `sourceReadMs`, `hashingMs`, and
 `copyingMs` measure successful source reads, store hashing, and owned copies;
 source reads include work performed inside the supplied artifact adapter.
+`backingBytes`, `peakBackingBytes`, and `backingFiles` count leased snapshots;
+`snapshotCopiedBytes` counts bytes copied into newly verified backing.
+`sharedBackingBytes` counts leases on existing verified backing, not new memory;
+do not sum per-session leased bytes as unique allocation. `peakSnapshotBlockBytes`
+measures the largest owned block, separately from fixed SHA state/schedule workspace.
 These counters exclude HTTP internals, manifest hashing, GPU upload, driver
 allocation, and total process memory. They establish copy/verification work, not
 a measured latency or peak-memory improvement. Capsule acquisition does not provide
