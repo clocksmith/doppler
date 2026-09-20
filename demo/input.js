@@ -4,7 +4,8 @@ import {
   createConversationRequest,
   normalizeConversationHistory,
 } from './conversation.js';
-import { clearOutput, renderChatMessages } from './output.js';
+import { clearOutput, renderChatMessages, setPhase } from './output.js';
+import { syncModelControls } from './models.js';
 
 let examples = null;
 let shuffleIndex = -1;
@@ -15,11 +16,12 @@ function $(id) { return document.getElementById(id); }
 function syncClearChatButton() {
   const clearButton = $('clear-history-btn');
   if (clearButton) clearButton.disabled = state.generating || state.prefilling
-    || (state.conversationHistory.length === 0 && !state.lastRun);
+    || state.modelBusy || state.settingsBusy
+    || (state.conversationHistory.length === 0 && !state.lastRun && !state.model);
 }
 
 function setupConversationActions() {
-  $('clear-history-btn')?.addEventListener('click', clearConversationHistory);
+  $('clear-history-btn')?.addEventListener('click', () => { void clearConversation(); });
   syncClearChatButton();
 }
 
@@ -72,15 +74,48 @@ export function buildConversationRequest(prompt, options = {}) {
   });
 }
 
-export function recordConversationTurn(request, output, { render = true } = {}) {
+export function recordConversationTurn(request, output, { render = true, quality = null } = {}) {
+  const previousLength = state.conversationHistory.length;
   state.conversationHistory = appendConversationTurn(state.conversationHistory, request, output);
+  if (state.conversationHistory.length > previousLength) {
+    const index = state.conversationHistory.length - 1;
+    state.conversationAnnotations[index] = {
+      text: state.conversationHistory[index].content,
+      quality,
+    };
+  }
   if (render) renderChatMessages(state.conversationHistory);
   syncClearChatButton();
+}
+
+export async function clearConversation() {
+  if (state.generating || state.prefilling || state.modelBusy || state.settingsBusy) return;
+  state.modelBusy = true;
+  syncModelControls();
+  syncClearChatButton();
+  try {
+    if (state.model) {
+      if (typeof state.model.resetGenerationState !== 'function') {
+        throw new Error('This runtime cannot reset model state. Reload the updated demo.');
+      }
+      await state.model.resetGenerationState();
+    }
+    clearConversationHistory();
+    clearPrompt();
+    setPhase('Conversation and model state cleared');
+  } catch (error) {
+    setPhase(`Clear failed: ${error?.message || error}`);
+  } finally {
+    state.modelBusy = false;
+    syncModelControls();
+    syncClearChatButton();
+  }
 }
 
 export function clearConversationHistory() {
   if (state.generating || state.prefilling) return;
   state.conversationHistory = [];
+  state.conversationAnnotations = [];
   state.lastRun = null;
   state.lastImportedReport = null;
   state.lastInspection = null;
@@ -95,6 +130,7 @@ export function clearConversationHistory() {
 
 export function restoreConversationHistory(messages) {
   state.conversationHistory = normalizeConversationHistory(messages);
+  state.conversationAnnotations = [];
   renderChatMessages(state.conversationHistory);
   syncClearChatButton();
 }
@@ -182,7 +218,7 @@ export function setGenerating(active) {
   if (runBtn) runBtn.hidden = active;
   if (stopBtn) stopBtn.hidden = !active;
   for (const control of document.querySelectorAll(
-    '#set-profile, #settings-panel input:not(:disabled), #xray-toggle-all, #set-word-quality, #import-btn'
+    '#set-profile, #set-max-tokens, #settings-panel input:not(:disabled), #xray-toggle-all, #set-word-quality, #import-btn'
   )) {
     if (active) control.dataset.runLocked = 'true';
     control.disabled = active;

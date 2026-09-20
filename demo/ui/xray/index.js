@@ -7,9 +7,9 @@ let onChangeCallback = null;
 
 function readPreference() {
   try {
-    return localStorage.getItem(XRAY_STORAGE_KEY) === 'true';
+    return localStorage.getItem(XRAY_STORAGE_KEY) !== 'false';
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -60,9 +60,9 @@ export function resetXray() {
 }
 
 function addField(container, label, value) {
-  const row = document.createElement('div');
+  const row = document.createElement('details');
   row.className = 'xray-section';
-  const heading = document.createElement('div');
+  const heading = document.createElement('summary');
   heading.className = 'xray-section-header';
   heading.textContent = label;
   const body = document.createElement('pre');
@@ -72,11 +72,35 @@ function addField(container, label, value) {
   container.append(row);
 }
 
+function addOverview(container, receipt) {
+  const stats = receipt.generationEvidence?.stats ?? {};
+  const overview = document.createElement('dl');
+  overview.className = 'xray-overview';
+  const milliseconds = (value) => Number.isFinite(value) ? value.toFixed(0) + ' ms' : 'Unavailable';
+  const fields = [
+    ['Output', (receipt.generatedTokenIds?.length ?? 0) + ' tokens'],
+    ['Total', milliseconds(receipt.wallTimingMs)],
+    ['Prefill', milliseconds(stats.prefillTimeMs)],
+    ['Decode', milliseconds(stats.decodeTimeMs)],
+  ];
+  for (const [label, value] of fields) {
+    const group = document.createElement('div');
+    const term = document.createElement('dt');
+    const description = document.createElement('dd');
+    term.textContent = label;
+    description.textContent = value;
+    group.append(term, description);
+    overview.append(group);
+  }
+  container.append(overview);
+}
+
 export function updateXrayPanels(receipt = state.lastInspection) {
   if (!isXrayEnabled() || !receipt) return;
   const container = $('xray-container');
   if (!container) return;
   container.replaceChildren();
+  addOverview(container, receipt);
   addField(container, 'Observation contract', receipt.policy);
   addField(container, 'Execution identity', receipt.fingerprint?.identity?.execution ?? {});
   addField(container, 'Adapter', receipt.fingerprint?.identity?.adapter ?? {});

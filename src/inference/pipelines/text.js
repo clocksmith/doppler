@@ -246,6 +246,10 @@ export class InferencePipeline extends PipelineState {
     return this.generator.resetToSeqLen(seqLen);
   }
 
+  resetGenerationState() {
+    return this.generator.resetGenerationState();
+  }
+
   decodeStepLogits(currentIds, options = {}) {
     assertNotAborted(options?.signal);
     return this.generator.decodeStepLogits(currentIds, options);

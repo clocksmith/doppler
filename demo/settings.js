@@ -4,7 +4,7 @@ import { syncModelControls } from './models.js';
 
 function $(id) { return document.getElementById(id); }
 
-const DEMO_DEFAULT_MAX_TOKENS = 1024;
+const DEMO_DEFAULT_MAX_TOKENS = 256;
 const WORD_QUALITY_STORAGE_KEY = 'doppler.demo.word-quality-enabled';
 let onProfileChanged = null;
 
@@ -159,7 +159,7 @@ function readGenerationSettings() {
 }
 
 export function getSettings() {
-  state.wordQualityEnabled = $('set-word-quality')?.checked ?? false;
+  state.wordQualityEnabled = $('set-word-quality')?.checked ?? state.wordQualityEnabled;
   for (const field of GENERATION_FIELDS) {
     const input = $(field.id);
     if (input && (!input.checkValidity() || field.parse(input.value) === undefined)) {

@@ -115,10 +115,10 @@ export async function runGeneration() {
     receiving = false;
     signal.throwIfAborted();
     stream.finish(receipt.outputText);
-    const qualityEnabled = receipt.quality != null;
+    const qualityEnabled = state.wordQualityEnabled && receipt.quality != null;
     showWordQuality(qualityEnabled);
     if (qualityEnabled) {
-      renderWordQuality(receipt.quality);
+      renderWordQuality(receipt.quality, receipt.outputText);
     }
     if (Array.isArray(receipt.tokens) && receipt.tokens.length > 0) {
       renderTokenInspection(receipt.tokens);
@@ -157,7 +157,7 @@ export async function runGeneration() {
         tooltipRecords: receipt.tokens.length,
       },
     };
-    recordConversationTurn(conversationRequest, receipt.outputText, { render: false });
+    recordConversationTurn(conversationRequest, receipt.outputText, { render: false, quality: receipt.quality });
     updateXrayPanels(receipt);
     setFinalStats(state.lastRun);
     setExportEnabled(true);
@@ -186,14 +186,14 @@ export function stopGeneration() {
 }
 
 export function loadSampleInspection(receipt) {
-  beginChatTurn([
-    { role: 'user', content: receipt.prompt },
-    { role: 'assistant', content: receipt.outputText },
-  ]);
+  if (state.generating || state.modelBusy || state.settingsBusy) return;
+  beginChatTurn([{ role: 'user', content: receipt.prompt }]);
   const liveMessage = $('live-assistant-message');
   const outputText = $('output-text');
   if (outputText) outputText.textContent = receipt.outputText;
   if (liveMessage) liveMessage.hidden = false;
+  renderWordQuality(receipt.quality, receipt.outputText);
+  showWordQuality(state.wordQualityEnabled && receipt.quality != null);
 
   if (Array.isArray(receipt.tokens) && receipt.tokens.length > 0) {
     renderTokenInspection(receipt.tokens);
@@ -239,4 +239,5 @@ export function loadSampleInspection(receipt) {
   setExportEnabled(true);
   setPhase('Complete · Sample');
   setStatus('Ready', false);
+  setGenerating(false);
 }

@@ -13,6 +13,28 @@ function setBootStatus(text) {
   if (el) el.textContent = text;
 }
 
+async function loadSavedModelWithStatus() {
+  const startedAt = performance.now();
+  setBootStatus('Loading saved model...');
+  const timer = setInterval(() => {
+    const progress = state.downloadProgress;
+    const details = [];
+    if (typeof progress?.message === 'string' && progress.message.trim()) {
+      details.push(progress.message.trim());
+    }
+    if (typeof progress?.percent === 'number' && Number.isFinite(progress.percent)) {
+      details.push(`${Math.round(Math.max(0, Math.min(100, progress.percent)))}%`);
+    }
+    details.push(`${Math.floor((performance.now() - startedAt) / 1000)}s elapsed`);
+    setBootStatus(`Loading saved model... ${details.join(' - ')}`);
+  }, 3000);
+  try {
+    await loadDefaultStoredModel();
+  } finally {
+    clearInterval(timer);
+  }
+}
+
 function showBootError(message) {
   const el = $('boot-error');
   if (el) {
@@ -51,8 +73,7 @@ export async function boot() {
 
     // Step 4: Reuse a saved model before offering remote downloads
     renderModelCards();
-    setBootStatus('Loading saved model...');
-    await loadDefaultStoredModel();
+    await loadSavedModelWithStatus();
 
     // Step 5: Show the ready chat surface
     state.phase = 'ready';
