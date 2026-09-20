@@ -1,0 +1,80 @@
+{
+  "browser": "146.0.7680.177",
+  "bytes": 33554432,
+  "expected": "f7d2739944dac13d6ffd333fdd5e37df44312b5ba37f79c5d6f3f7d39a8543fb",
+  "sourceSha256": "fd94bd03e30e835a67383db6001dc9aae16a76dbf579578099190fa610ffb42c",
+  "candidateSha256": "5a8e1d52e1e7349cbb4f990d854a420c45a65c1eaf83f4e1921b369f4512868b",
+  "samples": [
+    {
+      "run": 0,
+      "warmup": true,
+      "name": "baseline",
+      "elapsedMs": 546.2000002861023,
+      "MiBPerSecond": 58.58659828494734
+    },
+    {
+      "run": 0,
+      "warmup": true,
+      "name": "directReads",
+      "elapsedMs": 269.59999990463257,
+      "MiBPerSecond": 118.69436205979072
+    },
+    {
+      "run": 1,
+      "warmup": false,
+      "name": "directReads",
+      "elapsedMs": 274.90000009536743,
+      "MiBPerSecond": 116.40596576536436
+    },
+    {
+      "run": 1,
+      "warmup": false,
+      "name": "baseline",
+      "elapsedMs": 509.59999990463257,
+      "MiBPerSecond": 62.79434852038567
+    },
+    {
+      "run": 2,
+      "warmup": false,
+      "name": "baseline",
+      "elapsedMs": 513.7000002861023,
+      "MiBPerSecond": 62.293167183526926
+    },
+    {
+      "run": 2,
+      "warmup": false,
+      "name": "directReads",
+      "elapsedMs": 264.2999997138977,
+      "MiBPerSecond": 121.07453664260198
+    },
+    {
+      "run": 3,
+      "warmup": false,
+      "name": "directReads",
+      "elapsedMs": 263.90000009536743,
+      "MiBPerSecond": 121.25805224871516
+    },
+    {
+      "run": 3,
+      "warmup": false,
+      "name": "baseline",
+      "elapsedMs": 500.59999990463257,
+      "MiBPerSecond": 63.923292061718335
+    },
+    {
+      "run": 4,
+      "warmup": false,
+      "name": "baseline",
+      "elapsedMs": 502.30000019073486,
+      "MiBPerSecond": 63.706948014829514
+    },
+    {
+      "run": 4,
+      "warmup": false,
+      "name": "directReads",
+      "elapsedMs": 269,
+      "MiBPerSecond": 118.95910780669145
+    }
+  ],
+  "scope": "Same-browser alternating synthetic hash probe; not model startup or GPU execution."
+}

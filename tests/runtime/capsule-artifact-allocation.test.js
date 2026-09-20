@@ -10,12 +10,12 @@ for (const boundary of ['owned-copy', 'hash-workspace']) {
   let acquired = false;
   const source = { async readArtifact() { acquired = true; reads++; return bytes; } };
   const store = createVerifiedCapsuleArtifactStore(capsule, source);
-  const from = Uint8Array.from;
+  const bytesConstructor = globalThis.Uint8Array;
   const words = globalThis.Uint32Array;
-  if (boundary === 'owned-copy') Uint8Array.from = function(input, ...args) {
-    if (input.buffer === bytes.buffer) throw new RangeError('Injected owned-copy allocation failure');
-    return from.call(this, input, ...args);
-  };
+  if (boundary === 'owned-copy') globalThis.Uint8Array = new Proxy(bytesConstructor, { construct(target, args) {
+    if (acquired && args[0] === bytes.length) throw new RangeError('Injected owned-copy allocation failure');
+    return Reflect.construct(target, args);
+  } });
   else globalThis.Uint32Array = new Proxy(words, { construct(target, args) {
     if (acquired) throw new RangeError('Injected hash-workspace allocation failure');
     return Reflect.construct(target, args);
@@ -24,7 +24,7 @@ for (const boundary of ['owned-copy', 'hash-workspace']) {
     await assert.rejects(store.readArtifact(artifact), new RegExp(`Injected ${boundary} allocation failure`));
     assert.equal(store.getMetrics().retainedBytes, 0);
     assert.equal(store.getMetrics().backingBytes, 0);
-  } finally { Uint8Array.from = from; globalThis.Uint32Array = words; }
+  } finally { globalThis.Uint8Array = bytesConstructor; globalThis.Uint32Array = words; }
   assert.deepEqual(await store.readArtifact(artifact), bytes, 'A failed acquisition must not poison a later retry');
   assert.equal(reads, 2);
   store.close();

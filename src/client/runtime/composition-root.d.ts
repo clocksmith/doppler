@@ -13,7 +13,7 @@ import type { CapsuleOperationRequest } from '../../config/capsule-operation.js'
 import type { CapsuleOperationEvent } from './capsule-operation-executor.js';
 import type { CapsuleForecastRequest, CapsuleForecastResult } from './capsule-forecast.js';
 import type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-embedding.js';
-import type { CapsuleAcquisitionOptions } from './capsule-acquisition.js';
+import type { CapsuleAcquisitionOptions, CapsuleArtifactReader } from './capsule-acquisition.js';
 import type { CapsuleArtifactBacking } from './verified-capsule-artifact-store.js';
 export type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-embedding.js';
 
@@ -32,9 +32,8 @@ export interface RuntimePorts {
   artifactBacking?: CapsuleArtifactBacking;
   device: object;
   capsuleSource?: { fetchCapsule(id: string, options?: object): Promise<DopplerCapsule> };
-  artifactStore: {
+  artifactStore: CapsuleArtifactReader & {
     hashArtifact?(artifact: CapsuleV2Artifact): Promise<{ hash: string; sizeBytes: number }>;
-    readArtifact(artifact: CapsuleV2Artifact, options?: CapsuleAcquisitionOptions): Promise<Uint8Array | ArrayBuffer>;
   };
   trustedSigners: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
   programFactory(args: Record<string, unknown>): Promise<object>;

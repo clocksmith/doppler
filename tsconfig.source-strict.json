@@ -13,6 +13,8 @@
   },
   "include": [],
   "files": [
+    "src/client/runtime/fetch-capsule-artifact-store.js",
+    "src/tooling/node-capsule-artifact-store.js",
     "demo/ui/chat-markdown.js",
     "src/inference/pipelines/text/sequence-state.js",
     "src/inference/pipelines/text/stopping.js",

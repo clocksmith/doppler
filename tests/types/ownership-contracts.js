@@ -26,3 +26,15 @@ function checkStore(store) {
   return store.readRange('weights.bin', 0, 4);
 }
 void checkStore;
+
+/** @param {import('../../src/client/runtime/capsule-acquisition.js').CapsuleArtifactReader} reader
+ * @param {import('../../src/config/capsule-v2.js').CapsuleV2Artifact} artifact */
+function checkArtifactReader(reader, artifact) {
+  // @ts-expect-error A stream must declare its acquisition bound.
+  reader.streamArtifact?.(artifact, {});
+  // @ts-expect-error Chunk limits are numbers, not strings.
+  reader.streamArtifact?.(artifact, { maxChunkBytes: '1024' });
+  // @ts-expect-error Chunk streams must produce bytes rather than strings.
+  reader.streamArtifact = async function* () { yield 'untrusted text'; };
+}
+void checkArtifactReader;

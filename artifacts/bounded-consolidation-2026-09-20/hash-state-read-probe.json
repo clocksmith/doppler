@@ -1,0 +1,81 @@
+{
+  "hypothesis": "Direct state reads reduce per-block typed-array iteration overhead without changing the digest, block algorithm, or incremental workspace.",
+  "node": "v22.22.1",
+  "bytes": 33554432,
+  "expected": "f7d2739944dac13d6ffd333fdd5e37df44312b5ba37f79c5d6f3f7d39a8543fb",
+  "sourceSha256": "fd94bd03e30e835a67383db6001dc9aae16a76dbf579578099190fa610ffb42c",
+  "candidateSha256": "5a8e1d52e1e7349cbb4f990d854a420c45a65c1eaf83f4e1921b369f4512868b",
+  "samples": [
+    {
+      "run": 0,
+      "warmup": true,
+      "name": "baseline",
+      "elapsedMs": 598.833003,
+      "MiBPerSecond": 53.43726855348352
+    },
+    {
+      "run": 0,
+      "warmup": true,
+      "name": "directReads",
+      "elapsedMs": 278.845998,
+      "MiBPerSecond": 114.7586848278884
+    },
+    {
+      "run": 1,
+      "warmup": false,
+      "name": "directReads",
+      "elapsedMs": 272.83098399999994,
+      "MiBPerSecond": 117.28873140009642
+    },
+    {
+      "run": 1,
+      "warmup": false,
+      "name": "baseline",
+      "elapsedMs": 591.219108,
+      "MiBPerSecond": 54.12544954484117
+    },
+    {
+      "run": 2,
+      "warmup": false,
+      "name": "baseline",
+      "elapsedMs": 572.0108460000001,
+      "MiBPerSecond": 55.9429951788012
+    },
+    {
+      "run": 2,
+      "warmup": false,
+      "name": "directReads",
+      "elapsedMs": 262.1763289999999,
+      "MiBPerSecond": 122.0552599925984
+    },
+    {
+      "run": 3,
+      "warmup": false,
+      "name": "directReads",
+      "elapsedMs": 262.78061800000023,
+      "MiBPerSecond": 121.77458232478916
+    },
+    {
+      "run": 3,
+      "warmup": false,
+      "name": "baseline",
+      "elapsedMs": 567.5569350000001,
+      "MiBPerSecond": 56.382008617338094
+    },
+    {
+      "run": 4,
+      "warmup": false,
+      "name": "baseline",
+      "elapsedMs": 562.6536970000002,
+      "MiBPerSecond": 56.87334886559892
+    },
+    {
+      "run": 4,
+      "warmup": false,
+      "name": "directReads",
+      "elapsedMs": 264.97770800000035,
+      "MiBPerSecond": 120.76487581362866
+    }
+  ],
+  "scope": "Alternating same-process local probe. Other acceptance processes active; no browser or startup performance claim."
+}
