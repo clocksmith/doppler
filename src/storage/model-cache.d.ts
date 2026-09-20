@@ -50,5 +50,6 @@ export declare function ensureModelCachedSource(
 ): Promise<CachedModelSourceResult>;
 
 export declare function loadPersistentModelSource(
-  modelId: string
+  modelId: string,
+  onProgress?: ((progress: CacheProgressEvent) => void) | null
 ): Promise<CachedModelSourceResult | null>;
