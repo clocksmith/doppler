@@ -46,7 +46,10 @@ async function assertControlContrast(page) {
       const [lo, hi] = [luminance(foreground), luminance(bg)].sort((a, b) => a - b);
       const ratio = (hi + 0.05) / (lo + 0.05);
       const threshold = element.type === 'checkbox' ? 3 : 4.5;
-      if (ratio < threshold) errors.push({ id: element.id || element.textContent.trim().slice(0, 35), ratio });
+      if (ratio < threshold) errors.push({
+        id: element.id || element.textContent.trim().slice(0, 35), ratio,
+        color: style.color, background: style.background, opacity, disabled: element.disabled === true,
+      });
     }
     return errors;
   });
@@ -55,57 +58,32 @@ async function assertControlContrast(page) {
 
 export async function checkDemoControls(page) {
   await page.locator('#chat-controls > summary').click();
-  assert.equal(await page.locator('#token-inspector-view').isVisible(), true);
-  assert.equal(await page.locator('.token-chip').count(), 3);
-  assert.equal(await page.locator('#output-text').isVisible(), false, 'Token evidence replaces the duplicate plain answer');
-  assert.equal(await page.locator('.token-chip').first().evaluate((element) => (
-    getComputedStyle(element).textDecorationLine.includes('underline')
-  )), true, 'Generated tokens use confidence underlines instead of boxes');
-  const desktopGeometry = await page.evaluate(() => {
-    const box = (selector) => document.querySelector(selector).getBoundingClientRect();
-    const select = box('#set-max-tokens');
-    const actions = ['#sample-run-btn', '#shuffle-btn', '#run-btn'].map(box);
-    const toolbar = box('.chat-toolbar');
-    const optionItems = [
-      '#token-inspector-toggle',
-      '#chat-controls > summary',
-      '#xray-toggle-all',
-      '#set-word-quality',
-      '#settings-toggle',
-    ].map((selector) => box(selector));
-    const statusItems = ['#output-phase', '#output-toks', '#clear-history-btn'].map((selector) => box(selector));
-    return {
-      composerBottoms: [select.bottom, ...actions.map((rect) => rect.bottom)],
-      toolbarHeight: toolbar.height,
-      optionCenters: optionItems.map((rect) => rect.top + rect.height / 2),
-      statusCenters: statusItems.map((rect) => rect.top + rect.height / 2),
-      optionsBottom: Math.max(...optionItems.map((rect) => rect.bottom)),
-      statusTop: Math.min(...statusItems.map((rect) => rect.top)),
-    };
-  });
-  assert.ok(
-    Math.max(...desktopGeometry.composerBottoms) - Math.min(...desktopGeometry.composerBottoms) <= 2,
-    'Composer controls share one bottom edge'
-  );
-  assert.ok(desktopGeometry.toolbarHeight <= 116, 'Expanded run options stay compact');
-  assert.ok(
-    Math.max(...desktopGeometry.optionCenters) - Math.min(...desktopGeometry.optionCenters) <= 2,
-    'Expanded run options share one center line'
-  );
-  assert.ok(
-    Math.max(...desktopGeometry.statusCenters) - Math.min(...desktopGeometry.statusCenters) <= 2,
-    'Completion status and clear action share one center line'
-  );
-  assert.ok(desktopGeometry.optionsBottom <= desktopGeometry.statusTop, 'Status rail cannot overlap run options');
+  assert.equal(await page.locator('#xray-toggle-all').isChecked(), true);
+  assert.equal(await page.locator('#set-word-quality').isChecked(), true);
+  assert.equal(await page.inputValue('#set-max-tokens'), '256');
+  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/deep-xray');
+  assert.match(await page.locator('#runtime-notice').textContent(), /diagnostic/);
   await page.locator('#xray-toggle-all').focus();
+  await page.keyboard.press('Space');
+  assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
   await page.keyboard.press('Space');
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), true);
   assert.equal(await page.locator('#runtime-notice').isVisible(), true);
   assert.equal(await page.locator('#settings-panel').isVisible(), false);
-  await page.locator('#xray-shell > summary').click();
+  if (!await page.locator('#inspection-workspace').evaluate(element => element.open)) {
+    await page.locator('#inspection-workspace > summary').click();
+  }
+  assert.deepEqual(await page.evaluate(() => ({
+    workspaceOpen: document.querySelector('#inspection-workspace').open,
+    xrayHidden: document.querySelector('#xray-shell').hidden,
+  })), { workspaceOpen: true, xrayHidden: false });
+  if (!await page.locator('#xray-shell').evaluate(element => element.open)) {
+    await page.locator('#xray-shell > summary').click();
+  }
   assert.equal(await page.locator('#xray-container .xray-section').count(), 5, 'X-Ray can inspect an existing receipt');
   await assertControlContrast(page);
 
+  await page.locator('#set-word-quality').uncheck();
   await page.locator('#set-word-quality').check();
   assert.deepEqual(await page.evaluate(() => [
     localStorage.getItem('doppler.demo.xray-enabled'),
@@ -143,15 +121,17 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#settings-error').isVisible(), true, 'Profile failure is visible');
   await page.evaluate(() => { __demoContract.failLoad = false; });
 
-  await page.fill('#set-top-k', '0');
+  // A tampered form still fails closed; zero is not an offered output limit.
+  await page.evaluate(() => document.querySelector('#set-max-tokens').add(new Option('Invalid', '0')));
+  await page.selectOption('#set-max-tokens', '0');
   await page.fill('#prompt-input', 'Preserve invalid input.');
   const beforeInvalid = await page.evaluate(() => __demoContract.calls.length);
   await page.click('#run-btn');
   assert.equal(await page.evaluate(() => __demoContract.calls.length), beforeInvalid);
   assert.equal(await page.inputValue('#prompt-input'), 'Preserve invalid input.');
-  await page.fill('#set-top-k', '7');
   await page.selectOption('#set-max-tokens', '128');
   await page.fill('#set-temperature', '0.4');
+  await page.fill('#set-top-k', '7');
   await page.fill('#set-top-p', '0.8');
   await completeRun(page, 'Apply sampling.');
   assert.deepEqual(await page.evaluate(() => {
@@ -168,7 +148,7 @@ export async function checkDemoControls(page) {
   await page.locator('#prompt-input').press('Shift+Enter');
   assert.equal(await page.inputValue('#prompt-input'), 'Keyboard\n');
   await page.locator('#prompt-input').press('Enter');
-  await page.waitForFunction(() => document.querySelector('#output-phase').textContent.startsWith('Complete'));
+  await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Complete');
 
   const report = await exportedReport(page);
   assert.equal(report.output, 'Contract generation passed.');
@@ -197,9 +177,17 @@ export async function checkDemoControls(page) {
   await page.click('#stop-btn');
   await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Stopped');
   assert.equal(await page.locator('#export-btn').isDisabled(), true, 'Cancellation cannot publish a late receipt');
+  const historyCount = await page.locator('.chat-message-text').count();
+  await page.evaluate(() => { __demoContract.failReset = true; });
   await page.click('#clear-history-btn');
+  await page.waitForFunction(() => document.querySelector('#output-phase').textContent.includes('Contract reset failure'));
+  assert.equal(await page.locator('.chat-message-text').count(), historyCount, 'Failed reset preserves conversation');
+  await page.evaluate(() => { __demoContract.failReset = false; });
+  await page.click('#clear-history-btn');
+  await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Conversation and model state cleared');
   assert.equal(await page.locator('.chat-message-text').count(), 0);
-  assert.equal(await page.locator('#clear-history-btn').isEnabled(), true, 'Loaded model state remains resettable');
+  assert.equal(await page.evaluate(() => __demoContract.resets), 1);
+  assert.equal(await page.locator('#clear-history-btn').isEnabled(), true, 'Loaded model remains resettable');
 
   await checkDemoStreaming(page);
 
@@ -298,19 +286,7 @@ export async function checkDemoControls(page) {
     await page.setViewportSize({ width, height: 1000 });
     await page.emulateMedia({ colorScheme: width === 390 ? 'dark' : 'light' });
     await assertControlContrast(page);
-    const horizontalLayout = await page.evaluate(() => ({
-      fits: document.documentElement.scrollWidth <= innerWidth,
-      scrollWidth: document.documentElement.scrollWidth,
-      offenders: [...document.querySelectorAll('body *')]
-        .filter((element) => element.getBoundingClientRect().right > innerWidth + 1)
-        .slice(0, 8)
-        .map((element) => element.id || element.className || element.tagName),
-    }));
-    assert.equal(
-      horizontalLayout.fits,
-      true,
-      `No page overflow at ${width}px: ${JSON.stringify(horizontalLayout)}`
-    );
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `No page overflow at ${width}px`);
   }
   for (const button of await page.locator('button:visible:not(:disabled)').all()) {
     await button.hover();

@@ -1,0 +1,97 @@
+{
+  "result": {
+    "ok": true,
+    "forgeVersion": "2.0.0",
+    "outputPath": "../../../../var/tmp/doppler-release-acceptance.JTuaHr/adapter-qualified-v3/distribution/capsule.json",
+    "absoluteOutputPath": "/var/tmp/doppler-release-acceptance.JTuaHr/adapter-qualified-v3/distribution/capsule.json",
+    "modelId": "qwen-3-4b-instruct-2507-f16-af32-closed-development",
+    "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+    "semanticRoot": "sha256:d52064672d0f564e7c7d4c896a7e03a39ec85f4f1dc6b139a1a450fbb93dac48",
+    "envelopeHash": "sha256:46e4c9833dbbd6a33d56d1cff6f03c4fdf9446a64e5735113b92e14b7fdf12d4",
+    "schema": "doppler.capsule/v2",
+    "schemaVersion": 2,
+    "createdAtUtc": "2026-09-19T00:00:00.000Z",
+    "sourceBundleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-e178c2b4bebc",
+    "programBundlePath": "/var/tmp/doppler-release-acceptance.JTuaHr/adapter-qualified-v3/build/program-bundle.json",
+    "executionGraphHash": "sha256:e178c2b4bebc8832e280b5e189dad12ec4e5f9d7e3420169cf4eb33c3f18e271",
+    "artifactCount": 150,
+    "wgslModuleCount": 25,
+    "targetPlanDigests": [
+      "sha256:4e22547a271133150ad1b30f3fc4832dda8955489478ecf57a5241dc42211c74"
+    ],
+    "stages": [
+      {
+        "stage": "inspect",
+        "ok": true
+      },
+      {
+        "stage": "normalize",
+        "ok": true
+      },
+      {
+        "stage": "analyze",
+        "ok": true
+      },
+      {
+        "stage": "lower",
+        "ok": true
+      },
+      {
+        "stage": "specialize",
+        "ok": true
+      },
+      {
+        "stage": "search",
+        "ok": true
+      },
+      {
+        "stage": "verify",
+        "ok": true
+      },
+      {
+        "stage": "qualify",
+        "ok": true
+      },
+      {
+        "stage": "package",
+        "ok": true
+      },
+      {
+        "stage": "sign",
+        "ok": true
+      }
+    ],
+    "searchReceipt": {
+      "candidateTargetPlanHashes": [
+        "sha256:4e22547a271133150ad1b30f3fc4832dda8955489478ecf57a5241dc42211c74"
+      ],
+      "selectedTargetPlanHashes": [
+        "sha256:4e22547a271133150ad1b30f3fc4832dda8955489478ecf57a5241dc42211c74"
+      ],
+      "policy": "closed-program-source-plan",
+      "evaluationReceipt": null
+    },
+    "candidateEvaluation": null
+  },
+  "physicalCapsuleExecution": false,
+  "publication": false,
+  "sourceProbe": {
+    "probePath": "/var/tmp/doppler-release-acceptance.JTuaHr/adapter-preseal-4/receipt.json",
+    "probeHash": "sha256:454fc18afb52b21c62d95e83eb3ce25c1fae30dc492c5daa1edf66f1f0851605",
+    "runtimeArchive": {
+      "filename": "doppler-gpu-0.6.2.tgz",
+      "version": "0.6.2",
+      "integrity": "sha512-UfforkwPyKr4fFNHpqU+gyda7sPPEw1NRPIUvBuLNidB6Yak9NqmVNP1hw4u2KbdWKsq8PkizhYs+M84sqhqxg==",
+      "sizeBytes": 2151228,
+      "source": "provided-immutable-archive",
+      "sha256": "88f030627cdba99f9a81ffc5b5287d1ba9441f3cac638c506eded46d49cbeec7"
+    },
+    "referenceRendering": "Identical token IDs and tokenizer; text retained from the reference.",
+    "scope": "Internal AMD Chrome zero-delta PEFT fixture and base greedy parity; no trained-adapter quality, nonzero adapter parity, publication or fleet qualification.",
+    "adapterPreparation": {
+      "passed": true,
+      "sourceDigest": "sha256:85607675ba904a98dc1438a6387cc081eb5431e99e9e93bc4b448afe590f962d",
+      "scope": "Physical zero-delta fixture parity through installed advanced preparation APIs; not signed public Capsule acceptance or trained-adapter quality."
+    }
+  }
+}

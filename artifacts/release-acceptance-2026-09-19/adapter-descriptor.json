@@ -1,0 +1,34 @@
+{
+  "schema": "doppler.capsule-adapter/v1",
+  "identity": "sha256:f3e0cd61d0c408f3a11a82021298ce83aaa6dc8f1a8bc57e58b85b28103826b1",
+  "baseModel": {
+    "schema": "doppler.capsule/v2",
+    "capsuleId": "qwen-3-4b-instruct-2507-f16-af32-closed-development-capsule-v2-d52064672d0f564e",
+    "semanticRoot": "sha256:d52064672d0f564e7c7d4c896a7e03a39ec85f4f1dc6b139a1a450fbb93dac48",
+    "envelopeDigest": "sha256:46e4c9833dbbd6a33d56d1cff6f03c4fdf9446a64e5735113b92e14b7fdf12d4",
+    "artifactClosureDigest": "sha256:1893027dd12ad2a53b474da12b7db5dec334d0d1f39e45a2abf77f22bb75b46a",
+    "modelId": "qwen-3-4b-instruct-2507-f16-af32-closed-development"
+  },
+  "format": "peft_safetensors",
+  "manifest": {
+    "id": "qwen3-4b-layer0-qproj-zero-delta-r1",
+    "baseModel": "qwen-3-4b-instruct-2507-f16-af32-closed-development",
+    "rank": 1,
+    "alpha": 2,
+    "targetModules": [
+      "q_proj"
+    ],
+    "checksum": "sha256:85607675ba904a98dc1438a6387cc081eb5431e99e9e93bc4b448afe590f962d",
+    "checksumAlgorithm": "sha256",
+    "weightsFormat": "safetensors",
+    "weightsPath": "adapters/zero-delta.safetensors",
+    "weightsSize": 26888
+  },
+  "artifact": {
+    "artifactId": "qwen3-4b-layer0-qproj-zero-delta-r1",
+    "role": "lora-weights",
+    "path": "adapters/zero-delta.safetensors",
+    "hash": "sha256:85607675ba904a98dc1438a6387cc081eb5431e99e9e93bc4b448afe590f962d",
+    "sizeBytes": 26888
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "config": {
+    "parentCapsule": "/var/tmp/doppler-capsule-gpu-selection-20260915/qualified/distribution/capsule.json",
+    "parentSha256": "sha256:c0a552b35ce83d73eefabc6535acf17feb6f94024d00115cb14910de0bc95280",
+    "outputDir": "/var/tmp/doppler-release-acceptance.JTuaHr/adapter-source-v2",
+    "kernelRoot": "/home/x/deco/doppler/src/gpu/kernels",
+    "kernels": [
+      {
+        "id": "adapter_matmul",
+        "file": "matmul_f32.wgsl",
+        "entry": "main",
+        "sourceHash": "sha256:035020f650612fd6f8ac8322b86ec921c64a85ac802b7f4c0fd2dfd3a4c8a1f2",
+        "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
+      },
+      {
+        "id": "adapter_scale",
+        "file": "scale.wgsl",
+        "entry": "main",
+        "sourceHash": "sha256:d4d98632a5d2ce10b8e96b62ce00a14f4388e27f796478efadaffe473bc5f527",
+        "digest": "sha256:8070894b1488c76bdf6685b99243e0fadd79a2511b52b22b91ba1ead9990831c"
+      }
+    ],
+    "residualModule": "residual",
+    "inputSize": 2560,
+    "outputSize": 4096,
+    "projectionTensor": "model.layers.0.self_attn.q_proj.weight",
+    "manifestVariantId": "qwen3-4b-adapter-zero-delta-evaluation-20260919",
+    "adapterId": "qwen3-4b-layer0-qproj-zero-delta-r1"
+  },
+  "parentSha256": "sha256:c0a552b35ce83d73eefabc6535acf17feb6f94024d00115cb14910de0bc95280",
+  "manifestSha256": "sha256:e30ae20293927ede153c1b6a1dbbe0cb0e6844562b654ed0d6393e70bf5858db",
+  "adapterSha256": "sha256:85607675ba904a98dc1438a6387cc081eb5431e99e9e93bc4b448afe590f962d",
+  "adapterExecution": {
+    "schema": "doppler.capsule-adapter-execution/v1",
+    "maxAdapters": 1,
+    "combination": "single",
+    "formats": [
+      "peft_safetensors"
+    ],
+    "operations": [
+      "generate"
+    ],
+    "kernelModules": [
+      "adapter_matmul",
+      "adapter_scale",
+      "residual"
+    ]
+  },
+  "qualification": false,
+  "signedCapsule": false,
+  "publication": false,
+  "claimBoundary": "Controlled rank-one zero-delta PEFT fixture at layer 0 q_proj; not a trained adapter or nonzero adapter parity."
+}

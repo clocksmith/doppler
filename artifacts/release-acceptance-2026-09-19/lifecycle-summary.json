@@ -1,0 +1,1466 @@
+{
+  "schema": "doppler.release-lifecycle-summary/v1",
+  "releaseAccepted": false,
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-UfforkwPyKr4fFNHpqU+gyda7sPPEw1NRPIUvBuLNidB6Yak9NqmVNP1hw4u2KbdWKsq8PkizhYs+M84sqhqxg==",
+    "sizeBytes": 2151228,
+    "source": "provided-immutable-archive",
+    "sha256": "88f030627cdba99f9a81ffc5b5287d1ba9441f3cac638c506eded46d49cbeec7"
+  },
+  "browserVersion": "146.0.7680.177",
+  "receiptSha256": "7617808f84dcdb418d2ed1b0d5a5a7c189ee22d4bc444d6106fc160948b1f3a4",
+  "results": [
+    {
+      "operation": "generate",
+      "passed": false,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": true
+          }
+        ]
+      },
+      "completedPhases": [
+        "repeat-0",
+        "repeat-1",
+        "after-cancellation-and-failed-preparation"
+      ],
+      "checks": null,
+      "comparisons": null,
+      "error": {
+        "message": "page.evaluate: RangeError: Array buffer allocation failed\n    at new ArrayBuffer (<anonymous>)\n    at new Uint8Array (<anonymous>)\n    at toSha256PaddedBytesFromData (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:39:18)\n    at sha256BytesHex (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:79:31)\n    at hashBytesSha256 (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/canonical-hash.js:62:20)\n    at http://127.0.0.1:37135/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:48:22",
+        "stack": "page.evaluate: RangeError: Array buffer allocation failed\n    at new ArrayBuffer (<anonymous>)\n    at new Uint8Array (<anonymous>)\n    at toSha256PaddedBytesFromData (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:39:18)\n    at sha256BytesHex (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/sha256.js:79:31)\n    at hashBytesSha256 (http://127.0.0.1:37135/node_modules/doppler-gpu/src/formats/canonical-hash.js:62:20)\n    at http://127.0.0.1:37135/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js:48:22\n    at /home/x/deco/doppler/tools/check-installed-capabilities.js:117:27"
+      }
+    },
+    {
+      "operation": "embed",
+      "passed": true,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": true
+          }
+        ]
+      },
+      "completedPhases": [
+        "repeat-0",
+        "repeat-1",
+        "after-cancellation-and-failed-preparation",
+        "second-after-first-close"
+      ],
+      "checks": [
+        {
+          "id": "cancelled-model-preparation",
+          "passed": true,
+          "error": {
+            "name": "Error",
+            "message": "Acceptance cancels preparation after target selection."
+          }
+        },
+        {
+          "id": "cancellation",
+          "passed": true,
+          "boundary": "after-partial",
+          "partials": 1,
+          "completions": 0,
+          "error": {
+            "name": "GenerationError",
+            "message": "Acceptance cancellation after partial output."
+          }
+        },
+        {
+          "id": "second-session-survives-first-close",
+          "passed": true
+        }
+      ],
+      "comparisons": [
+        {
+          "phase": "repeat-0",
+          "passed": true,
+          "checks": [
+            {
+              "id": "text.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.0.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000052094459533691406,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.1.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006141513586044312,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.2.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005928054451942444,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.3.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.3.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005342438817024231,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.4.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.4.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006327405571937561,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.5.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.5.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000048160552978515625,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.6.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.6.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006464123725891113,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.7.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.7.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006420980207622051,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.8.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.8.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006396695971488953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.9.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.9.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006864964962005615,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.10.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.10.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006782403215765953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.11.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.11.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006010383367538452,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.12.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.12.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004207342863082886,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.13.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.13.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004716729745268822,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.14.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.14.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004564458504319191,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.15.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.15.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.0000626295804977417,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.16.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.16.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000054696283768862486,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.17.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.17.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00007062498480081558,
+              "tolerance": 0.02
+            }
+          ]
+        },
+        {
+          "phase": "repeat-1",
+          "passed": true,
+          "checks": [
+            {
+              "id": "text.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.0.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000052094459533691406,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.1.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006141513586044312,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.2.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005928054451942444,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.3.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.3.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005342438817024231,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.4.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.4.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006327405571937561,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.5.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.5.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000048160552978515625,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.6.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.6.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006464123725891113,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.7.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.7.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006420980207622051,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.8.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.8.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006396695971488953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.9.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.9.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006864964962005615,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.10.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.10.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006782403215765953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.11.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.11.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006010383367538452,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.12.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.12.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004207342863082886,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.13.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.13.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004716729745268822,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.14.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.14.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004564458504319191,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.15.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.15.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.0000626295804977417,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.16.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.16.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000054696283768862486,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.17.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.17.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00007062498480081558,
+              "tolerance": 0.02
+            }
+          ]
+        },
+        {
+          "phase": "after-cancellation-and-failed-preparation",
+          "passed": true,
+          "checks": [
+            {
+              "id": "text.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.0.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000052094459533691406,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.1.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006141513586044312,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.2.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005928054451942444,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.3.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.3.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005342438817024231,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.4.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.4.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006327405571937561,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.5.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.5.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000048160552978515625,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.6.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.6.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006464123725891113,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.7.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.7.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006420980207622051,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.8.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.8.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006396695971488953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.9.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.9.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006864964962005615,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.10.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.10.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006782403215765953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.11.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.11.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006010383367538452,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.12.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.12.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004207342863082886,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.13.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.13.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004716729745268822,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.14.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.14.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004564458504319191,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.15.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.15.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.0000626295804977417,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.16.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.16.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000054696283768862486,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.17.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.17.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00007062498480081558,
+              "tolerance": 0.02
+            }
+          ]
+        },
+        {
+          "phase": "second-after-first-close",
+          "passed": true,
+          "checks": [
+            {
+              "id": "text.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.0.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000052094459533691406,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.1.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006141513586044312,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.2.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005928054451942444,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.3.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.3.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00005342438817024231,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.4.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.4.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006327405571937561,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.5.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.5.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000048160552978515625,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.6.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.6.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006464123725891113,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.7.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.7.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006420980207622051,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.8.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.8.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006396695971488953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.9.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.9.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006864964962005615,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.10.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.10.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006782403215765953,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.11.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.11.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00006010383367538452,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.12.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.12.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004207342863082886,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.13.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.13.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004716729745268822,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.14.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.14.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00004564458504319191,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.15.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.15.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.0000626295804977417,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.16.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.16.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.000054696283768862486,
+              "tolerance": 0.02
+            },
+            {
+              "id": "text.17.tokens",
+              "passed": true
+            },
+            {
+              "id": "text.17.embedding",
+              "passed": true,
+              "valueCount": 1024,
+              "maxAbsoluteError": 0.00007062498480081558,
+              "tolerance": 0.02
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "operation": "rerank",
+      "passed": true,
+      "hardware": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "isFallbackAdapter": false,
+        "probe": [
+          {
+            "available": true
+          }
+        ]
+      },
+      "completedPhases": [
+        "repeat-0",
+        "repeat-1",
+        "after-cancellation-and-failed-preparation",
+        "second-after-first-close"
+      ],
+      "checks": [
+        {
+          "id": "cancelled-model-preparation",
+          "passed": true,
+          "error": {
+            "name": "Error",
+            "message": "Acceptance cancels preparation after target selection."
+          }
+        },
+        {
+          "id": "cancellation",
+          "passed": true,
+          "boundary": "pre-aborted",
+          "partials": 0,
+          "completions": 0,
+          "error": {
+            "name": "GenerationError",
+            "message": "Acceptance cancellation before execution."
+          }
+        },
+        {
+          "id": "second-session-survives-first-close",
+          "passed": true
+        }
+      ],
+      "comparisons": [
+        {
+          "phase": "repeat-0",
+          "passed": true,
+          "checks": [
+            {
+              "id": "document.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.0.trueLogit",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.falseLogit",
+              "passed": true,
+              "expected": 13.806695938110352,
+              "actual": 14.374336242675781,
+              "absoluteError": 0.5676403045654297,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.score",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.probability",
+              "passed": true,
+              "expected": 0.9999999990055641,
+              "actual": 0.9999999990786257,
+              "absoluteError": 7.30615568045323e-11,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.1.trueLogit",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.falseLogit",
+              "passed": true,
+              "expected": 12.97671127319336,
+              "actual": 12.962911605834961,
+              "absoluteError": 0.013799667358398438,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.score",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.probability",
+              "passed": true,
+              "expected": 0.982062162339427,
+              "actual": 0.9786765360960985,
+              "absoluteError": 0.003385626243328499,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.2.trueLogit",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.falseLogit",
+              "passed": true,
+              "expected": 13.337125778198242,
+              "actual": 12.909036636352539,
+              "absoluteError": 0.4280891418457031,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.score",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.probability",
+              "passed": true,
+              "expected": 0.9569202694214454,
+              "actual": 0.9441695950944614,
+              "absoluteError": 0.012750674326983957,
+              "tolerance": 0.05
+            },
+            {
+              "id": "ranking.exact",
+              "passed": true,
+              "expected": [
+                0,
+                1,
+                2
+              ],
+              "actual": [
+                0,
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "phase": "repeat-1",
+          "passed": true,
+          "checks": [
+            {
+              "id": "document.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.0.trueLogit",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.falseLogit",
+              "passed": true,
+              "expected": 13.806695938110352,
+              "actual": 14.374336242675781,
+              "absoluteError": 0.5676403045654297,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.score",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.probability",
+              "passed": true,
+              "expected": 0.9999999990055641,
+              "actual": 0.9999999990786257,
+              "absoluteError": 7.30615568045323e-11,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.1.trueLogit",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.falseLogit",
+              "passed": true,
+              "expected": 12.97671127319336,
+              "actual": 12.962911605834961,
+              "absoluteError": 0.013799667358398438,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.score",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.probability",
+              "passed": true,
+              "expected": 0.982062162339427,
+              "actual": 0.9786765360960985,
+              "absoluteError": 0.003385626243328499,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.2.trueLogit",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.falseLogit",
+              "passed": true,
+              "expected": 13.337125778198242,
+              "actual": 12.909036636352539,
+              "absoluteError": 0.4280891418457031,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.score",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.probability",
+              "passed": true,
+              "expected": 0.9569202694214454,
+              "actual": 0.9441695950944614,
+              "absoluteError": 0.012750674326983957,
+              "tolerance": 0.05
+            },
+            {
+              "id": "ranking.exact",
+              "passed": true,
+              "expected": [
+                0,
+                1,
+                2
+              ],
+              "actual": [
+                0,
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "phase": "after-cancellation-and-failed-preparation",
+          "passed": true,
+          "checks": [
+            {
+              "id": "document.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.0.trueLogit",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.falseLogit",
+              "passed": true,
+              "expected": 13.806695938110352,
+              "actual": 14.374336242675781,
+              "absoluteError": 0.5676403045654297,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.score",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.probability",
+              "passed": true,
+              "expected": 0.9999999990055641,
+              "actual": 0.9999999990786257,
+              "absoluteError": 7.30615568045323e-11,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.1.trueLogit",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.falseLogit",
+              "passed": true,
+              "expected": 12.97671127319336,
+              "actual": 12.962911605834961,
+              "absoluteError": 0.013799667358398438,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.score",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.probability",
+              "passed": true,
+              "expected": 0.982062162339427,
+              "actual": 0.9786765360960985,
+              "absoluteError": 0.003385626243328499,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.2.trueLogit",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.falseLogit",
+              "passed": true,
+              "expected": 13.337125778198242,
+              "actual": 12.909036636352539,
+              "absoluteError": 0.4280891418457031,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.score",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.probability",
+              "passed": true,
+              "expected": 0.9569202694214454,
+              "actual": 0.9441695950944614,
+              "absoluteError": 0.012750674326983957,
+              "tolerance": 0.05
+            },
+            {
+              "id": "ranking.exact",
+              "passed": true,
+              "expected": [
+                0,
+                1,
+                2
+              ],
+              "actual": [
+                0,
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "phase": "second-after-first-close",
+          "passed": true,
+          "checks": [
+            {
+              "id": "document.0.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.0.trueLogit",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.falseLogit",
+              "passed": true,
+              "expected": 13.806695938110352,
+              "actual": 14.374336242675781,
+              "absoluteError": 0.5676403045654297,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.score",
+              "passed": true,
+              "expected": 20.728845596313477,
+              "actual": 20.80515480041504,
+              "absoluteError": 0.0763092041015625,
+              "tolerance": 1
+            },
+            {
+              "id": "document.0.probability",
+              "passed": true,
+              "expected": 0.9999999990055641,
+              "actual": 0.9999999990786257,
+              "absoluteError": 7.30615568045323e-11,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.1.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.1.trueLogit",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.falseLogit",
+              "passed": true,
+              "expected": 12.97671127319336,
+              "actual": 12.962911605834961,
+              "absoluteError": 0.013799667358398438,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.score",
+              "passed": true,
+              "expected": 4.002742290496826,
+              "actual": 3.8263931274414062,
+              "absoluteError": 0.17634916305541992,
+              "tolerance": 1
+            },
+            {
+              "id": "document.1.probability",
+              "passed": true,
+              "expected": 0.982062162339427,
+              "actual": 0.9786765360960985,
+              "absoluteError": 0.003385626243328499,
+              "tolerance": 0.05
+            },
+            {
+              "id": "document.2.tokens",
+              "passed": true
+            },
+            {
+              "id": "document.2.trueLogit",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.falseLogit",
+              "passed": true,
+              "expected": 13.337125778198242,
+              "actual": 12.909036636352539,
+              "absoluteError": 0.4280891418457031,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.score",
+              "passed": true,
+              "expected": 3.1006674766540527,
+              "actual": 2.8279871940612793,
+              "absoluteError": 0.27268028259277344,
+              "tolerance": 1
+            },
+            {
+              "id": "document.2.probability",
+              "passed": true,
+              "expected": 0.9569202694214454,
+              "actual": 0.9441695950944614,
+              "absoluteError": 0.012750674326983957,
+              "tolerance": 0.05
+            },
+            {
+              "id": "ranking.exact",
+              "passed": true,
+              "expected": [
+                0,
+                1,
+                2
+              ],
+              "actual": [
+                0,
+                1,
+                2
+              ]
+            }
+          ]
+        }
+      ],
+      "error": null
+    }
+  ],
+  "publication": false
+}

@@ -30,28 +30,19 @@ const policies = new Map([
   ['demo/guided-quality', { id: 'demo/guided-quality', modifiesExecution: true, performanceRepresentative: false }],
   ['demo/deep-xray', { id: 'demo/deep-xray', modifiesExecution: true, performanceRepresentative: false }],
 ]);
-const tokenText = (tokenId) => ({ 1: 'Contract', 2: ' generation', 3: ' passed.', 4: '\\nAnother line.', 5: ' 🙂' })[tokenId] ?? '';
-const tokenRecord = (tokenId, index) => ({
-  index,
-  tokenId,
-  text: tokenText(tokenId),
-  probability: Math.max(0.12, 0.84 - index * 0.18),
-  surprisal: -Math.log(Math.max(0.12, 0.84 - index * 0.18)),
-  topCandidates: [
-    { tokenId, text: tokenText(tokenId), logit: 3, probability: Math.max(0.12, 0.84 - index * 0.18) },
-    { tokenId: 99, text: ' alternative', logit: 1, probability: 0.08 },
-  ],
-});
 const model = {
   modelId: 'contract-model',
   loaded: true,
   manifestHash: 'sha256:${'a'.repeat(64)}',
   persistentCache: { backend: 'opfs', state: 'verified-hit', fromCache: true },
   async unload() { controls.unloads++; },
-  async resetGenerationState() {},
+  resetGenerationState() {
+    if (controls.failReset) throw new Error('Contract reset failure');
+    controls.resets = (controls.resets ?? 0) + 1;
+  },
   advanced: {
     decodeTokenIds(ids) {
-      return ids.map(tokenText).join('');
+      return ids.map((id) => ({ 1: 'Contract', 2: ' generation', 3: ' passed.', 4: '\\nAnother line.', 5: ' 🙂' })[id] ?? '').join('');
     },
   },
   inspect: {
@@ -60,8 +51,7 @@ const model = {
       let tokenIds = [];
       controls.emitTokens = (ids) => {
         for (const tokenId of ids) {
-          const token = tokenRecord(tokenId, tokenIds.length);
-          options.onEvent?.({ type: 'token', tokenId, index: tokenIds.length, token });
+          options.onEvent?.({ type: 'token', tokenId, index: tokenIds.length });
           tokenIds.push(tokenId);
         }
       };
@@ -96,7 +86,7 @@ const model = {
         generatedTokenIds: tokenIds,
         wallTimingMs: 1,
         performanceRepresentative: policy.performanceRepresentative,
-        tokens: tokenIds.map(tokenRecord),
+        tokens: [],
         quality: policy.id === 'demo/guided-quality' ? { words: [{ text: 'Contract', rollingPerplexity: 2, summedSurprisal: 1, cumulativePerplexity: 2, tokenCount: 1, rollingWindow: { size: 1, unit: 'word' } }] } : null,
         generationEvidence: { stats: { tokensGenerated: 3, decodeTimeMs: 1 } },
       };

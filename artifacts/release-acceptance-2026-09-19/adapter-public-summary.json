@@ -1,0 +1,138 @@
+{
+  "scope": "Physical installed public API acceptance of a separately signed controlled zero-delta adapter candidate; not trained/nonzero adapter parity.",
+  "passed": true,
+  "releaseAccepted": false,
+  "publication": false,
+  "receipt": "adapter-public-lifecycle.json",
+  "receiptSha256": "8efb3353cf39c22fb1ceca2ce895c2cc4974de5907e287a74fb4dd4497c5afeb",
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-UfforkwPyKr4fFNHpqU+gyda7sPPEw1NRPIUvBuLNidB6Yak9NqmVNP1hw4u2KbdWKsq8PkizhYs+M84sqhqxg==",
+    "sizeBytes": 2151228,
+    "source": "provided-immutable-archive",
+    "sha256": "88f030627cdba99f9a81ffc5b5287d1ba9441f3cac638c506eded46d49cbeec7"
+  },
+  "browserVersion": "146.0.7680.177",
+  "hardware": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "isFallbackAdapter": false,
+    "probe": [
+      {
+        "available": true
+      }
+    ]
+  },
+  "policy": {
+    "maxRetainedArtifactBytes": 4294967296,
+    "timeoutMs": 1800000
+  },
+  "checks": [
+    {
+      "id": "failed-adapter-preparation",
+      "passed": true,
+      "error": "Acceptance adapter preparation read failure."
+    },
+    {
+      "id": "cancelled-model-preparation",
+      "passed": true,
+      "error": {
+        "name": "Error",
+        "message": "Acceptance cancels preparation after target selection."
+      }
+    },
+    {
+      "id": "cancellation",
+      "passed": true,
+      "boundary": "after-partial",
+      "partials": 1,
+      "completions": 0,
+      "error": {
+        "name": "GenerationError",
+        "message": "Acceptance cancellation after partial output."
+      }
+    },
+    {
+      "id": "second-session-survives-first-close",
+      "passed": true
+    }
+  ],
+  "observations": [
+    {
+      "phase": "repeat-0",
+      "tokenCount": 107,
+      "exactReferenceMatch": true,
+      "adapterReceiptCount": 1,
+      "adapterRuntimeIdentity": {
+        "schema": "doppler.lora-execution-identity/v1",
+        "id": "qwen3-4b-layer0-qproj-zero-delta-r1",
+        "name": "",
+        "tensorCount": 2,
+        "digest": "sha256:be1b72b36806a8444218c544d0ca51189a3f3d286787b22ba3d56bcbd1f9778a"
+      }
+    },
+    {
+      "phase": "repeat-1",
+      "tokenCount": 107,
+      "exactReferenceMatch": true,
+      "adapterReceiptCount": 1,
+      "adapterRuntimeIdentity": {
+        "schema": "doppler.lora-execution-identity/v1",
+        "id": "qwen3-4b-layer0-qproj-zero-delta-r1",
+        "name": "",
+        "tensorCount": 2,
+        "digest": "sha256:be1b72b36806a8444218c544d0ca51189a3f3d286787b22ba3d56bcbd1f9778a"
+      }
+    },
+    {
+      "phase": "base-after-adapter-unload",
+      "tokenCount": 107,
+      "exactReferenceMatch": true,
+      "adapterReceiptCount": 0,
+      "adapterRuntimeIdentity": null
+    },
+    {
+      "phase": "base-after-failed-adapter-preparation",
+      "tokenCount": 107,
+      "exactReferenceMatch": true,
+      "adapterReceiptCount": 0,
+      "adapterRuntimeIdentity": null
+    },
+    {
+      "phase": "after-cancellation-and-failed-preparation",
+      "tokenCount": 107,
+      "exactReferenceMatch": true,
+      "adapterReceiptCount": 1,
+      "adapterRuntimeIdentity": {
+        "schema": "doppler.lora-execution-identity/v1",
+        "id": "qwen3-4b-layer0-qproj-zero-delta-r1",
+        "name": "",
+        "tensorCount": 2,
+        "digest": "sha256:be1b72b36806a8444218c544d0ca51189a3f3d286787b22ba3d56bcbd1f9778a"
+      }
+    },
+    {
+      "phase": "base-after-adapter-cancellation",
+      "tokenCount": 107,
+      "exactReferenceMatch": true,
+      "adapterReceiptCount": 0,
+      "adapterRuntimeIdentity": null
+    },
+    {
+      "phase": "second-after-first-close",
+      "tokenCount": 107,
+      "exactReferenceMatch": true,
+      "adapterReceiptCount": 1,
+      "adapterRuntimeIdentity": {
+        "schema": "doppler.lora-execution-identity/v1",
+        "id": "qwen3-4b-layer0-qproj-zero-delta-r1",
+        "name": "",
+        "tensorCount": 2,
+        "digest": "sha256:be1b72b36806a8444218c544d0ca51189a3f3d286787b22ba3d56bcbd1f9778a"
+      }
+    }
+  ],
+  "cleanupErrors": [],
+  "remainingReleaseGate": "The original generation two-session run with unbounded retention failed during artifact SHA-256 allocation; no runtime fix is claimed."
+}
