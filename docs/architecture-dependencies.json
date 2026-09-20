@@ -929,6 +929,7 @@
         "tools/prepare-adapter-evaluation-source.js",
         "tools/probe-electron-reranker.js",
         "tools/probe-installed-token-selection.js",
+        "tools/product-readiness-evidence.js",
         "tools/profile-installed-capsule.js",
         "tools/promote-f16-precision-collapse-demo.js",
         "tools/publish-hf-registry-model.js",

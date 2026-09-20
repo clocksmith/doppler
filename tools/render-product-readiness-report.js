@@ -19,14 +19,22 @@ import { buildRuntimePromotionMonitoringReport } from './check-runtime-promotion
 import { buildSignedRevocationAuthorityQualificationReport } from './check-signed-revocation-authority-qualification.js';
 import { buildSubsystemSupportContractReport } from './check-subsystem-support-contract.js';
 import { SIGNED_REVOCATION_PROTOCOL } from '../src/config/revocation-updates.js';
+import { buildPhysicalAcceptanceReport, readDeclaredSupport } from './product-readiness-evidence.js';
 
 function parseArgs(argv) {
   const args = {
     json: false,
   };
-  for (const token of argv) {
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
     if (token === '--json') {
       args.json = true;
+      continue;
+    }
+    if (token === '--package-sha256' || token === '--acceptance-record') {
+      const value = argv[++index];
+      if (!value || value.startsWith('--')) throw new Error(`${token} requires a value`);
+      args[token === '--package-sha256' ? 'packageSha256' : 'acceptanceRecord'] = value;
       continue;
     }
     throw new Error(`Unknown argument: ${token}`);
@@ -42,27 +50,34 @@ export function buildProductReadinessState(reports, contractValid) {
   const networkGoal = reports.goals.goals.find((goal) => goal.id === 'open-execution-network');
   const externalGoal = reports.goals.goals.find((goal) => goal.id === 'local-webgpu-product-surface');
   const adoption = externalGoal?.rowStates?.find((row) => row.id === 'external-executable-model-adoption');
-  const standaloneProven = externalGoal?.acceptanceScope === 'standalone'
+  const independentAdoptionProven = externalGoal?.acceptanceScope === 'standalone'
     && adoption?.claimAllowed === true && ['covered', 'complete'].includes(adoption.status)
     && adoption.blockers?.length === 0;
-  const externalProductionProven = externalGoal?.claimAllowed === true;
   const networkProven = networkGoal?.claimAllowed === true && networkGoal?.status === 'complete'
     && networkGoal?.acceptanceScope === 'technical-network' && networkGoal?.blockers?.length === 0;
   return {
     contractValid,
-    internalMechanicsProven: reports.productIntegrations.gateSatisfied === true
+    portfolioGatesSatisfied: reports.productIntegrations.gateSatisfied === true
       && reports.providerConformance.gateSatisfied === true,
-    // The adoption contract includes physical application evidence. An unrelated
-    // network component or synthetic integration cannot establish it.
-    localHardwareProven: standaloneProven,
-    externalProductionProven,
-    technicalAcceptance: 'standalone-executable-model-adoption',
-    standaloneProven,
+    technical: {
+      ...reports.physicalAcceptance,
+      anyConfigurationProven: reports.physicalAcceptance?.ok === true
+        && reports.physicalAcceptance.configurations.some((entry) => entry.physicalExecutionProven === true),
+    },
+    support: {
+      ...reports.declaredSupport,
+      contractValid: reports.subsystemSupport?.ok === true,
+    },
+    adoption: {
+      independentAdoptionProven,
+      blockers: adoption?.blockers || ['external-executable-model-adoption-missing'],
+    },
+    deployment: {
+      broaderGoalProven: externalGoal?.claimAllowed === true,
+      blockers: externalGoal?.blockers || [],
+    },
     networkProven,
-    productReady: contractValid && standaloneProven,
-    blockers: adoption?.blockers || ['external-executable-model-adoption-missing'],
     networkBlockers: networkGoal?.blockers || ['open-execution-network-evidence-missing'],
-    standaloneBlockers: externalGoal?.blockers || [],
   };
 }
 
@@ -84,6 +99,7 @@ function buildSummary(reports) {
     ...collectErrors('signed revocation authority', reports.signedRevocationAuthority),
     ...collectErrors('promotion monitoring', reports.promotionMonitoring),
     ...collectErrors('subsystem support', reports.subsystemSupport),
+    ...collectErrors('physical acceptance', reports.physicalAcceptance),
   ];
   const contractValid = reports.goals.ok
       && reports.modelReleasePlatform.ok
@@ -100,17 +116,19 @@ function buildSummary(reports) {
       && reports.revocations.ok
       && reports.signedRevocationAuthority.ok
       && reports.promotionMonitoring.ok
-      && reports.subsystemSupport.ok;
+      && reports.subsystemSupport.ok
+      && reports.physicalAcceptance.ok;
   const readiness = buildProductReadinessState(reports, contractValid);
   return {
-    // `ok` describes report-contract validity only. It must never be read as
-    // product readiness: external authority is intentionally a separate gate.
+    schema: 'doppler.product-readiness/v2',
+    // Valid reporting is not release authorization. Execution, support and
+    // adoption are separate conclusions; there is no universal ready flag.
     ok: contractValid,
     readiness,
     errors,
     goals: reports.goals.goals,
-    actions: reports.goals.actions.filter((action) => readiness.blockers.includes(action.code)),
-    supportingActions: reports.goals.actions.filter((action) => !readiness.blockers.includes(action.code)),
+    adoptionActions: reports.goals.actions.filter((action) => readiness.adoption.blockers.includes(action.code)),
+    supportingActions: reports.goals.actions.filter((action) => !readiness.adoption.blockers.includes(action.code)),
     contracts: {
       modelReleasePlatform: reports.modelReleasePlatform,
       claimEvidence: {
@@ -198,6 +216,7 @@ function buildSummary(reports) {
         candidateDetails: reports.bunQualification.qualifications.filter((qualification) => (
           qualification.claimAllowed === false
         )),
+        qualifiedDetails: reports.bunQualification.qualifications.filter((qualification) => qualification.qualified === true),
         required: 3,
         missingWorkloads: reports.bunQualification.missingWorkloads,
         portfolioQualified: reports.bunQualification.portfolioQualified,
@@ -248,32 +267,50 @@ export function formatProductReadinessMarkdown(summary) {
     '## Readiness',
     '',
     `- contract valid: ${summary.readiness.contractValid ? 'yes' : 'no'}`,
-    `- internal mechanics proven: ${summary.readiness.internalMechanicsProven ? 'yes' : 'no'}`,
-    `- local hardware proven: ${summary.readiness.localHardwareProven ? 'yes' : 'no'}`,
-    `- external production proven: ${summary.readiness.externalProductionProven ? 'yes' : 'no'}`,
+    `- portfolio gates satisfied: ${summary.readiness.portfolioGatesSatisfied ? 'yes' : 'no'}`,
+    `- retained configuration execution proven: ${summary.readiness.technical.anyConfigurationProven ? 'yes (only rows below)' : 'no'}`,
+    `- independent adoption proven: ${summary.readiness.adoption.independentAdoptionProven ? 'yes' : 'no'}`,
+    `- broader deployment goal proven: ${summary.readiness.deployment.broaderGoalProven ? 'yes' : 'no'}`,
     `- open network proven: ${summary.readiness.networkProven ? 'yes' : 'no'}`,
-    `- product ready: ${summary.readiness.productReady ? 'yes' : 'no'}`,
-    '- blockers:',
+    '- adoption blockers (not technical release prerequisites):',
     ...(
-      summary.readiness.blockers.length > 0
-        ? summary.readiness.blockers.map((blocker) => `  - \`${blocker}\``)
+      summary.readiness.adoption.blockers.length > 0
+        ? summary.readiness.adoption.blockers.map((blocker) => `  - \`${blocker}\``)
         : ['  - none']
     ),
     '',
-    '## Goals',
+    '## Exact-archive technical acceptance',
+    '',
+    `Archive: \`${summary.readiness.technical.selectedPackageSha256}\` (${summary.readiness.technical.packageSelection}).`,
+    `Record: \`${summary.readiness.technical.acceptanceRecord}\`.`,
+    summary.readiness.technical.scope,
     '',
   ];
+  for (const entry of summary.readiness.technical.configurations) {
+    lines.push(`- ${entry.host} ${entry.hostVersion}; ${entry.hardware?.vendor}/${entry.hardware?.architecture}; ${entry.operation}; ${entry.capsule?.capsuleId}: ${entry.physicalExecutionProven ? 'proven for recorded checks' : entry.blockers.join(', ')}; evidence \`${entry.evidencePath}\`; completed ${entry.completedAtUtc}; plan \`${entry.targetPlanDigest}\`.`);
+  }
+  lines.push('', '## Declared support (independent of adoption)', '', summary.readiness.support.scope,
+    `Policy: \`${summary.readiness.support.policyPath}\`; contract ${summary.readiness.support.contractValid ? 'valid' : 'invalid'}.`, '');
+  for (const entry of summary.readiness.support.declarations) {
+    lines.push(`- ${entry.id}: ${entry.tier}; owner ${entry.owner}. ${entry.notes}`);
+  }
+  lines.push('', '## Goals', '');
   for (const goal of summary.goals) {
     lines.push(`- [${goal.acceptanceScope}] ${goal.label}: ${goal.completionPercent}% (${goal.claimableRows}/${goal.rows} rows claimable, ${goal.status})`);
   }
-  lines.push('', '## Action queue', '');
-  for (const action of summary.actions) {
+  lines.push('', '## Individually qualified Bun capabilities', '',
+    ...summary.contracts.bunQualification.qualifiedDetails.map((entry) => `- ${entry.id}: ${entry.workload} (only its registry evidence scope).`),
+    summary.contracts.bunQualification.qualifiedDetails.length === 0
+      ? 'None qualified. Bun remains experimental; portfolio completion is separate.'
+      : 'Individual results do not promote the Bun portfolio or qualify other capabilities.');
+  lines.push('', '## Independent-adoption action queue', '');
+  for (const action of summary.adoptionActions) {
     lines.push(
       `- ${action.priority}. \`${action.code}\` — owner ${action.owner}; completion ${action.completionClass}; status \`${action.statusCommand}\``,
       `  Exit: ${action.exitCriteria}`
     );
   }
-  lines.push('', '## Standalone and supporting work (not network launch gates)', '');
+  lines.push('', '## Broader deployment, network and supporting work (not prerequisites for scoped technical support)', '');
   for (const action of summary.supportingActions) {
     lines.push(`- \`${action.code}\`: ${action.description}`);
   }
@@ -308,6 +345,8 @@ export function formatProductReadinessMarkdown(summary) {
 export async function buildProductReadinessReport({
   bunQualificationBuilder = buildBunProductQualificationReport,
   productPortfolioCoherenceBuilder = buildProductPortfolioCoherenceReport,
+  acceptanceRecord,
+  packageSha256,
 } = {}) {
   const reports = {
     goals: await buildGoalCompletionReport(),
@@ -326,13 +365,15 @@ export async function buildProductReadinessReport({
     signedRevocationAuthority: await buildSignedRevocationAuthorityQualificationReport(),
     promotionMonitoring: await buildRuntimePromotionMonitoringReport(),
     subsystemSupport: await buildSubsystemSupportContractReport(),
+    physicalAcceptance: await buildPhysicalAcceptanceReport({ acceptanceRecord, packageSha256 }),
+    declaredSupport: await readDeclaredSupport(),
   };
   return buildSummary(reports);
 }
 
 export async function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
-  const summary = await buildProductReadinessReport();
+  const summary = await buildProductReadinessReport(args);
   if (args.json) {
     console.log(JSON.stringify(summary, null, 2));
   } else {

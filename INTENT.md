@@ -31,6 +31,10 @@ increment; generation is an independently usable, optional subsequent capability
 - Unsupported device features, precision mismatches, or missing extensions fail closed with explicit receipts.
 - Token generation exposes observable evidence (probabilities, surprisal, top candidates) without altering model weights.
 - Standalone library utility remains independent of external network coordination or commercial licensing.
+- Exact-configuration execution, declared support, and external adoption are
+  separate conclusions. Missing customers cannot erase physical evidence;
+  customers cannot substitute for it. Narrow technical support does not require
+  a customer fleet, payment, or completion of the entire capability portfolio.
 - The search application owns initialization, indexing, query cancellation, and
   disposal. Healthy model sessions and compatible complete indexes survive queries;
   cancellation does not publish partial indexes or stale results.
