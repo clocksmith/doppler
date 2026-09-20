@@ -36,6 +36,10 @@ const model = {
   manifestHash: 'sha256:${'a'.repeat(64)}',
   persistentCache: { backend: 'opfs', state: 'verified-hit', fromCache: true },
   async unload() { controls.unloads++; },
+  resetGenerationState() {
+    if (controls.failReset) throw new Error('Contract reset failure');
+    controls.resets = (controls.resets ?? 0) + 1;
+  },
   advanced: {
     decodeTokenIds(ids) {
       return ids.map((id) => ({ 1: 'Contract', 2: ' generation', 3: ' passed.', 4: '\\nAnother line.', 5: ' 🙂' })[id] ?? '').join('');
@@ -192,7 +196,7 @@ async function main() {
     await page.fill('#prompt-input', 'Run the demo contract.');
     await page.click('#run-btn');
     await page.waitForFunction(
-      () => document.querySelector('#output-phase').textContent === 'Complete'
+      () => document.querySelector('#output-phase').textContent.startsWith('Complete')
         && document.querySelector('#output-text').textContent === 'Contract generation passed.'
     );
     journey.generationCompleted = true;

@@ -7,6 +7,9 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { chromium } from 'playwright';
 import { createStaticFileServer } from '../src/tooling/node-browser-command-runner.js';
+import { evaluateEmbeddingReference, assertEmbeddingSourceIdentity } from '../src/config/embedding-reference.js';
+import { evaluateRerankReference, assertRerankSourceIdentity } from '../src/config/rerank-reference.js';
+import { resolveCapsuleEmbeddingContract } from '../src/config/embedding-contract.js';
 
 const read = async file => JSON.parse(await fs.readFile(file, 'utf8'));
 const config = await read(process.argv[2]);
@@ -16,6 +19,7 @@ assert(config.consumer === undefined || ['standalone', 'reploid', 'reploid-libra
 if (config.consumer === 'reploid') assert(typeof config.reploidRoot === 'string');
 if (config.consumer === 'reploid-library') assert(typeof config.libraryArchive === 'string');
 if (config.sharedSessionOperation !== undefined) assert.equal(config.consumer, 'reploid');
+if (config.lifecycle) assert(!config.consumer || config.consumer === 'standalone');
 if (config.adapterProbe) {
   assert(Number.isSafeInteger(config.adapterProbe.attempts) && config.adapterProbe.attempts > 0);
   assert(Number.isSafeInteger(config.adapterProbe.retryDelayMs) && config.adapterProbe.retryDelayMs >= 0);
@@ -40,6 +44,8 @@ if (config.consumer === 'reploid-library') {
     = `/node_modules/reploid/${library.exports[entry].import.replace(/^\.\//, '')}`;
 }
 await fs.copyFile(new URL('../examples/capsule-capabilities/app.js', import.meta.url), path.join(consumer, 'capabilities-app.js'));
+if (config.lifecycle) await fs.copyFile(new URL('../tests/fixtures/installed-capability-lifecycle.js', import.meta.url),
+  path.join(consumer, 'capability-lifecycle.js'));
 await fs.writeFile(path.join(consumer, 'capabilities.html'), `<!doctype html><title>Installed Capsule capabilities</title><script type="importmap">${JSON.stringify({ imports })}</script>`);
 await fs.mkdir(config.outputDir);
 const report = { schema: 'doppler.installed-capabilities-acceptance-result/v1', passed: false,
@@ -47,6 +53,8 @@ const report = { schema: 'doppler.installed-capabilities-acceptance-result/v1', 
   fixtureSource: await read(path.join(config.bundleRoot, 'source-state.json')),
   runnerRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: new URL('..', import.meta.url), encoding: 'utf8' }).trim(),
   runnerSha256: createHash('sha256').update(await fs.readFile(new URL(import.meta.url))).digest('hex'),
+  lifecycleFixtureSha256: config.lifecycle ? createHash('sha256').update(await fs.readFile(
+    new URL('../tests/fixtures/installed-capability-lifecycle.js', import.meta.url))).digest('hex') : null,
   scope: 'Physical local browser execution of retained models; no new model or fleet qualification.' };
 if (config.reploidRoot) {
   report.reploidRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: config.reploidRoot, encoding: 'utf8' }).trim();
@@ -67,6 +75,8 @@ try {
     const page = await browser.newPage();
     let timedOut = false;
     let hardware = null;
+    let result = null;
+    const lifecycleProgress = [];
     const timeout = setTimeout(() => {
       timedOut = true;
       void page.close().catch(error => report.logs.push({ type: 'cleanup', text: error.message }));
@@ -99,10 +109,26 @@ try {
       await page.exposeFunction('persistCapabilityCheckpoint', async checkpoint => {
         await fs.writeFile(path.join(config.outputDir, `${descriptor.request.operation.name}-checkpoint.json`), JSON.stringify(checkpoint, null, 2));
       });
-      const result = await page.evaluate(async ({ descriptor, consumer, shared }) => {
+      await page.exposeFunction('retainCapabilityObservation', async observation => {
+        lifecycleProgress.push(observation);
+        await fs.writeFile(path.join(config.outputDir, `${descriptor.request.operation.name}-lifecycle-progress.json`),
+          JSON.stringify(lifecycleProgress, null, 2));
+        if (row.expectedTokenIds) assert.deepEqual(observation.completed.output.tokenIds, row.expectedTokenIds,
+          `${observation.phase}: frozen generation reference mismatch`);
+      });
+      result = await page.evaluate(async ({ descriptor, consumer, shared, lifecycle }) => {
         const { runCapability } = await import('/capabilities-app.js');
         const { DOPPLER_VERSION } = await import('doppler-gpu');
         let partials = 0;
+        if (lifecycle) {
+          const host = await import('doppler-gpu/host');
+          const { runInstalledCapabilityLifecycle } = await import('/capability-lifecycle.js');
+          return { ...await runInstalledCapabilityLifecycle(host, descriptor, {
+            onProgress: globalThis.reportCapabilityProgress,
+            persistReleaseCheckpoint: globalThis.persistCapabilityCheckpoint,
+            onObservation: globalThis.retainCapabilityObservation,
+          }, lifecycle), runtimeVersion: DOPPLER_VERSION };
+        }
         if (consumer === 'reploid-library') {
           const runtime = { ...await import('doppler-gpu'), ...await import('doppler-gpu/host') };
           const { createDopplerProvider } = await import('reploid/doppler');
@@ -200,7 +226,9 @@ try {
           onEvent: event => { if (event.status === 'partial') partials++; },
         });
         return { completed, partials, runtimeVersion: DOPPLER_VERSION };
-      }, { descriptor, consumer: config.consumer, shared: config.sharedSessionOperation === descriptor.request.operation.name });
+      }, { descriptor, consumer: config.consumer, shared: config.sharedSessionOperation === descriptor.request.operation.name,
+        lifecycle: config.lifecycle ? { repeatRuns: config.lifecycle.repeatRuns, cancellation: row.cancellation,
+          ...(row.adapter ? { adapter: row.adapter } : {}) } : null });
       assert.equal(result.runtimeVersion, bundle.package.version);
       assert.equal(result.completed.status, 'completed');
       if (row.expectedTokenIds) assert.deepEqual(result.completed.output.tokenIds, row.expectedTokenIds);
@@ -208,9 +236,33 @@ try {
         assert.equal(result.completed.output.embeddings.length, descriptor.request.input.texts.length);
         assert(result.completed.output.embeddings.every(item => item.embedding.length === row.expectedDimension && item.embedding.every(Number.isFinite)));
       }
+      if (row.reference) {
+        assert(result.lifecycle, 'Numerical reference checks require the observed public session contract.');
+        const bytes = await fs.readFile(row.reference.path);
+        assert.equal(`sha256:${createHash('sha256').update(bytes).digest('hex')}`, row.reference.digest);
+        const reference = JSON.parse(bytes);
+        const manifest = result.lifecycle.modelManifest;
+        const embedding = descriptor.request.operation.name === 'embed';
+        (embedding ? assertEmbeddingSourceIdentity : assertRerankSourceIdentity)(manifest.artifactIdentity, reference);
+        result.comparisons = result.lifecycle.observations.map(({ phase, completed }) => ({ phase,
+          ...(embedding ? evaluateEmbeddingReference(reference, {
+            input: { texts: descriptor.request.input.texts }, embeddingContract: resolveCapsuleEmbeddingContract(manifest),
+            outputs: completed.output.embeddings.map((item, i) => ({ text: descriptor.request.input.texts[i],
+              tokenIds: item.tokens, embedding: item.embedding })),
+          }) : evaluateRerankReference(reference, { input: { query: descriptor.request.input.query,
+            documents: descriptor.request.input.documents }, scoringConfig: manifest.inference.rerank,
+            outputs: completed.output.evidence.scores })),
+        }));
+        assert(result.comparisons.every(comparison => comparison.passed), 'Frozen numerical reference comparison failed.');
+      }
+      if (row.expectedTokenIds && result.lifecycle) {
+        for (const observation of result.lifecycle.observations) assert.deepEqual(observation.completed.output.tokenIds, row.expectedTokenIds);
+      }
       report.results.push({ passed: true, operation: descriptor.request.operation.name, hardware, ...result });
     } catch (error) {
       report.results.push({ passed: false, operation: row.descriptor.request.operation.name, hardware,
+        observation: result,
+        lifecycleProgress,
         error: { message: timedOut ? `Consumer exceeded ${config.timeoutMs}ms: ${error.message}` : error.message, stack: error.stack } });
     } finally {
       clearTimeout(timeout);

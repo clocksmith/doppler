@@ -10,9 +10,14 @@ import { createStaticFileServer } from '../src/tooling/node-browser-command-runn
 
 const read = async file => JSON.parse(await fs.readFile(file, 'utf8'));
 const config = await read(process.argv[2]);
+if (config.adapterProbe) {
+  assert(Number.isSafeInteger(config.adapterProbe.attempts) && config.adapterProbe.attempts > 0);
+  assert(Number.isSafeInteger(config.adapterProbe.retryDelayMs) && config.adapterProbe.retryDelayMs >= 0);
+}
 const baseline = await read(config.baselineReceipt);
 const qualification = config.qualificationReportPath ? await read(config.qualificationReportPath) : null;
 const reference = config.sourceTranscriptPath ? await read(config.sourceTranscriptPath) : null;
+const adapterManifest = config.adapterManifestPath ? await read(config.adapterManifestPath) : null;
 const bundle = await read(path.join(config.bundleRoot, 'receipt.json'));
 assert(bundle.passed && baseline.passed);
 assert.equal(createHash('sha256').update(await fs.readFile(path.join(config.bundleRoot, bundle.package.filename))).digest('hex'), bundle.package.sha256);
@@ -36,10 +41,21 @@ try {
   await page.route('**/probe', route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>GPU selection qualification</title>' }));
   await page.goto(server.baseUrl + '/probe');
   await page.exposeFunction('probeProgress', row => console.log(JSON.stringify(row)));
-  const result = await page.evaluate(async ({ request, expected, sourceFile, runtimeConfig, qualification, reference }) => {
-    const adapter = await navigator.gpu.requestAdapter();
+  const result = await page.evaluate(async ({ request, expected, sourceFile, runtimeConfig, qualification, reference, adapterManifest, adapterProbe }) => {
+    let adapter;
+    const probes = [];
+    for (let attempt = 0; attempt < (adapterProbe?.attempts ?? 1); attempt++) {
+      adapter = await navigator.gpu.requestAdapter();
+      probes.push({ available: adapter !== null });
+      if (adapter) break;
+      if (adapterProbe && attempt + 1 < adapterProbe.attempts) {
+        await new Promise(resolve => setTimeout(resolve, adapterProbe.retryDelayMs));
+      }
+    }
+    if (!adapter) throw new Error(`Physical WebGPU adapter unavailable after ${probes.length} attempts; no fallback.`);
     if (adapter.info.isFallbackAdapter) throw new Error('Physical adapter required.');
     const hardware = Object.fromEntries(['vendor', 'architecture', 'device', 'description', 'isFallbackAdapter'].map(key => [key, adapter.info[key]]));
+    hardware.probe = probes;
     const [{ load }, { createCapsuleArtifactSource }, { createFetchCapsuleArtifactStore }, { observeInitialExecutionIdentity }, { createVerifiedCapsuleArtifactStore }] = await Promise.all([
       import('/src/client/doppler-api.browser.js'), import('/src/client/runtime/capsule-artifact-source.js'),
       import('/src/client/runtime/fetch-capsule-artifact-store.js'), import('/src/config/initial-execution-identity.js'),
@@ -55,12 +71,18 @@ try {
     globalThis.probeModel = model;
     await globalThis.probeProgress({ stage: 'loaded', elapsedMs: performance.now() - started });
     const identity = observeInitialExecutionIdentity(model.advanced.getResolvedRuntimeSession());
-    const promptTokens = model.advanced.tokenizePrompt(request.input.prompt, { useChatTemplate: request.options.useChatTemplate });
+    const promptTokens = Array.isArray(request.input.promptTokens)
+      ? [...request.input.promptTokens]
+      : model.advanced.tokenizePrompt(request.input.prompt, { useChatTemplate: request.options.useChatTemplate });
     const special = model.advanced.getSpecialTokens();
     const contract = { padTokenId: Number.isInteger(special.pad) ? special.pad : null };
     const options = { ...request.options, useChatTemplate: false };
     const rows = [];
     for (let repeat = 0; repeat < 2; repeat++) {
+      if (adapterManifest && repeat === 1) {
+        const bytes = new Uint8Array(await (await fetch('/candidate/' + adapterManifest.weightsPath)).arrayBuffer());
+        await model.loadLoRA(adapterManifest, { readFile: async () => bytes, weightsLayout: 'peft' });
+      }
       model.resetGenerationState();
       const context = [...promptTokens], tokens = [], start = performance.now();
       for (let index = 0; index < expected.length; index++) {
@@ -70,9 +92,11 @@ try {
         tokens.push(result.tokenId); context.push(result.tokenId);
         if (result.tokenId !== expected[index]) throw new Error(`First selected-token divergence at ${index}: expected ${expected[index]}, received ${result.tokenId}.`);
       }
-      rows.push({ repeat, tokenIds: tokens, elapsedMs: performance.now() - start });
+      rows.push({ repeat, adapter: adapterManifest && repeat === 1 ? adapterManifest.checksum : null,
+        tokenIds: tokens, elapsedMs: performance.now() - start });
       await globalThis.probeProgress({ stage: 'generated', repeat, tokens: tokens.length, elapsedMs: rows.at(-1).elapsedMs });
     }
+    if (adapterManifest) await model.unloadLoRA();
     let sourceParity = null;
     if (reference) {
       const referencePrompt = qualification.metrics.prompt;
@@ -91,9 +115,13 @@ try {
       sourceParity = { passed: true, promptTokenIds: inputIds, tokenIds };
       await globalThis.probeProgress({ stage: 'source-parity', tokens: tokenIds.length });
     }
-    return { hardware, initialExecutionIdentity: identity, promptTokens, rows, sourceParity };
-  }, { request: baseline.config.model.descriptor.request, expected: baseline.runs[0].completed.output.tokenIds,
-    sourceFile: config.sourceFile, runtimeConfig: config.runtimeConfig, qualification, reference });
+    return { hardware, initialExecutionIdentity: identity, promptTokens, rows, sourceParity,
+      adapterPreparation: adapterManifest ? { passed: true, sourceDigest: adapterManifest.checksum,
+        scope: 'Physical zero-delta fixture parity through installed advanced preparation APIs; not signed public Capsule acceptance or trained-adapter quality.' } : null };
+  }, { request: (baseline.config.model ?? baseline.config.models?.[0]).descriptor.request,
+    expected: (baseline.runs ?? baseline.results)[0].completed.output.tokenIds,
+    sourceFile: config.sourceFile, runtimeConfig: config.runtimeConfig, qualification, reference, adapterManifest,
+    adapterProbe: config.adapterProbe });
   Object.assign(report, result);
   assert.equal(result.hardware.vendor, config.requiredVendor);
   report.passed = true;

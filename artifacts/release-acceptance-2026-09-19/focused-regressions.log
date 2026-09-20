@@ -1,0 +1,114 @@
+TAP version 13
+# demo-ui-controls.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.921455
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 108.672917
+[node-tests] ok: tests/demo/demo-ui-controls.test.js
+TAP version 13
+# adapter-evaluation-fixture: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.034728
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 146.428101
+[node-tests] ok: tests/integration/adapter-evaluation-fixture.test.js
+TAP version 13
+# demo-surface-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.029288
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 94.750498
+[node-tests] ok: tests/integration/demo-surface-contract.test.js
+TAP version 13
+# Subtest: installed lifecycle acceptance covers repeated work, cancellation, and surviving sessions
+ok 1 - installed lifecycle acceptance covers repeated work, cancellation, and surviving sessions
+  ---
+  duration_ms: 2.641633
+  type: 'test'
+  ...
+# Subtest: pre-aborted acceptance does not claim partial GPU execution
+ok 2 - pre-aborted acceptance does not claim partial GPU execution
+  ---
+  duration_ms: 0.386718
+  type: 'test'
+  ...
+# Subtest: acceptance rejects a preparation that ignores cancellation
+ok 3 - acceptance rejects a preparation that ignores cancellation
+  ---
+  duration_ms: 0.433316
+  type: 'test'
+  ...
+# Subtest: acceptance rejects a late completion after cancellation
+ok 4 - acceptance rejects a late completion after cancellation
+  ---
+  duration_ms: 0.322427
+  type: 'test'
+  ...
+# Subtest: acceptance preserves the original failure when cleanup fails
+ok 5 - acceptance preserves the original failure when cleanup fails
+  ---
+  duration_ms: 0.293924
+  type: 'test'
+  ...
+# Subtest: adapter acceptance rejects a completion without exact loaded tensor evidence
+ok 6 - adapter acceptance rejects a completion without exact loaded tensor evidence
+  ---
+  duration_ms: 0.1645
+  type: 'test'
+  ...
+# Subtest: adapter acceptance checks failed preparation and base requests after unloading and cancellation
+ok 7 - adapter acceptance checks failed preparation and base requests after unloading and cancellation
+  ---
+  duration_ms: 25.998843
+  type: 'test'
+  ...
+# Subtest: test module initialization completed
+ok 8 - test module initialization completed
+  ---
+  duration_ms: 0.063139
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 122.829907
+[node-tests] ok: tests/integration/installed-capability-lifecycle.test.js
+[node-tests] ok: 4 files

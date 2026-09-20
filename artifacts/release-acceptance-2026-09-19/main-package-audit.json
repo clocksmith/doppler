@@ -1,0 +1,48 @@
+{
+  "scope": "Package integration of remote main 4bd012e3; not physical qualification of this newer archive.",
+  "method": "Compare every decompressed tar entry by path, byte length, and SHA-256; no added or removed entries.",
+  "before": {
+    "sourceCommit": "17af741f57e1d73bd5dd864d9a934b5592184d82",
+    "archive": "/var/tmp/doppler-lora-ownership-final.RFlNt4/doppler-gpu-0.6.2.tgz",
+    "sha256": "88f030627cdba99f9a81ffc5b5287d1ba9441f3cac638c506eded46d49cbeec7",
+    "packedBytes": 2151228,
+    "entryCount": 1858,
+    "unpackedBytes": 11307872
+  },
+  "after": {
+    "node": "22.22.1",
+    "npm": "9.2.0",
+    "archive": "/var/tmp/doppler-main-package-audit.wDnQWc/doppler-gpu-0.6.2.tgz",
+    "sha256": "147ed95c26ee8be7a6249a467f45f0fcbb9a7eb3628bdca7f711d2aa072ace0a",
+    "packedBytes": 2147201,
+    "entryCount": 1858,
+    "unpackedBytes": 11307986
+  },
+  "ciToolchainArchive": {
+    "node": "22.23.2",
+    "npm": "10.9.8",
+    "archive": "/var/tmp/doppler-main-ci-package.zN0t2G/doppler-gpu-0.6.2.tgz",
+    "sha256": "890c9fa2499f72b7a1085272cb75b7670fc93b4ba8ab12d5c50544ddde7f5c22",
+    "packedBytes": 2151247,
+    "entryCount": 1858,
+    "unpackedBytes": 11307986
+  },
+  "changedEntries": [
+    {
+      "path": "package/src/inference/pipelines/text.js",
+      "beforeBytes": 23082,
+      "afterBytes": 23164,
+      "beforeSha256": "ce4e6c7703a5b714c74b269f531a4e5231f2e1bad9fe391c6acf1bc4632c7478",
+      "afterSha256": "9579427b4ae4d0e4cc3498c0ce2ef666bb9fff3d72090a6d019da28bcc57ca2f"
+    },
+    {
+      "path": "package/src/inference/pipelines/text.d.ts",
+      "beforeBytes": 8690,
+      "afterBytes": 8722,
+      "beforeSha256": "b7b595b3b2210163df6aecd6f8560fb7341a31b82f030c124fe3b528fd18ade6",
+      "afterSha256": "91b751be43bd04f91cc2f0bb0217dab818fca212530eb0c561532d9650834a09"
+    }
+  ],
+  "budgetChange": { "unpackedBytes": 114, "packedBytes": 19, "entryCount": 0 },
+  "published": false
+}

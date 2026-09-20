@@ -898,6 +898,7 @@
         "tools/package-source-closure.js",
         "tools/patch-execution-graph.js",
         "tools/pin-safetensors-headers.js",
+        "tools/prepare-adapter-evaluation-source.js",
         "tools/probe-electron-reranker.js",
         "tools/probe-installed-token-selection.js",
         "tools/profile-installed-capsule.js",
@@ -3768,6 +3769,7 @@
         "demo/report.js",
         "demo/settings.js",
         "demo/sw.js",
+        "demo/ui/chat-markdown.js",
         "demo/ui/dom.js",
         "demo/ui/precision-replay/index.js",
         "demo/ui/state.js",
@@ -4038,6 +4040,7 @@
         "tests/demo/report.test.js",
         "tests/demo/xray-runtime-notice.test.js",
         "tests/fixtures/consumer-evidence.js",
+        "tests/fixtures/installed-capability-lifecycle.js",
         "tests/fixtures/packed-browser-host-consumer.js",
         "tests/fixtures/packed-electron-consumer.js",
         "tests/fixtures/packed-embedding-consumer.js",
@@ -4299,6 +4302,7 @@
         "tests/inference/vision-pipeline-capability.test.js",
         "tests/inference/weight-buffer-runtime-dtype.test.js",
         "tests/integration/adapter-artifact-contract.test.js",
+        "tests/integration/adapter-evaluation-fixture.test.js",
         "tests/integration/adapter-registry-browser-contract.test.js",
         "tests/integration/bridge-extension-client-contract.test.js",
         "tests/integration/bridge-source-runtime.test.js",
@@ -4373,6 +4377,7 @@
         "tests/integration/hotswap-rollout.test.js",
         "tests/integration/hybrid-linear-execution-v1-contract.test.js",
         "tests/integration/index-browser-export-surface.test.js",
+        "tests/integration/installed-capability-lifecycle.test.js",
         "tests/integration/litert-gemma4-task-ple-scale.test.js",
         "tests/integration/lora-activation-contract.test.js",
         "tests/integration/lora-loader-contract.test.js",
@@ -5834,7 +5839,7 @@
     {
       "file": "src/inference/pipelines/text.js",
       "kind": "dynamic",
-      "line": 618,
+      "line": 622,
       "expression": "import(modulePath)"
     },
     {
@@ -5900,8 +5905,14 @@
     {
       "file": "tests/demo/browser-streaming.js",
       "kind": "dynamic",
-      "line": 69,
+      "line": 71,
       "expression": "import(`${base}/demo/output.js`)"
+    },
+    {
+      "file": "tests/demo/browser-streaming.js",
+      "kind": "dynamic",
+      "line": 115,
+      "expression": "import(`${base}/demo/ui/chat-markdown.js`)"
     },
     {
       "file": "tests/fixtures/packed-electron-consumer.js",
@@ -6146,7 +6157,7 @@
     {
       "file": "tools/demo-contract-smoke.js",
       "kind": "dynamic",
-      "line": 200,
+      "line": 204,
       "expression": "import(url)"
     },
     {

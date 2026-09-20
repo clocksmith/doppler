@@ -1,0 +1,167 @@
+{
+  "schema": "doppler.gpu-token-selection-probe/v1",
+  "passed": false,
+  "signedCapsule": false,
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-UfforkwPyKr4fFNHpqU+gyda7sPPEw1NRPIUvBuLNidB6Yak9NqmVNP1hw4u2KbdWKsq8PkizhYs+M84sqhqxg==",
+    "sizeBytes": 2151228,
+    "source": "provided-immutable-archive",
+    "sha256": "88f030627cdba99f9a81ffc5b5287d1ba9441f3cac638c506eded46d49cbeec7"
+  },
+  "config": {
+    "bundleRoot": "/var/tmp/doppler-release-acceptance.JTuaHr/installed",
+    "baselineReceipt": "/var/tmp/doppler-release-acceptance.JTuaHr/physical-initial/receipt.json",
+    "sourceRoot": "/var/tmp/doppler-release-acceptance.JTuaHr/adapter-source",
+    "sourceFile": "source.json",
+    "outputDir": "/var/tmp/doppler-release-acceptance.JTuaHr/adapter-preseal-2",
+    "adapterManifestPath": "/var/tmp/doppler-release-acceptance.JTuaHr/adapter-source/adapter-manifest.json",
+    "qualificationReportPath": "/var/tmp/doppler-capsule-gpu-selection-20260915/qualified/qualification.json",
+    "sourceTranscriptPath": "/var/tmp/reploid-qwen4b-source-20260908/capsule-evidence-closed-development/source-transcript.json",
+    "channel": "chrome",
+    "requiredVendor": "amd",
+    "timeoutMs": 1200000,
+    "temporaryDirectory": "/var/tmp",
+    "launchArgs": [
+      "--enable-unsafe-webgpu",
+      "--enable-webgpu-developer-features",
+      "--disable-dawn-features=disallow_unsafe_apis",
+      "--ignore-gpu-blocklist",
+      "--use-angle=vulkan",
+      "--enable-features=Vulkan",
+      "--disable-vulkan-surface",
+      "--enable-precise-memory-info"
+    ],
+    "runtimeConfig": {
+      "inference": {
+        "compute": {
+          "activationDtype": "f32"
+        },
+        "generation": {
+          "disableMultiTokenDecode": true
+        },
+        "session": {
+          "attentionDecodeOnline": null,
+          "compute": {
+            "defaults": {
+              "accumDtype": "f32",
+              "activationDtype": "f32",
+              "mathDtype": "f32",
+              "outputDtype": "f32"
+            }
+          },
+          "decodeLoop": {
+            "batchSize": 4,
+            "disableCommandBatching": false,
+            "readbackInterval": 1,
+            "readbackMode": "sequential",
+            "ringStaging": 1,
+            "ringStop": 1,
+            "ringTokens": 1,
+            "stopCheckMode": "batch",
+            "submitLatencyThresholdMs": null
+          },
+          "fusedFfnQ4K": null,
+          "kvcache": {
+            "bdpaVocabSize": 2048,
+            "forceF32Softcap": false,
+            "gpuPagedFallbackMaxSeqLen": 4096,
+            "kvDtype": "f16",
+            "layout": "contiguous",
+            "maxSeqLen": 8192,
+            "pageSize": 256,
+            "quantization": {
+              "bitWidth": 4,
+              "mode": "none",
+              "prodMode": false
+            },
+            "tiering": {
+              "coldDtype": "f16",
+              "coldPageSize": 256,
+              "compression": {
+                "bitWidth": 4,
+                "blockSize": 1,
+                "mode": "none",
+                "prodMode": false
+              },
+              "gating": {
+                "minAluBwRatio": 0,
+                "mode": "auto"
+              },
+              "hotWindow": 1024,
+              "mode": "off"
+            },
+            "windowSize": 1024
+          },
+          "lmHeadArgmaxQ4K": null,
+          "perLayerInputs": {
+            "gpuUpload": {
+              "mode": "per_step_slices",
+              "stagingRows": 2
+            },
+            "hotCache": {
+              "maxBytes": 134217728,
+              "maxTokens": 1024,
+              "mode": "prepared_tokens",
+              "outputDtype": "f32"
+            },
+            "materialization": "auto",
+            "prefetch": {
+              "mode": "next_token",
+              "rowsAhead": 1
+            },
+            "rowCache": {
+              "decodedDtype": "f32",
+              "maxBytes": 134217728,
+              "maxRows": 256,
+              "mode": "lru"
+            }
+          },
+          "prefillChunkLayers": 4,
+          "prefillChunkSubmitMode": "sync",
+          "prefillTokenChunkSize": null,
+          "retainQ4KMaterialization": false,
+          "skipEmbeddingKVCacheWrites": false,
+          "speculation": {
+            "mode": "none",
+            "rollbackOnReject": true,
+            "threshold": null,
+            "tokens": 1,
+            "verify": "greedy"
+          },
+          "useFlashPrefillAttention": false,
+          "useFusedGateUpGelu": false,
+          "useFusedQKVSplitQKNorm": false,
+          "useFusedQKVSplitQKNormRoPE": false,
+          "useFusedRmsnormWideTile": false,
+          "useGreedyLmHeadArgmaxFusion": false,
+          "useLargeBatchF16F32FusedGateUp": false,
+          "useLinearAttentionABProjectionFusion": false,
+          "useLinearAttentionFusedDecodeCore": false,
+          "useLinearAttentionQKVZProjectionFusion": false,
+          "useOrtFlashPrefillAttention": false,
+          "usePostAttnNormFusedGateUp": false,
+          "usePostFfnNextInputRMSNormPairFusion": false,
+          "useSandwichRMSNormPairFusion": false,
+          "useTiledQ4KPrefill": false,
+          "useWideTileQ4KDecode": false,
+          "useWideTileQ4KPrefill": false,
+          "useWideTileResidualFusion": false
+        }
+      }
+    }
+  },
+  "rows": [],
+  "logs": [
+    "A valid external Instance reference no longer exists."
+  ],
+  "probeSha256": "faa87ef11ffe8a9aa5371409072a6c7754402cd1098bddd34815664a9faf81a1",
+  "sourceSha256": "99953aaf95c6e6fa059f2f7a38724fc0943db53a202c752d9bf5399d8edd234c",
+  "browserVersion": "146.0.7680.177",
+  "error": {
+    "message": "page.evaluate: TypeError: Cannot read properties of null (reading 'info')\n    at eval (eval at evaluate (:290:30), <anonymous>:3:17)\n    at async <anonymous>:316:30",
+    "stack": "page.evaluate: TypeError: Cannot read properties of null (reading 'info')\n    at eval (eval at evaluate (:290:30), <anonymous>:3:17)\n    at async <anonymous>:316:30\n    at /home/x/deco/doppler/tools/probe-installed-token-selection.js:40:29"
+  },
+  "cleanupErrors": []
+}
