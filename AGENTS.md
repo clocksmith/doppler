@@ -2,10 +2,24 @@
 
 Repository: https://github.com/clocksmith/doppler
 
-**Prime Directive:** Build Doppler as an AI-native Model Release Foundry for
-JavaScript and WebGPU: Forge produces source-truth, qualified, signed immutable
-Capsules; the deliberately uncreative Runtime validates, selects, binds, executes,
-and observes their declared programs across browser, Node, and CLI surfaces.
+**Prime Directive:** Build Doppler as a dependable JavaScript library for local
+WebGPU inference: easy to embed, fast to start and execute, and safe to reuse.
+Forge is the supporting model compiler/preparation system producing source-truth,
+qualified, signed immutable Capsules; the deliberately uncreative Runtime validates,
+selects, binds, executes, and observes their declared programs. Browser and Node
+support are qualified separately; Bun remains experimental.
+
+**Current Product Priority:** Deliver the complete copy-and-run local-search
+application specified in [docs/goals.md](docs/goals.md#next-product-increment-copy-and-run-local-search).
+Reuse `examples/document-search/search.js`; keep application lifetime, indexing,
+and presentation outside the runtime. This precedes nonzero-adapter qualification
+and structural cleanup except for concrete application-blocking defects. Preserve
+the one-shot capability example, existing trust/checkpoint protections, and
+completed loading repairs. Reploid consumes the same public inference contracts.
+Embeddings and reranking complete this increment; generation/RAG is optional later
+work. Treat privacy, offline availability, cancellation, memory, and numerical
+portability as scoped acceptance requirements, not automatic WebGPU guarantees.
+See the goals for host prerequisites, release-history limits, and GPU lifecycle semantics.
 
 **File Extensions:** Always use `.js`. Never create `.mjs` files. The repo uses `"type": "module"` in `package.json`, so all `.js` files are ES modules. The `.mjs` extension is redundant and prohibited.
 

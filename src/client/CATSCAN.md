@@ -10,8 +10,8 @@ Make qualified local model workloads easy to invoke while preserving exact resol
 
 ## Authority
 
-- Owns the root application facade, public call-shape validation, source resolution coordination, and inspectable model handles.
-- Does not own inference algorithms, artifact facts, or silent provider and precision substitution.
+- Owns public validation, source coordination, model handles, and observations.
+- Does not own inference, artifact facts, or silent provider/precision substitution.
 
 ## Scope
 
@@ -24,24 +24,23 @@ Make qualified local model workloads easy to invoke while preserving exact resol
 
 ## Invariants
 
-- Logical requests resolve to visible artifact and execution identities.
-- Exact pins and policy-authorized alternatives are honored.
-- Public facade behavior remains aligned across declared hosts.
-- Public exports use Capsule names only; the previous product-name APIs and package subpath are not compatibility aliases.
-- Capsule execution consumes verified artifact bytes, never an unverified refetch.
-- Capsule-bound operations report selected-plan and artifact-closure evidence.
-- Capsule v3 receipts distinguish managed eligibility from recipient-retained local use. Verified release denials advance durable checkpoints; unauthenticated histories do not.
-- The public `doppler-gpu/host` facade composes the existing host ports without
-  choosing application trust, accepting upgrades, or bypassing Capsule checks.
+- Requests expose artifact/execution identities; exact pins and authorized alternatives are honored.
+- Declared hosts preserve facade parity. Exports use Capsule names; former names/subpaths are not aliases.
+- Execution consumes verified bytes, never unverified refetches, and reports selected-plan/artifact-closure evidence.
+- V3 receipts distinguish managed eligibility from retained use. Verified denials advance durable checkpoints; unauthenticated histories cannot.
+- `doppler-gpu/host` composes existing ports without choosing trust, upgrades, or bypassing checks.
+- Existing observers emit throttled bytes and immediate acquisition/hash/verification/preparation transitions; verified completion requires size/digest success, reuse is honest.
+- Progress preserves private ownership, host-task yielding, cancellation, and verification; it never authorizes execution.
 
 ## Acceptance
 
 - Client contract, provider, and root-facade tests pass.
+- [Local-search progress acceptance](../../docs/goals.md#next-product-increment-copy-and-run-local-search) requires corruption, reuse, cancellation, and responsive-task tests; requirements are not completion claims.
 - Evidence: [client tests](../../tests/client).
 
 ## Non-goals
 
-- Owning GPU math, model conversion, or application trust decisions.
+- GPU math, conversion, application trust, parsing, search/index policy, and application controllers.
 
 ## Freedom
 

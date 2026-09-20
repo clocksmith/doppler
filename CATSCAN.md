@@ -6,42 +6,44 @@ Parent: none
 
 ## Target
 
-Make intelligence executable as portable JavaScript model programs. Immediate work supports Reploid's ordered milestones through dependable public inference; long-term success remains independent application adoption.
+Make local AI an ordinary JavaScript dependency. Prioritize copy-and-run local search; long-term success is independent adoption.
 
 ## Authority
 
-- Owns Doppler's repository mission, product boundaries, artifact/runtime contract, and evidence standard.
-- Does not own application intent, agent policy, or unsupported capability claims.
+- Owns mission, product boundaries, artifact/runtime contracts, and evidence standards.
+- Owns reference applications; their controllers and search policies stay outside runtime.
+- Does not own consumer intent, agent policy, or unsupported claims.
 
 ## Scope
 
-- The shipped package, browser demo, model catalog, qualification machinery, documentation, and retained evidence.
+- Package, demo, examples, catalog, qualification, documentation, and evidence.
 
 ## Contracts
 
 - Input: [Strategic goals](GOALS.md)
 - Input: [System intent and invariants](INTENT.md)
 - Input: [Subsystem support policy](src/config/support-tiers/subsystems.json).
-- Output: [Package surfaces](package.json), qualified artifacts, runtime behavior, and auditable receipts.
+- Output: [Package surfaces](package.json), qualified artifacts, execution, and receipts.
 
 ## Invariants
 
-- Supported behavior is stronger than available code and must remain explicitly scoped.
-- Artifact, tokenizer, graph, kernel, provider, and runtime-policy identity remain inspectable.
+- Support requires scoped evidence, not available code.
+- Artifact, tokenizer, graph, kernel, provider, and policy identity remain inspectable.
 - Unsupported or unresolved execution choices fail closed.
-- Local execution remains usable independently; redistribution and complete-job delegation require explicit authority.
-- Free retained adoption counts. Revenue, acquisition, Doe, Poolday, and Reploid do not gate standalone completion.
-- Optional network experiments retain separate artifact, execution, and history-improvement proof; standalone adoption cannot satisfy them.
+- Standalone execution is independent; redistribution and delegation require authority.
+- Free adoption counts; revenue, acquisition, Doe, Poolday, and Reploid are not gates.
+- Network artifact, execution, and history-improvement proof remains separate.
+- Forge prepares; Capsules bind signed implementations; Runtime executes without silent changes.
 
 ## Acceptance
 
 - `npm run check:green` passes from a clean checkout.
-- Acceptance evidence verifies that [INTENT.md](INTENT.md) and [GOALS.md](GOALS.md) remain supported.
 - Evidence: [goal completion matrix](src/config/goal-completion-matrix.json).
+- Meet [clean-environment search acceptance](docs/goals.md#next-product-increment-copy-and-run-local-search); reference apps are not independent adoption or promotion.
 
 ## Non-goals
 
-- Application orchestration, universal model coverage, and unqualified performance claims.
+- Runtime application orchestration, duplicate search engines, universal model coverage, unqualified performance claims.
 
 ## Freedom
 
