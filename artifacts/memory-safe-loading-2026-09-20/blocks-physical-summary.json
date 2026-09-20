@@ -1,6 +1,7 @@
 {
   "schema": "doppler.memory-loading-physical-summary/v1",
   "passed": true,
+  "browserVersion": "146.0.7680.177",
   "originalReceiptPath": "/var/tmp/doppler-memory-blocks-v2-20260920/physical/receipt.json",
   "originalReceiptSha256": "169dd093c51d173a529ecfa14bdb79fca75a88ece09aafe559aaedb4c94fd528",
   "package": {

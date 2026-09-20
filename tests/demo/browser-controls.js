@@ -58,16 +58,24 @@ async function assertControlContrast(page) {
 
 export async function checkDemoControls(page) {
   await page.locator('#chat-controls > summary').click();
-  assert.equal(await page.locator('#xray-toggle-all').isChecked(), true);
-  assert.equal(await page.locator('#set-word-quality').isChecked(), true);
+  assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
+  assert.equal(await page.locator('#set-word-quality').isChecked(), false);
+  assert.equal(await page.locator('#token-inspector-toggle').getAttribute('aria-pressed'), 'true');
   assert.equal(await page.inputValue('#set-max-tokens'), '256');
-  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/deep-xray');
-  assert.match(await page.locator('#runtime-notice').textContent(), /diagnostic/);
+  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality');
+  assert.match(await page.locator('#runtime-notice').textContent(), /Guided quality.*changes execution/);
+  assert.equal(await page.locator('#runtime-notice').isVisible(), true);
+  await page.locator('#token-inspector-toggle').click();
+  assert.equal(await page.locator('#runtime-notice').isVisible(), false);
+  await page.locator('#sample-run-btn').click();
+  assert.equal(await page.locator('#token-inspector-toggle').getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.locator('#runtime-notice').isVisible(), true, 'Sample inspection reenables the Tokens policy notice');
   await page.locator('#xray-toggle-all').focus();
   await page.keyboard.press('Space');
-  assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
-  await page.keyboard.press('Space');
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), true);
+  await page.keyboard.press('Space');
+  assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
+  await page.locator('#xray-toggle-all').check();
   assert.equal(await page.locator('#runtime-notice').isVisible(), true);
   assert.equal(await page.locator('#settings-panel').isVisible(), false);
   if (!await page.locator('#inspection-workspace').evaluate(element => element.open)) {
@@ -97,6 +105,10 @@ export async function checkDemoControls(page) {
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality');
   assert.equal(await page.locator('#word-quality-output .word-quality').count(), 1);
   await page.locator('#set-word-quality').uncheck();
+  // Tokens start enabled in the new UI and intentionally request guided evidence.
+  // Disable that observer too before asserting the standard, non-diagnostic lane.
+  await page.locator('#token-inspector-toggle').click();
+  assert.equal(await page.locator('#token-inspector-toggle').getAttribute('aria-pressed'), 'false');
   assert.equal(await page.locator('#runtime-notice').isVisible(), false);
 
   await page.locator('#settings-toggle').click();
