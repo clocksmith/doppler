@@ -204,11 +204,7 @@ export async function initInput() {
 
   setupConversationActions();
 
-  // Start with a random example
-  if (examples?.text?.length) {
-    shuffleIndex = Math.floor(Math.random() * examples.text.length) - 1;
-    shuffle();
-  }
+  // Keep the composer empty until the user writes or requests an example.
   syncSendButton();
 }
 
@@ -218,7 +214,7 @@ export function setGenerating(active) {
   if (runBtn) runBtn.hidden = active;
   if (stopBtn) stopBtn.hidden = !active;
   for (const control of document.querySelectorAll(
-    '#set-profile, #set-max-tokens, #settings-panel input:not(:disabled), #xray-toggle-all, #set-word-quality, #import-btn'
+'#set-profile, #set-max-tokens, #settings-panel input:not(:disabled), #xray-toggle-all, #set-word-quality, #token-inspector-toggle, #import-btn, #shuffle-btn'
   )) {
     if (active) control.dataset.runLocked = 'true';
     control.disabled = active;

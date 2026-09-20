@@ -1,0 +1,188 @@
+/* Shared demo components. Feature styles own charts and content, not shell geometry. */
+:root {
+  --demo-space-1: 8px;
+  --demo-space-2: 16px;
+  --demo-space-3: 24px;
+  --demo-space-4: 32px;
+  --demo-panel-padding: var(--demo-space-3);
+  --demo-panel-radius: 16px;
+  --demo-control-radius: 8px;
+  --demo-control-height: 44px;
+  --demo-label-size: 12px;
+  --demo-control-size: 14px;
+}
+
+#app {
+  width: 100%;
+  max-width: 1180px;
+  padding: var(--demo-space-4);
+  gap: var(--demo-space-3);
+}
+
+#app .demo-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--demo-space-2);
+  min-width: 0;
+}
+
+#app .demo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--demo-space-2);
+  min-width: 0;
+}
+
+#app .demo-panel,
+.confirm-dialog .demo-panel {
+  padding: var(--demo-panel-padding);
+  border: 1px solid var(--doppler-line);
+  border-radius: var(--demo-panel-radius);
+  background: var(--doppler-surface);
+  box-shadow: var(--doppler-shadow-sm);
+  min-width: 0;
+}
+
+#app .demo-panel--inset {
+  padding: var(--demo-space-2);
+  border-radius: var(--demo-control-radius);
+  background: #fafafa;
+  box-shadow: none;
+}
+
+#app :is(.btn, .precision-replay-mode-btn),
+.confirm-dialog .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--demo-space-1);
+  min-height: var(--demo-control-height);
+  padding: var(--demo-space-1) var(--demo-space-2);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--demo-control-radius);
+  font: 600 var(--demo-control-size)/1.4 var(--font-sans);
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: normal;
+}
+
+#app :is(select, input[type="number"]) {
+  min-height: var(--demo-control-height);
+  padding: var(--demo-space-1) var(--demo-space-2);
+  border: 1px solid var(--doppler-line);
+  border-radius: var(--demo-control-radius);
+  background-color: #fff;
+  font: 400 var(--demo-control-size)/1.5 var(--font-sans);
+  box-shadow: var(--doppler-inset);
+}
+
+#app select {
+  padding-right: var(--demo-space-4);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23555' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 12px 8px;
+}
+
+#app input[type="range"] {
+  appearance: auto;
+  min-height: var(--demo-control-height);
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+#app input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex-basis: 16px;
+  border-radius: 4px;
+}
+
+#app :is(.flow-title, .xray-heading h2) {
+  margin: 0;
+  font: 600 18px/1.4 var(--font-sans);
+  letter-spacing: normal;
+}
+
+#app :is(.setting-field label, .output-limit, .type-label, .settings-group legend, .chat-role) {
+  font: 600 var(--demo-label-size)/1.5 var(--font-sans);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+#app .setting-field label { cursor: default; }
+#app :is(.setting-field, .output-limit) { gap: var(--demo-space-1); }
+#app :is(.settings-grid, .model-cards, .xray-dashboard, .precision-replay-layout,
+  .precision-replay-controls, .precision-replay-stats, .precision-replay-winners,
+  .precision-replay-watch-pairs, .precision-replay-broad-flips, .precision-replay-branch-grid) {
+  gap: var(--demo-space-2);
+}
+#app .model-cards { padding-top: var(--demo-space-2); }
+#app .model-select-row { gap: var(--demo-space-1); }
+#app .model-select-status { padding: 0; font-size: var(--demo-label-size); }
+#app .model-select-detail:empty { display: none; }
+#app .model-select-progress-row { max-width: none; }
+#app .app-header { padding: 0 0 var(--demo-space-2); }
+#app .app-header .status-dot.is-ready { background: #333; }
+#app .app-links { gap: var(--demo-space-2); }
+#app .app-brand-mark { border-radius: var(--demo-control-radius); }
+
+#app .demo-flow,
+#app .inspection-workspace-body { gap: var(--demo-space-3); }
+#app .inspection-workspace { border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow: visible; }
+#app .inspection-workspace-body { padding: 0; border: 0; }
+#app #xray-container { gap: var(--demo-space-2); padding: 0; }
+#app .xray-provenance { padding-bottom: var(--demo-space-2); border-bottom: 1px solid var(--doppler-line); }
+#app :is(.report-bar, .precision-replay-area) { margin: 0; }
+#app .precision-replay-panel { padding: var(--demo-space-2); border-radius: var(--demo-control-radius); border: 1px solid var(--doppler-line); }
+#app :is(.precision-replay-card, .precision-replay-stat-card, .precision-replay-mini-card) {
+  padding: var(--demo-space-2);
+  gap: var(--demo-space-1);
+  border: 1px solid var(--doppler-line);
+  border-radius: var(--demo-control-radius);
+}
+#app :is(.report-actions, .precision-replay-mode-group) { gap: var(--demo-space-1); }
+#app :is(.report-intro strong, .precision-replay-heading strong) { font: 600 var(--demo-control-size)/1.5 var(--font-sans); }
+
+#app .settings-panel { gap: var(--demo-space-3); }
+#app .settings-panel:not(.is-open) { display: none; }
+#app .settings-panel.is-open { display: flex; }
+#app .settings-group { gap: var(--demo-space-2); }
+#app .settings-group + .settings-group { padding-top: var(--demo-space-3); }
+#app .settings-group legend { padding-bottom: var(--demo-space-2); }
+#app .inspection-setting { padding: var(--demo-space-2); gap: var(--demo-space-1); border-radius: var(--demo-control-radius); }
+#app .chat-toolbar { padding: 0; gap: var(--demo-space-2); }
+#app .chat-toolbar-run { gap: var(--demo-space-2); }
+#app .chat-surface { padding: var(--demo-space-2); border-radius: var(--demo-control-radius); }
+#app .chat-thread { gap: var(--demo-space-3); }
+#app .chat-message { padding: var(--demo-space-2); gap: var(--demo-space-1); border-radius: var(--demo-control-radius); }
+#app #live-assistant-message:not([hidden]) { margin-top: var(--demo-space-3); }
+#app .chat-empty { gap: var(--demo-space-1); padding: var(--demo-space-3) var(--demo-space-2); }
+#app .input-area { padding: var(--demo-space-2); gap: var(--demo-space-2); border-radius: var(--demo-control-radius); }
+#app .input-area:focus-within { border-color: #555; }
+#app .input-row textarea { padding: var(--demo-space-1); font-size: 16px; }
+#app .input-actions { gap: var(--demo-space-1); }
+#app .output-limit { flex-basis: 180px; min-width: 140px; }
+#app .runtime-notice { margin: 0; padding-left: var(--demo-space-2); line-height: 1.6; }
+#app details > summary { min-height: var(--demo-control-height); padding-block: var(--demo-space-1); font: 600 var(--demo-control-size)/1.5 var(--font-sans); letter-spacing: normal; text-transform: none; }
+#app details > summary::marker { content: ''; }
+#app details > summary::-webkit-details-marker { display: none; }
+#app #xray-container .xray-section-header::before { content: none; }
+#app .xray-section { padding-block: var(--demo-space-1); }
+#app .precision-replay-table :is(th, td) { padding: var(--demo-space-1) var(--demo-space-2); }
+
+@media (max-width: 600px) {
+  :root { --demo-panel-padding: var(--demo-space-2); }
+  #app { padding: var(--demo-space-2); }
+  #app .model-select-row { grid-template-columns: minmax(0, 1fr) auto; }
+  #app .model-select-row #model-select { grid-column: 1 / -1; }
+  #app .input-actions .output-limit { flex-basis: 100%; }
+  #app .input-actions .btn { flex: 1; }
+  #app .chat-toolbar-run { width: 100%; margin-left: 0; justify-content: space-between; }
+  #app .chat-message--user { max-width: 95%; }
+  #app .report-bar { align-items: stretch; }
+}

@@ -165,8 +165,7 @@ export function getSettings() {
     if (input && (!input.checkValidity() || field.parse(input.value) === undefined)) {
       $('settings-panel')?.classList.add('is-open');
       $('settings-toggle')?.setAttribute('aria-expanded', 'true');
-      const controls = $('chat-controls');
-      if (controls) controls.open = true;
+      // All editable settings share one panel.
       input.focus();
       input.reportValidity();
       throw new Error(`Check ${input.labels?.[0]?.textContent || field.key}.`);

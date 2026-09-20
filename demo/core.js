@@ -197,13 +197,7 @@ export function loadSampleInspection(receipt) {
 
   if (Array.isArray(receipt.tokens) && receipt.tokens.length > 0) {
     renderTokenInspection(receipt.tokens);
-    showTokenInspectorView(true);
-    state.tokenInspectorActive = true;
-    const toggle = $('token-inspector-toggle');
-    if (toggle) {
-      toggle.classList.add('is-active');
-      toggle.setAttribute('aria-pressed', 'true');
-    }
+    showTokenInspectorView(state.tokenInspectorActive);
   }
 
   state.lastInspection = receipt;
