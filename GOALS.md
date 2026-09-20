@@ -66,6 +66,21 @@ release metadata, and the index are retained. This is a required increment, not 
 or independent adoption. The detailed acceptance contract is in
 [docs/goals.md](docs/goals.md#next-product-increment-copy-and-run-local-search).
 
+Ship a narrowly supported product when its declared configuration passes technical
+acceptance and a maintainer commits to that scope. Independent adoption is an
+outcome to earn, not permission to ship. Report exact-package execution,
+declared support, and adoption separately; customer fleets, paid releases, and
+design partners cannot create or invalidate physical qualification.
+
+Finish browser search first. Keep its computation independent of browser storage
+and UI events, then exercise it through a small Node runner and a packaged
+Electron application using current candidate bytes and unchanged correctness
+references. Qualify each host separately. Electron acceptance includes isolated,
+sandboxed renderers, installed assets, cancellation, window closure/reopening,
+and recovery. Bun stays experimental while individual capabilities acquire scoped
+execution and lifecycle evidence; incomplete portfolio support must not hide a
+qualified individual capability. Publication remains an explicit release decision.
+
 ## Operating Loops
 
 1. **Inference & Telemetry Loop**:

@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { projectPhysicalSummary, buildPhysicalAcceptanceReport } from '../../tools/product-readiness-evidence.js';
+import { buildBunProductQualificationReport } from '../../tools/check-bun-product-qualification.js';
 
 import {
   buildProductReadinessReport,
@@ -11,16 +14,21 @@ const revocations = report.contracts.revocations;
 
 assert.equal(report.ok, true);
 assert.equal(report.readiness.contractValid, true);
-assert.equal(report.readiness.internalMechanicsProven, false);
-assert.equal(report.readiness.productReady, false);
-assert.equal(report.readiness.externalProductionProven, false);
-assert.ok(report.readiness.blockers.includes('external-executable-model-adoption-missing'));
-assert.equal(report.readiness.technicalAcceptance, 'standalone-executable-model-adoption');
-assert.equal(report.readiness.standaloneProven, false);
+assert.equal(report.schema, 'doppler.product-readiness/v2');
+assert.equal(report.readiness.portfolioGatesSatisfied, false);
+assert.equal(report.readiness.adoption.independentAdoptionProven, false);
+assert.equal(report.readiness.deployment.broaderGoalProven, false);
+assert.ok(report.readiness.adoption.blockers.includes('external-executable-model-adoption-missing'));
 assert.equal(report.readiness.networkProven, false);
-assert.equal(report.readiness.localHardwareProven, false);
-assert.equal(report.readiness.blockers.some((code) => code.includes('paid') || code.includes('customer')), false);
-assert.ok(report.readiness.standaloneBlockers.includes('customer-electron-fleet-receipts-missing'));
+assert.equal(report.readiness.technical.anyConfigurationProven, true);
+assert.equal(report.readiness.technical.checkoutQualified, false);
+assert.equal(report.readiness.technical.packageSelection, 'retained-acceptance-archive');
+assert.ok(report.readiness.deployment.blockers.includes('customer-electron-fleet-receipts-missing'));
+assert.equal(report.readiness.support.contractValid, true);
+assert.ok(report.readiness.support.declarations.every((entry) => entry.owner && entry.tier));
+for (const field of ['productReady', 'localHardwareProven', 'standaloneProven', 'technicalAcceptance']) {
+  assert.equal(Object.hasOwn(report.readiness, field), false, `ambiguous ${field} removed in report v2`);
+}
 assert.equal(report.contracts.productIntegrations.gateSatisfied, true);
 assert.equal(report.contracts.providerConformance.ok, true);
 assert.equal(report.contracts.providerConformance.gateSatisfied, false);
@@ -28,9 +36,10 @@ assert.equal(report.contracts.providerConformance.gateSatisfied, false);
 const markdown = formatProductReadinessMarkdown(report);
 assert.match(markdown, /^## Readiness$/mu);
 assert.match(markdown, /^- contract valid: yes$/mu);
-assert.match(markdown, /^- internal mechanics proven: no$/mu);
-assert.match(markdown, /^- external production proven: no$/mu);
-assert.match(markdown, /^- product ready: no$/mu);
+assert.match(markdown, /^- portfolio gates satisfied: no$/mu);
+assert.match(markdown, /^- retained configuration execution proven: yes \(only rows below\)$/mu);
+assert.match(markdown, /^- independent adoption proven: no$/mu);
+assert.doesNotMatch(markdown, /^- product ready:/mu);
 assert.match(markdown, /^  - `external-executable-model-adoption-missing`$/mu);
 assert.doesNotMatch(markdown, /^- status: ok$/mu);
 
@@ -51,9 +60,9 @@ const invalidContractReadiness = buildProductReadinessState({
   productIntegrations: { gateSatisfied: true },
   providerConformance: { gateSatisfied: true },
 }, false);
-assert.equal(invalidContractReadiness.externalProductionProven, true);
-assert.equal(invalidContractReadiness.productReady, false);
-assert.equal(invalidContractReadiness.localHardwareProven, false, 'generic claimable rows are not physical GPU evidence');
+assert.equal(invalidContractReadiness.deployment.broaderGoalProven, true);
+assert.equal(invalidContractReadiness.contractValid, false);
+assert.equal(invalidContractReadiness.technical.anyConfigurationProven, false, 'generic claimable rows are not physical GPU evidence');
 // Pure projection fixtures, not promoted adoption evidence. A network success
 // cannot substitute for adoption, and missing commercial evidence cannot block it.
 const projection = {
@@ -67,25 +76,53 @@ const projection = {
   ] },
   productIntegrations: { gateSatisfied: false }, providerConformance: { gateSatisfied: false },
 };
-assert.equal(buildProductReadinessState(projection, true).productReady, false);
-assert.equal(buildProductReadinessState(projection, false).productReady, false);
+assert.equal(buildProductReadinessState(projection, true).technical.anyConfigurationProven, false);
+assert.equal(buildProductReadinessState(projection, false).technical.anyConfigurationProven, false);
 projection.goals.goals[0].claimAllowed = false;
 projection.goals.goals[0].status = 'partial';
 projection.goals.goals[1].claimAllowed = true;
-assert.equal(buildProductReadinessState(projection, true).productReady, false);
+assert.equal(buildProductReadinessState(projection, true).technical.anyConfigurationProven, false);
 projection.goals.goals[1].claimAllowed = false;
 const adoption = projection.goals.goals[1].rowStates[0];
 Object.assign(adoption, { status: 'covered', claimAllowed: true, blockers: [] });
-assert.equal(buildProductReadinessState(projection, true).productReady, true);
+assert.equal(buildProductReadinessState(projection, true).adoption.independentAdoptionProven, true);
+assert.equal(buildProductReadinessState(projection, true).technical.anyConfigurationProven, false, 'adoption cannot manufacture physical proof');
 assert.equal(buildProductReadinessState(projection, true).networkProven, false);
-assert.equal(buildProductReadinessState(projection, true).externalProductionProven, false);
-assert.equal(buildProductReadinessState(projection, false).productReady, false);
+assert.equal(buildProductReadinessState(projection, true).deployment.broaderGoalProven, false);
+assert.equal(buildProductReadinessState(projection, false).contractValid, false);
 adoption.blockers = ['external-executable-model-adoption-missing'];
-assert.equal(buildProductReadinessState(projection, true).productReady, false);
-assert.equal(report.actions.length, 1);
-assert.equal(report.actions[0].code, 'external-executable-model-adoption-missing');
-assert.equal(report.actions[0].owner, 'doppler-product');
-assert.equal(report.actions[0].completionClass, 'application');
+projection.physicalAcceptance = report.readiness.technical;
+assert.equal(buildProductReadinessState(projection, true).technical.anyConfigurationProven, true, 'missing adopters cannot erase physical qualification');
+assert.equal(buildProductReadinessState(projection, true).adoption.independentAdoptionProven, false);
+assert.equal(report.adoptionActions.length, 1);
+assert.equal(report.adoptionActions[0].code, 'external-executable-model-adoption-missing');
+assert.equal(report.adoptionActions[0].owner, 'doppler-product');
+assert.equal(report.adoptionActions[0].completionClass, 'application');
+
+const physical = JSON.parse(await readFile(new URL('../../artifacts/bounded-consolidation-2026-09-20/contracts-embedding-reranking-summary.json', import.meta.url), 'utf8'));
+const project = (summary, digest = physical.package.sha256) => projectPhysicalSummary(summary, { evidencePath: 'fixture', packageSha256: digest });
+assert.ok(project(physical).configurations.every((entry) => entry.physicalExecutionProven));
+for (const mutate of [
+  (entry) => { entry.passed = false; },
+  (entry) => { entry.cleanupErrors.push('cleanup failed'); },
+  (entry) => { entry.results[0].hardware.isFallbackAdapter = true; },
+  (entry) => { entry.results[0].targetPlanDigest = null; },
+  (entry) => { entry.results[0].comparisons[0].checks[0].passed = false; },
+  (entry) => { entry.results[0].checks = []; },
+  (entry) => { entry.results[0].observations = []; },
+]) {
+  const fixture = structuredClone(physical);
+  mutate(fixture);
+  assert.equal(project(fixture).configurations[0].physicalExecutionProven, false);
+}
+const malformed = structuredClone(physical);
+malformed.originalReceiptSha256 = null;
+assert.equal(project(malformed).errors.length, 1);
+const differentArchive = await buildPhysicalAcceptanceReport({ packageSha256: '0'.repeat(64) });
+assert.equal(differentArchive.ok, true, 'a valid report can honestly lack matching execution');
+assert.ok(differentArchive.configurations.every((entry) => !entry.physicalExecutionProven && entry.blockers.includes('package-identity-mismatch')));
+assert.equal((await buildPhysicalAcceptanceReport({ packageSha256: '0.6.2' })).ok, false, 'version is not archive identity');
+assert.equal((await buildPhysicalAcceptanceReport({ acceptanceRecord: 'missing-acceptance.json' })).ok, false);
 assert.equal(
   report.supportingActions.find((action) => action.code === 'signed-live-revocation-authority-missing')?.completionClass,
   'production-authority'
@@ -161,6 +198,16 @@ assert.deepEqual(
 assert.equal(report.contracts.bunQualification.subsystemTier, 'experimental');
 assert.equal(report.contracts.bunQualification.releaseEngineStatus, 'experimental');
 assert.equal(report.contracts.bunQualification.releaseTargetStatus, 'experimental');
+
+// Projection only: the real registry is unchanged, and still has no qualified Bun workload.
+const bunFixture = await buildBunProductQualificationReport();
+bunFixture.qualifications[2] = { ...bunFixture.qualifications[2], qualified: true, claimAllowed: true, reasons: [], blockers: [], missingEvidence: [] };
+bunFixture.qualifiedWorkloads = 1;
+const partialBun = await buildProductReadinessReport({ bunQualificationBuilder: async () => bunFixture });
+assert.equal(partialBun.contracts.bunQualification.qualifiedDetails[0].workload, 'reranking');
+assert.equal(partialBun.contracts.bunQualification.portfolioQualified, false);
+assert.equal(partialBun.contracts.bunQualification.subsystemTier, 'experimental');
+assert.match(formatProductReadinessMarkdown(partialBun), /qwen3-reranking-bun-product: reranking/);
 
 const invalidBun = await buildProductReadinessReport({
   bunQualificationBuilder: async () => ({

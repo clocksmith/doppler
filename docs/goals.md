@@ -47,6 +47,34 @@ support claims. Existing qualification records remain scoped to their exact byte
 models, surfaces, and hardware. The long-term independent-adoption gate below is
 unchanged: our own reference application does not count as an unrelated adopter.
 
+Ship the narrowly supported product once the declared configuration, regression
+coverage, limitations, and maintenance commitment are established. Independent
+adoption is a later outcome, not permission to release. Publication is still an
+explicit maintainer decision, not a side effect of passing checks.
+
+#### Bounded portability after browser delivery
+
+Keep useful search computation callable without browser storage, page configuration,
+or UI events. After browser acceptance, reuse that computation through a small Node
+command-line runner with the current candidate, host-qualified models, and unchanged
+correctness references. Historical Node receipts do not qualify newer archives.
+
+Then test installed assets, loading, cancellation, window closure, reopening, and
+recovery in a packaged application with an explicitly pinned Electron version.
+Keep sandboxing and context isolation enabled and test main/preload/renderer
+boundaries: Chromium-only success is not Electron application acceptance. These
+requirements follow Electron's [process model](https://www.electronjs.org/docs/latest/tutorial/process-model)
+and [security guidance](https://www.electronjs.org/docs/latest/tutorial/security).
+Customer fleet rollout and rollback remain separate deployment evidence, not
+prerequisites for internally establishing scoped technical Electron support.
+
+Bun remains experimental under its existing portfolio policy. Qualify capabilities
+individually with current runtime/provider identity, execution, correctness, and
+lifecycle receipts; display verified individual results even while the portfolio
+is incomplete. An individual reranker result does not qualify generation or promote
+the entire Bun support tier. This is portability of one application, not a second
+search implementation or a new architecture campaign.
+
 #### Canonical search implementation
 
 Use `createDocumentSearch()` in `examples/document-search/search.js` for
@@ -343,11 +371,13 @@ network contract, commercial separation, and required evidence.
 `npm run model-release:check` validates them against
 `src/config/goal-completion-matrix.json`. The matrix has one
 `technical-network` experiment and a `standalone` goal containing separately
-tracked technical and commercial rows. The primary technical gate selects the
+tracked technical and commercial rows. The long-term adoption gate selects the
 `external-executable-model-adoption` row, not commercial or network completion.
 
-`npm run product:readiness:report` reports standalone adoption and its action
-queue separately from network, commercial, and supporting work. Structural validity does
+`npm run product:readiness:report` separates exact-archive physical execution,
+declared support, and independent adoption. Its adoption action queue is not a
+technical shipping gate; network and broader deployment goals remain separate.
+Structural validity does
 not mean execution, independent adoption, or measured history benefit. Missing
 evidence remains blocked and non-claimable.
 
@@ -708,6 +738,32 @@ package authority from signed-live mechanism availability, qualification-
 contract validity, and operational authority qualification; it must not
 collapse those distinct trust states.
 `npm run product:readiness:check` keeps that projection in the default gate.
+
+Readiness JSON uses `doppler.product-readiness/v2`. The ambiguous
+`localHardwareProven`, `standaloneProven`, `internalMechanicsProven`,
+`externalProductionProven`, `technicalAcceptance`, and `productReady` fields are
+removed, not silently redefined. Consumers use `readiness.technical.configurations`
+for exact archive/model/plan/browser/device results and their correctness/lifecycle
+coverage, `readiness.support` for the existing subsystem policy's declarations,
+and `readiness.adoption` for independent retained use. `portfolioGatesSatisfied`
+describes the existing integration/provider portfolio, not all physical execution.
+Broader commercial/deployment rows live under `readiness.deployment`; the old
+`actions` field is now explicitly `adoptionActions`. No universal readiness boolean
+replaces these distinctions.
+
+By default the report projects the retained consolidation acceptance record at
+`artifacts/bounded-consolidation-2026-09-20/contracts-checks.json`, not HEAD or
+whatever package happens to have the same version. Use `--acceptance-record <path>`
+to select another compatible retained record and `--package-sha256 <64-hex-digest>`
+to require exact archive matching. Mismatched archives remain visible but unproven.
+The reader verifies required summary identities, frozen-reference comparisons,
+device and lifecycle fields; it does not rerun GPUs or authenticate physical claims.
+Missing or malformed records invalidate the report. Valid but incomplete evidence
+does not. Supplemental records without the required correctness/lifecycle fields
+remain visible as incomplete for this projection, not as newly failed experiments.
+Dates and measurement limits remain attached; historical qualification does not
+establish current host freshness. Bun `qualifiedDetails` preserves per-capability
+results independently of the portfolio count and promotion state.
 
 `tools/policies/product-integration-qualification.json` remains the source of
 truth for the three internally controlled reference integrations. `npm run
