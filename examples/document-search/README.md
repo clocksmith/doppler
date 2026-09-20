@@ -5,13 +5,35 @@ through the installed `doppler-gpu/host` API. `search.js` owns text/Markdown
 indexing, cosine candidate retrieval, and candidate-to-document mapping. Document
 parsing and index policy stay outside the inference runtime.
 
+This is the canonical implementation for Doppler's
+[next product increment](../../docs/goals.md#next-product-increment-copy-and-run-local-search):
+a complete copy-and-run local-search application. That contract requires reusable
+sessions and indexes, application-owned cancellation/disposal, complete pinned
+setup, honest progress, and clean-environment physical acceptance. The engineering
+build below is retained for reproduction; it does not yet establish that beginner
+onboarding is complete. Do not create a second search engine in the
+[one-shot capability example](../capsule-capabilities/README.md).
+
+Initial completion uses embeddings and reranking, not generation. The runnable
+delivery must include complete pinned descriptors, accepted implementations,
+publisher trust, and release metadata for the developer to inspect and adopt.
+It must not require private signing keys. The application retains both healthy
+sessions across queries and rebuilds incompatible indexes from preserved documents.
+
+Local processing, cancellation/reuse, cleanup, and offline reopening are scoped
+acceptance requirements, not automatic guarantees. Cancellation does not interrupt
+submitted GPU commands; cleanup does not guarantee immediate physical reclamation.
+Offline reopening needs retained application/runtime files, metadata, models, and
+the index; it cannot discover unseen revocations. Declare host/provider and memory
+requirements, and test network/logging behavior across the complete application.
+
 `installation.js` connects the existing OPFS backend to the Capsule artifact
 store interface. Runtime metadata verification and application plan approval
 precede artifact acquisition. Model bytes, signed metadata, explicit retained-use
 decisions, and monotonically advancing release checkpoints survive browser
 restart. The service worker retains the installed application and runtime files.
 
-## Build
+## Engineering build and reproduction
 
 First retain a passing installed-package smoke bundle and source-qualified
 embedding and reranking Capsule builds. The build tool accepts a JSON file:

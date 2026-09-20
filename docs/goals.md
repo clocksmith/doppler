@@ -1,25 +1,214 @@
 # Doppler Goals
 
-Doppler is an AI-native model release foundry and evidence-backed WebGPU runtime
-for JavaScript. The primary win condition is independent applications voluntarily
-retaining useful executable models because Doppler makes them easier to ship,
+Doppler is a JavaScript library for running AI models locally through WebGPU,
+without a separate Python environment or mandatory cloud inference service. Generation,
+embeddings, and reranking should be independently usable, composable application dependencies. Loading,
+GPU execution, streaming, cancellation, and cleanup belong to the library;
+application policy does not. Browser and Node support are qualified separately;
+Bun remains experimental. Host prerequisites remain explicit: Node can require
+installation of a WebGPU provider. No separate inference server does not mean
+no native dependencies anywhere. The primary win condition is independent applications
+voluntarily retaining useful executable models because Doppler makes them easier to ship,
 faster, or more dependable. Free adoption counts; payment, Doe, Poolday, and
-Reploid are not prerequisites for technical completion.
+Reploid are not prerequisites for technical completion. Speed, simplicity,
+portability, and increasingly efficient support for new models are the product
+advantage; verification makes those advantages dependable.
 
-Doppler owns model semantics, source lineage, signed immutable Capsules, artifact
-integrity, qualified TargetPlan selection, and execution. Poolday owns participation,
+Doppler's supporting Forge compiler/preparation system owns model semantics and
+implementation changes before release. A Capsule is a signed, versioned package
+binding model files to their declared executable implementation. Doppler owns
+source lineage, signed immutable Capsules, artifact integrity, qualified TargetPlan
+selection, and execution. Poolday owns participation,
 authorization, assignment, transport, comparison, requester acceptance, and
 admission of reusable evidence. The runtime never invents a plan or silently
 changes signed model behavior.
 
+Developer-facing definitions follow the [architecture](architecture.md): **Forge**
+is model preparation; a **Capsule** is the signed, versioned executable model
+package; a **TargetPlan** identifies a particular declared implementation and its
+execution requirements. Preparation decides model computation. Runtime verifies
+and executes an accepted implementation; the host assembles devices, storage, and
+application configuration. Compiling declared WGSL into device pipelines is allowed;
+silently replacing shaders, numerical formats, or models is not. A simpler API
+must use this engine, not a second execution path bypassing its checks.
+
 ## Goal 1: Earn standalone executable-model adoption
 
-### Immediate mandate: support Reploid's ordered milestones
+### Next product increment: copy-and-run local search
 
-The September 8 operating priority is dependable public inference for Reploid's
-five milestones. Reploid drives application acceptance; Doppler remains a
-reusable engine. First close request/settings/completion propagation and support
-qualification of grounded answers. Then support the same frozen model/adapter
+Deliver a complete local-search application that developers can copy, run, and
+modify. This takes priority over nonzero-adapter qualification and further
+structural cleanup, except where a concrete defect blocks the application.
+Preserve the completed allocation, duplicate-verification, bounded-acquisition,
+and session-ownership repairs. Do not reopen them as an architecture project.
+
+This section defines required work and acceptance, not current completion or
+support claims. Existing qualification records remain scoped to their exact bytes,
+models, surfaces, and hardware. The long-term independent-adoption gate below is
+unchanged: our own reference application does not count as an unrelated adopter.
+
+#### Canonical search implementation
+
+Use `createDocumentSearch()` in `examples/document-search/search.js` for
+text/Markdown indexing, cosine-similarity candidate retrieval, reranking, and
+mapping scores back to documents. Keep its embedding-identity compatibility
+contract. Extend the existing document-search application; do not grow
+`examples/capsule-capabilities/app.js` into another search engine. Its
+`runCapability()` remains a useful one-shot example linked to the complete app.
+
+Use embeddings to retrieve candidate documents and reranking to improve their
+order. Text generation is not an initial completion criterion. Later, a separately
+supported generation model could answer from retrieved passages (retrieval-augmented
+generation, or RAG); the application would own passage selection, citations, and
+answer evaluation. Search is already a complete useful outcome.
+
+The ordinary application flow is:
+
+```text
+Open embedding and reranking models once
+  -> index documents once
+  -> embed each query -> retrieve candidates -> rerank -> display documents
+```
+
+Reuse healthy sessions and the complete index across queries. Do not re-embed
+unchanged documents. Parsing, index/retrieval policy, and presentation remain
+application code, not inference-runtime behavior.
+
+#### Application-owned lifetime
+
+A small controller around the existing search implementation owns initialization,
+indexing, search, cancellation, and disposal; it is not a new runtime abstraction.
+
+| Component | Responsibility |
+| --- | --- |
+| Application controller | Open once, coordinate queries, cancel operations, dispose sessions |
+| Existing search implementation | Index, retrieve candidates, rerank, map results to documents |
+| Doppler sessions | Execute model operations; own their state and resources |
+| Artifact storage | Acquire, verify, retain, and recover model files |
+| UI | Show progress, results, errors, and explicit user choices |
+
+- Coalesce repeated initialization attempts into one promise. Open models in a
+  controlled order; if the second fails, close the first. Retain both when ready.
+- Keep loading cancellation separate from query cancellation. Cancelling a query
+  stops that operation while leaving healthy sessions reusable. Superseded queries
+  must not publish stale results.
+- Build a replacement index privately and publish only a complete successful
+  result. Cancelled indexing preserves the previous complete index. Retain release
+  checkpoints and reject incompatible embedding indexes rather than silently
+  reusing them; reuse unchanged documents only under the compatible identity.
+- Disposal rejects new work, cancels pending operations, finishes or returns
+  active iterators, and awaits session cleanup, including initialization still
+  pending. No late results or newly opened sessions survive disposal. Page-unload
+  callbacks are not the sole asynchronous cleanup mechanism.
+
+Cancellation is not instantaneous GPU interruption. Preserve the
+[submission boundary](architecture.md#gpu-preparation-and-submission): before
+submission, cancellation prevents dispatch; after submission it suppresses
+successful completion but does not interrupt submitted commands. Cleanup must
+release resources through their owners, without promising immediate physical
+memory reclamation or synchronous garbage collection. Submitted uses may still
+need to finish; allocation failures and device loss remain possible.
+See [WebGPU buffer destruction](https://www.w3.org/TR/2026/CRD-webgpu-20260512/#buffer-destruction).
+
+#### Runnable delivery, not release-engineering homework
+
+Provide a pinned installable runtime dependency, two complete model descriptors,
+explicit publisher trust, accepted implementations, required release metadata,
+accessible immutable model artifacts, sample documents, and a start command.
+Developers inspect and adopt this configuration, not generate signing keys just
+to try search. A clean consumer must not need the Doppler checkout,
+`/var/tmp` artifacts, unpublished credentials, or private signing keys. Preserve
+the existing engineering build/reproduction instructions separately; do not
+present them as beginner onboarding or silently publish evaluation authorities.
+Publication and trust decisions still require their existing authority.
+
+Show supported hardware, browser/runtime requirements, download sizes, and memory
+requirements before loading. Qualify the complete application with both embedding
+and reranking sessions resident: individually qualified models are not proof of
+combined application acceptance. Keep durable release checkpoints, retained-use
+decisions, offline reopening, and index-compatibility/rebuild behavior intact.
+
+A qualified plan does not guarantee sufficient available memory on every machine.
+Show errors and recovery choices rather than promise crash immunity. Preserving
+the declared implementation also does not imply bit-identical output on every
+GPU: [WGSL floating-point rules](https://www.w3.org/TR/WGSL/#floating-point-evaluation)
+allow implementation-dependent rounding. Keep correctness classes, references,
+tolerances, and environment scope explicit.
+
+#### Upgrades and retained state
+
+Keep executable identity separate from release history. Capsule v3 separates
+executable contents from signed release events; use the existing
+[identity migration contract](capsule-identity-migration.md), not a universal v2/v3
+"seven release elements" specification. Persist release checkpoints across
+restarts. Offline use can enforce received history, but cannot discover unknown
+revocations or promise universal freshness or arbitrary cross-version restoration.
+
+Explain the user-visible upgrade consequence: changing the embedding implementation
+may invalidate vector indexes. Preserve documents, detect incompatibility, and
+offer rebuilding. Never mix incompatible embeddings merely to preserve an index.
+
+#### Honest progress through the existing observer
+
+Extend the existing streamed artifact-acquisition/verification loop and observer
+path. Emit time-throttled byte updates and immediate stage transitions; distinguish
+downloading, processing bytes for verification, verified completion, preparing GPU
+resources, and ready. Bytes
+processed must not mean verified until complete size and digest checks succeed.
+Report reused backing directly, without fabricated download or hash animation.
+Keep private byte ownership, bounded acquisition, independent cancellation, and
+host-task yielding so input and rendering can proceed; microtask-only yielding
+is insufficient. Do not introduce a second progress authority or another
+cancellation architecture. Progress reports work; it does not authorize execution.
+
+#### Completion and acceptance
+
+From a clean environment, a developer follows the README, adopts the explicit
+model configuration, starts the installed application, indexes their own text or
+Markdown, searches repeatedly without reopening models, cancels work successfully,
+and reopens the retained application offline. Loading is understandable without
+learning internal model-release machinery. Generation is not required.
+
+The privacy requirement is local document processing without mandatory cloud
+inference, not automatic "complete privacy" or "zero data-egress risk" from WebGPU.
+Offline reopening is tested only after application files, runtime, metadata,
+models, and the index are retained. Browser storage can be evicted or deleted;
+offline availability is not permanent storage or revocation freshness.
+
+Acceptance must establish:
+
+- Public installed exports outside the repository, without source-internal imports
+  or accidental ancestor `node_modules` resolution.
+- Repeated searches without reopening models and reuse of unchanged-document
+  indexing; cancellation followed by successful reuse of the healthy sessions.
+- Coalesced initialization, partial-initialization cleanup, cancelled-index
+  preservation, superseded-result suppression, and disposal during initialization
+  or active iteration without late results or retained session resources.
+- Real-model search correctness against retained references with both sessions
+  resident, compatible index reuse/rejection, checkpoints, and offline reopening.
+- Application-level network and logging observations spanning document import,
+  indexing, queries, workers, and service-worker requests demonstrate that document
+  contents and queries remain local. Distinguish permitted model downloads from
+  private input egress; do not infer privacy from API names or mocks.
+- Separate measurements of first installation, first search, repeated searches,
+  cancellation, and cleanup, not claims of zero infrastructure cost or instant
+  interaction. Verify owned-resource cleanup after pending work and explicit
+  allocation/device-loss failures without requiring immediate driver reclamation.
+- Separately labeled mocked UI/lifecycle checks and physical inference evidence,
+  with exact installed archive, model, surface, and hardware identities.
+
+Stop expanding the increment once these outcomes pass. Then choose useful model
+work from a demonstrated application limitation. Do not substitute another audit,
+policy registry, nonzero adapter, or generic capability wrapper for this delivery.
+
+### Retained integration context: Reploid's ordered milestones
+
+The September 8 Reploid milestones remain integration context, not the current
+priority ahead of the local-search increment above. Reploid is one consumer of the
+same public inference contracts as standalone applications; it owns agents, peer
+coordination, consent, and application policy. Preserve existing request/settings/
+completion propagation and support qualification of grounded answers. Then support
+the same frozen model/adapter
 through verified acquisition, approved execution, durable completed-result
 replay, ownership reversal, privacy checks, and multi-machine acquisition.
 History-based scheduling and distributed model execution remain disabled during
@@ -32,7 +221,7 @@ verification and inference, honoring explicit injected restrictions. Every
 current change must remove an application limitation or improve inference
 reliability. Installed hashes, paired revisions, and model identities bind the
 evidence; reports about earlier revisions do not certify later bytes. This
-priority does not convert sibling integration into independent adoption or
+integration work does not convert sibling integration into independent adoption or
 change the standalone completion matrix below.
 
 ### Retained independent adoption objective
@@ -465,6 +654,7 @@ safe candidates were attempted.
 
 | Area | Goal |
 | --- | --- |
+| Complete local-search application using existing search code and installed public APIs | Next Goal 1 increment; not external adoption |
 | Open ESM-2 execution network, authorized custody, explicit complete-job delegation | Optional network experiment |
 | Release CLI, Electron adapter, fleet action | Goal 1; commercial evidence separate |
 | Browser execution, JS orchestration, WGSL kernels, Capsule execution | Goals 1 and 2 |
@@ -482,6 +672,11 @@ Orchestrators, agents, product loops, and application policy decide what to ask,
 when to ask it, and how to use the result. Doppler determines whether evidence
 satisfies its declared support and claim policies; applications determine
 whether that evidence is sufficient for their use case.
+
+Complete reference applications under `examples/` are in scope as consumers of
+the library. Their controllers, parsing, retrieval/index policy, and presentation
+remain outside the inference runtime. This permits the local-search increment
+without transferring general application or peer orchestration into Doppler core.
 
 Model-family expansion, direct-source proof lanes, LoRA, training, distributed
 inference, P2P transport, program bundles, diffusion, hotswap, and orchestration
