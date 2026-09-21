@@ -39,7 +39,7 @@ let server;
 let timer;
 async function launch(offline, url) {
   context = await chromium.launchPersistentContext(path.join(config.outputDir, 'profile'), {
-    headless: true, args: config.launchArgs, timeout: config.timeoutMs,
+    headless: true, args: config.launchArgs, timeout: config.timeoutMs, channel: config.channel,
     env: { ...process.env, TMPDIR: config.temporaryDirectory } });
   context.on('request', request => report.requests.push({ stage: report.stage, url: request.url(), method: request.method(), body: request.postData() }));
   await context.setOffline(offline);
