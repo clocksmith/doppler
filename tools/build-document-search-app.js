@@ -30,7 +30,7 @@ export async function buildDocumentSearchApplication(config) {
   await fs.mkdir(config.outputDir);
   const write = (filename, value) => fs.writeFile(path.join(config.outputDir, filename), JSON.stringify(value, null, 2), { flag: 'wx' });
   const applicationDir = path.join(ROOT, 'examples/document-search');
-  for (const name of ['index.html', 'browser.js', 'search.js', 'installation.js', 'service-worker.js']) {
+  for (const name of ['index.html', 'browser.js', 'controller.js', 'search.js', 'installation.js', 'service-worker.js']) {
     await fs.copyFile(path.join(applicationDir, name), path.join(config.outputDir, name));
   }
   await fs.cp(path.join(config.packageBundlePath, 'consumer/node_modules/doppler-gpu/src'), path.join(config.outputDir, 'runtime/src'), { recursive: true });

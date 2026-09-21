@@ -29,15 +29,53 @@ export function createDocumentSearch({ embedding, reranker, embeddingApplication
       ids.add(document.id);
     }
   }
+  async function digest(text) {
+    const bytes = new TextEncoder().encode(text);
+    const hash = await crypto.subtle.digest('SHA-256', bytes);
+    return 'sha256:' + Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
+  }
   return {
     assertIndex,
-    async indexDocuments(documents, options = {}) {
+    async indexDocuments(documents, priorIndexOrOptions = null, optionsOrEmpty = {}) {
+      let priorIndex = priorIndexOrOptions;
+      let options = optionsOrEmpty;
+      if (priorIndexOrOptions && !('documents' in priorIndexOrOptions) && !('schema' in priorIndexOrOptions)) {
+        options = priorIndexOrOptions;
+        priorIndex = null;
+      }
+      if (priorIndex != null) {
+        if (priorIndex?.schema !== 'doppler.document-search-index/v1' || priorIndex.embeddingIdentity !== identity
+          || priorIndex.dimension !== dimension || priorIndex.documentPrefix !== documentPrefix || !Array.isArray(priorIndex.documents)) {
+          const error = new Error('Search index is incompatible with this embedding release; rebuild it from retained documents.');
+          error.code = 'DOCUMENT_SEARCH_INDEX_INCOMPATIBLE';
+          throw error;
+        }
+        assertIndex(priorIndex);
+      }
+      const priorDocs = new Map();
+      if (priorIndex?.documents) {
+        for (const doc of priorIndex.documents) {
+          if (doc?.id) priorDocs.set(doc.id, doc);
+        }
+      }
       const index = { schema: 'doppler.document-search-index/v1', embeddingIdentity: identity, dimension, documentPrefix, documents: [] };
       for (const document of documents) {
         options.signal?.throwIfAborted();
         if (!['text/plain', 'text/markdown'].includes(document.mediaType)) throw new Error('Only text and Markdown documents are supported.');
         if (typeof document.text !== 'string' || !document.text.trim()) throw new Error('Document text is required.');
-        index.documents.push({ ...document, vector: await vector(documentPrefix + document.text, options.signal) });
+        if (typeof document.id !== 'string' || !document.id.trim()) throw new Error('Document id is required.');
+        if (typeof document.title !== 'string') throw new Error('Document title is required.');
+        const contentHash = document.contentHash ?? await digest(documentPrefix + document.text);
+        const prior = priorDocs.get(document.id);
+        let docVector;
+        if (prior && prior.contentHash === contentHash && Array.isArray(prior.vector)
+          && prior.vector.length === dimension && prior.vector.every(Number.isFinite)) {
+          docVector = prior.vector;
+        } else {
+          options.signal?.throwIfAborted();
+          docVector = await vector(documentPrefix + document.text, options.signal);
+        }
+        index.documents.push({ ...document, contentHash, vector: docVector });
       }
       options.signal?.throwIfAborted();
       assertIndex(index);

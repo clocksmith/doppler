@@ -1,0 +1,9 @@
+Residential Photovoltaic Solar Power Systems
+
+Photovoltaic (PV) cells convert solar radiation directly into electrical energy through the photovoltaic effect. When photons strike semiconductor layers (typically silicon), electrons are dislodged, generating a direct current (DC).
+
+System Components:
+1. Solar PV Modules: Multiple solar panels wired in series strings to increase voltage, or parallel strings to increase amperage.
+2. Inverter: Converts DC electricity produced by the arrays into 120V/240V alternating current (AC) synchronized with grid frequency. String inverters with optimizers or microinverters handle shading loss per panel.
+3. Rapid Shutdown System: Safety mechanism mandated by electrical codes that de-energizes array voltage at the module level when grid power drops.
+4. Net Metering: Bidirectional utility meter that credits the homeowner for surplus power sent back to the electrical distribution grid.
