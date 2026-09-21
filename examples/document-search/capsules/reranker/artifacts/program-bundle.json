@@ -1,0 +1,4571 @@
+{
+  "schema": "doppler.program-bundle/v1",
+  "schemaVersion": 1,
+  "bundleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-d2cbdb9bbfa0",
+  "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+  "createdAtUtc": "2026-09-06T21:45:16.079Z",
+  "package": {
+    "schema": "doppler.program-bundle-package/v1",
+    "root": ".",
+    "files": [
+      {
+        "role": "host-source",
+        "path": "program/host/reranking-d7abaa224ec64128.js",
+        "hash": "sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15",
+        "sizeBytes": 1096
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/attn_decode-4feba111cc381d0a.wgsl",
+        "hash": "sha256:4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035",
+        "sizeBytes": 7779
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/attn_small-d06953f85b75a70a.wgsl",
+        "hash": "sha256:d06953f85b75a70a7423bd92afbbb476bff77acaf0f8378135465d0f742bb276",
+        "sizeBytes": 9366
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/dequant_q4_f16-8c07df9b95c2af5c.wgsl",
+        "hash": "sha256:8c07df9b95c2af5c8dac8fe5f0cb654b92b8909a79cb1ac02e948b74963377f6",
+        "sizeBytes": 4927
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/embed-838e3c69451d02fe.wgsl",
+        "hash": "sha256:838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15",
+        "sizeBytes": 2538
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/gather_vec4-a500eb8ca2a1ff7d.wgsl",
+        "hash": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+        "sizeBytes": 2810
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/gemv-04db4c712bc4f88c.wgsl",
+        "hash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+        "sizeBytes": 16657
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/kv_write_f32_f16-fdba1f04c135d44d.wgsl",
+        "hash": "sha256:fdba1f04c135d44d67fdc160b59e5a243abd0d47e54fa928c7cc115ed2f15afd",
+        "sizeBytes": 861
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/lm_head_gemv-04db4c712bc4f88c.wgsl",
+        "hash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+        "sizeBytes": 16657
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/lm_head_select_logits-232e803e00fa9b7b.wgsl",
+        "hash": "sha256:232e803e00fa9b7bc80b60b18d844894962a2125b1e3418caf158ad223240656",
+        "sizeBytes": 2064
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/q4_decode_gemv-9c4d919d5ad5eadd.wgsl",
+        "hash": "sha256:9c4d919d5ad5eadd225f34938c47b9c604e8a1fa05ec73c5eccfb882395bd935",
+        "sizeBytes": 15738
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/q4_widetile-d3fc7b8145d9acf8.wgsl",
+        "hash": "sha256:d3fc7b8145d9acf8d5dc56c063557074a361844d25b00b76c6a9fa961b4d8735",
+        "sizeBytes": 5617
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/residual_vec4-04781252bb73f1a2.wgsl",
+        "hash": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb",
+        "sizeBytes": 1366
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+        "hash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698",
+        "sizeBytes": 1712
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/rmsnorm_qk-954bd142119d8583.wgsl",
+        "hash": "sha256:954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3",
+        "sizeBytes": 3462
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/rmsnorm-57c810ce293ec2ae.wgsl",
+        "hash": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+        "sizeBytes": 15770
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/rope_precompute-0aaf0cbdceb87986.wgsl",
+        "hash": "sha256:0aaf0cbdceb879861872b1bd60e0d8a78818b67511c7bbb8157d7804b929500a",
+        "sizeBytes": 2598
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/rope_qk-fe7f16a865b94ce0.wgsl",
+        "hash": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c",
+        "sizeBytes": 3259
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/rope-a4472c7134a08c77.wgsl",
+        "hash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d",
+        "sizeBytes": 12251
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/sample-36437b17a1a7f624.wgsl",
+        "hash": "sha256:36437b17a1a7f624ae31d3420ed8142df194b7b8ca800d30a1855fc52e754cd4",
+        "sizeBytes": 13789
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/silu-e14958d8bd06dd50.wgsl",
+        "hash": "sha256:e14958d8bd06dd50596fef718ca5731366d24ee78f13c547c600cac4723cd1b8",
+        "sizeBytes": 3390
+      },
+      {
+        "role": "wgsl-source",
+        "path": "program/wgsl/tiled-78b78ec9a73766b5.wgsl",
+        "hash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+        "sizeBytes": 2558
+      }
+    ],
+    "fileSetHash": "sha256:22c879709278469718d345bd7c8ed58933f15ed780c254a5af1201ad5cc67766"
+  },
+  "sources": {
+    "manifest": {
+      "path": "reports/capsule-baseline/20260906/reranker-model/manifest.json",
+      "hash": "sha256:456db917f1a9558537779e5dc0199c75751227d38f1fe0eeefdba5aaad78c715"
+    },
+    "conversionConfig": {
+      "path": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+      "hash": "sha256:cd785b7b8ef2cd10164a7e8e7a3933c1afb1360d7517d597692748ce13e4bc2f"
+    },
+    "executionGraph": {
+      "schema": "doppler.execution/v1",
+      "hash": "sha256:d2cbdb9bbfa04bb0d4844a18565f64fcc5ac21bad80161b1f500a06757adfd96",
+      "expandedStepHash": "sha256:47624507da3a6f1d050760ec94a0d6cd5ae29eb9527ddc1775c52592628b18b8"
+    },
+    "weightSetHash": "sha256:6ed062d590448106eee8be53e08a649bbe057afb35758c59c01e877420f1a8fa",
+    "artifactSetHash": "sha256:10a10fc85280f8ea44c6087c9a8c672f35a72cf398b2607805ab255d79eb0402"
+  },
+  "host": {
+    "schema": "doppler.host-js/v1",
+    "jsSubset": "doppler-webgpu-host/v1",
+    "entrypoints": [
+      {
+        "id": "reranking",
+        "module": "program/host/reranking-d7abaa224ec64128.js",
+        "export": "createRerankProgram",
+        "role": "model-orchestration",
+        "sourceHash": "sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15",
+        "validation": {
+          "dynamicImport": "none-detected",
+          "staticImport": "none-detected",
+          "dom": "none-detected",
+          "runtimeGlobals": "none-detected",
+          "network": "none-detected",
+          "dynamicCode": "none-detected"
+        }
+      }
+    ],
+    "constraints": {
+      "dynamicImport": "disallowed",
+      "staticImport": "disallowed",
+      "dom": "disallowed-in-model-path",
+      "runtimeGlobals": "disallowed",
+      "dynamicCode": "disallowed",
+      "filesystem": "declared-artifacts-only",
+      "network": "declared-artifacts-only"
+    }
+  },
+  "wgslModules": [
+    {
+      "id": "attn_decode",
+      "file": "attention_decode_online_f16kv.wgsl",
+      "entry": "main",
+      "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+      "sourcePath": "program/wgsl/attn_decode-4feba111cc381d0a.wgsl",
+      "sourceHash": "sha256:4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "Q"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "K"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "V"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 5,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "kv_len_buffer"
+          },
+          {
+            "group": 0,
+            "binding": 6,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "page_table"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": true,
+        "sourceMetadataHash": "sha256:c77fe935b8af9efab7e059d71612360fafc03a90ef17de8676095a8c31abadd9"
+      }
+    },
+    {
+      "id": "attn_small",
+      "file": "attention_small_f16kv.wgsl",
+      "entry": "main",
+      "digest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668",
+      "sourcePath": "program/wgsl/attn_small-d06953f85b75a70a.wgsl",
+      "sourceHash": "sha256:d06953f85b75a70a7423bd92afbbb476bff77acaf0f8378135465d0f742bb276",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "Q"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "K"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "V"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 5,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "kv_len_buffer"
+          },
+          {
+            "group": 0,
+            "binding": 6,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "page_table"
+          }
+        ],
+        "overrides": [],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:498e37fdbe9acdeb666769224268cf87c841ebd378eedc19a8cc4be4d524c9bf"
+      }
+    },
+    {
+      "id": "dequant_q4_f16",
+      "file": "dequant_f16_out_vec4.wgsl",
+      "entry": "main_vec4",
+      "digest": "sha256:ff729cc220ba5425e17c4c537a9993f25b6541046b6c2553d2a43a8b40ed2ce9",
+      "sourcePath": "program/wgsl/dequant_q4_f16-8c07df9b95c2af5c.wgsl",
+      "sourceHash": "sha256:8c07df9b95c2af5c8dac8fe5f0cb654b92b8909a79cb1ac02e948b74963377f6",
+      "reachable": true,
+      "metadata": {
+        "entry": "main_vec4",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "quantized"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE_VEC4",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE_VEC4",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:cdcc445ef5a8d6a51e725802321991edd5f72e85b946d1b5fb57f0e6dd82c4ac"
+      }
+    },
+    {
+      "id": "embed",
+      "file": "gather_f16.wgsl",
+      "entry": "main",
+      "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+      "sourcePath": "program/wgsl/embed-838e3c69451d02fe.wgsl",
+      "sourceHash": "sha256:838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "indices"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE_MAIN",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE_MAIN",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:1ba09f607f40bfad8dc2b5872fb41536547ea96a10390b6b21d6964c9672c306"
+      }
+    },
+    {
+      "id": "gather_vec4",
+      "file": "gather_f16_vec4.wgsl",
+      "entry": "gather_vec4",
+      "digest": "sha256:dc87e5e03cdbff74347ef8e42774570b1807d239ad64501a7e90ec8f600e912c",
+      "sourcePath": "program/wgsl/gather_vec4-a500eb8ca2a1ff7d.wgsl",
+      "sourceHash": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+      "reachable": true,
+      "metadata": {
+        "entry": "gather_vec4",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "indices"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "embeddings"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE_VEC4",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE_VEC4",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:863e8cea58d35f5b8a1e39bf54ea88e06620f11293abb28d3cef55623911c943"
+      }
+    },
+    {
+      "id": "gemv",
+      "file": "matmul_gemv_subgroup.wgsl",
+      "entry": "main_vec4",
+      "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+      "sourcePath": "program/wgsl/gemv-04db4c712bc4f88c.wgsl",
+      "sourceHash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+      "reachable": true,
+      "metadata": {
+        "entry": "main_vec4",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "A"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "B"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "C"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "MULTICOL_COLS_PER_WG",
+            "type": "u32",
+            "defaultValue": "32u"
+          },
+          {
+            "name": "MULTICOL_THREADS_PER_COL",
+            "type": "u32",
+            "defaultValue": "8u"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": true,
+        "sourceMetadataHash": "sha256:bce22187f56bc5ba9cd004cce6a930f74a0a66626ccf88974c8f9241521d7ffc"
+      }
+    },
+    {
+      "id": "kv_write_f32_f16",
+      "file": "kv_cache_write_f32_to_f16.wgsl",
+      "entry": "main",
+      "digest": "sha256:d2e5459501320a767a33b12c6c088dda8527895e978338694463f2a4f286df8e",
+      "sourcePath": "program/wgsl/kv_write_f32_f16-fdba1f04c135d44d.wgsl",
+      "sourceHash": "sha256:fdba1f04c135d44d67fdc160b59e5a243abd0d47e54fa928c7cc115ed2f15afd",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input_k"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input_v"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output_k"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output_v"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:04af1b295960b9bfe333fbaa103c55e53e62dad91199e32ff6848d230bef5ba8"
+      }
+    },
+    {
+      "id": "lm_head_gemv",
+      "file": "matmul_gemv_subgroup.wgsl",
+      "entry": "main_multicol",
+      "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+      "sourcePath": "program/wgsl/lm_head_gemv-04db4c712bc4f88c.wgsl",
+      "sourceHash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+      "reachable": true,
+      "metadata": {
+        "entry": "main_multicol",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "A"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "B"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "C"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "MULTICOL_COLS_PER_WG",
+            "type": "u32",
+            "defaultValue": "32u"
+          },
+          {
+            "name": "MULTICOL_THREADS_PER_COL",
+            "type": "u32",
+            "defaultValue": "8u"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": true,
+        "sourceMetadataHash": "sha256:0d49d96fdf2bbf1a2ec5dda3209d25bc390cce4f58c939e4cade0f3cac14c2d7"
+      }
+    },
+    {
+      "id": "lm_head_select_logits",
+      "file": "lm_head_select_logits.wgsl",
+      "entry": "main",
+      "digest": "sha256:41ed8ecef1bb439dc852591278a78680bd4166e8e3d3af39484784722ccb3561",
+      "sourcePath": "program/wgsl/lm_head_select_logits-232e803e00fa9b7b.wgsl",
+      "sourceHash": "sha256:232e803e00fa9b7bc80b60b18d844894962a2125b1e3418caf158ad223240656",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "hidden"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "weights"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "token_ids"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:1947e68935bcdca7b53eff3d8738475983eb5317e7b8fb4b0cf7c03b791d184c"
+      }
+    },
+    {
+      "id": "q4_decode_gemv",
+      "file": "fused_matmul_q4.wgsl",
+      "entry": "main_gemv",
+      "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+      "sourcePath": "program/wgsl/q4_decode_gemv-9c4d919d5ad5eadd.wgsl",
+      "sourceHash": "sha256:9c4d919d5ad5eadd225f34938c47b9c604e8a1fa05ec73c5eccfb882395bd935",
+      "reachable": true,
+      "metadata": {
+        "entry": "main_gemv",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "A"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "B_q4k"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "C"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "COLS_PER_WG",
+            "type": "u32",
+            "defaultValue": "32u"
+          },
+          {
+            "name": "SHARED_A_MAX",
+            "type": "u32",
+            "defaultValue": "3584u"
+          },
+          {
+            "name": "THREADS_PER_COL_GEMV",
+            "type": "u32",
+            "defaultValue": "8u"
+          },
+          {
+            "name": "USE_FULL_BLOCK_FAST_PATH",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": true,
+        "sourceMetadataHash": "sha256:e8f4a3a0f6fed5db724ee341d860dcff0297b3194388a9e892e5efbb5078e0e8"
+      }
+    },
+    {
+      "id": "q4_widetile",
+      "file": "fused_matmul_q4_widetile.wgsl",
+      "entry": "main",
+      "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+      "sourcePath": "program/wgsl/q4_widetile-d3fc7b8145d9acf8.wgsl",
+      "sourceHash": "sha256:d3fc7b8145d9acf8d5dc56c063557074a361844d25b00b76c6a9fa961b4d8735",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "A"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "B_q4k"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "C"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "TILE_M",
+            "type": "u32",
+            "defaultValue": "4u"
+          },
+          {
+            "name": "TILE_N",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "TILE_N",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:212ebaaba376074c3a0b86de8ceba329398326d8c4c710f5ede3fc016fd638d4"
+      }
+    },
+    {
+      "id": "residual",
+      "file": "residual.wgsl",
+      "entry": "main",
+      "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+      "sourcePath": "program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+      "sourceHash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "b"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:a5451187b8b2a19c25f13a652eb22bb0bc847a8ab26b06a1d050bca458b2b6f0"
+      }
+    },
+    {
+      "id": "residual_vec4",
+      "file": "residual_vec4.wgsl",
+      "entry": "add_vec4",
+      "digest": "sha256:99e8217beb9ebc661ae8da6dde06196c0746e884421fe803b1a8bcea22e753b1",
+      "sourcePath": "program/wgsl/residual_vec4-04781252bb73f1a2.wgsl",
+      "sourceHash": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb",
+      "reachable": true,
+      "metadata": {
+        "entry": "add_vec4",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "a"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "b"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE_VEC4",
+            "type": "u32",
+            "defaultValue": "64u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE_VEC4",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:8e16c6ab9893f42beeaa66e0e69bb2ede598520bd7d74a1f70a4121be777c652"
+      }
+    },
+    {
+      "id": "rmsnorm",
+      "file": "rmsnorm.wgsl",
+      "entry": "main",
+      "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+      "sourcePath": "program/wgsl/rmsnorm-57c810ce293ec2ae.wgsl",
+      "sourceHash": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "weight"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "residual"
+          },
+          {
+            "group": 0,
+            "binding": 5,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "residual_sum_output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "HAS_RESIDUAL",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "OUTPUT_PRENORM",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "PRE_RESIDUAL",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "RMS_NORM_OFFSET",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WEIGHT_IS_F16",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": true,
+        "sourceMetadataHash": "sha256:53f84d7fd8b7c0c86a064e6556e3da550d978859b2108fea875c19c7a36c426c"
+      }
+    },
+    {
+      "id": "rmsnorm_qk",
+      "file": "rmsnorm_qk.wgsl",
+      "entry": "main",
+      "digest": "sha256:6347c59ffd5c2a766c68a482d3019677676c14c6462de42f79d4d8d9846bf105",
+      "sourcePath": "program/wgsl/rmsnorm_qk-954bd142119d8583.wgsl",
+      "sourceHash": "sha256:954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "q_input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "q_weight"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "q_output"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "k_input"
+          },
+          {
+            "group": 0,
+            "binding": 5,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "k_weight"
+          },
+          {
+            "group": 0,
+            "binding": 6,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "k_output"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "K_WEIGHT_IS_F16",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "Q_WEIGHT_IS_F16",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "RMS_NORM_OFFSET",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:0d810ed72d131b46e8a453a4f6f5564e781188a983edc99cbeb1f207141c545a"
+      }
+    },
+    {
+      "id": "rope",
+      "file": "rope.wgsl",
+      "entry": "main",
+      "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+      "sourcePath": "program/wgsl/rope-a4472c7134a08c77.wgsl",
+      "sourceHash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "freqs_cos"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "freqs_sin"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          },
+          {
+            "name": "YARN_ALPHA",
+            "type": "f32",
+            "defaultValue": "1.0"
+          },
+          {
+            "name": "YARN_BETA_FAST",
+            "type": "f32",
+            "defaultValue": "32.0"
+          },
+          {
+            "name": "YARN_BETA_SLOW",
+            "type": "f32",
+            "defaultValue": "1.0"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:fce2365e7756bb2568c6d2b6be32b49588d97ef2fbe1e98b79808e0d8017294d"
+      }
+    },
+    {
+      "id": "rope_precompute",
+      "file": "rope_precompute.wgsl",
+      "entry": "main",
+      "digest": "sha256:0ccd038aa7e69bf064d599e86f93100735cc32fba20a942cb1deed5da5a692e8",
+      "sourcePath": "program/wgsl/rope_precompute-0aaf0cbdceb87986.wgsl",
+      "sourceHash": "sha256:0aaf0cbdceb879861872b1bd60e0d8a78818b67511c7bbb8157d7804b929500a",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "rope_data"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "cos_values"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "sin_values"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:057aeaa5a0da1ce00b5eb8b0472347f47a24d73d26eaa4569705058796597b2d"
+      }
+    },
+    {
+      "id": "rope_qk",
+      "file": "rope_qk.wgsl",
+      "entry": "main",
+      "digest": "sha256:379186c35451a1bf08f3d157db52e48f4865c92caee230656fd55b7fa500351c",
+      "sourcePath": "program/wgsl/rope_qk-fe7f16a865b94ce0.wgsl",
+      "sourceHash": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "q_input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "k_input"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "freqs_cos"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "freqs_sin"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:4fd0cf38483bc02c4a089cfe65089dee8c1aec14ba8b2f195ca89c252eb2e0b6"
+      }
+    },
+    {
+      "id": "sample",
+      "file": "sample.wgsl",
+      "entry": "sample_single_pass",
+      "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
+      "sourcePath": "program/wgsl/sample-36437b17a1a7f624.wgsl",
+      "sourceHash": "sha256:36437b17a1a7f624ae31d3420ed8142df194b7b8ca800d30a1855fc52e754cd4",
+      "reachable": true,
+      "metadata": {
+        "entry": "sample_single_pass",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "logits"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "topk_indices"
+          },
+          {
+            "group": 0,
+            "binding": 4,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "topk_logits"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:9c5e9c0070c000b95a1c9673fd21c5f6ec8f8fb45abc04246badd0f482251c65"
+      }
+    },
+    {
+      "id": "silu",
+      "file": "silu.wgsl",
+      "entry": "main",
+      "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+      "sourcePath": "program/wgsl/silu-e14958d8bd06dd50.wgsl",
+      "sourceHash": "sha256:e14958d8bd06dd50596fef718ca5731366d24ee78f13c547c600cac4723cd1b8",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "input"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "output"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "gate"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "GATE_USE_SIGMOID",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "HAS_GATE",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "INPUT_USE_IDENTITY",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "USE_ROWSPLIT",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "USE_SPLIT",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "USE_VEC4",
+            "type": "bool",
+            "defaultValue": "false"
+          },
+          {
+            "name": "WORKGROUP_SIZE",
+            "type": "u32",
+            "defaultValue": "256u"
+          }
+        ],
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:96a42f111b53d18accecdfb05ddfa7cb6a6f376c600b675bc51741051fadd4f9"
+      }
+    },
+    {
+      "id": "tiled",
+      "file": "matmul_f16w_f32a.wgsl",
+      "entry": "main",
+      "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+      "sourcePath": "program/wgsl/tiled-78b78ec9a73766b5.wgsl",
+      "sourceHash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+      "reachable": true,
+      "metadata": {
+        "entry": "main",
+        "bindings": [
+          {
+            "group": 0,
+            "binding": 0,
+            "addressSpace": "uniform",
+            "access": null,
+            "name": "u"
+          },
+          {
+            "group": 0,
+            "binding": 1,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "A"
+          },
+          {
+            "group": 0,
+            "binding": 2,
+            "addressSpace": "storage",
+            "access": "read",
+            "name": "B"
+          },
+          {
+            "group": 0,
+            "binding": 3,
+            "addressSpace": "storage",
+            "access": "read_write",
+            "name": "C"
+          }
+        ],
+        "overrides": [
+          {
+            "name": "TILE_SIZE",
+            "type": "u32",
+            "defaultValue": "16u"
+          }
+        ],
+        "workgroupSize": [
+          "TILE_SIZE",
+          "TILE_SIZE",
+          "1"
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:61283724e18601a992574205826fd13f77af0bd8bf904e5d06af09fe7c0afab7"
+      }
+    }
+  ],
+  "execution": {
+    "graphHash": "sha256:d2cbdb9bbfa04bb0d4844a18565f64fcc5ac21bad80161b1f500a06757adfd96",
+    "stepMetadataHash": "sha256:9342eaf9447b13ada70039b497fb99d233cf40e9d3daa66db0e69a26df3f9f07",
+    "kernelClosure": {
+      "declaredKernelIds": [
+        "attn_decode",
+        "attn_small",
+        "attn_stream",
+        "dequant_q4_f16",
+        "embed",
+        "gather_vec4",
+        "gemv",
+        "kv_write_f32_f16",
+        "lm_head_gemv",
+        "lm_head_q4",
+        "lm_head_select_logits",
+        "q4_decode_gemv",
+        "q4_prefill",
+        "q4_widetile",
+        "residual",
+        "residual_vec4",
+        "rmsnorm",
+        "rmsnorm_qk",
+        "rope",
+        "rope_precompute",
+        "rope_qk",
+        "sample",
+        "silu",
+        "tiled"
+      ],
+      "reachableKernelIds": [
+        "attn_decode",
+        "attn_small",
+        "dequant_q4_f16",
+        "embed",
+        "gather_vec4",
+        "gemv",
+        "kv_write_f32_f16",
+        "lm_head_gemv",
+        "lm_head_select_logits",
+        "q4_decode_gemv",
+        "q4_widetile",
+        "residual",
+        "residual_vec4",
+        "rmsnorm",
+        "rmsnorm_qk",
+        "rope",
+        "rope_precompute",
+        "rope_qk",
+        "sample",
+        "silu",
+        "tiled"
+      ],
+      "excludedKernelIds": [
+        "attn_stream",
+        "lm_head_q4",
+        "q4_prefill"
+      ],
+      "undeclaredKernelRefs": [],
+      "expandedStepCount": 35,
+      "phases": {
+        "prefill": 15,
+        "decode": 15,
+        "preLayer": 1,
+        "postLayer": 4
+      }
+    },
+    "steps": [
+      {
+        "id": "preLayer_both_0_embed",
+        "index": 0,
+        "op": "embed",
+        "phase": "both",
+        "section": "preLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "embed",
+        "kernel": "gather_f16.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9",
+        "weights": "embed_tokens",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:preLayer:both:embed",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "indices",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "embeddings",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_1_input_norm",
+        "index": 1,
+        "op": "input_norm",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:input_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "residual_sum_output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_2_q_proj",
+        "index": 2,
+        "op": "q_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "q4_decode_gemv",
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "kernelDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+        "weights": "layer.{L}.self_attn.q_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:q_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B_q4k",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_3_k_proj",
+        "index": 3,
+        "op": "k_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "q4_decode_gemv",
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "kernelDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+        "weights": "layer.{L}.self_attn.k_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:k_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B_q4k",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_4_v_proj",
+        "index": 4,
+        "op": "v_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "q4_decode_gemv",
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "kernelDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+        "weights": "layer.{L}.self_attn.v_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:v_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B_q4k",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_5_rope_q",
+        "index": 5,
+        "op": "rope_q",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:rope_q",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_6_rope_k",
+        "index": 6,
+        "op": "rope_k",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:rope_k",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_7_attention",
+        "index": 7,
+        "op": "attention",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "attn_decode",
+        "kernel": "attention_decode_online_f16kv.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "kvDtype": "f16"
+        },
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:attention",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "Q",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "K",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "V",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "kv_len_buffer",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 6,
+              "name": "page_table",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_8_o_proj",
+        "index": 8,
+        "op": "o_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "q4_decode_gemv",
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "kernelDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+        "weights": "layer.{L}.self_attn.o_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:o_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B_q4k",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_9_attn_residual",
+        "index": 9,
+        "op": "attn_residual",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "residual",
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:attn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_10_post_attn_norm",
+        "index": 10,
+        "op": "post_attn_norm",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:post_attn_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "residual_sum_output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_11_gate_proj",
+        "index": 11,
+        "op": "gate_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "kernelDigest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+        "weights": "layer.{L}.mlp.gate_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:gate_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_12_up_proj",
+        "index": 12,
+        "op": "up_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "kernelDigest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+        "weights": "layer.{L}.mlp.up_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:up_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_13_activation",
+        "index": 13,
+        "op": "activation",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "silu",
+        "kernel": "silu.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:activation",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "gate",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_14_down_proj",
+        "index": 14,
+        "op": "down_proj",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "kernelDigest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011",
+        "weights": "layer.{L}.mlp.down_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:down_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_decode_15_ffn_residual",
+        "index": 15,
+        "op": "ffn_residual",
+        "phase": "decode",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "residual",
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "decode",
+          "workgroups": "symbolic:layer:decode:ffn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_16_input_norm",
+        "index": 16,
+        "op": "input_norm",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:input_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "residual_sum_output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_17_q_proj",
+        "index": 17,
+        "op": "q_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "q4_widetile",
+        "kernel": "fused_matmul_q4_widetile.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+        "weights": "layer.{L}.self_attn.q_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:q_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B_q4k",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_18_k_proj",
+        "index": 18,
+        "op": "k_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "q4_widetile",
+        "kernel": "fused_matmul_q4_widetile.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+        "weights": "layer.{L}.self_attn.k_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:k_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B_q4k",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_19_v_proj",
+        "index": 19,
+        "op": "v_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "q4_widetile",
+        "kernel": "fused_matmul_q4_widetile.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+        "weights": "layer.{L}.self_attn.v_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:v_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B_q4k",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_20_rope_q",
+        "index": 20,
+        "op": "rope_q",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:rope_q",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_21_rope_k",
+        "index": 21,
+        "op": "rope_k",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rope",
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:rope_k",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "freqs_cos",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "freqs_sin",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_22_attention",
+        "index": 22,
+        "op": "attention",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "attn_small",
+        "kernel": "attention_small_f16kv.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668",
+        "weights": null,
+        "constants": null,
+        "precision": {
+          "kvDtype": "f16"
+        },
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:attention",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "Q",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "K",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "V",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "kv_len_buffer",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 6,
+              "name": "page_table",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_23_o_proj",
+        "index": 23,
+        "op": "o_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "q4_widetile",
+        "kernel": "fused_matmul_q4_widetile.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+        "weights": "layer.{L}.self_attn.o_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:o_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B_q4k",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_24_attn_residual",
+        "index": 24,
+        "op": "attn_residual",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "residual",
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:attn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_25_post_attn_norm",
+        "index": 25,
+        "op": "post_attn_norm",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:post_attn_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "residual_sum_output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_26_gate_proj",
+        "index": 26,
+        "op": "gate_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+        "weights": "layer.{L}.mlp.gate_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:gate_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_27_up_proj",
+        "index": 27,
+        "op": "up_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+        "weights": "layer.{L}.mlp.up_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:up_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_28_activation",
+        "index": 28,
+        "op": "activation",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "silu",
+        "kernel": "silu.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:activation",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "gate",
+              "addressSpace": "storage",
+              "access": "read"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_29_down_proj",
+        "index": 29,
+        "op": "down_proj",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+        "weights": "layer.{L}.mlp.down_proj",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:down_proj",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "layer_prefill_30_ffn_residual",
+        "index": 30,
+        "op": "ffn_residual",
+        "phase": "prefill",
+        "section": "layer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "residual",
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "prefill",
+          "workgroups": "symbolic:layer:prefill:ffn_residual",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "a",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "b",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_31_final_norm",
+        "index": 31,
+        "op": "final_norm",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:final_norm",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "input",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "weight",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "residual",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 5,
+              "name": "residual_sum_output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_32_lm_head",
+        "index": 32,
+        "op": "lm_head",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "lm_head_gemv",
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_multicol",
+        "kernelDigest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+        "weights": "lm_head",
+        "constants": {
+          "MULTICOL_COLS_PER_WG": 8,
+          "MULTICOL_THREADS_PER_COL": 32
+        },
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:lm_head",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_33_lm_head_prefill",
+        "index": 33,
+        "op": "lm_head_prefill",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "tiled",
+        "kernel": "matmul_f16w_f32a.wgsl",
+        "entry": "main",
+        "kernelDigest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc",
+        "weights": "lm_head",
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:lm_head_prefill",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "A",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "B",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "C",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      },
+      {
+        "id": "postLayer_both_34_sample",
+        "index": 34,
+        "op": "sample",
+        "phase": "both",
+        "section": "postLayer",
+        "layers": "all",
+        "src": "state",
+        "dst": "state",
+        "kernelId": "sample",
+        "kernel": "sample.wgsl",
+        "entry": "sample_single_pass",
+        "kernelDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
+        "weights": null,
+        "constants": null,
+        "precision": null,
+        "dispatch": {
+          "phase": "both",
+          "workgroups": "symbolic:postLayer:both:sample",
+          "bindings": [
+            {
+              "group": 0,
+              "binding": 0,
+              "name": "u",
+              "addressSpace": "uniform",
+              "access": null
+            },
+            {
+              "group": 0,
+              "binding": 1,
+              "name": "logits",
+              "addressSpace": "storage",
+              "access": "read"
+            },
+            {
+              "group": 0,
+              "binding": 2,
+              "name": "output",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 3,
+              "name": "topk_indices",
+              "addressSpace": "storage",
+              "access": "read_write"
+            },
+            {
+              "group": 0,
+              "binding": 4,
+              "name": "topk_logits",
+              "addressSpace": "storage",
+              "access": "read_write"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "captureProfile": {
+    "schema": "doppler.capture-profile/v1",
+    "deterministic": true,
+    "phases": [
+      "prefill",
+      "decode"
+    ],
+    "surfaces": [
+      "browser-webgpu"
+    ],
+    "adapter": {
+      "source": "reference-report",
+      "surface": "browser-webgpu",
+      "deviceInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "0x1586",
+        "description": "Radeon 8060S Graphics (RADV STRIX_HALO)",
+        "isFallbackAdapter": false
+      }
+    },
+    "hashPolicy": {
+      "graph": "stable-json-sha256",
+      "dispatch": "stable-json-sha256",
+      "transcript": "stable-json-sha256"
+    },
+    "captureHash": "sha256:e9ca1c90d1f4fd02cc0b77fc0e4e06b18e5510a93803fc1ef1bbd6f2a5aa1dc8"
+  },
+  "artifacts": [
+    {
+      "role": "conversion-config",
+      "path": "src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+      "hash": "sha256:cd785b7b8ef2cd10164a7e8e7a3933c1afb1360d7517d597692748ce13e4bc2f",
+      "sizeBytes": 17274
+    },
+    {
+      "role": "host-source",
+      "path": "program/host/reranking-d7abaa224ec64128.js",
+      "hash": "sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15",
+      "sizeBytes": 1096
+    },
+    {
+      "role": "manifest",
+      "path": "reports/capsule-baseline/20260906/reranker-model/manifest.json",
+      "hash": "sha256:456db917f1a9558537779e5dc0199c75751227d38f1fe0eeefdba5aaad78c715",
+      "sizeBytes": 137050
+    },
+    {
+      "role": "reference-report",
+      "path": "reports/capsule-baseline/20260906/browser-model/qualification.json",
+      "hash": "sha256:a55826eba19f404f4776e3379d83c5f2dc471135f1ab7d98f7bfb90358d23773",
+      "sizeBytes": 233799
+    },
+    {
+      "role": "tokenizer",
+      "path": "reports/capsule-baseline/20260906/reranker-model/tokenizer.json",
+      "hash": "sha256:4dae0c382163323e93f51d37f4c27d96c74f6be94b231289c24da71dfa3f7dc6",
+      "sizeBytes": 5363085
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00000.bin",
+      "hash": "sha256:e43dc1fe474193bad57b19b1daf032a070c99f87ce79bc8995c4c1f37b120b53",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00001.bin",
+      "hash": "sha256:b1a9ca6f91fbe89d2ca0e027014521447629f7a50e5afdb9ee94c8716328ee55",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00002.bin",
+      "hash": "sha256:53bb6a526b121103cb13b0af70699af64485b62d98e1420d8bd43faf5ef960a7",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00003.bin",
+      "hash": "sha256:74b1668c351029b2222e0145af3da91592c1e8a9a8aa40a5441c28cc88d9855c",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00004.bin",
+      "hash": "sha256:a56401f052950847cccf90b35c63683a3cebf627f0089b150ee5b655343dfe51",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00005.bin",
+      "hash": "sha256:a324a0b5f2b088647cc25b828929419fe9486db1dea0abe928dea572e5cf0f2f",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00006.bin",
+      "hash": "sha256:08c097b21b6d9d52b04eda0c9178730c6bb361aa8e5bc908bfe9e8422f327d66",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00007.bin",
+      "hash": "sha256:21acf56bea1ae5f19131689d69a3cccdbcdce399284a713b6ae735d1af44e7a9",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00008.bin",
+      "hash": "sha256:a8ba8eafc16bb7f2db12acff3ae5cd6f1b9eae8ceff4841a05daf821d6ec3ef1",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00009.bin",
+      "hash": "sha256:ecc4d663ae607d28ca706e36d9bd48a90c77a9b5e35b724133979c9cb0ac8eb9",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00010.bin",
+      "hash": "sha256:eb46664bf45fc99235ab15657fd917931a0c25b49231f63f40de3468800203c2",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00011.bin",
+      "hash": "sha256:0040bc969e75a2b3f4ce9457f28245d08587c471c4dd839a47a42c45e3dbfd65",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00012.bin",
+      "hash": "sha256:9f13205d7a6ed5af57a7787d5b2eec59f2a23040ae7d4ad18bf9b0a9cb0c767b",
+      "sizeBytes": 67108864
+    },
+    {
+      "role": "weight-shard",
+      "path": "reports/capsule-baseline/20260906/reranker-model/shard_00013.bin",
+      "hash": "sha256:564c21f6c2b68955af3050f9936b616deda700d90c1184831b1e7999db4e50f8",
+      "sizeBytes": 65906688
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/attn_decode-4feba111cc381d0a.wgsl",
+      "hash": "sha256:4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035",
+      "sizeBytes": 7779
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/attn_small-d06953f85b75a70a.wgsl",
+      "hash": "sha256:d06953f85b75a70a7423bd92afbbb476bff77acaf0f8378135465d0f742bb276",
+      "sizeBytes": 9366
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/dequant_q4_f16-8c07df9b95c2af5c.wgsl",
+      "hash": "sha256:8c07df9b95c2af5c8dac8fe5f0cb654b92b8909a79cb1ac02e948b74963377f6",
+      "sizeBytes": 4927
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/embed-838e3c69451d02fe.wgsl",
+      "hash": "sha256:838e3c69451d02fee30839fd30621d28d8a0f5861c862a568ca4de72870b0b15",
+      "sizeBytes": 2538
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/gather_vec4-a500eb8ca2a1ff7d.wgsl",
+      "hash": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+      "sizeBytes": 2810
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/gemv-04db4c712bc4f88c.wgsl",
+      "hash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+      "sizeBytes": 16657
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/kv_write_f32_f16-fdba1f04c135d44d.wgsl",
+      "hash": "sha256:fdba1f04c135d44d67fdc160b59e5a243abd0d47e54fa928c7cc115ed2f15afd",
+      "sizeBytes": 861
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/lm_head_gemv-04db4c712bc4f88c.wgsl",
+      "hash": "sha256:04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+      "sizeBytes": 16657
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/lm_head_select_logits-232e803e00fa9b7b.wgsl",
+      "hash": "sha256:232e803e00fa9b7bc80b60b18d844894962a2125b1e3418caf158ad223240656",
+      "sizeBytes": 2064
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/q4_decode_gemv-9c4d919d5ad5eadd.wgsl",
+      "hash": "sha256:9c4d919d5ad5eadd225f34938c47b9c604e8a1fa05ec73c5eccfb882395bd935",
+      "sizeBytes": 15738
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/q4_widetile-d3fc7b8145d9acf8.wgsl",
+      "hash": "sha256:d3fc7b8145d9acf8d5dc56c063557074a361844d25b00b76c6a9fa961b4d8735",
+      "sizeBytes": 5617
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/residual_vec4-04781252bb73f1a2.wgsl",
+      "hash": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb",
+      "sizeBytes": 1366
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+      "hash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698",
+      "sizeBytes": 1712
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/rmsnorm_qk-954bd142119d8583.wgsl",
+      "hash": "sha256:954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3",
+      "sizeBytes": 3462
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/rmsnorm-57c810ce293ec2ae.wgsl",
+      "hash": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+      "sizeBytes": 15770
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/rope_precompute-0aaf0cbdceb87986.wgsl",
+      "hash": "sha256:0aaf0cbdceb879861872b1bd60e0d8a78818b67511c7bbb8157d7804b929500a",
+      "sizeBytes": 2598
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/rope_qk-fe7f16a865b94ce0.wgsl",
+      "hash": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c",
+      "sizeBytes": 3259
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/rope-a4472c7134a08c77.wgsl",
+      "hash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d",
+      "sizeBytes": 12251
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/sample-36437b17a1a7f624.wgsl",
+      "hash": "sha256:36437b17a1a7f624ae31d3420ed8142df194b7b8ca800d30a1855fc52e754cd4",
+      "sizeBytes": 13789
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/silu-e14958d8bd06dd50.wgsl",
+      "hash": "sha256:e14958d8bd06dd50596fef718ca5731366d24ee78f13c547c600cac4723cd1b8",
+      "sizeBytes": 3390
+    },
+    {
+      "role": "wgsl-source",
+      "path": "program/wgsl/tiled-78b78ec9a73766b5.wgsl",
+      "hash": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+      "sizeBytes": 2558
+    }
+  ],
+  "referenceTranscript": {
+    "schema": "doppler.rerank-reference-transcript/v1",
+    "operation": "rerank",
+    "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "surface": "browser-webgpu",
+    "executionGraphHash": "sha256:d2cbdb9bbfa04bb0d4844a18565f64fcc5ac21bad80161b1f500a06757adfd96",
+    "manifestHash": "sha256:456db917f1a9558537779e5dc0199c75751227d38f1fe0eeefdba5aaad78c715",
+    "source": {
+      "kind": "rerank-qualification",
+      "path": "reports/capsule-baseline/20260906/browser-model/qualification.json",
+      "hash": "sha256:a55826eba19f404f4776e3379d83c5f2dc471135f1ab7d98f7bfb90358d23773"
+    },
+    "reference": {
+      "schema": "doppler.rerank-source-reference/v1",
+      "source": {
+        "checkpointId": "Qwen/Qwen3-Reranker-0.6B",
+        "repository": "Qwen/Qwen3-Reranker-0.6B",
+        "revision": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+        "engine": "hf-transformers-pytorch",
+        "torchVersion": "2.11.0+cu130",
+        "transformersVersion": "5.6.2",
+        "pythonVersion": "3.14.4",
+        "device": "cpu",
+        "dtype": "float32",
+        "attention": "eager",
+        "files": [
+          {
+            "path": "config.json",
+            "hash": "sha256:d479c427a9ca5295218063d4f9aca4f297ab4ac27487cca7af42c84643d51ef0"
+          },
+          {
+            "path": "model.safetensors",
+            "hash": "sha256:27cd75a405b9c1b46b59abfd88aaa209e6fed2a1972cde9b70e7659537c5e65b"
+          },
+          {
+            "path": "tokenizer.json",
+            "hash": "sha256:aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+          },
+          {
+            "path": "tokenizer_config.json",
+            "hash": "sha256:253153d0738ceb4c668d2eff957714dd2bea0b56de772a9fdccd96cbf517e6a0"
+          },
+          {
+            "path": "README.md",
+            "hash": "sha256:5bba8c734f6dd3ae48317b4139317e45a7fce48fc55e15670b23a0dd15492ab6"
+          }
+        ]
+      },
+      "input": {
+        "query": "What API exposes GPU hardware for browser compute workloads?",
+        "documents": [
+          "WebGPU provides low-level access to graphics processors for compute workloads.",
+          "WebSocket provides full-duplex communication over TCP.",
+          "A cafe serves coffee and pastries."
+        ]
+      },
+      "scoringConfig": {
+        "format": "qwen3_yes_no_logit",
+        "instruction": "Given a web search query, retrieve relevant passages that answer the query",
+        "inputTemplate": "<Instruct>: {instruction}\n<Query>: {query}\n<Document>: {document}",
+        "prefix": "<|im_start|>system\nJudge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the answer can only be \"yes\" or \"no\".<|im_end|>\n<|im_start|>user\n",
+        "suffix": "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+        "trueToken": "yes",
+        "trueTokenId": 9693,
+        "falseToken": "no",
+        "falseTokenId": 2152,
+        "score": "true_logit",
+        "probability": "sigmoid"
+      },
+      "tolerances": {
+        "logitMaxAbs": 1,
+        "scoreMaxAbs": 1,
+        "probabilityMaxAbs": 0.05,
+        "ranking": "exact"
+      },
+      "outputs": [
+        {
+          "index": 0,
+          "document": "WebGPU provides low-level access to graphics processors for compute workloads.",
+          "tokenIds": [
+            151644,
+            8948,
+            198,
+            60256,
+            3425,
+            279,
+            11789,
+            20027,
+            279,
+            8502,
+            3118,
+            389,
+            279,
+            11361,
+            323,
+            279,
+            758,
+            1235,
+            3897,
+            13,
+            7036,
+            429,
+            279,
+            4226,
+            646,
+            1172,
+            387,
+            330,
+            9693,
+            1,
+            476,
+            330,
+            2152,
+            3263,
+            151645,
+            198,
+            151644,
+            872,
+            198,
+            27,
+            641,
+            1235,
+            26818,
+            16246,
+            264,
+            3482,
+            2711,
+            3239,
+            11,
+            17179,
+            9760,
+            46769,
+            429,
+            4226,
+            279,
+            3239,
+            198,
+            27,
+            2859,
+            26818,
+            3555,
+            5333,
+            58281,
+            22670,
+            11773,
+            369,
+            6929,
+            12564,
+            975,
+            32685,
+            5267,
+            75692,
+            26818,
+            4895,
+            49891,
+            5707,
+            3347,
+            11591,
+            2615,
+            311,
+            14181,
+            36586,
+            369,
+            12564,
+            975,
+            32685,
+            13,
+            151645,
+            198,
+            151644,
+            77091,
+            198,
+            151667,
+            271,
+            151668,
+            271
+          ],
+          "trueLogit": 20.728845596313477,
+          "falseLogit": 13.806695938110352,
+          "score": 20.728845596313477,
+          "probability": 0.9999999990055641
+        },
+        {
+          "index": 1,
+          "document": "WebSocket provides full-duplex communication over TCP.",
+          "tokenIds": [
+            151644,
+            8948,
+            198,
+            60256,
+            3425,
+            279,
+            11789,
+            20027,
+            279,
+            8502,
+            3118,
+            389,
+            279,
+            11361,
+            323,
+            279,
+            758,
+            1235,
+            3897,
+            13,
+            7036,
+            429,
+            279,
+            4226,
+            646,
+            1172,
+            387,
+            330,
+            9693,
+            1,
+            476,
+            330,
+            2152,
+            3263,
+            151645,
+            198,
+            151644,
+            872,
+            198,
+            27,
+            641,
+            1235,
+            26818,
+            16246,
+            264,
+            3482,
+            2711,
+            3239,
+            11,
+            17179,
+            9760,
+            46769,
+            429,
+            4226,
+            279,
+            3239,
+            198,
+            27,
+            2859,
+            26818,
+            3555,
+            5333,
+            58281,
+            22670,
+            11773,
+            369,
+            6929,
+            12564,
+            975,
+            32685,
+            5267,
+            75692,
+            26818,
+            47042,
+            5707,
+            2480,
+            1737,
+            454,
+            2571,
+            10535,
+            916,
+            26656,
+            13,
+            151645,
+            198,
+            151644,
+            77091,
+            198,
+            151667,
+            271,
+            151668,
+            271
+          ],
+          "trueLogit": 4.002742290496826,
+          "falseLogit": 12.97671127319336,
+          "score": 4.002742290496826,
+          "probability": 0.982062162339427
+        },
+        {
+          "index": 2,
+          "document": "A cafe serves coffee and pastries.",
+          "tokenIds": [
+            151644,
+            8948,
+            198,
+            60256,
+            3425,
+            279,
+            11789,
+            20027,
+            279,
+            8502,
+            3118,
+            389,
+            279,
+            11361,
+            323,
+            279,
+            758,
+            1235,
+            3897,
+            13,
+            7036,
+            429,
+            279,
+            4226,
+            646,
+            1172,
+            387,
+            330,
+            9693,
+            1,
+            476,
+            330,
+            2152,
+            3263,
+            151645,
+            198,
+            151644,
+            872,
+            198,
+            27,
+            641,
+            1235,
+            26818,
+            16246,
+            264,
+            3482,
+            2711,
+            3239,
+            11,
+            17179,
+            9760,
+            46769,
+            429,
+            4226,
+            279,
+            3239,
+            198,
+            27,
+            2859,
+            26818,
+            3555,
+            5333,
+            58281,
+            22670,
+            11773,
+            369,
+            6929,
+            12564,
+            975,
+            32685,
+            5267,
+            75692,
+            26818,
+            362,
+            40930,
+            17045,
+            10799,
+            323,
+            3267,
+            4019,
+            13,
+            151645,
+            198,
+            151644,
+            77091,
+            198,
+            151667,
+            271,
+            151668,
+            271
+          ],
+          "trueLogit": 3.1006674766540527,
+          "falseLogit": 13.337125778198242,
+          "score": 3.1006674766540527,
+          "probability": 0.9569202694214454
+        }
+      ]
+    },
+    "referenceDigest": "sha256:185678eabefe54ed01ddc88a5d764900d03ebda2d68e5580240f1e53553ad3d3",
+    "observation": {
+      "input": {
+        "query": "What API exposes GPU hardware for browser compute workloads?",
+        "documents": [
+          "WebGPU provides low-level access to graphics processors for compute workloads.",
+          "WebSocket provides full-duplex communication over TCP.",
+          "A cafe serves coffee and pastries."
+        ]
+      },
+      "scoringConfig": {
+        "format": "qwen3_yes_no_logit",
+        "instruction": "Given a web search query, retrieve relevant passages that answer the query",
+        "inputTemplate": "<Instruct>: {instruction}\n<Query>: {query}\n<Document>: {document}",
+        "prefix": "<|im_start|>system\nJudge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the answer can only be \"yes\" or \"no\".<|im_end|>\n<|im_start|>user\n",
+        "suffix": "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+        "trueToken": "yes",
+        "trueTokenId": 9693,
+        "falseToken": "no",
+        "falseTokenId": 2152,
+        "score": "true_logit",
+        "probability": "sigmoid"
+      },
+      "outputs": [
+        {
+          "index": 0,
+          "document": "WebGPU provides low-level access to graphics processors for compute workloads.",
+          "score": 20.80515480041504,
+          "probability": 0.9999999990786257,
+          "trueLogit": 20.80515480041504,
+          "falseLogit": 14.374336242675781,
+          "tokenCount": 96,
+          "tokenIds": [
+            151644,
+            8948,
+            198,
+            60256,
+            3425,
+            279,
+            11789,
+            20027,
+            279,
+            8502,
+            3118,
+            389,
+            279,
+            11361,
+            323,
+            279,
+            758,
+            1235,
+            3897,
+            13,
+            7036,
+            429,
+            279,
+            4226,
+            646,
+            1172,
+            387,
+            330,
+            9693,
+            1,
+            476,
+            330,
+            2152,
+            3263,
+            151645,
+            198,
+            151644,
+            872,
+            198,
+            27,
+            641,
+            1235,
+            26818,
+            16246,
+            264,
+            3482,
+            2711,
+            3239,
+            11,
+            17179,
+            9760,
+            46769,
+            429,
+            4226,
+            279,
+            3239,
+            198,
+            27,
+            2859,
+            26818,
+            3555,
+            5333,
+            58281,
+            22670,
+            11773,
+            369,
+            6929,
+            12564,
+            975,
+            32685,
+            5267,
+            75692,
+            26818,
+            4895,
+            49891,
+            5707,
+            3347,
+            11591,
+            2615,
+            311,
+            14181,
+            36586,
+            369,
+            12564,
+            975,
+            32685,
+            13,
+            151645,
+            198,
+            151644,
+            77091,
+            198,
+            151667,
+            271,
+            151668,
+            271
+          ],
+          "scoringPath": "selected-token-logits"
+        },
+        {
+          "index": 1,
+          "document": "WebSocket provides full-duplex communication over TCP.",
+          "score": 3.8263931274414062,
+          "probability": 0.9786765360960985,
+          "trueLogit": 3.8263931274414062,
+          "falseLogit": 12.962911605834961,
+          "tokenCount": 92,
+          "tokenIds": [
+            151644,
+            8948,
+            198,
+            60256,
+            3425,
+            279,
+            11789,
+            20027,
+            279,
+            8502,
+            3118,
+            389,
+            279,
+            11361,
+            323,
+            279,
+            758,
+            1235,
+            3897,
+            13,
+            7036,
+            429,
+            279,
+            4226,
+            646,
+            1172,
+            387,
+            330,
+            9693,
+            1,
+            476,
+            330,
+            2152,
+            3263,
+            151645,
+            198,
+            151644,
+            872,
+            198,
+            27,
+            641,
+            1235,
+            26818,
+            16246,
+            264,
+            3482,
+            2711,
+            3239,
+            11,
+            17179,
+            9760,
+            46769,
+            429,
+            4226,
+            279,
+            3239,
+            198,
+            27,
+            2859,
+            26818,
+            3555,
+            5333,
+            58281,
+            22670,
+            11773,
+            369,
+            6929,
+            12564,
+            975,
+            32685,
+            5267,
+            75692,
+            26818,
+            47042,
+            5707,
+            2480,
+            1737,
+            454,
+            2571,
+            10535,
+            916,
+            26656,
+            13,
+            151645,
+            198,
+            151644,
+            77091,
+            198,
+            151667,
+            271,
+            151668,
+            271
+          ],
+          "scoringPath": "selected-token-logits"
+        },
+        {
+          "index": 2,
+          "document": "A cafe serves coffee and pastries.",
+          "score": 2.8279871940612793,
+          "probability": 0.9441695950944614,
+          "trueLogit": 2.8279871940612793,
+          "falseLogit": 12.909036636352539,
+          "tokenCount": 90,
+          "tokenIds": [
+            151644,
+            8948,
+            198,
+            60256,
+            3425,
+            279,
+            11789,
+            20027,
+            279,
+            8502,
+            3118,
+            389,
+            279,
+            11361,
+            323,
+            279,
+            758,
+            1235,
+            3897,
+            13,
+            7036,
+            429,
+            279,
+            4226,
+            646,
+            1172,
+            387,
+            330,
+            9693,
+            1,
+            476,
+            330,
+            2152,
+            3263,
+            151645,
+            198,
+            151644,
+            872,
+            198,
+            27,
+            641,
+            1235,
+            26818,
+            16246,
+            264,
+            3482,
+            2711,
+            3239,
+            11,
+            17179,
+            9760,
+            46769,
+            429,
+            4226,
+            279,
+            3239,
+            198,
+            27,
+            2859,
+            26818,
+            3555,
+            5333,
+            58281,
+            22670,
+            11773,
+            369,
+            6929,
+            12564,
+            975,
+            32685,
+            5267,
+            75692,
+            26818,
+            362,
+            40930,
+            17045,
+            10799,
+            323,
+            3267,
+            4019,
+            13,
+            151645,
+            198,
+            151644,
+            77091,
+            198,
+            151667,
+            271,
+            151668,
+            271
+          ],
+          "scoringPath": "selected-token-logits"
+        }
+      ]
+    }
+  }
+}

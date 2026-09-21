@@ -27,11 +27,35 @@ Offline reopening needs retained application/runtime files, metadata, models, an
 the index; it cannot discover unseen revocations. Declare host/provider and memory
 requirements, and test network/logging behavior across the complete application.
 
-`installation.js` connects the existing OPFS backend to the Capsule artifact
-store interface. Runtime metadata verification and application plan approval
-precede artifact acquisition. Model bytes, signed metadata, explicit retained-use
-decisions, and monotonically advancing release checkpoints survive browser
-restart. The service worker retains the installed application and runtime files.
+## Quick Start (Copy and Run)
+
+### 1. Prerequisites
+- Modern browser with WebGPU support (Chromium 113+).
+- Node.js 18+ (used to host the local static file server).
+
+### 2. Install and Start
+```sh
+cd examples/document-search
+npm install
+npm start
+```
+The local server starts at `http://127.0.0.1:8080/index.html`.
+
+### 3. Usage Walkthrough
+1. Open `http://127.0.0.1:8080/index.html` in a WebGPU-enabled browser.
+2. Check **"Keep these model releases for offline use"**.
+3. Click **"Install models"** to download and verify the pinned embedding and reranker weights.
+4. Under **Documents & Search**, click **Choose Files** and select files from `samples/` (e.g., `sourdough.md`, `tire.txt`, `eclipse.md`, `solar.txt`, `git.md`, `starter-motor.txt`).
+5. Click **"Save document index"** to index your documents locally into OPFS.
+6. Type a query into the search box (e.g., *"How do I change a flat tire?"* or *"How does wild yeast fermentation work?"*) and press Enter or click **"Search"**.
+7. Test offline capability: close the browser, disconnect your network, reload the page, and click **"Open installed models"**. Search functions with zero network requests.
+
+## Architecture and Contracts
+
+`controller.js` coordinates model lifecycle, session retention, and atomic index commits.
+`search.js` owns document hashing, cosine candidate retrieval, and reranking without framework dependencies.
+`installation.js` manages local artifact caching in OPFS, checksum verification, and rollback protection.
+`service-worker.js` caches application assets for complete offline availability.
 
 ## Engineering build and reproduction
 

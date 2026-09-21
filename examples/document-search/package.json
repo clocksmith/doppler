@@ -1,0 +1,13 @@
+{
+  "name": "@doppler-gpu/example-document-search",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Copy-and-run local document search example powered by Doppler WebGPU",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "doppler-gpu": "^0.6.2"
+  }
+}

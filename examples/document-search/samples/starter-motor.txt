@@ -1,0 +1,11 @@
+Automotive Starter Motor and Solenoid Operation
+
+The internal combustion engine cannot start under its own power; it requires an external source of torque to rotate the crankshaft and begin the intake and compression cycles.
+
+Operation Sequence:
+1. Ignition Switch / Start Signal: Turning the key or pressing the start button energizes the starter relay, directing 12V current to the starter solenoid coil.
+2. Solenoid Actuation: The magnetic field draws an iron plunger forward. This plunger performs two simultaneous mechanical jobs:
+   a. Shift Fork: Leverages the starter drive pinion gear along helical splines into engagement with the teeth of the engine flywheel ring gear.
+   b. Heavy Contact Disc: Bridging two thick copper lugs, closing the primary circuit between the car battery and the electric starter motor brushes.
+3. Cranking: High amperage (often 100 to 250 amps) flows directly through the motor armature and field coils, generating high stall torque that spins the flywheel and engine crankshaft.
+4. Overrunning Clutch: Protects the starter motor from overspeeding once the engine fires and spins faster than the starter pinion. When the key is released, return springs disengage the pinion from the flywheel.

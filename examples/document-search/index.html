@@ -1,29 +1,60 @@
 <!doctype html>
 <html lang="en">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Local document search</title>
 <style>
-body{max-width:760px;margin:48px auto;padding:0 24px;font:17px/1.5 system-ui;color:#172c35;background:#f4f7f5}h1{font-size:34px}button,input{font:inherit}button{padding:10px 16px;border:0;border-radius:6px;background:#155d50;color:white;cursor:pointer}button:disabled{opacity:.5}input[type=search]{box-sizing:border-box;width:100%;padding:12px;margin:12px 0}section{padding:20px 0;border-top:1px solid #c8d4cd}label{display:block;margin:12px 0}#status{min-height:2em}article{background:white;padding:16px;margin:12px 0;border-radius:8px}article p{white-space:pre-wrap}small{color:#45625a}
+body{max-width:760px;margin:48px auto;padding:0 24px;font:17px/1.5 system-ui;color:#172c35;background:#f4f7f5}
+h1{font-size:34px}
+button,input{font:inherit}
+button{padding:10px 16px;border:0;border-radius:6px;background:#155d50;color:white;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.secondary{background:#45625a}
+button.danger{background:#9e2a2b}
+input[type=search]{box-sizing:border-box;width:100%;padding:12px;margin:12px 0}
+section{padding:20px 0;border-top:1px solid #c8d4cd}
+label{display:block;margin:12px 0}
+.button-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#status{min-height:2em;margin:16px 0;padding:8px 12px;background:#e8f0ec;border-radius:6px}
+article{background:white;padding:16px;margin:12px 0;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+article p{white-space:pre-wrap;margin:8px 0 0}
+small{color:#45625a}
 </style>
+</head>
+<body>
 <h1>Local document search</h1>
 <p>Search text and Markdown on this device using an embedding model and a reranker.</p>
-<section>
+<section aria-labelledby="models-heading">
+<h2 id="models-heading" style="font-size:20px;margin-top:0">Models</h2>
 <label><input id="retention" type="checkbox"> Keep these model releases for offline use. Offline use cannot check new revocations.</label>
+<div class="button-row">
 <button id="install">Install models</button>
 <button id="open">Open installed models</button>
 <button id="repair">Repair damaged model files</button>
-<button id="cancel" disabled>Cancel</button>
+<button id="cancel-load" class="danger" disabled>Cancel loading</button>
+<button id="cancel" style="display:none" disabled>Cancel</button>
+</div>
 </section>
-<section>
+<section aria-labelledby="documents-heading">
+<h2 id="documents-heading" style="font-size:20px;margin-top:0">Documents & Search</h2>
 <label>Documents <input id="files" type="file" accept=".txt,.md,.markdown,text/plain,text/markdown" multiple></label>
+<div class="button-row">
 <button id="index" disabled>Save document index</button>
 <button id="rebuild" disabled>Rebuild retained index</button>
+</div>
+<form id="search-form" onsubmit="return false;" style="margin-top:16px">
+<label for="query">Search query</label>
 <input id="query" type="search" placeholder="Ask about your documents" aria-label="Search query">
-<button id="search" disabled>Search</button>
+<div class="button-row">
+<button id="search" type="submit" disabled>Search</button>
+<button id="cancel-search" type="button" class="danger" disabled>Cancel search</button>
+</div>
+</form>
 </section>
-<p id="status" role="status">Preparing application…</p>
-<div id="results"></div>
+<p id="status" role="status" aria-live="polite">Preparing application…</p>
+<div id="results" aria-live="polite" role="region" aria-label="Search results"></div>
 <script type="importmap">{"imports":{"doppler-gpu":"./runtime/src/capsule-runtime.js","doppler-gpu/host":"./runtime/src/client/capsule-host.browser.js","doppler-gpu/capsule":"./runtime/src/capsule.js","doppler-gpu/tooling/storage":"./runtime/src/tooling-exports/storage.js"}}</script>
 <script type="module" src="./browser.js"></script>
+</body>
 </html>

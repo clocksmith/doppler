@@ -24,4 +24,47 @@ assert.equal(embeddingCalls, calls, 'cancelled indexing fails before model work'
 const invalid = structuredClone(index); invalid.documents[0].vector[0] = Infinity;
 await assert.rejects(search.search(invalid, 'which'), /Invalid retained/);
 await assert.rejects(search.indexDocuments([{ id: 'c', title: 'PDF', text: 'data', mediaType: 'application/pdf' }]), /Only text/);
+
+// Incremental indexing verification
+const callsBeforeReuse = embeddingCalls;
+const reusedIndex = await search.indexDocuments(
+  [{ id: 'a', title: 'First', text: 'first', mediaType: 'text/plain' },
+   { id: 'b', title: 'Second', text: 'second', mediaType: 'text/markdown' }],
+  index
+);
+assert.equal(embeddingCalls, callsBeforeReuse, 'unchanged documents reuse prior vectors without embedding calls');
+assert.deepEqual(reusedIndex.documents[0].vector, index.documents[0].vector);
+assert.deepEqual(reusedIndex.documents[1].vector, index.documents[1].vector);
+
+// Modified document re-embeds only the modified item
+const modifiedIndex = await search.indexDocuments(
+  [{ id: 'a', title: 'First', text: 'first', mediaType: 'text/plain' },
+   { id: 'b', title: 'Second Modified', text: 'second changed', mediaType: 'text/markdown' }],
+  reusedIndex
+);
+assert.equal(embeddingCalls, callsBeforeReuse + 1, 'only modified document triggered an embedding call');
+assert.deepEqual(modifiedIndex.documents[0].vector, index.documents[0].vector);
+
+// Removed document is omitted from the resulting index
+const reducedIndex = await search.indexDocuments(
+  [{ id: 'b', title: 'Second Modified', text: 'second changed', mediaType: 'text/markdown' }],
+  modifiedIndex
+);
+assert.equal(reducedIndex.documents.length, 1);
+assert.equal(reducedIndex.documents[0].id, 'b');
+
+// Incompatible index throws DOCUMENT_SEARCH_INDEX_INCOMPATIBLE
+const incompatibleIndex = structuredClone(index);
+incompatibleIndex.embeddingIdentity = { semanticRoot: 'different' };
+await assert.rejects(
+  search.indexDocuments([{ id: 'a', title: 'First', text: 'first', mediaType: 'text/plain' }], incompatibleIndex),
+  (err) => {
+    assert.equal(err.code, 'DOCUMENT_SEARCH_INDEX_INCOMPATIBLE');
+    assert.match(err.message, /incompatible/);
+    return true;
+  },
+  'incompatible priorIndex throws DOCUMENT_SEARCH_INDEX_INCOMPATIBLE'
+);
+
 console.log('document-search.test: passed (synthetic vectors, no retrieval-quality claim)');
+
