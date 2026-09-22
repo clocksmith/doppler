@@ -59,7 +59,7 @@
   },
   {
    "path": "kernels/dequant.rules.json",
-   "digest": "sha256:a35d693164b8938e2de4c5185977d72eeeeecb095f91e44f87d9b88ad24c4650"
+   "digest": "sha256:f834b8a898c1a6b77c1a9f441d7b75de23d8b1c37803935de6ad09a908e6374d"
   },
   {
    "path": "kernels/energy.rules.json",
@@ -1991,6 +1991,37 @@
   },
   "kernels/dequant.rules.json": {
    "variant": [
+    {
+     "match": {
+      "platformId": {
+       "in": [
+        "apple-m2",
+        "apple-m3",
+        "nvidia-rtx30",
+        "nvidia-rtx40"
+       ]
+      },
+      "hasSubgroups": true,
+      "wantsF16Out": true,
+      "useVec4": true
+     },
+     "value": "subgroup_vec4_f16out"
+    },
+    {
+     "match": {
+      "platformId": {
+       "in": [
+        "apple-m2",
+        "apple-m3",
+        "nvidia-rtx30",
+        "nvidia-rtx40"
+       ]
+      },
+      "hasSubgroups": true,
+      "useVec4": true
+     },
+     "value": "subgroup_vec4"
+    },
     {
      "match": {
       "platformId": {
