@@ -213,10 +213,10 @@ export function createDocumentSearchController({
             if (!response.ok) throw new Error(`Capsule metadata acquisition failed: ${response.status}`);
             const capsule = await response.json();
             const options = structuredClone(model.options);
-            if (options.releasePolicy) {
+            if (options.releasePolicy && model.retainedLocalUse) {
               options.releasePolicy.retainedLocalUse = {
                 ...model.retainedLocalUse,
-                acceptedAtUtc: new Date().toISOString(),
+                acceptedAtUtc: model.retainedLocalUse.acceptedAtUtc ?? new Date().toISOString(),
               };
             }
             controller.signal.throwIfAborted();

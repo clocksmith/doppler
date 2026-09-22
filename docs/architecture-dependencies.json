@@ -3866,6 +3866,7 @@
         "tests/capsule/capsule-v2.test.js",
         "tests/capsule/capsule-v3.test.js",
         "tests/client/capsule-host.test.js",
+        "tests/client/document-search-controller.test.js",
         "tests/client/document-search.test.js",
         "tests/client/electron-capsule-runtime.test.js",
         "tests/client/electron-ipc-authority.test.js",

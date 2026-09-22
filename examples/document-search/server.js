@@ -173,6 +173,7 @@ export function createServer() {
       }
     }
 
+    console.log('[Server 404]', req.url);
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end(`Not Found: ${req.url}`);
   });
