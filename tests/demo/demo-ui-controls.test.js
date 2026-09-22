@@ -21,20 +21,19 @@ assert.match(html, /id="model-select-action"/);
 assert.match(modelsSource, /from 'doppler-gpu\/compat'/);
 
 assert.equal((html.match(/id="xray-toggle-all"/g) ?? []).length, 1);
-assert.match(html, /<span class="chat-toggle-label">X-Ray<\/span>\s*<input id="xray-toggle-all" type="checkbox">/);
-assert.match(html, /<span class="chat-toggle-label">Perplexity<\/span>\s*<input id="set-word-quality" type="checkbox">/);
-assert.match(html, /chat-controls-summary-state">Standard/);
-assert.match(html, /Enabled · 5 evidence panels/);
+assert.match(html, /<label class="inspection-setting" for="xray-toggle-all">/);
+assert.match(html, /<label class="inspection-setting" for="set-word-quality">/);
+assert.match(html, /id="xray-summary-state"[^>]*>Timing, tokens, execution/);
 assert.doesNotMatch(html, /capture-transcript|export-transcript|set-token-press/);
 assert.match(xraySource, /GPU timestamp queries/);
-assert.match(xraySource, /canonical fingerprint matches/);
+assert.match(xraySource, /matching comparison fingerprints/);
 assert.match(wordQualityStyles, /\.word-quality/);
 assert.doesNotMatch(wordQualityStyles, /\.tp-token|\.tp-alternatives/);
 assert.match(settingsSource, /doppler\.demo\.word-quality-enabled/);
 
 assert.match(html, /<select id="set-max-tokens"[\s\S]*?<option value="256" selected>/);
 assert.match(settingsSource, /DEMO_DEFAULT_MAX_TOKENS = 256/);
-assert.match(html, /id="shuffle-btn"[^>]*>[\s\S]*Example<\/button>/);
+assert.match(html, /id="shuffle-btn"[^>]*>[\s\S]*Try a prompt<\/button>/);
 // Inspection accepts text and returns completed timing; don't offer disconnected controls.
 assert.doesNotMatch(html, /id="image-drop"|id="set-live-toks"/);
 assert.match(html, /id="run-btn"[^>]*>[\s\S]*Send<\/button>/);

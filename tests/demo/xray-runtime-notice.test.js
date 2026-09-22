@@ -8,7 +8,7 @@ assert.equal(
     profilingEnabled: true,
     traceEnabled: false,
   }),
-  'Deep X-Ray modifies execution and enables GPU timestamp queries. Its timings are diagnostic, not representative throughput.'
+  'X-Ray captures GPU timestamps and changes execution. Timings are diagnostic, not a throughput benchmark.'
 );
 
 assert.equal(
@@ -17,7 +17,7 @@ assert.equal(
     profilingEnabled: false,
     traceEnabled: false,
   }),
-  'Guided quality inspection captures token probabilities and changes execution. Compare quality only when the canonical fingerprint matches.'
+  'Token inspection changes execution. Compare quality only with matching comparison fingerprints.'
 );
 
 assert.equal(
@@ -26,7 +26,7 @@ assert.equal(
     profilingEnabled: true,
     traceEnabled: true,
   }),
-  'Deep X-Ray modifies execution and enables GPU timestamp queries. Its timings are diagnostic, not representative throughput.'
+  'X-Ray captures GPU timestamps and changes execution. Timings are diagnostic, not a throughput benchmark.'
 );
 
 assert.equal(
@@ -51,5 +51,5 @@ console.log('xray-runtime-notice.test: ok');
 
 assert.equal(
   getXrayRuntimeNoticeText({ tokenInspectorActive: true, wordQualityEnabled: false, profilingEnabled: false }),
-  'Guided quality inspection captures token probabilities and changes execution. Compare quality only when the canonical fingerprint matches.'
+  'Token inspection changes execution. Compare quality only with matching comparison fingerprints.'
 );
