@@ -33,7 +33,8 @@
         },
         "releaseEventDigest": "sha256:0fd8ab37bba5d810b1560b334cd8d158d3527edaaab7416fde60e329f8d3e021",
         "applicationDigest": "sha256:3171510bbb2ce5642549a1d62475cd80343745f09fc59a55903b6f0606e3e895",
-        "acknowledgeUnseenRevocations": true
+        "acknowledgeUnseenRevocations": true,
+        "acceptedAtUtc": "2026-09-07T17:28:42.184Z"
       },
       "options": {
         "trustedSigners": {
@@ -199,7 +200,8 @@
         },
         "releaseEventDigest": "sha256:3ea8d0c1dc7f03f56442029e752195523045f47c49f634f67fe7398505796424",
         "applicationDigest": "sha256:c18f0a399966eed977229fb2efa8c6c804d6423cefe981e10e5236490427e133",
-        "acknowledgeUnseenRevocations": true
+        "acknowledgeUnseenRevocations": true,
+        "acceptedAtUtc": "2026-09-07T17:30:26.821Z"
       },
       "options": {
         "trustedSigners": {
