@@ -175,7 +175,7 @@ globalThis.documentSearch = {
   search: query => runAction(() => controller.search(query)),
   close: () => controller.close(),
   rebuildIndex: () => runAction(() => controller.rebuild()),
-  observations: controller.getObservations(),
+  get observations() { return controller.getObservations(); },
   controller,
   registration,
   ready: true,

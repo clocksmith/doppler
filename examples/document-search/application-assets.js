@@ -1,10 +1,10 @@
 self.DOCUMENT_SEARCH_ASSETS = {
-  "cacheName": "doppler-document-search-90021ed18d1ab958b2e788bab949acd81c686e6619018a8a972b981f9c8192b8",
+  "cacheName": "doppler-document-search-23fac5edde79ed715f1caa28a780a9aac8c6f0d149ee1f59f129b7a87c0278fa",
   "assets": [
     {
       "path": "browser.js",
-      "sha256": "8b3ce2572f18934ce6f671d611c4197f83fbe66686045804764f1fda2c4faf2a",
-      "sizeBytes": 7025
+      "sha256": "9b96bf1f1b8a1748367ac445fff5f3ef3a6545e5aaacbd878efaffe0e5c2f314",
+      "sizeBytes": 7042
     },
     {
       "path": "controller.js",
