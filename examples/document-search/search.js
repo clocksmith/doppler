@@ -65,7 +65,7 @@ export function createDocumentSearch({ embedding, reranker, embeddingApplication
         if (typeof document.text !== 'string' || !document.text.trim()) throw new Error('Document text is required.');
         if (typeof document.id !== 'string' || !document.id.trim()) throw new Error('Document id is required.');
         if (typeof document.title !== 'string') throw new Error('Document title is required.');
-        const contentHash = document.contentHash ?? await digest(documentPrefix + document.text);
+        const contentHash = await digest(documentPrefix + document.text);
         const prior = priorDocs.get(document.id);
         let docVector;
         if (prior && prior.contentHash === contentHash && Array.isArray(prior.vector)

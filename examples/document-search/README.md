@@ -30,16 +30,36 @@ requirements, and test network/logging behavior across the complete application.
 ## Quick Start (Copy and Run)
 
 ### 1. Prerequisites
-- Modern browser with WebGPU support (Chromium 113+).
-- Node.js 18+ (used to host the local static file server).
+
+- Chromium with the declared models' WebGPU features, including `shader-f16`.
+- Node.js 18+ to install the frozen package and host the application.
+- Disk and GPU capacity for both resident models, plus retained artifacts and the
+  document index. A retention-cache budget is not a total memory limit.
+
+**Acquisition blocker:** `shard-sources.json` records the exact Capsule hashes,
+sizes, and immutable public URLs. Null URLs mean those declared bytes are not yet
+published at an approved location. The current source audit found 24 unavailable
+shards across the two models. Installation cannot complete until these exact bytes
+are published and pinned. Do not replace F16 shards with similarly named Q4K files
+or point the server at a developer cache to claim standalone acceptance.
 
 ### 2. Install and Start
 ```sh
 cd examples/document-search
-npm install
+npm ci --omit=optional
 npm start
 ```
-The local server starts at `http://127.0.0.1:8080/index.html`.
+The entire directory can be copied outside the repository, including `vendor/`.
+The lockfile pins the included runtime archive by integrity; no private signing
+keys or developer-local paths are needed. `--omit=optional` omits native Node GPU
+providers because this starter executes models in the browser. `npm ci` rejects
+dependency/lock mismatches rather than rewriting the lock.
+
+Installation and prestart run `prepare.js`: it checks archive integrity, inventories
+the installed runtime and application assets, and generates `application-assets.js`
+and `build-receipt.json`. The server only resolves runtime files from this starter's
+`node_modules/doppler-gpu`, never `../../src` or a manually copied runtime tree.
+The server starts at `http://127.0.0.1:8080/index.html`.
 
 ### 3. Usage Walkthrough
 1. Open `http://127.0.0.1:8080/index.html` in a WebGPU-enabled browser.
@@ -48,14 +68,41 @@ The local server starts at `http://127.0.0.1:8080/index.html`.
 4. Under **Documents & Search**, click **Choose Files** and select files from `samples/` (e.g., `sourdough.md`, `tire.txt`, `eclipse.md`, `solar.txt`, `git.md`, `starter-motor.txt`).
 5. Click **"Save document index"** to index your documents locally into OPFS.
 6. Type a query into the search box (e.g., *"How do I change a flat tire?"* or *"How does wild yeast fermentation work?"*) and press Enter or click **"Search"**.
-7. Test offline capability: close the browser, disconnect your network, reload the page, and click **"Open installed models"**. Search functions with zero network requests.
+7. After installation and indexing succeed, close models and the browser, stop the
+   server, disconnect networking, and reopen the same URL/profile. Choose **Open
+   installed models**. Model search acceptance must establish that documents and
+   queries remain local; application-shell caching alone does not establish this.
 
 ## Architecture and Contracts
 
-`controller.js` coordinates model lifecycle, session retention, and atomic index commits.
+`controller.js` coordinates model lifecycle, session retention, and tracked operations.
+Cancellation buttons follow controller state, including indexing. Explicit **Close
+models** awaits active work and releases sessions; `controller.dispose()` additionally
+rejects future work, prevents late state publication, and reports cleanup failures.
+Do not rely on page-unload callbacks to finish asynchronous cleanup.
+
+`document-store.js` commits documents and vectors in one integrity-checked snapshot,
+using asynchronous atomic file replacement. Interrupted staging, failed writes,
+or cancellation before close preserve the previous snapshot. Starting atomic close
+is the commit point: later cancellation does not claim that a completed publication
+was rolled back. Disposal waits for it but never publishes a late in-memory index.
+SyncAccessHandle/in-place writes are not supported for this application contract.
+Legacy installations are read without mixing independently saved document/index files.
+
+`document-import.js` gives documents independent IDs; equal filenames do not collide.
+Unchanged retained imports keep their IDs. Content hashes are recomputed for embedding
+reuse rather than accepted from untrusted import metadata.
 `search.js` owns document hashing, cosine candidate retrieval, and reranking without framework dependencies.
 `installation.js` manages local artifact caching in OPFS, checksum verification, and rollback protection.
 `service-worker.js` caches application assets for complete offline availability.
+
+From the repository, `node tools/check-document-search-starter.js` copies the starter
+outside the checkout, runs frozen `npm ci`, verifies every served asset, and reopens
+the actual application shell with the server stopped and browser networking disabled.
+Its retained receipt explicitly says `physicalExecution: false`. UI cancellation
+tests use synthetic model ports and are separate from GPU qualification. A final
+model receipt must bind this installed archive, generated manifest, signed model
+identities, environment, fixture, and probe; no source copying after qualification.
 
 ## Engineering build and reproduction
 

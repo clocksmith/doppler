@@ -15,7 +15,7 @@ export async function checkInterruptedInstallation(page, context, origin) {
   const pattern = '**/capsules/embedding/artifacts/model/shard_00000.bin';
   await context.route(pattern, async route => {
     interrupted = true;
-    await page.click('#cancel');
+    await page.click('#cancel-load');
     try { await route.abort('aborted'); }
     catch (error) { if (!/Route is already handled/.test(error.message)) throw error; }
   });
@@ -83,11 +83,11 @@ export async function checkIncompatibleIndex(page, fixture) {
     const root = await navigator.storage.getDirectory();
     const storage = await root.getDirectoryHandle(config.storage.opfsRootDir);
     const directory = await storage.getDirectoryHandle('documents');
-    const file = await directory.getFileHandle('index.json');
+    const file = await directory.getFileHandle('document-snapshot.json');
     const record = JSON.parse(await (await file.getFile()).text());
-    const prior = record.index.embeddingIdentity;
-    record.index.embeddingIdentity = JSON.stringify({ semanticRoot: 'injected-incompatible-prior-release' });
-    const bytes = new TextEncoder().encode(JSON.stringify(record.index));
+    const prior = record.data.index.embeddingIdentity;
+    record.data.index.embeddingIdentity = JSON.stringify({ semanticRoot: 'injected-incompatible-prior-release' });
+    const bytes = new TextEncoder().encode(JSON.stringify(record.data));
     record.digest = 'sha256:' + Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
     const writer = await file.createWritable(); await writer.write(JSON.stringify(record)); await writer.close();
     return prior;

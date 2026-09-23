@@ -1,4 +1,7 @@
 {
+  "tools/check-document-search-starter.js": {
+    "import(pathToFileURL(path.join(app, 'server.js')).href)": ["../examples/document-search/server.js"]
+  },
   "src/inference/browser-harness/model-initialization.js": {
     "import(NODE_SOURCE_RUNTIME_MODULE_PATH)": ["../../tooling/node-source-runtime.js"]
   },
