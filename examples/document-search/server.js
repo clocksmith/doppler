@@ -3,191 +3,87 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
-const PORT = Number(process.env.PORT) || 8080;
-const HOST = process.env.HOST || '127.0.0.1';
+const MIME_TYPES = { '.html': 'text/html', '.js': 'application/javascript', '.json': 'application/json',
+  '.css': 'text/css', '.txt': 'text/plain', '.md': 'text/plain', '.wgsl': 'text/plain' };
+const inside = (root, filename) => filename.startsWith(root + path.sep);
 
-const MIME_TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'application/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.txt': 'text/plain; charset=utf-8',
-  '.md': 'text/markdown; charset=utf-8',
-  '.bin': 'application/octet-stream',
-  '.wgsl': 'text/plain; charset=utf-8',
-};
-
-const UPSTREAM_SHARDS = {
-  embedding: {
-    repo: '049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32',
-    localDir: path.resolve(DIR, '../../models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32'),
-  },
-  reranker: {
-    repo: 'f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32',
-    localDir: path.resolve(DIR, '../../models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32'),
-  },
-};
-
-async function resolveFilePath(urlPath) {
-  const cleanPath = urlPath.split('?')[0].replace(/^\/+/, '');
-  const target = cleanPath === '' ? 'index.html' : cleanPath;
-
-  // 1. Direct file in application directory
-  const localFile = path.resolve(DIR, target);
-  if (localFile.startsWith(DIR) && fs.existsSync(localFile) && fs.statSync(localFile).isFile()) {
-    return localFile;
-  }
-
-  // 2. Runtime files: ./runtime/src/... -> check node_modules or repo root src
-  if (target.startsWith('runtime/src/')) {
-    const subPath = target.slice('runtime/src/'.length);
-    const inNodeModules = path.resolve(DIR, 'node_modules/doppler-gpu/src', subPath);
-    if (fs.existsSync(inNodeModules) && fs.statSync(inNodeModules).isFile()) {
-      return inNodeModules;
-    }
-    const inRepo = path.resolve(DIR, '../../src', subPath);
-    if (fs.existsSync(inRepo) && fs.statSync(inRepo).isFile()) {
-      return inRepo;
-    }
-  }
-
-  // 3. Shard files: check local model cache if present in repo
-  const shardMatch = target.match(/^capsules\/(embedding|reranker)\/artifacts\/model\/(shard_\d+\.bin)$/);
-  if (shardMatch) {
-    const [, role, shardName] = shardMatch;
-    const localModelFile = path.resolve(UPSTREAM_SHARDS[role].localDir, shardName);
-    if (fs.existsSync(localModelFile) && fs.statSync(localModelFile).isFile()) {
-      return localModelFile;
-    }
-  }
-
-  return null;
-}
-
-export function createServer() {
+export function createServer({ root = DIR, fetch: acquire = globalThis.fetch } = {}) {
+  root = path.resolve(root);
   return http.createServer(async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', '*');
-
-    if (req.method === 'OPTIONS') {
-      res.writeHead(204);
-      res.end();
-      return;
-    }
-
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-      res.writeHead(405, { 'Content-Type': 'text/plain' });
-      res.end('Method Not Allowed');
-      return;
-    }
-
-    const filePath = await resolveFilePath(req.url);
-
-    if (filePath) {
-      const ext = path.extname(filePath).toLowerCase();
-      const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-      const stat = await fsp.stat(filePath);
-      const range = req.headers.range;
-
-      if (range) {
-        const parts = range.replace(/bytes=/, '').split('-');
-        const start = parseInt(parts[0], 10);
-        const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
-        const chunkSize = end - start + 1;
-
-        res.writeHead(206, {
-          'Content-Range': `bytes ${start}-${end}/${stat.size}`,
-          'Accept-Ranges': 'bytes',
-          'Content-Length': chunkSize,
-          'Content-Type': contentType,
-        });
-
-        if (req.method === 'HEAD') {
-          res.end();
-          return;
+    try {
+      if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405).end(); return; }
+      const target = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '') || 'index.html';
+      if (target.split('/').some(part => part === '..' || part === '.') || target.includes('\\')) {
+        res.writeHead(400).end('Invalid path'); return;
+      }
+      const shard = /^capsules\/(embedding|reranker)\/artifacts\/model\/(shard_\d+\.bin)$/.exec(target);
+      if (shard) {
+        // Exact signed descriptors, never repository caches or guessed dtype routes.
+        const sources = JSON.parse(await fsp.readFile(path.join(root, 'shard-sources.json'), 'utf8'));
+        const source = sources.artifacts[target];
+        if (!source?.url) { res.writeHead(503).end('No published source for declared artifact: ' + target); return; }
+        const capsule = JSON.parse(await fsp.readFile(path.join(root, 'capsules', shard[1], 'capsule-v3.json'), 'utf8'));
+        const artifact = capsule.artifacts.find(entry => entry.path === 'artifacts/model/' + shard[2]);
+        if (!artifact || source.hash !== artifact.hash || source.sizeBytes !== artifact.sizeBytes) {
+          throw new Error('Shard route does not match the accepted Capsule.');
         }
-
-        fs.createReadStream(filePath, { start, end }).pipe(res);
+        const controller = new AbortController();
+        res.on('close', () => { if (!res.writableEnded) controller.abort(); });
+        const upstream = await acquire(source.url, { method: req.method, signal: controller.signal,
+          headers: req.headers.range ? { range: req.headers.range } : {} });
+        if (!upstream.ok) { res.writeHead(upstream.status).end('Declared artifact acquisition failed.'); return; }
+        const headers = { 'Content-Type': 'application/octet-stream' };
+        for (const key of ['content-length', 'content-range', 'accept-ranges']) {
+          if (upstream.headers.has(key)) headers[key] = upstream.headers.get(key);
+        }
+        res.writeHead(upstream.status, headers);
+        if (req.method === 'HEAD') res.end();
+        else await pipeline(Readable.fromWeb(upstream.body), res);
         return;
       }
-
-      res.writeHead(200, {
-        'Content-Length': stat.size,
-        'Content-Type': contentType,
-        'Accept-Ranges': 'bytes',
-      });
-
-      if (req.method === 'HEAD') {
-        res.end();
-        return;
+      // Runtime URLs resolve ONLY inside this starter's installed package.
+      const runtime = target.startsWith('runtime/');
+      const base = runtime ? path.join(root, 'node_modules/doppler-gpu') : root;
+      const filename = path.resolve(base, runtime ? target.slice('runtime/'.length) : target);
+      if (!inside(base, filename) || target.startsWith('node_modules/') || target.startsWith('vendor/')) {
+        res.writeHead(404).end(); return;
       }
-
-      fs.createReadStream(filePath).pipe(res);
-      return;
-    }
-
-    // 4. Shard proxy from Hugging Face if not present locally
-    const shardMatch = req.url.split('?')[0].replace(/^\/+/, '').match(/^capsules\/(embedding|reranker)\/artifacts\/model\/(shard_\d+\.bin)$/);
-    if (shardMatch) {
-      const [, role, shardName] = shardMatch;
-      const hfUrl = `https://huggingface.co/clocksmith/rdrr/resolve/${UPSTREAM_SHARDS[role].repo}/${shardName}`;
-      try {
-        const hfRes = await fetch(hfUrl, {
-          headers: req.headers.range ? { range: req.headers.range } : {},
-        });
-
-        if (!hfRes.ok && hfRes.status !== 206) {
-          res.writeHead(hfRes.status, { 'Content-Type': 'text/plain' });
-          res.end(`Upstream fetch failed: ${hfRes.status}`);
-          return;
+      const real = await fsp.realpath(filename);
+      if (!inside(base, real)) { res.writeHead(404).end(); return; }
+      const stat = await fsp.stat(real);
+      if (!stat.isFile()) { res.writeHead(404).end(); return; }
+      const headers = { 'Content-Type': MIME_TYPES[path.extname(real)] ?? 'application/octet-stream',
+        'Content-Length': stat.size, 'Accept-Ranges': 'bytes' };
+      let range;
+      if (req.headers.range) {
+        const match = /^bytes=(\d+)-(\d*)$/.exec(req.headers.range);
+        const start = Number(match?.[1]);
+        const end = match?.[2] ? Number(match[2]) : stat.size - 1;
+        if (!match || !Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || end >= stat.size) {
+          res.writeHead(416, { 'Content-Range': 'bytes */' + stat.size }).end(); return;
         }
-
-        const headers = {
-          'Content-Type': 'application/octet-stream',
-          'Accept-Ranges': 'bytes',
-        };
-        if (hfRes.headers.has('content-length')) headers['Content-Length'] = hfRes.headers.get('content-length');
-        if (hfRes.headers.has('content-range')) headers['Content-Range'] = hfRes.headers.get('content-range');
-
-        res.writeHead(hfRes.status, headers);
-        if (req.method === 'HEAD') {
-          res.end();
-          return;
-        }
-
-        const stream = hfRes.body;
-        if (stream) {
-          for await (const chunk of stream) {
-            res.write(chunk);
-          }
-        }
-        res.end();
-        return;
-      } catch (err) {
-        res.writeHead(502, { 'Content-Type': 'text/plain' });
-        res.end(`Upstream proxy error: ${err.message}`);
-        return;
+        range = { start, end };
+        headers['Content-Range'] = 'bytes ' + start + '-' + end + '/' + stat.size;
+        headers['Content-Length'] = end - start + 1;
       }
+      res.writeHead(range ? 206 : 200, headers);
+      if (req.method === 'HEAD') res.end();
+      else await pipeline(fs.createReadStream(real, range), res);
+    } catch (error) {
+      if (!res.headersSent) res.writeHead(error.code === 'ENOENT' ? 404 : 500, { 'Content-Type': 'text/plain' }).end(error.message);
+      else res.destroy(error);
     }
-
-    console.log('[Server 404]', req.url);
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end(`Not Found: ${req.url}`);
   });
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const port = Number(process.env.PORT) || 8080;
+  const host = process.env.HOST || '127.0.0.1';
   const server = createServer();
-  server.listen(PORT, HOST, () => {
-    console.log(`Local document search running at: http://${HOST}:${PORT}/index.html`);
-  });
-
-  const stop = () => {
-    server.close(() => process.exit(0));
-  };
-  process.on('SIGINT', stop);
-  process.on('SIGTERM', stop);
+  server.listen(port, host, () => console.log('Local document search: http://' + host + ':' + port + '/index.html'));
+  for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => server.close(() => process.exit(0)));
 }

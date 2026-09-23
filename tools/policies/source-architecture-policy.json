@@ -203,6 +203,7 @@
       "inference/pipelines/text.js",
       "inference/pipelines/text/config.js",
       "inference/pipelines/text/init.js",
+      "inference/pipelines/text/layer-partition-contract.js",
       "inference/pipelines/text/model-load.js"
     ],
     "inference/pipelines/text/types.js": [],

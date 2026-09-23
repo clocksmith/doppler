@@ -1,0 +1,58 @@
+{
+  "schema": "doppler.installed-document-search-build/v1",
+  "packageSha256": "625b8ed8c8e86c28a5b49e1e5ce43969885acd3df309f456eba719d3eeaa5539",
+  "packageIntegrity": "sha512-rMYlPbd2/xVihWw1/+OFsbz5QBK77PtZXnNKY0rUzcSAdd2BgVYHSk/JjYi7HnbXO+G+vyuNdlYOw2dFDcOvPw==",
+  "lockSha256": "6d8609801c0b02d90623b6d396cbd1cee0db5606eca9e748f14125ab35319afe",
+  "applicationManifestSha256": "f19af9b4a49bd2b23e125c9f3f440b51549a3582a34d5a652825d492c5677b23",
+  "models": [
+    {
+      "role": "embedding",
+      "identity": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "envelopeDigest": "sha256:32503db6b070ac78d0355bc6d9538bcd0a660543f1867f754543013b5de0f86e",
+        "artifactClosureDigest": "sha256:987b6e88da6e461449bc5c9c69c90a57d1c81a49ba7bba983ac184f8f9bfe8b3"
+      }
+    },
+    {
+      "role": "reranker",
+      "identity": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "semanticRoot": "sha256:4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "envelopeDigest": "sha256:bdaa28c214bd5ae65bb04945eb3aa07a0937f2c3fa81cf54de39b5fc2d21876a",
+        "artifactClosureDigest": "sha256:a32ad7bad893bb14a4221eeb97a47c0b6646ab270800fccbf902c6803272d0b0"
+      }
+    }
+  ],
+  "runtimeFiles": 1865,
+  "sourceSubstitution": false,
+  "unavailableArtifacts": [
+    "capsules/embedding/artifacts/model/shard_00004.bin",
+    "capsules/embedding/artifacts/model/shard_00005.bin",
+    "capsules/embedding/artifacts/model/shard_00006.bin",
+    "capsules/embedding/artifacts/model/shard_00007.bin",
+    "capsules/embedding/artifacts/model/shard_00008.bin",
+    "capsules/embedding/artifacts/model/shard_00009.bin",
+    "capsules/embedding/artifacts/model/shard_00010.bin",
+    "capsules/embedding/artifacts/model/shard_00011.bin",
+    "capsules/embedding/artifacts/model/shard_00012.bin",
+    "capsules/embedding/artifacts/model/shard_00013.bin",
+    "capsules/embedding/artifacts/model/shard_00014.bin",
+    "capsules/embedding/artifacts/model/shard_00015.bin",
+    "capsules/embedding/artifacts/model/shard_00016.bin",
+    "capsules/embedding/artifacts/model/shard_00017.bin",
+    "capsules/reranker/artifacts/model/shard_00004.bin",
+    "capsules/reranker/artifacts/model/shard_00005.bin",
+    "capsules/reranker/artifacts/model/shard_00006.bin",
+    "capsules/reranker/artifacts/model/shard_00007.bin",
+    "capsules/reranker/artifacts/model/shard_00008.bin",
+    "capsules/reranker/artifacts/model/shard_00009.bin",
+    "capsules/reranker/artifacts/model/shard_00010.bin",
+    "capsules/reranker/artifacts/model/shard_00011.bin",
+    "capsules/reranker/artifacts/model/shard_00012.bin",
+    "capsules/reranker/artifacts/model/shard_00013.bin"
+  ],
+  "physicalAcceptance": false
+}

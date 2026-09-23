@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { createDocumentSearchController } from '../../examples/document-search/controller.js';
+import { importDocuments } from '../../examples/document-search/document-import.js';
+import { readDocumentSnapshot } from '../../examples/document-search/document-store.js';
 
 // Synthetic storage implementation for headless controller test
 function createMockStore() {
@@ -19,6 +21,15 @@ function createMockStore() {
     },
     async deleteFile(path) {
       return files.delete(path);
+    },
+    async createWriteStream(path) {
+      let bytes;
+      let aborted = false;
+      return {
+        async write(data) { if (aborted) throw new Error('Aborted'); bytes = data.slice(); },
+        async close() { if (aborted) throw new Error('Aborted'); files.set(path, bytes); },
+        async abort() { aborted = true; },
+      };
     },
     _files: files,
   };
@@ -334,4 +345,112 @@ const baseConfig = {
   await controller.close();
 }
 
-console.log('document-search-controller.test: passed (lifecycle coordination and headless state verification)');
+function deferred() {
+  let resolve;
+  const promise = new Promise(r => { resolve = r; });
+  return { promise, resolve };
+}
+async function fixture(overrides = {}) {
+  const stores = { 'emb-store': createMockStore(), 'rerank-store': createMockStore(), documents: createMockStore() };
+  let opens = 0;
+  let closes = 0;
+  const states = [];
+  const controller = createDocumentSearchController({ config: baseConfig, storeFor: async id => stores[id],
+    openCapsule: async () => { opens++; return {
+      embed: async () => ({ embedding: [1, 0] }),
+      rerank: async () => ({ evidence: { scores: [{ index: 0, score: 1 }] } }),
+      close: async () => { closes++; }, ...overrides,
+    }; },
+    fetchArtifact: async () => new Uint8Array(), authorizeRecord: () => true,
+    fetch: async () => ({ ok: true, json: async () => ({ artifacts: [] }) }),
+    onStateChange: () => states.push(controller.getState()),
+  });
+  await controller.install();
+  await controller.indexDocuments([{ id: 'old', title: 'old', text: 'old text', mediaType: 'text/plain' }]);
+  return { controller, store: stores.documents, states, counts: () => ({ opens, closes }) };
+}
+
+// Cancel during staged publication, then search successfully on the SAME sessions.
+{
+  const { controller, store, states, counts } = await fixture();
+  const entered = deferred(); const resume = deferred();
+  const original = store.createWriteStream;
+  store.createWriteStream = async name => {
+    const writer = await original(name);
+    return { ...writer, async write(bytes) { await writer.write(bytes); entered.resolve(); await resume.promise; } };
+  };
+  const pending = controller.indexDocuments([{ id: 'new', title: 'new', text: 'new text', mediaType: 'text/plain' }]);
+  const rejected = assert.rejects(pending, /cancelled/);
+  await entered.promise;
+  assert.equal(controller.getState().isIndexing, true);
+  controller.cancelIndexing(); resume.resolve(); await rejected;
+  assert.equal((await readDocumentSnapshot(store)).documents[0].id, 'old');
+  assert.equal(controller.getIndex().documents[0].id, 'old');
+  assert.equal((await controller.search('query')).results[0].document.id, 'old');
+  assert.deepEqual(counts(), { opens: 2, closes: 0 });
+  assert.ok(states.some(state => state.isIndexing));
+  assert.equal(states.at(-1).isSearching, false);
+  await controller.dispose();
+}
+
+// Failed close/write cannot replace the committed pair; both cleanup errors survive.
+{
+  const { controller, store } = await fixture();
+  const prior = await store.readFile('document-snapshot.json');
+  store.createWriteStream = async () => ({ async write() {}, async close() { throw new Error('disk full'); }, async abort() {} });
+  await assert.rejects(controller.rebuild(), /disk full/);
+  assert.deepEqual(await store.readFile('document-snapshot.json'), prior);
+  await controller.dispose();
+  const failing = await fixture({ close: async () => { throw new Error('cleanup failure'); } });
+  await assert.rejects(failing.controller.dispose(), /cleanup failed/);
+  await assert.rejects(failing.controller.dispose(), /cleanup failed/, 'repeated disposal retains failure');
+}
+
+// Disposal waits for in-flight indexing and prevents its publication.
+{
+  const { controller, store, counts } = await fixture();
+  const entered = deferred(); const resume = deferred();
+  const original = store.createWriteStream;
+  store.createWriteStream = async name => {
+    const writer = await original(name);
+    return { ...writer, async write(bytes) { await writer.write(bytes); entered.resolve(); await resume.promise; } };
+  };
+  const pending = controller.rebuild();
+  const rejected = assert.rejects(pending, /disposed/);
+  await entered.promise;
+  let disposed = false;
+  const disposal = controller.dispose().then(() => { disposed = true; });
+  await Promise.resolve();
+  assert.equal(disposed, false);
+  assert.throws(() => controller.indexDocuments([]), /disposed/);
+  assert.equal(counts().closes, 0);
+  resume.resolve(); await rejected; await disposal;
+  assert.equal(counts().closes, 2);
+  assert.equal(controller.getIndex(), null);
+  assert.equal((await readDocumentSnapshot(store)).documents[0].id, 'old');
+}
+
+// Colliding labels are distinct identities, and unchanged imports keep their IDs.
+{
+  const files = [new File(['one'], 'same.txt'), new File(['two'], 'same.txt'), new File(['one'], 'same.txt')];
+  const documents = await importDocuments(files);
+  assert.equal(new Set(documents.map(document => document.id)).size, 3);
+  assert.deepEqual(await importDocuments(files, documents), documents);
+}
+// Cancellation beyond the atomic commit point does not falsely report rollback.
+{
+  const { controller, store } = await fixture();
+  const entered = deferred(); const resume = deferred();
+  const original = store.createWriteStream;
+  store.createWriteStream = async name => {
+    const writer = await original(name);
+    return { ...writer, async close() { entered.resolve(); await resume.promise; await writer.close(); } };
+  };
+  const save = controller.indexDocuments([{ id: 'new', title: 'new', text: 'new', mediaType: 'text/plain' }]);
+  await entered.promise; controller.cancelIndexing(); resume.resolve();
+  assert.equal((await save).committed, true);
+  assert.equal((await readDocumentSnapshot(store)).documents[0].id, 'new');
+  assert.equal(controller.getIndex().documents[0].id, 'new');
+  await controller.dispose();
+}
+console.log('document-search-controller.test: passed (synthetic lifecycle and atomic-publication regressions)');

@@ -3,6 +3,7 @@ import { createFetchCapsuleArtifactStore } from 'doppler-gpu';
 import { getCapsuleIdentity } from 'doppler-gpu/capsule';
 import { createOpfsStore } from 'doppler-gpu/tooling/storage';
 import { createDocumentSearchController } from './controller.js';
+import { importDocuments } from './document-import.js';
 
 const config = await (await fetch('./models.json')).json();
 const $ = id => document.getElementById(id);
@@ -20,6 +21,7 @@ const controller = createDocumentSearchController({
   fetchCapsuleArtifactStore: capsuleUrl => createFetchCapsuleArtifactStore(new URL(capsuleUrl, location.href).href),
   withLock: (storageId, task) => navigator.locks.request('document-search-' + storageId, task),
   getCapsuleIdentity,
+  onStateChange: () => updateUiState(),
   onProgress: event => {
     if (event.type === 'load-progress') {
       const mb = (event.loadedBytes / (1024 * 1024)).toFixed(1);
@@ -40,14 +42,17 @@ function updateUiState() {
   const state = controller.getState();
   const ready = state.hasSessions;
   const hasIndex = state.hasIndex;
+  const busy = state.isInitializing || state.isSearching || state.isIndexing || state.isClosing || state.isDisposed;
 
-  $('index').disabled = !ready || state.isInitializing || state.isSearching;
-  $('rebuild').disabled = !ready || state.isInitializing || state.isSearching;
-  $('search').disabled = !ready || !hasIndex || state.isInitializing || state.isSearching;
+  $('index').disabled = !ready || busy;
+  $('rebuild').disabled = !ready || busy;
+  $('search').disabled = !ready || !hasIndex || busy;
+  for (const id of ['install', 'open', 'repair']) $(id).disabled = busy;
 
   $('cancel-load').disabled = !state.isInitializing;
   $('cancel-search').disabled = !state.isSearching;
-  if ($('cancel')) $('cancel').disabled = !state.isInitializing && !state.isSearching;
+  $('cancel-index').disabled = !state.isIndexing;
+  if ($('cancel')) $('cancel').disabled = !state.isInitializing && !state.isSearching && !state.isIndexing;
 }
 
 async function runAction(action, loading = false) {
@@ -75,7 +80,9 @@ async function runAction(action, loading = false) {
 
 $('cancel-load').onclick = () => controller.cancelLoading();
 $('cancel-search').onclick = () => controller.cancelSearch();
-if ($('cancel')) $('cancel').onclick = () => { controller.cancelLoading(); controller.cancelSearch(); };
+$('cancel-index').onclick = () => controller.cancelIndexing();
+if ($('cancel')) $('cancel').onclick = () => controller.cancel();
+$('close').onclick = () => runAction(() => controller.close()).catch(() => {});
 
 $('install').onclick = () => {
   if (!$('retention').checked) {
@@ -102,24 +109,12 @@ $('rebuild').onclick = () => runAction(async () => {
   return result;
 }).catch(() => {});
 
-async function hashBytes(bytes) {
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  return 'sha256:' + Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
-}
-
 $('index').onclick = () => runAction(async () => {
   const files = $('files').files;
   if (!files || files.length === 0) {
     throw new Error('Choose files to index.');
   }
-  const input = [];
-  for (const file of files) {
-    if (!/\.(txt|md|markdown)$/i.test(file.name)) throw new Error(`Unsupported file type: ${file.name}. Choose a text or Markdown file.`);
-    const mediaType = /\.(md|markdown)$/i.test(file.name) ? 'text/markdown' : 'text/plain';
-    const text = await file.text();
-    const id = await hashBytes(new TextEncoder().encode(file.name));
-    input.push({ id, title: file.name, text, mediaType });
-  }
+  const input = await importDocuments(files, controller.getIndex()?.documents);
   $('status').textContent = `Indexing ${input.length} documents…`;
   const result = await controller.indexDocuments(input);
   $('status').textContent = `Indexed ${result.documents} documents. Ready for local search.`;
@@ -133,7 +128,7 @@ async function doSearch() {
     $('status').textContent = 'Searching…';
     const result = await controller.search(query.trim());
     if (result.superseded) return;
-    $('results').replaceChildren(...result.results.map(({ document: record, score }) => {
+    $('results').replaceChildren(...result.results.map(({ document: record, rerankScore: score }) => {
       const article = document.createElement('article');
       const title = document.createElement('strong');
       const text = document.createElement('p');

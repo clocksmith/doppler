@@ -11,26 +11,11 @@ function defaultGetCapsuleIdentity(capsule) {
 
 import { createDocumentModelInstallation } from './installation.js';
 import { createDocumentSearch } from './search.js';
-
-const encodeJson = value => new TextEncoder().encode(JSON.stringify(value));
+import { readDocumentSnapshot, writeDocumentSnapshot } from './document-store.js';
 
 async function sha256Hex(bytes) {
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return 'sha256:' + Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function readTextOrNull(store, filename) {
-  try {
-    if (typeof store.readText === 'function') {
-      return await store.readText(filename);
-    }
-    const bytes = await store.readFile(filename);
-    if (!bytes) return null;
-    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-  } catch (err) {
-    if (err?.name === 'NotFoundError') return null;
-    throw err;
-  }
 }
 
 export function createDocumentSearchController({
@@ -45,6 +30,7 @@ export function createDocumentSearchController({
   fetch = globalThis.fetch,
   observer = null,
   onProgress = null,
+  onStateChange = null,
 }) {
   if (!config || !Array.isArray(config.models)) {
     throw new Error('Configuration with models array is required.');
@@ -55,6 +41,7 @@ export function createDocumentSearchController({
   if (typeof openCapsule !== 'function') {
     throw new Error('openCapsule function is required.');
   }
+  if (config.storage?.useSyncAccessHandle === true) throw new Error('Document publication requires atomic asynchronous storage, not SyncAccessHandle.');
 
   const installations = {};
   let sessions = {};
@@ -69,6 +56,43 @@ export function createDocumentSearchController({
   let searchController = null;
   let latestQueryId = 0;
   let isDisposed = false;
+  let isClosing = false;
+  let closePromise = null;
+  const activeOperations = new Set();
+  const cleanupErrors = [];
+  let operationTail = Promise.resolve();
+
+  function changed() { onStateChange?.(); }
+  function assertUsable() {
+    if (isDisposed || isClosing) throw new DOMException('Controller disposed or closing.', 'AbortError');
+  }
+  function track(kind, options, task) {
+    assertUsable();
+    if (initPromise) throw new Error('Wait for model initialization.');
+    const controller = new AbortController();
+    const onAbort = () => controller.abort(options.signal.reason);
+    if (options.signal?.aborted) onAbort();
+    else options.signal?.addEventListener('abort', onAbort, { once: true });
+    const operation = { kind, controller, promise: null };
+    activeOperations.add(operation);
+    operation.promise = operationTail.catch(() => {}).then(async () => {
+      controller.signal.throwIfAborted();
+      assertUsable();
+      const result = await task({ ...options, signal: controller.signal });
+      // Once atomic snapshot close begins, publication owns its completion.
+      // Do not report a committed save as cancelled by a later signal.
+      if (!(kind === 'index' && result.committed === true)) controller.signal.throwIfAborted();
+      assertUsable();
+      return result;
+    }).finally(() => {
+      options.signal?.removeEventListener('abort', onAbort);
+      activeOperations.delete(operation);
+      changed();
+    });
+    operationTail = operation.promise;
+    changed();
+    return operation.promise;
+  }
 
   async function getDocumentsStore() {
     if (!documentsStore) {
@@ -137,14 +161,9 @@ export function createDocumentSearchController({
 
   async function loadRetainedIndex() {
     const docStore = await getDocumentsStore();
-    const retained = await readTextOrNull(docStore, 'index.json');
-    if (retained !== null && retained !== undefined) {
-      const record = JSON.parse(retained);
-      const expectedDigest = await sha256Hex(encodeJson(record.index));
-      if (expectedDigest !== record.digest) {
-        throw new Error('Retained index integrity failed.');
-      }
-      index = record.index;
+    const retained = await readDocumentSnapshot(docStore);
+    if (retained.index) {
+      index = retained.index;
       try {
         search.assertIndex(index);
       } catch (err) {
@@ -159,10 +178,12 @@ export function createDocumentSearchController({
   }
 
   function initialize({ install = false, repairDamagedArtifacts = false, signal = null } = {}) {
-    if (isDisposed) throw new Error('Controller is disposed.');
+    assertUsable();
     if (initPromise) return initPromise;
+    if (activeOperations.size) throw new Error('Wait for active document operations before opening models.');
+    if (search && !install) return Promise.resolve({ models: Object.keys(sessions), retainedDocuments: index?.documents.length ?? 0, indexInvalidated });
 
-    const promise = (async () => {
+    const promise = Promise.resolve().then(async () => {
       const controller = new AbortController();
       loadingController = controller;
 
@@ -170,13 +191,13 @@ export function createDocumentSearchController({
       if (signal) {
         if (signal.aborted) {
           controller.abort(signal.reason);
-          throw signal.reason;
         }
         onAbort = () => controller.abort(signal.reason);
         signal.addEventListener('abort', onAbort, { once: true });
       }
 
       try {
+        assertUsable();
         controller.signal.throwIfAborted();
         await closeSessions();
         index = null;
@@ -229,6 +250,8 @@ export function createDocumentSearchController({
           }
 
           sessions[model.role] = opened.session;
+          controller.signal.throwIfAborted();
+          assertUsable();
           observations.push({ model: model.role, acquisition: opened.observations });
           onProgress?.({ type: 'phase', phase: 'ready', model: model.role });
         }
@@ -247,6 +270,8 @@ export function createDocumentSearchController({
         });
 
         await loadRetainedIndex();
+        controller.signal.throwIfAborted();
+        assertUsable();
 
         return {
           models: Object.keys(sessions),
@@ -257,6 +282,7 @@ export function createDocumentSearchController({
         try {
           await closeSessions();
         } catch (cleanupError) {
+          cleanupErrors.push(cleanupError);
           throw new AggregateError([error, cleanupError], error.message);
         }
         throw error;
@@ -266,10 +292,12 @@ export function createDocumentSearchController({
           loadingController = null;
         }
         initPromise = null;
+        changed();
       }
-    })();
+    });
 
     initPromise = promise;
+    changed();
     return promise;
   }
 
@@ -279,14 +307,17 @@ export function createDocumentSearchController({
 
   function cancelSearch(reason = new DOMException('Search cancelled by application', 'AbortError')) {
     searchController?.abort(reason);
+    for (const operation of activeOperations) if (operation.kind === 'search') operation.controller.abort(reason);
+  }
+  function cancelIndexing(reason = new DOMException('Indexing cancelled by application', 'AbortError')) {
+    for (const operation of activeOperations) if (operation.kind === 'index') operation.controller.abort(reason);
   }
 
-  async function searchDocuments(query, options = {}) {
+  async function searchDocuments(query, options, queryId) {
     if (isDisposed) throw new Error('Controller is disposed.');
     if (!search || !index) throw new Error('Save a document index first.');
     if (typeof query !== 'string' || !query.trim()) throw new Error('Search query is required.');
 
-    const queryId = ++latestQueryId;
     const controller = new AbortController();
     searchController = controller;
 
@@ -300,6 +331,8 @@ export function createDocumentSearchController({
     try {
       controller.signal.throwIfAborted();
       const result = await search.search(index, query, { signal: controller.signal });
+      controller.signal.throwIfAborted();
+      assertUsable();
       if (queryId !== latestQueryId) {
         return { query, count: 0, results: [], superseded: true };
       }
@@ -332,17 +365,14 @@ export function createDocumentSearchController({
     }
 
     const newIndex = await search.indexDocuments(records, index, { signal: options.signal });
-    const indexBytes = encodeJson(newIndex);
-    const indexDigest = await sha256Hex(indexBytes);
-
     const docStore = await getDocumentsStore();
-    await docStore.writeFile('documents.json', encodeJson(records));
-    await docStore.writeFile('index.json', encodeJson({ index: newIndex, digest: indexDigest }));
+    await writeDocumentSnapshot(docStore, records, newIndex, options.signal);
+    assertUsable();
 
     index = newIndex;
     indexInvalidated = false;
 
-    return { documents: records.length, index: newIndex };
+    return { documents: records.length, index: newIndex, committed: true };
   }
 
   async function rebuild(options = {}) {
@@ -350,11 +380,11 @@ export function createDocumentSearchController({
     if (!search) throw new Error('Open installed models first.');
 
     const docStore = await getDocumentsStore();
-    const retained = await readTextOrNull(docStore, 'documents.json');
-    if (retained === null || retained === undefined) {
+    const retained = await readDocumentSnapshot(docStore);
+    if (!retained.documents) {
       throw new Error('No retained documents to rebuild.');
     }
-    const input = JSON.parse(retained);
+    const input = retained.documents;
     for (const record of input) {
       options.signal?.throwIfAborted();
       const textBytes = new TextEncoder().encode(record.text);
@@ -364,26 +394,38 @@ export function createDocumentSearchController({
     }
 
     const newIndex = await search.indexDocuments(input, null, { signal: options.signal });
-    const indexBytes = encodeJson(newIndex);
-    const indexDigest = await sha256Hex(indexBytes);
-
-    await docStore.writeFile('index.json', encodeJson({ index: newIndex, digest: indexDigest }));
+    await writeDocumentSnapshot(docStore, input, newIndex, options.signal);
+    assertUsable();
 
     index = newIndex;
     indexInvalidated = false;
 
-    return { documents: input.length, index: newIndex };
+    return { documents: input.length, index: newIndex, committed: true };
   }
 
-  async function dispose() {
-    isDisposed = true;
-    cancelLoading(new DOMException('Controller disposed', 'AbortError'));
-    cancelSearch(new DOMException('Controller disposed', 'AbortError'));
-    if (initPromise) {
-      await initPromise.catch(() => {});
-    }
-    await closeSessions().catch(() => {});
+  function close() {
+    if (closePromise) return closePromise;
+    isClosing = true;
+    const reason = new DOMException('Controller disposed or closed', 'AbortError');
+    cancelLoading(reason);
+    for (const operation of activeOperations) operation.controller.abort(reason);
+    closePromise = (async () => {
+      const settled = await Promise.allSettled([initPromise, ...Array.from(activeOperations, operation => operation.promise)]);
+      for (const result of settled) {
+        if (result.status === 'rejected' && result.reason?.name !== 'AbortError') cleanupErrors.push(result.reason);
+      }
+      try { await closeSessions(); } catch (error) { cleanupErrors.push(error); }
+      index = null;
+      if (cleanupErrors.length) throw new AggregateError(cleanupErrors.splice(0), 'Model cleanup failed.');
+    })().finally(() => {
+      isClosing = false;
+      if (!isDisposed) closePromise = null;
+      changed();
+    });
+    changed();
+    return closePromise;
   }
+  function dispose() { isDisposed = true; return close(); }
 
   return {
     initialize,
@@ -392,17 +434,23 @@ export function createDocumentSearchController({
     repair: (options = {}) => initialize({ ...options, install: true, repairDamagedArtifacts: true }),
     cancelLoading,
     cancelSearch,
-    cancel: () => { cancelLoading(); cancelSearch(); },
-    search: searchDocuments,
-    indexDocuments,
-    rebuild,
-    close: closeSessions,
+    cancelIndexing,
+    cancel: () => { cancelLoading(); cancelSearch(); cancelIndexing(); },
+    search: (query, options = {}) => {
+      const queryId = ++latestQueryId;
+      return track('search', options, controls => searchDocuments(query, controls, queryId));
+    },
+    indexDocuments: (documents, options = {}) => track('index', options, controls => indexDocuments(documents, controls)),
+    rebuild: (options = {}) => track('index', options, rebuild),
+    close,
     dispose,
     getState() {
       return {
         isDisposed,
         isInitializing: initPromise !== null,
-        isSearching: searchController !== null,
+        isSearching: [...activeOperations].some(operation => operation.kind === 'search'),
+        isIndexing: [...activeOperations].some(operation => operation.kind === 'index'),
+        isClosing,
         hasSessions: Object.keys(sessions).length > 0,
         sessionRoles: Object.keys(sessions),
         hasIndex: index !== null,

@@ -5,9 +5,11 @@
   "description": "Copy-and-run local document search example powered by Doppler WebGPU",
   "type": "module",
   "scripts": {
+    "prepare": "node prepare.js",
+    "prestart": "node prepare.js",
     "start": "node server.js"
   },
   "dependencies": {
-    "doppler-gpu": "^0.6.2"
+    "doppler-gpu": "file:vendor/doppler-gpu-0.6.2.tgz"
   }
 }
