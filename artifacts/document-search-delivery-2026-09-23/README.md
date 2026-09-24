@@ -36,3 +36,10 @@ reported installation/search/lifecycle defects against this configuration, retai
 regression evidence, and publish changed executable assets only after fresh
 installed qualification. New platforms require their own receipts. External
 integration feedback and a second independently operated revision remain pending.
+
+The [independent integration invitation](https://github.com/clocksmith/doppler/issues/13)
+is public; no unrelated developer has yet accepted or completed it. The
+[portability preflight](portability-preflight.json) confirms that the installed
+runtime rejects Node execution for both existing browser-only model releases.
+A Node runner requires newly qualified model releases, followed by installed
+application acceptance; changing the host label would invalidate this evidence.

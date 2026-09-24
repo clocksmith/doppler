@@ -1,0 +1,16 @@
+{
+  "schema": "doppler.document-search-integration-request/v1",
+  "url": "https://github.com/clocksmith/doppler/issues/13",
+  "status": "public-invitation-posted",
+  "independentIntegratorIdentified": false,
+  "independentIntegrationEstablished": false,
+  "secondRevisionEstablished": false,
+  "requestedEvidence": [
+    "environment and deliverable identity",
+    "setup friction",
+    "useful application changes",
+    "initial and subsequent query observations",
+    "second retained application revision",
+    "maintenance tasks and alternative comparison"
+  ]
+}
