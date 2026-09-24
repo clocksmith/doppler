@@ -74,8 +74,11 @@ try {
     await fs.writeFile(configPath, JSON.stringify({ ...physicalConfig, applicationDir: app,
       outputDir: path.join(output, 'physical') }, null, 2));
     try {
-      await promisify(execFile)(process.execPath, [fileURLToPath(new URL('./qualify-document-search.js', import.meta.url)), configPath],
+      const execution = promisify(execFile)(process.execPath, [fileURLToPath(new URL('./qualify-document-search.js', import.meta.url)), configPath],
         { maxBuffer: 16 * 1024 * 1024 });
+      execution.child.stdout.on('data', chunk => process.stdout.write(chunk));
+      execution.child.stderr.on('data', chunk => process.stderr.write(chunk));
+      await execution;
     } finally {
       report.physical = JSON.parse(await fs.readFile(path.join(output, 'physical/qualification.json')));
       report.physicalExecution = report.physical.physicalExecution;

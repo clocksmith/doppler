@@ -1,9 +1,13 @@
 {
   "schema": "doppler.installed-document-search-build/v1",
+  "tooling": {
+    "server.js": "8438aa695fbbf8d8eb362102a322e3a0706a9b6321748166c11eef6573b9d778",
+    "prepare.js": "d6f0800429d848adfe522700850a8c22c6ec1258d885749418a6de758685d200"
+  },
   "packageSha256": "625b8ed8c8e86c28a5b49e1e5ce43969885acd3df309f456eba719d3eeaa5539",
   "packageIntegrity": "sha512-rMYlPbd2/xVihWw1/+OFsbz5QBK77PtZXnNKY0rUzcSAdd2BgVYHSk/JjYi7HnbXO+G+vyuNdlYOw2dFDcOvPw==",
   "lockSha256": "6d8609801c0b02d90623b6d396cbd1cee0db5606eca9e748f14125ab35319afe",
-  "applicationManifestSha256": "489ac17b09348cc0efa716bfe3f515e9150de79098f5655a62661b8e5eabdb4b",
+  "applicationManifestSha256": "936739f6e6abb9a2463f5c3a1d24241c9a13c919146f41d548ee5fd3ae7d43b4",
   "models": [
     {
       "role": "embedding",
