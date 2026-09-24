@@ -1,0 +1,6 @@
+Error: program bundle export: kernel digest mismatch for rope_precompute.wgsl#main. execution declares sha256:0ccd038aa7e69bf064d599e86f93100735cc32fba20a942cb1deed5da5a692e8, source has sha256:414ccac32bd1a6f694b4ac9ba88fd8c4f6bfec4688126107ddc12ab110c145aa.
+    at buildWgslClosure (file:///home/x/deco/doppler/src/tooling/program-bundle/wgsl-closure.js:208:13)
+    at async buildProgramBundle (file:///home/x/deco/doppler/src/tooling/program-bundle.js:369:19)
+    at async writeProgramBundle (file:///home/x/deco/doppler/src/tooling/program-bundle.js:505:36)
+    at async buildOperationEvaluationCapsule (file:///home/x/deco/doppler/tools/build-reranker-evaluation-capsule.js:69:18)
+    at async file:///home/x/deco/doppler/tools/build-reranker-evaluation-capsule.js:130:32
