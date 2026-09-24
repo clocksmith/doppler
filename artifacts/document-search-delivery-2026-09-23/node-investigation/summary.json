@@ -1,0 +1,177 @@
+{
+  "schema": "doppler.document-search-node-investigation/v1",
+  "sourceReferenceChecksPassed": true,
+  "signedNodeReleaseCreated": false,
+  "installedSearchApplicationQualified": false,
+  "modelsSimultaneouslyResident": false,
+  "scope": "Individual installed-runtime model probes using explicit retained shader bytes; not Node application acceptance or portable model release qualification.",
+  "consumer": "/var/tmp/doppler-search-node-20260923",
+  "probeSha256": "0cd760dba5dce4ecb23c5e0df5c9fd31d486550736104cd37db6d77329872c67",
+  "results": [
+    {
+      "role": "embedding",
+      "referencePassed": true,
+      "shaderReads": [
+        {
+          "file": "attention_streaming_f16kv.wgsl",
+          "sha256": "sha256:d34e8bbe9bbaed91c8d6beacde896538e14ec222ebae8eec8a195944cde87b8a",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "embedding_pool_f32.wgsl",
+          "sha256": "sha256:085f75855a89fd6612f225529d4e6e82f03888f938c04e8f40aba46bbfd2ea3b",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "gather_f16_vec4.wgsl",
+          "sha256": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "kv_cache_write_f32_to_f16.wgsl",
+          "sha256": "sha256:fdba1f04c135d44d67fdc160b59e5a243abd0d47e54fa928c7cc115ed2f15afd",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "l2_normalize.wgsl",
+          "sha256": "sha256:b1cde39825fffccfd791c8764d30b1b3cb092dcbffc9134261da6b1f8f9ff470",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "matmul_f16w_f32a_tiled.wgsl",
+          "sha256": "sha256:569971d79c3ea3ae9e632a06befe43bc9d9a1a657ddd53357368fa24b073cd7d",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "probe_shader_f16.wgsl",
+          "sha256": "sha256:85d26934e7253dc9a4e88c19098d57745f8d9723d4f03ecb81b2f70302a9b748",
+          "kind": "installed-device-probe"
+        },
+        {
+          "file": "residual_vec4.wgsl",
+          "sha256": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "rmsnorm.wgsl",
+          "sha256": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "rmsnorm_qk.wgsl",
+          "sha256": "sha256:954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "rope_precompute.wgsl",
+          "sha256": "sha256:0aaf0cbdceb879861872b1bd60e0d8a78818b67511c7bbb8157d7804b929500a",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "rope_qk.wgsl",
+          "sha256": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "silu.wgsl",
+          "sha256": "sha256:e14958d8bd06dd50596fef718ca5731366d24ee78f13c547c600cac4723cd1b8",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "split_qkv.wgsl",
+          "sha256": "sha256:f65c37cee36ee2b213d5377d2aa5c5a2d2e20c7b6d1f162e112efd388599ec23",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "submit_probe.wgsl",
+          "sha256": "sha256:b6001e7264cff565d8a29faa2e53e693a5c931d51d169ab5bbfe2392b672c9fb",
+          "kind": "installed-device-probe"
+        }
+      ],
+      "signedCapsuleExecution": false
+    },
+    {
+      "role": "reranker",
+      "referencePassed": true,
+      "shaderReads": [
+        {
+          "file": "attention_small_f16kv.wgsl",
+          "sha256": "sha256:d06953f85b75a70a7423bd92afbbb476bff77acaf0f8378135465d0f742bb276",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "dequant_f16_out_vec4.wgsl",
+          "sha256": "sha256:8c07df9b95c2af5c8dac8fe5f0cb654b92b8909a79cb1ac02e948b74963377f6",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "fused_matmul_q4_widetile.wgsl",
+          "sha256": "sha256:d3fc7b8145d9acf8d5dc56c063557074a361844d25b00b76c6a9fa961b4d8735",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "gather_f16_vec4.wgsl",
+          "sha256": "sha256:a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "kv_cache_write_f32_to_f16.wgsl",
+          "sha256": "sha256:fdba1f04c135d44d67fdc160b59e5a243abd0d47e54fa928c7cc115ed2f15afd",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "lm_head_select_logits.wgsl",
+          "sha256": "sha256:232e803e00fa9b7bc80b60b18d844894962a2125b1e3418caf158ad223240656",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "matmul_f16w_f32a.wgsl",
+          "sha256": "sha256:78b78ec9a73766b5cfa71505f845a2cd3dac2468f8b92e5624e0c67201198888",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "probe_shader_f16.wgsl",
+          "sha256": "sha256:85d26934e7253dc9a4e88c19098d57745f8d9723d4f03ecb81b2f70302a9b748",
+          "kind": "installed-device-probe"
+        },
+        {
+          "file": "residual_vec4.wgsl",
+          "sha256": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "rmsnorm.wgsl",
+          "sha256": "sha256:57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "rmsnorm_qk.wgsl",
+          "sha256": "sha256:954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "rope_precompute.wgsl",
+          "sha256": "sha256:0aaf0cbdceb879861872b1bd60e0d8a78818b67511c7bbb8157d7804b929500a",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "rope_qk.wgsl",
+          "sha256": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "silu.wgsl",
+          "sha256": "sha256:e14958d8bd06dd50596fef718ca5731366d24ee78f13c547c600cac4723cd1b8",
+          "kind": "declared-model-shader"
+        },
+        {
+          "file": "submit_probe.wgsl",
+          "sha256": "sha256:b6001e7264cff565d8a29faa2e53e693a5c931d51d169ab5bbfe2392b672c9fb",
+          "kind": "installed-device-probe"
+        }
+      ],
+      "signedCapsuleExecution": false
+    }
+  ],
+  "nextStep": "Use the retained Program Bundle and the existing Forge additional-surface qualification path to create new signed Node model releases. Do not regenerate declared shaders from current checkout sources."
+}
