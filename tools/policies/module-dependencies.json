@@ -1,4 +1,7 @@
 {
+  "tools/qualify-document-search.js": {
+    "import(pathToFileURL(path.join(config.applicationDir, 'server.js')).href)": ["../examples/document-search/server.js"]
+  },
   "tools/check-document-search-starter.js": {
     "import(pathToFileURL(path.join(app, 'server.js')).href)": ["../examples/document-search/server.js"]
   },

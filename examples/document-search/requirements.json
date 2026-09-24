@@ -1,9 +1,5 @@
 {
-  "schema": "doppler.installed-document-search-build/v1",
-  "packageSha256": "625b8ed8c8e86c28a5b49e1e5ce43969885acd3df309f456eba719d3eeaa5539",
-  "packageIntegrity": "sha512-rMYlPbd2/xVihWw1/+OFsbz5QBK77PtZXnNKY0rUzcSAdd2BgVYHSk/JjYi7HnbXO+G+vyuNdlYOw2dFDcOvPw==",
-  "lockSha256": "6d8609801c0b02d90623b6d396cbd1cee0db5606eca9e748f14125ab35319afe",
-  "applicationManifestSha256": "489ac17b09348cc0efa716bfe3f515e9150de79098f5655a62661b8e5eabdb4b",
+  "schema": "doppler.document-search-requirements/v1",
   "models": [
     {
       "role": "embedding",
@@ -13,7 +9,13 @@
         "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
         "envelopeDigest": "sha256:32503db6b070ac78d0355bc6d9538bcd0a660543f1867f754543013b5de0f86e",
         "artifactClosureDigest": "sha256:987b6e88da6e461449bc5c9c69c90a57d1c81a49ba7bba983ac184f8f9bfe8b3"
-      }
+      },
+      "downloadBytes": 1200631926,
+      "requiredFeatures": [
+        "shader-f16",
+        "subgroups"
+      ],
+      "minBufferSize": 67108864
     },
     {
       "role": "reranker",
@@ -23,11 +25,15 @@
         "semanticRoot": "sha256:4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
         "envelopeDigest": "sha256:bdaa28c214bd5ae65bb04945eb3aa07a0937f2c3fa81cf54de39b5fc2d21876a",
         "artifactClosureDigest": "sha256:a32ad7bad893bb14a4221eeb97a47c0b6646ab270800fccbf902c6803272d0b0"
-      }
+      },
+      "downloadBytes": 944830884,
+      "requiredFeatures": [
+        "shader-f16",
+        "subgroups"
+      ],
+      "minBufferSize": 67108864
     }
   ],
-  "runtimeFiles": 1865,
-  "sourceSubstitution": false,
-  "unavailableArtifacts": [],
-  "physicalAcceptance": false
+  "missingSources": [],
+  "runtimeBytes": 11342157
 }

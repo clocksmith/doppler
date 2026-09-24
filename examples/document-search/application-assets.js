@@ -1,10 +1,10 @@
 self.DOCUMENT_SEARCH_ASSETS = {
-  "cacheName": "doppler-document-search-c1b007bea96913a3c047ed83f0844c91719a10492f8c6ab5917d9d47ab713731",
+  "cacheName": "doppler-document-search-369df8694774f626fd2bf3a1b82df903b22225ec78ee4c2c9dcb0c941e879805",
   "assets": [
     {
       "path": "browser.js",
-      "sha256": "e45b7ab210fd11fb8108e4648f5f397c83a7fc50ab21d34fc383d99b61e19b39",
-      "sizeBytes": 6832
+      "sha256": "11940daee218d4bd060e5b3544c9cfe946b6d1df0cafd3659f95eae04d463440",
+      "sizeBytes": 11849
     },
     {
       "path": "controller.js",
@@ -23,13 +23,13 @@ self.DOCUMENT_SEARCH_ASSETS = {
     },
     {
       "path": "index.html",
-      "sha256": "132a26d3e0c84ff6015f95f16e4363cd7d6118e9181d5bed36803b59f68f2910",
-      "sizeBytes": 3227
+      "sha256": "dc9f5284f44cdf95f6164367b4c09ad80482a526ee2cccd11b5fd0c0aa920b0e",
+      "sizeBytes": 4180
     },
     {
       "path": "installation.js",
-      "sha256": "dafe70a367c6be899a138ec6478147485097d1adf11ae5572cedeb98c43db95a",
-      "sizeBytes": 7387
+      "sha256": "407d295cc29021b39a5d68ae4eb6f0ccbfc1977ea341e641f9d049a1ed7b17eb",
+      "sizeBytes": 8143
     },
     {
       "path": "models.json",
@@ -45,6 +45,11 @@ self.DOCUMENT_SEARCH_ASSETS = {
       "path": "package.json",
       "sha256": "75c955bd74b6b64dfe39975edfb937f29d51cfe7d5f1db5e1dab39e96d13f5ec",
       "sizeBytes": 402
+    },
+    {
+      "path": "requirements.json",
+      "sha256": "418a56fa79b773d4acfacec5338b644062eeb92a9be6ca70387dcc0126943e24",
+      "sizeBytes": 1517
     },
     {
       "path": "runtime/assets/doppler.svg",
@@ -9413,8 +9418,8 @@ self.DOCUMENT_SEARCH_ASSETS = {
     },
     {
       "path": "shard-sources.json",
-      "sha256": "3294fd136ff831aef1ae09dc31d8cc7b7d958d4e1137b2239aa590fa83dc12ba",
-      "sizeBytes": 7712
+      "sha256": "78889a7ae43b3bfd6b4c15de411f29db8bd4ea820bd8dd569bf22ebaf8594291",
+      "sizeBytes": 12200
     }
   ]
 };

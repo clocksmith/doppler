@@ -36,12 +36,15 @@ requirements, and test network/logging behavior across the complete application.
 - Disk and GPU capacity for both resident models, plus retained artifacts and the
   document index. A retention-cache budget is not a total memory limit.
 
-**Acquisition blocker:** `shard-sources.json` records the exact Capsule hashes,
-sizes, and immutable public URLs. Null URLs mean those declared bytes are not yet
-published at an approved location. The current source audit found 24 unavailable
-shards across the two models. Installation cannot complete until these exact bytes
-are published and pinned. Do not replace F16 shards with similarly named Q4K files
-or point the server at a developer cache to claim standalone acceptance.
+`shard-sources.json` pins all 32 exact Capsule shards to immutable public URLs.
+The [public source audit](../../artifacts/document-search-delivery-2026-09-23/public-source-audit.json)
+verifies every downloaded size and hash. Model identities are unchanged. This
+establishes acquisition completeness; installed real-model acceptance remains
+separate and must pass before this candidate is presented as supported.
+
+Before downloading, the page shows each model's size, `shader-f16` and `subgroups`
+requirements, storage needs, and unavailable sources. Both models remain resident;
+feature availability alone does not guarantee enough GPU or system memory.
 
 ### 2. Install and Start
 ```sh

@@ -2,11 +2,14 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import { createStaticFileServer } from '../src/tooling/node-browser-command-runner.js';
 import { hashBytesSha256 } from '../src/formats/canonical-hash.js';
 import { checkInterruptedInstallation, checkDamagedInstallation, checkIncompatibleIndex, checkDeviceLoss } from './document-search-recovery-checks.js';
 import { observeDocumentSearchGpu, readDocumentSearchGpuObservation } from './document-search-gpu-observation.js';
+import { verifyInstalledSearchBuild } from './document-search-installed-build.js';
+import { checkSearchLifecycle } from './document-search-lifecycle-checks.js';
 
 const [configPath] = process.argv.slice(2);
 const config = JSON.parse(await fs.readFile(configPath, 'utf8'));
@@ -17,6 +20,11 @@ await fs.mkdir(config.outputDir);
 const report = { schema: 'doppler.offline-document-search-qualification/v1', passed: false, stage: 'launch',
   generatedAt: new Date().toISOString(), config, fixtureDigest: hashBytesSha256(fixtureBytes), build,
   physicalExecution: false, externalAdoption: false, requests: [], webSockets: [], logs: [], phases: {} };
+report.probes = {};
+for (const name of ['qualify-document-search.js', 'document-search-recovery-checks.js', 'document-search-gpu-observation.js',
+  'document-search-installed-build.js', 'document-search-lifecycle-checks.js', 'check-document-search-starter.js']) {
+  report.probes[name] = hashBytesSha256(await fs.readFile(fileURLToPath(new URL(name, import.meta.url))));
+}
 function stage(name) { report.stage = name; console.log(JSON.stringify({ stage: name })); }
 const tokens = text => text.toLowerCase().match(/[a-z0-9]+/g) ?? [];
 function incumbent(query) {
@@ -41,6 +49,7 @@ async function launch(offline, url) {
   context = await chromium.launchPersistentContext(path.join(config.outputDir, 'profile'), {
     headless: true, args: config.launchArgs, timeout: config.timeoutMs, channel: config.channel,
     env: { ...process.env, TMPDIR: config.temporaryDirectory } });
+  report.browserVersion = context.browser().version();
   context.on('request', request => report.requests.push({ stage: report.stage, url: request.url(), method: request.method(), body: request.postData() }));
   await context.setOffline(offline);
   const page = context.pages()[0] ?? await context.newPage();
@@ -53,7 +62,9 @@ async function launch(offline, url) {
   await page.waitForFunction(() => globalThis.documentSearch?.ready);
   const hardware = await page.evaluate(async () => {
     const adapter = await navigator.gpu.requestAdapter();
-    return Object.fromEntries(['vendor', 'architecture', 'device', 'description', 'isFallbackAdapter'].map(key => [key, adapter.info[key]]));
+    if (!adapter) throw new Error('No physical WebGPU adapter available');
+    return { ...Object.fromEntries(['vendor', 'architecture', 'device', 'description', 'isFallbackAdapter'].map(key => [key, adapter.info[key]])),
+      features: [...adapter.features].sort(), maxBufferSize: adapter.limits.maxBufferSize };
   });
   assert.equal(hardware.vendor, config.requiredVendor); assert.equal(hardware.isFallbackAdapter, false);
   report.hardware = hardware;
@@ -72,7 +83,17 @@ async function searchAll(page) {
   return results;
 }
 try {
-  server = await createStaticFileServer({ rootDir: config.applicationDir, host: '127.0.0.1', port: 0 });
+  if (build.schema === 'doppler.installed-document-search-build/v1') {
+    stage('installed-identity');
+    report.installedIdentity = await verifyInstalledSearchBuild(config.applicationDir, build);
+    stage('acquisition-preflight');
+    assert.deepEqual(build.unavailableArtifacts, [], 'Publish all exact model files before physical qualification');
+    const { createServer } = await import(pathToFileURL(path.join(config.applicationDir, 'server.js')).href);
+    const instance = createServer();
+    await new Promise(resolve => instance.listen(0, '127.0.0.1', resolve));
+    server = { baseUrl: 'http://127.0.0.1:' + instance.address().port,
+      close: () => new Promise(resolve => instance.close(resolve)) };
+  } else server = await createStaticFileServer({ rootDir: config.applicationDir, host: '127.0.0.1', port: 0 });
   const url = server.baseUrl + '/index.html';
   report.origin = server.baseUrl;
   timer = setTimeout(() => context?.close().catch(error => report.logs.push({ timeoutCleanup: error.message })), config.timeoutMs);
@@ -88,17 +109,25 @@ try {
   report.install = await page.evaluate(() => globalThis.documentSearch.install());
   report.installMs = performance.now() - start;
   report.installGpu = await page.evaluate(readDocumentSearchGpuObservation);
+  report.residentModels = await page.evaluate(() => globalThis.documentSearch.controller.getState().sessionRoles.sort());
+  assert.deepEqual(report.residentModels, ['embedding', 'reranker']);
   stage('index');
   report.index = await page.evaluate(documents => globalThis.documentSearch.indexDocuments(documents), fixture.documents);
   stage('online-search');
   report.phases.online = await searchAll(page);
+  report.timings = await page.evaluate(() => globalThis.documentSearch.timings);
   report.physicalExecution = true;
   if (config.recovery === true) {
+    stage('search-lifecycle');
+    report.lifecycle = await checkSearchLifecycle(page, fixture,
+      JSON.parse(await fs.readFile(path.join(config.applicationDir, 'models.json'))).storage);
     stage('damaged-cache-repair');
     report.damagedInstallation = await checkDamagedInstallation(page, fixture);
   }
   report.onlineObservations = await page.evaluate(() => globalThis.documentSearch.observations);
   await page.evaluate(() => globalThis.documentSearch.close());
+  assert.equal(await page.evaluate(() => globalThis.documentSearch.controller.getState().hasSessions), false);
+  if (report.installedIdentity) assert.deepEqual(await verifyInstalledSearchBuild(config.applicationDir, build), report.installedIdentity);
   await context.close(); context = null;
   await server.close(); server = null;
   report.serverStoppedBeforeRestart = true;
@@ -120,7 +149,7 @@ try {
   const texts = [...fixture.documents.map(document => document.text), ...fixture.queries.map(query => query.text)];
   report.privacy = { nonGetRequests: report.requests.filter(request => request.method !== 'GET'),
     contentTransmissions: report.requests.filter(request => texts.some(text => (request.url + (request.body ?? '')).includes(text))),
-    onlineSearchRequests: report.requests.filter(request => ['index', 'online-search'].includes(request.stage)),
+    onlineSearchRequests: report.requests.filter(request => ['index', 'online-search', 'search-lifecycle'].includes(request.stage)),
     scope: 'Browser context requests (including service workers) and page WebSockets on this corpus. Online indexing and search require zero requests; no external adoption claim.' };
   assert.equal(report.privacy.nonGetRequests.length, 0); assert.equal(report.privacy.contentTransmissions.length, 0);
   assert.equal(report.privacy.onlineSearchRequests.length, 0); assert.equal(report.webSockets.length, 0);

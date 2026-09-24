@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { migrateCapsuleV2, getCapsuleIdentity, signCapsuleReleaseEvent, verifyCapsuleReleaseEvents, verifyCapsule } from '../src/capsule.js';
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 import { normalizeCapsuleLoadingPolicy } from '../src/config/capsule-loading.js';
+import { prepareRequirements } from '../examples/document-search/prepare.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export async function buildDocumentSearchApplication(config) {
@@ -118,6 +119,9 @@ export async function buildDocumentSearchApplication(config) {
     }
   }
   await inventory(config.outputDir);
+  await prepareRequirements(config.outputDir, assets.filter(asset => asset.path.startsWith('runtime/')), { localArtifacts: true });
+  const requirementBytes = await fs.readFile(path.join(config.outputDir, 'requirements.json'));
+  assets.push({ path: 'requirements.json', sha256: hashBytesSha256(requirementBytes).slice(7), sizeBytes: requirementBytes.length });
   assets.sort((a, b) => a.path.localeCompare(b.path));
   const cacheName = 'doppler-document-search-' + computeCanonicalSha256(assets).slice(7);
   await fs.writeFile(path.join(config.outputDir, 'application-assets.js'), `self.DOCUMENT_SEARCH_ASSETS = ${JSON.stringify({ cacheName, assets })};\n`, { flag: 'wx' });
