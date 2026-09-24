@@ -25,13 +25,21 @@ small{color:#45625a}
 <body>
 <h1>Local document search</h1>
 <p>Search text and Markdown on this device using an embedding model and a reranker.</p>
+<section aria-labelledby="requirements-heading">
+<h2 id="requirements-heading">Before installing models</h2>
+<p>Use Chromium with WebGPU on localhost or HTTPS. Node.js 18+ hosts this page; models run in your browser.</p>
+<ul id="requirements"><li>Checking download sizes, GPU features, storage, and model sources…</li></ul>
+<p id="preflight" role="status">Checking this device…</p>
+<p>Both models stay loaded while searching. GPU and system memory must also hold working buffers;
+available memory is not guaranteed by WebGPU feature checks. This candidate has no completed installed-application hardware qualification yet.</p>
+</section>
 <section aria-labelledby="models-heading">
 <h2 id="models-heading" style="font-size:20px;margin-top:0">Models</h2>
 <label><input id="retention" type="checkbox"> Keep these model releases for offline use. Offline use cannot check new revocations.</label>
 <div class="button-row">
-<button id="install">Install models</button>
-<button id="open">Open installed models</button>
-<button id="repair">Repair damaged model files</button>
+<button id="install" disabled>Install models</button>
+<button id="open" disabled>Open installed models</button>
+<button id="repair" disabled>Repair damaged model files</button>
 <button id="close">Close models</button>
 <button id="cancel-load" class="danger" disabled>Cancel loading</button>
 <button id="cancel" style="display:none" disabled>Cancel</button>
@@ -55,6 +63,8 @@ small{color:#45625a}
 </form>
 </section>
 <p id="status" role="status" aria-live="polite">Preparing application…</p>
+<p>Cancel prevents new work and suppresses cancelled results. GPU commands already submitted must finish; cancellation and closure may wait for them.</p>
+<p id="timings" aria-live="polite">Installation and query timings appear after successful operations with both models loaded.</p>
 <div id="results" aria-live="polite" role="region" aria-label="Search results"></div>
 <script type="importmap">{"imports":{"doppler-gpu":"./runtime/src/capsule-runtime.js","doppler-gpu/host":"./runtime/src/client/capsule-host.browser.js","doppler-gpu/capsule":"./runtime/src/capsule.js","doppler-gpu/tooling/storage":"./runtime/src/tooling-exports/storage.js"}}</script>
 <script type="module" src="./browser.js"></script>

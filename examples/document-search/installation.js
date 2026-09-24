@@ -38,9 +38,11 @@ export function createDocumentModelInstallation({ store, fetchArtifact, openCaps
       if (retained !== null) {
         let valid = true;
         started = performance.now();
+        control.onLoadProgress?.({ phase: 'verifying', artifactId: artifact.artifactId, loadedBytes: retained.byteLength, totalBytes: artifact.sizeBytes });
         try { await verify(artifact, retained); }
         catch (error) { if (!acquire || !repair) throw error; valid = false; }
         if (valid) {
+          control.onLoadProgress?.({ phase: 'reused', artifactId: artifact.artifactId, loadedBytes: retained.byteLength, totalBytes: artifact.sizeBytes });
           observations.push({ artifactId: artifact.artifactId, source: 'storage', bytes: retained.byteLength,
             storageReadMs, verificationMs: performance.now() - started });
           control.signal?.throwIfAborted();
@@ -52,11 +54,14 @@ export function createDocumentModelInstallation({ store, fetchArtifact, openCaps
       }
       if (!acquire) throw new Error(`Offline installation is incomplete: ${artifact.artifactId}`);
       started = performance.now();
+      control.onLoadProgress?.({ phase: 'acquiring', artifactId: artifact.artifactId, loadedBytes: 0, totalBytes: artifact.sizeBytes });
       const acquired = await fetchArtifact(artifact, control);
       const acquisitionMs = performance.now() - started;
       started = performance.now();
+      control.onLoadProgress?.({ phase: 'verifying', artifactId: artifact.artifactId, loadedBytes: acquired.byteLength, totalBytes: artifact.sizeBytes });
       const bytes = await verify(artifact, acquired);
       const verificationMs = performance.now() - started;
+      control.onLoadProgress?.({ phase: 'verified', artifactId: artifact.artifactId, loadedBytes: bytes.byteLength, totalBytes: artifact.sizeBytes });
       control.signal?.throwIfAborted();
       started = performance.now();
       try { await store.writeFile(filename, bytes); }

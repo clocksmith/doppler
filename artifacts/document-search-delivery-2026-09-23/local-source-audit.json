@@ -1,0 +1,284 @@
+{
+  "schema": "doppler.document-search-source-audit/v1",
+  "passed": true,
+  "generatedAt": "2026-09-24T02:06:05.303Z",
+  "physicalAcceptance": false,
+  "probeSha256": "sha256:cdea1796e1f9033f8e1edbdd4228a3362bcf482adf656c623b2c7a744070dd49",
+  "models": [
+    {
+      "role": "embedding",
+      "identity": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+        "envelopeDigest": "sha256:32503db6b070ac78d0355bc6d9538bcd0a660543f1867f754543013b5de0f86e",
+        "artifactClosureDigest": "sha256:987b6e88da6e461449bc5c9c69c90a57d1c81a49ba7bba983ac184f8f9bfe8b3"
+      },
+      "artifactCount": 42
+    },
+    {
+      "role": "reranker",
+      "identity": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "semanticRoot": "sha256:4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+        "envelopeDigest": "sha256:bdaa28c214bd5ae65bb04945eb3aa07a0937f2c3fa81cf54de39b5fc2d21876a",
+        "artifactClosureDigest": "sha256:a32ad7bad893bb14a4221eeb97a47c0b6646ab270800fccbf902c6803272d0b0"
+      },
+      "artifactCount": 42
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00000.bin",
+      "hash": "sha256:36e00991c46afe56d860d15d73b6eeabd5915ccaeff78fbf7bde3053667bdbd6",
+      "sizeBytes": 67108864,
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/shard_00000.bin",
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00001.bin",
+      "hash": "sha256:1c9b1052b8bfd5042322e3b67d5122b06c459da60981f28a91f81db38706c2ba",
+      "sizeBytes": 67108864,
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/shard_00001.bin",
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00002.bin",
+      "hash": "sha256:035976534ff964ca651fbe76e8b5a14eb87aa4b66289cc7a3103f01c6a6f0861",
+      "sizeBytes": 67108864,
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/shard_00002.bin",
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00003.bin",
+      "hash": "sha256:2b82ae70dd3126088f6537106304e5915066e21ab3f8e0e0eaf8d21374e16866",
+      "sizeBytes": 67108864,
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/shard_00003.bin",
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00004.bin",
+      "hash": "sha256:246662f4e0227e1b204e6507ed78872a451227e893fbe28a6ef3bafb0bca338e",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00005.bin",
+      "hash": "sha256:d0c36c86a94423d2b34cf34a22026ebae969cb937f487d7d1368b523c8b8e995",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00006.bin",
+      "hash": "sha256:d324522b57c329bad4a6ba6be94b4087c27efd788a9a9497020df0844c6ad038",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00007.bin",
+      "hash": "sha256:11aac1d913945d3261597ed6d764b79b0e5aa5a33d6d73486d98b925cd23941f",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00008.bin",
+      "hash": "sha256:78e8556c2420b424b267a0472996b9f93867549435c8b77d00f8cce6803ba4f9",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00009.bin",
+      "hash": "sha256:0227f3e2facd788cdc25421386f51cb1ac94b6c8e72b68a11162001cb03ce374",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00010.bin",
+      "hash": "sha256:e405229640164d6564154ca44329c3fcfdaddaf8307a18212c62cb2b77c6759f",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00011.bin",
+      "hash": "sha256:e1ba701fcaf18b63b1e53af92fb661be45c23e04fe6f6feda764700eb9b348d9",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00012.bin",
+      "hash": "sha256:2577faadfc670ccb9054de4232d392239bd2b4d166697141f8080ce10e5247ad",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00013.bin",
+      "hash": "sha256:56be7580a932adb5c11b8c624ed2a62a16ac47f1262cffc27581bdd202568596",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00014.bin",
+      "hash": "sha256:33875466bf914d205e47dcd429cf309bef579528e32d92163b4df25d1d392f30",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00015.bin",
+      "hash": "sha256:9bb977a6c752981ac627396c76fc33500ce76fd72d147062bfdfb03baf8cb5f6",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00016.bin",
+      "hash": "sha256:5213cd18b8a393082bd29bae73b09e443db42e41e43defbc871aed30be56c19f",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/embedding/artifacts/model/shard_00017.bin",
+      "hash": "sha256:2be4677369d1f526626ab72b4b9eab74afef7794c02c3bfcba5142b5ff19099e",
+      "sizeBytes": 50702336,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00000.bin",
+      "hash": "sha256:e43dc1fe474193bad57b19b1daf032a070c99f87ce79bc8995c4c1f37b120b53",
+      "sizeBytes": 67108864,
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32/shard_00000.bin",
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00001.bin",
+      "hash": "sha256:b1a9ca6f91fbe89d2ca0e027014521447629f7a50e5afdb9ee94c8716328ee55",
+      "sizeBytes": 67108864,
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32/shard_00001.bin",
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00002.bin",
+      "hash": "sha256:53bb6a526b121103cb13b0af70699af64485b62d98e1420d8bd43faf5ef960a7",
+      "sizeBytes": 67108864,
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32/shard_00002.bin",
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00003.bin",
+      "hash": "sha256:74b1668c351029b2222e0145af3da91592c1e8a9a8aa40a5441c28cc88d9855c",
+      "sizeBytes": 67108864,
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/f86fe245b9bbc275cd69af46b1d45d47ea685a55/models/qwen-3-reranker-0-6b-q4k-ehf16-af32/shard_00003.bin",
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00004.bin",
+      "hash": "sha256:a56401f052950847cccf90b35c63683a3cebf627f0089b150ee5b655343dfe51",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00005.bin",
+      "hash": "sha256:a324a0b5f2b088647cc25b828929419fe9486db1dea0abe928dea572e5cf0f2f",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00006.bin",
+      "hash": "sha256:08c097b21b6d9d52b04eda0c9178730c6bb361aa8e5bc908bfe9e8422f327d66",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00007.bin",
+      "hash": "sha256:21acf56bea1ae5f19131689d69a3cccdbcdce399284a713b6ae735d1af44e7a9",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00008.bin",
+      "hash": "sha256:a8ba8eafc16bb7f2db12acff3ae5cd6f1b9eae8ceff4841a05daf821d6ec3ef1",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00009.bin",
+      "hash": "sha256:ecc4d663ae607d28ca706e36d9bd48a90c77a9b5e35b724133979c9cb0ac8eb9",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00010.bin",
+      "hash": "sha256:eb46664bf45fc99235ab15657fd917931a0c25b49231f63f40de3468800203c2",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00011.bin",
+      "hash": "sha256:0040bc969e75a2b3f4ce9457f28245d08587c471c4dd839a47a42c45e3dbfd65",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00012.bin",
+      "hash": "sha256:9f13205d7a6ed5af57a7787d5b2eec59f2a23040ae7d4ad18bf9b0a9cb0c767b",
+      "sizeBytes": 67108864,
+      "url": null,
+      "source": "local-byte-audit"
+    },
+    {
+      "path": "capsules/reranker/artifacts/model/shard_00013.bin",
+      "hash": "sha256:564c21f6c2b68955af3050f9936b616deda700d90c1184831b1e7999db4e50f8",
+      "sizeBytes": 65906688,
+      "url": null,
+      "source": "local-byte-audit"
+    }
+  ],
+  "missingSources": [
+    "capsules/embedding/artifacts/model/shard_00004.bin",
+    "capsules/embedding/artifacts/model/shard_00005.bin",
+    "capsules/embedding/artifacts/model/shard_00006.bin",
+    "capsules/embedding/artifacts/model/shard_00007.bin",
+    "capsules/embedding/artifacts/model/shard_00008.bin",
+    "capsules/embedding/artifacts/model/shard_00009.bin",
+    "capsules/embedding/artifacts/model/shard_00010.bin",
+    "capsules/embedding/artifacts/model/shard_00011.bin",
+    "capsules/embedding/artifacts/model/shard_00012.bin",
+    "capsules/embedding/artifacts/model/shard_00013.bin",
+    "capsules/embedding/artifacts/model/shard_00014.bin",
+    "capsules/embedding/artifacts/model/shard_00015.bin",
+    "capsules/embedding/artifacts/model/shard_00016.bin",
+    "capsules/embedding/artifacts/model/shard_00017.bin",
+    "capsules/reranker/artifacts/model/shard_00004.bin",
+    "capsules/reranker/artifacts/model/shard_00005.bin",
+    "capsules/reranker/artifacts/model/shard_00006.bin",
+    "capsules/reranker/artifacts/model/shard_00007.bin",
+    "capsules/reranker/artifacts/model/shard_00008.bin",
+    "capsules/reranker/artifacts/model/shard_00009.bin",
+    "capsules/reranker/artifacts/model/shard_00010.bin",
+    "capsules/reranker/artifacts/model/shard_00011.bin",
+    "capsules/reranker/artifacts/model/shard_00012.bin",
+    "capsules/reranker/artifacts/model/shard_00013.bin"
+  ],
+  "publicAcquisitionComplete": false
+}

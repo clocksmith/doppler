@@ -15,13 +15,19 @@ const identity = role => ({ schema: 'fixture', semanticRoot: role, envelopeDiges
 const models = roles.map(role => ({ role, storageId: role, capsuleUrl: './capsules/' + role + '/capsule-v3.json',
   identity: identity(role), options: { trustedSigners: {}, acceptedTargetPlanDigests: [], releaseTrustedSigners: {} } }));
 const config = { models, search: { dimension: 2, candidateCount: 2, queryPrefix: '', documentPrefix: '' }, storage: { useSyncAccessHandle: false } };
+const requirements = { models: roles.map(role => ({ role, downloadBytes: 1024, requiredFeatures: ['shader-f16', 'subgroups'], minBufferSize: 1024 })),
+  runtimeBytes: 1024, missingSources: [] };
 const respond = (route, body, contentType = 'application/javascript') => route.fulfill({ status: 200, contentType, body });
 try {
   await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'gpu', { value: { requestAdapter: async () => ({
+      features: new Set(['shader-f16', 'subgroups']), limits: { maxBufferSize: 67108864 },
+    }) } });
     Object.defineProperty(navigator, 'serviceWorker', { value: { controller: {},
       ready: Promise.resolve(), getRegistration: async () => ({}), register: async () => ({}) } });
   });
   await page.route('**/models.json', route => respond(route, JSON.stringify(config), 'application/json'));
+  await page.route('**/requirements.json', route => respond(route, JSON.stringify(requirements), 'application/json'));
   for (const role of roles) await page.route('**/capsules/' + role + '/capsule-v3.json', route => respond(route,
     JSON.stringify({ ...identity(role), artifacts: [] }), 'application/json'));
   await page.route('**/runtime/src/capsule.js', route => respond(route,
@@ -60,6 +66,8 @@ try {
     }`));
   await page.goto('http://127.0.0.1:' + server.address().port + '/index.html');
   await page.waitForFunction(() => globalThis.documentSearch?.ready);
+  assert.match(await page.locator('#requirements').textContent(), /shader-f16, subgroups/);
+  assert.match(await page.locator('#requirements').textContent(), /Storage: at least/);
   await page.check('#retention');
   await page.click('#install');
   await page.waitForFunction(() => !document.querySelector('#cancel-load').disabled);
@@ -78,6 +86,7 @@ try {
   await page.waitForFunction(() => !globalThis.documentSearch.controller.getState().isSearching);
   await page.click('#search');
   await page.waitForFunction(() => document.querySelectorAll('#results article').length === 1);
+  assert.match(await page.locator('#timings').textContent(), /First query with both models loaded/);
   assert.equal(await page.evaluate(() => globalThis.syntheticOpenCount), opens);
   await page.setInputFiles('#files', { name: 'same.txt', mimeType: 'text/plain', buffer: Buffer.from('Replacement text') });
   await page.click('#index');
@@ -87,6 +96,17 @@ try {
   assert.equal(await page.evaluate(() => globalThis.documentSearch.controller.getIndex().documents[0].text), 'Old complete document');
   await page.click('#close');
   await page.waitForFunction(() => !globalThis.documentSearch.controller.getState().hasSessions);
+  requirements.missingSources = ['capsules/embedding/artifacts/model/shard_00000.bin'];
+  await page.reload();
+  await page.waitForFunction(() => globalThis.documentSearch?.ready);
+  assert.equal(await page.locator('#install').isDisabled(), true);
+  assert.equal(await page.locator('#repair').isDisabled(), true);
+  assert.equal(await page.locator('#open').isDisabled(), false);
+  assert.match(await page.locator('#preflight').textContent(), /1 model files have no published download source/);
+  assert.equal(await page.evaluate(async () => {
+    try { await globalThis.documentSearch.install(); return false; }
+    catch (error) { return /no published download source/.test(error.message); }
+  }), true);
   assert.deepEqual(errors, []);
 } finally {
   await context.close(); await browser.close();

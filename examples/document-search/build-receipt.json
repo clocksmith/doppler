@@ -3,7 +3,7 @@
   "packageSha256": "625b8ed8c8e86c28a5b49e1e5ce43969885acd3df309f456eba719d3eeaa5539",
   "packageIntegrity": "sha512-rMYlPbd2/xVihWw1/+OFsbz5QBK77PtZXnNKY0rUzcSAdd2BgVYHSk/JjYi7HnbXO+G+vyuNdlYOw2dFDcOvPw==",
   "lockSha256": "6d8609801c0b02d90623b6d396cbd1cee0db5606eca9e748f14125ab35319afe",
-  "applicationManifestSha256": "f19af9b4a49bd2b23e125c9f3f440b51549a3582a34d5a652825d492c5677b23",
+  "applicationManifestSha256": "489ac17b09348cc0efa716bfe3f515e9150de79098f5655a62661b8e5eabdb4b",
   "models": [
     {
       "role": "embedding",
@@ -28,31 +28,6 @@
   ],
   "runtimeFiles": 1865,
   "sourceSubstitution": false,
-  "unavailableArtifacts": [
-    "capsules/embedding/artifacts/model/shard_00004.bin",
-    "capsules/embedding/artifacts/model/shard_00005.bin",
-    "capsules/embedding/artifacts/model/shard_00006.bin",
-    "capsules/embedding/artifacts/model/shard_00007.bin",
-    "capsules/embedding/artifacts/model/shard_00008.bin",
-    "capsules/embedding/artifacts/model/shard_00009.bin",
-    "capsules/embedding/artifacts/model/shard_00010.bin",
-    "capsules/embedding/artifacts/model/shard_00011.bin",
-    "capsules/embedding/artifacts/model/shard_00012.bin",
-    "capsules/embedding/artifacts/model/shard_00013.bin",
-    "capsules/embedding/artifacts/model/shard_00014.bin",
-    "capsules/embedding/artifacts/model/shard_00015.bin",
-    "capsules/embedding/artifacts/model/shard_00016.bin",
-    "capsules/embedding/artifacts/model/shard_00017.bin",
-    "capsules/reranker/artifacts/model/shard_00004.bin",
-    "capsules/reranker/artifacts/model/shard_00005.bin",
-    "capsules/reranker/artifacts/model/shard_00006.bin",
-    "capsules/reranker/artifacts/model/shard_00007.bin",
-    "capsules/reranker/artifacts/model/shard_00008.bin",
-    "capsules/reranker/artifacts/model/shard_00009.bin",
-    "capsules/reranker/artifacts/model/shard_00010.bin",
-    "capsules/reranker/artifacts/model/shard_00011.bin",
-    "capsules/reranker/artifacts/model/shard_00012.bin",
-    "capsules/reranker/artifacts/model/shard_00013.bin"
-  ],
+  "unavailableArtifacts": [],
   "physicalAcceptance": false
 }

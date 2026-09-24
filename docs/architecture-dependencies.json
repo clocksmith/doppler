@@ -758,6 +758,7 @@
         "tools/check-config-single-source.js",
         "tools/check-contract-artifacts.js",
         "tools/check-demo-reachability.js",
+        "tools/check-document-search-sources.js",
         "tools/check-document-search-starter.js",
         "tools/check-electron-design-partner-prospects.js",
         "tools/check-evidence-workflow-ownership.js",
@@ -824,6 +825,8 @@
         "tools/distill-studio-quality-gate.js",
         "tools/distillation.js",
         "tools/document-search-gpu-observation.js",
+        "tools/document-search-installed-build.js",
+        "tools/document-search-lifecycle-checks.js",
         "tools/document-search-recovery-checks.js",
         "tools/emit-training-contract-delta.js",
         "tools/evaluate-wgsl-family-distillation.js",
@@ -6245,7 +6248,7 @@
     {
       "file": "tools/document-search-gpu-observation.js",
       "kind": "unresolved",
-      "line": 25,
+      "line": 31,
       "expression": "./runtime/src/gpu/device.js"
     },
     {
@@ -6313,6 +6316,12 @@
       "kind": "dynamic",
       "line": 62,
       "expression": "import(hostUrl)"
+    },
+    {
+      "file": "tools/qualify-document-search.js",
+      "kind": "asset",
+      "line": 26,
+      "expression": "new URL(name, import.meta.url)"
     },
     {
       "file": "tools/qualify-installed-generation.js",

@@ -1,8 +1,14 @@
 // Installed in the qualification page before application code. Observes native
 // upload calls without changing their arguments, return values, or ordering.
 export function observeDocumentSearchGpu() {
-  const metrics = { writeBufferBytes: 0, writeBufferCalls: 0, writeBufferCpuMs: 0, mappedAtCreationBytes: 0 };
+  const metrics = { writeBufferBytes: 0, writeBufferCalls: 0, writeBufferCpuMs: 0, mappedAtCreationBytes: 0, submitCalls: 0 };
   globalThis.documentSearchGpuMetrics = metrics;
+  const submit = GPUQueue.prototype.submit;
+  GPUQueue.prototype.submit = function(commands) {
+    const result = submit.call(this, commands);
+    metrics.submitCalls++;
+    return result;
+  };
   const write = GPUQueue.prototype.writeBuffer;
   GPUQueue.prototype.writeBuffer = function(buffer, offset, data, dataOffset, size) {
     const started = performance.now();
