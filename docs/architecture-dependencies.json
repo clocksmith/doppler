@@ -4658,6 +4658,8 @@
         "tests/tooling/debug-playbook-contract.test.js",
         "tests/tooling/demo-hardware-smoke.test.js",
         "tests/tooling/document-search-build.test.js",
+        "tests/tooling/document-search-installed-build.test.js",
+        "tests/tooling/document-search-sources.test.js",
         "tests/tooling/electron-reranker-probe.test.js",
         "tests/tooling/embedding-reference-materialization.test.js",
         "tests/tooling/evidence-json-contracts.test.js",
@@ -6248,7 +6250,7 @@
     {
       "file": "tools/document-search-gpu-observation.js",
       "kind": "unresolved",
-      "line": 31,
+      "line": 32,
       "expression": "./runtime/src/gpu/device.js"
     },
     {
@@ -6320,7 +6322,7 @@
     {
       "file": "tools/qualify-document-search.js",
       "kind": "asset",
-      "line": 26,
+      "line": 28,
       "expression": "new URL(name, import.meta.url)"
     },
     {

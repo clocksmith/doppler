@@ -82,6 +82,7 @@ export async function prepareApplication(root = ROOT) {
   const manifest = `self.DOCUMENT_SEARCH_ASSETS = ${JSON.stringify(content, null, 2)};\n`;
   await fs.writeFile(path.join(root, 'application-assets.js'), manifest);
   const receipt = { schema: 'doppler.installed-document-search-build/v1',
+    tooling: Object.fromEntries(await Promise.all(['server.js', 'prepare.js'].map(async name => [name, hash(await fs.readFile(path.join(root, name)))]))),
     packageSha256: hash(archive), packageIntegrity: dependency.integrity,
     lockSha256: hash(lockBytes), applicationManifestSha256: hash(manifest),
     models: models.models.map(model => ({ role: model.role, identity: model.identity })),

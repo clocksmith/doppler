@@ -7,6 +7,7 @@ export function observeDocumentSearchGpu() {
   GPUQueue.prototype.submit = function(commands) {
     const result = submit.call(this, commands);
     metrics.submitCalls++;
+    globalThis.documentSearchSubmissionProbe?.();
     return result;
   };
   const write = GPUQueue.prototype.writeBuffer;

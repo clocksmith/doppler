@@ -14,6 +14,35 @@ ModelIR-derived, qualified TargetPlans. Runtime verifies, selects, binds, and
 executes the declared JavaScript/WGSL program. Browser and Node paths are
 qualified separately; Bun remains experimental.
 
+## Run local document search
+
+[Download the standalone search starter](https://huggingface.co/clocksmith/rdrr/resolve/c1186784b1ec713ff0ec0e9056ac85ac576bc5dc/document-search/releases/0.1.0/doppler-document-search-0.1.0.tgz) to index text and Markdown,
+then search locally with embedding and reranking models kept loaded together.
+It includes its pinned runtime; no repository checkout or signing setup is needed.
+
+```sh
+curl -fL 'https://huggingface.co/clocksmith/rdrr/resolve/c1186784b1ec713ff0ec0e9056ac85ac576bc5dc/document-search/releases/0.1.0/doppler-document-search-0.1.0.tgz' -o doppler-document-search-0.1.0.tgz
+printf '%s  %s\n' 'e84f87be9be410c41bdb6b5bdf8dd72825d167661bdf868f91a2a609ed020f33' 'doppler-document-search-0.1.0.tgz' | sha256sum -c -
+tar -xzf doppler-document-search-0.1.0.tgz
+cd document-search
+npm ci --omit=optional
+npm start
+```
+
+The qualified configuration is Linux, Chrome 146.0.7680.177, and AMD Radeon
+8060S (RADV STRIX_HALO), with `shader-f16` and `subgroups`. Node 22.22.1/npm 9.2.0
+were used for installation. Models download **2.15 GB**, plus application,
+index, and temporary storage. The tested host has 122 GiB usable RAM; a minimum
+memory configuration is not established. Follow the [browser launch and usage
+steps](examples/document-search/README.md#copy-and-run).
+
+Installed real-model search, cancellation, repair, and offline browser restart
+passed on that configuration. The acceptance profile used `tmpfs`; this does not
+establish reboot persistence or disk-backed performance. Read the [measured
+results and limits](examples/document-search/README.md#measured-application-behavior)
+and [release evidence](artifacts/document-search-delivery-2026-09-23/README.md).
+Node inference and packaged Electron are subsequent qualification work.
+
 ## Mission, goal, and value
 
 Make useful AI capabilities installable, inspectable, and maintainable as

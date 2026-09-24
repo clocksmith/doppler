@@ -8,6 +8,7 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 export async function verifyInstalledSearchBuild(root, build) {
   assert.equal(build.schema, 'doppler.installed-document-search-build/v1');
   assert.equal(build.sourceSubstitution, false);
+  for (const name of ['server.js', 'prepare.js']) assert.equal(hash(await fs.readFile(path.join(root, name))), build.tooling?.[name], name);
   const lockBytes = await fs.readFile(path.join(root, 'package-lock.json'));
   assert.equal(hash(lockBytes), build.lockSha256, 'Installed lock changed');
   const lock = JSON.parse(lockBytes);
@@ -34,6 +35,6 @@ export async function verifyInstalledSearchBuild(root, build) {
     assert.deepEqual(getCapsuleIdentity(JSON.parse(await fs.readFile(path.join(root, model.capsuleUrl)))), model.identity);
     assert.deepEqual(build.models.find(row => row.role === model.role)?.identity, model.identity);
   }
-  return { packageSha256: build.packageSha256, lockSha256: build.lockSha256,
+  return { packageSha256: build.packageSha256, lockSha256: build.lockSha256, tooling: build.tooling,
     applicationManifestSha256: build.applicationManifestSha256, assetCount: manifest.assets.length, models: build.models };
 }

@@ -20,6 +20,8 @@ await fs.mkdir(config.outputDir);
 const report = { schema: 'doppler.offline-document-search-qualification/v1', passed: false, stage: 'launch',
   generatedAt: new Date().toISOString(), config, fixtureDigest: hashBytesSha256(fixtureBytes), build,
   physicalExecution: false, externalAdoption: false, requests: [], webSockets: [], logs: [], phases: {} };
+report.profileFilesystem = { type: (await fs.statfs(config.outputDir)).type,
+  note: 'Filesystem backing is part of this receipt; installation timings are not transferable across storage devices.' };
 report.probes = {};
 for (const name of ['qualify-document-search.js', 'document-search-recovery-checks.js', 'document-search-gpu-observation.js',
   'document-search-installed-build.js', 'document-search-lifecycle-checks.js', 'check-document-search-starter.js']) {
@@ -45,8 +47,8 @@ function incumbent(query) {
 let context;
 let server;
 let timer;
-async function launch(offline, url) {
-  context = await chromium.launchPersistentContext(path.join(config.outputDir, 'profile'), {
+async function launch(offline, url, profileName = 'profile') {
+  context = await chromium.launchPersistentContext(path.join(config.outputDir, profileName), {
     headless: true, args: config.launchArgs, timeout: config.timeoutMs, channel: config.channel,
     env: { ...process.env, TMPDIR: config.temporaryDirectory } });
   report.browserVersion = context.browser().version();
@@ -98,13 +100,17 @@ try {
   report.origin = server.baseUrl;
   timer = setTimeout(() => context?.close().catch(error => report.logs.push({ timeoutCleanup: error.message })), config.timeoutMs);
   stage('online-install');
-  let page = await launch(false, url);
+  let page = await launch(false, url, config.recovery === true ? 'interruption-profile' : 'profile');
   await page.check('#retention');
   if (config.recovery === true) {
     stage('interruption-and-quota');
     report.interruptedInstallation = await checkInterruptedInstallation(page, context, server.baseUrl);
+    await context.close(); context = null;
     stage('online-install');
+    page = await launch(false, url);
+    await page.check('#retention');
   }
+  report.installationCacheState = 'Fresh browser profile; interruption and quota probes use a separate profile.';
   const start = performance.now();
   report.install = await page.evaluate(() => globalThis.documentSearch.install());
   report.installMs = performance.now() - start;
@@ -112,7 +118,9 @@ try {
   report.residentModels = await page.evaluate(() => globalThis.documentSearch.controller.getState().sessionRoles.sort());
   assert.deepEqual(report.residentModels, ['embedding', 'reranker']);
   stage('index');
+  const indexStart = performance.now();
   report.index = await page.evaluate(documents => globalThis.documentSearch.indexDocuments(documents), fixture.documents);
+  report.indexMs = performance.now() - indexStart;
   stage('online-search');
   report.phases.online = await searchAll(page);
   report.timings = await page.evaluate(() => globalThis.documentSearch.timings);
@@ -125,7 +133,12 @@ try {
     report.damagedInstallation = await checkDamagedInstallation(page, fixture);
   }
   report.onlineObservations = await page.evaluate(() => globalThis.documentSearch.observations);
+  const artifactReads = report.onlineObservations.flatMap(event => event.acquisition ?? []);
+  report.artifactCosts = Object.fromEntries(['acquisitionMs', 'verificationMs', 'storageReadMs', 'storageWriteMs'].map(key =>
+    [key, artifactReads.reduce((sum, read) => sum + (read[key] ?? 0), 0)]));
+  const closeStart = performance.now();
   await page.evaluate(() => globalThis.documentSearch.close());
+  report.closeMs = performance.now() - closeStart;
   assert.equal(await page.evaluate(() => globalThis.documentSearch.controller.getState().hasSessions), false);
   if (report.installedIdentity) assert.deepEqual(await verifyInstalledSearchBuild(config.applicationDir, build), report.installedIdentity);
   await context.close(); context = null;
@@ -166,7 +179,7 @@ try {
   report.physicalExecution = true;
   await page.evaluate(() => globalThis.documentSearch.close());
   report.passed = true; report.stage = 'complete';
-} catch (error) { report.error = { message: error.message, stack: error.stack }; }
+} catch (error) { report.error = { message: error.message, stack: error.stack, evidence: error.evidence }; }
 finally {
   clearTimeout(timer);
   const errors = [];

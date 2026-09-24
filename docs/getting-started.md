@@ -1,6 +1,29 @@
 # Doppler Getting Started
 
-This is the canonical day-1 workflow for Doppler.
+Start with the [standalone local-search application](../README.md#run-local-document-search).
+Download and verify the archive, extract it, then run `npm ci --omit=optional` and
+`npm start` inside `document-search`. The runtime is included and pinned.
+
+The supported configuration, model download size, browser launch command, and
+step-by-step install/search/cancel/reopen instructions are in the
+[starter guide](../examples/document-search/README.md#copy-and-run). The page checks
+GPU features and storage before installation and reports measured progress.
+Start with the six included sample documents, then replace them with your own
+text or Markdown files. Submitted GPU commands finish after cancellation; stale
+results are suppressed.
+
+The browser receipt covers Linux/Chrome 146/Radeon 8060S with a memory-backed
+profile. It does not establish a minimum-memory configuration, reboot persistence,
+other GPUs, Node inference, or packaged Electron. See the
+[release evidence](../artifacts/document-search-delivery-2026-09-23/README.md).
+
+Application qualification and engineering reproduction are in the separate
+[engineering guide](../examples/document-search/ENGINEERING.md).
+
+## Library and engineering workflows
+
+The remaining sections cover the CLI, conversion, verification, and benchmarking;
+they are not prerequisites for using the search starter.
 
 ## Scope
 

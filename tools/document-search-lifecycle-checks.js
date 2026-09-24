@@ -15,21 +15,19 @@ export async function checkSearchLifecycle(page, fixture, storage) {
     report.unchangedIndex = JSON.stringify(controller.getIndex()) === originalIndex;
 
     async function cancelledAfterSubmission(kind, task) {
-      const submit = GPUQueue.prototype.submit;
+      const started = performance.now();
       let submitted = false;
-      GPUQueue.prototype.submit = function(commands) {
-        const value = submit.call(this, commands);
+      globalThis.documentSearchSubmissionProbe = () => {
         if (!submitted) {
           submitted = true;
           queueMicrotask(() => kind === 'index' ? controller.cancelIndexing() : controller.cancelSearch());
         }
-        return value;
       };
       try {
         await task();
         return { submitted, rejected: false };
-      } catch (error) { return { submitted, rejected: true, name: error.name, message: error.message }; }
-      finally { GPUQueue.prototype.submit = submit; }
+      } catch (error) { return { submitted, rejected: true, name: error.name, message: error.message, elapsedMs: performance.now() - started }; }
+      finally { delete globalThis.documentSearchSubmissionProbe; }
     }
     report.cancelledIndex = await cancelledAfterSubmission('index', () => app.indexDocuments([
       ...fixture.documents, { ...fixture.documents[0], id: 'cancelled-new-document', text: 'Different text for a cancelled index.' },
@@ -76,17 +74,19 @@ export async function checkSearchLifecycle(page, fixture, storage) {
     report.recoveredTopId = recovered.results[0]?.document.id;
     return report;
   }, { fixture, storage });
-  assert.equal(result.unchangedDocumentSubmissions, 0);
-  assert.equal(result.unchangedIndex, true);
-  for (const cancelled of [result.cancelledIndex, result.cancelledQuery]) {
-    assert.equal(cancelled.submitted, true); assert.equal(cancelled.rejected, true); assert.equal(cancelled.name, 'AbortError');
-  }
-  assert.equal(result.cancelledIndex.preserved, true);
-  assert.equal(result.superseded, true);
-  assert.equal(result.latestTopId, fixture.queries[1].expectedTopId);
-  assert.equal(result.recoveredTopId, fixture.queries[0].expectedTopId);
-  assert.equal(result.reusedSessions, true);
-  assert.deepEqual(result.interruptedSave, { rejected: true, name: 'AbortError', reachedWrite: true,
-    retainedBytesUnchanged: true, indexUnchanged: true });
+  try {
+    assert.equal(result.unchangedDocumentSubmissions, 0);
+    assert.equal(result.unchangedIndex, true);
+    for (const cancelled of [result.cancelledIndex, result.cancelledQuery]) {
+      assert.equal(cancelled.submitted, true); assert.equal(cancelled.rejected, true); assert.equal(cancelled.name, 'AbortError');
+    }
+    assert.equal(result.cancelledIndex.preserved, true);
+    assert.equal(result.superseded, true);
+    assert.equal(result.latestTopId, fixture.queries[1].expectedTopId);
+    assert.equal(result.recoveredTopId, fixture.queries[0].expectedTopId);
+    assert.equal(result.reusedSessions, true);
+    assert.deepEqual(result.interruptedSave, { rejected: true, name: 'AbortError', reachedWrite: true,
+      retainedBytesUnchanged: true, indexUnchanged: true });
+  } catch (error) { error.evidence = result; throw error; }
   return result;
 }
