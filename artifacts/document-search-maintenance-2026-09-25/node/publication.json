@@ -1,0 +1,11 @@
+{
+  "repoId": "clocksmith/rdrr",
+  "revision": "fa3325d41d43bf7ec3a9dcd39e77587fefabdd89",
+  "path": "document-search/node/releases/0.1.0/caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e",
+  "archiveUrl": "https://huggingface.co/clocksmith/rdrr/resolve/fa3325d41d43bf7ec3a9dcd39e77587fefabdd89/document-search/node/releases/0.1.0/caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e/doppler-node-document-search-0.1.0.tgz",
+  "archive": {
+    "filename": "doppler-node-document-search-0.1.0.tgz",
+    "sha256": "caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e",
+    "sizeBytes": 8554262
+  }
+}

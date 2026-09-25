@@ -1,0 +1,7 @@
+{
+  "outputDir": "/dev/shm/doppler-search-node-capsules-20260925-02",
+  "sourceCapsulesDir": "/var/tmp/doppler-retention-campaign/browser-app-bounded/capsules",
+  "qualificationDir": "/var/tmp/doppler-search-node-20260925",
+  "applicationPath": "/home/x/deco/doppler/examples/document-search/search.js",
+  "authorityId": "clocksmith-document-search-node-20260925"
+}

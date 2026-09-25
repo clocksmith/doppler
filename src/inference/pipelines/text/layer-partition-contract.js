@@ -1,10 +1,3 @@
-/**
- * @fileoverview Doppler public layer partition contract.
- *
- * Defines executable partition shapes, intermediate activation tensor contracts,
- * isolated continuation states, and numerical comparison requirements for split
- * layer execution across cooperating devices.
- */
 
 export const LAYER_PARTITION_SCHEMA = 'doppler.layer-partition-contract/v1';
 export const ACTIVATION_TENSOR_SCHEMA = 'doppler.activation-tensor/v1';
@@ -18,18 +11,7 @@ const DTYPE_BYTES = Object.freeze({
   i32: 4
 });
 
-/**
- * Creates an executable 2-partition layer plan for a transformer model.
- *
- * @param {Object} options
- * @param {string} options.modelId - Model identifier
- * @param {number} options.numLayers - Total number of transformer layers
- * @param {number} options.hiddenSize - Hidden activation dimension D
- * @param {number} options.vocabSize - Vocabulary size V
- * @param {number} [options.splitLayer] - Index where partition 1 starts (default: Math.floor(numLayers / 2))
- * @param {string} [options.activationDtype='f32'] - Dtype for intermediate activation tensor ('f32' | 'f16')
- * @returns {Object} Validated partition plan
- */
+/** @type {import('./layer-partition-contract.js').createLayerPartitionPlan} */
 export function createLayerPartitionPlan({
   modelId,
   numLayers,
@@ -59,6 +41,7 @@ export function createLayerPartitionPlan({
     throw new RangeError(`splitLayer must be in range [1, ${numLayers - 1}]; got ${split}`);
   }
 
+  /** @type {import('./layer-partition-contract.js').LayerPartition} */
   const group0 = {
     index: 0,
     layerRange: [0, split - 1],
@@ -80,6 +63,7 @@ export function createLayerPartitionPlan({
     }
   };
 
+  /** @type {import('./layer-partition-contract.js').LayerPartition} */
   const group1 = {
     index: 1,
     layerRange: [split, numLayers - 1],
@@ -114,10 +98,8 @@ export function createLayerPartitionPlan({
   });
 }
 
-/**
- * Validates whether an activation tensor shape and byte length match the contract.
- */
-export function validateActivationTensorShape({ shape, dtype, byteLength, hiddenSize }) {
+/** @type {import('./layer-partition-contract.js').validateActivationTensorShape} */
+export function validateActivationTensorShape({ shape, dtype, byteLength = null, hiddenSize = null }) {
   if (!Array.isArray(shape) || shape.length !== 3) {
     throw new TypeError(`Activation shape must be 3D [batchSize, seqLen, hiddenSize]; got ${JSON.stringify(shape)}`);
   }
@@ -128,6 +110,9 @@ export function validateActivationTensorShape({ shape, dtype, byteLength, hidden
   if (!Number.isSafeInteger(seqLen) || seqLen <= 0) {
     throw new RangeError(`seqLen must be a positive integer; got ${seqLen}`);
   }
+  if (!Number.isSafeInteger(actualHidden) || actualHidden <= 0) {
+    throw new RangeError('Activation hidden dimension must be a positive integer.');
+  }
   if (hiddenSize != null && actualHidden !== hiddenSize) {
     throw new RangeError(`Activation hiddenSize mismatch: expected ${hiddenSize}, got ${actualHidden}`);
   }
@@ -136,15 +121,14 @@ export function validateActivationTensorShape({ shape, dtype, byteLength, hidden
     throw new TypeError(`Unsupported activation dtype: ${dtype}`);
   }
   const expectedBytes = batchSize * seqLen * actualHidden * bytesPerElem;
+  if (!Number.isSafeInteger(expectedBytes)) throw new RangeError('Activation byte size exceeds safe integer range.');
   if (byteLength != null && byteLength !== expectedBytes) {
     throw new RangeError(`Activation byteLength mismatch: expected ${expectedBytes} bytes, got ${byteLength}`);
   }
   return { batchSize, seqLen, hiddenSize: actualHidden, expectedBytes };
 }
 
-/**
- * Serializes an intermediate activation frame for wire transfer over WebRTC.
- */
+/** @type {import('./layer-partition-contract.js').serializeActivationFrame} */
 export function serializeActivationFrame({
   shape,
   dtype = 'f32',
@@ -156,14 +140,14 @@ export function serializeActivationFrame({
   const { expectedBytes } = validateActivationTensorShape({
     shape,
     dtype,
-    byteLength: data.byteLength ?? (data.length * DTYPE_BYTES[dtype])
+    byteLength: data.byteLength
   });
 
   let buffer;
   if (data instanceof ArrayBuffer) {
     buffer = data;
   } else if (ArrayBuffer.isView(data)) {
-    buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+    buffer = new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice().buffer;
   } else {
     throw new TypeError('Activation data must be an ArrayBuffer or ArrayBufferView');
   }
@@ -184,9 +168,7 @@ export function serializeActivationFrame({
   });
 }
 
-/**
- * Deserializes an activation frame received over WebRTC into a typed array.
- */
+/** @type {import('./layer-partition-contract.js').deserializeActivationFrame} */
 export function deserializeActivationFrame(frame) {
   if (!frame || frame.schema !== ACTIVATION_TENSOR_SCHEMA) {
     throw new TypeError(`Invalid activation frame schema: ${frame?.schema}`);
@@ -213,9 +195,7 @@ export function deserializeActivationFrame(frame) {
   };
 }
 
-/**
- * Creates isolated continuation state for a layer group.
- */
+/** @type {import('./layer-partition-contract.js').createPartitionContinuation} */
 export function createPartitionContinuation({
   partitionIndex,
   totalLayers,
@@ -225,7 +205,8 @@ export function createPartitionContinuation({
   let offset = seqOffset;
   const kvCache = new Map();
 
-  return Object.freeze({
+  /** @type {import('./layer-partition-contract.js').PartitionContinuation} */
+  const continuation = {
     partitionIndex,
     layerRange: Object.freeze([...layerRange]),
     getSequenceOffset() {
@@ -251,19 +232,11 @@ export function createPartitionContinuation({
       offset = 0;
       kvCache.clear();
     }
-  });
+  };
+  return Object.freeze(continuation);
 }
 
-/**
- * Compares numerical output from split execution against unsplit reference output.
- *
- * @param {Object} options
- * @param {Float32Array|number[]} options.splitOutput - Logits from split 2-partition execution
- * @param {Float32Array|number[]} options.referenceOutput - Logits from single-device unsplit execution
- * @param {number} [options.tolerance=DEFAULT_NUMERICAL_TOLERANCE] - Max absolute error threshold
- * @param {number} [options.minCosineSimilarity=DEFAULT_COSINE_SIMILARITY_MIN] - Minimum cosine similarity
- * @returns {Object} Comparison assessment
- */
+/** @type {import('./layer-partition-contract.js').comparePartitionExecution} */
 export function comparePartitionExecution({
   splitOutput,
   referenceOutput,
@@ -279,7 +252,12 @@ export function comparePartitionExecution({
     );
   }
 
+  if (!Number.isFinite(tolerance) || tolerance < 0 || !Number.isFinite(minCosineSimilarity)
+    || minCosineSimilarity < -1 || minCosineSimilarity > 1) {
+    throw new RangeError('Finite comparison thresholds in range are required.');
+  }
   const length = splitOutput.length;
+  if (length === 0) throw new RangeError('Nonempty comparison outputs are required.');
   let maxDiff = 0;
   let sumSquaredDiff = 0;
   let dotProduct = 0;
@@ -289,6 +267,7 @@ export function comparePartitionExecution({
   for (let i = 0; i < length; i++) {
     const a = splitOutput[i];
     const b = referenceOutput[i];
+    if (!Number.isFinite(a) || !Number.isFinite(b)) throw new RangeError('Finite comparison outputs are required.');
     const diff = Math.abs(a - b);
     if (diff > maxDiff) maxDiff = diff;
     sumSquaredDiff += diff * diff;

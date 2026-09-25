@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.independent-integration-outreach/v1",
+  "checkedAtUtc": "2026-09-25T14:00:06.898Z",
+  "prospect": "villurignanesh/paper-atlas",
+  "featureIssue": "https://github.com/villurignanesh/paper-atlas/issues/9",
+  "invitation": "https://github.com/clocksmith/doppler/issues/13#issuecomment-5833256793",
+  "channel": "Addressed public GitHub comment in Doppler issue #13",
+  "deliveryConstraint": "The connected GitHub app rejected commenting on the prospect repository with HTTP 403. No comment was posted there.",
+  "fitLimitation": "The released 2.15 GB two-model download exceeds the requested small-download budget; the invitation explicitly permits rejection without installation.",
+  "requestedEvidence": [
+    "Own paper corpus",
+    "Unassisted installation with interventions recorded",
+    "Comparison to existing substring/author-keyword reference or feasible alternative",
+    "Voluntary retention through a second revision",
+    "Setup, reopening and maintenance friction"
+  ],
+  "responseReceived": false,
+  "integrationCompleted": false,
+  "secondRevisionCompleted": false,
+  "externalAdoption": false,
+  "paymentRequired": false
+}

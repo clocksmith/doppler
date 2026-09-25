@@ -17,6 +17,11 @@ profile. It does not establish a minimum-memory configuration, reboot persistenc
 other GPUs, Node inference, or packaged Electron. See the
 [release evidence](../artifacts/document-search-delivery-2026-09-23/README.md).
 
+For Node, use the separate [Node starter guide](../examples/document-search/NODE.md)
+and [installed application evidence](../artifacts/document-search-maintenance-2026-09-25/README.md).
+It reuses the browser application's search and controller with filesystem storage;
+its provider, signed model releases, and acceptance are qualified separately.
+
 Application qualification and engineering reproduction are in the separate
 [engineering guide](../examples/document-search/ENGINEERING.md).
 

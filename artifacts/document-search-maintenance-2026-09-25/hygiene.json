@@ -1,0 +1,18 @@
+{
+  "schema": "doppler.document-search-maintenance/v1",
+  "passed": true,
+  "command": "npm run check:green",
+  "testFiles": 863,
+  "gateFailures": [],
+  "correctedRuntime": {
+    "sha256": "73c0d1227f5d64e2e60d78b2a14d4ecb5b90535d932cf7b184d24eaa466c6b3e",
+    "published": true,
+    "browserStarterUpdated": false,
+    "publication": "node/publication.json"
+  },
+  "acceptedStarterRuntime": {
+    "sha256": "625b8ed8c8e86c28a5b49e1e5ce43969885acd3df309f456eba719d3eeaa5539",
+    "unchanged": true
+  },
+  "scope": "Full repository run after runtime repairs, before the Node application extension. The final extension run is recorded separately."
+}

@@ -9,6 +9,7 @@ import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } from '../tests/helpers/capsule-v2-fixture.js';
 import { createInstalledTokenSelectionFixture } from '../tests/helpers/installed-token-selection-fixture.js';
+import { buildRuntimeClosure } from './check-capsule-runtime-closure.js';
 import { createInstalledAdapterFixture } from '../tests/helpers/installed-adapter-fixture.js';
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -82,6 +83,10 @@ async function writeTypeSmoke(consumerDir, packageJson) {
   const source = specifiers
     .map((specifier, index) => `type PackageExport${index} = typeof import(${JSON.stringify(specifier)});`)
     .join('\n') + `
+// @ts-expect-error internal partition helpers must not leak through the minimal runtime
+import { createLayerPartitionPlan } from '${packageJson.name}';
+// @ts-expect-error runtime alias must expose the same declared minimal contract
+import { serializeActivationFrame } from '${packageJson.name}/runtime';
 import { createDocumentSearchRenderer, createDocumentSearchHostRenderer } from './renderer.js';
 import { openCapsule } from '${packageJson.name}/host';
 import type { DopplerCapsuleOpenOptions } from '${packageJson.name}/host';
@@ -246,6 +251,25 @@ async function runGenerationCapsuleSmoke(consumerDir) {
   process.stdout.write(run(process.execPath, ['token-selection-smoke.js'], { cwd: consumerDir }));
 }
 
+
+async function runPartitionApiSmoke(consumerDir, packageJson) {
+  await fs.copyFile(path.join(ROOT_DIR, 'tests/fixtures/packed-partition-consumer.js'), path.join(consumerDir, 'partition-smoke.js'));
+  process.stdout.write(run(process.execPath, ['partition-smoke.js'], { cwd: consumerDir }));
+  const installedRoot = path.join(consumerDir, 'node_modules', packageJson.name);
+  const policy = JSON.parse(await fs.readFile(path.join(ROOT_DIR, 'tools/policies/runtime-closure-policy.json')));
+  const closure = await buildRuntimeClosure(installedRoot, policy);
+  if (!closure.passed || closure.files.some(file => file.path === 'src/inference/pipelines/text/layer-partition-contract.js')) {
+    throw new Error('Installed root import owns an inference dependency.');
+  }
+  const retained = JSON.parse(await fs.readFile(path.join(ROOT_DIR, 'reports/capsule-runtime/runtime-closure.json')));
+  if (JSON.stringify(closure) !== JSON.stringify(retained)) throw new Error('Installed runtime closure differs from checked receipt.');
+  for (const suffix of ['.js', '.d.ts']) {
+    const name = path.join(installedRoot, 'src/inference/pipelines/text/layer-partition-contract' + suffix);
+    if (await fs.stat(name).then(() => true, () => false)) throw new Error('Internal partition source leaked into the installed package.');
+  }
+  console.log('installed runtime closure and internal-source exclusion checks passed');
+}
+
 async function runCliSmokes(consumerDir, packageJson) {
   const packageDir = path.join(consumerDir, 'node_modules', packageJson.name);
   for (const [name, target] of Object.entries(packageJson.bin ?? {})) {
@@ -361,6 +385,7 @@ async function main() {
       path.join(consumerDir, 'node-provider-smoke.js'));
     process.stdout.write(run(process.execPath, ['node-provider-smoke.js'], { cwd: consumerDir }));
     await runTrainingApiSmoke(consumerDir, packageJson);
+    await runPartitionApiSmoke(consumerDir, packageJson);
     await runCliSmokes(consumerDir, packageJson);
     receipt.applicationFiles = await runElectronCapsuleSmoke(consumerDir);
     await runEmbeddingCapsuleSmoke(consumerDir);

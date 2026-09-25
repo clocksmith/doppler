@@ -1,0 +1,133 @@
+{
+  "schema": "doppler.document-search-node-release/v1",
+  "passed": true,
+  "createdAtUtc": "2026-09-25T14:27:24.729Z",
+  "archive": {
+    "filename": "doppler-node-document-search-0.1.0.tgz",
+    "sha256": "caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e",
+    "sizeBytes": 8554262
+  },
+  "runtime": {
+    "version": "0.6.2",
+    "sha256": "73c0d1227f5d64e2e60d78b2a14d4ecb5b90535d932cf7b184d24eaa466c6b3e",
+    "sizeBytes": 2153927,
+    "source": "separately qualified vendored candidate; npm registry unchanged"
+  },
+  "buildReceiptSha256": "5929241fca8a74c17db845d43b84c091e5ba523c51614539feb8a2826af8a8ef",
+  "models": [
+    {
+      "role": "embedding",
+      "identity": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-055c6df34d6a0b831a570caeed55847dbe9d93578f01d630587b0a241d423f13",
+        "semanticRoot": "sha256:055c6df34d6a0b831a570caeed55847dbe9d93578f01d630587b0a241d423f13",
+        "envelopeDigest": "sha256:b55dac90d845ca16e252d50b79d4009fda8fcd8834d023d1308da1b5091ea310",
+        "artifactClosureDigest": "sha256:6459bfac1fa531ef32bdebc9a7947149cea72e85782e2cd4d5096ffb6eaa1bcf"
+      }
+    },
+    {
+      "role": "reranker",
+      "identity": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-86fd4533703b22f8a9ba875d5da62e2968bb3c2d7450ea25c6a816ca896283a5",
+        "semanticRoot": "sha256:86fd4533703b22f8a9ba875d5da62e2968bb3c2d7450ea25c6a816ca896283a5",
+        "envelopeDigest": "sha256:bd85fb9d46280d8ed4bff1a6df58638c1d64430f8fa50fd7ffd03ed0924c1026",
+        "artifactClosureDigest": "sha256:b2ce8fb7b5ffb60301d06351da485590a5321cbdb66fa3038d087619d541cf59"
+      }
+    }
+  ],
+  "hardware": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "isFallbackAdapter": false
+  },
+  "nodeVersion": "v22.22.1",
+  "provider": {
+    "provider": "webgpu",
+    "version": "0.4.0",
+    "binary": "dist/linux-x64.dawn.node",
+    "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1",
+    "sizeBytes": 18617336
+  },
+  "npmVersion": "9.2.0",
+  "checks": {
+    "cleanInstallation": true,
+    "publicShardDownloads": 32,
+    "installedAssetInventory": true,
+    "twoModelsResident": true,
+    "unchangedDocumentReuse": true,
+    "repeatedSearch": true,
+    "cancelledIndexAfterSubmission": {
+      "passed": true,
+      "submissions": 12
+    },
+    "cancelledQueryAfterSubmission": {
+      "passed": true,
+      "submissions": 12
+    },
+    "supersededQuery": true,
+    "interruptedSave": true,
+    "explicitClosure": true,
+    "corruptionRepair": true,
+    "deviceLossRecovery": true,
+    "offlineRestart": true,
+    "offlineRequests": 0,
+    "kernelSocketDenials": [
+      {
+        "host": "127.0.0.1",
+        "error": "EPERM"
+      },
+      {
+        "host": "::1",
+        "error": "EPERM"
+      }
+    ],
+    "interactiveCli": true,
+    "borrowedProviderRejected": true
+  },
+  "timings": {
+    "initialInstallationMs": 223935.22875100002,
+    "coldIndexMs": 2219.9216650000017,
+    "firstQueryMs": 973.585665999999,
+    "subsequentQueryMedianMs": 1003.5095719999954,
+    "offlineReopenMs": 50906.993127
+  },
+  "memory": {
+    "sampledPeakProcessRssBytes": 3266555904,
+    "processHighWaterRssBytes": 3266555904,
+    "gpu": {
+      "submitCalls": 1293,
+      "createdBufferBytes": 33507633344,
+      "liveRequestedBufferBytes": 0,
+      "peakRequestedBufferBytes": 3989755736
+    },
+    "gpuScope": "Requested buffer allocation sizes and explicit destruction; not measured physical GPU residency."
+  },
+  "conditions": {
+    "storageFilesystem": {
+      "type": 16914836,
+      "rebootTested": false,
+      "physicalGpuResidencyMeasured": false
+    },
+    "systemUsableRamGiB": 122,
+    "repositoryCheckConcurrentWithPartOfQualification": true,
+    "timingScope": "Observed qualification diagnostics, not a controlled throughput comparison or minimum hardware claim."
+  },
+  "limitations": {
+    "diskBackedBrowserAcceptance": false,
+    "rebootAcceptance": false,
+    "minimumSystemMemoryEstablished": false,
+    "physicalGpuResidencyMeasured": false,
+    "externalAdoption": false,
+    "electronQualified": false,
+    "bunQualified": false
+  },
+  "evidence": {
+    "final-clean-qualification.json": "7bd0ea8cdde71cfba1f5b9fb1baa8af1815263f25489e27305855ab46a3e93e8",
+    "final-offline-qualification.json": "f9b903544a262d22f0265b1bb095399d96ff8d1e09116534ad0282b1483d2549",
+    "final-cli.json": "e77a40180b484caf6dfaea42752fb1aed17edd8dd230b0fb02c75a1308168742",
+    "build-receipt.json": "5929241fca8a74c17db845d43b84c091e5ba523c51614539feb8a2826af8a8ef"
+  }
+}

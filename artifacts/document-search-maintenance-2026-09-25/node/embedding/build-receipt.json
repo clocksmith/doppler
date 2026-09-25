@@ -1,0 +1,82 @@
+{
+  "role": "embedding",
+  "result": {
+    "ok": true,
+    "forgeVersion": "2.0.0",
+    "outputPath": "../../../../dev/shm/doppler-search-node-capsules-20260925-02/embedding/distribution/capsule.json",
+    "absoluteOutputPath": "/dev/shm/doppler-search-node-capsules-20260925-02/embedding/distribution/capsule.json",
+    "modelId": "qwen-3-embedding-0-6b-f16-af32",
+    "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v2-19c8e14f7c359cfd",
+    "semanticRoot": "sha256:19c8e14f7c359cfdff92e35072b7e7c303fb1bf1e4fcd66ae72cf1ddc9aa5749",
+    "envelopeHash": "sha256:1519089fdb55002e5c5ee73694807eabf9f956bfaa1e1419446de949c92a6b20",
+    "schema": "doppler.capsule/v2",
+    "schemaVersion": 2,
+    "createdAtUtc": "2026-09-07T13:12:55.123Z",
+    "sourceBundleId": "qwen-3-embedding-0-6b-f16-af32-a0b0e3682e53",
+    "programBundlePath": "/dev/shm/doppler-search-node-capsules-20260925-02/embedding/inputs/program-bundle.json",
+    "executionGraphHash": "sha256:a0b0e3682e53a8f8be72a76a2d4b61ed557e35533797fbb87840f68232133b20",
+    "artifactCount": 43,
+    "wgslModuleCount": 18,
+    "targetPlanDigests": [
+      "sha256:279f065bd9c96a97dcfe47e830f97b49668098735bcf22fce4455696562d36f1"
+    ],
+    "stages": [
+      {
+        "stage": "inspect",
+        "ok": true
+      },
+      {
+        "stage": "normalize",
+        "ok": true
+      },
+      {
+        "stage": "analyze",
+        "ok": true
+      },
+      {
+        "stage": "lower",
+        "ok": true
+      },
+      {
+        "stage": "specialize",
+        "ok": true
+      },
+      {
+        "stage": "search",
+        "ok": true
+      },
+      {
+        "stage": "verify",
+        "ok": true
+      },
+      {
+        "stage": "qualify",
+        "ok": true
+      },
+      {
+        "stage": "package",
+        "ok": true
+      },
+      {
+        "stage": "sign",
+        "ok": true
+      }
+    ],
+    "searchReceipt": {
+      "candidateTargetPlanHashes": [
+        "sha256:279f065bd9c96a97dcfe47e830f97b49668098735bcf22fce4455696562d36f1"
+      ],
+      "selectedTargetPlanHashes": [
+        "sha256:279f065bd9c96a97dcfe47e830f97b49668098735bcf22fce4455696562d36f1"
+      ],
+      "policy": "closed-program-source-plan",
+      "evaluationReceipt": null
+    },
+    "candidateEvaluation": null
+  },
+  "sourceBundleHash": "sha256:2c95f335c1e6558ec7eddaaa1f59fb68007029a73b71f67f5fcb0dea006d439e",
+  "qualificationHash": "sha256:a20ae75b797ac5b448a741fbdd4bc6c47596b6ddfccd6822f32d1be59dd8f43e",
+  "physicalCapsuleExecution": false,
+  "installedApplicationAcceptance": false,
+  "externalAdoption": false
+}

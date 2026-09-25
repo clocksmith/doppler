@@ -1,0 +1,25 @@
+{
+  "evidenceClass": "installed-package-test",
+  "passed": false,
+  "physicalExecution": false,
+  "externalAdoption": false,
+  "nodeVersion": "v22.22.1",
+  "platform": "linux",
+  "arch": "x64",
+  "npmVersion": "9.2.0",
+  "zlibVersion": "1.3.1",
+  "startedAtUtc": "2026-09-25T13:37:19.214Z",
+  "package": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-rMYlPbd2/xVihWw1/+OFsbz5QBK77PtZXnNKY0rUzcSAdd2BgVYHSk/JjYi7HnbXO+G+vyuNdlYOw2dFDcOvPw==",
+    "sizeBytes": 2156552,
+    "source": "provided-immutable-archive",
+    "sha256": "625b8ed8c8e86c28a5b49e1e5ce43969885acd3df309f456eba719d3eeaa5539"
+  },
+  "failure": {
+    "message": "/usr/bin/node partition-smoke.js failed:\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Internal partition helpers are not public runtime operations.\n\ntrue !== false\n\n    at file:///dev/shm/doppler-search-hygiene-before-20260925/consumer/partition-smoke.js:9:12 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: true,\n  expected: false,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.1\n",
+    "stack": "Error: /usr/bin/node partition-smoke.js failed:\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Internal partition helpers are not public runtime operations.\n\ntrue !== false\n\n    at file:///dev/shm/doppler-search-hygiene-before-20260925/consumer/partition-smoke.js:9:12 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: true,\n  expected: false,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.1\n\n    at run (file:///home/x/deco/doppler/tools/check-packed-package.js:27:11)\n    at runPartitionApiSmoke (file:///home/x/deco/doppler/tools/check-packed-package.js:257:24)\n    at async main (file:///home/x/deco/doppler/tools/check-packed-package.js:388:5)"
+  },
+  "completedAtUtc": "2026-09-25T13:37:21.430Z"
+}

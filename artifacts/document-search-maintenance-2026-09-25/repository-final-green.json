@@ -1,0 +1,13 @@
+{
+  "command": "npm run check:green",
+  "passed": true,
+  "exitCode": 0,
+  "testFiles": 864,
+  "gateFailures": [],
+  "completedAtUtc": "2026-09-25T14:27:24.697Z",
+  "additionalInstalledApplicationCheck": "node/final-cli.json",
+  "log": {
+    "path": "repository-final-green.log",
+    "sha256": "603115d104a585ca96dd2103250a7425e0040f60d896a4003a9c960ac4a1cbb5"
+  }
+}

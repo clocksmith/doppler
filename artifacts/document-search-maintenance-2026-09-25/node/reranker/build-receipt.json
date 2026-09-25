@@ -1,0 +1,82 @@
+{
+  "role": "reranker",
+  "result": {
+    "ok": true,
+    "forgeVersion": "2.0.0",
+    "outputPath": "../../../../dev/shm/doppler-search-node-capsules-20260925-02/reranker/distribution/capsule.json",
+    "absoluteOutputPath": "/dev/shm/doppler-search-node-capsules-20260925-02/reranker/distribution/capsule.json",
+    "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+    "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v2-f361ea2c181258a4",
+    "semanticRoot": "sha256:f361ea2c181258a4399b0d627c30a56a655accd1bc45c6963ddc19d480191cc1",
+    "envelopeHash": "sha256:9c78dc53b980f39c7e7372aa3813b63187584e071bd7cf46293ef42690211859",
+    "schema": "doppler.capsule/v2",
+    "schemaVersion": 2,
+    "createdAtUtc": "2026-09-06T21:45:16.079Z",
+    "sourceBundleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-d2cbdb9bbfa0",
+    "programBundlePath": "/dev/shm/doppler-search-node-capsules-20260925-02/reranker/inputs/program-bundle.json",
+    "executionGraphHash": "sha256:d2cbdb9bbfa04bb0d4844a18565f64fcc5ac21bad80161b1f500a06757adfd96",
+    "artifactCount": 43,
+    "wgslModuleCount": 21,
+    "targetPlanDigests": [
+      "sha256:21180c75e254cefb1c59bdbc5eb6cb9e12cc55014b3abb8a3294a7d8476faaff"
+    ],
+    "stages": [
+      {
+        "stage": "inspect",
+        "ok": true
+      },
+      {
+        "stage": "normalize",
+        "ok": true
+      },
+      {
+        "stage": "analyze",
+        "ok": true
+      },
+      {
+        "stage": "lower",
+        "ok": true
+      },
+      {
+        "stage": "specialize",
+        "ok": true
+      },
+      {
+        "stage": "search",
+        "ok": true
+      },
+      {
+        "stage": "verify",
+        "ok": true
+      },
+      {
+        "stage": "qualify",
+        "ok": true
+      },
+      {
+        "stage": "package",
+        "ok": true
+      },
+      {
+        "stage": "sign",
+        "ok": true
+      }
+    ],
+    "searchReceipt": {
+      "candidateTargetPlanHashes": [
+        "sha256:21180c75e254cefb1c59bdbc5eb6cb9e12cc55014b3abb8a3294a7d8476faaff"
+      ],
+      "selectedTargetPlanHashes": [
+        "sha256:21180c75e254cefb1c59bdbc5eb6cb9e12cc55014b3abb8a3294a7d8476faaff"
+      ],
+      "policy": "closed-program-source-plan",
+      "evaluationReceipt": null
+    },
+    "candidateEvaluation": null
+  },
+  "sourceBundleHash": "sha256:cf3ed754ef0e4a379ab7ae3efeb56fa082f3f65397bd3cb29bf83a096e9489bf",
+  "qualificationHash": "sha256:38859f5c41b11b4d718b82feb656c8a8d8de6bf8016406fd78d803304a890fef",
+  "physicalCapsuleExecution": false,
+  "installedApplicationAcceptance": false,
+  "externalAdoption": false
+}

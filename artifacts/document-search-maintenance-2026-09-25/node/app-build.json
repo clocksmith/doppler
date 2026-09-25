@@ -1,0 +1,27 @@
+{
+  "packageBundlePath": "/dev/shm/doppler-search-corrected-runtime-20260925-04",
+  "outputDir": "/dev/shm/doppler-search-node-app-20260925-05",
+  "previousApplicationDir": "/dev/shm/doppler-search-node-app-20260925-04",
+  "models": [
+    {
+      "role": "embedding",
+      "capsuleRoot": "/dev/shm/doppler-search-node-capsules-20260925-02/embedding"
+    },
+    {
+      "role": "reranker",
+      "capsuleRoot": "/dev/shm/doppler-search-node-capsules-20260925-02/reranker"
+    }
+  ],
+  "search": {
+    "dimension": 1024,
+    "candidateCount": 3,
+    "queryPrefix": "",
+    "documentPrefix": ""
+  },
+  "storage": {
+    "opfsRootDir": "doppler-document-search",
+    "useSyncAccessHandle": false,
+    "maxConcurrentHandles": 1
+  },
+  "loading": {}
+}

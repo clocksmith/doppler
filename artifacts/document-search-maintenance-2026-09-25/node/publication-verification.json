@@ -1,0 +1,49 @@
+{
+  "passed": true,
+  "authenticationUsed": false,
+  "revision": "fa3325d41d43bf7ec3a9dcd39e77587fefabdd89",
+  "files": [
+    {
+      "file": "README.md",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/fa3325d41d43bf7ec3a9dcd39e77587fefabdd89/document-search/node/releases/0.1.0/caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e/README.md",
+      "sha256": "70a78b14cb4be7ca10253293e283e457ab06c0db0c4186b492dd245538676352",
+      "sizeBytes": 3058
+    },
+    {
+      "file": "doppler-gpu-0.6.2.tgz",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/fa3325d41d43bf7ec3a9dcd39e77587fefabdd89/document-search/node/releases/0.1.0/caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e/doppler-gpu-0.6.2.tgz",
+      "sha256": "73c0d1227f5d64e2e60d78b2a14d4ecb5b90535d932cf7b184d24eaa466c6b3e",
+      "sizeBytes": 2153927
+    },
+    {
+      "file": "doppler-node-document-search-0.1.0.tgz",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/fa3325d41d43bf7ec3a9dcd39e77587fefabdd89/document-search/node/releases/0.1.0/caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e/doppler-node-document-search-0.1.0.tgz",
+      "sha256": "caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e",
+      "sizeBytes": 8554262
+    },
+    {
+      "file": "final-clean-qualification.json",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/fa3325d41d43bf7ec3a9dcd39e77587fefabdd89/document-search/node/releases/0.1.0/caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e/final-clean-qualification.json",
+      "sha256": "7bd0ea8cdde71cfba1f5b9fb1baa8af1815263f25489e27305855ab46a3e93e8",
+      "sizeBytes": 4048790
+    },
+    {
+      "file": "final-cli.json",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/fa3325d41d43bf7ec3a9dcd39e77587fefabdd89/document-search/node/releases/0.1.0/caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e/final-cli.json",
+      "sha256": "e77a40180b484caf6dfaea42752fb1aed17edd8dd230b0fb02c75a1308168742",
+      "sizeBytes": 3942
+    },
+    {
+      "file": "final-offline-qualification.json",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/fa3325d41d43bf7ec3a9dcd39e77587fefabdd89/document-search/node/releases/0.1.0/caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e/final-offline-qualification.json",
+      "sha256": "f9b903544a262d22f0265b1bb095399d96ff8d1e09116534ad0282b1483d2549",
+      "sizeBytes": 4035151
+    },
+    {
+      "file": "release.json",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/fa3325d41d43bf7ec3a9dcd39e77587fefabdd89/document-search/node/releases/0.1.0/caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e/release.json",
+      "sha256": "9297a46c634ee182066f91c959b152e63618875cc6685b0b68587b85aaac2029",
+      "sizeBytes": 4754
+    }
+  ]
+}
