@@ -1,0 +1,71 @@
+{
+  "application": {
+    "applicationId": "doppler-offline-document-search",
+    "applicationRevision": "sha256:c2e0a9add32855ad4f86901afa2ac6475e6420812bb2d452e9142e90f916c402",
+    "applicationRevisionDigest": "sha256:c2e0a9add32855ad4f86901afa2ac6475e6420812bb2d452e9142e90f916c402",
+    "oracle": {
+      "digest": "sha256:be4ed910a95a6e7ed26cfe7ce39d539760187698d7f8703a106afbabcdc46772",
+      "id": "pinned-hf-source-comparison"
+    },
+    "workload": {
+      "digest": "sha256:38d49f303b5cafda471742b9ab6461e6b17c4f65dad58dcaf5f9a1312c9e462c",
+      "id": "frozen-document-embedding"
+    }
+  },
+  "exclusions": {
+    "known": [
+      {
+        "code": "unsupported-device",
+        "scope": "outside-the-observed-node-webgpu-tuple",
+        "reason": "Node source qualification; installed application acceptance is separate.",
+        "evidenceDigest": "sha256:a20ae75b797ac5b448a741fbdd4bc6c47596b6ddfccd6822f32d1be59dd8f43e"
+      }
+    ],
+    "rejectionTypes": [
+      "acceptance-failed",
+      "application-gate-failed",
+      "artifact-invalid",
+      "evidence-expired",
+      "migration-required",
+      "revoked",
+      "unsupported-device"
+    ]
+  },
+  "lifecycle": {
+    "failedUpgrade": {
+      "preservePrevious": true,
+      "previousCapsuleId": null,
+      "previousSemanticRoot": null
+    },
+    "migration": null,
+    "releaseVersion": "1.0.0",
+    "supersedes": null
+  },
+  "revocation": {
+    "authorityId": "clocksmith-document-search-node-20260925",
+    "failClosedAfterExpiry": true,
+    "offlineExpirySeconds": 86400,
+    "policyDigest": "sha256:2504c1badcad88ce25b59f427722932ba5199905f13f83f31477323717c8945c"
+  },
+  "schema": "doppler.capsule-release/v1",
+  "source": {
+    "license": {
+      "name": "Apache License 2.0",
+      "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "spdxId": "Apache-2.0",
+      "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "provenanceDigest": "sha256:88cab0ff9897c733ec9fd3a31f95c8e328b85447021ea91a3d355568b9b49319",
+    "repository": "Qwen/Qwen3-Embedding-0.6B",
+    "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "revisionDigest": "sha256:1958ae3fd828762e7ddc22de18c4f3cea1b0db49f819a04210a7346d534d0ea8"
+  },
+  "stateSnapshot": {
+    "format": "canonical-json",
+    "identityDigest": "sha256:ec06ced745ce3fc85330a83068361e67f52e6c578526ce17ede70787fad692d1",
+    "portableAcrossTargetIds": [
+      "webgpu-f32-f16-subgroups"
+    ],
+    "schema": "doppler.capsule-state-snapshot/v1"
+  }
+}

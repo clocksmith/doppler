@@ -1,0 +1,12 @@
+{
+  "applicationDir": "/var/tmp/doppler-node-search-installed-20260925-05",
+  "storageDir": "/dev/shm/doppler-node-search-storage-20260925-03",
+  "fixturePath": "/home/x/deco/doppler/artifacts/document-search-delivery-2026-09-23/reference-corpus.json",
+  "requiredVendor": "amd",
+  "install": false,
+  "offline": true,
+  "lifecycle": false,
+  "outputPath": "/var/tmp/doppler-search-node-20260925/final-offline-qualification.json",
+  "offlineKernelRequired": true,
+  "previousReportPath": "/var/tmp/doppler-search-node-20260925/final-clean-qualification.json"
+}

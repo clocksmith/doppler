@@ -1,0 +1,48 @@
+{
+  "schema": "doppler.document-search-opening-analysis/v1",
+  "sourceReceipt": "../document-search-delivery-2026-09-23/browser-qualification.json",
+  "rerun": false,
+  "reopenMs": 49182.07792099999,
+  "profileFilesystem": {
+    "type": 16914836,
+    "note": "Filesystem backing is part of this receipt; installation timings are not transferable across storage devices."
+  },
+  "models": [
+    {
+      "role": "embedding",
+      "validationWallMs": 10796.900000095367,
+      "preparationAfterValidationWallMs": 16398.400000095367,
+      "runtimeArtifactHashingMs": 9207.300007343292,
+      "applicationStorageReadMs": 338.2000012397766,
+      "applicationVerificationMs": 794.7999978065491
+    },
+    {
+      "role": "reranker",
+      "validationWallMs": 8649.5,
+      "preparationAfterValidationWallMs": 13266.800000190735,
+      "runtimeArtifactHashingMs": 7292.299996852875,
+      "applicationStorageReadMs": 350.59999895095825,
+      "applicationVerificationMs": 612.2000007629395
+    }
+  ],
+  "gpuUploadCalls": {
+    "writeBufferBytes": 2129991560,
+    "writeBufferCalls": 974,
+    "writeBufferCpuMs": 155.00000286102295,
+    "mappedAtCreationBytes": 0,
+    "submitCalls": 143,
+    "completionWaitMs": 0.09999990463256836,
+    "scope": "Native upload submissions and queue completion wait; not isolated GPU transfer throughput."
+  },
+  "interpretation": "The retained tmpfs run spends most opening wall time preparing the models after validation, with runtime artifact hashing also substantial. Application storage reads are small in this retained run. These nested measurements must not be added as independent phases. Shader compilation and tensor preparation are not separated by this receipt.",
+  "optimizationApplied": false,
+  "diskBackedAcceptance": false,
+  "smallerMemoryHardwareAcceptance": false,
+  "rebootAcceptance": false,
+  "blockers": [
+    "Persistent volume has less free space than the 2.15 GB model bytes, before browser profile overhead.",
+    "No smaller-memory GPU host access has been supplied.",
+    "A coordinated machine reboot has not been performed."
+  ],
+  "nextMeasurement": "Separate compilation and tensor preparation on the same installed assets with a disk-backed profile; compare a candidate only after reproducing that baseline."
+}

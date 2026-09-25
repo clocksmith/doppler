@@ -23,6 +23,16 @@ identity, and signed release-event APIs. See [Capsule identity migration](../cap
 for explicit trust/checkpoint policy, artifact-source ownership, and sequence
 execution receipts. New source APIs do not imply a published or qualified release.
 
+## Partition-helper import correction
+
+The corrected runtime candidate removes the accidental, undeclared partition
+helper exports from `doppler-gpu` and `doppler-gpu/runtime`. These repository
+helpers do not execute or qualify distributed inference and remain internal;
+there is no supported public replacement operation. The minimal injected runtime
+and its published declarations agree again. The immutable search starter's
+pinned 0.6.2 archive is unchanged; adopting a corrected runtime requires a
+separate installed-application qualification.
+
 ## Import path
 
 ```js

@@ -146,3 +146,31 @@ import {
   assert.equal(divergentComparison.matches, false);
   assert.ok(divergentComparison.maxDiff > 1e-4);
 }
+
+const plan = createLayerPartitionPlan({ modelId: 'fixture', numLayers: 4, hiddenSize: 2, vocabSize: 8 });
+assert.equal(plan.schema, LAYER_PARTITION_SCHEMA);
+assert.equal(plan.partitions[0].layerCount, 2);
+assert.equal(validateActivationTensorShape({ shape: [1, 1, 2], dtype: 'f32' }).expectedBytes, 8);
+const frame = serializeActivationFrame({ shape: [1, 1, 2], data: new Float32Array([1, 2]) });
+assert.equal(frame.schema, ACTIVATION_TENSOR_SCHEMA);
+assert.deepEqual(Array.from(deserializeActivationFrame(frame).tensorData), [1, 2]);
+const continuation = createPartitionContinuation({ partitionIndex: 0, totalLayers: 4, layerRange: [0, 1] });
+continuation.setLayerKVCache(0, { retained: true });
+assert.deepEqual(continuation.getLayerKVCache(0), { retained: true });
+assert.equal(continuation.advance(2), 2);
+continuation.reset();
+assert.equal(continuation.getLayerKVCache(0), null);
+const comparison = comparePartitionExecution({ splitOutput: [1, 2], referenceOutput: [1, 2] });
+assert.equal(comparison.schema, PARTITION_COMPARISON_SCHEMA);
+assert.equal(comparison.matches, true);
+assert.equal(comparison.tolerance, 1e-4);
+assert.equal(comparison.minCosineSimilarity, 0.9999);
+for (const hidden of [0, -1, NaN, Infinity, 1.5]) {
+  assert.throws(() => validateActivationTensorShape({ shape: [1, 1, hidden], dtype: 'f32' }), /positive integer/);
+}
+for (const value of [NaN, Infinity, -Infinity]) {
+  assert.throws(() => comparePartitionExecution({ splitOutput: [value], referenceOutput: [1] }), /Finite/);
+}
+assert.throws(() => comparePartitionExecution({ splitOutput: [], referenceOutput: [] }), /Nonempty/);
+assert.throws(() => comparePartitionExecution({ splitOutput: [1], referenceOutput: [1], tolerance: Infinity }), /Finite/);
+console.log('partition helper shape, comparison, and optional-field regressions passed');

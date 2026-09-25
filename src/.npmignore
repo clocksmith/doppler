@@ -624,6 +624,8 @@ inference/pipelines/text/init-qkv-fusion.d.ts
 inference/pipelines/text/kernel-trace.d.ts
 inference/pipelines/text/layer-execution-contract.d.ts
 inference/pipelines/text/layer-input-execution.d.ts
+inference/pipelines/text/layer-partition-contract.d.ts
+inference/pipelines/text/layer-partition-contract.js
 inference/pipelines/text/layer-plan-gpu.d.ts
 inference/pipelines/text/layer.d.ts
 inference/pipelines/text/lifecycle.d.ts

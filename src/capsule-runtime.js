@@ -3,19 +3,7 @@ export { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validat
 export { createDopplerRuntime, createForecastProgramFactory, RUNTIME_CORE_VERSION } from './client/runtime/composition-root.js';
 export { createFetchCapsuleArtifactStore } from './client/runtime/fetch-capsule-artifact-store.js';
 export { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from './client/runtime/capsule-operation-stream.js';
-export {
-  LAYER_PARTITION_SCHEMA,
-  ACTIVATION_TENSOR_SCHEMA,
-  PARTITION_COMPARISON_SCHEMA,
-  DEFAULT_NUMERICAL_TOLERANCE,
-  DEFAULT_COSINE_SIMILARITY_MIN,
-  createLayerPartitionPlan,
-  validateActivationTensorShape,
-  serializeActivationFrame,
-  deserializeActivationFrame,
-  createPartitionContinuation,
-  comparePartitionExecution
-} from './inference/pipelines/text/layer-partition-contract.js';
+
 
 import { createDopplerRuntime } from './client/runtime/composition-root.js';
 

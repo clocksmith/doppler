@@ -32,6 +32,54 @@ artifact I/O and verification, indexing, query, reopening, cancellation, and
 closure observations. Filesystem backing and other workload conditions constrain
 timing interpretation; no historical throughput result qualifies this package.
 
+## Build and qualify the Node application
+
+The consumer path is [NODE.md](NODE.md). Keep the accepted browser archive and
+its model releases unchanged. Node gets new signed releases through Forge's
+existing additional-surface qualification path.
+
+1. Run each model's retained source reference in an isolated installed consumer,
+   using the exact declared shader bytes. Retain passing Node reports named
+   `embedding-model-qualification.json` and `reranker-model-qualification.json`.
+2. Run `node tools/build-document-search-node-capsules.js <config.json>`. The
+   config supplies absolute `outputDir`, `sourceCapsulesDir`, `qualificationDir`,
+   `applicationPath` (the shared `search.js`), and an explicit `authorityId`.
+   The tool reconstructs the original Program Bundle inputs from exact signed
+   hashes, retains ModelIR evidence, and adds the Node reports. It never rebuilds
+   shader sources from the checkout. Preserve `custody/` privately; distribute
+   only the signed public artifacts.
+3. Run `node tools/build-document-search-node.js <config.json>` with the same
+   application-build shape documented below, pointing its two model roots at the
+   new Capsule builds and `packageBundlePath` at a passing package consumer.
+   The builder includes the corrected vendored runtime, pinned provider lock,
+   model metadata, public immutable shard URLs, and application/runtime inventory.
+4. Archive that output, extract it into a new directory outside the checkout, and
+   run `npm ci --omit=optional --no-audit --no-fund` there. Never replace sources
+   after this installation.
+5. Run `node tools/qualify-document-search-node.js <qualification.json>` with
+   absolute `applicationDir`, an existing empty `storageDir`, `fixturePath`,
+   `outputPath`, `requiredVendor: "amd"`, `install: true`, `offline: false`,
+   and `lifecycle: true`. It checks the installed inventory before loading both
+   signed models, cold indexing, repeated queries, unchanged reuse, cancellation,
+   supersession, interrupted saves, corruption repair, cleanup, and device loss.
+6. Restart with the same application/storage/fixture and a new output path,
+   `install: false`, `offline: true`, `offlineKernelRequired: true`,
+   `lifecycle: false`, and `previousReportPath` pointing at the passing first run:
+
+```sh
+node tools/run-node-without-network.js tools/qualify-document-search-node.js /absolute/offline-config.json
+node tools/run-node-without-network.js tools/check-document-search-node-cli.js /absolute/cli-config.json
+```
+
+The CLI config supplies `applicationDir`, `storageDir`, `fixturePath`, and its own
+`outputPath`. It sends two queries through the installed interactive runner and
+requires process exit after EOF. The Linux isolation probe requires Python and
+libseccomp, denies IPv4/IPv6 socket creation in all descendants, and verifies
+`EPERM` for both address families. These are qualification dependencies only.
+Receipts distinguish process RSS from requested GPU allocation accounting;
+neither establishes physical GPU residency or a minimum-memory configuration.
+Injected I/O faults are not evidence of a physically exhausted volume or reboot.
+
 ## Audit and publish exact missing artifacts
 
 `tools/check-document-search-sources.js` accepts a JSON configuration containing

@@ -9,7 +9,10 @@
     "useUnknownInCatchVariables": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "types": ["node", "@webgpu/types"]
+    "types": [
+      "node",
+      "@webgpu/types"
+    ]
   },
   "include": [],
   "files": [
@@ -23,6 +26,7 @@
     "src/inference/pipelines/text/sampling-config.js",
     "src/inference/pipelines/text/generation-request.js",
     "src/storage/model-read-session.js",
-    "tests/types/ownership-contracts.js"
+    "tests/types/ownership-contracts.js",
+    "src/inference/pipelines/text/layer-partition-contract.js"
   ]
 }

@@ -1,0 +1,78 @@
+{
+  "schema": "doppler.node-document-search-cli/v1",
+  "passed": true,
+  "failure": null,
+  "config": {
+    "applicationDir": "/var/tmp/doppler-node-search-installed-20260925-05",
+    "storageDir": "/dev/shm/doppler-node-search-storage-20260925-03",
+    "fixturePath": "/home/x/deco/doppler/artifacts/document-search-delivery-2026-09-23/reference-corpus.json",
+    "requiredVendor": "amd",
+    "install": false,
+    "offline": true,
+    "lifecycle": false,
+    "outputPath": "/var/tmp/doppler-search-node-20260925/final-cli.json",
+    "offlineKernelRequired": true,
+    "previousReportPath": "/var/tmp/doppler-search-node-20260925/final-clean-qualification.json"
+  },
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "borrowedProviderRejected": true,
+  "results": [
+    {
+      "query": "How should I store the culture that leavens my bread when I only bake occasionally?",
+      "queryMs": 1071.242502000001,
+      "results": [
+        {
+          "id": "sourdough",
+          "title": "Maintaining a sourdough starter",
+          "score": 20.549711227416992,
+          "excerpt": "# Maintaining a sourdough starter\nA starter is a living mixture of flour, water, yeast and bacteria. Feed it fresh flour and water regularly. For occasional baking, keep it refrigerated and refresh it before mixing dough. Discard any starte"
+        },
+        {
+          "id": "starter-motor",
+          "title": "What a starter motor does",
+          "score": 1.7680528163909912,
+          "excerpt": "The starter motor uses electricity from a vehicle battery to rotate the engine until combustion can continue on its own. A clicking sound with no engine rotation can indicate a weak battery or poor connection. This electrical starter does n"
+        },
+        {
+          "id": "tire",
+          "title": "Repairing a bicycle puncture",
+          "score": 0.917273759841919,
+          "excerpt": "Remove the bicycle wheel and lift one tire bead off the rim. Pull out the tube and inflate it to locate the puncture. Check the tire for glass or thorns before patching the tube or fitting a replacement. Seat the bead and inflate to the tir"
+        }
+      ]
+    },
+    {
+      "query": "What should I inspect before replacing the inner tube on my bike?",
+      "queryMs": 1194.9881900000037,
+      "results": [
+        {
+          "id": "tire",
+          "title": "Repairing a bicycle puncture",
+          "score": 20.673477172851562,
+          "excerpt": "Remove the bicycle wheel and lift one tire bead off the rim. Pull out the tube and inflate it to locate the puncture. Check the tire for glass or thorns before patching the tube or fitting a replacement. Seat the bead and inflate to the tir"
+        },
+        {
+          "id": "starter-motor",
+          "title": "What a starter motor does",
+          "score": 2.3796067237854004,
+          "excerpt": "The starter motor uses electricity from a vehicle battery to rotate the engine until combustion can continue on its own. A clicking sound with no engine rotation can indicate a weak battery or poor connection. This electrical starter does n"
+        },
+        {
+          "id": "sourdough",
+          "title": "Maintaining a sourdough starter",
+          "score": 2.3478808403015137,
+          "excerpt": "# Maintaining a sourdough starter\nA starter is a living mixture of flour, water, yeast and bacteria. Feed it fresh flour and water regularly. For occasional baking, keep it refrigerated and refresh it before mixing dough. Discard any starte"
+        }
+      ]
+    }
+  ],
+  "buildReceiptSha256": "5929241fca8a74c17db845d43b84c091e5ba523c51614539feb8a2826af8a8ef",
+  "probeSha256": "87894328a2ac0ce83a2482f61c1d134a0c2746f6345b04b6f05c105efc0876be",
+  "stdoutSha256": "63003e354a40aeaa8b38495e1088b902a50fadd45bc8b0e77dc54473ccc9b8ca",
+  "stderrSha256": "5ba3fc6bf23fd827f79ca3ec877413aadc0a982af7c67503a0566ee82b0eb1b1",
+  "physicalExecution": true,
+  "externalAdoption": false
+}

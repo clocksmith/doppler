@@ -1,0 +1,12 @@
+{
+  "trustedSigners": {
+    "clocksmith-document-search-node-20260925": {
+      "crv": "Ed25519",
+      "x": "xIrPHy5q0udPXCgpzZYVDcZWJW2hCIQy0-1r92yNfmQ",
+      "kty": "OKP"
+    }
+  },
+  "acceptedTargetPlanDigests": [
+    "sha256:21180c75e254cefb1c59bdbc5eb6cb9e12cc55014b3abb8a3294a7d8476faaff"
+  ]
+}

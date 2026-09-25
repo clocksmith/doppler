@@ -41,7 +41,7 @@ passed on that configuration. The acceptance profile used `tmpfs`; this does not
 establish reboot persistence or disk-backed performance. Read the [measured
 results and limits](examples/document-search/README.md#measured-application-behavior)
 and [release evidence](artifacts/document-search-delivery-2026-09-23/README.md).
-Node inference and packaged Electron are subsequent qualification work.
+For Node, see the [separate runner](examples/document-search/NODE.md).
 
 ## Mission, goal, and value
 
@@ -80,8 +80,6 @@ npm use `npx --package doppler-gpu doppler release`. It consumes a pinned
 `eligible` or `blocked` decision and retained evidence. It never activates or
 deploys the customer application. See the [release platform contract](docs/model-release-platform.md)
 and [CLI reference](docs/cli.md).
-
-Generation can explicitly adopt [plan-bound GPU token selection](docs/integration/capsule-token-selection.md) while retaining the same public operation and stream contracts.
 
 ### Capsule Runtime API
 
@@ -192,37 +190,12 @@ defines the gates.
 
 ![Metal and Vulkan browser WebGPU throughput distributions](https://raw.githubusercontent.com/clocksmith/doppler/main/assets/doppler-webgpu-evidence.svg)
 
-## Release and execution flow
+## Architecture and releases
 
-```mermaid
-flowchart TB
-  S[Pinned source checkpoint] --> F[Forge: inspect, normalize, lower]
-  F --> V[Verify and qualify TargetPlans]
-  V --> P[Package and sign immutable Capsule]
-  P --> A{Application acceptance}
-  A -- fail --> N[Reject with finding]
-  A -- pass --> K[Promote supported release]
-  K --> R[Runtime: validate, select, bind, execute, observe]
-  R --> Q[Requalify, roll back, or revoke]
-```
-
-Candidates begin as pinned source truth. Forge owns graph-changing work and
-emits an immutable Capsule only after verification and qualification. Application
-acceptance authorizes promotion. Runtime never repairs or specializes the Capsule;
-it selects a qualified TargetPlan, binds resources, executes declared commands,
-and emits evidence for continuing qualification and recovery decisions.
-
-## Long-term vision
-
-Doppler is intended to support a growing set of local model families and
-runtime variants without hiding the model contract or execution path. Registered
-variant calibration, paired performance gates, and WGSL experiments remain
-human-reviewed. Ouroboros and Reploid sit above Doppler as orchestration or
-product layers; Doppler owns the artifact and execution boundary.
-
-New model families require RDRR conversion and may require tokenizer, graph, or
-kernel support. Native packed-Q4K LoRA support is available for the declared
-Qwen target; other packed-Q4K training targets use external backends.
+Forge prepares and qualifies signed model implementations; Runtime verifies and
+executes them. Applications own trust, upgrades, and search policy. See the
+[architecture](docs/architecture.md) and [release contract](docs/model-release-platform.md)
+for the engineering workflow and model-family requirements.
 
 ## Limits and current status
 

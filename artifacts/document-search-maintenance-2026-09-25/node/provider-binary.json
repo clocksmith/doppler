@@ -1,0 +1,7 @@
+{
+  "provider": "webgpu",
+  "version": "0.4.0",
+  "binary": "dist/linux-x64.dawn.node",
+  "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1",
+  "sizeBytes": 18617336
+}

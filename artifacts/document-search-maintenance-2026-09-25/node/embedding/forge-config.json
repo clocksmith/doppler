@@ -1,0 +1,15 @@
+{
+  "repoRoot": "/dev/shm/doppler-search-node-capsules-20260925-02/embedding/inputs",
+  "programBundlePath": "/dev/shm/doppler-search-node-capsules-20260925-02/embedding/inputs/program-bundle.json",
+  "manifestPath": "/dev/shm/doppler-search-node-capsules-20260925-02/embedding/inputs/reports/capsule-baseline/20260906/embedding-model/manifest.json",
+  "qualificationReportPaths": [
+    "/var/tmp/doppler-search-node-20260925/embedding-model-qualification.json"
+  ],
+  "initialExecutionIdentityPath": "/var/tmp/doppler-search-node-20260925/embedding-model-qualification.json",
+  "releaseManifestPath": "/dev/shm/doppler-search-node-capsules-20260925-02/embedding/release.json",
+  "outputPath": "/dev/shm/doppler-search-node-capsules-20260925-02/embedding/distribution/capsule.json",
+  "signingAuthority": "clocksmith-document-search-node-20260925",
+  "signingPrivateKeyPath": "/dev/shm/doppler-search-node-capsules-20260925-02/embedding/custody/private-key.json",
+  "signingPublicKeyPath": "/dev/shm/doppler-search-node-capsules-20260925-02/embedding/custody/public-key.json",
+  "allowDevelopmentSigner": false
+}

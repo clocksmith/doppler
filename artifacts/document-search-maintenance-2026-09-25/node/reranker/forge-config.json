@@ -1,0 +1,16 @@
+{
+  "repoRoot": "/dev/shm/doppler-search-node-capsules-20260925-02/reranker/inputs",
+  "programBundlePath": "/dev/shm/doppler-search-node-capsules-20260925-02/reranker/inputs/program-bundle.json",
+  "manifestPath": "/dev/shm/doppler-search-node-capsules-20260925-02/reranker/inputs/reports/capsule-baseline/20260906/reranker-model/manifest.json",
+  "modelIRReceiptPath": "/var/tmp/doppler-retention-campaign/browser-app-bounded/capsules/reranker/artifacts/evidence/model-ir-ff68ff4ac55f.json",
+  "qualificationReportPaths": [
+    "/var/tmp/doppler-search-node-20260925/reranker-model-qualification.json"
+  ],
+  "initialExecutionIdentityPath": "/var/tmp/doppler-search-node-20260925/reranker-model-qualification.json",
+  "releaseManifestPath": "/dev/shm/doppler-search-node-capsules-20260925-02/reranker/release.json",
+  "outputPath": "/dev/shm/doppler-search-node-capsules-20260925-02/reranker/distribution/capsule.json",
+  "signingAuthority": "clocksmith-document-search-node-20260925",
+  "signingPrivateKeyPath": "/dev/shm/doppler-search-node-capsules-20260925-02/reranker/custody/private-key.json",
+  "signingPublicKeyPath": "/dev/shm/doppler-search-node-capsules-20260925-02/reranker/custody/public-key.json",
+  "allowDevelopmentSigner": false
+}
