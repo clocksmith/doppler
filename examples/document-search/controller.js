@@ -208,6 +208,9 @@ export function createDocumentSearchController({
           const controls = {
             signal: controller.signal,
             repairDamagedArtifacts,
+            maxVerifiedBackingBytes: model.options.maxVerifiedBackingBytes,
+            maxRetainedArtifactBytes: model.options.maxRetainedArtifactBytes,
+            artifactHashBackend: model.options.artifactHashBackend,
             observer: {
               observe: event => {
                 const entry = {

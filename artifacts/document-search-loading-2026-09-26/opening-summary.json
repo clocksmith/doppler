@@ -1,0 +1,567 @@
+{
+  "schema": "doppler.installed-opening-diagnostic/v1",
+  "baseCommit": "7ac72347",
+  "scope": "Two fresh processes per arm, warm OS filesystem cache, persistent disk, retained accepted installation; Node/Linux/AMD only. No release or general speed claim.",
+  "rows": [
+    {
+      "report": "paired-0-native.json.gz",
+      "arm": "native",
+      "passed": true,
+      "openingMs": 36720.367659,
+      "peakProcessRssBytes": 1822937088,
+      "peakRequestedGpuBytes": 3986806328,
+      "runtimeSha256": "f82f6949c71de598dc789e31ea28e2f46d4fd73c8cdc78ec2f69fc0c62aa4922"
+    },
+    {
+      "report": "paired-1-optimized.json.gz",
+      "arm": "optimized",
+      "passed": true,
+      "openingMs": 17983.694363,
+      "peakProcessRssBytes": 1825968128,
+      "peakRequestedGpuBytes": 3986806328,
+      "runtimeSha256": "32af41c69fc8f25b04ea0461d32dd8947217bb18a995e68d15fd65b1a643b1c4"
+    },
+    {
+      "report": "paired-2-js.json.gz",
+      "arm": "js",
+      "passed": true,
+      "openingMs": 51076.532379000004,
+      "peakProcessRssBytes": 1874083840,
+      "peakRequestedGpuBytes": 3986806328,
+      "runtimeSha256": "f82f6949c71de598dc789e31ea28e2f46d4fd73c8cdc78ec2f69fc0c62aa4922"
+    },
+    {
+      "report": "paired-3-optimized.json.gz",
+      "arm": "optimized",
+      "passed": true,
+      "openingMs": 18070.776102,
+      "peakProcessRssBytes": 1879560192,
+      "peakRequestedGpuBytes": 3986806328,
+      "runtimeSha256": "32af41c69fc8f25b04ea0461d32dd8947217bb18a995e68d15fd65b1a643b1c4"
+    },
+    {
+      "report": "paired-4-native.json.gz",
+      "arm": "native",
+      "passed": true,
+      "openingMs": 36266.554664999996,
+      "peakProcessRssBytes": 1823772672,
+      "peakRequestedGpuBytes": 3986806328,
+      "runtimeSha256": "f82f6949c71de598dc789e31ea28e2f46d4fd73c8cdc78ec2f69fc0c62aa4922"
+    },
+    {
+      "report": "paired-5-js.json.gz",
+      "arm": "js",
+      "passed": true,
+      "openingMs": 51308.90448600001,
+      "peakProcessRssBytes": 1812361216,
+      "peakRequestedGpuBytes": 3986806328,
+      "runtimeSha256": "f82f6949c71de598dc789e31ea28e2f46d4fd73c8cdc78ec2f69fc0c62aa4922"
+    }
+  ],
+  "medianOpeningMs": {
+    "js": 51192.718432500005,
+    "native": 36493.461162,
+    "optimized": 18027.2352325
+  },
+  "optimizedReductionVsJsPercent": 64.7855480535386,
+  "loading": {
+    "maxVerifiedBackingBytes": 1500000000,
+    "maxRetainedArtifactBytes": 0
+  },
+  "profiles": {
+    "baseline-profile": {
+      "scope": "Sampled exclusive CPU time; not complete wall attribution. GPU API durations may overlap.",
+      "topFrames": [
+        {
+          "function": "g",
+          "url": "file:///var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+          "lineNumber": 27,
+          "sampledMs": 16259.924
+        },
+        {
+          "function": "compressBlock",
+          "url": "file:///var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/formats/sha256.js",
+          "lineNumber": 121,
+          "sampledMs": 15089.826
+        },
+        {
+          "function": "compress",
+          "url": "file:///var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+          "lineNumber": 54,
+          "sampledMs": 7818.366
+        },
+        {
+          "function": "#commitChunk",
+          "url": "file:///var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+          "lineNumber": 240,
+          "sampledMs": 2224.084
+        },
+        {
+          "function": "(garbage collector)",
+          "url": "",
+          "lineNumber": -1,
+          "sampledMs": 1893.278
+        },
+        {
+          "function": "update",
+          "url": "file:///var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/formats/sha256.js",
+          "lineNumber": 66,
+          "sampledMs": 1795.622
+        },
+        {
+          "function": "permute",
+          "url": "file:///var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+          "lineNumber": 38,
+          "sampledMs": 1305.148
+        },
+        {
+          "function": "",
+          "url": "",
+          "lineNumber": -1,
+          "sampledMs": 879.712
+        },
+        {
+          "function": "",
+          "url": "file:///var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js",
+          "lineNumber": 68,
+          "sampledMs": 577.35
+        },
+        {
+          "function": "processImmediate",
+          "url": "node:internal/timers",
+          "lineNumber": 435,
+          "sampledMs": 531.459
+        },
+        {
+          "function": "readRange",
+          "url": "file:///var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js",
+          "lineNumber": 133,
+          "sampledMs": 503.686
+        },
+        {
+          "function": "update",
+          "url": "file:///var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+          "lineNumber": 190,
+          "sampledMs": 485.446
+        },
+        {
+          "function": "(idle)",
+          "url": "",
+          "lineNumber": -1,
+          "sampledMs": 482.956
+        },
+        {
+          "function": "HashJob",
+          "url": "",
+          "lineNumber": -1,
+          "sampledMs": 477.973
+        },
+        {
+          "function": "(program)",
+          "url": "",
+          "lineNumber": -1,
+          "sampledMs": 421.912
+        }
+      ],
+      "gpuApi": {
+        "counts": {
+          "shaderModules": 4,
+          "shaderModulesCpuMs": 1.7428130000043893,
+          "bufferAllocations": 1059,
+          "bufferAllocationsCpuMs": 175.20270900005562,
+          "synchronousPipelines": 1,
+          "synchronousPipelinesCpuMs": 0.7358469999999215,
+          "dispatches": 115,
+          "dispatchesCpuMs": 0.49544099995546276,
+          "submissions": 143,
+          "submissionsCpuMs": 10.191258999955608,
+          "bufferUploads": 974,
+          "bufferUploadsCpuMs": 278.47119099998235
+        },
+        "rows": [
+          {
+            "kind": "readback-copy",
+            "startMs": 223.97249799999997,
+            "bytes": 4,
+            "source": "",
+            "destination": ""
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 224.34278600000005,
+            "durationMs": 0.07443999999998141,
+            "failed": false
+          },
+          {
+            "kind": "map-wait",
+            "label": "",
+            "startMs": 224.42396900000006,
+            "durationMs": 0.020017999999936364,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 20541.311198,
+            "durationMs": 2.7595590000019,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 22267.208323,
+            "durationMs": 0.08335799999986193,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 23275.766651,
+            "durationMs": 0.04877199999828008,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 25247.003575,
+            "durationMs": 0.08775500000047032,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 27204.518158,
+            "durationMs": 0.09976800000004005,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 29159.01499,
+            "durationMs": 2.9042220000010275,
+            "failed": false
+          },
+          {
+            "kind": "pipeline-compilation",
+            "label": "",
+            "startMs": 29230.582493,
+            "durationMs": 2.0700010000000475,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 29233.711839,
+            "durationMs": 9.382648999999219,
+            "failed": false
+          },
+          {
+            "kind": "pipeline-compilation",
+            "label": "",
+            "startMs": 43509.510317,
+            "durationMs": 3.5721209999974235,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 47425.306318,
+            "durationMs": 0.09463799999502953,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 48409.043024,
+            "durationMs": 0.0479300000006333,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 49420.622882,
+            "durationMs": 0.05554399999527959,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 50414.172108,
+            "durationMs": 0.06306900000345195,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 51403.490584,
+            "durationMs": 0.05551500000001397,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 52385.084326000004,
+            "durationMs": 0.06215700000029756,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 52430.771228,
+            "durationMs": 6.505327000006218,
+            "failed": false
+          }
+        ],
+        "scope": "Instrumented diagnostic; API waits overlap. CPU samples distinguish byte preparation from GPU API calls. Not a throughput measurement."
+      }
+    },
+    "final-profile": {
+      "scope": "Sampled exclusive CPU time; not complete wall attribution. GPU API durations may overlap.",
+      "topFrames": [
+        {
+          "function": "compress",
+          "url": "file:///var/tmp/doppler-search-loading-installed-20260926-05/node_modules/doppler-gpu/src/storage/blake3.js",
+          "lineNumber": 36,
+          "sampledMs": 7024.809
+        },
+        {
+          "function": "#commitChunk",
+          "url": "file:///var/tmp/doppler-search-loading-installed-20260926-05/node_modules/doppler-gpu/src/storage/blake3.js",
+          "lineNumber": 309,
+          "sampledMs": 2034.812
+        },
+        {
+          "function": "(garbage collector)",
+          "url": "",
+          "lineNumber": -1,
+          "sampledMs": 1604.085
+        },
+        {
+          "function": "",
+          "url": "",
+          "lineNumber": -1,
+          "sampledMs": 1079.509
+        },
+        {
+          "function": "update",
+          "url": "",
+          "lineNumber": -1,
+          "sampledMs": 804.235
+        },
+        {
+          "function": "processImmediate",
+          "url": "node:internal/timers",
+          "lineNumber": 435,
+          "sampledMs": 701.302
+        },
+        {
+          "function": "(program)",
+          "url": "",
+          "lineNumber": -1,
+          "sampledMs": 574.806
+        },
+        {
+          "function": "(idle)",
+          "url": "",
+          "lineNumber": -1,
+          "sampledMs": 544.544
+        },
+        {
+          "function": "createChunkOutput",
+          "url": "file:///var/tmp/doppler-search-loading-installed-20260926-05/node_modules/doppler-gpu/src/storage/blake3.js",
+          "lineNumber": 176,
+          "sampledMs": 451.085
+        },
+        {
+          "function": "readRange",
+          "url": "file:///var/tmp/doppler-search-loading-installed-20260926-05/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js",
+          "lineNumber": 176,
+          "sampledMs": 435.29
+        },
+        {
+          "function": "chainingValue",
+          "url": "file:///var/tmp/doppler-search-loading-installed-20260926-05/node_modules/doppler-gpu/src/storage/blake3.js",
+          "lineNumber": 155,
+          "sampledMs": 405.28
+        },
+        {
+          "function": "update",
+          "url": "file:///var/tmp/doppler-search-loading-installed-20260926-05/node_modules/doppler-gpu/src/storage/blake3.js",
+          "lineNumber": 259,
+          "sampledMs": 378.719
+        },
+        {
+          "function": "HashJob",
+          "url": "",
+          "lineNumber": -1,
+          "sampledMs": 377.474
+        },
+        {
+          "function": "",
+          "url": "file:///var/tmp/doppler-search-loading-installed-20260926-05/node_modules/doppler-gpu/src/client/runtime/verified-capsule-artifact-store.js",
+          "lineNumber": 111,
+          "sampledMs": 304.84
+        },
+        {
+          "function": "blockWordsFromBytes",
+          "url": "file:///var/tmp/doppler-search-loading-installed-20260926-05/node_modules/doppler-gpu/src/storage/blake3.js",
+          "lineNumber": 28,
+          "sampledMs": 282.149
+        }
+      ],
+      "gpuApi": {
+        "counts": {
+          "shaderModules": 4,
+          "shaderModulesCpuMs": 1.827567000000272,
+          "bufferAllocations": 1059,
+          "bufferAllocationsCpuMs": 173.11403099998643,
+          "synchronousPipelines": 1,
+          "synchronousPipelinesCpuMs": 0.7339240000000018,
+          "dispatches": 115,
+          "dispatchesCpuMs": 0.480662999987544,
+          "submissions": 143,
+          "submissionsCpuMs": 9.895869000007224,
+          "bufferUploads": 974,
+          "bufferUploadsCpuMs": 259.441399000043
+        },
+        "rows": [
+          {
+            "kind": "readback-copy",
+            "startMs": 217.03576600000002,
+            "bytes": 4,
+            "source": "",
+            "destination": ""
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 217.40321899999998,
+            "durationMs": 0.07152500000006512,
+            "failed": false
+          },
+          {
+            "kind": "map-wait",
+            "label": "",
+            "startMs": 217.48153699999995,
+            "durationMs": 0.018404000000032283,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 6660.881485,
+            "durationMs": 0.07103300000017043,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 7378.735194,
+            "durationMs": 0.037030000000413565,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 7813.963764,
+            "durationMs": 0.07880800000020827,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 8599.900119,
+            "durationMs": 3.1364839999987453,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 9408.964473999999,
+            "durationMs": 0.07246600000144099,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 10212.635789,
+            "durationMs": 0.08329699999922013,
+            "failed": false
+          },
+          {
+            "kind": "pipeline-compilation",
+            "label": "",
+            "startMs": 10276.411543999999,
+            "durationMs": 2.0138180000012653,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 10279.334786,
+            "durationMs": 6.628699999999299,
+            "failed": false
+          },
+          {
+            "kind": "pipeline-compilation",
+            "label": "",
+            "startMs": 14516.758409,
+            "durationMs": 4.1442039999983535,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 16063.413714999999,
+            "durationMs": 0.11253199999919161,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 16470.746759999998,
+            "durationMs": 0.04869200000030105,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 16890.511005,
+            "durationMs": 0.04875099999844679,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 17309.73462,
+            "durationMs": 0.05815900000015972,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 17731.658616,
+            "durationMs": 0.05813999999736552,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 18135.125741,
+            "durationMs": 0.05342999999993481,
+            "failed": false
+          },
+          {
+            "kind": "queue-wait",
+            "label": "",
+            "startMs": 18170.046036,
+            "durationMs": 10.696328999998514,
+            "failed": false
+          }
+        ],
+        "scope": "Instrumented diagnostic; API waits overlap. CPU samples distinguish byte preparation from GPU API calls. Not a throughput measurement."
+      }
+    }
+  }
+}

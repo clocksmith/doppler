@@ -1,0 +1,22 @@
+file:///home/x/deco/doppler/src/config/capsule-release-events.js:163
+    throw new CapsuleReleaseStateError(error, verifiedCheckpoint);
+          ^
+
+CapsuleReleaseStateError: Release eligibility has expired.
+    at verifyCapsuleReleaseEvents (file:///home/x/deco/doppler/src/config/capsule-release-events.js:163:11)
+    at async buildDocumentSearchApplication (file:///home/x/deco/doppler/tools/build-document-search-app.js:85:7)
+    at async buildDocumentSearchNode (file:///home/x/deco/doppler/tools/build-document-search-node.js:11:17)
+    at async file:///home/x/deco/doppler/tools/build-document-search-node.js:63:18 {
+  checkpoint: {
+    sequence: 1,
+    digest: 'sha256:1e52515c25e0be4eafc01ac793e221ddc5660855af89ced0e415d7877908bcfc'
+  },
+  [cause]: Error: Release eligibility has expired.
+      at resolveReleaseAuthorization (file:///home/x/deco/doppler/src/config/capsule-release-events.js:25:24)
+      at verifyCapsuleReleaseEvents (file:///home/x/deco/doppler/src/config/capsule-release-events.js:161:21)
+      at async buildDocumentSearchApplication (file:///home/x/deco/doppler/tools/build-document-search-app.js:85:7)
+      at async buildDocumentSearchNode (file:///home/x/deco/doppler/tools/build-document-search-node.js:11:17)
+      at async file:///home/x/deco/doppler/tools/build-document-search-node.js:63:18
+}
+
+Node.js v22.22.1

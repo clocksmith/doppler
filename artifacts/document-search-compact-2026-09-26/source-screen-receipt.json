@@ -1,0 +1,14 @@
+{
+  "schema": "doppler.source-screen-receipt/v1",
+  "sourceCaptureSha256": "f2f2382b29aa7a58a8166d0e47bb4b1e8aa7eb50bc18f2796b759675530193a5",
+  "sourceProbeSha256": "b0d0b99dc01e2618dc56b30b2f7c6f0b4de571abf70d61f2d64291551d12c596",
+  "preparedSha256": "4423d41c77e3b21182296b16ca62ec6a1ef8a17d4b916a2e8c57fa9426121074",
+  "policySha256": "5d6d17eae40651ec60ab275618210ddca209eda22626d658a5230c8e29a8dee6",
+  "exactSourceFilesVerified": true,
+  "combinedSelectedSourceBytes": 183397846,
+  "sourceOnly": true,
+  "rigPrepared": false,
+  "capsuleExecution": false,
+  "minimumMemoryQualified": false,
+  "selectedAsDefault": false
+}

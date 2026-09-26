@@ -12,36 +12,18 @@ const CHUNK_END = 2;
 const PARENT = 4;
 const ROOT = 8;
 
-const MSG_PERMUTATION = new Uint8Array([
-  2, 6, 3, 10, 7, 0, 4, 13,
-  1, 11, 12, 5, 9, 14, 15, 8,
+const MESSAGE_SCHEDULE = Object.freeze([
+  new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]),
+  new Uint8Array([2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8]),
+  new Uint8Array([3, 4, 10, 12, 13, 2, 7, 14, 6, 5, 9, 0, 11, 15, 8, 1]),
+  new Uint8Array([10, 7, 12, 9, 14, 3, 13, 15, 4, 0, 11, 2, 5, 8, 1, 6]),
+  new Uint8Array([12, 13, 9, 11, 15, 10, 14, 8, 7, 2, 5, 3, 0, 1, 6, 4]),
+  new Uint8Array([9, 14, 11, 5, 8, 12, 15, 1, 13, 3, 0, 10, 2, 6, 4, 7]),
+  new Uint8Array([11, 15, 5, 0, 1, 9, 8, 6, 14, 10, 2, 12, 3, 4, 7, 13]),
 ]);
 
 function toBytes(data) {
   return data instanceof Uint8Array ? data : new Uint8Array(data);
-}
-
-function rotr(value, shift) {
-  return (value >>> shift) | (value << (32 - shift));
-}
-
-function g(state, a, b, c, d, x, y) {
-  state[a] = (state[a] + state[b] + x) >>> 0;
-  state[d] = rotr(state[d] ^ state[a], 16);
-  state[c] = (state[c] + state[d]) >>> 0;
-  state[b] = rotr(state[b] ^ state[c], 12);
-  state[a] = (state[a] + state[b] + y) >>> 0;
-  state[d] = rotr(state[d] ^ state[a], 8);
-  state[c] = (state[c] + state[d]) >>> 0;
-  state[b] = rotr(state[b] ^ state[c], 7);
-}
-
-function permute(message) {
-  const next = new Uint32Array(16);
-  for (let i = 0; i < 16; i++) {
-    next[i] = message[MSG_PERMUTATION[i]];
-  }
-  return next;
 }
 
 function blockWordsFromBytes(bytes, offset, length) {
@@ -53,35 +35,122 @@ function blockWordsFromBytes(bytes, offset, length) {
 }
 
 function compress(cv, blockWords, counter, blockLen, flags) {
-  const state = new Uint32Array(16);
-  state.set(cv, 0);
-  state.set(IV, 8);
-
-  const counterLow = counter >>> 0;
-  const counterHigh = Math.floor(counter / 0x100000000) >>> 0;
-
-  state[12] ^= counterLow;
-  state[13] ^= counterHigh;
-  state[14] ^= blockLen;
-  state[15] ^= flags;
-
-  let message = blockWords;
+  let v0 = cv[0];
+  let v1 = cv[1];
+  let v2 = cv[2];
+  let v3 = cv[3];
+  let v4 = cv[4];
+  let v5 = cv[5];
+  let v6 = cv[6];
+  let v7 = cv[7];
+  let v8 = IV[0];
+  let v9 = IV[1];
+  let v10 = IV[2];
+  let v11 = IV[3];
+  let v12 = IV[4] ^ (counter >>> 0);
+  let v13 = IV[5] ^ (Math.floor(counter / 0x100000000) >>> 0);
+  let v14 = IV[6] ^ blockLen;
+  let v15 = IV[7] ^ flags;
   for (let round = 0; round < 7; round++) {
-    g(state, 0, 4, 8, 12, message[0], message[1]);
-    g(state, 1, 5, 9, 13, message[2], message[3]);
-    g(state, 2, 6, 10, 14, message[4], message[5]);
-    g(state, 3, 7, 11, 15, message[6], message[7]);
-    g(state, 0, 5, 10, 15, message[8], message[9]);
-    g(state, 1, 6, 11, 12, message[10], message[11]);
-    g(state, 2, 7, 8, 13, message[12], message[13]);
-    g(state, 3, 4, 9, 14, message[14], message[15]);
-
-    if (round < 6) {
-      message = permute(message);
-    }
+    const schedule = MESSAGE_SCHEDULE[round];
+    v0 = (v0 + v4 + blockWords[schedule[0]]) >>> 0;
+    v12 ^= v0;
+    v12 = (v12 >>> 16) | (v12 << 16);
+    v8 = (v8 + v12) >>> 0;
+    v4 ^= v8;
+    v4 = (v4 >>> 12) | (v4 << 20);
+    v0 = (v0 + v4 + blockWords[schedule[1]]) >>> 0;
+    v12 ^= v0;
+    v12 = (v12 >>> 8) | (v12 << 24);
+    v8 = (v8 + v12) >>> 0;
+    v4 ^= v8;
+    v4 = (v4 >>> 7) | (v4 << 25);
+    v1 = (v1 + v5 + blockWords[schedule[2]]) >>> 0;
+    v13 ^= v1;
+    v13 = (v13 >>> 16) | (v13 << 16);
+    v9 = (v9 + v13) >>> 0;
+    v5 ^= v9;
+    v5 = (v5 >>> 12) | (v5 << 20);
+    v1 = (v1 + v5 + blockWords[schedule[3]]) >>> 0;
+    v13 ^= v1;
+    v13 = (v13 >>> 8) | (v13 << 24);
+    v9 = (v9 + v13) >>> 0;
+    v5 ^= v9;
+    v5 = (v5 >>> 7) | (v5 << 25);
+    v2 = (v2 + v6 + blockWords[schedule[4]]) >>> 0;
+    v14 ^= v2;
+    v14 = (v14 >>> 16) | (v14 << 16);
+    v10 = (v10 + v14) >>> 0;
+    v6 ^= v10;
+    v6 = (v6 >>> 12) | (v6 << 20);
+    v2 = (v2 + v6 + blockWords[schedule[5]]) >>> 0;
+    v14 ^= v2;
+    v14 = (v14 >>> 8) | (v14 << 24);
+    v10 = (v10 + v14) >>> 0;
+    v6 ^= v10;
+    v6 = (v6 >>> 7) | (v6 << 25);
+    v3 = (v3 + v7 + blockWords[schedule[6]]) >>> 0;
+    v15 ^= v3;
+    v15 = (v15 >>> 16) | (v15 << 16);
+    v11 = (v11 + v15) >>> 0;
+    v7 ^= v11;
+    v7 = (v7 >>> 12) | (v7 << 20);
+    v3 = (v3 + v7 + blockWords[schedule[7]]) >>> 0;
+    v15 ^= v3;
+    v15 = (v15 >>> 8) | (v15 << 24);
+    v11 = (v11 + v15) >>> 0;
+    v7 ^= v11;
+    v7 = (v7 >>> 7) | (v7 << 25);
+    v0 = (v0 + v5 + blockWords[schedule[8]]) >>> 0;
+    v15 ^= v0;
+    v15 = (v15 >>> 16) | (v15 << 16);
+    v10 = (v10 + v15) >>> 0;
+    v5 ^= v10;
+    v5 = (v5 >>> 12) | (v5 << 20);
+    v0 = (v0 + v5 + blockWords[schedule[9]]) >>> 0;
+    v15 ^= v0;
+    v15 = (v15 >>> 8) | (v15 << 24);
+    v10 = (v10 + v15) >>> 0;
+    v5 ^= v10;
+    v5 = (v5 >>> 7) | (v5 << 25);
+    v1 = (v1 + v6 + blockWords[schedule[10]]) >>> 0;
+    v12 ^= v1;
+    v12 = (v12 >>> 16) | (v12 << 16);
+    v11 = (v11 + v12) >>> 0;
+    v6 ^= v11;
+    v6 = (v6 >>> 12) | (v6 << 20);
+    v1 = (v1 + v6 + blockWords[schedule[11]]) >>> 0;
+    v12 ^= v1;
+    v12 = (v12 >>> 8) | (v12 << 24);
+    v11 = (v11 + v12) >>> 0;
+    v6 ^= v11;
+    v6 = (v6 >>> 7) | (v6 << 25);
+    v2 = (v2 + v7 + blockWords[schedule[12]]) >>> 0;
+    v13 ^= v2;
+    v13 = (v13 >>> 16) | (v13 << 16);
+    v8 = (v8 + v13) >>> 0;
+    v7 ^= v8;
+    v7 = (v7 >>> 12) | (v7 << 20);
+    v2 = (v2 + v7 + blockWords[schedule[13]]) >>> 0;
+    v13 ^= v2;
+    v13 = (v13 >>> 8) | (v13 << 24);
+    v8 = (v8 + v13) >>> 0;
+    v7 ^= v8;
+    v7 = (v7 >>> 7) | (v7 << 25);
+    v3 = (v3 + v4 + blockWords[schedule[14]]) >>> 0;
+    v14 ^= v3;
+    v14 = (v14 >>> 16) | (v14 << 16);
+    v9 = (v9 + v14) >>> 0;
+    v4 ^= v9;
+    v4 = (v4 >>> 12) | (v4 << 20);
+    v3 = (v3 + v4 + blockWords[schedule[15]]) >>> 0;
+    v14 ^= v3;
+    v14 = (v14 >>> 8) | (v14 << 24);
+    v9 = (v9 + v14) >>> 0;
+    v4 ^= v9;
+    v4 = (v4 >>> 7) | (v4 << 25);
   }
-
-  return state;
+  return new Uint32Array([v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15]);
 }
 
 function chainingValue(state) {

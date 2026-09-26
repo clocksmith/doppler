@@ -9,7 +9,7 @@ for (const boundary of ['owned-copy', 'hash-workspace']) {
   let reads = 0;
   let acquired = false;
   const source = { async readArtifact() { acquired = true; reads++; return bytes; } };
-  const store = createVerifiedCapsuleArtifactStore(capsule, source);
+  const store = createVerifiedCapsuleArtifactStore(capsule, source, { artifactHashBackend: 'javascript' });
   const bytesConstructor = globalThis.Uint8Array;
   const words = globalThis.Uint32Array;
   if (boundary === 'owned-copy') globalThis.Uint8Array = new Proxy(bytesConstructor, { construct(target, args) {

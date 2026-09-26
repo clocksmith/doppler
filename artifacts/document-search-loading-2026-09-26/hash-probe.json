@@ -1,0 +1,370 @@
+{
+  "schema": "doppler.artifact-hash-probe/v1",
+  "config": {
+    "sizes": [
+      1048576,
+      67108864
+    ],
+    "repeats": 3,
+    "chunkBytes": 65536,
+    "browser": true,
+    "blake3Modules": [
+      "/var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+      "/var/tmp/doppler-search-loading-installed-20260926-04/node_modules/doppler-gpu/src/storage/blake3.js"
+    ],
+    "outputPath": "/var/tmp/doppler-loading-20260926/hash-probe.json"
+  },
+  "node": "v22.22.1",
+  "probeSha256": "a9c37a3d1041d4d6fc68ecd0d05a6d357f3842afd12c3c8d2b4fa0dfb4eb0d33",
+  "scope": "Synthetic hashing diagnostics, no GPU execution or complete-opening performance claim.",
+  "rows": [
+    {
+      "surface": "node",
+      "backend": "javascript",
+      "size": 1048576,
+      "repeat": 0,
+      "elapsedMs": 18.199352000000033,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "node",
+      "backend": "node-crypto",
+      "size": 1048576,
+      "repeat": 0,
+      "elapsedMs": 0.6800929999999994,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "node",
+      "backend": "webcrypto",
+      "size": 1048576,
+      "repeat": 0,
+      "elapsedMs": 2.6400689999999827,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "node",
+      "backend": "javascript",
+      "size": 1048576,
+      "repeat": 1,
+      "elapsedMs": 12.370228999999995,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "node",
+      "backend": "node-crypto",
+      "size": 1048576,
+      "repeat": 1,
+      "elapsedMs": 0.6243969999999877,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "node",
+      "backend": "webcrypto",
+      "size": 1048576,
+      "repeat": 1,
+      "elapsedMs": 1.3330650000000333,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "node",
+      "backend": "javascript",
+      "size": 1048576,
+      "repeat": 2,
+      "elapsedMs": 12.582649000000004,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "node",
+      "backend": "node-crypto",
+      "size": 1048576,
+      "repeat": 2,
+      "elapsedMs": 0.6195579999999836,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "node",
+      "backend": "webcrypto",
+      "size": 1048576,
+      "repeat": 2,
+      "elapsedMs": 1.4417889999999716,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "node",
+      "backend": "javascript",
+      "size": 67108864,
+      "repeat": 0,
+      "elapsedMs": 542.125463,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "node",
+      "backend": "node-crypto",
+      "size": 67108864,
+      "repeat": 0,
+      "elapsedMs": 26.945076000000086,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "node",
+      "backend": "webcrypto",
+      "size": 67108864,
+      "repeat": 0,
+      "elapsedMs": 44.744083000000046,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "node",
+      "backend": "javascript",
+      "size": 67108864,
+      "repeat": 1,
+      "elapsedMs": 522.285666,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "node",
+      "backend": "node-crypto",
+      "size": 67108864,
+      "repeat": 1,
+      "elapsedMs": 26.89463099999989,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "node",
+      "backend": "webcrypto",
+      "size": 67108864,
+      "repeat": 1,
+      "elapsedMs": 44.523557999999866,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "node",
+      "backend": "javascript",
+      "size": 67108864,
+      "repeat": 2,
+      "elapsedMs": 522.9951230000001,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "node",
+      "backend": "node-crypto",
+      "size": 67108864,
+      "repeat": 2,
+      "elapsedMs": 27.047860000000128,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "node",
+      "backend": "webcrypto",
+      "size": 67108864,
+      "repeat": 2,
+      "elapsedMs": 42.942587,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 1048576,
+      "repeat": 0,
+      "elapsedMs": 18.080427999999756,
+      "digest": "236255deaf7738b9553f20bc6e71832191dfff8985b01432b91734cb0261d2c0"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-search-loading-installed-20260926-04/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 1048576,
+      "repeat": 0,
+      "elapsedMs": 14.176205000000209,
+      "digest": "236255deaf7738b9553f20bc6e71832191dfff8985b01432b91734cb0261d2c0"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-search-loading-installed-20260926-04/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 1048576,
+      "repeat": 1,
+      "elapsedMs": 5.8678359999998975,
+      "digest": "236255deaf7738b9553f20bc6e71832191dfff8985b01432b91734cb0261d2c0"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 1048576,
+      "repeat": 1,
+      "elapsedMs": 10.827008999999634,
+      "digest": "236255deaf7738b9553f20bc6e71832191dfff8985b01432b91734cb0261d2c0"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 1048576,
+      "repeat": 2,
+      "elapsedMs": 10.513086999999814,
+      "digest": "236255deaf7738b9553f20bc6e71832191dfff8985b01432b91734cb0261d2c0"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-search-loading-installed-20260926-04/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 1048576,
+      "repeat": 2,
+      "elapsedMs": 5.968296000000009,
+      "digest": "236255deaf7738b9553f20bc6e71832191dfff8985b01432b91734cb0261d2c0"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 67108864,
+      "repeat": 0,
+      "elapsedMs": 653.4034819999997,
+      "digest": "f3cd16b0c83cc07158842f540e118fce7033474bfa8eb4b35d185dba0678378d"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-search-loading-installed-20260926-04/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 67108864,
+      "repeat": 0,
+      "elapsedMs": 354.71184600000015,
+      "digest": "f3cd16b0c83cc07158842f540e118fce7033474bfa8eb4b35d185dba0678378d"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-search-loading-installed-20260926-04/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 67108864,
+      "repeat": 1,
+      "elapsedMs": 354.7923370000003,
+      "digest": "f3cd16b0c83cc07158842f540e118fce7033474bfa8eb4b35d185dba0678378d"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 67108864,
+      "repeat": 1,
+      "elapsedMs": 653.3565610000005,
+      "digest": "f3cd16b0c83cc07158842f540e118fce7033474bfa8eb4b35d185dba0678378d"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 67108864,
+      "repeat": 2,
+      "elapsedMs": 652.389357,
+      "digest": "f3cd16b0c83cc07158842f540e118fce7033474bfa8eb4b35d185dba0678378d"
+    },
+    {
+      "surface": "node",
+      "backend": "/var/tmp/doppler-search-loading-installed-20260926-04/node_modules/doppler-gpu/src/storage/blake3.js",
+      "size": 67108864,
+      "repeat": 2,
+      "elapsedMs": 347.23905099999956,
+      "digest": "f3cd16b0c83cc07158842f540e118fce7033474bfa8eb4b35d185dba0678378d"
+    },
+    {
+      "surface": "browser",
+      "backend": "javascript",
+      "size": 1048576,
+      "repeat": 0,
+      "elapsedMs": 11.5,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "browser",
+      "backend": "webcrypto",
+      "size": 1048576,
+      "repeat": 0,
+      "elapsedMs": 8.099999904632568,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "browser",
+      "backend": "javascript",
+      "size": 1048576,
+      "repeat": 1,
+      "elapsedMs": 8,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "browser",
+      "backend": "webcrypto",
+      "size": 1048576,
+      "repeat": 1,
+      "elapsedMs": 7.799999713897705,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "browser",
+      "backend": "javascript",
+      "size": 1048576,
+      "repeat": 2,
+      "elapsedMs": 8,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "browser",
+      "backend": "webcrypto",
+      "size": 1048576,
+      "repeat": 2,
+      "elapsedMs": 7.700000286102295,
+      "digest": "2ce11db501025c1a6a3158d82b9b8ec421c5832ad83e307c9ef850337af9d504"
+    },
+    {
+      "surface": "browser",
+      "backend": "javascript",
+      "size": 67108864,
+      "repeat": 0,
+      "elapsedMs": 522.6999998092651,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "browser",
+      "backend": "webcrypto",
+      "size": 67108864,
+      "repeat": 0,
+      "elapsedMs": 516.1999998092651,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "browser",
+      "backend": "javascript",
+      "size": 67108864,
+      "repeat": 1,
+      "elapsedMs": 512.1999998092651,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "browser",
+      "backend": "webcrypto",
+      "size": 67108864,
+      "repeat": 1,
+      "elapsedMs": 505.40000009536743,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "browser",
+      "backend": "javascript",
+      "size": 67108864,
+      "repeat": 2,
+      "elapsedMs": 512.5,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    },
+    {
+      "surface": "browser",
+      "backend": "webcrypto",
+      "size": 67108864,
+      "repeat": 2,
+      "elapsedMs": 513,
+      "digest": "d01eb09610202f2ead90c2c76f8d65e62153677dd9b4d3396376751e425d5c4b"
+    }
+  ],
+  "blake3Modules": [
+    {
+      "filename": "/var/tmp/doppler-node-search-installed-20260925-05/node_modules/doppler-gpu/src/storage/blake3.js",
+      "sha256": "ac75a9839adcc3be6d5edee824c7b1aa07fd2a71ff38a85b7e24f48b2123061b"
+    },
+    {
+      "filename": "/var/tmp/doppler-search-loading-installed-20260926-04/node_modules/doppler-gpu/src/storage/blake3.js",
+      "sha256": "3f0601ef21ff38a9ed69a2a30b2fb9e8f1bd5fd90bd5a6ee72f43237862cee47"
+    }
+  ],
+  "browserVersion": "145.0.7632.6",
+  "browserMemoryScope": "One bounded input per digest. Web Crypto may copy it; no model concatenation. This probe does not measure physical peak memory."
+}

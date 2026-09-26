@@ -4,6 +4,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { Session } from 'node:inspector/promises';
+import { installGpuObservation } from './lib/installed-gpu-observation.js';
 
 const config = JSON.parse(await fs.readFile(process.argv[2], 'utf8'));
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -24,6 +26,8 @@ let peakRssBytes = 0;
 let metrics;
 let originals;
 let constructors;
+let openingProbe;
+let cpuProfiler;
 function compareResults(actual, expected) {
   assert.deepEqual(actual.results.map(row => row.document.id), expected.results.map(row => row.document.id));
   for (const [index, row] of actual.results.entries()) {
@@ -82,6 +86,10 @@ try {
   const { createNodeDocumentSearch } = await import(pathToFileURL(path.join(config.applicationDir, 'node.js')));
   const { getDevice } = await import(pathToFileURL(path.join(config.applicationDir, 'node_modules/doppler-gpu/src/tooling-exports/device.js')));
   app = await createNodeDocumentSearch({ storageDir: config.storageDir });
+  if (config.loadingOverride) {
+    assert(Object.keys(config.loadingOverride).every(key => ['artifactHashBackend', 'maxVerifiedBackingBytes', 'maxRetainedArtifactBytes'].includes(key)));
+    for (const model of app.config.models) Object.assign(model.options, config.loadingOverride);
+  }
   const adapter = await navigator.gpu.requestAdapter();
   assert(adapter, 'Physical GPU adapter required');
   report.hardware = Object.fromEntries(['vendor', 'architecture', 'device', 'description', 'isFallbackAdapter']
@@ -126,7 +134,28 @@ try {
     return result;
   };
   sampler = setInterval(sample, 100);
-  await timed(config.install ? 'install' : 'openRetained', () => config.install ? app.controller.install() : app.controller.openRetained());
+  if (config.profileOpening) {
+    assert(Number.isSafeInteger(config.cpuSamplingIntervalUs) && config.cpuSamplingIntervalUs > 0);
+    openingProbe = installGpuObservation();
+    cpuProfiler = new Session();
+    cpuProfiler.connect();
+    await cpuProfiler.post('Profiler.enable');
+    await cpuProfiler.post('Profiler.setSamplingInterval', { interval: config.cpuSamplingIntervalUs });
+    await cpuProfiler.post('Profiler.start');
+    openingProbe.start();
+  }
+  assert(!(config.install && config.repairExisting), 'Clean installation and existing-cache repair are distinct probes.');
+  await timed(config.repairExisting ? 'repairExisting' : config.install ? 'install' : 'openRetained',
+    () => config.repairExisting ? app.controller.repair() : config.install ? app.controller.install() : app.controller.openRetained());
+  if (openingProbe) {
+    report.openingProfile = openingProbe.stop();
+    openingProbe.restore(); openingProbe = null;
+    const { profile } = await cpuProfiler.post('Profiler.stop');
+    report.openingCpuProfile = config.outputPath + '.cpuprofile';
+    await fs.writeFile(report.openingCpuProfile, JSON.stringify(profile));
+    cpuProfiler.disconnect(); cpuProfiler = null;
+    report.openingProfile.scope = 'Instrumented diagnostic; API waits overlap. CPU samples distinguish byte preparation from GPU API calls. Not a throughput measurement.';
+  }
   assert.deepEqual(app.controller.getState().sessionRoles.sort(), ['embedding', 'reranker']);
   report.sessions = Object.fromEntries(Object.entries(app.controller.getSessions()).map(([role, session]) => [role, {
     capsuleIdentity: session.capsuleIdentity, selectedTargetId: session.selectedTargetId,
@@ -222,6 +251,8 @@ try {
 } catch (error) { report.failure = { stage, message: error.message, stack: error.stack }; }
 finally {
   clearInterval(sampler);
+  openingProbe?.restore();
+  cpuProfiler?.disconnect();
   try { await app?.close(); } catch (error) { report.cleanupFailure = error.message; report.passed = false; }
   if (originals) {
     constructors.queue.prototype.submit = originals.submit;

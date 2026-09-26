@@ -1,0 +1,122 @@
+{
+  "schema": "doppler.loading-evidence-index/v1",
+  "rawReports": [
+    {
+      "file": "baseline.json.gz",
+      "sha256": "8afa10793be6596b63259df501ab262a8fccf4364de70d0a68df00821aa5d2c8",
+      "uncompressedSha256": "1789559f4027de2bc88dc041909882dddfc81bf5b15fc58cf406d5424dd6e7ae",
+      "uncompressedBytes": 4034825,
+      "passed": true
+    },
+    {
+      "file": "baseline-profile.json.gz",
+      "sha256": "ee267bdadcf90e9261e519817ad6ef46edcf95f81e7df2eb6baffcbdd4c48e96",
+      "uncompressedSha256": "f1e36b2156892e15f7e66cb0a1ce525dc90f1cf3a1dd133d705ef898c8359b8f",
+      "uncompressedBytes": 4038879,
+      "passed": true
+    },
+    {
+      "file": "disk-repair.json.gz",
+      "sha256": "f75b243a7f3cc96069c1f9036441aedbbe6b2776c4c4b0d526e317b93cf1e1c1",
+      "uncompressedSha256": "b89a9ad532c9ae3157de71f24a20b2c64bf388e52a276a83a3c35292921115a4",
+      "uncompressedBytes": 4040404,
+      "passed": true
+    },
+    {
+      "file": "final-lifecycle.json.gz",
+      "sha256": "fc6342c948b564f8f7b39535272d641f958cc077bf3d6225a73c209349a54801",
+      "uncompressedSha256": "4a76ba199f73c593a28c89aaac992e0d1d179aeeef6e03c66d54e05750c19d48",
+      "uncompressedBytes": 4040249,
+      "passed": true
+    },
+    {
+      "file": "final-offline.json.gz",
+      "sha256": "db99f44eea4186ca4ef511d385a544730ff4de48cdf5df0be3868faaf61f88ec",
+      "uncompressedSha256": "0a5c73fed85b4fbc01aa9b1d8ed85224cfeccf87ac25f30197fddc3d0db65844",
+      "uncompressedBytes": 4039261,
+      "passed": true
+    },
+    {
+      "file": "final-profile.json.gz",
+      "sha256": "9bc5816a5d49f23df9555e93aee8ad4fcaaae50286534b578e66a91ed0554c26",
+      "uncompressedSha256": "bb409c4e1c8add42ccd06e57900c51f05f840621ddebb4fd0294c743e03a9826",
+      "uncompressedBytes": 4043184,
+      "passed": true
+    },
+    {
+      "file": "paired-0-native.json.gz",
+      "sha256": "e77eddf286733a23a4fb9c1f3c61b7f83a005b952a052612ab5cdb940eaf4bf3",
+      "uncompressedSha256": "eded6186ca7899c2cb11352ab12833faea2e2a839f1d38f29a7a59d0a9e3c394",
+      "uncompressedBytes": 4039227,
+      "passed": true
+    },
+    {
+      "file": "paired-1-optimized.json.gz",
+      "sha256": "a58d121d99bc787186bb65462ba8f4f53427dc7a19bab77f47c6034f8644c934",
+      "uncompressedSha256": "a648eb71e9ecb6292584099c2a227cc98a9229c6d86538497c8dcb10f52e4eaf",
+      "uncompressedBytes": 4039070,
+      "passed": true
+    },
+    {
+      "file": "paired-2-js.json.gz",
+      "sha256": "a8421115756dc9461edcb925d141832a33c74f209268437dbfa1d2ba9c2bfec4",
+      "uncompressedSha256": "05dcd9939354d654634d8085a549f7a63cfd48c450fbf56cb0aefd19ca19c079",
+      "uncompressedBytes": 4039225,
+      "passed": true
+    },
+    {
+      "file": "paired-3-optimized.json.gz",
+      "sha256": "d88458da8942a219ffe383f921bfe7167e147a01d9fe41b8c006f6bc09f81060",
+      "uncompressedSha256": "8bdc061081b860b93c8ba76c5b5f0ac4a8cb002001b56dd529c4d2ec42791ee3",
+      "uncompressedBytes": 4039130,
+      "passed": true
+    },
+    {
+      "file": "paired-4-native.json.gz",
+      "sha256": "b05f339c0b3dbc66aa74c7fefb2965a8363d5234629237d3ddfc202580552e32",
+      "uncompressedSha256": "86ab46aa40251e89a4d7a16a9260ed0e8ad66b922ee540819e7cecde7dfd2ed7",
+      "uncompressedBytes": 4039233,
+      "passed": true
+    },
+    {
+      "file": "paired-5-js.json.gz",
+      "sha256": "349d1b1c29716dba4f13ac8159edd803309ec06cf200bd54901b2ed833f5e8e0",
+      "uncompressedSha256": "64f6d11713aab79a3a707b1ee5662512f446c2d88df019475f7a5ce72cdf195d",
+      "uncompressedBytes": 4039205,
+      "passed": true
+    },
+    {
+      "file": "baseline-profile.json.cpuprofile.gz",
+      "sha256": "d6c3a0a761378ee946f34f74ef653d71f45d59858fbad277c40912deba84a6ce",
+      "uncompressedSha256": "a0247fc9fd056ebac50e7e01a72851e2682bfa78bfa92090236ea64924c62a9f",
+      "uncompressedBytes": 735329
+    },
+    {
+      "file": "final-profile.json.cpuprofile.gz",
+      "sha256": "3d098d4d7e89d9e04a12aadccbbaa6fcb2e2545fb6749745f8627c01934a7acd",
+      "uncompressedSha256": "5381325b2bda0538e0cc1068b42d74479421512a1bb0efa3878d9c026d2dfb1d",
+      "uncompressedBytes": 443755
+    },
+    {
+      "file": "green.txt.gz",
+      "sha256": "b2b16f54ace0bab8a2d1c771525ba83d73ed9555b04f33e4001905c27644e67f",
+      "uncompressedSha256": "5685b587729185d9a0a65175de5a66662017e7c288d383ca051268f4e96c9374",
+      "uncompressedBytes": 616948
+    }
+  ],
+  "applicationArchive": {
+    "localPath": "/var/tmp/doppler-loading-20260926/application-05.tgz",
+    "sizeBytes": 8558438,
+    "sha256": "ff015ca0b9d666c62e7152d188b2e06af06babd68aa3316cb1af61251ed1b605",
+    "published": false
+  },
+  "runtimePackage": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-VkMwqPbciwX6QvcT1OZx7fLwnTLU4iDiIAXK6TXnpZeV3tZOgKLXsEsL166x4MF8PNLRyVIlcZwNE29QxOyg8A==",
+    "sizeBytes": 2155610,
+    "source": "local-npm-pack",
+    "sha256": "32af41c69fc8f25b04ea0461d32dd8947217bb18a995e68d15fd65b1a643b1c4"
+  },
+  "reproduction": "Decompress reports to recover exact original JSON. Their config fields contain local probe inputs, build inventories, installed package identities, fixture/probe hashes and hardware. Raw paths are local, not public downloads."
+}

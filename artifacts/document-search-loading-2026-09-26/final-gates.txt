@@ -1,0 +1,30 @@
+[node-tests] script: catscan:check
+catscan: current docs/component-index.md (30 components)
+[node-tests] script: goals:check
+goal-completion: matrix ok (4 goals, 43 rows)
+[node-tests] script: runtime:closure:check
+Capsule runtime closure passed: 71 files, 772174 source bytes.
+[node-tests] script: public:boundaries:check
+public boundary check passed (npm package: 1864 files, 2155610 bytes packed, 11340219 bytes unpacked)
+[node-tests] script: source:style:check
+[source:style:check] 1059 governed JavaScript modules have sibling declarations, 227 reviewed numeric candidate(s), no runtime tensor compute, implementation annotations limited to checked strict roots, no undeclared raw console calls, and no banned geometry inference
+[node-tests] script: source:architecture:check
+source architecture check passed: 21 owners, 2797 files, 0 governed oversize files, 55 reviewed soft-limit files, 25 reviewed generic modules (6 semantic owners, 19 facades, 0 legacy debt)
+[node-tests] script: source:dependencies:check
+file:///home/x/deco/doppler/tools/report-source-dependencies.js:68
+    throw new Error('Dependency views are stale. Run node tools/report-source-dependencies.js --write.');
+          ^
+
+Error: Dependency views are stale. Run node tools/report-source-dependencies.js --write.
+    at file:///home/x/deco/doppler/tools/report-source-dependencies.js:68:11
+
+Node.js v22.22.1
+[node-tests] source:dependencies:check failed: exit 1
+[node-tests] script: imports:check:browser
+browser import graph check passed (src/index-browser.js)
+browser import graph check passed (src/tooling-exports.browser.js)
+[node-tests] script: exports:parity:check
+[exports-parity:check] 1059 JavaScript modules have declarations; paired named exports agree
+[node-tests] script: typecheck:source
+[source-types] 13 strict roots; 1047 explicitly inventoried unchecked implementations; no debt growth
+[node-tests] 1 independent script checks failed: [node-tests] source:dependencies:check failed: exit 1

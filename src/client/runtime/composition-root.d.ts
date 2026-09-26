@@ -14,7 +14,7 @@ import type { CapsuleOperationEvent } from './capsule-operation-executor.js';
 import type { CapsuleForecastRequest, CapsuleForecastResult } from './capsule-forecast.js';
 import type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-embedding.js';
 import type { CapsuleAcquisitionOptions, CapsuleArtifactReader } from './capsule-acquisition.js';
-import type { CapsuleArtifactBacking } from './verified-capsule-artifact-store.js';
+import type { CapsuleArtifactBacking, createVerifiedCapsuleArtifactStore } from './verified-capsule-artifact-store.js';
 export type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-embedding.js';
 
 export { createForecastProgramFactory } from './capsule-forecast-program.js';
@@ -36,7 +36,11 @@ export interface RunPorts {
     hashArtifact?(artifact: CapsuleV2Artifact): Promise<{ hash: string; sizeBytes: number }>;
   };
   trustedSigners: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
-  programFactory(args: Record<string, unknown>): Promise<object>;
+  programFactory(args: {
+    capsule: DopplerCapsule; targetPlan: TargetPlan;
+    artifactStore: ReturnType<typeof createVerifiedCapsuleArtifactStore>;
+    deviceProfile: DeviceProfile; options: CapsuleSessionOptions;
+  }): Promise<object>;
   cache?: { set(key: string, value: unknown): Promise<void> | void } | null;
   observer?: { observe(event: Record<string, unknown>): void } | null;
 }

@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.compact-evidence-index/v1",
+  "compressedReports": [
+    {
+      "file": "f16-control.json.gz",
+      "sha256": "58f8fb97d59930f43f12ac846699cfdafa4632a4266630a9aebf13dacaf44c60",
+      "uncompressedSha256": "875ccb04de113df830bd4bd45dfdbb8fb21f3e1aa3893cca0b109a5833f7fe8a",
+      "uncompressedBytes": 2104803
+    },
+    {
+      "file": "minilm-source.json.gz",
+      "sha256": "54af0df6050ed54ba411972084c4c6ac830b397c7b32f8038bdb3f87c03bd6a7",
+      "uncompressedSha256": "f2f2382b29aa7a58a8166d0e47bb4b1e8aa7eb50bc18f2796b759675530193a5",
+      "uncompressedBytes": 932541
+    },
+    {
+      "file": "prepared.json.gz",
+      "sha256": "e223538cf810f2343fa2bbe6e8084b1ae4e3bac3ebafab032c011e11aa196857",
+      "uncompressedSha256": "4423d41c77e3b21182296b16ca62ec6a1ef8a17d4b916a2e8c57fa9426121074",
+      "uncompressedBytes": 23210
+    },
+    {
+      "file": "qwen-qualification.json.gz",
+      "sha256": "60d6bee25c8ffa0aa034e2344dd2ebebcf125afac1686667ea67351b1df267cd",
+      "uncompressedSha256": "b9c37c3a56887c273e20d2c2a4d0dc0041ec2f18da7ee79e0214ca5bd3197d79",
+      "uncompressedBytes": 2097326
+    }
+  ],
+  "installedProbeSha256": "e5140a4fcc7431073fd3040c9339a6638d68fe500fc8a74e1a6fdf88f9cc73b8",
+  "candidatePromoted": false,
+  "published": false,
+  "referenceReleaseChanged": false
+}

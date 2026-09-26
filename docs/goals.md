@@ -54,6 +54,44 @@ explicit maintainer decision, not a side effect of passing checks.
 
 #### Bounded portability after browser delivery
 
+The retained browser and Node starters have completed their scoped acceptance;
+see the [maintenance receipt](../artifacts/document-search-maintenance-2026-09-25/README.md).
+They are reference configurations, not evidence of minimum memory, reboot
+persistence, or independent adoption. Do not reopen the completed Node runner or
+repository-hygiene work as unfinished milestones.
+
+The next bounded increments precede Electron expansion:
+
+1. Measure complete opening, accelerate authenticated loading, distinguish
+   preparation costs, and bound acquisition and verified-backing lifetimes while
+   keeping both search models resident.
+2. Freeze a search evaluation corpus before choosing a compact embedding and
+   reranking pair. Target 300 MB combined provisionally; retain the existing
+   reference pair when quality fails. Qualify persistent storage and an ordinary
+   smaller-memory machine without developer-only browser flags.
+3. Supply a versioned application setup recipe around the existing controller,
+   then support an independently operated integration through a second revision.
+   Actual corpus, download, quality, opening, hardware, and maintenance constraints
+   determine success; payment is optional.
+
+Rig supplies qualified implementations. Capsules preserve their identities. Run
+selects and executes approved compatible choices without inventing another model
+implementation. Optimize time and resources to a useful complete search result.
+
+The [September 26 loading candidate](../artifacts/document-search-loading-2026-09-26/README.md)
+adds native Node authentication, explicit verified-backing limits and release,
+and a compatible secondary-digest optimization. Installed disk-backed Node
+reopening and lifecycle recovery pass on the reference machine. This is retained
+installation evidence, not fresh-release, browser-performance, reboot, or
+smaller-memory acceptance; renewed release eligibility and those probes remain
+outstanding.
+
+The [first compact-candidate experiments](../artifacts/document-search-compact-2026-09-26/README.md)
+freeze application quality inputs and retain failed smaller-model and quantized
+embedding results. Neither candidate replaces the reference pair. The expanded
+corpus also exposes the incumbent's lack of a qualified no-answer decision;
+ordinary ranking must not be presented as calibrated answerability.
+
 Keep useful search computation callable without browser storage, page configuration,
 or UI events. After browser acceptance, reuse that computation through a small Node
 command-line runner with the current candidate, host-qualified models, and unchanged

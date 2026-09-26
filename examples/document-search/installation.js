@@ -29,6 +29,7 @@ export function createDocumentModelInstallation({ store, fetchArtifact, openCaps
   }
   function artifactStore(acquire, observations, repair) {
     const reads = new Set();
+    const persisted = new Set();
     async function readArtifact(artifact, control = {}) {
       control.signal?.throwIfAborted();
       const filename = key(artifact);
@@ -46,6 +47,7 @@ export function createDocumentModelInstallation({ store, fetchArtifact, openCaps
           observations.push({ artifactId: artifact.artifactId, source: 'storage', bytes: retained.byteLength,
             storageReadMs, verificationMs: performance.now() - started });
           control.signal?.throwIfAborted();
+          persisted.add(filename);
           return retained;
         }
         control.signal?.throwIfAborted();
@@ -74,6 +76,7 @@ export function createDocumentModelInstallation({ store, fetchArtifact, openCaps
       observations.push({ artifactId: artifact.artifactId, source: 'network', bytes: bytes.byteLength,
         storageReadMs, acquisitionMs, verificationMs, storageWriteMs: performance.now() - started });
       control.signal?.throwIfAborted();
+      persisted.add(filename);
       return bytes;
     }
     return {
@@ -85,6 +88,12 @@ export function createDocumentModelInstallation({ store, fetchArtifact, openCaps
         return task;
       },
       async settle() { await Promise.allSettled(reads); },
+      async ensureComplete(capsule, controls) {
+        await Promise.allSettled(reads);
+        for (const artifact of capsule.artifacts) {
+          if (!persisted.has(key(artifact))) await readArtifact(artifact, controls);
+        }
+      },
     };
   }
   async function checkpoint() {
@@ -98,6 +107,17 @@ export function createDocumentModelInstallation({ store, fetchArtifact, openCaps
       artifactStore: artifactStore(acquire, observations, repairDamagedArtifacts === true) };
     if (options.releasePolicy) {
       options.releasePolicy = { ...options.releasePolicy, now: new Date().toISOString() };
+      if (repairDamagedArtifacts === true) {
+        const saved = await readOrMissing('installation.json');
+        const priorRecord = saved === null ? null : decode(saved);
+        const priorDecision = priorRecord?.options?.releasePolicy?.retainedLocalUse;
+        const requestedDecision = options.releasePolicy.retainedLocalUse;
+        if (priorDecision && requestedDecision && await authorizeRecord(priorRecord) === true
+          && JSON.stringify(priorRecord.capsule) === JSON.stringify(record.capsule)
+          && JSON.stringify({ ...priorDecision, acceptedAtUtc: null }) === JSON.stringify({ ...requestedDecision, acceptedAtUtc: null })) {
+          options.releasePolicy.retainedLocalUse = priorDecision;
+        }
+      }
       const prior = await checkpoint();
       if (prior && prior.sequence > options.releasePolicy.checkpoint.sequence) {
         options.releasePolicy = { ...options.releasePolicy, checkpoint: prior,
@@ -122,8 +142,11 @@ export function createDocumentModelInstallation({ store, fetchArtifact, openCaps
       try {
         options = await optionsFor(record, observations, true, controls);
         session = await openCapsule(record.capsule, options);
+        await options.artifactStore.ensureComplete(record.capsule, options);
         controls.signal?.throwIfAborted();
-        await store.writeFile('installation.json', encode(record));
+        const persistedRecord = options.releasePolicy
+          ? { ...record, options: { ...record.options, releasePolicy: options.releasePolicy } } : record;
+        await store.writeFile('installation.json', encode(persistedRecord));
         return { session, observations };
       } catch (error) {
         // Cancellation may finish runtime acquisition before a storage write settles.

@@ -1,0 +1,81 @@
+{
+  "schema": "doppler.quantized-search-candidate/v1",
+  "modelId": "qwen3-embedding-0-6b-q4k-search-candidate",
+  "artifactIdentity": {
+    "artifactCompleteness": "complete",
+    "conversionConfigDigest": "sha256:5e5ac515ec82f6ed3087ad61256da217ada317cc3b0fcb16d4c82b853ea994d9",
+    "conversionConfigPath": "artifacts/document-search-compact-2026-09-26/qwen-conversion.json",
+    "manifestVariantId": "qwen3-embedding-0-6b-q4k-search-candidate-manifest-v1",
+    "materializationProfile": "auto",
+    "modalitySet": [
+      "embedding"
+    ],
+    "shardSetHash": "sha256:ccb22e552e261e6ce0f4969cb8fca03ca91bf5cf59f4d8337827bace2c65eb5f",
+    "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+    "sourceFormat": "safetensors",
+    "sourceRepo": "Qwen/Qwen3-Embedding-0.6B",
+    "sourceRevision": "c54f2e6e80b2d7b7de06f51cec4959f6b3e03418",
+    "weightCapsuleHash": "sha256:06551965774d6e5befbccaedc6b674d6f514ab365a71861e24d0fedbe7cb75d8",
+    "weightCapsuleId": "qwen3-embedding-0-6b-q4k-search-candidate-weights-v1"
+  },
+  "manifestSha256": "635e786d0fea8854e86f722256ed3bcd6e8b9008aa61be13e9343d29385669a8",
+  "modelArtifactBytes": 563967820,
+  "embeddingTensorBytes": 310618112,
+  "shards": [
+    {
+      "file": "shard_00000.bin",
+      "sha256": "6f9502e29b8e04ab3428a4c94035c0b95c82d0356f46b8d357abf58b27aaeaae",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00001.bin",
+      "sha256": "83c70bb5204d726864e445296e6c7d4d7d5fec9552a6000bb51b5011d7d4d330",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00002.bin",
+      "sha256": "962b59e3f3f157101dacfd526a4a8178478a3b776ceecc046ae8daa9d2f8bcce",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00003.bin",
+      "sha256": "32b83f27dbcafde51aa372c8ec0b473d3c65e365d01fa12681e82a38b4c33e5d",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00004.bin",
+      "sha256": "a06ff17b6dcf6bbcb5139bb38a616af5fde00bd0a8daf8b9047574ffe9a6b843",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00005.bin",
+      "sha256": "b01de90c8a237d45384483c8265dacc31f20ad371d5b6816b560c9ca9b2c9e8b",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00006.bin",
+      "sha256": "328b1ee31f9a1820ed69d1e84c9e7007bde9ab1f13dc46b6db3a795cc3f5502e",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00007.bin",
+      "sha256": "135c2e8c0ac5157125b9938dd8d9af1fa8f59a154bb584a0931e7b2dd0366658",
+      "bytes": 67108864
+    },
+    {
+      "file": "shard_00008.bin",
+      "sha256": "83a8f9667f80ad16ac795816d3ce2f428f24892c0eb259462e04d459aa596e9b",
+      "bytes": 21604352
+    }
+  ],
+  "referenceHash": "sha256:1a3eba66f26b9fffd76d428473140941cc4d56e7a73c95680861611ae71dc125",
+  "sourceQualificationPassed": false,
+  "f16ControlPassed": true,
+  "exactTokenChecksPassed": true,
+  "maximumVectorAbsoluteError": 0.053219616413116455,
+  "frozenTolerance": 0.02,
+  "signedCapsuleBuilt": false,
+  "selectedAsDefault": false,
+  "published": false,
+  "diagnosis": "Source-precision control passes with identical source weight/tokenizer hashes; quantized outputs fail. Exact attribution between quantization error and implementation remains unestablished. No kernel or tolerance changed."
+}

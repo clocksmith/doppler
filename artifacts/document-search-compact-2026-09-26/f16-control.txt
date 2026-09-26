@@ -1,0 +1,1 @@
+{"passed":true,"checks":36,"outputDir":"/dev/shm/doppler-compact-20260926/f16-control"}

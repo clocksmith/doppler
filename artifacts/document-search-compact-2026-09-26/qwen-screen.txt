@@ -1,0 +1,178 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.3ms
+[3243.5ms][doppler] Resolving model
+[3246.3ms][doppler] Fetching manifest
+[3258.6ms][doppler] Loading weights
+[3263.9ms][Pipeline] Execution v1 enabled (steps=32, kernelPathInline=yes, pipelineInline=no)
+[3264.0ms][Config] Using manifest-first config (source of truth)
+[3266.9ms][Pipeline] Resolved session applied (qwen-3-embedding-0-6b-f16-af32): batchSize=4, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[3267.4ms][Pipeline] KernelPath: qwen-3-embedding-0-6b-f16-af32-execution-inline (15 decode steps, 9 kernels, source=execution-v1)
+[3267.6ms][Pipeline] 28L/1024H/16heads (128dim), kernelPath=qwen-3-embedding-0-6b-f16-af32-execution-inline
+[3268.0ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[3332.9ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[3414.7ms][Tokenizer] Loaded HuggingFace 151669 tokens (bpe), 26 special patterns, 151387 merges
+[3443.0ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=32768, requestedKvDtype=f16, requestedMaxSeqLen=8192
+[3443.7ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-embedding-0-6b-f16-af32-execution-inline
+[3457.3ms][ShardCache] Custom shard loader configured
+[3457.5ms][Loader] Initializing...
+[3484.8ms][HeapManager] Allocated segment 0: 1024MB
+[3484.9ms][HeapManager] Segmented heap: 1GB per segment
+[3484.9ms][HeapManager] Initialized with strategy: SEGMENTED
+[3485.0ms][Loader] Initialized (f16, subgroups)
+[3485.4ms][Loader] Loading: qwen-3-embedding-0-6b-f16-af32
+[3486.2ms][Loader] [0.0s] Memory (start): | RSS=1.38 GB (heap=57.80 MB/106.70 MB, external=2.12 GB, arrayBuffers=2.12 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[3486.6ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[3495.6ms][Loader] Embedding "embed_tokens.weight" GPU-resident: shouldStreamLargeWeight returned false.
+[5520.8ms][Loader] Embeddings tensor loaded: name=embed_tokens.weight, hasShape=true, shape=[151669,1024], isWeightBuffer=true
+[5521.2ms][Loader] Layers: 0-27
+[10942.4ms][Loader] Layers: 28 complete (5.42s)
+[10943.9ms][Loader] Complete: 1.11 GB in 7.45s (152.56 MB/s)
+[10945.0ms][Loader] [7.5s] Memory (complete): | RSS=1.44 GB (heap=59.96 MB/94.20 MB, external=2.18 GB, arrayBuffers=2.18 GB) | GPU=1.11 GB (338 active, 0 pooled, peak=1.11 GB) | ShardCache=0 B (0 shards) | Layers=28, GPUBuffers=338
+[10972.2ms][Pipeline] Model loaded successfully (7711ms)
+[10974.5ms][doppler] Model ready
+[12883.6ms][doppler] Resolving model
+[12902.4ms][doppler] Fetching manifest
+[12912.8ms][doppler] Loading weights
+[12916.5ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[12916.5ms][Config] Using manifest-first config (source of truth)
+[12918.9ms][Pipeline] Resolved session applied (qwen-3-reranker-0-6b-q4k-ehf16-af32): batchSize=4, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[12919.2ms][Pipeline] KernelPath: qwen-3-reranker-0-6b-q4k-ehf16-af32-execution-inline (15 decode steps, 12 kernels, source=execution-v1)
+[12919.4ms][Pipeline] 28L/1024H/16heads (128dim), kernelPath=qwen-3-reranker-0-6b-q4k-ehf16-af32-execution-inline
+[12919.5ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[12986.6ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[13050.6ms][Tokenizer] Loaded HuggingFace 151669 tokens (bpe), 26 special patterns, 151387 merges
+[13056.0ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1024, layout=contiguous, modelMaxSeqLen=40960, requestedKvDtype=f16, requestedMaxSeqLen=1024
+[13056.6ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-reranker-0-6b-q4k-ehf16-af32-execution-inline
+[13069.9ms][ShardCache] Custom shard loader configured
+[13070.0ms][Loader] Initializing...
+[13072.6ms][Loader] Initialized (f16, subgroups)
+[13072.7ms][Loader] Loading: qwen-3-reranker-0-6b-q4k-ehf16-af32
+[13073.4ms][Loader] [0.0s] Memory (start): | RSS=1.47 GB (heap=159.73 MB/183.70 MB, external=2.89 GB, arrayBuffers=2.89 GB) | GPU=1.13 GB (340 active, 1 pooled, peak=1.13 GB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[13073.6ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[13074.5ms][Loader] Embedding "model.embed_tokens.weight" GPU-resident: shouldStreamLargeWeight returned false.
+[15177.0ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[151669,1024], isWeightBuffer=true
+[15177.3ms][Loader] Layers: 0-27
+[19022.3ms][Loader] Layers: 28 complete (3.84s)
+[19023.3ms][Loader] Complete: 894.91 MB in 5.95s (150.40 MB/s)
+[19024.6ms][Loader] [6.0s] Memory (complete): | RSS=1.42 GB (heap=88.84 MB/122.77 MB, external=1.92 GB, arrayBuffers=1.92 GB) | GPU=2.33 GB (790 active, 0 pooled, peak=2.33 GB) | ShardCache=0 B (0 shards) | Layers=28, GPUBuffers=450
+[19027.2ms][Pipeline] Model loaded successfully (6113ms)
+[19029.2ms][doppler] Model ready
+[19438.6ms][ExpertCache] Cache cleared
+[19439.0ms][Pipeline] Unloaded
+[19439.7ms][doppler] Resolving model
+[19439.8ms][doppler] Fetching manifest
+[19452.6ms][doppler] Loading weights
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[19831.6ms][doppler] Model ready
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[30341.8ms][KernelSelect] attention variant=prefill_small_f16kv reason=path_override:tiled_small
+[30350.5ms][KernelSelect] matmul variant=f16w_f32a reason=path_override
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[Doppler] Log level set to: SILENT
+[Doppler] Log level set to: INFO
+[59808.3ms][ExpertCache] Cache cleared
+[59808.3ms][Pipeline] Unloaded
+[59816.1ms][GPU] Device lost: device was destroyed, Reason: destroyed
+{"passed":false,"metrics":{"rankingTop1Rate":0.9444444444444444,"answerableTop1Rate":0.9444444444444444,"identifierTop1Rate":1,"longDocumentTop1Rate":1,"noAnswerFalsePositives":3},"outputPath":"/home/x/deco/doppler/artifacts/document-search-compact-2026-09-26/qwen-screen.json"}

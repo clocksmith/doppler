@@ -1,0 +1,73 @@
+TAP version 13
+# ✔ semantic-manifest-lowering.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.175918
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 181.335272
+[node-tests] ok: tests/converter/semantic-manifest-lowering.test.js
+TAP version 13
+# capsule-backing-budget: passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.617394
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 136.914476
+[node-tests] ok: tests/runtime/capsule-backing-budget.test.js
+TAP version 13
+# document-model-installation.test: passed (synthetic storage, no inference claim)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.844713
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 103.662732
+[node-tests] ok: tests/storage/document-model-installation.test.js
+TAP version 13
+# installed-gpu-observation.test: counters, no extra GPU work, native result/failure identity and restoration passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.929002
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 98.234195
+[node-tests] ok: tests/tooling/installed-gpu-observation.test.js
+[node-tests] ok: 4 files

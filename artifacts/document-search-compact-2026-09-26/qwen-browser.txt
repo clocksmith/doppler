@@ -1,0 +1,1 @@
+Embedding qualification failed: source comparison; retained at /dev/shm/doppler-compact-20260926/qwen-qualification

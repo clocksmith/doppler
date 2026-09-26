@@ -1,0 +1,1012 @@
+{
+  "schema": "doppler.installed-search-screen/v1",
+  "passed": false,
+  "config": {
+    "applicationDir": "/var/tmp/doppler-search-loading-installed-20260926-05",
+    "storageDir": "/var/tmp/doppler-loading-disk-state-20260926",
+    "requiredVendor": "amd",
+    "corpusPath": "/home/x/deco/doppler/artifacts/document-search-compact-2026-09-26/corpus.json",
+    "freezePath": "/home/x/deco/doppler/artifacts/document-search-compact-2026-09-26/corpus-freeze.json",
+    "minimumRerankScore": -1e+30,
+    "thresholdScope": "Incumbent always returns a ranking; no abstention claim. This bound admits every finite observed score.",
+    "outputPath": "/home/x/deco/doppler/artifacts/document-search-compact-2026-09-26/qwen-screen.json",
+    "embeddingCandidateDir": "/dev/shm/doppler-compact-20260926/qwen-embedding",
+    "candidateRuntimeConfig": {
+      "shared": {
+        "debug": {
+          "logLevel": {
+            "defaultLogLevel": "silent"
+          }
+        }
+      },
+      "inference": {
+        "batching": {
+          "maxTokens": 1024
+        }
+      }
+    },
+    "candidateScope": "Diagnostic only: Q4 source comparison failed; not eligible for release or substitution."
+  },
+  "corpusSha256": "9a5e7f901f404d7d3e4bc7cdd4f2d4950d6532870b5e36f3a27bbfb998ee198a",
+  "installedPackage": {
+    "filename": "doppler-gpu-0.6.2.tgz",
+    "version": "0.6.2",
+    "integrity": "sha512-VkMwqPbciwX6QvcT1OZx7fLwnTLU4iDiIAXK6TXnpZeV3tZOgKLXsEsL166x4MF8PNLRyVIlcZwNE29QxOyg8A==",
+    "sizeBytes": 2155610,
+    "source": "local-npm-pack",
+    "sha256": "32af41c69fc8f25b04ea0461d32dd8947217bb18a995e68d15fd65b1a643b1c4"
+  },
+  "buildReceiptSha256": "f82556b1453e50571f89cc7cb1356de097821166687011004288ce5e5c94001d",
+  "probeSha256": "e5140a4fcc7431073fd3040c9339a6638d68fe500fc8a74e1a6fdf88f9cc73b8",
+  "evaluatorSha256": "b892c64756a238aaed7b664db96bbbb703f280c49c8181aed33439743c2ad868",
+  "searchSha256": "c2e0a9add32855ad4f86901afa2ac6475e6420812bb2d452e9142e90f916c402",
+  "physicalDopplerExecution": true,
+  "signedCapsuleExecution": false,
+  "externalAdoption": false,
+  "hardware": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "radeon-8060s-graphics-radv-strix-halo-",
+    "description": "radv: Mesa 26.0.3-1ubuntu1",
+    "isFallbackAdapter": false
+  },
+  "openMs": 18690.533964000002,
+  "models": [
+    {
+      "role": "embedding",
+      "identity": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-055c6df34d6a0b831a570caeed55847dbe9d93578f01d630587b0a241d423f13",
+        "semanticRoot": "sha256:055c6df34d6a0b831a570caeed55847dbe9d93578f01d630587b0a241d423f13",
+        "envelopeDigest": "sha256:b55dac90d845ca16e252d50b79d4009fda8fcd8834d023d1308da1b5091ea310",
+        "artifactClosureDigest": "sha256:6459bfac1fa531ef32bdebc9a7947149cea72e85782e2cd4d5096ffb6eaa1bcf"
+      }
+    },
+    {
+      "role": "reranker",
+      "identity": {
+        "schema": "doppler.capsule/v3",
+        "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-86fd4533703b22f8a9ba875d5da62e2968bb3c2d7450ea25c6a816ca896283a5",
+        "semanticRoot": "sha256:86fd4533703b22f8a9ba875d5da62e2968bb3c2d7450ea25c6a816ca896283a5",
+        "envelopeDigest": "sha256:bd85fb9d46280d8ed4bff1a6df58638c1d64430f8fa50fd7ffd03ed0924c1026",
+        "artifactClosureDigest": "sha256:b2ce8fb7b5ffb60301d06351da485590a5321cbdb66fa3038d087619d541cf59"
+      }
+    }
+  ],
+  "candidateLoadMs": 392.21851400000014,
+  "embeddingCandidate": {
+    "manifestSha256": "635e786d0fea8854e86f722256ed3bcd6e8b9008aa61be13e9343d29385669a8",
+    "artifactIdentity": {
+      "artifactCompleteness": "complete",
+      "conversionConfigDigest": "sha256:5e5ac515ec82f6ed3087ad61256da217ada317cc3b0fcb16d4c82b853ea994d9",
+      "conversionConfigPath": "artifacts/document-search-compact-2026-09-26/qwen-conversion.json",
+      "manifestVariantId": "qwen3-embedding-0-6b-q4k-search-candidate-manifest-v1",
+      "materializationProfile": "auto",
+      "modalitySet": [
+        "embedding"
+      ],
+      "shardSetHash": "sha256:ccb22e552e261e6ce0f4969cb8fca03ca91bf5cf59f4d8337827bace2c65eb5f",
+      "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+      "sourceFormat": "safetensors",
+      "sourceRepo": "Qwen/Qwen3-Embedding-0.6B",
+      "sourceRevision": "c54f2e6e80b2d7b7de06f51cec4959f6b3e03418",
+      "weightCapsuleHash": "sha256:06551965774d6e5befbccaedc6b674d6f514ab365a71861e24d0fedbe7cb75d8",
+      "weightCapsuleId": "qwen3-embedding-0-6b-q4k-search-candidate-weights-v1"
+    }
+  },
+  "metrics": {
+    "rankingTop1Rate": 0.9444444444444444,
+    "answerableTop1Rate": 0.9444444444444444,
+    "identifierTop1Rate": 1,
+    "longDocumentTop1Rate": 1,
+    "noAnswerFalsePositives": 3
+  },
+  "rows": [
+    {
+      "id": "bread",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "sourdough",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1923.7292240000024,
+      "results": [
+        {
+          "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+          "documentId": "sourdough",
+          "similarity": 0.6161189459533378,
+          "score": 20.549711227416992
+        },
+        {
+          "passageId": "798bf5dffbfc07ecb600433b1681865fd08e8e807284df7725bcd83e9efe7b57",
+          "documentId": "archive",
+          "similarity": 0.3991684825459201,
+          "score": 0.8518013954162598
+        },
+        {
+          "passageId": "b6e74f43faa11ca3c8ecafbed26dc546a4f07349a7a7fa01b8688579243fc5f2",
+          "documentId": "archive",
+          "similarity": 0.39858644206480487,
+          "score": 0.3780668079853058
+        },
+        {
+          "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+          "documentId": "archive",
+          "similarity": 0.39997918110549613,
+          "score": 0.3478497266769409
+        },
+        {
+          "passageId": "772650a2f1e184f1afca362d8c2446e2fee93ee1e54802319c1d192866913ec8",
+          "documentId": "archive",
+          "similarity": 0.3983093294947649,
+          "score": -0.33593809604644775
+        }
+      ]
+    },
+    {
+      "id": "bike",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "tire",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1265.1507450000026,
+      "results": [
+        {
+          "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+          "documentId": "tire",
+          "similarity": 0.6757245761636318,
+          "score": 20.673477172851562
+        },
+        {
+          "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+          "documentId": "starter-motor",
+          "similarity": 0.3683834916626606,
+          "score": 2.3796067237854004
+        },
+        {
+          "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+          "documentId": "solar",
+          "similarity": 0.3641543990405695,
+          "score": 1.7573444843292236
+        },
+        {
+          "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+          "documentId": "copper",
+          "similarity": 0.3772955598843287,
+          "score": 1.3419742584228516
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.36216696197791537,
+          "score": -0.573983907699585
+        }
+      ]
+    },
+    {
+      "id": "moon",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "eclipse",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1550.1988559999954,
+      "results": [
+        {
+          "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+          "documentId": "eclipse",
+          "similarity": 0.592171662170961,
+          "score": 19.973217010498047
+        },
+        {
+          "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+          "documentId": "solar",
+          "similarity": 0.6376434706576961,
+          "score": 19.583702087402344
+        },
+        {
+          "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+          "documentId": "clock",
+          "similarity": 0.38429921894556046,
+          "score": 1.0250978469848633
+        },
+        {
+          "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+          "documentId": "copper",
+          "similarity": 0.40161601897273935,
+          "score": 0.8667050004005432
+        },
+        {
+          "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+          "documentId": "sync-e71",
+          "similarity": 0.37394508243997027,
+          "score": 0.18311762809753418
+        }
+      ]
+    },
+    {
+      "id": "sun",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "solar",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1508.7545739999987,
+      "results": [
+        {
+          "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+          "documentId": "solar",
+          "similarity": 0.7547832261159578,
+          "score": 19.89818572998047
+        },
+        {
+          "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+          "documentId": "eclipse",
+          "similarity": 0.523097019215709,
+          "score": 17.664379119873047
+        },
+        {
+          "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+          "documentId": "copper",
+          "similarity": 0.39369735027800007,
+          "score": 2.532604694366455
+        },
+        {
+          "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+          "documentId": "clock",
+          "similarity": 0.46367763620898467,
+          "score": 0.5820070505142212
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.37642867347821657,
+          "score": 0.05026042461395264
+        }
+      ]
+    },
+    {
+      "id": "restore",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "git",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1329.581269000002,
+      "results": [
+        {
+          "passageId": "0cb3952e9b8628cc92cd138890faa8c7027c9ab5e6dfbaae0d2a0152b79ab2f9",
+          "documentId": "git",
+          "similarity": 0.7476920934614782,
+          "score": 21.327960968017578
+        },
+        {
+          "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+          "documentId": "sync-e17",
+          "similarity": 0.5154433447440814,
+          "score": 15.619993209838867
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.6185215517137795,
+          "score": 6.949317932128906
+        },
+        {
+          "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+          "documentId": "device",
+          "similarity": 0.5442485040576777,
+          "score": 4.729133605957031
+        },
+        {
+          "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+          "documentId": "archive",
+          "similarity": 0.5145374645427256,
+          "score": 2.772515296936035
+        }
+      ]
+    },
+    {
+      "id": "motor",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "starter-motor",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1473.1937469999975,
+      "results": [
+        {
+          "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+          "documentId": "starter-motor",
+          "similarity": 0.6741208817318208,
+          "score": 20.69369125366211
+        },
+        {
+          "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+          "documentId": "tire",
+          "similarity": 0.39711749436479543,
+          "score": 1.6394991874694824
+        },
+        {
+          "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+          "documentId": "clock",
+          "similarity": 0.5814255863502324,
+          "score": 1.61954927444458
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.36173365146940806,
+          "score": 0.20718348026275635
+        },
+        {
+          "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+          "documentId": "sync-e71",
+          "similarity": 0.37934615601066546,
+          "score": 0.20034384727478027
+        }
+      ]
+    },
+    {
+      "id": "id-e17",
+      "category": "identifier",
+      "answerable": true,
+      "topId": "sync-e17",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1113.7419729999965,
+      "results": [
+        {
+          "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+          "documentId": "sync-e17",
+          "similarity": 0.5757932922243912,
+          "score": 20.889511108398438
+        },
+        {
+          "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+          "documentId": "sync-e71",
+          "similarity": 0.5709678886731913,
+          "score": 15.950262069702148
+        },
+        {
+          "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+          "documentId": "device",
+          "similarity": 0.4376796200113013,
+          "score": 7.782623767852783
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.5032359719163428,
+          "score": 6.674344539642334
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.47859996852193704,
+          "score": 4.684234619140625
+        }
+      ]
+    },
+    {
+      "id": "id-e71",
+      "category": "identifier",
+      "answerable": true,
+      "topId": "sync-e71",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1376.6516390000033,
+      "results": [
+        {
+          "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+          "documentId": "sync-e71",
+          "similarity": 0.6340358997071698,
+          "score": 21.38123893737793
+        },
+        {
+          "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+          "documentId": "sync-e17",
+          "similarity": 0.5071208792858877,
+          "score": 11.26207160949707
+        },
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.45210341959516614,
+          "score": 7.004271507263184
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.4709804269141058,
+          "score": 6.4228715896606445
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.48049639618887746,
+          "score": 4.359631061553955
+        }
+      ]
+    },
+    {
+      "id": "id-4821",
+      "category": "identifier",
+      "answerable": true,
+      "topId": "ticket-4821",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1114.292852999999,
+      "results": [
+        {
+          "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+          "documentId": "ticket-4821",
+          "similarity": 0.5143010985255939,
+          "score": 21.10451316833496
+        },
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.43898472474494177,
+          "score": 18.2528076171875
+        },
+        {
+          "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+          "documentId": "release",
+          "similarity": 0.5527621003766799,
+          "score": 12.579849243164062
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.4250116877747364,
+          "score": 5.018147945404053
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.4874637205911311,
+          "score": 3.1312358379364014
+        }
+      ]
+    },
+    {
+      "id": "id-4812",
+      "category": "identifier",
+      "answerable": true,
+      "topId": "ticket-4812",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1415.6194539999997,
+      "results": [
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.5041651259523116,
+          "score": 21.013385772705078
+        },
+        {
+          "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+          "documentId": "ticket-4821",
+          "similarity": 0.5144562710837388,
+          "score": 19.881982803344727
+        },
+        {
+          "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+          "documentId": "release",
+          "similarity": 0.5848033017564227,
+          "score": 8.78417682647705
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.4698806358493066,
+          "score": 5.071868419647217
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.5161452071944531,
+          "score": 2.344996690750122
+        }
+      ]
+    },
+    {
+      "id": "gpu",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "device",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1388.0700170000055,
+      "results": [
+        {
+          "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+          "documentId": "device",
+          "similarity": 0.6611579554333175,
+          "score": 19.721574783325195
+        },
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.6429722464262091,
+          "score": 18.343910217285156
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.5342303968611293,
+          "score": 7.973550319671631
+        },
+        {
+          "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+          "documentId": "release",
+          "similarity": 0.5706660901298815,
+          "score": 7.480609893798828
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.5463830939820994,
+          "score": 2.822558641433716
+        }
+      ]
+    },
+    {
+      "id": "upgrade",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "ticket-4821",
+      "accepted": true,
+      "rankingCorrect": false,
+      "correct": false,
+      "candidateRecall": true,
+      "elapsedMs": 1144.9234629999992,
+      "results": [
+        {
+          "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+          "documentId": "ticket-4821",
+          "similarity": 0.7310879448113102,
+          "score": 20.885257720947266
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.7347390660315681,
+          "score": 20.695554733276367
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.5724060039206561,
+          "score": 17.262981414794922
+        },
+        {
+          "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+          "documentId": "device",
+          "similarity": 0.5312482318290055,
+          "score": 14.53302001953125
+        },
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.537851179668177,
+          "score": 9.294093132019043
+        }
+      ]
+    },
+    {
+      "id": "backup",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "export",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1597.392015999998,
+      "results": [
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.6171571921124048,
+          "score": 16.247072219848633
+        },
+        {
+          "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+          "documentId": "sync-e17",
+          "similarity": 0.5261990805113006,
+          "score": 12.743380546569824
+        },
+        {
+          "passageId": "798bf5dffbfc07ecb600433b1681865fd08e8e807284df7725bcd83e9efe7b57",
+          "documentId": "archive",
+          "similarity": 0.4750287669738383,
+          "score": 8.05359935760498
+        },
+        {
+          "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+          "documentId": "archive",
+          "similarity": 0.4663276520412856,
+          "score": 7.0131096839904785
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.48084673245045256,
+          "score": 2.4373667240142822
+        }
+      ]
+    },
+    {
+      "id": "escapement",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "clock",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1190.9805030000061,
+      "results": [
+        {
+          "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+          "documentId": "clock",
+          "similarity": 0.8311491513436303,
+          "score": 21.473739624023438
+        },
+        {
+          "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+          "documentId": "solar",
+          "similarity": 0.40661846723589884,
+          "score": 3.4819798469543457
+        },
+        {
+          "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+          "documentId": "starter-motor",
+          "similarity": 0.4610052888003976,
+          "score": 1.1970493793487549
+        },
+        {
+          "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+          "documentId": "sync-e71",
+          "similarity": 0.3709879232922612,
+          "score": 0.5332483053207397
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.3858459554481108,
+          "score": -1.1064409017562866
+        }
+      ]
+    },
+    {
+      "id": "pan",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "copper",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1442.3609119999965,
+      "results": [
+        {
+          "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+          "documentId": "copper",
+          "similarity": 0.7602182939792901,
+          "score": 22.057376861572266
+        },
+        {
+          "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+          "documentId": "solar",
+          "similarity": 0.37008963084211016,
+          "score": 2.3209338188171387
+        },
+        {
+          "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+          "documentId": "archive",
+          "similarity": 0.3623810744493357,
+          "score": 1.4963858127593994
+        },
+        {
+          "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+          "documentId": "clock",
+          "similarity": 0.36752571013831364,
+          "score": 1.3599635362625122
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.3687884811195743,
+          "score": -0.3791687488555908
+        }
+      ]
+    },
+    {
+      "id": "version",
+      "category": "identifier",
+      "answerable": true,
+      "topId": "release",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1127.8286850000004,
+      "results": [
+        {
+          "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+          "documentId": "release",
+          "similarity": 0.7785094469002244,
+          "score": 21.233821868896484
+        },
+        {
+          "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+          "documentId": "ticket-4821",
+          "similarity": 0.5759823889786211,
+          "score": 15.84029769897461
+        },
+        {
+          "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+          "documentId": "device",
+          "similarity": 0.5248377543232204,
+          "score": 9.309280395507812
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.5145698855200327,
+          "score": 6.4756903648376465
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.5784610829871283,
+          "score": 3.6143648624420166
+        }
+      ]
+    },
+    {
+      "id": "tail",
+      "category": "long-document",
+      "answerable": true,
+      "topId": "archive",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1716.1077619999996,
+      "results": [
+        {
+          "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+          "documentId": "archive",
+          "similarity": 0.8056135431644198,
+          "score": 21.378986358642578
+        },
+        {
+          "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+          "documentId": "archive",
+          "similarity": 0.4739042103715008,
+          "score": 4.94399881362915
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.4913203196828285,
+          "score": 4.778236389160156
+        },
+        {
+          "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+          "documentId": "archive",
+          "similarity": 0.47599864712238005,
+          "score": 3.8816380500793457
+        },
+        {
+          "passageId": "772650a2f1e184f1afca362d8c2446e2fee93ee1e54802319c1d192866913ec8",
+          "documentId": "archive",
+          "similarity": 0.4868900514743964,
+          "score": 2.1291728019714355
+        }
+      ]
+    },
+    {
+      "id": "tail-neighbor",
+      "category": "long-document",
+      "answerable": true,
+      "topId": "archive",
+      "accepted": true,
+      "rankingCorrect": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 1687.3307829999976,
+      "results": [
+        {
+          "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+          "documentId": "archive",
+          "similarity": 0.7982533920205772,
+          "score": 21.285634994506836
+        },
+        {
+          "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+          "documentId": "archive",
+          "similarity": 0.47040096999880693,
+          "score": 3.5864527225494385
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.49471323376240206,
+          "score": 3.3572590351104736
+        },
+        {
+          "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+          "documentId": "archive",
+          "similarity": 0.4785159042641902,
+          "score": 2.218041181564331
+        },
+        {
+          "passageId": "772650a2f1e184f1afca362d8c2446e2fee93ee1e54802319c1d192866913ec8",
+          "documentId": "archive",
+          "similarity": 0.488737523917263,
+          "score": 1.2491073608398438
+        }
+      ]
+    },
+    {
+      "id": "weather",
+      "category": "no-answer",
+      "answerable": false,
+      "topId": "export",
+      "accepted": true,
+      "rankingCorrect": null,
+      "correct": false,
+      "candidateRecall": null,
+      "elapsedMs": 1129.8743959999993,
+      "results": [
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.30087336928093394,
+          "score": 0.3715376853942871
+        },
+        {
+          "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+          "documentId": "solar",
+          "similarity": 0.30862817584213253,
+          "score": -0.4986894130706787
+        },
+        {
+          "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+          "documentId": "release",
+          "similarity": 0.29676297073269153,
+          "score": -0.5690720081329346
+        },
+        {
+          "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+          "documentId": "sync-e71",
+          "similarity": 0.286400793186223,
+          "score": -0.6203669309616089
+        },
+        {
+          "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+          "documentId": "clock",
+          "similarity": 0.2819769866743095,
+          "score": -1.5567433834075928
+        }
+      ]
+    },
+    {
+      "id": "refund",
+      "category": "no-answer",
+      "answerable": false,
+      "topId": "ticket-4812",
+      "accepted": true,
+      "rankingCorrect": null,
+      "correct": false,
+      "candidateRecall": null,
+      "elapsedMs": 1426.2512760000027,
+      "results": [
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.4206064782811051,
+          "score": 0.7771235108375549
+        },
+        {
+          "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+          "documentId": "release",
+          "similarity": 0.3496974348685932,
+          "score": 0.6611552834510803
+        },
+        {
+          "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+          "documentId": "sync-e71",
+          "similarity": 0.40195001208558456,
+          "score": 0.349839448928833
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.3777283595843328,
+          "score": 0.059716224670410156
+        },
+        {
+          "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+          "documentId": "sync-e17",
+          "similarity": 0.3573090360491044,
+          "score": -1.1844630241394043
+        }
+      ]
+    },
+    {
+      "id": "missing-cabinet",
+      "category": "no-answer",
+      "answerable": false,
+      "topId": "archive",
+      "accepted": true,
+      "rankingCorrect": null,
+      "correct": false,
+      "candidateRecall": null,
+      "elapsedMs": 1628.4541949999984,
+      "results": [
+        {
+          "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+          "documentId": "archive",
+          "similarity": 0.7855827897463734,
+          "score": 21.340328216552734
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.4777967736244609,
+          "score": 4.002936363220215
+        },
+        {
+          "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+          "documentId": "archive",
+          "similarity": 0.4556343736363375,
+          "score": 3.310666561126709
+        },
+        {
+          "passageId": "772650a2f1e184f1afca362d8c2446e2fee93ee1e54802319c1d192866913ec8",
+          "documentId": "archive",
+          "similarity": 0.4694728510611902,
+          "score": 1.808882474899292
+        },
+        {
+          "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+          "documentId": "release",
+          "similarity": 0.4666688158693614,
+          "score": 0.7747644782066345
+        }
+      ]
+    }
+  ],
+  "indexMs": 10420.600625,
+  "closed": true,
+  "processHighWaterRssBytes": 2001219584
+}

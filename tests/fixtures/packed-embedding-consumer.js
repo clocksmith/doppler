@@ -31,7 +31,10 @@ const runtime = createDopplerRun({
     }, async close() { closes += 1; } };
   },
 });
-const session = await runtime.openCapsule(fixture.capsule);
+await assert.rejects(runtime.openCapsule(fixture.capsule, { maxVerifiedBackingBytes: 0 }), /maxVerifiedBackingBytes/);
+await assert.rejects(runtime.openCapsule(fixture.capsule, { artifactHashBackend: 'unchecked' }), /artifactHashBackend/);
+const backingBudget = fixture.capsule.artifacts.reduce((sum, artifact) => sum + artifact.sizeBytes, 0);
+const session = await runtime.openCapsule(fixture.capsule, { maxVerifiedBackingBytes: backingBudget, artifactHashBackend: 'node-crypto' });
 try {
   const request = { application: fixture.capsule.release.application, text: 'Installed text embedding.' };
   const result = await session.embed(request);
