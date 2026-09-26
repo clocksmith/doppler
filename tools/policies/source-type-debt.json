@@ -976,7 +976,7 @@
     "src/tooling/lean-execution-contract.js",
     "src/tooling/litert-package-runtime.js",
     "src/tooling/litert/package.js",
-    "src/tooling/model-capsule-forge.js",
+    "src/tooling/model-capsule-rig.js",
     "src/tooling/model-onboarding-custody.js",
     "src/tooling/model-onboarding-execution.js",
     "src/tooling/model-onboarding.js",

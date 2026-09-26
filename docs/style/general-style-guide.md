@@ -25,8 +25,8 @@ Rules that cause bugs when violated. Each has a fuller section below with ration
 - **Semantic Ownership** — shared behavior lives in the narrowest subsystem that owns its meaning. New catch-all utility or helper modules are forbidden. See [Semantic Ownership](#semantic-ownership).
 - **Facade Purity** — public entrypoints and compatibility facades validate, normalize, delegate, and translate errors; they do not own workload algorithms or policy. See [Facade Purity](#facade-purity).
 - **Enforced Source Architecture** — ownership, restricted dependency direction, facade purity, and the source line ceiling are checked by `npm run source:architecture:check`. See [Source Architecture Gate](#source-architecture-gate).
-- **No JavaScript Runtime Tensor Math** — model-runtime tensor arithmetic and tensor-layout transforms execute in declared WGSL programs; JavaScript may validate shapes, bind resources, dispatch, and perform explicitly contracted scalar control work only. Forge artifact construction, byte codecs/materialization, host input preprocessing, observation, and test references are separate reviewed boundaries and may never become runtime compute fallbacks.
-- **Declared Semantic Geometry** — required tensor and spatial geometry comes from ModelIR, TargetPlan, manifest, or resolved session contracts. Runtime code never reconstructs it from counts, tensor names, model names, or heuristics.
+- **No JavaScript Runtime Tensor Math** — model-runtime tensor arithmetic and tensor-layout transforms execute in declared WGSL programs; JavaScript may validate shapes, bind resources, dispatch, and perform explicitly contracted scalar control work only. Rig artifact construction, byte codecs/materialization, host input preprocessing, observation, and test references are separate reviewed boundaries and may never become runtime compute fallbacks.
+- **Declared Semantic Geometry** — required tensor and spatial geometry comes from ModelIR, TargetPlan, manifest, or resolved session contracts. Run code never reconstructs it from counts, tensor names, model names, or heuristics.
 
 ## Core Principles
 
@@ -77,7 +77,7 @@ Determinism requirement:
 The following JavaScript numeric boundaries are permitted only when their role
 is explicit and inventoried by `npm run source:style:check`:
 
-- Forge/converter artifact construction before a Capsule is signed;
+- Rig/converter artifact construction before a Capsule is signed;
 - descriptor-bound artifact decoding and materialization before execution;
 - application-input preprocessing before a runtime tensor is created;
 - scalar sampling and other declared control-plane decisions after readback;
@@ -85,7 +85,7 @@ is explicit and inventoried by `npm run source:style:check`:
 - deterministic CPU references in tests or quarantined reference modules; and
 - numerical prototypes under `src/experimental/` while the architecture gate
   proves that no production owner imports them and support policy keeps them
-  outside Capsule Runtime claims.
+  outside Doppler Run claims.
 
 An allowed boundary may not select runtime policy, infer semantic geometry, or
 serve as a fallback for a declared WGSL operation. A readback/compute/upload
@@ -224,7 +224,7 @@ inference). Document the merge chain per domain:
 
 ### No Runtime Defaults in Code
 
-Runtime code should read resolved config values directly. Do not add literal fallbacks
+Run code should read resolved config values directly. Do not add literal fallbacks
 for tunables in JS; put defaults in schemas and merge them in the config layer.
 
 For all behavior-changing choices (kernel selection, precision mode, fallback variants),
@@ -274,7 +274,7 @@ Both fields are explicitly disabled (valid). Omitting either field is invalid.
 - Converter embeds all model-specific inference params in `manifest.json`
 - Runtime never detects model family in pipeline code
 - Pipeline reads config values directly, no architecture-string inference
-- Runtime must not infer model parameters from tensor names, shapes, or heuristics
+- Run must not infer model parameters from tensor names, shapes, or heuristics
 - Model-specific runtime policy must live in JSON rule assets and use exact
   manifest fields or explicit variant ID lists. Do not use substring, prefix, or
   suffix matching on model identity.

@@ -49,6 +49,13 @@ async function writeImportSmoke(consumerDir, packageJson) {
     '  await import(specifier);',
     '}',
     `const runtime = await import('${packageJson.name}');`,
+    `const run = await import('${packageJson.name}/run');`,
+    `const legacy = await import('${packageJson.name}/runtime');`,
+    "assert.equal(run, runtime);",
+    "assert.equal(legacy, runtime);",
+    "assert.equal(run.createDopplerRun, legacy.createDopplerRuntime);",
+    "assert.equal(run.RUN_CORE_VERSION, legacy.RUNTIME_CORE_VERSION);",
+    "assert.throws(() => run.createDopplerRun({}), /device port/);",
     "assert.equal(typeof runtime.openCapsule, 'function');",
     "assert.equal('openPack' in runtime, false);",
     "assert.equal('createFetchPackArtifactStore' in runtime, false);",
@@ -87,6 +94,15 @@ async function writeTypeSmoke(consumerDir, packageJson) {
 import { createLayerPartitionPlan } from '${packageJson.name}';
 // @ts-expect-error runtime alias must expose the same declared minimal contract
 import { serializeActivationFrame } from '${packageJson.name}/runtime';
+// @ts-expect-error Run must keep the same public boundary
+import { serializeActivationFrame as leakedRunHelper } from '${packageJson.name}/run';
+import { createDopplerRun, RUN_CORE_VERSION } from '${packageJson.name}/run';
+import type { RunPorts, DopplerRun, DopplerRunSession } from '${packageJson.name}/run';
+declare const runPorts: RunPorts;
+const run: DopplerRun = createDopplerRun(runPorts);
+const coreVersion: string = RUN_CORE_VERSION;
+const runSession: Promise<DopplerRunSession> = run.openCapsule('model');
+const legacyRunSession: Promise<DopplerRuntimeSession> = runSession;
 import { createDocumentSearchRenderer, createDocumentSearchHostRenderer } from './renderer.js';
 import { openCapsule } from '${packageJson.name}/host';
 import type { DopplerCapsuleOpenOptions } from '${packageJson.name}/host';

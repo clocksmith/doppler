@@ -837,6 +837,8 @@ tooling/lean-execution-contract.js
 tooling/litert-package-runtime.d.ts
 tooling/litert/package.d.ts
 tooling/model-capsule-forge.d.ts
+tooling/model-capsule-forge.js
+tooling/model-capsule-rig.d.ts
 tooling/model-onboarding-custody.d.ts
 tooling/model-onboarding-custody.js
 tooling/model-onboarding-execution.d.ts

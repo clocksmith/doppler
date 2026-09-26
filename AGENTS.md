@@ -4,8 +4,8 @@ Repository: https://github.com/clocksmith/doppler
 
 **Prime Directive:** Build Doppler as a dependable JavaScript library for local
 WebGPU inference: easy to embed, fast to start and execute, and safe to reuse.
-Forge is the supporting model compiler/preparation system producing source-truth,
-qualified, signed immutable Capsules; the deliberately uncreative Runtime validates,
+Rig is the supporting model compiler/preparation system producing source-truth,
+qualified, signed immutable Capsules; the deliberately uncreative Run validates,
 selects, binds, executes, and observes their declared programs. Browser and Node
 support are qualified separately; Bun remains experimental.
 
@@ -321,7 +321,7 @@ Do not add throwaway log statements. Use existing trace categories, config-drive
 4. Contract update discipline
 - Any runtime-visible metric/field rename must update harness mapping, compare contracts, and docs in the same change.
 
-5. Runtime isolation discipline
+5. Run isolation discipline
 - Runtime config/kernel-path changes must be isolated per run and restored on exit.
 
 ### Agent Instruction + Skills Parity (Required)

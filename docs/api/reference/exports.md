@@ -3,6 +3,48 @@
 Auto-generated from `package.json` exports and shipped `.d.ts` entrypoints.
 This is a reference inventory, not the behavior guide. Manual API guides live one level up in `docs/api/`.
 
+## `doppler-gpu/run`
+
+- Audience: app authors
+- Stability: preferred public
+- Manual guide: [docs/api/root.md](../root.md)
+- Types: [src/capsule-runtime.d.ts](../../../src/capsule-runtime.d.ts)
+- Implementation: [src/capsule-runtime.js](../../../src/capsule-runtime.js)
+- Notes: Doppler Run: the same verified Capsule execution API as the root surface.
+- Exported symbols:
+  - `CapsuleEmbeddingRequest`
+  - `CapsuleEmbeddingResult`
+  - `CapsuleOperationEvent`
+  - `CapsuleOperationRequest`
+  - `capsuleOperationSnapshots`
+  - `CapsuleRerankApplicationBinding`
+  - `CapsuleRerankReceipt`
+  - `CapsuleRerankRequest`
+  - `createCapsuleStreamAccumulator`
+  - `createDopplerRun`
+  - `createDopplerRuntime`
+  - `createFetchCapsuleArtifactStore`
+  - `createForecastProgramFactory`
+  - `DOPPLER_VERSION`
+  - `DopplerRun`
+  - `DopplerRunSession`
+  - `DopplerRuntime`
+  - `DopplerRuntimeSession`
+  - `GENERATION_CONTRACT`
+  - `GenerationCompletion`
+  - `GenerationError`
+  - `GenerationInput`
+  - `GenerationOptions`
+  - `GenerationOutput`
+  - `openCapsule`
+  - `ResolvedGenerationOptions`
+  - `resolveGenerationOptions`
+  - `RUN_CORE_VERSION`
+  - `RunPorts`
+  - `RUNTIME_CORE_VERSION`
+  - `RuntimePorts`
+  - `validateGenerationInput`
+
 ## `doppler-gpu`
 
 - Audience: app authors
@@ -22,10 +64,13 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `CapsuleRerankReceipt`
   - `CapsuleRerankRequest`
   - `createCapsuleStreamAccumulator`
+  - `createDopplerRun`
   - `createDopplerRuntime`
   - `createFetchCapsuleArtifactStore`
   - `createForecastProgramFactory`
   - `DOPPLER_VERSION`
+  - `DopplerRun`
+  - `DopplerRunSession`
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
   - `GENERATION_CONTRACT`
@@ -37,6 +82,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `openCapsule`
   - `ResolvedGenerationOptions`
   - `resolveGenerationOptions`
+  - `RUN_CORE_VERSION`
+  - `RunPorts`
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
   - `validateGenerationInput`
@@ -48,7 +95,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Manual guide: [docs/api/root.md](../root.md)
 - Types: [src/capsule-runtime.d.ts](../../../src/capsule-runtime.d.ts)
 - Implementation: [src/capsule-runtime.js](../../../src/capsule-runtime.js)
-- Notes: Stable alias of the Capsule-native root surface.
+- Notes: Compatibility alias of Doppler Run and the Capsule-native root surface.
 - Exported symbols:
   - `CapsuleEmbeddingRequest`
   - `CapsuleEmbeddingResult`
@@ -59,10 +106,13 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `CapsuleRerankReceipt`
   - `CapsuleRerankRequest`
   - `createCapsuleStreamAccumulator`
+  - `createDopplerRun`
   - `createDopplerRuntime`
   - `createFetchCapsuleArtifactStore`
   - `createForecastProgramFactory`
   - `DOPPLER_VERSION`
+  - `DopplerRun`
+  - `DopplerRunSession`
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
   - `GENERATION_CONTRACT`
@@ -74,6 +124,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `openCapsule`
   - `ResolvedGenerationOptions`
   - `resolveGenerationOptions`
+  - `RUN_CORE_VERSION`
+  - `RunPorts`
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
   - `validateGenerationInput`

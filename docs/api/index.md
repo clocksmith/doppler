@@ -9,8 +9,8 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 
 ### Primary app-facing surface
 
-- [Capsule Runtime API](root.md) - start with `doppler-gpu/host`; use `doppler-gpu`
-  or `doppler-gpu/runtime` when supplying explicit execution ports
+- [Doppler Run API](root.md) - start with `doppler-gpu/host`; use `doppler-gpu`
+  or `doppler-gpu/run` when supplying explicit execution ports
 - [Compatibility API](compat.md) - `doppler-gpu/compat`
 
 ### Exported advanced surfaces
@@ -56,7 +56,8 @@ Generated reference pages provide:
 
 - `doppler-gpu/host` composes existing host ports; model/host qualification is separate
 - `doppler-gpu`
-- `doppler-gpu/runtime`
+- `doppler-gpu/run`
+- `doppler-gpu/runtime` (compatibility alias)
 
 ### Tier1 advanced
 

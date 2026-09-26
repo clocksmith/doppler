@@ -6,7 +6,7 @@ import path from 'node:path';
 import { generateKeyPairSync } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { writeProgramBundle } from '../src/tooling/program-bundle.js';
-import { forgeModelCapsule } from '../src/tooling/model-capsule-forge.js';
+import { rigModelCapsule } from '../src/tooling/model-capsule-rig.js';
 import { hashTargetPlan } from '../src/config/target-plan.js';
 import { getCapsuleIdentity } from '../src/config/capsule.js';
 import { resolveCapsuleAdapterSet } from '../src/config/capsule-adapters.js';
@@ -89,7 +89,7 @@ const forge = { repoRoot, manifestPath, modelDir: path.dirname(manifestPath), pr
   signingPrivateKeyPath: path.join(output, 'custody/private-key.json'),
   signingPublicKeyPath: path.join(output, 'custody/public-key.json'), signingAuthority: config.authority, allowDevelopmentSigner: false };
 await write('forge-config.json', forge);
-const result = await forgeModelCapsule(forge);
+const result = await rigModelCapsule(forge);
 const capsule = await read(forge.outputPath);
 if (config.adapterExecution) {
   const manifest = await read(probe.config.adapterManifestPath);

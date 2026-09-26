@@ -27,7 +27,7 @@ We adopt a **dual-hexagon architecture connected by an immutable Capsule spine**
 Source Model Checkpoint
     ↓
 ┌──────────────────────────────────────────────────────────────┐
-│                    DOPPLER FORGE                             │
+│                    DOPPLER RIG                               │
 │  Inspect → Normalize → Analyze → Lower → Specialize → Search │
 │  → Verify → Qualify → Package → Sign                         │
 └──────────────────────────────┬───────────────────────────────┘
@@ -35,7 +35,7 @@ Source Model Checkpoint
                     Immutable Doppler Capsule
                                │
 ┌──────────────────────────────▼───────────────────────────────┐
-│                    DOPPLER RUNTIME                           │
+│                    DOPPLER RUN                               │
 │  Validate → Select qualified target → Bind resources         │
 │  → Execute declared commands → Observe                       │
 └──────────────────────────────┬───────────────────────────────┘
@@ -46,9 +46,9 @@ Source Model Checkpoint
 ### 1. The Core Architectural Invariant
 
 > **The Doppler Invariant Law:**  
-> *After a Doppler Capsule has been qualified and signed, no Runtime code may change its semantic graph, kernel closure, dtype lane, fusion strategy, or memory model.*
+> *After a Doppler Capsule has been qualified and signed, no Run code may change its semantic graph, kernel closure, dtype lane, fusion strategy, or memory model.*
 
-All graph-changing, kernel-changing, fusion-changing, layout-changing, and precision-changing work is performed ahead-of-time in **Doppler Forge**. The **Doppler Runtime** is strictly an uncreative plan–bind–execute engine that selects among pre-qualified target plans.
+All graph-changing, kernel-changing, fusion-changing, layout-changing, and precision-changing work is performed ahead-of-time in **Doppler Rig**. **Doppler Run** is strictly an uncreative plan–bind–execute engine that selects among pre-qualified target plans.
 
 ---
 
@@ -74,7 +74,7 @@ To eliminate abstraction blurring across model semantics, device targets, and ru
 
 Ports and adapters are applied strictly at volatile boundaries:
 
-* **Forge Ports:** `SourceReader`, `ReferenceExecutor`, `CandidateProposer`, `KernelCompiler`, `KernelOracle`, `DeviceLabRunner`, `ArtifactPublisher`, `Signer`, `EvidenceStore`.
+* **Rig Ports:** `SourceReader`, `ReferenceExecutor`, `CandidateProposer`, `KernelCompiler`, `KernelOracle`, `DeviceLabRunner`, `ArtifactPublisher`, `Signer`, `EvidenceStore`.
   * *Adapters:* SafeTensors/GGUF readers, PyTorch reference runner, AI proposer, Chromium/Node WebGPU runners, Hugging Face/OPFS publishers.
 * **Runtime Ports:** `CapsuleSource`, `ArtifactStore`, `GpuDevice`, `PersistentCache`, `WorkerScheduler`, `ObservationSink`.
   * *Adapters:* HTTP, OPFS, Node filesystem, Web Worker, Electron worker, browser `navigator.gpu`, Node WebGPU.
@@ -99,7 +99,7 @@ runtime ───X───▶ cloud routing
 ### Positive
 * **Deterministic Verification:** Eliminates nondeterministic load-time mutation bugs and precision regressions.
 * **Zero Runtime Overhead:** Runtime becomes a lightweight (~small bundle) plan–bind–execute machine with zero generic interpreter bloat.
-* **AI-Assisted Foundry Velocity:** AI proposes graphs, fusions, and kernels in Forge where deterministic test oracles (CPU oracles, metamorphic bounds) catch defects before capsule signing.
+* **AI-Assisted Foundry Velocity:** AI proposes graphs, fusions, and kernels in Rig where deterministic test oracles (CPU oracles, metamorphic bounds) catch defects before capsule signing.
 * **First-Class Specialist Support:** Biological sequence models (ESM-2, ESMC, Nucleotide Transformer for Reploid) and Retrieval models enjoy identical AOT packaging guarantees.
 
 ### Phased Migration

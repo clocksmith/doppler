@@ -4,7 +4,7 @@ import path from 'node:path';
 import { generateKeyPairSync } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { writeProgramBundle } from '../src/tooling/program-bundle.js';
-import { forgeModelCapsule } from '../src/tooling/model-capsule-forge.js';
+import { rigModelCapsule } from '../src/tooling/model-capsule-rig.js';
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
 import { hashTargetPlan } from '../src/config/target-plan.js';
 import { getCapsuleIdentity } from '../src/config/capsule.js';
@@ -107,7 +107,7 @@ async function buildOperationEvaluationCapsule(config, operation) {
     signingPrivateKeyPath: path.join(outputDir, 'custody/private-key.json'), signingPublicKeyPath: path.join(outputDir, 'custody/public-key.json'),
     signingAuthority: config.authorityId, allowDevelopmentSigner: false };
   await write('forge-config.json', forge);
-  const result = await forgeModelCapsule(forge);
+  const result = await rigModelCapsule(forge);
   const capsule = JSON.parse(await fs.readFile(forge.outputPath, 'utf8'));
   const licensePath = path.join(outputDir, 'distribution/MODEL_LICENSE.txt');
   await fs.copyFile(config.licensePath, licensePath);

@@ -2,7 +2,7 @@
 
 This explains the implementation boundaries; it does not replace the
 [architecture](architecture.md), component charters, or release qualification.
-Forge decides computation. Capsule Runtime validates and executes approved
+Rig decides computation. Doppler Run validates and executes approved
 programs. Host assembly supplies acquisition, storage, devices and model handles.
 
 ## Resource ownership

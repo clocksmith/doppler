@@ -23,31 +23,31 @@ export function promoteQualifiedModelIRV2(modelIR, programBundle) {
     if (source.revision !== modelIR.sourceIdentity.revision
       || source.checkpointId !== modelIR.sourceIdentity.checkpointId
       || source.repository !== modelIR.sourceIdentity.repository) {
-      throw new Error(`Forge ${operation} source identity does not match ModelIR source identity.`);
+      throw new Error(`Rig ${operation} source identity does not match ModelIR source identity.`);
     }
   } else if (operation === 'generate') {
     const parity = transcript?.sourceParity;
     if (parity?.schema !== 'doppler.source-token-parity/v1' || parity.status !== 'passed'
       || parity.prompt?.passed !== true || parity.generation?.passed !== true) {
-      throw new Error('Forge ModelIR v2 promotion requires exact passed source-token parity.');
+      throw new Error('Rig ModelIR v2 promotion requires exact passed source-token parity.');
     }
     if (parity.sourceRevision !== modelIR.sourceIdentity.revision
       || ![modelIR.sourceIdentity.checkpointId, modelIR.sourceIdentity.repository].includes(parity.sourceModel)) {
-      throw new Error('Forge source-token parity identity does not match ModelIR source identity.');
+      throw new Error('Rig source-token parity identity does not match ModelIR source identity.');
     }
   } else {
-    throw new Error(`Forge ModelIR v2 promotion does not support operation "${operation}".`);
+    throw new Error(`Rig ModelIR v2 promotion does not support operation "${operation}".`);
   }
   const surface = transcript.surface;
   if (typeof surface !== 'string' || !surface.endsWith('-webgpu') || surface.startsWith('unknown')) {
-    throw new Error('Forge ModelIR v2 promotion requires an explicit physical WebGPU surface.');
+    throw new Error('Rig ModelIR v2 promotion requires an explicit physical WebGPU surface.');
   }
   const entryPoints = modelIR.entryPoints.filter((entryPoint) => (
     entryPoint.kind === operation && entryPoint.status === 'lowered'
       && modelIR.supportScope.loweredEntryPoints.includes(entryPoint.id)
   ));
   if (entryPoints.length !== 1) {
-    throw new Error(`Forge ModelIR v2 promotion requires exactly one lowered ${operation} entry point.`);
+    throw new Error(`Rig ModelIR v2 promotion requires exactly one lowered ${operation} entry point.`);
   }
   return {
     ...structuredClone(modelIR),
@@ -63,7 +63,7 @@ export function promoteQualifiedModelIRV2(modelIR, programBundle) {
 export function buildQualificationRecords(lowered) {
   const normalized = lowered.normalized;
   const referenceArtifact = normalized.artifacts.find((artifact) => artifact.role === 'reference-report');
-  if (!referenceArtifact) throw new Error('Forge requires a packaged reference-report artifact.');
+  if (!referenceArtifact) throw new Error('Rig requires a packaged reference-report artifact.');
   const transcript = normalized.programBundle.referenceTranscript;
   if (transcript?.operation === 'embed') {
     assertEmbeddingReferenceTranscript(transcript);
@@ -71,11 +71,11 @@ export function buildQualificationRecords(lowered) {
     if (hashStable(resolveCapsuleEmbeddingContract(normalized.manifest)) !== hashStable(transcript.reference.embeddingContract)
       || transcript.manifestHash !== normalized.manifestHash || transcript.modelId !== lowered.modelIR.modelId
       || transcript.executionGraphHash !== normalized.programBundle.execution.graphHash) {
-      throw new Error('Forge embedding qualification does not match its declared embedding contract and exact program.');
+      throw new Error('Rig embedding qualification does not match its declared embedding contract and exact program.');
     }
     const surfaces = normalized.programBundle.captureProfile?.surfaces;
     if (!Array.isArray(surfaces) || surfaces.length !== 1 || surfaces[0] !== transcript.surface) {
-      throw new Error('Forge embedding capture surface must match the actual qualification report.');
+      throw new Error('Rig embedding capture surface must match the actual qualification report.');
     }
     return [{ surface: transcript.surface, status: 'passed', operation: 'embed',
       embeddedTexts: transcript.reference.input.texts.length,
@@ -85,7 +85,7 @@ export function buildQualificationRecords(lowered) {
   }
   if (normalized.manifest?.modelType === 'embedding'
     && normalized.manifest?.inference?.supportsSequence !== true) {
-    throw new Error('Forge requires text embedding qualification for an embedding model; other operation evidence is insufficient.');
+    throw new Error('Rig requires text embedding qualification for an embedding model; other operation evidence is insufficient.');
   }
   if (transcript?.operation === 'rerank') {
     assertRerankReferenceTranscript(transcript);
@@ -95,11 +95,11 @@ export function buildQualificationRecords(lowered) {
       || normalized.manifest.artifactIdentity?.sourceCheckpointId !== transcript.reference.source.checkpointId
       || transcript.manifestHash !== normalized.manifestHash || transcript.modelId !== lowered.modelIR.modelId
       || transcript.executionGraphHash !== normalized.programBundle.execution.graphHash) {
-      throw new Error('Forge rerank qualification does not match its declared scoring contract and exact program.');
+      throw new Error('Rig rerank qualification does not match its declared scoring contract and exact program.');
     }
     const surfaces = normalized.programBundle.captureProfile?.surfaces;
     if (!Array.isArray(surfaces) || surfaces.length !== 1 || surfaces[0] !== transcript.surface) {
-      throw new Error('Forge rerank capture surface must match the actual qualification report.');
+      throw new Error('Rig rerank capture surface must match the actual qualification report.');
     }
     return [{ surface: transcript.surface, status: 'passed', operation: 'rerank',
       rerankedDocuments: transcript.reference.input.documents.length,
@@ -108,7 +108,7 @@ export function buildQualificationRecords(lowered) {
     }, ...normalized.qualificationEvidence.map(({ artifact, ...record }) => record)];
   }
   if (normalized.manifest?.inference?.supportsRerank === true) {
-    throw new Error('Forge requires rerank qualification for a reranker; generation evidence is insufficient.');
+    throw new Error('Rig requires rerank qualification for a reranker; generation evidence is insufficient.');
   }
   if (transcript?.operation === 'encodeSequence') {
     assertSequenceReferenceTranscript(transcript);
@@ -116,11 +116,11 @@ export function buildQualificationRecords(lowered) {
       || transcript.manifestHash !== normalized.manifestHash
       || transcript.modelId !== lowered.modelIR.modelId
       || transcript.executionGraphHash !== normalized.programBundle.execution.graphHash) {
-      throw new Error('Forge sequence qualification does not match its encoder ModelIR and exact program.');
+      throw new Error('Rig sequence qualification does not match its encoder ModelIR and exact program.');
     }
     const surfaces = normalized.programBundle.captureProfile?.surfaces;
     if (!Array.isArray(surfaces) || surfaces.length !== 1 || surfaces[0] !== transcript.surface) {
-      throw new Error('Forge sequence capture surface must match the actual qualification report.');
+      throw new Error('Rig sequence capture surface must match the actual qualification report.');
     }
     return [{
       surface: transcript.surface,
@@ -133,19 +133,19 @@ export function buildQualificationRecords(lowered) {
     }, ...normalized.qualificationEvidence.map(({ artifact, ...record }) => record)];
   }
   if (lowered.modelIR.outputTopology?.headType === 'sequence-encoder') {
-    throw new Error('Forge requires sequence qualification for an encoder; generation evidence is insufficient.');
+    throw new Error('Rig requires sequence qualification for an encoder; generation evidence is insufficient.');
   }
   const tokens = transcript?.tokens?.ids;
-  if (!Array.isArray(tokens) || tokens.length === 0) throw new Error('Forge requires reference transcript token IDs.');
+  if (!Array.isArray(tokens) || tokens.length === 0) throw new Error('Rig requires reference transcript token IDs.');
   const generationConfig = transcript?.generationConfig;
   if (!isObject(generationConfig) || !Number.isFinite(generationConfig.temperature)) {
-    throw new Error('Forge requires reference transcript generationConfig.');
+    throw new Error('Rig requires reference transcript generationConfig.');
   }
   if (generationConfig.temperature > 0 && !Number.isFinite(generationConfig.seed)) {
-    throw new Error('Forge rejects nondeterministic qualification evidence without a seed.');
+    throw new Error('Rig rejects nondeterministic qualification evidence without a seed.');
   }
   const surfaces = normalized.programBundle.captureProfile?.surfaces;
-  if (!Array.isArray(surfaces) || surfaces.length === 0) throw new Error('Forge requires captureProfile.surfaces qualification evidence.');
+  if (!Array.isArray(surfaces) || surfaces.length === 0) throw new Error('Rig requires captureProfile.surfaces qualification evidence.');
   const records = surfaces.map((surface) => ({
     surface,
     status: 'passed',

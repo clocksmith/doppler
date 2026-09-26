@@ -227,9 +227,9 @@ function verifyArtifactDigests(sourceIdentity, sources) {
 
 export function forgeModelIRV2(packet, sources) {
   if (!isObject(packet) || packet.schema !== SOURCE_TRUTH_FORGE_SCHEMA_ID) {
-    throw new Error(`Source-Truth Forge requires schema "${SOURCE_TRUTH_FORGE_SCHEMA_ID}".`);
+    throw new Error(`Source-Truth Rig requires schema "${SOURCE_TRUTH_FORGE_SCHEMA_ID}".`);
   }
-  if (!isObject(sources)) throw new Error('Source-Truth Forge requires source artifacts.');
+  if (!isObject(sources)) throw new Error('Source-Truth Rig requires source artifacts.');
   verifyArtifactDigests(packet.sourceIdentity, sources);
   const factsById = new Map((packet.facts || []).map((fact) => [fact.id, fact]));
   if (factsById.size !== packet.facts?.length) throw new Error('Source-truth fact IDs must be unique.');

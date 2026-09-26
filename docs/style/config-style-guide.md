@@ -115,7 +115,7 @@ wall time includes both, without subtracting overlapped recording twice.
 - No behavior-changing fallback may be implemented as ad-hoc JS branching.
 - Runtime defaults for tunables live in `src/config/schema/*.schema.js` and
   checked-in runtime profiles/config assets. Manifest defaults live in the
-  conversion config and stamped manifest. Runtime code consumes the resolved
+  conversion config and stamped manifest. Run code consumes the resolved
   object only.
 - Direct constructors, browser helpers, and execution-plan builders must reject
   missing resolved config fields. They may not recreate schema defaults locally.
@@ -310,7 +310,7 @@ per-field runtime tuning outside the config payload.
   or `endsWith`. If a model-specific workaround is unavoidable, match an exact
   manifest field value or list explicit variant IDs with the evidence in the
   rule name/test.
-- Runtime must not silently escalate precision to `f32`.
+- Run must not silently escalate precision to `f32`.
 - Any `f32` activation path must be explicit in config/manifest and documented as a stability or capability choice.
 - Capability-transform dtype changes must be classified with `dtypeEffect` and
   covered by `npm run capability-policy:check`.

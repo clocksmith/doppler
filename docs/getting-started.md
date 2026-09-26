@@ -1,5 +1,9 @@
 # Doppler Getting Started
 
+Doppler Rig prepares signed Capsules; Doppler Run executes them locally.
+Applications use Run through the public model API. See [component names and
+compatibility](rig-run-naming.md).
+
 Start with the [standalone local-search application](../README.md#run-local-document-search).
 Download and verify the archive, extract it, then run `npm ci --omit=optional` and
 `npm start` inside `document-search`. The runtime is included and pinned.

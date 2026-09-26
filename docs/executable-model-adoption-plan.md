@@ -7,7 +7,7 @@ Repository owner: Doppler
 ## Outcome
 
 Doppler becomes the preferred system for converting attributable source models
-into portable, specialized JavaScript and WebGPU programs. Forge, ModelIR,
+into portable, specialized JavaScript and WebGPU programs. Rig, ModelIR,
 TargetPlans, immutable Capsules, the constrained Runtime, application integration,
 and lifecycle support form one product.
 
@@ -66,7 +66,7 @@ earlier gate.
 - Do not add a simplified API whose defaults bypass manifest, TargetPlan, or
   provider policy.
 
-### Forge and Capsule closure
+### Rig and Capsule closure
 
 - Use one real source revision and one application workload.
 - Preserve unsupported operations and failed candidates as typed evidence.

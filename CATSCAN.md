@@ -33,7 +33,9 @@ Make local AI an ordinary JavaScript dependency. Prioritize copy-and-run local s
 - Standalone execution is independent; redistribution and delegation require authority.
 - Free adoption counts; revenue, acquisition, Doe, Poolday, and Reploid are not gates.
 - Network artifact, execution, and history-improvement proof remains separate.
-- Forge prepares; Capsules bind signed implementations; Runtime executes without silent changes.
+- Component names are Doppler Rig and Doppler Run; existing serialized identities
+  and public compatibility aliases remain stable.
+- Rig prepares; Capsules bind signed implementations; Run executes without silent changes.
 
 ## Acceptance
 

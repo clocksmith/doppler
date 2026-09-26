@@ -4,7 +4,7 @@ import { stageAnalyze, stageInspect } from '../../src/converter/forge-stages.js'
 for (const modelId of ['qwen-3.8-27b', 'muse-glimmer-30b']) {
   await assert.rejects(
     stageInspect({ modelDir: `/models/${modelId}`, config: { hiddenSize: 1 } }),
-    /Forge requires manifest/
+    /Rig requires manifest/
   );
 }
 

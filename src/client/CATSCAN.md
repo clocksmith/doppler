@@ -6,7 +6,7 @@ Parent: [Shipped Source](../CATSCAN.md)
 
 ## Target
 
-Make qualified local model workloads easy to invoke while preserving exact resolved execution identity.
+Invoke qualified models while preserving execution identity.
 
 ## Authority
 
@@ -15,7 +15,7 @@ Make qualified local model workloads easy to invoke while preserving exact resol
 
 ## Scope
 
-- Browser and Node client facades, provider integration, receipts, and runtime coordination.
+- Client facades, providers, receipts, and runtime coordination.
 
 ## Contracts
 
@@ -24,8 +24,9 @@ Make qualified local model workloads easy to invoke while preserving exact resol
 
 ## Invariants
 
-- Requests expose artifact/execution identities; exact pins and authorized alternatives are honored.
-- Declared hosts preserve facade parity. Exports use Capsule names; former names/subpaths are not aliases.
+- Requests honor artifact/execution identities, pins, and authorized alternatives.
+- Declared hosts preserve facade parity. Exports use Capsule names; former Pack names/subpaths are not aliases.
+- `doppler-gpu/run` and `createDopplerRun` retain the runtime names as aliases.
 - Execution consumes verified bytes, never unverified refetches, and reports selected-plan/artifact-closure evidence.
 - V3 receipts distinguish managed eligibility from retained use. Verified denials advance durable checkpoints; unauthenticated histories cannot.
 - `doppler-gpu/host` composes existing ports without choosing trust, upgrades, or bypassing checks.

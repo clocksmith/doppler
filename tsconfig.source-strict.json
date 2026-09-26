@@ -27,6 +27,7 @@
     "src/inference/pipelines/text/generation-request.js",
     "src/storage/model-read-session.js",
     "tests/types/ownership-contracts.js",
-    "src/inference/pipelines/text/layer-partition-contract.js"
+    "src/inference/pipelines/text/layer-partition-contract.js",
+    "src/tooling/model-capsule-forge.js"
   ]
 }

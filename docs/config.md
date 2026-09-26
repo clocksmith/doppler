@@ -51,7 +51,7 @@ runtime rewrites are allowed.
 
 This config boundary is the enforcement layer for Doppler's second main goal:
 owning the model artifact and runtime contract. Manifest/config/schema/rule
-assets may provide defaults. Runtime code must not invent behavior from model
+assets may provide defaults. Run code must not invent behavior from model
 names, missing fields, surface identity, or local cache state.
 
 ## Multimodal config contract

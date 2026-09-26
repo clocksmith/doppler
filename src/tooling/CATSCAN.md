@@ -17,7 +17,7 @@ Give browser, Node, and CLI adapters one normalized command contract and one evi
 
 - Shipped tooling APIs and shared browser/Node command infrastructure.
 - [Test harness](test-harness.js): catalog discovery, browser options, experimental diagnostics.
-- [Capsule Forge command](model-capsule-forge.js): files and signing around the [compiler](../converter/CATSCAN.md).
+- [Capsule Rig command](model-capsule-rig.js): files and signing around the [compiler](../converter/CATSCAN.md).
 - [Model onboarding](model-onboarding.js) coordinates pinned source assessment,
   lineage, conversion, independent comparison, physical qualification, and signed
   Capsule execution resumably. Retains immutable outputs and failures.

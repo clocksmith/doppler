@@ -5,7 +5,7 @@ export const FORGE_EVALUATION_SCHEMA = 'doppler.forge-candidate-evaluation/v1';
 const DIGEST = /^sha256:[0-9a-f]{64}$/u;
 
 function requireValue(condition, message) {
-  if (!condition) throw new Error(`Forge evaluation: ${message}`);
+  if (!condition) throw new Error(`Rig evaluation: ${message}`);
 }
 
 function fields(value, keys, label) {

@@ -56,7 +56,7 @@ This verifies reusable computation used by the hybrid architecture, not inferenc
 of the complete 27B checkpoint. Missing-behavior tasks remain relative to their
 pinned vocabulary and must retain the exact source evidence and failed contract.
 
-The existing source-truth Forge entrypoint accepts a pinned onboarding config:
+The existing source-truth Rig entrypoint accepts a pinned onboarding config:
 
 ```bash
 node tools/forge-source-truth-model-ir-v2.js \
@@ -64,7 +64,7 @@ node tools/forge-source-truth-model-ir-v2.js \
   --out /tmp/doppler-qwen38-onboarding
 ```
 
-This repository-local command composes existing Forge components. It verifies
+This repository-local command composes existing Rig components. It verifies
 the input file hashes and source revision, revalidates source facts, constructs
 ModelIR, audits the requested entrypoints against the pinned lowering vocabulary,
 and materializes the declared lineage recipe when its requirements pass. The
@@ -122,7 +122,7 @@ The declared order is conversion, source-reference, model-qualification,
 capsule-construction, and capsule-qualification. Numerical policy stays in the
 configuration and frozen reference. The driver delegates conversion to the
 installed converter, comparison to the existing reference tools, and Capsule
-construction to Forge.
+construction to Rig.
 
 Each completed stage seals an inventory of its attempt directory. Resume verifies
 the pinned inputs, materialized conversion config, dependency checkpoints, every

@@ -1,4 +1,4 @@
-# CATSCAN: Forge and Artifact Conversion
+# CATSCAN: Rig and Artifact Conversion
 
 Component: `doppler.runtime-source.converter`
 
@@ -15,9 +15,9 @@ Compile source facts into ModelIR, qualified TargetPlans, and immutable Capsules
 
 ## Scope
 
-- [Forge stages](forge-stages.js), source-fact validation, candidate evaluation, quantizers, tokenizer copying, and shard packing.
+- [Rig stages](forge-stages.js), source-fact validation, candidate evaluation, quantizers, tokenizer copying, and shard packing.
 - [Execution graph transforms](execution-graph-transforms.js) and capability-selected preparation passes. Development loading can invoke these passes; a signed execution cannot acquire permission to rewrite its selected program through this API.
-- [Command orchestration](../tooling/model-capsule-forge.js) supplies file and signing inputs; compiler algorithms remain here.
+- [Command orchestration](../tooling/model-capsule-rig.js) supplies file and signing inputs; compiler algorithms remain here.
 
 ## Contracts
 

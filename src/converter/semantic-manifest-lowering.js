@@ -434,7 +434,7 @@ function bindPrefillAttentionMechanism(execution, headDim, dispositions) {
     kernel: kernel.kernel,
     changed: templateKernelId !== kernelId,
     disposition: 'accepted',
-    rationale: 'Forge binds the prefill mechanism from declared head geometry; the head256 specialization is valid only for 256-wide attention heads.',
+    rationale: 'Rig binds the prefill mechanism from declared head geometry; the head256 specialization is valid only for 256-wide attention heads.',
   });
 }
 
@@ -588,7 +588,7 @@ export function materializeSemanticManifestCandidate({ modelIR, template, recipe
     kind: 'reproducible-conversion-identity',
     conversion: clone(recipe.conversion),
     disposition: 'accepted',
-    rationale: 'Forge freezes conversion identity before execution so rebuilds do not inherit wall-clock manifest drift.',
+    rationale: 'Rig freezes conversion identity before execution so rebuilds do not inherit wall-clock manifest drift.',
   }, {
     kind: 'source-generation-defaults',
     sourceDefaults: clone(entryPoint.sourceDefaults),

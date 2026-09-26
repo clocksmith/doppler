@@ -20,7 +20,7 @@ Primary documentation index.
   retained application adoption, with no Poolday, Reploid, or Doe dependency.
 - [Archived package changelog through 0.4.15](status/archive/package-changelog-through-0.4.15.md) -
   complete retained release history moved outside the npm runtime-package budget.
-- [Heterogeneous ModelIR v2 and Source-Truth Forge](model-ir-v2-source-truth-forge.md) - provenance, component/block semantics, partial entry-point scope, and promotion contract.
+- [Heterogeneous ModelIR v2 and Source-Truth Rig](model-ir-v2-source-truth-forge.md) - provenance, component/block semantics, partial entry-point scope, and promotion contract.
 - [Glimmer Architectural Generalization Campaign](programs/glimmer-architectural-generalization.md) - one-product capability profiles, current source-truth boundary, and text, split-KV, DFlash, multimodal, and Doe qualification gates.
 - [Pipeline Contract](pipeline-contract.md) - command-to-output runtime contract boundaries.
 - [Config](config.md) - kernel paths, config behavior, and runtime contract notes.
@@ -57,8 +57,10 @@ Primary documentation index.
 
 ## Public API Docs
 
+- [Rig and Run names](rig-run-naming.md) - current component names and compatibility.
+
 - [API Docs Index](api/index.md) - canonical public API navigation.
-- [Capsule Runtime API](api/root.md) - signed-Capsule application facade.
+- [Doppler Run API](api/root.md) - signed-Capsule application facade.
 - [Incremental Capsule Streams](capsule-streaming.md) - explicit v2 migration, decoding, reconstruction, transport and measurement.
 - [Compatibility API](api/compat.md) - explicit legacy manifest-loading facade.
 - [Advanced Root Exports](api/advanced-root-exports.md) - root-level loaders, adapters, and advanced exports.
