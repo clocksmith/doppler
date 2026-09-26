@@ -1,0 +1,71 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+[3218.9ms][doppler] Resolving model
+[3222.9ms][doppler] Fetching manifest
+[3234.8ms][doppler] Loading weights
+[3240.7ms][Pipeline] Execution v1 enabled (steps=32, kernelPathInline=yes, pipelineInline=no)
+[3240.8ms][Config] Using manifest-first config (source of truth)
+[3243.7ms][Pipeline] Resolved session applied (qwen-3-embedding-0-6b-f16-af32): batchSize=4, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[3244.2ms][Pipeline] KernelPath: qwen-3-embedding-0-6b-f16-af32-execution-inline (15 decode steps, 9 kernels, source=execution-v1)
+[3244.4ms][Pipeline] 28L/1024H/16heads (128dim), kernelPath=qwen-3-embedding-0-6b-f16-af32-execution-inline
+[3244.8ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[3318.9ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[3415.5ms][Tokenizer] Loaded HuggingFace 151669 tokens (bpe), 26 special patterns, 151387 merges
+[3444.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=32768, requestedKvDtype=f16, requestedMaxSeqLen=8192
+[3445.7ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-embedding-0-6b-f16-af32-execution-inline
+[3459.2ms][ShardCache] Custom shard loader configured
+[3459.3ms][Loader] Initializing...
+[3482.9ms][HeapManager] Allocated segment 0: 1024MB
+[3483.1ms][HeapManager] Segmented heap: 1GB per segment
+[3483.1ms][HeapManager] Initialized with strategy: SEGMENTED
+[3483.2ms][Loader] Initialized (f16, subgroups)
+[3483.7ms][Loader] Loading: qwen-3-embedding-0-6b-f16-af32
+[3484.9ms][Loader] [0.0s] Memory (start): | RSS=1.38 GB (heap=57.86 MB/107.20 MB, external=2.12 GB, arrayBuffers=2.12 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[3485.3ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[3487.4ms][Loader] Embedding "embed_tokens.weight" GPU-resident: shouldStreamLargeWeight returned false.
+[5524.3ms][Loader] Embeddings tensor loaded: name=embed_tokens.weight, hasShape=true, shape=[151669,1024], isWeightBuffer=true
+[5524.7ms][Loader] Layers: 0-27
+[11018.8ms][Loader] Layers: 28 complete (5.49s)
+[11020.1ms][Loader] Complete: 1.11 GB in 7.53s (150.86 MB/s)
+[11021.0ms][Loader] [7.5s] Memory (complete): | RSS=1.43 GB (heap=58.59 MB/93.95 MB, external=2.18 GB, arrayBuffers=2.15 GB) | GPU=1.11 GB (338 active, 0 pooled, peak=1.11 GB) | ShardCache=0 B (0 shards) | Layers=28, GPUBuffers=338
+[11040.7ms][Pipeline] Model loaded successfully (7803ms)
+[11043.1ms][doppler] Model ready
+[12906.5ms][doppler] Resolving model
+[12922.3ms][doppler] Fetching manifest
+[12932.4ms][doppler] Loading weights
+[12936.0ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[12936.1ms][Config] Using manifest-first config (source of truth)
+[12938.5ms][Pipeline] Resolved session applied (qwen-3-reranker-0-6b-q4k-ehf16-af32): batchSize=4, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[12938.8ms][Pipeline] KernelPath: qwen-3-reranker-0-6b-q4k-ehf16-af32-execution-inline (15 decode steps, 12 kernels, source=execution-v1)
+[12939.0ms][Pipeline] 28L/1024H/16heads (128dim), kernelPath=qwen-3-reranker-0-6b-q4k-ehf16-af32-execution-inline
+[12939.1ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[12997.8ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[13062.8ms][Tokenizer] Loaded HuggingFace 151669 tokens (bpe), 26 special patterns, 151387 merges
+[13068.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1024, layout=contiguous, modelMaxSeqLen=40960, requestedKvDtype=f16, requestedMaxSeqLen=1024
+[13068.8ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-reranker-0-6b-q4k-ehf16-af32-execution-inline
+[13082.2ms][ShardCache] Custom shard loader configured
+[13082.3ms][Loader] Initializing...
+[13084.9ms][Loader] Initialized (f16, subgroups)
+[13084.9ms][Loader] Loading: qwen-3-reranker-0-6b-q4k-ehf16-af32
+[13085.6ms][Loader] [0.0s] Memory (start): | RSS=1.46 GB (heap=159.63 MB/182.20 MB, external=2.89 GB, arrayBuffers=2.89 GB) | GPU=1.13 GB (340 active, 1 pooled, peak=1.13 GB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[13085.9ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[13086.7ms][Loader] Embedding "model.embed_tokens.weight" GPU-resident: shouldStreamLargeWeight returned false.
+[15128.5ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[151669,1024], isWeightBuffer=true
+[15128.8ms][Loader] Layers: 0-27
+[18977.0ms][Loader] Layers: 28 complete (3.85s)
+[18978.2ms][Loader] Complete: 894.91 MB in 5.89s (151.91 MB/s)
+[18979.6ms][Loader] [5.9s] Memory (complete): | RSS=1.42 GB (heap=89.85 MB/123.77 MB, external=1.92 GB, arrayBuffers=1.92 GB) | GPU=2.33 GB (790 active, 0 pooled, peak=2.33 GB) | ShardCache=0 B (0 shards) | Layers=28, GPUBuffers=450
+[18982.7ms][Pipeline] Model loaded successfully (6049ms)
+[18985.6ms][doppler] Model ready
+[19017.2ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=path_override
+[19035.3ms][KernelSelect] attention variant=prefill_streaming_f16kv reason=path_override:streaming
+[32126.0ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[32131.4ms][KernelSelect] attention variant=prefill_small_f16kv reason=path_override:tiled_small
+[32137.1ms][KernelSelect] matmul variant=f16w_f32a reason=path_override
+[62152.7ms][ExpertCache] Cache cleared
+[62153.2ms][Pipeline] Unloaded
+[62154.5ms][ExpertCache] Cache cleared
+[62154.5ms][Pipeline] Unloaded
+[62162.6ms][GPU] Device lost: device was destroyed, Reason: destroyed
+{"passed":false,"metrics":{"rankingTop1Rate":0.9444444444444444,"answerableTop1Rate":0.9444444444444444,"identifierTop1Rate":1,"longDocumentTop1Rate":1,"noAnswerFalsePositives":3},"outputPath":"/home/x/deco/doppler/artifacts/document-search-compact-2026-09-26/incumbent-final-screen.json"}

@@ -92,7 +92,7 @@ application's durable checkpoint; cancellation and device incompatibility cannot
 erase them. Metadata-only verification is not permission to execute: the full
 artifact closure must pass byte verification before constructing a program.
 
-Session opening accepts `signal`, `loadTimeoutMs`, `maxMetadataBytes`, `maxRetainedArtifactBytes`, and
+Session opening accepts `signal`, `loadTimeoutMs`, `maxMetadataBytes`, `maxRetainedArtifactBytes`, `maxVerifiedBackingBytes`, `artifactHashBackend`, and
 `onLoadProgress`. Pass these directly to `doppler-gpu/host` or
 `runtime.openCapsule()`, and under `options.session` for the explicit-port root
 `openCapsule()` facade. The JSON loading policy
@@ -144,6 +144,14 @@ this is not microtask-only yielding or an off-thread throughput claim. Multiple
 independent acquisitions have separate workspace and cancellation. Private 64 KiB
 blocks become shared backing only after the complete size and digest match.
 
+`artifactHashBackend` defaults to `host`: native incremental SHA-256 through
+Node's `crypto.createHash` on Node, and incremental JavaScript in browsers.
+`javascript` explicitly selects the portable implementation; `node-crypto`
+requires Node and fails elsewhere. Both hash the same private blocks, keep the
+same byte-yield cancellation points, and enforce identical signed digests.
+Canonical metadata identities are unchanged. No source-supplied digest or
+persisted verification flag can bypass authentication.
+
 The internal verified store owns immutable, private byte-block snapshots of
 admitted artifacts. It copies and hashes at most 64 KiB per owned block; source
 buffers and returned arrays cannot mutate those blocks. Range reads allocate only
@@ -164,6 +172,23 @@ final store close releases backing references; no process-global content cache
 or browser disk quota is required. Backing still occupies model-sized memory;
 its logical byte count is not a physical RAM measurement.
 
+`maxVerifiedBackingBytes` separately bounds one store's verified snapshots plus
+reservations for concurrent acquisitions. It defaults to `null` (unlimited).
+An acquisition reserves its signed size before reading; exceeding a finite
+budget fails explicitly. Shared snapshot leases count conservatively against
+each store's budget. This does not cap source buffers, returned ranges, loader
+resources, process memory, or GPU allocations. The upfront closure check may
+need the complete model's backing budget; this is not shard-at-a-time loading.
+
+After the host finishes materializing a model, it waits for outstanding artifact
+readers and releases the store's backing leases and secondary cache. Both GPU
+model sessions remain resident. A subsequent lazy read reacquires and verifies
+the artifact, unless another live store still owns the protected snapshot.
+Explicit-port program factories can call the supplied store's
+`releaseBacking()` at their own preparation boundary. Store closure still
+releases all remaining leases. Neither release nor buffer destruction promises
+immediate physical RAM reclamation.
+
 `hashArtifact()` reports that internally computed verification without copying or
 rehashing a retained file. `readArtifactRange()` returns only an owned requested slice;
 neither callers nor source buffers can mutate verified backing. Externally supplied
@@ -176,6 +201,13 @@ interface is immutable, so its byte readers cannot be replaced after this check.
 An arbitrary port, copied interface, or proxy does not gain this ownership guarantee
 by advertising a digest method. Such ports, and manifests using BLAKE3 shard
 digests, retain byte-level manifest verification. Mismatched identities fail closed.
+
+The retained Doppler implementation labeled BLAKE3 does not match the standard
+test vectors; see the [compatibility probe](../../artifacts/document-search-loading-2026-09-26/legacy-hash-compatibility.json).
+Its historical digests remain necessary to open existing immutable manifests.
+This loading change preserves those bytes and the outer Capsule SHA-256 checks.
+Use SHA-256 for new artifacts; a corrected secondary digest format requires a
+separately qualified release, not reinterpretation of an existing Capsule.
 
 Observer events `capsule-validation-complete` and `capsule-load-complete` include
 `artifactMetrics`: source bytes read, bytes hashed by the verified store, bytes

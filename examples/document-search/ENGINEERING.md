@@ -80,6 +80,20 @@ Receipts distinguish process RSS from requested GPU allocation accounting;
 neither establishes physical GPU residency or a minimum-memory configuration.
 Injected I/O faults are not evidence of a physically exhausted volume or reboot.
 
+For an opening diagnostic, add `profileOpening: true` and an explicit
+`cpuSamplingIntervalUs` to the Node qualification config. The receipt retains
+existing GPU API timings and a sibling `.cpuprofile`; waits overlap and the
+instrumented run is not a throughput measurement. A diagnostic `loadingOverride`
+may name `artifactHashBackend`, `maxVerifiedBackingBytes`, and
+`maxRetainedArtifactBytes`; it does not alter installed assets or model identity.
+
+Use `repairExisting: true` separately from clean installation to exercise an
+explicit repair. Shared runtime backing never substitutes for a model's durable
+artifact files. Installation now persists artifacts skipped through live sharing
+before publishing completion. Repair of the identical accepted release preserves
+its recorded local-use acceptance time; it cannot transfer that acceptance to a
+new Capsule or application identity. Report repair before reopening separately.
+
 ## Audit and publish exact missing artifacts
 
 `tools/check-document-search-sources.js` accepts a JSON configuration containing

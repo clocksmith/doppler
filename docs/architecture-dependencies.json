@@ -734,6 +734,7 @@
         "tools/bench-compute.js",
         "tools/bench-text-decode-paths.js",
         "tools/bench-translation-quality.js",
+        "tools/benchmark-artifact-hashing.js",
         "tools/browser-renderer-memory.js",
         "tools/build-document-search-app.js",
         "tools/build-document-search-node-capsules.js",
@@ -831,6 +832,8 @@
         "tools/document-search-lifecycle-checks.js",
         "tools/document-search-recovery-checks.js",
         "tools/emit-training-contract-delta.js",
+        "tools/evaluate-document-search-corpus.js",
+        "tools/evaluate-installed-search-corpus.js",
         "tools/evaluate-wgsl-family-distillation.js",
         "tools/export-program-bundle.js",
         "tools/export-v11-grpo-adapter.js",
@@ -4621,6 +4624,7 @@
         "tests/runtime/capsule-artifact-source.test.js",
         "tests/runtime/capsule-artifact-stream.test.js",
         "tests/runtime/capsule-artifact-verification-reuse.test.js",
+        "tests/runtime/capsule-backing-budget.test.js",
         "tests/runtime/capsule-embedding.test.js",
         "tests/runtime/capsule-forecast.test.js",
         "tests/runtime/capsule-gpu-token-selection.test.js",
@@ -4665,6 +4669,7 @@
         "tests/tooling/debug-playbook-contract.test.js",
         "tests/tooling/demo-hardware-smoke.test.js",
         "tests/tooling/document-search-build.test.js",
+        "tests/tooling/document-search-evaluation.test.js",
         "tests/tooling/document-search-installed-build.test.js",
         "tests/tooling/document-search-sources.test.js",
         "tests/tooling/electron-reranker-probe.test.js",
@@ -6251,6 +6256,12 @@
       "expression": "import(pathToFileURL(path.join(root, 'src/gpu/kernels/generated/uniform-writers.js')).href)"
     },
     {
+      "file": "tools/benchmark-artifact-hashing.js",
+      "kind": "dynamic",
+      "line": 38,
+      "expression": "import(pathToFileURL(filename))"
+    },
+    {
       "file": "tools/demo-contract-smoke.js",
       "kind": "dynamic",
       "line": 204,
@@ -6267,6 +6278,24 @@
       "kind": "unresolved",
       "line": 106,
       "expression": "./runtime/src/gpu/device.js"
+    },
+    {
+      "file": "tools/evaluate-installed-search-corpus.js",
+      "kind": "dynamic",
+      "line": 36,
+      "expression": "import(pathToFileURL(path.join(config.applicationDir, 'node.js')))"
+    },
+    {
+      "file": "tools/evaluate-installed-search-corpus.js",
+      "kind": "dynamic",
+      "line": 37,
+      "expression": "import(pathToFileURL(path.join(config.applicationDir, 'search.js')))"
+    },
+    {
+      "file": "tools/evaluate-installed-search-corpus.js",
+      "kind": "dynamic",
+      "line": 62,
+      "expression": "import(pathToFileURL(path.join(config.applicationDir, 'node_modules/doppler-gpu/src/client/doppler-api.js')))"
     },
     {
       "file": "tools/fixtures/electron-webgpu-main.js",
@@ -6331,13 +6360,13 @@
     {
       "file": "tools/qualify-document-search-node.js",
       "kind": "dynamic",
-      "line": 82,
+      "line": 86,
       "expression": "import(pathToFileURL(path.join(config.applicationDir, 'node.js')))"
     },
     {
       "file": "tools/qualify-document-search-node.js",
       "kind": "dynamic",
-      "line": 83,
+      "line": 87,
       "expression": "import(pathToFileURL(path.join(config.applicationDir, 'node_modules/doppler-gpu/src/tooling-exports/device.js')))"
     },
     {

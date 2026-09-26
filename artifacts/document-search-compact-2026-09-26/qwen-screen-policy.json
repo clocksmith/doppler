@@ -1,0 +1,26 @@
+{
+  "applicationDir": "/var/tmp/doppler-search-loading-installed-20260926-05",
+  "storageDir": "/var/tmp/doppler-loading-disk-state-20260926",
+  "requiredVendor": "amd",
+  "corpusPath": "/home/x/deco/doppler/artifacts/document-search-compact-2026-09-26/corpus.json",
+  "freezePath": "/home/x/deco/doppler/artifacts/document-search-compact-2026-09-26/corpus-freeze.json",
+  "minimumRerankScore": -1e+30,
+  "thresholdScope": "Incumbent always returns a ranking; no abstention claim. This bound admits every finite observed score.",
+  "outputPath": "/home/x/deco/doppler/artifacts/document-search-compact-2026-09-26/qwen-screen.json",
+  "embeddingCandidateDir": "/dev/shm/doppler-compact-20260926/qwen-embedding",
+  "candidateRuntimeConfig": {
+    "shared": {
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "silent"
+        }
+      }
+    },
+    "inference": {
+      "batching": {
+        "maxTokens": 1024
+      }
+    }
+  },
+  "candidateScope": "Diagnostic only: Q4 source comparison failed; not eligible for release or substitution."
+}

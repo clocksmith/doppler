@@ -1,0 +1,57 @@
+{
+  "schema": "doppler.package-delta/v1",
+  "prior": {
+    "entryCount": 1864,
+    "packedBytes": 2154292,
+    "unpackedBytes": 11334081
+  },
+  "candidate": {
+    "entryCount": 1864,
+    "packedBytes": 2155610,
+    "unpackedBytes": 11340219
+  },
+  "changedSizeEntries": [
+    {
+      "path": "src/client/model-host/index.js",
+      "beforeBytes": 21144,
+      "afterBytes": 21254
+    },
+    {
+      "path": "src/client/runtime/composition-root.d.ts",
+      "beforeBytes": 4581,
+      "afterBytes": 4792
+    },
+    {
+      "path": "src/client/runtime/verified-capsule-artifact-store.d.ts",
+      "beforeBytes": 1721,
+      "afterBytes": 2007
+    },
+    {
+      "path": "src/client/runtime/verified-capsule-artifact-store.js",
+      "beforeBytes": 12278,
+      "afterBytes": 14608
+    },
+    {
+      "path": "src/config/capsule-loading.d.ts",
+      "beforeBytes": 336,
+      "afterBytes": 438
+    },
+    {
+      "path": "src/config/capsule-loading.js",
+      "beforeBytes": 596,
+      "afterBytes": 637
+    },
+    {
+      "path": "src/config/capsule-loading.schema.json",
+      "beforeBytes": 875,
+      "afterBytes": 1490
+    },
+    {
+      "path": "src/storage/blake3.js",
+      "beforeBytes": 7191,
+      "afterBytes": 9634
+    }
+  ],
+  "added": [],
+  "removed": []
+}

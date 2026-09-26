@@ -88,4 +88,40 @@ assert.equal(locked, true, 'failed opening holds its lock while a storage write 
 finishWrite.resolve();
 await rejectedWrite;
 assert.equal(locked, false);
+
+// Runtime reuse of another session's private snapshot cannot stand in for this
+// installation's durable copy. All artifacts must survive independent reopening.
+files.clear();
+const sharedInstallation = createDocumentModelInstallation({ store, authorizeRecord: () => true,
+  withLock: task => task(), fetchArtifact: async () => bytes.slice(),
+  openCapsule: async () => ({ close: async () => { closed++; } }) });
+await (await sharedInstallation.install(record)).session.close();
+assert.deepEqual(files.get('artifacts/' + hash.slice(7)), bytes);
+assert(files.has('installation.json'));
+files.clear(); writesFail = true;
+const beforeClosure = closed;
+await assert.rejects(sharedInstallation.install(record), { name: 'QuotaExceededError' });
+assert(!files.has('installation.json'), 'Incomplete shared-artifact persistence cannot publish installation completion.');
+assert.equal(closed, beforeClosure + 1);
+writesFail = false;
+const decision = { schema: 'test-retained-decision', applicationDigest: 'same-app', acceptedAtUtc: '2026-09-25T00:00:00.000Z' };
+const acceptedRecord = { ...record, options: { releasePolicy: {
+  checkpoint: { sequence: 1, digest: 'same-history' }, minimumSequence: 1, retainedLocalUse: decision,
+} } };
+files.set('installation.json', new TextEncoder().encode(JSON.stringify(acceptedRecord)));
+let observedDecision;
+const repairInstallation = createDocumentModelInstallation({ store, authorizeRecord: () => true,
+  withLock: task => task(), fetchArtifact: async () => bytes.slice(),
+  openCapsule: async (_capsule, options) => {
+    observedDecision = options.releasePolicy.retainedLocalUse;
+    return { close: async () => {} };
+  } });
+const repairRecord = structuredClone(acceptedRecord);
+repairRecord.options.releasePolicy.retainedLocalUse.acceptedAtUtc = '2026-09-26T00:00:00.000Z';
+await (await repairInstallation.install(repairRecord, { repairDamagedArtifacts: true })).session.close();
+assert.deepEqual(observedDecision, decision, 'Repair of identical bytes preserves the original local acceptance time.');
+assert.deepEqual(JSON.parse(new TextDecoder().decode(files.get('installation.json'))).options.releasePolicy.retainedLocalUse, decision);
+repairRecord.options.releasePolicy.retainedLocalUse.applicationDigest = 'different-app';
+await (await repairInstallation.install(repairRecord, { repairDamagedArtifacts: true })).session.close();
+assert.equal(observedDecision.acceptedAtUtc, '2026-09-26T00:00:00.000Z', 'Repair cannot transfer acceptance to another application identity.');
 console.log('document-model-installation.test: passed (synthetic storage, no inference claim)');

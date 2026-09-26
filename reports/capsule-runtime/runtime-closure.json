@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 71,
-  "sourceBytes": 769188,
+  "sourceBytes": 772174,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -129,8 +129,8 @@
     },
     {
       "path": "src/client/runtime/verified-capsule-artifact-store.js",
-      "sizeBytes": 12278,
-      "hash": "sha256:216d6de73df1290f254063c79b8446de3034f7dd02e3b58b9269fb4000193b2d"
+      "sizeBytes": 14608,
+      "hash": "sha256:7eaca741465368b12f903bbea0f7f48b46e4d93b2481bc0daf65040196c8f0f7"
     },
     {
       "path": "src/config/capsule-adapter-policy.js",
@@ -149,13 +149,13 @@
     },
     {
       "path": "src/config/capsule-loading.js",
-      "sizeBytes": 596,
-      "hash": "sha256:aa6bdd57e3a57431d6c91fabe040d90cc8667fecc23acff3cedaff15b04db620"
+      "sizeBytes": 637,
+      "hash": "sha256:6607947823b7daee40ddf329765544d13686e79e15218a5d574588c8ab0d941f"
     },
     {
       "path": "src/config/capsule-loading.schema.json",
-      "sizeBytes": 875,
-      "hash": "sha256:456c22934c49b25a83f9809c7ee1537426326f48c717feadadfa00a9504b96ea"
+      "sizeBytes": 1490,
+      "hash": "sha256:11f67624761b5c2f5abda9044890aa70b12e5771f8e83a625591baeb2e0a2f50"
     },
     {
       "path": "src/config/capsule-operation.js",

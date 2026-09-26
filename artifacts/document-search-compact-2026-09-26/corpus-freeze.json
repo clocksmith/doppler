@@ -1,0 +1,9 @@
+{
+  "schema": "doppler.corpus-freeze/v1",
+  "frozenAtUtc": "2026-09-26T19:18:59.383132+00:00",
+  "sha256": "9a5e7f901f404d7d3e4bc7cdd4f2d4950d6532870b5e36f3a27bbfb998ee198a",
+  "documentCount": 17,
+  "queryCount": 21,
+  "candidateOutputsObserved": false,
+  "policy": "Do not edit this corpus or its acceptance after observing candidates; create a distinct version for changes."
+}

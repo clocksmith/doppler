@@ -1,0 +1,311 @@
+{
+  "schema": "doppler.compact-search-evaluation/v1",
+  "scope": "Author-created frozen screening corpus; not independent adoption or a general retrieval benchmark. Original six reference queries retained.",
+  "preprocessing": {
+    "version": "unicode-window-v1",
+    "maxCodePoints": 480,
+    "overlapCodePoints": 80,
+    "preserveOriginalDocuments": true
+  },
+  "search": {
+    "candidateCount": 5,
+    "queryPrefix": "",
+    "documentPrefix": ""
+  },
+  "acceptance": {
+    "minimumAnswerableTop1Rate": 0.9,
+    "requiredIdentifierTop1Rate": 1,
+    "requiredLongDocumentTop1Rate": 1,
+    "maximumNoAnswerFalsePositives": 0,
+    "provisionalCombinedDownloadBytes": 300000000
+  },
+  "documents": [
+    {
+      "id": "sourdough",
+      "title": "Maintaining a sourdough starter",
+      "mediaType": "text/markdown",
+      "text": "# Maintaining a sourdough starter\nA starter is a living mixture of flour, water, yeast and bacteria. Feed it fresh flour and water regularly. For occasional baking, keep it refrigerated and refresh it before mixing dough. Discard any starter showing fuzzy mold or pink discoloration."
+    },
+    {
+      "id": "tire",
+      "title": "Repairing a bicycle puncture",
+      "mediaType": "text/plain",
+      "text": "Remove the bicycle wheel and lift one tire bead off the rim. Pull out the tube and inflate it to locate the puncture. Check the tire for glass or thorns before patching the tube or fitting a replacement. Seat the bead and inflate to the tire manufacturer's pressure range."
+    },
+    {
+      "id": "eclipse",
+      "title": "How a lunar eclipse happens",
+      "mediaType": "text/markdown",
+      "text": "# Lunar eclipses\nA lunar eclipse occurs when Earth moves between the Sun and the Moon and Earth's shadow falls on the Moon. It can happen only at full moon, but the tilt of the lunar orbit means most full moons are not eclipses. A total lunar eclipse can make the Moon look copper red."
+    },
+    {
+      "id": "solar",
+      "title": "How a solar eclipse happens",
+      "mediaType": "text/plain",
+      "text": "A solar eclipse occurs when the Moon moves between Earth and the Sun. The Moon's shadow crosses part of Earth and blocks the bright solar disk. This geometry is possible at new moon. Observing the Sun requires suitable solar viewing protection."
+    },
+    {
+      "id": "git",
+      "title": "Restoring a removed Git file",
+      "mediaType": "text/markdown",
+      "text": "# Recover a tracked file\nIf a tracked file was removed from the working tree but the deletion has not been committed, git restore -- path/to/file restores it from the index. To recover a version from a particular commit, specify --source followed by that commit. Untracked files cannot be recovered from Git history unless they were previously committed."
+    },
+    {
+      "id": "starter-motor",
+      "title": "What a starter motor does",
+      "mediaType": "text/plain",
+      "text": "The starter motor uses electricity from a vehicle battery to rotate the engine until combustion can continue on its own. A clicking sound with no engine rotation can indicate a weak battery or poor connection. This electrical starter does not use flour or yeast."
+    },
+    {
+      "id": "sync-e17",
+      "title": "Sync error E-17",
+      "mediaType": "text/plain",
+      "text": "Error E-17 means the local document snapshot could not be committed because storage is full. Free storage, export your original documents, and retry the save. The previous committed snapshot remains usable."
+    },
+    {
+      "id": "sync-e71",
+      "title": "Sync error E-71",
+      "mediaType": "text/plain",
+      "text": "Error E-71 means the remote authentication credential expired. Sign in again. Deleting local documents does not repair authentication."
+    },
+    {
+      "id": "ticket-4821",
+      "title": "Ticket SEARCH-4821",
+      "mediaType": "text/plain",
+      "text": "SEARCH-4821 fixes unchanged-document embedding reuse. Editing only a title should preserve its content vector. Changing the embedding model requires rebuilding incompatible vectors."
+    },
+    {
+      "id": "ticket-4812",
+      "title": "Ticket SEARCH-4812",
+      "mediaType": "text/plain",
+      "text": "SEARCH-4812 fixes reranker cancellation. Submitted GPU commands may finish before buffers can be released. A cancelled query must not replace newer results."
+    },
+    {
+      "id": "device",
+      "title": "Graphics device recovery",
+      "mediaType": "text/plain",
+      "text": "After graphics device loss, close invalid model sessions and open new sessions on a replacement device. Retain original documents and rebuild only an incompatible or damaged index."
+    },
+    {
+      "id": "recipe",
+      "title": "Keeping an application release",
+      "mediaType": "text/plain",
+      "text": "Pin the application setup recipe and accepted model identities. A reranker-only update can reuse document embeddings when the embedding model and preprocessing contract remain unchanged."
+    },
+    {
+      "id": "export",
+      "title": "Exporting documents",
+      "mediaType": "text/plain",
+      "text": "Export original documents, stable identifiers and application settings to a user-owned file. Downloaded model shards are replaceable cached assets. A browser persistence grant is not a backup."
+    },
+    {
+      "id": "clock",
+      "title": "Repairing an analogue clock",
+      "mediaType": "text/plain",
+      "text": "A mechanical clock stores energy in a wound spring or a suspended weight. Its escapement releases that energy in controlled increments. A pendulum or balance wheel regulates the movement."
+    },
+    {
+      "id": "copper",
+      "title": "Copper cookware",
+      "mediaType": "text/plain",
+      "text": "Copper pots conduct heat efficiently. Acidic food should not touch unlined copper surfaces. Many copper pans have a tin or stainless steel lining."
+    },
+    {
+      "id": "release",
+      "title": "Release ledger",
+      "mediaType": "text/plain",
+      "text": "The fictional project Larch shipped release 3.8 with a search-results export. Release 3.9 added keyboard navigation. Release 4.0 changed the embedding space and requires a fresh index."
+    },
+    {
+      "id": "archive",
+      "title": "Archive operating notes",
+      "mediaType": "text/markdown",
+      "text": "Archive shelf 01: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 02: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 03: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 04: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 05: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 06: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 07: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 08: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 09: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 10: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 11: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 12: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 13: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 14: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 15: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 16: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 17: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 18: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 19: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 20: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 21: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 22: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 23: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 24: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 25: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 26: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 27: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 28: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nThe emergency recovery phrase for archive cabinet AZ-904 is violet heron. Cabinet AZ-940 uses amber finch. Keep these two fictional cabinet identifiers distinct."
+    }
+  ],
+  "queries": [
+    {
+      "id": "bread",
+      "text": "How should I store the culture that leavens my bread when I only bake occasionally?",
+      "expectedTopId": "sourdough",
+      "category": "paraphrase",
+      "relevantIds": [
+        "sourdough"
+      ]
+    },
+    {
+      "id": "bike",
+      "text": "What should I inspect before replacing the inner tube on my bike?",
+      "expectedTopId": "tire",
+      "category": "paraphrase",
+      "relevantIds": [
+        "tire"
+      ]
+    },
+    {
+      "id": "moon",
+      "text": "Why can our planet's shadow turn the full moon red?",
+      "expectedTopId": "eclipse",
+      "category": "paraphrase",
+      "relevantIds": [
+        "eclipse"
+      ]
+    },
+    {
+      "id": "sun",
+      "text": "Which body passes in front of the Sun during a solar eclipse?",
+      "expectedTopId": "solar",
+      "category": "paraphrase",
+      "relevantIds": [
+        "solar"
+      ]
+    },
+    {
+      "id": "restore",
+      "text": "I accidentally deleted a tracked file without committing. How do I get it back?",
+      "expectedTopId": "git",
+      "category": "paraphrase",
+      "relevantIds": [
+        "git"
+      ]
+    },
+    {
+      "id": "motor",
+      "text": "What component uses the car battery to crank the engine?",
+      "expectedTopId": "starter-motor",
+      "category": "paraphrase",
+      "relevantIds": [
+        "starter-motor"
+      ]
+    },
+    {
+      "id": "id-e17",
+      "text": "What should I do about E-17?",
+      "expectedTopId": "sync-e17",
+      "relevantIds": [
+        "sync-e17"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "id-e71",
+      "text": "How is E-71 resolved?",
+      "expectedTopId": "sync-e71",
+      "relevantIds": [
+        "sync-e71"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "id-4821",
+      "text": "What did SEARCH-4821 change?",
+      "expectedTopId": "ticket-4821",
+      "relevantIds": [
+        "ticket-4821"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "id-4812",
+      "text": "What did SEARCH-4812 fix?",
+      "expectedTopId": "ticket-4812",
+      "relevantIds": [
+        "ticket-4812"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "gpu",
+      "text": "How can search recover after the graphics processor disappears?",
+      "expectedTopId": "device",
+      "relevantIds": [
+        "device"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "upgrade",
+      "text": "Can I keep document vectors when only the ranking model changes?",
+      "expectedTopId": "recipe",
+      "relevantIds": [
+        "recipe"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "backup",
+      "text": "Which local information should I put in my own backup file?",
+      "expectedTopId": "export",
+      "relevantIds": [
+        "export"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "escapement",
+      "text": "What controls the release of stored energy in a mechanical timepiece?",
+      "expectedTopId": "clock",
+      "relevantIds": [
+        "clock"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "pan",
+      "text": "Why does a copper pan have an inner lining?",
+      "expectedTopId": "copper",
+      "relevantIds": [
+        "copper"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "version",
+      "text": "Which Larch version made the old search vectors incompatible?",
+      "expectedTopId": "release",
+      "relevantIds": [
+        "release"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "tail",
+      "text": "What is the recovery phrase for cabinet AZ-904?",
+      "expectedTopId": "archive",
+      "relevantIds": [
+        "archive"
+      ],
+      "category": "long-document"
+    },
+    {
+      "id": "tail-neighbor",
+      "text": "What is the recovery phrase for cabinet AZ-940?",
+      "expectedTopId": "archive",
+      "relevantIds": [
+        "archive"
+      ],
+      "category": "long-document"
+    },
+    {
+      "id": "weather",
+      "text": "What is the weather forecast for Oslo tomorrow?",
+      "expectedTopId": null,
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "refund",
+      "text": "What is the refund deadline for ticket ZX-883?",
+      "expectedTopId": null,
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "missing-cabinet",
+      "text": "What is the recovery phrase for cabinet AZ-999?",
+      "expectedTopId": null,
+      "relevantIds": [],
+      "category": "no-answer"
+    }
+  ]
+}

@@ -5,19 +5,27 @@ let submissions = 0, fences = 0, maps = 0, copies = 0, dispatches = 0;
 let finish;
 const pending = new Promise(resolve => { finish = resolve; });
 class Queue {
+  writeBuffer() { return 'uploaded'; }
   submit() { submissions++; return 'submitted'; }
   onSubmittedWorkDone() { fences++; return pending; }
 }
 class Buffer {
   constructor(label, usage) { this.label = label; this.usage = usage; }
   mapAsync() { maps++; return pending; }
+  getMappedRange() { return 'mapped'; }
+}
+class Device {
+  createBuffer() { return 'allocated'; }
+  createShaderModule() { return 'shader'; }
+  createComputePipeline() { return 'pipeline'; }
+  createComputePipelineAsync() { return pending; }
 }
 class Encoder { copyBufferToBuffer() { copies++; } }
 class Pass {
   dispatchWorkgroups() { dispatches++; }
   dispatchWorkgroupsIndirect() { dispatches++; }
 }
-Object.assign(globalThis, { GPUQueue: Queue, GPUBuffer: Buffer, GPUCommandEncoder: Encoder,
+Object.assign(globalThis, { GPUDevice: Device, GPUQueue: Queue, GPUBuffer: Buffer, GPUCommandEncoder: Encoder,
   GPUComputePassEncoder: Pass, GPUBufferUsage: { MAP_READ: 1 } });
 const original = Queue.prototype.submit;
 const observer = installGpuObservation();
@@ -26,6 +34,13 @@ try {
   const source = new Buffer('logits', 0), target = new Buffer('staging', 1);
   queue.submit(); // Disabled observation must not add work or counters.
   observer.start();
+  const device = new Device();
+  assert.equal(device.createBuffer(), 'allocated');
+  assert.equal(device.createShaderModule(), 'shader');
+  assert.equal(device.createComputePipeline(), 'pipeline');
+  assert.equal(device.createComputePipelineAsync(), pending);
+  assert.equal(queue.writeBuffer(), 'uploaded');
+  assert.equal(target.getMappedRange(), 'mapped');
   assert.equal(queue.submit(), 'submitted');
   assert.equal(queue.onSubmittedWorkDone(), pending, 'preserve native promise identity');
   assert.equal(target.mapAsync(), pending);
@@ -41,7 +56,11 @@ try {
   assert.equal(observation.counts.indirectDispatches, 1);
   assert.equal(observation.rows.filter(row => row.kind === 'readback-copy').length, 1);
   assert.equal(observation.rows.find(row => row.kind === 'readback-copy').bytes, 608);
-  assert.equal(observation.rows.filter(row => row.failed === false).length, 2);
+  assert.equal(observation.rows.filter(row => row.failed === false).length, 3);
+  assert.equal(observation.rows.filter(row => row.kind === 'pipeline-compilation').length, 1);
+  for (const counter of ['bufferAllocations', 'shaderModules', 'synchronousPipelines', 'bufferUploads', 'mappedRanges']) {
+    assert.equal(observation.counts[counter], 1);
+  }
 } finally { observer.restore(); }
 assert.equal(Queue.prototype.submit, original);
 

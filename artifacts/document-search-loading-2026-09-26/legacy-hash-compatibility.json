@@ -1,0 +1,12 @@
+{
+  "schema": "doppler.retained-hash-compatibility/v1",
+  "reference": "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3/master/test_vectors/test_vectors.json",
+  "inputLength": 0,
+  "standardBlake3": "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
+  "retained": "fda1200e7626ed65703a9c8eb28987d8142bf29fcf7cf582e0c44cc7ad8a8ea8",
+  "candidate": "fda1200e7626ed65703a9c8eb28987d8142bf29fcf7cf582e0c44cc7ad8a8ea8",
+  "retainedModuleSha256": "ac75a9839adcc3be6d5edee824c7b1aa07fd2a71ff38a85b7e24f48b2123061b",
+  "retainedIdentityPreserved": true,
+  "standardConformance": false,
+  "disposition": "Existing manifests depend on historical Doppler digest semantics. Preserve them under the requested immutable-release contract; standard digest correction requires a distinct qualified artifact release. Outer Capsule artifact authentication remains SHA-256."
+}

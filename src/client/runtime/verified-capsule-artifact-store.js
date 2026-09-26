@@ -23,14 +23,47 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
   if (source.streamArtifact != null && typeof source.streamArtifact !== 'function') throw new Error('Capsule streamArtifact must be a function.');
   const shared = backingOwners.get(backing);
   if (!shared) throw new Error('Capsule backing must be an owned createCapsuleArtifactBacking() handle.');
-  const { maxRetainedArtifactBytes, maxAcquisitionChunkBytes, verificationYieldBytes } = normalizeCapsuleLoadingPolicy(options);
+  const { maxRetainedArtifactBytes, maxAcquisitionChunkBytes, verificationYieldBytes,
+    maxVerifiedBackingBytes, artifactHashBackend } = normalizeCapsuleLoadingPolicy(options);
   const artifacts = new Map(capsule.artifacts.map(artifact => [artifact.artifactId, Object.freeze(structuredClone(artifact))]));
   const verified = new Map();
   const snapshots = new Map();
   const pending = new Map();
   const acquisitions = new Set();
+  const readers = new Set();
+  let reservedBytes = 0;
+  const nodeHost = typeof process !== 'undefined' && Boolean(process.versions?.node);
+  const hashBackend = artifactHashBackend === 'host' ? (nodeHost ? 'node-crypto' : 'javascript') : artifactHashBackend;
+  if (hashBackend === 'node-crypto' && !nodeHost) throw new Error('Capsule node-crypto hashing requires Node.');
+  async function createArtifactHasher() {
+    if (hashBackend === 'javascript') return createSha256Hasher();
+    const { createHash } = await import('node:crypto');
+    const hash = createHash('sha256');
+    return { update(bytes) { hash.update(bytes); }, digestHex() { return hash.digest('hex'); } };
+  }
+  function assertBackingBudget(bytes) {
+    if (maxVerifiedBackingBytes !== null && bytes > maxVerifiedBackingBytes - metrics.backingBytes - reservedBytes) {
+      throw new Error('Capsule verified backing exceeds maxVerifiedBackingBytes; release unused backing or raise the explicit budget.');
+    }
+  }
+  function trackRead(action) {
+    const task = action();
+    readers.add(task);
+    const done = () => readers.delete(task);
+    task.then(done, done);
+    return task;
+  }
+  function clearBacking() {
+    verified.clear();
+    for (const [hash, entry] of snapshots) {
+      if (--entry.references === 0 && shared.get(hash) === entry) shared.delete(hash);
+    }
+    snapshots.clear();
+    metrics.releasedBackingBytes += metrics.backingBytes;
+    metrics.retainedBytes = 0; metrics.backingBytes = 0; metrics.backingFiles = 0;
+  }
   let closed = false;
-  const metrics = { sourceBytes: 0, hashedBytes: 0, copiedBytes: 0, retainedBytes: 0, peakRetainedBytes: 0, returnedBytes: 0,
+  const metrics = { hashBackend, reservedBackingBytes: 0, peakReservedAndBackingBytes: 0, releasedBackingBytes: 0, sourceBytes: 0, hashedBytes: 0, copiedBytes: 0, retainedBytes: 0, peakRetainedBytes: 0, returnedBytes: 0,
     evictions: 0, sourceReadMs: 0, hashingMs: 0, copyingMs: 0,
     backingBytes: 0, peakBackingBytes: 0, backingFiles: 0, snapshotCopiedBytes: 0,
     sharedBackingBytes: 0, peakSnapshotBlockBytes: 0,
@@ -63,11 +96,20 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
       return retained.snapshot;
     }
     const borrowed = shared.get(declared.hash);
-    if (borrowed && !pending.has(declared.hash)) return admit(declared, borrowed, true);
+    if (borrowed && !pending.has(declared.hash)) {
+      assertBackingBudget(borrowed.snapshot.size);
+      const snapshot = admit(declared, borrowed, true);
+      metrics.peakReservedAndBackingBytes = Math.max(metrics.peakReservedAndBackingBytes, reservedBytes + metrics.backingBytes);
+      return snapshot;
+    }
     let task = pending.get(declared.hash);
     if (!task) {
+      assertBackingBudget(declared.sizeBytes);
+      const acquisition = createCapsuleLoadScope(options);
+      reservedBytes += declared.sizeBytes;
+      metrics.reservedBackingBytes = reservedBytes;
+      metrics.peakReservedAndBackingBytes = Math.max(metrics.peakReservedAndBackingBytes, reservedBytes + metrics.backingBytes);
       task = (async () => {
-        const acquisition = createCapsuleLoadScope(options);
         acquisitions.add(acquisition);
         const chunks = [];
         let iterator;
@@ -84,7 +126,8 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
             iterator = [payload instanceof Uint8Array ? payload : new Uint8Array(payload)][Symbol.iterator]();
           }
           metrics.sourceReadMs += performance.now() - started;
-          const hasher = createSha256Hasher();
+          const hasher = await createArtifactHasher();
+          assertActive();
           let size = 0;
           let sinceYield = 0;
           let hostTask;
@@ -162,6 +205,8 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
             // Built-in transports observe the signal and release in finally.
             try { Promise.resolve(iterator?.return?.()).catch(() => {}); } catch {}
           }
+          reservedBytes -= declared.sizeBytes;
+          metrics.reservedBackingBytes = reservedBytes;
           acquisitions.delete(acquisition);
           acquisition.close();
         }
@@ -205,23 +250,23 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
     return result;
   }
   const store = Object.freeze({
-    readArtifact(artifact) { return readArtifactRange(artifact, 0, resolveArtifact(artifact).sizeBytes); },
-    readArtifactRange,
-    async hashArtifact(artifact) {
+    readArtifact(artifact) { return trackRead(() => readArtifactRange(artifact, 0, resolveArtifact(artifact).sizeBytes)); },
+    readArtifactRange(artifact, offset, length) { return trackRead(() => readArtifactRange(artifact, offset, length)); },
+    hashArtifact(artifact) { return trackRead(async () => {
       const declared = resolveArtifact(artifact);
       const snapshot = await verifiedSnapshot(declared);
       assertActive();
       return { hash: declared.hash, sizeBytes: snapshot.size };
+    }); },
+    async releaseBacking() {
+      while (readers.size) await Promise.allSettled([...readers]);
+      clearBacking();
     },
     getMetrics() { return Object.freeze({ ...metrics }); },
     close() {
       closed = true; verified.clear(); pending.clear();
       for (const acquisition of acquisitions) acquisition.abort(new Error('Verified Capsule artifact store is closed.'));
-      for (const [hash, entry] of snapshots) {
-        if (--entry.references === 0 && shared.get(hash) === entry) shared.delete(hash);
-      }
-      snapshots.clear();
-      metrics.retainedBytes = 0; metrics.backingBytes = 0; metrics.backingFiles = 0;
+      clearBacking();
     },
   });
   verifiedStores.add(store);

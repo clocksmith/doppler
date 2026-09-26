@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.corpus-freeze/v1",
+  "frozenAtUtc": "2026-09-26T19:31:32.879559+00:00",
+  "sha256": "dd7c2b6a6e3d1e7aac3ba4a9739c066cf6ffe38be45c48127433cfe842f2a080",
+  "parentSha256": "9a5e7f901f404d7d3e4bc7cdd4f2d4950d6532870b5e36f3a27bbfb998ee198a",
+  "candidateOutputsObserved": true,
+  "changes": [
+    {
+      "queryId": "upgrade",
+      "field": "relevantIds",
+      "before": [
+        "recipe"
+      ],
+      "after": [
+        "recipe",
+        "ticket-4821"
+      ],
+      "reason": "Both passages support vector reuse unless the embedding space changes; annotation correction informed by observed results."
+    }
+  ],
+  "policy": "All retained candidate decisions use version 1. Version 2 is frozen for future experiments and must not be represented as unseen data."
+}

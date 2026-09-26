@@ -1,0 +1,23 @@
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 20382.79it/s]
+Loading weights:   0%|          | 0/105 [00:00<?, ?it/s]Loading weights: 100%|██████████| 105/105 [00:00<00:00, 18321.83it/s]
+Captured bread
+Captured bike
+Captured moon
+Captured sun
+Captured restore
+Captured motor
+Captured id-e17
+Captured id-e71
+Captured id-4821
+Captured id-4812
+Captured gpu
+Captured upgrade
+Captured backup
+Captured escapement
+Captured pan
+Captured version
+Captured tail
+Captured tail-neighbor
+Captured weather
+Captured refund
+Captured missing-cabinet

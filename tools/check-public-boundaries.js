@@ -121,7 +121,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Rig/Run names and compatibility exports: same 1864-file inventory,
   // 2,154,292 packed / 11,334,081 unpacked bytes on Node 22/npm 9.
   // Exact inventory: artifacts/rig-run-naming-2026-09-26/package-audit.json.
-  maxUnpackedSize: 11_334_081,
+  // Loading limits, owned-backing release and digest-preserving hash acceleration:
+  // same 1864 files; audited in artifacts/document-search-loading-2026-09-26/package-audit.json.
+  maxUnpackedSize: 11_340_219,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

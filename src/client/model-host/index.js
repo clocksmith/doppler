@@ -412,6 +412,8 @@ export function createDopplerRuntimeService({
           const modelHandle = await load(source, { ...resolveCapsuleProgramLoadOptions(targetPlan), isolatedLoader: true });
           try {
             assertCapsuleLoadActive(programOptions.signal);
+            await artifactStore.releaseBacking();
+            assertCapsuleLoadActive(programOptions.signal);
             return createCapsuleProgramAdapter(modelHandle, capsule, targetPlan);
           } catch (error) {
             try { await modelHandle.unload(); } catch (cleanupError) {

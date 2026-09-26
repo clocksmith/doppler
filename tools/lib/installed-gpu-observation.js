@@ -34,6 +34,12 @@ export function installGpuObservation() {
     return result;
   });
   try {
+    countCall(GPUDevice.prototype, 'createBuffer', 'bufferAllocations');
+    countCall(GPUDevice.prototype, 'createShaderModule', 'shaderModules');
+    countCall(GPUDevice.prototype, 'createComputePipeline', 'synchronousPipelines');
+    observeWait(GPUDevice.prototype, 'createComputePipelineAsync', 'pipeline-compilation');
+    countCall(GPUQueue.prototype, 'writeBuffer', 'bufferUploads');
+    countCall(GPUBuffer.prototype, 'getMappedRange', 'mappedRanges');
     countCall(GPUQueue.prototype, 'submit', 'submissions');
     countCall(GPUComputePassEncoder.prototype, 'dispatchWorkgroups', 'dispatches');
     countCall(GPUComputePassEncoder.prototype, 'dispatchWorkgroupsIndirect', 'indirectDispatches');

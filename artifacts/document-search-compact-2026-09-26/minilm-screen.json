@@ -1,0 +1,1023 @@
+{
+  "schema": "doppler.search-source-screen/v1",
+  "passed": false,
+  "metrics": {
+    "answerableTop1Rate": 0.7222222222222222,
+    "identifierTop1Rate": 0.8,
+    "longDocumentTop1Rate": 1,
+    "noAnswerFalsePositives": 1
+  },
+  "rows": [
+    {
+      "id": "bread",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "sourdough",
+      "accepted": false,
+      "correct": false,
+      "candidateRecall": true,
+      "elapsedMs": 2.420076999999992,
+      "results": [
+        {
+          "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+          "documentId": "sourdough",
+          "similarity": 0.35972882430135567,
+          "score": -8.134312629699707
+        },
+        {
+          "passageId": "073920fcec387ed6fa64d65563f955b9530eb4fdd405b5bca83afe60ef447f9b",
+          "documentId": "archive",
+          "similarity": 0.1954242253886706,
+          "score": -11.230130195617676
+        },
+        {
+          "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+          "documentId": "archive",
+          "similarity": 0.21258510400116382,
+          "score": -11.232375144958496
+        },
+        {
+          "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+          "documentId": "archive",
+          "similarity": 0.16735685780604673,
+          "score": -11.237902641296387
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.165561305032093,
+          "score": -11.383190155029297
+        }
+      ]
+    },
+    {
+      "id": "bike",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "tire",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.8748379999999969,
+      "results": [
+        {
+          "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+          "documentId": "tire",
+          "similarity": 0.49448453682646465,
+          "score": 2.958466053009033
+        },
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.04609571814477949,
+          "score": -11.18680477142334
+        },
+        {
+          "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+          "documentId": "device",
+          "similarity": 0.1042566793403662,
+          "score": -11.211583137512207
+        },
+        {
+          "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+          "documentId": "sourdough",
+          "similarity": 0.06216469912376186,
+          "score": -11.271320343017578
+        },
+        {
+          "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+          "documentId": "starter-motor",
+          "similarity": 0.07542247131704807,
+          "score": -11.290515899658203
+        }
+      ]
+    },
+    {
+      "id": "moon",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "eclipse",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.7734669999999966,
+      "results": [
+        {
+          "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+          "documentId": "eclipse",
+          "similarity": 0.6200793216824602,
+          "score": 3.8131256103515625
+        },
+        {
+          "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+          "documentId": "solar",
+          "similarity": 0.4202974695558815,
+          "score": -4.588477611541748
+        },
+        {
+          "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+          "documentId": "tire",
+          "similarity": 0.1335096231974852,
+          "score": -11.259883880615234
+        },
+        {
+          "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+          "documentId": "sync-e17",
+          "similarity": 0.05195829102136428,
+          "score": -11.35799789428711
+        },
+        {
+          "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+          "documentId": "archive",
+          "similarity": 0.07880812554831713,
+          "score": -11.407357215881348
+        }
+      ]
+    },
+    {
+      "id": "sun",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "solar",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.6474490000000088,
+      "results": [
+        {
+          "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+          "documentId": "solar",
+          "similarity": 0.5963544268565596,
+          "score": 0.6253890991210938
+        },
+        {
+          "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+          "documentId": "eclipse",
+          "similarity": 0.4365523502207958,
+          "score": -4.134842395782471
+        },
+        {
+          "passageId": "8b9efbf8f938bb5cfbbb10e57bc2a129825201f231f44dd6174dd673596c4cae",
+          "documentId": "archive",
+          "similarity": 0.065693756909151,
+          "score": -11.07497787475586
+        },
+        {
+          "passageId": "1c066de9de4cb527ec6f0855981d85cf4160d8b722ab5057dd2949e8d630e5da",
+          "documentId": "archive",
+          "similarity": 0.056585522371200854,
+          "score": -11.087839126586914
+        },
+        {
+          "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+          "documentId": "archive",
+          "similarity": 0.07095760005895385,
+          "score": -11.19727611541748
+        }
+      ]
+    },
+    {
+      "id": "restore",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "git",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.570555000000013,
+      "results": [
+        {
+          "passageId": "0cb3952e9b8628cc92cd138890faa8c7027c9ab5e6dfbaae0d2a0152b79ab2f9",
+          "documentId": "git",
+          "similarity": 0.7111310001227252,
+          "score": 4.881794452667236
+        },
+        {
+          "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+          "documentId": "sync-e17",
+          "similarity": 0.2699727515537777,
+          "score": -5.523190498352051
+        },
+        {
+          "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+          "documentId": "archive",
+          "similarity": 0.26044919895425156,
+          "score": -9.108197212219238
+        },
+        {
+          "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+          "documentId": "archive",
+          "similarity": 0.25789210283404307,
+          "score": -9.17408275604248
+        },
+        {
+          "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+          "documentId": "archive",
+          "similarity": 0.2512800580009341,
+          "score": -9.355557441711426
+        }
+      ]
+    },
+    {
+      "id": "motor",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "starter-motor",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.47167799999999716,
+      "results": [
+        {
+          "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+          "documentId": "starter-motor",
+          "similarity": 0.3620995597916505,
+          "score": 2.4427073001861572
+        },
+        {
+          "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+          "documentId": "clock",
+          "similarity": 0.21971712241813385,
+          "score": -11.248246192932129
+        },
+        {
+          "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+          "documentId": "sourdough",
+          "similarity": 0.12262452563936381,
+          "score": -11.251691818237305
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.11760739282035067,
+          "score": -11.416665077209473
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.1379163241448069,
+          "score": -11.4396333694458
+        }
+      ]
+    },
+    {
+      "id": "id-e17",
+      "category": "identifier",
+      "answerable": true,
+      "topId": "sync-e17",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.4068669999999912,
+      "results": [
+        {
+          "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+          "documentId": "sync-e17",
+          "similarity": 0.42949481799096767,
+          "score": 2.5181312561035156
+        },
+        {
+          "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+          "documentId": "sync-e71",
+          "similarity": 0.2112017244312267,
+          "score": -9.83024787902832
+        },
+        {
+          "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+          "documentId": "archive",
+          "similarity": 0.1293770753495672,
+          "score": -10.458123207092285
+        },
+        {
+          "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+          "documentId": "device",
+          "similarity": 0.09339487506428759,
+          "score": -10.704147338867188
+        },
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.1455176070656899,
+          "score": -11.338227272033691
+        }
+      ]
+    },
+    {
+      "id": "id-e71",
+      "category": "identifier",
+      "answerable": true,
+      "topId": "sync-e71",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.24087400000000514,
+      "results": [
+        {
+          "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+          "documentId": "sync-e71",
+          "similarity": 0.334114651356187,
+          "score": 2.902420997619629
+        },
+        {
+          "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+          "documentId": "sync-e17",
+          "similarity": 0.2556073620590389,
+          "score": -7.387427806854248
+        },
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.24977896651102152,
+          "score": -11.155433654785156
+        },
+        {
+          "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+          "documentId": "ticket-4821",
+          "similarity": 0.1350324796511359,
+          "score": -11.304685592651367
+        },
+        {
+          "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+          "documentId": "tire",
+          "similarity": 0.15762414585161483,
+          "score": -11.322829246520996
+        }
+      ]
+    },
+    {
+      "id": "id-4821",
+      "category": "identifier",
+      "answerable": true,
+      "topId": "ticket-4821",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.12037599999999316,
+      "results": [
+        {
+          "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+          "documentId": "ticket-4821",
+          "similarity": 0.5721706713703578,
+          "score": 6.530535697937012
+        },
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.5065899151820183,
+          "score": 1.1980156898498535
+        },
+        {
+          "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+          "documentId": "release",
+          "similarity": 0.33690917548661925,
+          "score": -8.91843318939209
+        },
+        {
+          "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+          "documentId": "archive",
+          "similarity": 0.26991367965916524,
+          "score": -11.062561988830566
+        },
+        {
+          "passageId": "310b7e995a34568c11ebc5c70c939de648a9164c02e847e6acee40a39e3bb3bc",
+          "documentId": "archive",
+          "similarity": 0.23508275833515693,
+          "score": -11.154481887817383
+        }
+      ]
+    },
+    {
+      "id": "id-4812",
+      "category": "identifier",
+      "answerable": true,
+      "topId": "ticket-4812",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.1139349999999979,
+      "results": [
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.6220185898005041,
+          "score": 7.9240922927856445
+        },
+        {
+          "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+          "documentId": "ticket-4821",
+          "similarity": 0.5803721249767525,
+          "score": 4.484963417053223
+        },
+        {
+          "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+          "documentId": "sync-e71",
+          "similarity": 0.2098212281178162,
+          "score": -10.455972671508789
+        },
+        {
+          "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+          "documentId": "release",
+          "similarity": 0.3284761993472374,
+          "score": -10.744638442993164
+        },
+        {
+          "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+          "documentId": "sync-e17",
+          "similarity": 0.22210488535771306,
+          "score": -11.029118537902832
+        }
+      ]
+    },
+    {
+      "id": "gpu",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "device",
+      "accepted": false,
+      "correct": false,
+      "candidateRecall": true,
+      "elapsedMs": 0.0645020000000045,
+      "results": [
+        {
+          "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+          "documentId": "device",
+          "similarity": 0.5904413142340024,
+          "score": -0.040040310472249985
+        },
+        {
+          "passageId": "0cb3952e9b8628cc92cd138890faa8c7027c9ab5e6dfbaae0d2a0152b79ab2f9",
+          "documentId": "git",
+          "similarity": 0.36500183395938857,
+          "score": -5.74217414855957
+        },
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.5234320170783916,
+          "score": -6.706327438354492
+        },
+        {
+          "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+          "documentId": "archive",
+          "similarity": 0.2064223030684548,
+          "score": -10.80771541595459
+        },
+        {
+          "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+          "documentId": "ticket-4821",
+          "similarity": 0.22178557942292904,
+          "score": -11.02267837524414
+        }
+      ]
+    },
+    {
+      "id": "upgrade",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "ticket-4821",
+      "accepted": true,
+      "correct": false,
+      "candidateRecall": true,
+      "elapsedMs": 0.07040299999999888,
+      "results": [
+        {
+          "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+          "documentId": "ticket-4821",
+          "similarity": 0.3789283476947044,
+          "score": 0.5428842306137085
+        },
+        {
+          "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+          "documentId": "recipe",
+          "similarity": 0.5498373440055626,
+          "score": -5.387733459472656
+        },
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.2580372785382416,
+          "score": -10.397696495056152
+        },
+        {
+          "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+          "documentId": "archive",
+          "similarity": 0.24920772813226358,
+          "score": -11.26391887664795
+        },
+        {
+          "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+          "documentId": "archive",
+          "similarity": 0.2464915131120749,
+          "score": -11.27436351776123
+        }
+      ]
+    },
+    {
+      "id": "backup",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "export",
+      "accepted": false,
+      "correct": false,
+      "candidateRecall": true,
+      "elapsedMs": 0.06305899999999554,
+      "results": [
+        {
+          "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+          "documentId": "export",
+          "similarity": 0.36961628746423447,
+          "score": -5.370590686798096
+        },
+        {
+          "passageId": "073920fcec387ed6fa64d65563f955b9530eb4fdd405b5bca83afe60ef447f9b",
+          "documentId": "archive",
+          "similarity": 0.3315761534890434,
+          "score": -11.052440643310547
+        },
+        {
+          "passageId": "b6e74f43faa11ca3c8ecafbed26dc546a4f07349a7a7fa01b8688579243fc5f2",
+          "documentId": "archive",
+          "similarity": 0.32379609970610895,
+          "score": -11.123165130615234
+        },
+        {
+          "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+          "documentId": "archive",
+          "similarity": 0.3168790433843194,
+          "score": -11.150016784667969
+        },
+        {
+          "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+          "documentId": "archive",
+          "similarity": 0.3209857025424813,
+          "score": -11.173786163330078
+        }
+      ]
+    },
+    {
+      "id": "escapement",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "clock",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.06212700000000382,
+      "results": [
+        {
+          "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+          "documentId": "clock",
+          "similarity": 0.6380843986838202,
+          "score": 4.444169998168945
+        },
+        {
+          "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+          "documentId": "archive",
+          "similarity": 0.17816352326284252,
+          "score": -11.311577796936035
+        },
+        {
+          "passageId": "b6e74f43faa11ca3c8ecafbed26dc546a4f07349a7a7fa01b8688579243fc5f2",
+          "documentId": "archive",
+          "similarity": 0.17382817784957696,
+          "score": -11.3123779296875
+        },
+        {
+          "passageId": "8b9efbf8f938bb5cfbbb10e57bc2a129825201f231f44dd6174dd673596c4cae",
+          "documentId": "archive",
+          "similarity": 0.17618811688001593,
+          "score": -11.313309669494629
+        },
+        {
+          "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+          "documentId": "archive",
+          "similarity": 0.17001857425531325,
+          "score": -11.319881439208984
+        }
+      ]
+    },
+    {
+      "id": "pan",
+      "category": "paraphrase",
+      "answerable": true,
+      "topId": "copper",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.06612499999999955,
+      "results": [
+        {
+          "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+          "documentId": "copper",
+          "similarity": 0.6501785439288187,
+          "score": 1.9751757383346558
+        },
+        {
+          "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+          "documentId": "eclipse",
+          "similarity": 0.18434421547018623,
+          "score": -10.646489143371582
+        },
+        {
+          "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+          "documentId": "archive",
+          "similarity": 0.05089114613495994,
+          "score": -11.310885429382324
+        },
+        {
+          "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+          "documentId": "solar",
+          "similarity": 0.08715138650202457,
+          "score": -11.369648933410645
+        },
+        {
+          "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+          "documentId": "starter-motor",
+          "similarity": 0.08074808465340037,
+          "score": -11.406051635742188
+        }
+      ]
+    },
+    {
+      "id": "version",
+      "category": "identifier",
+      "answerable": true,
+      "topId": "ticket-4821",
+      "accepted": false,
+      "correct": false,
+      "candidateRecall": true,
+      "elapsedMs": 0.06630499999999984,
+      "results": [
+        {
+          "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+          "documentId": "ticket-4821",
+          "similarity": 0.42243616429950553,
+          "score": -3.23600697517395
+        },
+        {
+          "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+          "documentId": "release",
+          "similarity": 0.6161436985107979,
+          "score": -3.9437661170959473
+        },
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.32750241365777966,
+          "score": -10.986331939697266
+        },
+        {
+          "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+          "documentId": "archive",
+          "similarity": 0.21402368452359868,
+          "score": -11.40024471282959
+        },
+        {
+          "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+          "documentId": "archive",
+          "similarity": 0.2145376551353708,
+          "score": -11.407306671142578
+        }
+      ]
+    },
+    {
+      "id": "tail",
+      "category": "long-document",
+      "answerable": true,
+      "topId": "archive",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.06465199999999527,
+      "results": [
+        {
+          "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+          "documentId": "archive",
+          "similarity": 0.6636654819281437,
+          "score": 9.238301277160645
+        },
+        {
+          "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+          "documentId": "archive",
+          "similarity": 0.36848959715513235,
+          "score": -11.353205680847168
+        },
+        {
+          "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+          "documentId": "archive",
+          "similarity": 0.3658178490043638,
+          "score": -11.358138084411621
+        },
+        {
+          "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+          "documentId": "archive",
+          "similarity": 0.36703894488586664,
+          "score": -11.363221168518066
+        },
+        {
+          "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+          "documentId": "archive",
+          "similarity": 0.3567771949375392,
+          "score": -11.383562088012695
+        }
+      ]
+    },
+    {
+      "id": "tail-neighbor",
+      "category": "long-document",
+      "answerable": true,
+      "topId": "archive",
+      "accepted": true,
+      "correct": true,
+      "candidateRecall": true,
+      "elapsedMs": 0.06377999999999417,
+      "results": [
+        {
+          "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+          "documentId": "archive",
+          "similarity": 0.6520625063386356,
+          "score": 8.909509658813477
+        },
+        {
+          "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+          "documentId": "archive",
+          "similarity": 0.36123062928055655,
+          "score": -11.355175971984863
+        },
+        {
+          "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+          "documentId": "archive",
+          "similarity": 0.35741886737832573,
+          "score": -11.363807678222656
+        },
+        {
+          "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+          "documentId": "archive",
+          "similarity": 0.359555915325362,
+          "score": -11.36866569519043
+        },
+        {
+          "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+          "documentId": "archive",
+          "similarity": 0.353258408458271,
+          "score": -11.371889114379883
+        }
+      ]
+    },
+    {
+      "id": "weather",
+      "category": "no-answer",
+      "answerable": false,
+      "topId": "sourdough",
+      "accepted": false,
+      "correct": true,
+      "candidateRecall": null,
+      "elapsedMs": 0.07666400000000806,
+      "results": [
+        {
+          "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+          "documentId": "sourdough",
+          "similarity": 0.0906593619128412,
+          "score": -11.164410591125488
+        },
+        {
+          "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+          "documentId": "eclipse",
+          "similarity": 0.05725579904405461,
+          "score": -11.25377082824707
+        },
+        {
+          "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+          "documentId": "solar",
+          "similarity": 0.059148954805598494,
+          "score": -11.270313262939453
+        },
+        {
+          "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+          "documentId": "release",
+          "similarity": 0.15069325793857552,
+          "score": -11.343549728393555
+        },
+        {
+          "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+          "documentId": "ticket-4821",
+          "similarity": 0.04394131131147635,
+          "score": -11.35326099395752
+        }
+      ]
+    },
+    {
+      "id": "refund",
+      "category": "no-answer",
+      "answerable": false,
+      "topId": "ticket-4812",
+      "accepted": false,
+      "correct": true,
+      "candidateRecall": null,
+      "elapsedMs": 0.065133000000003,
+      "results": [
+        {
+          "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+          "documentId": "ticket-4812",
+          "similarity": 0.23462649088515766,
+          "score": -10.903809547424316
+        },
+        {
+          "passageId": "772650a2f1e184f1afca362d8c2446e2fee93ee1e54802319c1d192866913ec8",
+          "documentId": "archive",
+          "similarity": 0.18334107931011978,
+          "score": -11.273426055908203
+        },
+        {
+          "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+          "documentId": "archive",
+          "similarity": 0.16146539656813916,
+          "score": -11.276299476623535
+        },
+        {
+          "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+          "documentId": "archive",
+          "similarity": 0.1681081592270053,
+          "score": -11.279587745666504
+        },
+        {
+          "passageId": "310b7e995a34568c11ebc5c70c939de648a9164c02e847e6acee40a39e3bb3bc",
+          "documentId": "archive",
+          "similarity": 0.1687186848162299,
+          "score": -11.288403511047363
+        }
+      ]
+    },
+    {
+      "id": "missing-cabinet",
+      "category": "no-answer",
+      "answerable": false,
+      "topId": "archive",
+      "accepted": true,
+      "correct": false,
+      "candidateRecall": null,
+      "elapsedMs": 0.0641509999999954,
+      "results": [
+        {
+          "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+          "documentId": "archive",
+          "similarity": 0.6554368321573013,
+          "score": 7.808856964111328
+        },
+        {
+          "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+          "documentId": "archive",
+          "similarity": 0.39118336303366497,
+          "score": -11.272957801818848
+        },
+        {
+          "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+          "documentId": "archive",
+          "similarity": 0.3771610327652055,
+          "score": -11.297393798828125
+        },
+        {
+          "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+          "documentId": "archive",
+          "similarity": 0.3859612395523094,
+          "score": -11.298324584960938
+        },
+        {
+          "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+          "documentId": "archive",
+          "similarity": 0.37537162836987026,
+          "score": -11.305242538452148
+        }
+      ]
+    }
+  ],
+  "indexMs": 2.408345000000004,
+  "corpusSha256": "9a5e7f901f404d7d3e4bc7cdd4f2d4950d6532870b5e36f3a27bbfb998ee198a",
+  "captureSha256": "f2f2382b29aa7a58a8166d0e47bb4b1e8aa7eb50bc18f2796b759675530193a5",
+  "sources": [
+    {
+      "role": "embedding",
+      "repository": "sentence-transformers/all-MiniLM-L6-v2",
+      "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+      "license": "apache-2.0",
+      "files": [
+        {
+          "path": "1_Pooling/config.json",
+          "sizeBytes": 190,
+          "sha256": "4be450dde3b0273bb9787637cfbd28fe04a7ba6ab9d36ac48e92b11e350ffc23"
+        },
+        {
+          "path": "README.md",
+          "sizeBytes": 10502,
+          "sha256": "dcd602d2fd35c203a247304a06fec6654a12f7941b739f9221a064fe8dc3b7f0"
+        },
+        {
+          "path": "config.json",
+          "sizeBytes": 612,
+          "sha256": "953f9c0d463486b10a6871cc2fd59f223b2c70184f49815e7efbcab5d8908b41"
+        },
+        {
+          "path": "config_sentence_transformers.json",
+          "sizeBytes": 116,
+          "sha256": "061ca9d39661d6c6d6de5ba27f79a1cd5770ea247f8d46412a68a498dc5ac9f3"
+        },
+        {
+          "path": "model.safetensors",
+          "sizeBytes": 90868376,
+          "sha256": "53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db"
+        },
+        {
+          "path": "modules.json",
+          "sizeBytes": 349,
+          "sha256": "84e40c8e006c9b1d6c122e02cba9b02458120b5fb0c87b746c41e0207cf642cf"
+        },
+        {
+          "path": "sentence_bert_config.json",
+          "sizeBytes": 53,
+          "sha256": "fc1993fde0a95c24ec6c022539d41cf6e2f7c9721e5415d6fb6897472a9cd4b7"
+        },
+        {
+          "path": "special_tokens_map.json",
+          "sizeBytes": 112,
+          "sha256": "303df45a03609e4ead04bc3dc1536d0ab19b5358db685b6f3da123d05ec200e3"
+        },
+        {
+          "path": "tokenizer.json",
+          "sizeBytes": 466247,
+          "sha256": "be50c3628f2bf5bb5e3a7f17b1f74611b2561a3a27eeab05e5aa30f411572037"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "sizeBytes": 350,
+          "sha256": "acb92769e8195aabd29b7b2137a9e6d6e25c476a4f15aa4355c233426c61576b"
+        },
+        {
+          "path": "vocab.txt",
+          "sizeBytes": 231508,
+          "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+        }
+      ],
+      "directory": "/dev/shm/doppler-compact-20260926/embedding"
+    },
+    {
+      "role": "reranker",
+      "repository": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "revision": "233902d25c440f23af6f7d6e94d2946bac0bee0a",
+      "license": "apache-2.0",
+      "files": [
+        {
+          "path": "README.md",
+          "sizeBytes": 3673,
+          "sha256": "7c0ec39941d0d1d766ccde671f592971d82fe45b7eea550a80d1ea864ebc3baa"
+        },
+        {
+          "path": "config.json",
+          "sizeBytes": 794,
+          "sha256": "380e02c93f431831be65d99a4e7e5f67c133985bf2e77d9d4eba46847190bacc"
+        },
+        {
+          "path": "model.safetensors",
+          "sizeBytes": 90870598,
+          "sha256": "821d1aa69520101d6e0737f78a042ae25b19e5cb9160701909d10434f4aeb0ae"
+        },
+        {
+          "path": "special_tokens_map.json",
+          "sizeBytes": 132,
+          "sha256": "3c3507f36dff57bce437223db3b3081d1e2b52ec3e56ee55438193ecb2c94dd6"
+        },
+        {
+          "path": "tokenizer.json",
+          "sizeBytes": 711396,
+          "sha256": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "sizeBytes": 1330,
+          "sha256": "a5c2e5a7b1a29a0702cd28c08a399b5ecc110c263009d17f7e3b415f25905fd8"
+        },
+        {
+          "path": "vocab.txt",
+          "sizeBytes": 231508,
+          "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+        }
+      ],
+      "directory": "/dev/shm/doppler-compact-20260926/reranker"
+    }
+  ],
+  "policy": {
+    "preparedPath": "/dev/shm/doppler-compact-20260926/prepared.json",
+    "sourcesPath": "/dev/shm/doppler-compact-20260926/sources.json",
+    "outputPath": "/dev/shm/doppler-compact-20260926/minilm-source.json",
+    "threads": 4,
+    "embeddingMaxTokens": 256,
+    "rerankerMaxTokens": 512,
+    "minimumRerankScore": 0,
+    "scoreContract": "Raw scalar cross-encoder logit, accept >=0; fixed before source outputs.",
+    "pooling": "attention-mask mean, L2 normalize; include special tokens"
+  },
+  "physicalDopplerExecution": false,
+  "signedCapsuleExecution": false,
+  "timingScope": "Replay orchestration only. Source inference timings are in the capture; these are not Run timings.",
+  "probeSha256": "832b22ae27d82fd340bdb1b8f0de80223c68cfe6ce438c7c2ac69c815970369b",
+  "searchSha256": "c2e0a9add32855ad4f86901afa2ac6475e6420812bb2d452e9142e90f916c402"
+}

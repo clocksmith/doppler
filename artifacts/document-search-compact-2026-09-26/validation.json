@@ -1,0 +1,16 @@
+{
+  "schema": "doppler.compact-validation/v1",
+  "command": "npm run check:green",
+  "exitCode": 0,
+  "unitFilesPassed": 866,
+  "independentGatesPassed": true,
+  "log": "check-green.txt.gz",
+  "logSha256": "9e64c726ac04576cf6dd01fa8d0e705d49671efbbbce0db36e7e4bbd83dabccf",
+  "compressedLogSha256": "b21959242dbe5302c04d37d64ffaf1386b72d7c660476d95e95101cbd1b94733",
+  "finalFollowups": [
+    "node tools/report-source-dependencies.js",
+    "npm run goals:check",
+    "git diff --check"
+  ],
+  "scope": "Repository validation; not compact-model acceptance. Candidate failures remain in the physical/source reports."
+}

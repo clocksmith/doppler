@@ -4,7 +4,7 @@ export function normalizeCapsuleLoadingPolicy(options) {
   const policy = {};
   for (const [key, rule] of Object.entries(schema.properties)) {
     const value = options[key] === undefined ? rule.default : options[key];
-    if (!(value === null && Array.isArray(rule.type) && rule.type.includes('null'))
+    if (rule.enum ? !rule.enum.includes(value) : !(value === null && Array.isArray(rule.type) && rule.type.includes('null'))
       && (!Number.isSafeInteger(value) || value < rule.minimum || value > rule.maximum)) {
       throw new Error(`Invalid Capsule loading ${key}.`);
     }
