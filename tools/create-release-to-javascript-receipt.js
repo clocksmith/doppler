@@ -12,7 +12,7 @@ import { stableSortObject } from '../src/utils/stable-sort-object.js';
 
 export function usage() {
   return [
-    'Doppler Forge: Release-to-JavaScript receipt materializer',
+    'Doppler Rig: Release-to-JavaScript receipt materializer',
     '',
     'Usage:',
     '  node tools/create-release-to-javascript-receipt.js --spec <path> --out <path>',

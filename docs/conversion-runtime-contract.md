@@ -73,7 +73,7 @@ Kernel-path resolution (low to high):
 1. `runtime.inference.kernelPath`
 2. per-run pipeline context override (internal runner context)
 
-`null` is a valid "no explicit kernel path" result. Runtime must not invent an
+`null` is a valid "no explicit kernel path" result. Run must not invent an
 implicit `'auto'` kernel path.
 
 Execution compile order:

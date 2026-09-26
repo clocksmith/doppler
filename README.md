@@ -9,10 +9,12 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/clocksmith/doppler/blob/main/LICENSE)
 
 Doppler is a model compiler, release foundry, and WebGPU runtime for JavaScript.
-Forge turns supported model sources into signed immutable Capsules with
-ModelIR-derived, qualified TargetPlans. Runtime verifies, selects, binds, and
+Doppler Rig turns supported model sources into signed immutable Capsules with
+ModelIR-derived, qualified TargetPlans. Doppler Run verifies, selects, binds, and
 executes the declared JavaScript/WGSL program. Browser and Node paths are
 qualified separately; Bun remains experimental.
+
+Component names and compatible APIs: [Rig → Capsule → Run](docs/rig-run-naming.md).
 
 ## Run local document search
 
@@ -72,7 +74,7 @@ npx doppler-gpu --list-models
 
 The live browser demo is at [d4da.com/doppler](https://d4da.com/doppler).
 The first documentation path is [getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md),
-followed by the [Capsule Runtime API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
+followed by the [Doppler Run API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
 For the release-foundry path, the installed command is `doppler release`; from
 npm use `npx --package doppler-gpu doppler release`. It consumes a pinned
@@ -81,7 +83,7 @@ npm use `npx --package doppler-gpu doppler release`. It consumes a pinned
 deploys the customer application. See the [release platform contract](docs/model-release-platform.md)
 and [CLI reference](docs/cli.md).
 
-### Capsule Runtime API
+### Doppler Run API
 
 ```js
 import { openCapsule } from 'doppler-gpu/host';
@@ -112,7 +114,7 @@ explicit. See the [Electron integration](examples/electron-document-search/READM
 and [retained evaluation](docs/integration/reranker-evaluation.md).
 
 Advanced applications can still inject every port through `doppler-gpu` or
-`doppler-gpu/runtime`. Both routes verify the same Capsule and initial execution
+`doppler-gpu/run`. Both routes verify the same Capsule and initial execution
 identity. The host facade does not add model operations or broaden qualification.
 
 Discover repository commands with `npm run` or `npm pkg get scripts` (JSON).
@@ -192,7 +194,7 @@ defines the gates.
 
 ## Architecture and releases
 
-Forge prepares and qualifies signed model implementations; Runtime verifies and
+Rig prepares and qualifies signed model implementations; Run verifies and
 executes them. Applications own trust, upgrades, and search policy. See the
 [architecture](docs/architecture.md) and [release contract](docs/model-release-platform.md)
 for the engineering workflow and model-family requirements.

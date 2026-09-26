@@ -9,7 +9,7 @@ text, token IDs, resolved settings, stopping reason, and verified identity.
 
 ## Declare and qualify the recipe
 
-Supply this field in the Forge JSON configuration. The module IDs refer to the
+Supply this field in the Rig JSON configuration. The module IDs refer to the
 model's declared execution closure; they are not independent shader downloads.
 
 ```json
@@ -27,7 +27,7 @@ The [recipe contract](../../src/config/capsule-token-selection.json) identifies
 required variants through the existing kernel registry. Declare their exact
 shader bytes and digests in the manifest execution graph, using its existing
 `mechanismKernels` list for auxiliary kernels. The observed initial execution
-identity must include the same complete closure. Forge preserves that identity
+identity must include the same complete closure. Rig preserves that identity
 check; adding the field cannot waive missing modules or qualification evidence.
 This recipe requires f32 output logits and program-backed prefill/decode phases.
 Other precision lanes require their own explicitly supported recipe.
@@ -75,6 +75,6 @@ There is one inference implementation underneath both choices.
 
 Use `tools/probe-installed-token-selection.js` for unsigned preparation against
 frozen references, `tools/build-token-selection-evaluation-capsule.js` to package
-that local evidence with the existing Forge, and the installed Capsule profiling
+that local evidence with the existing Rig, and the installed Capsule profiling
 and capability tools for public API acceptance. These tools neither publish nor
 deploy a release.

@@ -78,7 +78,7 @@ Diffusion harness metadata must include `workloadType="diffusion"` and `suite="d
 
 ## Logging
 
-- Runtime code uses `src/debug/*`.
+- Run code uses `src/debug/*`.
 - Entrypoints may print status/progress.
 - Keep output deterministic for the same config + model + workload.
 

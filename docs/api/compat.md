@@ -44,4 +44,4 @@ display separately from completed evidence.
 ## Code pointers
 
 - [Compatibility entrypoint](../../src/index.js)
-- [Capsule Runtime API](root.md)
+- [Doppler Run API](root.md)

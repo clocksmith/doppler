@@ -27,7 +27,7 @@ commercial and fleet evidence. `promotionSequence` is explicitly scoped to
 
 The validated contract is
 `tools/policies/model-release-platform.json`. `npm run model-release:check`
-binds that policy to the goal matrix and verifies the Forge/Capsule/Runtime split,
+binds that policy to the goal matrix and verifies the Rig/Capsule/Run split,
 the seven Capsule release requirements, provider neutrality, Capsule-first migration,
 recovery, commercial boundary, and ordered promotion gates. A passing check
 means the contract describes its gaps honestly; it does not establish external
@@ -107,7 +107,7 @@ external customer evidence.
 
 The [Electron integration example](../examples/electron-document-search/README.md)
 composes explicit runtime ports through public package exports. Renderer
-reranking accepts the same application-bound request object as Capsule Runtime;
+reranking accepts the same application-bound request object as Doppler Run;
 release inspection and fail-closed `resolve-current` IPC are separate actions.
 The default production-release checks exercise the renderer together with the
 real signed-Capsule contract and a two-release fixture episode. The installed
@@ -165,7 +165,7 @@ is blocked.
 
 ## Provider and custody boundaries
 
-Runtime selects only prequalified TargetPlans and cannot invent a plan or
+Run selects only prequalified TargetPlans and cannot invent a plan or
 fallback on the customer device. Doe and incumbent providers remain eligible
 only when explicitly qualified for the application contract.
 

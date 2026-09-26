@@ -17,7 +17,7 @@ Components: 30
 | `doppler.repository-tooling` | Automate repository governance, generation, qualification, and operator workflows without entering the shipped runtime. | [tools/CATSCAN.md](../tools/CATSCAN.md) | `doppler` |
 | `doppler.benchmarks.vendors` | Compare Doppler and eligible incumbent runtimes under shared, identity-bound evidence contracts. | [benchmarks/vendors/CATSCAN.md](../benchmarks/vendors/CATSCAN.md) | `doppler.benchmarks` |
 | `doppler.runtime-source.cli` | Present the shared Doppler command contract as a clear, scriptable Node command-line interface. | [src/cli/CATSCAN.md](../src/cli/CATSCAN.md) | `doppler.runtime-source` |
-| `doppler.runtime-source.client` | Make qualified local model workloads easy to invoke while preserving exact resolved execution identity. | [src/client/CATSCAN.md](../src/client/CATSCAN.md) | `doppler.runtime-source` |
+| `doppler.runtime-source.client` | Invoke qualified models while preserving execution identity. | [src/client/CATSCAN.md](../src/client/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.config` | Resolve all runtime-visible policy from validated, traceable, single-source configuration contracts. | [src/config/CATSCAN.md](../src/config/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.converter` | Compile source facts into ModelIR, qualified TargetPlans, and immutable Capsules; materialize reproducible artifacts without inventing runtime policy later. | [src/converter/CATSCAN.md](../src/converter/CATSCAN.md) | `doppler.runtime-source` |
 | `doppler.runtime-source.debug` | Expose structured runtime observation without silently changing execution or evidence meaning. | [src/debug/CATSCAN.md](../src/debug/CATSCAN.md) | `doppler.runtime-source` |

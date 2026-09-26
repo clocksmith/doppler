@@ -1,9 +1,7 @@
-export declare const FORGE_VERSION: string;
-export declare function usage(): string;
-export declare function parseArgs(argv: string[]): Record<string, unknown>;
-export declare function readJsonInput(value: string): Promise<Record<string, unknown>>;
-export declare function buildForgeOptions(
-  flags: Record<string, unknown>,
-  metaUrl?: string
-): Promise<Record<string, unknown>>;
-export declare function forgeModelCapsule(options: Record<string, unknown>): Promise<Record<string, unknown>>;
+// Compatibility entrypoint for Doppler Rig.
+export {
+  RIG_VERSION as FORGE_VERSION,
+  buildRigOptions as buildForgeOptions,
+  rigModelCapsule as forgeModelCapsule,
+  parseArgs, readJsonInput, usage,
+} from './model-capsule-rig.js';

@@ -23,24 +23,24 @@ import { buildQualificationRecords, promoteQualifiedModelIRV2 } from './forge-qu
 import { resolveCapsuleEmbeddingContract } from '../config/embedding-contract.js';
 import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
 
-export const FORGE_PIPELINE_VERSION = '2.0.0';
+export const RIG_PIPELINE_VERSION = '2.0.0';
 
 function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
 function requireObject(value, label) {
-  if (!isObject(value)) throw new Error(`Forge requires ${label} as an object.`);
+  if (!isObject(value)) throw new Error(`Rig requires ${label} as an object.`);
   return value;
 }
 
 function requireString(value, label) {
-  if (typeof value !== 'string' || !value.trim()) throw new Error(`Forge requires ${label}.`);
+  if (typeof value !== 'string' || !value.trim()) throw new Error(`Rig requires ${label}.`);
   return value.trim();
 }
 
 function requirePositiveInteger(value, label) {
-  if (!Number.isInteger(value) || value < 1) throw new Error(`Forge requires ${label} as a positive integer.`);
+  if (!Number.isInteger(value) || value < 1) throw new Error(`Rig requires ${label} as a positive integer.`);
   return value;
 }
 
@@ -62,14 +62,14 @@ function resolveLayerType(layerIndex, layerPattern) {
   if (layerPattern.type === 'every_n') {
     const period = requirePositiveInteger(layerPattern.period, 'manifest.inference.layerPattern.period');
     if (!Number.isInteger(layerPattern.offset) || layerPattern.offset < 0 || layerPattern.offset >= period) {
-      throw new Error('Forge requires manifest.inference.layerPattern.offset within the declared period.');
+      throw new Error('Rig requires manifest.inference.layerPattern.offset within the declared period.');
     }
     return layerIndex % period === layerPattern.offset ? 'global-attention' : 'local-attention';
   }
   if (layerPattern.type === 'explicit') {
     return requireString(layerPattern.layerTypes?.[layerIndex], `manifest.inference.layerPattern.layerTypes[${layerIndex}]`);
   }
-  throw new Error(`Forge does not support layerPattern.type "${layerPattern.type}" without an explicit lowering.`);
+  throw new Error(`Rig does not support layerPattern.type "${layerPattern.type}" without an explicit lowering.`);
 }
 
 function resolveArtifactSourcePath(artifact, input) {
@@ -120,7 +120,7 @@ function assertModelTopologyRepresentable(manifest) {
   ));
   if (unsupported.length > 0) {
     throw new Error(
-      `Forge ModelIR v1 cannot represent source topology: ${unsupported.map(([field]) => field).join(', ')}.`
+      `Rig ModelIR v1 cannot represent source topology: ${unsupported.map(([field]) => field).join(', ')}.`
     );
   }
 }
@@ -141,7 +141,7 @@ function normalizeCapsuleArtifact(artifact, input) {
 function normalizeQualificationEvidence(evidence) {
   requireObject(evidence, 'qualification evidence');
   if (![undefined, 'generate', 'rerank', 'encodeSequence', 'embed'].includes(evidence.operation)) {
-    throw new Error(`Forge does not support qualification operation "${evidence.operation}".`);
+    throw new Error(`Rig does not support qualification operation "${evidence.operation}".`);
   }
   const surface = requireString(evidence.surface, 'qualificationEvidence.surface');
   const evidenceHash = requireString(evidence.evidenceHash, 'qualificationEvidence.evidenceHash');
@@ -155,7 +155,7 @@ function normalizeQualificationEvidence(evidence) {
     ? { operation: 'embed', embeddedTexts: requirePositiveInteger(evidence.embeddedTexts, 'qualificationEvidence.embeddedTexts') }
     : { generatedTokens: requirePositiveInteger(evidence.generatedTokens, 'qualificationEvidence.generatedTokens') };
   const transcriptHash = requireString(evidence.transcriptHash, 'qualificationEvidence.transcriptHash');
-  if (evidence.status !== 'passed') throw new Error('Forge only packages passed qualification evidence.');
+  if (evidence.status !== 'passed') throw new Error('Rig only packages passed qualification evidence.');
   const capsulePath = toPosix(path.join(
     'artifacts',
     'evidence',
@@ -180,7 +180,7 @@ function normalizeQualificationEvidence(evidence) {
   };
 }
 
-function stripForgeOnlyArtifactFields(artifact) {
+function stripRigOnlyArtifactFields(artifact) {
   const { sourcePath: ignoredSourcePath, ...capsuleArtifact } = artifact;
   void ignoredSourcePath;
   return capsuleArtifact;
@@ -191,10 +191,10 @@ export async function stageInspect(input) {
   const manifest = requireObject(input.manifest, 'manifest');
   const programBundle = requireObject(input.programBundle, 'Program Bundle');
   if (typeof input.manifestRaw !== 'string' || input.manifestRaw.length === 0) {
-    throw new Error('Forge requires raw manifest bytes.');
+    throw new Error('Rig requires raw manifest bytes.');
   }
   if (typeof input.programBundleRaw !== 'string' || input.programBundleRaw.length === 0) {
-    throw new Error('Forge requires raw Program Bundle bytes.');
+    throw new Error('Rig requires raw Program Bundle bytes.');
   }
   const manifestRaw = input.manifestRaw;
   const programBundleRaw = input.programBundleRaw;
@@ -202,7 +202,7 @@ export async function stageInspect(input) {
   const programBundlePath = path.resolve(requireString(input.programBundlePath, 'programBundlePath'));
   const outputPath = path.resolve(requireString(input.outputPath, 'outputPath'));
   if (manifest.modelId !== programBundle.modelId) {
-    throw new Error(`Forge source mismatch: manifest modelId "${manifest.modelId}" != Program Bundle modelId "${programBundle.modelId}".`);
+    throw new Error(`Rig source mismatch: manifest modelId "${manifest.modelId}" != Program Bundle modelId "${programBundle.modelId}".`);
   }
   return {
     stage: 'inspect',
@@ -231,10 +231,10 @@ export function stageNormalize(inspected) {
   const bundle = input.programBundle;
   const manifestHash = `sha256:${sha256Hex(input.manifestRaw)}`;
   if (bundle.sources?.manifest?.hash !== manifestHash) {
-    throw new Error(`Forge manifest bytes do not match Program Bundle: expected ${bundle.sources?.manifest?.hash}, got ${manifestHash}.`);
+    throw new Error(`Rig manifest bytes do not match Program Bundle: expected ${bundle.sources?.manifest?.hash}, got ${manifestHash}.`);
   }
   if (bundle.execution?.graphHash !== bundle.sources?.executionGraph?.hash) {
-    throw new Error('Forge Program Bundle execution graph identities disagree.');
+    throw new Error('Rig Program Bundle execution graph identities disagree.');
   }
   const artifacts = bundle.artifacts.map((artifact) => normalizeCapsuleArtifact(artifact, input));
   const qualificationEvidence = input.qualificationEvidence.map(normalizeQualificationEvidence);
@@ -272,7 +272,7 @@ export function stageNormalize(inspected) {
   artifacts.push(programBundleArtifact);
   const ids = new Set();
   for (const artifact of artifacts) {
-    if (ids.has(artifact.artifactId)) throw new Error(`Forge produced duplicate artifactId "${artifact.artifactId}".`);
+    if (ids.has(artifact.artifactId)) throw new Error(`Rig produced duplicate artifactId "${artifact.artifactId}".`);
     ids.add(artifact.artifactId);
   }
   return {
@@ -294,18 +294,18 @@ export function stageAnalyze(normalized) {
   if (source.modelIR !== null && source.modelIR !== undefined) {
     const validation = validateModelIR(source.modelIR);
     if (!validation.ok) {
-      throw new Error(`Forge analyze rejected supplied ModelIR: ${validation.errors.join('; ')}`);
+      throw new Error(`Rig analyze rejected supplied ModelIR: ${validation.errors.join('; ')}`);
     }
     if (source.modelIR.modelId !== manifest.modelId) {
       throw new Error(
-        `Forge ModelIR modelId "${source.modelIR.modelId}" does not match manifest modelId "${manifest.modelId}".`
+        `Rig ModelIR modelId "${source.modelIR.modelId}" does not match manifest modelId "${manifest.modelId}".`
       );
     }
     let modelIR = source.modelIR;
     const sourceIdentity = modelIR.sourceIdentity;
     if (source.modelIR.schema === 'doppler.model-ir/v2') {
       if (!source.modelIREvidenceArtifactId) {
-        throw new Error('Forge ModelIR v2 requires packaged source-truth evidence.');
+        throw new Error('Rig ModelIR v2 requires packaged source-truth evidence.');
       }
       const artifactIdentity = requireObject(manifest.artifactIdentity, 'manifest.artifactIdentity');
       const checkpointId = requireString(
@@ -314,16 +314,16 @@ export function stageAnalyze(normalized) {
       );
       if (sourceIdentity.checkpointId !== checkpointId) {
         throw new Error(
-          `Forge ModelIR checkpointId "${sourceIdentity.checkpointId}" does not match manifest source checkpoint "${checkpointId}".`
+          `Rig ModelIR checkpointId "${sourceIdentity.checkpointId}" does not match manifest source checkpoint "${checkpointId}".`
         );
       }
       if (artifactIdentity.sourceRepo !== undefined
         && sourceIdentity.repository !== artifactIdentity.sourceRepo) {
-        throw new Error('Forge ModelIR repository does not match manifest artifact identity.');
+        throw new Error('Rig ModelIR repository does not match manifest artifact identity.');
       }
       if (artifactIdentity.sourceRevision !== undefined
         && sourceIdentity.revision !== artifactIdentity.sourceRevision) {
-        throw new Error('Forge ModelIR revision does not match manifest artifact identity.');
+        throw new Error('Rig ModelIR revision does not match manifest artifact identity.');
       }
       modelIR = promoteQualifiedModelIRV2(modelIR, source.programBundle);
     }
@@ -427,7 +427,7 @@ function dtypeByteWidth(dtype, label) {
   const normalized = requireString(dtype, label).toLowerCase();
   if (normalized === 'f16' || normalized === 'float16' || normalized === 'bf16') return 2;
   if (normalized === 'f32' || normalized === 'float32') return 4;
-  throw new Error(`Forge cannot size state with unsupported dtype "${dtype}" at ${label}.`);
+  throw new Error(`Rig cannot size state with unsupported dtype "${dtype}" at ${label}.`);
 }
 
 function resolveModelIRSpecialization(modelIR, operation) {
@@ -451,22 +451,22 @@ function resolveModelIRSpecialization(modelIR, operation) {
       && (['rerank', 'embed'].includes(operation) || entryPoint.phases.includes('decode'))
   ));
   if (loweredEntries.length !== 1) {
-    throw new Error(`Forge requires exactly one lowered ModelIR v2 ${operation} entry point with its execution phases.`);
+    throw new Error(`Rig requires exactly one lowered ModelIR v2 ${operation} entry point with its execution phases.`);
   }
   const entryPoint = loweredEntries[0];
   if (!modelIR.supportScope.loweredEntryPoints.includes(entryPoint.id)) {
-    throw new Error(`Forge ${operation} entry point is absent from ModelIR supportScope.loweredEntryPoints.`);
+    throw new Error(`Rig ${operation} entry point is absent from ModelIR supportScope.loweredEntryPoints.`);
   }
   const component = modelIR.components.find((candidate) => candidate.id === entryPoint.componentId);
   const schedule = modelIR.blockSchedules.find((candidate) => candidate.componentId === entryPoint.componentId);
   if (!component || !schedule) {
-    throw new Error('Forge cannot resolve the lowered entry point component and block schedule.');
+    throw new Error('Rig cannot resolve the lowered entry point component and block schedule.');
   }
   const hiddenSize = requirePositiveInteger(component.properties.hiddenSize, `${component.id}.properties.hiddenSize`);
   const vocabSize = requirePositiveInteger(component.properties.vocabSize, `${component.id}.properties.vocabSize`);
   const numLayers = requirePositiveInteger(component.properties.numLayers, `${component.id}.properties.numLayers`);
   if (schedule.blocks.length !== numLayers) {
-    throw new Error(`Forge block schedule "${schedule.id}" does not contain ${numLayers} blocks.`);
+    throw new Error(`Rig block schedule "${schedule.id}" does not contain ${numLayers} blocks.`);
   }
 
   const classes = new Map(modelIR.blockClasses.map((blockClass) => [blockClass.id, blockClass]));
@@ -475,7 +475,7 @@ function resolveModelIRSpecialization(modelIR, operation) {
   let convolutionalStateElements = 0;
   for (const block of schedule.blocks) {
     const blockClass = classes.get(block.blockClassId);
-    if (!blockClass) throw new Error(`Forge cannot resolve block class "${block.blockClassId}".`);
+    if (!blockClass) throw new Error(`Rig cannot resolve block class "${block.blockClassId}".`);
     if (blockClass.kind === 'full-attention' || blockClass.kind === 'local-attention') {
       kvElementsPerToken += requirePositiveInteger(
         blockClass.geometry.numKvHeads,
@@ -498,7 +498,7 @@ function resolveModelIRSpecialization(modelIR, operation) {
   }
   const recurrentState = modelIR.stateSpaces.find((state) => state.kind === 'recurrent');
   if (recurrentStateElements > 0 && !recurrentState) {
-    throw new Error('Forge heterogeneous lowering requires a recurrent state-space contract.');
+    throw new Error('Rig heterogeneous lowering requires a recurrent state-space contract.');
   }
   const recurrentStateBytes = recurrentStateElements > 0
     ? recurrentStateElements * dtypeByteWidth(recurrentState.contract.dtype, 'ModelIR recurrent state contract.dtype')
@@ -520,10 +520,10 @@ function resolveModelIRSpecialization(modelIR, operation) {
 
 export function stageLower(analyzed) {
   const validation = validateModelIR(analyzed?.modelIR);
-  if (!validation.ok) throw new Error(`Forge lower requires valid ModelIR: ${validation.errors.join('; ')}`);
+  if (!validation.ok) throw new Error(`Rig lower requires valid ModelIR: ${validation.errors.join('; ')}`);
   const bundle = analyzed.normalized.programBundle;
   const steps = bundle.execution?.steps;
-  if (!Array.isArray(steps) || steps.length === 0) throw new Error('Forge lower requires expanded Program Bundle execution steps.');
+  if (!Array.isArray(steps) || steps.length === 0) throw new Error('Rig lower requires expanded Program Bundle execution steps.');
   const buildPhase = (phase) => [{
     kind: 'program-phase',
     phase,
@@ -550,13 +550,13 @@ export function stageSpecialize(lowered) {
   const manifest = normalized.manifest;
   const session = manifest.inference.session;
   const modules = normalized.programBundle.wgslModules;
-  if (!Array.isArray(modules) || modules.length === 0) throw new Error('Forge specialize requires a non-empty WGSL closure.');
+  if (!Array.isArray(modules) || modules.length === 0) throw new Error('Rig specialize requires a non-empty WGSL closure.');
   const moduleArtifactByHash = new Map(normalized.artifacts
     .filter((artifact) => artifact.role === 'wgsl-source')
     .map((artifact) => [artifact.hash, artifact]));
   const wgslModules = modules.map((module) => {
     const sourceArtifact = moduleArtifactByHash.get(module.sourceHash);
-    if (!sourceArtifact) throw new Error(`Forge cannot bind WGSL source bytes for module "${module.id}".`);
+    if (!sourceArtifact) throw new Error(`Rig cannot bind WGSL source bytes for module "${module.id}".`);
     return {
       id: module.id,
       file: module.file,
@@ -577,7 +577,7 @@ export function stageSpecialize(lowered) {
       || normalized.initialExecutionIdentity?.programLoadPolicy?.schema
         !== PROGRAM_LOAD_POLICY_SCHEMA_ID)) {
     throw new Error(
-      'Forge requires a pre-dispatch initial execution identity v2 with current signed '
+      'Rig requires a pre-dispatch initial execution identity v2 with current signed '
       + 'program-load policy '
       + 'for ModelIR v2 specialization.'
     );
@@ -655,7 +655,7 @@ export function stageSpecialize(lowered) {
   if (normalized.initialExecutionIdentity !== null) {
     const identityValidation = validateInitialExecutionIdentity(normalized.initialExecutionIdentity);
     if (!identityValidation.ok) {
-      throw new Error(`Forge rejected initial execution identity: ${identityValidation.errors.join('; ')}`);
+      throw new Error(`Rig rejected initial execution identity: ${identityValidation.errors.join('; ')}`);
     }
     targetPlan = createTargetPlanV2({
       ...targetPlanFields,
@@ -681,11 +681,11 @@ export function stageSearch(specialized, evaluation) {
     if (evaluation?.contract?.modelIRHash !== specialized.modelIRHash
       || hashStable(hashes) !== hashStable([...(evaluation?.contract?.candidateHashes || [])].sort())
       || hashStable(hashes) !== hashStable([...specialized.targetPlanHashes].sort())) {
-      throw new Error('Forge search evaluation must bind exactly the specialized TargetPlans and ModelIR.');
+      throw new Error('Rig search evaluation must bind exactly the specialized TargetPlans and ModelIR.');
     }
     evaluationReceipt = evaluateForgeCandidates(evaluation);
     if (evaluationReceipt.selectedCandidateHashes.length === 0) {
-      const error = new Error('Forge search rejected every evaluated TargetPlan; no Capsule may be signed.');
+      const error = new Error('Rig search rejected every evaluated TargetPlan; no Capsule may be signed.');
       error.evaluationReceipt = evaluationReceipt;
       throw error;
     }
@@ -713,31 +713,31 @@ function assertTargetPlanMatchesInitialExecutionIdentity(plan) {
     .map(({ moduleId, digest }) => ({ moduleId, digest }))
     .sort((left, right) => left.moduleId.localeCompare(right.moduleId));
   if (hashStable(plannedKernels) !== hashStable(observedKernels)) {
-    throw new Error('Forge verify found a TargetPlan kernel closure different from the observed initial execution.');
+    throw new Error('Rig verify found a TargetPlan kernel closure different from the observed initial execution.');
   }
   for (const lane of ['activation', 'kv']) {
     if (plan.dtypes[lane] !== plan.initialExecutionIdentity.dtypeLane[lane]) {
-      throw new Error(`Forge verify found TargetPlan dtype lane "${lane}" different from initial execution.`);
+      throw new Error(`Rig verify found TargetPlan dtype lane "${lane}" different from initial execution.`);
     }
   }
   if (hashStable(plan.fusions) !== hashStable(plan.initialExecutionIdentity.fusionSet)) {
-    throw new Error('Forge verify found a TargetPlan fusion set different from the observed initial execution.');
+    throw new Error('Rig verify found a TargetPlan fusion set different from the observed initial execution.');
   }
   if (plan.memoryLayout.kvCacheLayout !== plan.initialExecutionIdentity.kvLayout.layout) {
-    throw new Error('Forge verify found a TargetPlan KV layout different from the observed initial execution.');
+    throw new Error('Rig verify found a TargetPlan KV layout different from the observed initial execution.');
   }
 }
 
 export function stageVerify(searched) {
   const modelValidation = validateModelIR(searched.modelIR);
-  if (!modelValidation.ok) throw new Error(`Forge verify rejected ModelIR: ${modelValidation.errors.join('; ')}`);
+  if (!modelValidation.ok) throw new Error(`Rig verify rejected ModelIR: ${modelValidation.errors.join('; ')}`);
   const moduleIds = new Set(searched.wgslModules.map((module) => module.id));
   for (const plan of searched.targetPlans) {
     const validation = validateTargetPlan(plan);
-    if (!validation.ok) throw new Error(`Forge verify rejected TargetPlan: ${validation.errors.join('; ')}`);
-    if (plan.modelIRHash !== searched.modelIRHash) throw new Error('Forge verify found a TargetPlan bound to a different ModelIR.');
+    if (!validation.ok) throw new Error(`Rig verify rejected TargetPlan: ${validation.errors.join('; ')}`);
+    if (plan.modelIRHash !== searched.modelIRHash) throw new Error('Rig verify found a TargetPlan bound to a different ModelIR.');
     if (plan.kernelClosure.some((kernel) => !moduleIds.has(kernel.moduleId))) {
-      throw new Error('Forge verify found a TargetPlan kernel outside the WGSL closure.');
+      throw new Error('Rig verify found a TargetPlan kernel outside the WGSL closure.');
     }
     assertTargetPlanMatchesInitialExecutionIdentity(plan);
   }
@@ -747,7 +747,7 @@ export function stageVerify(searched) {
 export function stageQualify(verified) {
   for (const plan of verified.targetPlans) {
     if (!plan.qualification.every((record) => record.status === 'passed')) {
-      throw new Error(`Forge qualify rejected target "${plan.targetId}".`);
+      throw new Error(`Rig qualify rejected target "${plan.targetId}".`);
     }
   }
   return { ...verified, stage: 'qualify', ok: true, qualificationReceipt: { targetIds: verified.targetPlans.map((plan) => plan.targetId) } };
@@ -755,7 +755,7 @@ export function stageQualify(verified) {
 
 export function stagePackage(qualified) {
   const normalized = qualified.normalized;
-  const artifacts = normalized.artifacts.map(stripForgeOnlyArtifactFields);
+  const artifacts = normalized.artifacts.map(stripRigOnlyArtifactFields);
   const findIds = (role) => artifacts.filter((artifact) => artifact.role === role).map((artifact) => artifact.artifactId);
   const capsule = buildCapsuleV2({
     modelId: qualified.modelIR.modelId,
@@ -787,7 +787,7 @@ export async function stageSign(packaged, signer) {
   return { ...packaged, stage: 'sign', ok: true, capsule, semanticRoot: capsule.semanticRoot };
 }
 
-export async function runForgePipeline(input, signer) {
+export async function runRigPipeline(input, signer) {
   const inspected = await stageInspect(input);
   const normalized = stageNormalize(inspected.data);
   const analyzed = stageAnalyze(normalized);
@@ -805,3 +805,5 @@ export async function runForgePipeline(input, signer) {
       .map((stage) => ({ stage: stage.stage, ok: stage.ok })),
   };
 }
+
+export { runRigPipeline as runForgePipeline, RIG_PIPELINE_VERSION as FORGE_PIPELINE_VERSION };

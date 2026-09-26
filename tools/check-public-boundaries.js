@@ -118,7 +118,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Main's public reset forwarding method and declaration add exactly 114 bytes
   // in two existing files; all other archive entries are byte-identical.
   // Evidence: artifacts/release-acceptance-2026-09-19/main-package-audit.json.
-  maxUnpackedSize: 11_332_310,
+  // Rig/Run names and compatibility exports: same 1864-file inventory,
+  // 2,154,292 packed / 11,334,081 unpacked bytes on Node 22/npm 9.
+  // Exact inventory: artifacts/rig-run-naming-2026-09-26/package-audit.json.
+  maxUnpackedSize: 11_334_081,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -544,6 +547,12 @@ async function validatePackageExports() {
   assert(
     rootExport?.import === './src/capsule-runtime.js' && rootExport?.types === './src/capsule-runtime.d.ts',
     'package.json root export must point to src/capsule-runtime.js and src/capsule-runtime.d.ts.'
+  );
+
+  const runExport = exportsField['./run'];
+  assert(
+    runExport?.import === rootExport.import && runExport?.types === rootExport.types,
+    'package.json ./run export must alias the Capsule-native root export.'
   );
 
   const runtimeExport = exportsField['./runtime'];

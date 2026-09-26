@@ -24,7 +24,7 @@ import { createCapsuleLoadScope, assertCapsuleLoadActive } from './capsule-acqui
 
 export { createForecastProgramFactory } from './capsule-forecast-program.js';
 
-export const RUNTIME_CORE_VERSION = '2.0.0';
+export const RUN_CORE_VERSION = '2.0.0';
 
 function emit(observer, event) {
   observer?.observe?.(Object.freeze({ ...event }));
@@ -51,16 +51,16 @@ async function loadModuleSources(capsule, artifactStore) {
   return modules;
 }
 
-export function createDopplerRuntime(ports) {
-  if (!ports || typeof ports !== 'object') throw new Error('createDopplerRuntime requires injected ports.');
-  if (!ports.device) throw new Error('createDopplerRuntime requires a device port.');
-  if (!ports.artifactStore) throw new Error('createDopplerRuntime requires an artifactStore port.');
-  if (!ports.trustedSigners) throw new Error('createDopplerRuntime requires trustedSigners.');
-  if (typeof ports.programFactory !== 'function') throw new Error('createDopplerRuntime requires programFactory.');
+export function createDopplerRun(ports) {
+  if (!ports || typeof ports !== 'object') throw new Error('createDopplerRun requires injected ports.');
+  if (!ports.device) throw new Error('createDopplerRun requires a device port.');
+  if (!ports.artifactStore) throw new Error('createDopplerRun requires an artifactStore port.');
+  if (!ports.trustedSigners) throw new Error('createDopplerRun requires trustedSigners.');
+  if (typeof ports.programFactory !== 'function') throw new Error('createDopplerRun requires programFactory.');
   const { device, capsuleSource = null, artifactStore, cache = null, observer = null, trustedSigners, programFactory } = ports;
 
   return {
-    version: RUNTIME_CORE_VERSION,
+    version: RUN_CORE_VERSION,
     ports: { device, capsuleSource, artifactStore, cache, observer },
 
     async openCapsule(capsuleOrId, options = {}) {
@@ -361,3 +361,6 @@ export function createDopplerRuntime(ports) {
     },
   };
 }
+
+// Compatibility names share the same implementation.
+export { createDopplerRun as createDopplerRuntime, RUN_CORE_VERSION as RUNTIME_CORE_VERSION };

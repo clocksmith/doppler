@@ -29,7 +29,7 @@ request, cancellation, loading progress, and cleanup contracts remain intact.
 
 Schemas, identity fields, signatures, and executable roots bind exact content.
 Never rename strings inside a signed artifact and call it verified. Rebuild from
-pinned source with Forge, sign the resulting Capsule with an explicitly chosen
+pinned source with Rig, sign the resulting Capsule with an explicitly chosen
 authority, qualify it, and have the application approve its new identity.
 Capsule v2-to-v3 migration accepts Capsule v2, not the former Pack format.
 

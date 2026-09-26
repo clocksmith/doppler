@@ -14,7 +14,7 @@ Reploid are not prerequisites for technical completion. Speed, simplicity,
 portability, and increasingly efficient support for new models are the product
 advantage; verification makes those advantages dependable.
 
-Doppler's supporting Forge compiler/preparation system owns model semantics and
+Doppler's supporting Rig compiler/preparation system owns model semantics and
 implementation changes before release. A Capsule is a signed, versioned package
 binding model files to their declared executable implementation. Doppler owns
 source lineage, signed immutable Capsules, artifact integrity, qualified TargetPlan
@@ -23,10 +23,10 @@ authorization, assignment, transport, comparison, requester acceptance, and
 admission of reusable evidence. The runtime never invents a plan or silently
 changes signed model behavior.
 
-Developer-facing definitions follow the [architecture](architecture.md): **Forge**
+Developer-facing definitions follow the [architecture](architecture.md): **Rig**
 is model preparation; a **Capsule** is the signed, versioned executable model
 package; a **TargetPlan** identifies a particular declared implementation and its
-execution requirements. Preparation decides model computation. Runtime verifies
+execution requirements. Preparation decides model computation. Run verifies
 and executes an accepted implementation; the host assembles devices, storage, and
 application configuration. Compiling declared WGSL into device pipelines is allowed;
 silently replacing shaders, numerical formats, or models is not. A simpler API
@@ -407,7 +407,7 @@ Technical contract:
 - Runtime config may overlay only runtime-owned execution policy such as session,
   loading, diagnostics, and explicit kernel-path/session behavior.
 - Defaults must be represented in schema, manifest, profile, config, or rule
-  assets. Runtime code must not invent hidden behavior.
+  assets. Run code must not invent hidden behavior.
 
 ### Resolution identities
 

@@ -1,0 +1,44 @@
+{
+  "component": "doppler",
+  "intent": "preserved",
+  "boundaryEffects": [
+    "client API naming",
+    "model preparation tooling naming",
+    "documentation"
+  ],
+  "passed": true,
+  "physicalExecution": false,
+  "published": false,
+  "initialCheck": {
+    "command": "npm run check:green",
+    "exitCode": 1,
+    "testFilesPassed": 864,
+    "failedGates": [
+      "catscan:check",
+      "public:boundaries:check",
+      "source:architecture:check",
+      "source:dependencies:check"
+    ],
+    "logPath": "/tmp/doppler-rig-run-check.log",
+    "logSha256": "bfd95334fa3ba581e23af018e015514490b840cb3d66d89f4ae62dd4ad5fcfd2"
+  },
+  "finalGateSweep": {
+    "command": "node tools/run-node-tests.js --scripts agents:verify catscan:check goals:check model-family:intake:check model-release:check product:portfolio:check product:prospects:check product:readiness:check revocations:check revocations:authority:check product:integrations:check provider:conformance:check runtime:ownership:check runtime:closure:check public:boundaries:check kernels:package-digests:check package:smoke commands:surface:check api:docs:check config:single-source:check rules:bundle:check routing:audit:check negative-results:check evidence:workflows:check optimization:control:check promotion:monitoring:check inference:boundaries:check source:style:check source:architecture:check source:dependencies:check capability-policy:check imports:check:browser pending:check exports:parity:check typecheck:source artifact:contract:check adapter-artifacts:check claims:evidence:check release-claims:check support:matrix:check support:subsystems:check policy:schemas:check program-bundle:schema:check program-bundle:check",
+    "exitCode": 0,
+    "log": "final-gates.log"
+  },
+  "finalCompatibilityTests": {
+    "testFilesPassed": 4,
+    "exitCode": 0,
+    "log": "compatibility-tests.log"
+  },
+  "installedPackage": "installed-package.json",
+  "retainedSearchReleasesChanged": false,
+  "payloadBudget": {
+    "previousMaxUnpackedBytes": 11332310,
+    "measuredUnpackedBytes": 11334081,
+    "addedAllowanceBytes": 1771,
+    "fileCount": 1864,
+    "packedBytes": 2154292
+  }
+}

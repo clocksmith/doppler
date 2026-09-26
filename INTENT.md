@@ -10,8 +10,8 @@ Doppler's internal release machinery to build an application.
 
 ## Target
 
-Deliver a simple, fast, portable JavaScript inference library, supported by Forge
-model preparation and signed immutable Capsules. Runtime executes the declared
+Deliver a simple, fast, portable JavaScript inference library, supported by Rig
+model preparation and signed immutable Capsules. Run executes the declared
 implementation; the application retains publisher trust and upgrade authority.
 
 The next product increment is the complete copy-and-run local-search application

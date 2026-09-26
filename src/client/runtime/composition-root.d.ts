@@ -19,7 +19,7 @@ export type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-
 
 export { createForecastProgramFactory } from './capsule-forecast-program.js';
 
-export const RUNTIME_CORE_VERSION: '2.0.0';
+export const RUN_CORE_VERSION: '2.0.0';
 
 export interface CapsuleSessionOptions extends TargetPlanSelectionPolicy, CapsuleAcquisitionOptions {
   releaseEvents?: CapsuleReleaseEvent[];
@@ -28,7 +28,7 @@ export interface CapsuleSessionOptions extends TargetPlanSelectionPolicy, Capsul
   persistReleaseCheckpoint?: (checkpoint: ReleaseCheckpoint) => Promise<void> | void;
 }
 
-export interface RuntimePorts {
+export interface RunPorts {
   artifactBacking?: CapsuleArtifactBacking;
   device: object;
   capsuleSource?: { fetchCapsule(id: string, options?: object): Promise<DopplerCapsule> };
@@ -41,7 +41,7 @@ export interface RuntimePorts {
   observer?: { observe(event: Record<string, unknown>): void } | null;
 }
 
-export interface DopplerRuntimeSession {
+export interface DopplerRunSession {
   readonly generationContract: typeof GENERATION_CONTRACT;
   schema: 'doppler.capsule-session/v1';
   readonly loaded: boolean;
@@ -69,10 +69,13 @@ export interface DopplerRuntimeSession {
   close(): Promise<void>;
 }
 
-export interface DopplerRuntime {
+export interface DopplerRun {
   version: string;
-  ports: RuntimePorts;
-  openCapsule(capsuleOrId: string | DopplerCapsule, options?: CapsuleSessionOptions): Promise<DopplerRuntimeSession>;
+  ports: RunPorts;
+  openCapsule(capsuleOrId: string | DopplerCapsule, options?: CapsuleSessionOptions): Promise<DopplerRunSession>;
 }
 
-export declare function createDopplerRuntime(ports: RuntimePorts): DopplerRuntime;
+export declare function createDopplerRun(ports: RunPorts): DopplerRun;
+
+export { createDopplerRun as createDopplerRuntime, RUN_CORE_VERSION as RUNTIME_CORE_VERSION };
+export type { DopplerRun as DopplerRuntime, DopplerRunSession as DopplerRuntimeSession, RunPorts as RuntimePorts };

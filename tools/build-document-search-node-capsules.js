@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { generateKeyPairSync } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { forgeModelCapsule } from '../src/tooling/model-capsule-forge.js';
+import { rigModelCapsule } from '../src/tooling/model-capsule-rig.js';
 import { hashBytesSha256, computeCanonicalSha256 } from '../src/formats/canonical-hash.js';
 import { hashTargetPlan } from '../src/config/target-plan.js';
 
@@ -82,7 +82,7 @@ export async function buildDocumentSearchNodeCapsules(config) {
       signingAuthority: config.authorityId, signingPrivateKeyPath: path.join(root, 'custody/private-key.json'),
       signingPublicKeyPath: path.join(root, 'custody/public-key.json'), allowDevelopmentSigner: false };
     await write(path.join(root, 'forge-config.json'), options);
-    const result = await forgeModelCapsule(options);
+    const result = await rigModelCapsule(options);
     const capsule = await read(options.outputPath);
     await write(path.join(root, 'open-options.json'), { trustedSigners: { [config.authorityId]: publicKey },
       acceptedTargetPlanDigests: capsule.targetPlans.map(hashTargetPlan) });

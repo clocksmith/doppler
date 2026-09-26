@@ -1,7 +1,7 @@
 import type { DopplerCapsuleV2 } from '../config/capsule-v2.js';
 import type { ForgeEvaluationInput } from './forge-candidate-evaluation.js';
 
-export const FORGE_PIPELINE_VERSION: '2.0.0';
+export const RIG_PIPELINE_VERSION: '2.0.0';
 
 export interface ForgeStageResult extends Record<string, unknown> {
   stage: string;
@@ -22,8 +22,10 @@ export declare function stageSign(input: ForgeStageResult & { capsule: DopplerCa
   privateKeyJwk: JsonWebKey;
   publicKeyJwk: JsonWebKey;
 }): Promise<ForgeStageResult & { capsule: DopplerCapsuleV2 }>;
-export declare function runForgePipeline(input: Record<string, unknown>, signer: {
+export declare function runRigPipeline(input: Record<string, unknown>, signer: {
   authority: string;
   privateKeyJwk: JsonWebKey;
   publicKeyJwk: JsonWebKey;
 }): Promise<{ capsule: DopplerCapsuleV2; searchReceipt: Record<string, unknown>; stages: Array<{ stage: string; ok: true }> }>;
+
+export { runRigPipeline as runForgePipeline, RIG_PIPELINE_VERSION as FORGE_PIPELINE_VERSION };

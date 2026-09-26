@@ -6,12 +6,15 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {
-  FORGE_VERSION,
-  buildForgeOptions,
-  forgeModelCapsule,
+  RIG_VERSION as FORGE_VERSION,
+  buildRigOptions as buildForgeOptions,
+  rigModelCapsule as forgeModelCapsule,
   parseArgs,
   usage,
-} from '../../tools/forge-model-capsule.js';
+} from '../../tools/rig-model-capsule.js';
+import * as legacyForge from '../../tools/forge-model-capsule.js';
+assert.equal(forgeModelCapsule, legacyForge.forgeModelCapsule);
+assert.equal(buildForgeOptions, legacyForge.buildForgeOptions);
 import { KERNEL_REF_CONTENT_DIGESTS } from '../../src/config/kernels/kernel-ref-digests.js';
 import { createInitialExecutionIdentityV2 } from '../../src/config/initial-execution-identity.js';
 import { createCapsuleReleaseFixture } from '../helpers/capsule-v2-fixture.js';
@@ -207,7 +210,7 @@ const parsed = parseArgs([
 ]);
 assert.equal(parsed.manifest, manifestPath);
 assert.equal(parsed.json, true);
-assert.match(usage(), /Doppler Forge/);
+assert.match(usage(), /Doppler Rig/);
 
 // Test 2: buildForgeOptions
 const options = await buildForgeOptions(parsed);
@@ -243,9 +246,10 @@ assert.equal(writtenCapsule.wgslModules[0].file, 'gather.wgsl');
 assert.ok(writtenCapsule.signature);
 
 const secondOutputPath = path.join(tmpRoot, 'second', 'compiled.capsule.json');
-const second = await forgeModelCapsule({ ...options, outputPath: secondOutputPath });
+const second = await legacyForge.forgeModelCapsule({ ...options, outputPath: secondOutputPath });
 assert.equal(second.semanticRoot, receipt.semanticRoot);
 assert.equal(second.envelopeHash, receipt.envelopeHash);
+assert.equal(await fs.readFile(secondOutputPath, 'utf8'), writtenRaw);
 
 const evaluation = createForgeEvaluationFixture(writtenCapsule.targetPlans[0].modelIRHash, writtenCapsule.targetPlans.map(hashTargetPlan));
 const candidateEvaluationPath = path.join(tmpRoot, 'evaluation.json');

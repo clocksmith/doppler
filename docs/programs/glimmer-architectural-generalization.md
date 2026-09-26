@@ -101,7 +101,7 @@ optional native executor, never a browser requirement or hidden fallback.
 - Encode the 39 local and 13 global layer schedule directly in ModelIR and TargetPlans.
 - Replace generic `text.kv-state` with fixed local ring and growing global state contracts.
 - Qualify architecture-specific attention, normalization, gating, output, prefill, and decode paths.
-- Search quantization and physical layouts through Forge while retaining rejected candidates.
+- Search quantization and physical layouts through Rig while retaining rejected candidates.
 - Compare output quality, load, memory, prefill, decode, and complete application latency against the unspecialized baseline.
 
 ### 3. DFlash speculative execution

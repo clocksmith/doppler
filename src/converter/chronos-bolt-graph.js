@@ -1,4 +1,4 @@
-// Forge-only lowering. Source tensor names and T5 topology are resolved here;
+// Rig-only lowering. Source tensor names and T5 topology are resolved here;
 // the runtime receives only immutable slots, uploads and dispatch commands.
 export function lowerChronosBoltGraph(source, recipe, kernels) {
   const config = source.config;

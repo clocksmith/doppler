@@ -10,7 +10,7 @@ evidence-backed browser and Node runtime.
 
 The product unit is a supported model release: source lineage, immutable Capsule,
 qualified target plans, application and hardware acceptance, and explicit
-promotion, requalification, rollback, and revocation state. The Runtime is not
+promotion, requalification, rollback, and revocation state. Doppler Run is not
 a second compiler. It validates, selects, binds, executes, and observes without
 changing Capsule semantics.
 
@@ -29,7 +29,7 @@ The mainline product/technical goals are defined in [goals.md](goals.md):
 2. own the model artifact and runtime contract; and
 3. make correctness, performance, and support evidence-backed.
 
-Source-truth Forge automation and an uncreative Capsule Runtime are the
+Source-truth Rig automation and an uncreative Doppler Run are the
 architecture used to deliver those goals, not a separate portfolio objective.
 
 The ESM-2/Poolday network remains a separately qualified optional experiment.
@@ -105,8 +105,8 @@ WGSL language features are distinct from GPU device features. Kernels using
 `subgroup_id` or `num_subgroups` require the WGSL `subgroup_id` extension;
 `hasSubgroups` alone cannot qualify them. The registry records
 `requiredWgslFeatures`; `kernels:check` compares those requirements with shader
-sources. Forge carries source requirements into module metadata and the signed
-TargetPlan capability predicate. Runtime rejects missing plan declarations or
+sources. Rig carries source requirements into module metadata and the signed
+TargetPlan capability predicate. Run rejects missing plan declarations or
 unsupported features before creating the model program. An absent optional
 `requiredWgslFeatures` field retains its historical meaning of no additional
 language requirements. Existing signed shader sources and their identities are
@@ -158,7 +158,7 @@ results. Integration notes are maintained in private wrapper docs.
 
 See also: [ADR-0001: Dual-Hexagon Compiler Pipeline with an Immutable Capsule Spine](adr/0001-dual-hexagon-capsule-spine.md).
 The heterogeneous semantic and provenance contract is specified in
-[Heterogeneous ModelIR v2 and Source-Truth Forge](model-ir-v2-source-truth-forge.md).
+[Heterogeneous ModelIR v2 and Source-Truth Rig](model-ir-v2-source-truth-forge.md).
 
 DOPPLER is organized as two sharply separated systems connected by one immutable artifact:
 
@@ -166,7 +166,7 @@ DOPPLER is organized as two sharply separated systems connected by one immutable
 Source Model Checkpoint
     ↓
 ┌──────────────────────────────────────────────────────────────┐
-│                    DOPPLER FORGE                             │
+│                    DOPPLER RIG                               │
 │  Inspect → Normalize → Analyze → Lower → Specialize → Search │
 │  → Verify → Qualify → Package → Sign                         │
 └──────────────────────────────┬───────────────────────────────┘
@@ -174,7 +174,7 @@ Source Model Checkpoint
                     Immutable Doppler Capsule
                                │
 ┌──────────────────────────────▼───────────────────────────────┐
-│                    DOPPLER RUNTIME                           │
+│                    DOPPLER RUN                               │
 │  Validate → Select qualified target → Bind resources         │
 │  → Execute declared commands → Observe                       │
 └──────────────────────────────┬───────────────────────────────┘
@@ -185,9 +185,9 @@ Source Model Checkpoint
 ### The Doppler Invariant Law
 
 > **Core Architectural Law:**  
-> *After a Doppler Capsule has been qualified and signed, no Runtime code may change its semantic graph, kernel closure, dtype lane, fusion strategy, or memory model.*
+> *After a Doppler Capsule has been qualified and signed, no Run code may change its semantic graph, kernel closure, dtype lane, fusion strategy, or memory model.*
 
-All graph-changing, kernel-changing, fusion-changing, layout-changing, and precision-changing work lives ahead-of-time in **Doppler Forge**. The **Doppler Runtime** is strictly an uncreative plan–bind–execute machine that selects among pre-qualified target plans.
+All graph-changing, kernel-changing, fusion-changing, layout-changing, and precision-changing work lives ahead-of-time in **Doppler Rig**. **Doppler Run** is strictly an uncreative plan–bind–execute machine that selects among pre-qualified target plans.
 
 ### Three Hashable Representations
 
@@ -201,7 +201,7 @@ All graph-changing, kernel-changing, fusion-changing, layout-changing, and preci
    * Instance of a `TargetPlan` bound to runtime parameters: actual prompt length, max generation length, sampling parameters, and concrete GPU buffer allocations within the Capsule's preflighted envelope.
    * Never alters the target graph or substitutes unqualified kernels.
 
-### Forge Compiler Stages
+### Rig Compiler Stages
 
 1. **Inspect:** Read source files $\to$ `SourceIntake`.
 2. **Normalize:** `SourceIntake` $\to$ normalized source facts.
@@ -214,9 +214,9 @@ All graph-changing, kernel-changing, fusion-changing, layout-changing, and preci
 9. **Package:** model + targets + WGSL + artifacts $\to$ unsigned Capsule.
 10. **Sign/Publish:** unsigned Capsule + promotion receipt $\to$ immutable signed Capsule.
 
-### Runtime Generic Units (Plan–Bind–Execute)
+### Run Generic Units (Plan–Bind–Execute)
 
-The Runtime core contains zero model-family conditionals and operates strictly on generic units:
+The Run core contains zero model-family conditionals and operates strictly on generic units:
 * **`TargetSelector`:** Filters prequalified `TargetPlan`s by device, host, application-approved hashes, and required operations, then applies the application's explicit preference order. Signed Capsule order breaks ties; selection does not imply a measured performance winner and cannot change during a session.
 * **`ResourceBinder`:** Binds symbolic memory slots to GPU buffers and uniform structures.
 * **`CommandExecutor`:** Dispatches declared phase commands without interpreting model semantics.
@@ -226,7 +226,7 @@ The Runtime core contains zero model-family conditionals and operates strictly o
 
 ### Production release control plane
 
-`production-release/v1` sits above Forge and Runtime. It binds one pinned model
+`production-release/v1` sits above Rig and Run. It binds one pinned model
 revision, Electron application revision, application-owned workload/oracle,
 supported Windows/macOS device policy, previous release, rollout rules,
 rollback target, revocation policy, and data-custody policy.
@@ -236,7 +236,7 @@ The Node-only `doppler release` command has two explicit phases:
 1. `qualify` verifies the immutable Capsule and exact device identity, executes the
    application-owned gates, and signs one fleet receipt on a customer-operated
    agent.
-2. `decide` optionally invokes Forge, verifies the Capsule and all declared fleet
+2. `decide` optionally invokes Rig, verifies the Capsule and all declared fleet
    receipts, and signs an `eligible` or `blocked` decision with exclusions,
    rollback, revocation, and retained failure evidence.
 
@@ -255,7 +255,7 @@ the supported Windows/macOS fleet.
 | **Ahead-of-Time Specialization** | Closed Doppler Capsules with reachable WGSL closures | Eliminates generic ONNX interpreter bloat and runtime graph rediscovery |
 | **Code/Data Separation** | Pinned WGSL kernels + weight shards | Enables shard verification, OPFS streaming, and runtime adapter/component swaps |
 | **GPU Fusion** | Hot-path tensor ops stay on GPU | Keeps JS orchestration overhead secondary when GPU compute dominates |
-| **Progressive Fusion** | Swap atomic kernels for fused kernels via Forge TargetPlans | High debuggability during development, peak throughput in production |
+| **Progressive Fusion** | Swap atomic kernels for fused kernels via Rig TargetPlans | High debuggability during development, peak throughput in production |
 | **Minimal Readback** | Logit readback is cadence-controlled | Avoids unnecessary GPU→CPU transfer overhead during decode |
 | **JavaScript Orchestration** | Pure JS dispatches GPU work, handles sampling | Zero-daemon, sandboxed browser/Node embedding without native binaries |
 
@@ -280,7 +280,7 @@ Behavior-changing choices must be fully represented before dispatch:
 - No hidden policy branching in WGSL.
 - No implicit defaults for capability fallback; unresolved decisions fail fast.
 - No model-runtime tensor mathematics or tensor-layout transforms in
-  JavaScript. Reviewed Forge construction, artifact codecs/materialization,
+  JavaScript. Reviewed Rig construction, artifact codecs/materialization,
   host input preprocessing, scalar control, observation, and reference code
   remain separate boundaries and cannot act as runtime fallbacks.
 - No inferred semantic geometry; dimensions required for execution are declared

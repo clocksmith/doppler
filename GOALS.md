@@ -13,7 +13,7 @@ and cleanup. Browser and Node support are qualified separately; Bun remains
 experimental. Host prerequisites still apply: Node may require installation of
 a WebGPU provider. JavaScript/WGSL does not mean no native dependencies anywhere.
 
-Forge, the model compiler and preparation system behind the library, prepares
+Rig, the model compiler and preparation system behind the library, prepares
 supported sources, weights, and GPU programs and evaluates correctness and
 performance. A Capsule is its signed, versioned executable model package; a
 TargetPlan identifies a declared implementation and its execution requirements. Runtime

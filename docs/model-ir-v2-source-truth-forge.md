@@ -1,4 +1,4 @@
-# Heterogeneous ModelIR v2 and Source-Truth Forge
+# Heterogeneous ModelIR v2 and Source-Truth Rig
 
 This document defines the semantic and provenance contract for bringing an
 unfamiliar checkpoint into Doppler. It extends the immutable Capsule architecture
@@ -7,8 +7,8 @@ runtime architecture.
 
 ## Objective
 
-Forge must derive a faithful, compositional representation from pinned
-checkpoint truth. Runtime must consume only a signed implementation contract.
+Rig must derive a faithful, compositional representation from pinned
+checkpoint truth. Run must consume only a signed implementation contract.
 Neither side may use a model name as a substitute for semantics.
 
 The governing plane boundary is:
@@ -83,13 +83,13 @@ compatibility assertions pass against current source facts.
 The source receipt retains the upstream semantic model identity. A lineage
 receipt derives a Capsule-bound ModelIR copy whose `modelId` identifies the
 materialized artifact while `sourceIdentity` and every semantic fact remain
-unchanged. Forge packages that receipt as `source-truth-evidence`, binds its
+unchanged. Rig packages that receipt as `source-truth-evidence`, binds its
 artifact ID into the Capsule program, and verifies its bytes with the rest of the
 artifact closure.
 
 ## Complete source topology and partial Capsule scope
 
-Forge preserves everything the source checkpoint contains. Product support is
+Rig preserves everything the source checkpoint contains. Product support is
 represented separately:
 
 1. `components` and `blockSchedules` describe complete source topology.
@@ -102,14 +102,14 @@ A text-only Capsule may therefore represent perception and drafter components
 while leaving their entry points unlowered. It may claim `text.generate`; it
 may not claim complete multimodal or speculative support.
 
-Forge promotes `qualifiedEntryPoints` only after a Program Bundle carries a
+Rig promotes `qualifiedEntryPoints` only after a Program Bundle carries a
 passed, exact source-token receipt on an explicit physical WebGPU surface. The
 promotion requires exactly one lowered generation entry point, so evidence for
 one path cannot silently qualify another.
 
 ## Lowering and promotion
 
-Forge lowers semantics through reusable block capabilities. A lowering owns
+Rig lowers semantics through reusable block capabilities. A lowering owns
 phase programs and supported state kinds; it cannot be selected because a
 checkpoint has a familiar name. Candidate proposals must be attributable.
 Invalid candidates and losing valid candidates remain in the search receipt.
@@ -162,7 +162,7 @@ signing if none survive. Existing execution-identity and qualification gates
 still run. Omitting evaluation keeps the existing closed-source-plan build
 without granting optimization credit.
 
-The existing file-based Forge command accepts `--candidate-evaluation <path>`
+The existing file-based Rig command accepts `--candidate-evaluation <path>`
 or `candidateEvaluationPath` in its JSON config. That JSON contains `contract`,
 `reference`, and ordered `observations`. The command returns the replayed
 `searchReceipt` and the input-file identity with its ordinary build receipt.
@@ -170,8 +170,8 @@ Keep the input and receipt together; neither is automatic public promotion.
 
 Repository/host I/O remains in `src/tooling/model-capsule-forge.js`; compilation,
 semantic decisions, and this selection algorithm remain under `src/converter/`.
-The architecture gate prevents the Forge algorithm from importing model-host
-composition or Capsule execution. This split is intentional, not two Forge engines.
+The architecture gate prevents the Rig algorithm from importing model-host
+composition or Capsule execution. This split is intentional, not two Rig engines.
 
 Promotion requires:
 
@@ -195,7 +195,7 @@ emitted.
 The Capsule compiler accepts these promoted inputs explicitly:
 
 ```bash
-node tools/forge-model-capsule.js \
+node tools/rig-model-capsule.js \
   --program-bundle <program-bundle.json> \
   --model-ir-receipt <model-ir-receipt.json> \
   --initial-identity <physical-qualification-report.json> \
@@ -204,7 +204,7 @@ node tools/forge-model-capsule.js \
   --out <model.capsule.json>
 ```
 
-For ModelIR v2, Forge refuses specialization unless identity v2 was observed
+For ModelIR v2, Rig refuses specialization unless identity v2 was observed
 before dispatch. Program Bundle reachability includes both phase-dispatched
 kernels and `execution.mechanismKernels`; recurrent and convolutional
 mechanisms therefore cannot execute outside the signed WGSL closure.
@@ -247,7 +247,7 @@ Each campaign retains:
 The north-star measures are publication-to-first-correct-signed-Capsule elapsed
 time and the number of human-authored semantic decisions required for the new
 architecture. A generated candidate count without retained rejection evidence
-does not measure Forge quality.
+does not measure Rig quality.
 
 ## Current evidence boundaries
 

@@ -4,6 +4,10 @@ import * as runtime from '../../src/capsule-runtime.js';
 import { createForecastProgramFactory } from '../../src/client/runtime/composition-root.js';
 
 assert.equal(typeof runtime.openCapsule, 'function');
+assert.equal(runtime.createDopplerRun, runtime.createDopplerRuntime);
+assert.equal(runtime.RUN_CORE_VERSION, runtime.RUNTIME_CORE_VERSION);
+assert.equal(await import('doppler-gpu/run'), runtime);
+assert.equal(await import('doppler-gpu/runtime'), runtime);
 assert.equal('openPack' in runtime, false);
 assert.equal('createFetchPackArtifactStore' in runtime, false);
 assert.equal(typeof runtime.createDopplerRuntime, 'function');

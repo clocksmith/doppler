@@ -30,7 +30,7 @@ import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embe
 import { createDopplerLoader } from '../../loader/doppler-loader.js';
 import { getKernelCapabilities, initDevice } from '../../gpu/device.js';
 import { runWithShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
-import { createDopplerRuntime } from '../runtime/composition-root.js';
+import { createDopplerRun } from '../runtime/composition-root.js';
 import { createCapsuleArtifactBacking } from '../runtime/verified-capsule-artifact-store.js';
 import { createCapsuleProgramAdapter } from '../runtime/capsule-program-adapter.js';
 import { createCapsuleArtifactSource } from '../runtime/capsule-artifact-source.js';
@@ -399,7 +399,7 @@ export function createDopplerRuntimeService({
           };
         },
       };
-      const capsuleRuntime = createDopplerRuntime({
+      const capsuleRuntime = createDopplerRun({
         device,
         artifactStore: resolvedCapsule.artifactStore,
         artifactBacking: capsuleArtifactBacking,

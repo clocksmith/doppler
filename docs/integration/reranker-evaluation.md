@@ -74,7 +74,7 @@ against independent scalar Q4K and F16 projection references. Reranker receipts
 must match ordinary execution and the supplied manifest bytes. A candidate can
 still fail source acceptance while its projection matches the quantized-weight
 oracle; those are different checks. Preserve both outcomes and change numerical
-implementations only through a new Forge candidate.
+implementations only through a new Rig candidate.
 
 ## Build and execute a signed evaluation Capsule
 
@@ -128,7 +128,7 @@ they cannot improve an already pinned artifact retroactively.
 Execution-step kernels alone are insufficient. The recipe's explicit
 `execution.mechanismKernels` also binds weight dequantization, RoPE preparation,
 vectorized gathering/residuals, Q/K normalization and rotation, KV writes, and
-selected-logit readback. Forge includes those source bytes in the Program Bundle
+selected-logit readback. Rig includes those source bytes in the Program Bundle
 and initial execution identity. Runtime rejects every model shader outside that
 verified scope, including during weight loading. Adding a missing mechanism
 therefore requires a new manifest, initial-identity observation, and signed Capsule;

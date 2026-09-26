@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import http from 'node:http';
 import { once } from 'node:events';
-import { createDopplerRuntime, createCapsuleStreamAccumulator } from 'doppler-gpu';
+import { createDopplerRun, createCapsuleStreamAccumulator } from 'doppler-gpu/run';
 import { createCapsuleServeHandler } from 'doppler-gpu/serve';
 import { computeCanonicalSha256 } from './consumer-evidence.js';
 
@@ -12,7 +12,7 @@ const bytes = new Map(fixture.artifacts.map(([id, values]) => [id, new Uint8Arra
 let executions = 0;
 let closes = 0;
 const manifestHash = fixture.capsule.artifacts.find(artifact => artifact.artifactId === 'manifest').hash;
-const runtime = createDopplerRuntime({
+const runtime = createDopplerRun({
   device: { getDevice: () => ({ createBuffer() {}, createCommandEncoder() {} }),
     getProfile: () => ({ surface: 'test-webgpu', maxBufferSize: 1024, hasF16: false, hasSubgroups: false }) },
   artifactStore: { readArtifact: async artifact => bytes.get(artifact.artifactId) },

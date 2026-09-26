@@ -1,4 +1,4 @@
-# Capsule Runtime API
+# Doppler Run API
 
 ## Purpose
 
@@ -6,7 +6,7 @@ Start with `doppler-gpu/host` when using Doppler's existing browser or Node host
 composition. It accepts a Capsule URL/path, explicit trusted signers and accepted
 TargetPlan digests, and supplies the existing device, artifact-store, and program
 ports. For Capsule objects, supply an artifact store. It does not choose trust or
-accept upgrades. See the [application example](../../README.md#capsule-runtime-api)
+accept upgrades. See the [application example](../../README.md#doppler-run-api)
 and [Electron renderer](../../examples/electron-document-search/README.md).
 An exported host path is not proof that every model works on that host.
 
@@ -16,7 +16,11 @@ then verifies every artifact and reachable WGSL module, binds resources, and
 executes the declared commands. It does not load unsigned manifests, infer a
 model family, choose kernels, or supply a development signing key.
 
-`doppler-gpu/runtime` is an exact alias of the same entrypoint.
+`doppler-gpu/run` is the named Doppler Run entrypoint, with the same exports as
+`doppler-gpu`. `doppler-gpu/runtime` remains a compatibility alias.
+`createDopplerRuntime` and `RUNTIME_CORE_VERSION` remain aliases of
+`createDopplerRun` and `RUN_CORE_VERSION`; types have corresponding
+`DopplerRun`, `DopplerRunSession`, and `RunPorts` names.
 
 Capsule v2 remains readable. The new `doppler-gpu/capsule` facade supplies v3 migration,
 identity, and signed release-event APIs. See [Capsule identity migration](../capsule-identity-migration.md)
@@ -38,8 +42,8 @@ separate installed-application qualification.
 ```js
 import {
   DOPPLER_VERSION,
-  RUNTIME_CORE_VERSION,
-  createDopplerRuntime,
+  RUN_CORE_VERSION,
+  createDopplerRun,
   createFetchCapsuleArtifactStore,
   openCapsule,
 } from 'doppler-gpu';
@@ -247,7 +251,7 @@ citation formatting, semantic review, passage selection, or application replay.
 TargetPlan and current host surface. Generation, reranking, or sequence evidence
 cannot authorize it. A qualification record identifies `embeddedTexts` and its
 reference transcript digest; adding this API does not qualify an embedding model.
-Forge materializes `doppler.embeddingModelQualification.v1` reports into
+Rig materializes `doppler.embeddingModelQualification.v1` reports into
 operation-specific transcripts. Its source comparison rechecks exact input
 token IDs and every vector component against the reference's explicit absolute
 tolerance, binds the source revision and manifest postprocessor, and rejects
@@ -329,7 +333,7 @@ Adapter execution requires a signed TargetPlan v2 `adapterExecution` declaration
 Module IDs and digests must match both the initial execution identity and the
 packaged TargetPlan closure, and include the
 registered operations required by [adapter policy](../../src/config/capsule-adapters.json).
-Forge takes this declaration through its existing JSON `adapterExecution` input;
+Rig takes this declaration through its existing JSON `adapterExecution` input;
 it is preserved in the TargetPlan before hashing and signing. Example module IDs
 above are placeholders, not a runnable model configuration. Missing declarations,
 incompatible base identities, corrupted bytes and unsupported combinations fail
@@ -389,7 +393,7 @@ execution plan. Public `modelLoadOptions` remain prohibited. Runtime applies
 this Capsule-owned policy before loading the mature execution mechanism, then
 independently observes and compares the complete identity before prefill.
 Program-load policy v1 remains readable for rejected or previously frozen
-evidence, but Forge promotes only reconstructive policy v2. Initial execution
+evidence, but Rig promotes only reconstructive policy v2. Initial execution
 identity v1 remains accepted only for compatibility with already frozen Capsule v0
 targets.
 

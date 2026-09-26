@@ -28,7 +28,7 @@ Compose model acquisition and application handles above the injected Capsule exe
 
 - Host composition may depend on Capsule execution; Capsule execution cannot import this host layer.
 - Evidence construction cannot acquire GPU resources or invoke a model pipeline.
-- Forwarding entry points expose the same Capsule contract without former product-name aliases.
+- Forwarding entry points expose the same Capsule contract without former Pack-name aliases.
 - Loading and cancellation failures preserve cleanup and the original failure.
 - Applications own session lifetime, initialization coalescing, query supersession,
   indexing, and UI; these are not new model-host abstractions.

@@ -1,11 +1,11 @@
 export { DOPPLER_VERSION } from './version.js';
 export { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validateGenerationInput } from './config/generation-contract.js';
-export { createDopplerRuntime, createForecastProgramFactory, RUNTIME_CORE_VERSION } from './client/runtime/composition-root.js';
+export { createDopplerRun, createDopplerRuntime, createForecastProgramFactory, RUN_CORE_VERSION, RUNTIME_CORE_VERSION } from './client/runtime/composition-root.js';
 export { createFetchCapsuleArtifactStore } from './client/runtime/fetch-capsule-artifact-store.js';
 export { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from './client/runtime/capsule-operation-stream.js';
 
 
-import { createDopplerRuntime } from './client/runtime/composition-root.js';
+import { createDopplerRun } from './client/runtime/composition-root.js';
 
 export function openCapsule(capsuleOrId, options = {}) {
   const required = ['device', 'artifactStore', 'trustedSigners', 'programFactory'];
@@ -13,7 +13,7 @@ export function openCapsule(capsuleOrId, options = {}) {
   if (missing.length > 0) {
     throw new Error(`Capsule runtime openCapsule() requires explicit ports: ${missing.join(', ')}.`);
   }
-  const runtime = createDopplerRuntime({
+  const runtime = createDopplerRun({
     device: options.device,
     capsuleSource: options.capsuleSource ?? null,
     artifactStore: options.artifactStore,

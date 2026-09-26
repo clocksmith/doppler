@@ -24,7 +24,7 @@ import {
 } from '../config/capsule-v2.js';
 import { selectQualifiedTargetPlan } from '../config/target-plan.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
-import { forgeModelCapsule } from './model-capsule-forge.js';
+import { rigModelCapsule } from './model-capsule-rig.js';
 import { loadCapsuleSigningKey, loadCapsuleV2 } from './capsule-v2.js';
 
 const execFileAsync = promisify(execFile);
@@ -319,7 +319,7 @@ async function loadBoundCapsule(release, request, repoRoot) {
   const capsulePath = resolveWithinRoot(repoRoot, release.candidate.capsulePath, 'candidate.capsulePath');
   if (request.forgeConfigPath) {
     const forgeConfig = (await readJson(request.forgeConfigPath, 'release Forge config')).value;
-    await forgeModelCapsule({
+    await rigModelCapsule({
       ...forgeConfig,
       repoRoot,
       outputPath: capsulePath,
