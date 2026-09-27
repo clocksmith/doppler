@@ -1,0 +1,20 @@
+[
+  {
+    "source": "/dev/shm/doppler-diagnosis-20260926/f16-operator-boundaries/qualification.json",
+    "archive": "/var/tmp/doppler-full-diagnostics-20260926/f16-qualification.json.gz",
+    "uncompressedBytes": 167951872,
+    "compressedBytes": 42755096,
+    "sha256": "fb4df1c08c23438151114d06ba36c559db143798c16f1de31d18b859c97c602f",
+    "archiveSha256": "1abd9913df3c0033b4c20d797b0f8a295842342fae2b4c35ff45f0cbd45e5716",
+    "roundTripVerified": true
+  },
+  {
+    "source": "/dev/shm/doppler-diagnosis-20260926/q4-operator-boundaries/qualification.json",
+    "archive": "/var/tmp/doppler-full-diagnostics-20260926/q4-qualification.json.gz",
+    "uncompressedBytes": 167927787,
+    "compressedBytes": 42740703,
+    "sha256": "acf918e4ce4df74bdc023df65e8df1b4061db34462ef0ecaad44be504828d452",
+    "archiveSha256": "157c3dabb041fd97e15cff13a35a497c107be64b63e5c8317b0fc9e4bf6ed716",
+    "roundTripVerified": true
+  }
+]

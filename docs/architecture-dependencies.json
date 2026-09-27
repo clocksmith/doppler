@@ -737,6 +737,7 @@
         "tools/benchmark-artifact-hashing.js",
         "tools/browser-renderer-memory.js",
         "tools/build-document-search-app.js",
+        "tools/build-document-search-browser.js",
         "tools/build-document-search-node-capsules.js",
         "tools/build-document-search-node.js",
         "tools/build-gepa-teacher-traces.js",

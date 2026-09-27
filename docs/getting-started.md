@@ -7,6 +7,9 @@ compatibility](rig-run-naming.md).
 Start with the [standalone local-search application](../README.md#run-local-document-search).
 Download and verify the archive, extract it, then run `npm ci --omit=optional` and
 `npm start` inside `document-search`. The runtime is included and pinned.
+The 0.1.1 browser archive permits fresh model installation before September 28,
+2026, 00:55:40.930 UTC; later fresh installs require renewed signed metadata in
+a new deliverable. Accepted installations retain explicit offline use.
 
 The supported configuration, model download size, browser launch command, and
 step-by-step install/search/cancel/reopen instructions are in the
@@ -16,13 +19,13 @@ Start with the six included sample documents, then replace them with your own
 text or Markdown files. Submitted GPU commands finish after cancellation; stale
 results are suppressed.
 
-The browser receipt covers Linux/Chrome 146/Radeon 8060S with a memory-backed
-profile. It does not establish a minimum-memory configuration, reboot persistence,
-other GPUs, Node inference, or packaged Electron. See the
-[release evidence](../artifacts/document-search-delivery-2026-09-23/README.md).
+The browser receipt covers Linux/Chrome 146/Radeon 8060S with a persistent ext4
+profile. It does not establish minimum memory, reboot persistence, other GPUs,
+or packaged Electron. Node has separate installed acceptance. See the
+[release evidence](../artifacts/document-search-maintenance-2026-09-26/README.md).
 
 For Node, use the separate [Node starter guide](../examples/document-search/NODE.md)
-and [installed application evidence](../artifacts/document-search-maintenance-2026-09-25/README.md).
+and [installed application evidence](../artifacts/document-search-maintenance-2026-09-26/README.md).
 It reuses the browser application's search and controller with filesystem storage;
 its provider, signed model releases, and acceptance are qualified separately.
 

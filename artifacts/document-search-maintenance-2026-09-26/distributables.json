@@ -1,0 +1,19 @@
+[
+  {
+    "host": "node",
+    "archive": "/var/tmp/doppler-maintenance-20260926/release/doppler-node-document-search-0.1.1.tgz",
+    "sha256": "c0a5c9097725842067aa04808861bebcda2c5ba7bd296b891731dee25f470939",
+    "sizeBytes": 8559534,
+    "consumer": "/var/tmp/doppler-maintenance-20260926/node-installed-02",
+    "frozenInstall": true
+  },
+  {
+    "host": "browser",
+    "archive": "/var/tmp/doppler-maintenance-20260926/release/doppler-document-search-0.1.1.tgz",
+    "sha256": "4ac65ca5152f43ef0ba39ea2c50a012950de2ba1bdec7cfc236442b04dd85a8c",
+    "sizeBytes": 8089329,
+    "consumer": "/var/tmp/doppler-maintenance-20260926/browser-final/document-search",
+    "frozenInstall": true,
+    "archiveRoot": "document-search"
+  }
+]

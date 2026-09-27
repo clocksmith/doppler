@@ -41,6 +41,7 @@ export interface ModelIRV2 {
   components: ModelIRV2Node[];
   blockClasses: ModelIRV2Node[];
   blockSchedules: ModelIRV2Node[];
+  /** Explicitly empty for stateless computation; missing or null is invalid. */
   stateSpaces: ModelIRV2Node[];
   tensorRoleBindings: ModelIRV2Node[];
   entryPoints: ModelIRV2Node[];

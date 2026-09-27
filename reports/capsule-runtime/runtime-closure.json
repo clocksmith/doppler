@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 71,
-  "sourceBytes": 772174,
+  "sourceBytes": 772282,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -259,8 +259,8 @@
     },
     {
       "path": "src/config/model-ir-v2.js",
-      "sizeBytes": 11405,
-      "hash": "sha256:fb31ca041f39dba1b017c33c21f1e9c6c344a400524a41e0c49614403c5c7f74"
+      "sizeBytes": 11513,
+      "hash": "sha256:f64d3b1be9d3c86cfc0bae569af1c095c72701b335fd8a7f4425c3930191a084"
     },
     {
       "path": "src/config/model-ir.js",

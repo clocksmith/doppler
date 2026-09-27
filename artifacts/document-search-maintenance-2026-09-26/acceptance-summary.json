@@ -1,0 +1,73 @@
+{
+  "runtimeSha256": "c5be891b3451944f3ff8cf951e46ed6b7fe0f2180d117207bb0b1833669797af",
+  "node": {
+    "freshPublicAcquisition": true,
+    "installMs": 122331.616172,
+    "offlinePassed": true,
+    "offlineOpenMs": 12361.775841,
+    "memory": {
+      "sampledPeakProcessRssBytes": 2209333248,
+      "processHighWaterRssBytes": 2209398784,
+      "gpu": {
+        "submitCalls": 1293,
+        "createdBufferBytes": 33507633344,
+        "liveRequestedBufferBytes": 0,
+        "peakRequestedBufferBytes": 3989755736
+      },
+      "gpuScope": "Requested buffer allocation sizes and explicit destruction; not measured physical GPU residency."
+    },
+    "checks": {
+      "unchangedDocumentReuse": true,
+      "repeatedSearch": true,
+      "cancelledIndexAfterSubmission": {
+        "passed": true,
+        "submissions": 12
+      },
+      "cancelledQueryAfterSubmission": {
+        "passed": true,
+        "submissions": 12
+      },
+      "supersededQuery": true,
+      "interruptedSave": true,
+      "explicitClosure": true,
+      "corruptionRepair": true,
+      "deviceLossRecovery": true
+    },
+    "filesystem": {
+      "type": 61267,
+      "rebootTested": false,
+      "physicalGpuResidencyMeasured": false
+    }
+  },
+  "browser": {
+    "passed": true,
+    "installMs": 127454.629587,
+    "reopenMs": 28590.979553000012,
+    "filesystem": {
+      "type": 61267,
+      "note": "Filesystem backing is part of this receipt; installation timings are not transferable across storage devices."
+    },
+    "checks": [
+      "online and offline reference searches",
+      "cancelled indexing and queries",
+      "superseded queries",
+      "interrupted saves",
+      "explicit closure",
+      "quota failure",
+      "corruption repair",
+      "index invalidation",
+      "device-loss recovery"
+    ]
+  },
+  "limitations": {
+    "rebootTested": false,
+    "smallerMemoryHardware": false,
+    "minimumMemoryEstablished": false,
+    "browserPerformanceComparison": false,
+    "independentAdoption": false
+  },
+  "boot": {
+    "id": "3ce46712-27bc-4199-8e48-e2b3d23926cb",
+    "bootTimeUnix": 1786903862
+  }
+}

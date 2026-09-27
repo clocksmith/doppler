@@ -47,6 +47,31 @@ try {
     assert.deepEqual(second.models[index].options.releaseEvents, first.models[index].options.releaseEvents);
     assert.deepEqual(second.models[index].options.releasePolicy.checkpoint, first.models[index].options.releasePolicy.checkpoint);
   }
+  const expiredDir = path.join(root, 'expired'); await fs.mkdir(expiredDir);
+  const expired = structuredClone(first);
+  for (const model of expired.models) {
+    const event = await signCapsuleReleaseEvent({ ...model.options.releaseEvents[0],
+      issuedAtUtc: '2000-01-01T00:00:00.000Z', expiresAtUtc: '2000-01-02T00:00:00.000Z' }, signer);
+    model.options.releaseEvents = [event];
+    model.options.releasePolicy.checkpoint = { sequence: 1, digest: event.digest };
+  }
+  await write(path.join(expiredDir, 'models.json'), expired);
+  await assert.rejects(buildDocumentSearchApplication({ ...config, previousApplicationDir: expiredDir,
+    outputDir: path.join(root, 'expired-rejected') }), /expired/);
+  const renewedDir = path.join(root, 'renewed');
+  await buildDocumentSearchApplication({ ...config, previousApplicationDir: expiredDir,
+    outputDir: renewedDir, renewReleaseEligibility: true });
+  const renewed = await read(path.join(renewedDir, 'models.json'));
+  for (let index = 0; index < 2; index++) {
+    const before = expired.models[index], after = renewed.models[index];
+    assert.deepEqual(after.identity, before.identity);
+    assert.deepEqual(after.options.releaseEvents[0], before.options.releaseEvents[0]);
+    assert.equal(after.options.releaseEvents[1].previousEventDigest, before.options.releaseEvents[0].digest);
+    assert.equal(after.options.releasePolicy.checkpoint.sequence, 2);
+    assert(Date.parse(after.options.releaseEvents[1].expiresAtUtc) > Date.now());
+  }
+  await assert.rejects(buildDocumentSearchApplication({ ...config, models: null, previousApplicationDir: secondDir,
+    outputDir: path.join(root, 'retained-renewal'), renewReleaseEligibility: true }), /signing custody/);
   await fs.unlink(path.join(capsuleRoot, 'custody/private-key.json'));
   const retainedDir = path.join(root, 'retained');
   await buildDocumentSearchApplication({ ...config, models: null, previousApplicationDir: secondDir,
@@ -87,5 +112,7 @@ try {
   await write(path.join(previousDir, 'models.json'), prior);
   await assert.rejects(buildDocumentSearchApplication({ ...config, previousApplicationDir: previousDir,
     outputDir: path.join(root, 'denied') }), /blocked/);
+  await assert.rejects(buildDocumentSearchApplication({ ...config, previousApplicationDir: previousDir,
+    outputDir: path.join(root, 'denied-renewal'), renewReleaseEligibility: true }), /blocked/);
 } finally { await fs.rm(root, { recursive: true, force: true }); }
 console.log('document-search-build.test: passed (synthetic release continuity and denial)');

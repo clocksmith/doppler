@@ -35,7 +35,7 @@
     "components": { "$ref": "#/$defs/nodes" },
     "blockClasses": { "$ref": "#/$defs/nodes" },
     "blockSchedules": { "$ref": "#/$defs/nodes" },
-    "stateSpaces": { "$ref": "#/$defs/nodes" },
+    "stateSpaces": { "type": "array", "items": { "$ref": "#/$defs/nodes/items" } },
     "tensorRoleBindings": { "$ref": "#/$defs/nodes" },
     "entryPoints": { "$ref": "#/$defs/nodes" },
     "outputHeads": { "$ref": "#/$defs/nodes" },

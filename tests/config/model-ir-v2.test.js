@@ -57,6 +57,18 @@ const modelIR = createModelIRV2({
 assert.equal(validateModelIR(modelIR).ok, true);
 assert.match(hashModelIR(modelIR), /^sha256:[0-9a-f]{64}$/);
 
+const stateless = structuredClone(modelIR);
+stateless.stateSpaces = [];
+assert.equal(validateModelIR(stateless).ok, true, 'Stateless models must not invent persistent state');
+assert.deepEqual(createModelIRV2(stateless).stateSpaces, []);
+for (const stateSpaces of [null, undefined, {}]) {
+  const invalid = { ...stateless, stateSpaces };
+  assert.equal(validateModelIR(invalid).ok, false, 'An explicit state list is still required');
+}
+const malformedState = { ...stateless, stateSpaces: [{ id: 'invalid', factRefs: ['absent'] }] };
+assert.equal(validateModelIR(malformedState).ok, false, 'Nonempty state contracts remain validated');
+assert.equal(validateModelIR({ ...modelIR, components: [] }).ok, false);
+
 for (const confidence of ['family-inferred', 'ambiguous', 'unsupported']) {
   const invalid = structuredClone(modelIR);
   invalid.provenance.facts[0].confidence = confidence;

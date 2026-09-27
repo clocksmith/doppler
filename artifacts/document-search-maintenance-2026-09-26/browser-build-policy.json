@@ -1,0 +1,29 @@
+{
+  "packageBundlePath": "/var/tmp/doppler-diagnosis-package-20260926",
+  "outputDir": "/dev/shm/doppler-maintenance-20260926/browser-app",
+  "previousApplicationDir": "/home/x/deco/doppler/examples/document-search",
+  "renewReleaseEligibility": true,
+  "models": [
+    {
+      "role": "embedding",
+      "capsuleRoot": "/home/x/deco/doppler/reports/capsule-baseline/20260906/embedding-capsule"
+    },
+    {
+      "role": "reranker",
+      "capsuleRoot": "/home/x/deco/doppler/reports/capsule-baseline/20260906/reranker-browser-capsule"
+    }
+  ],
+  "search": {
+    "dimension": 1024,
+    "candidateCount": 3,
+    "queryPrefix": "",
+    "documentPrefix": ""
+  },
+  "storage": {
+    "opfsRootDir": "doppler-document-search",
+    "useSyncAccessHandle": false,
+    "maxConcurrentHandles": 1
+  },
+  "loading": {},
+  "applicationVersion": "0.1.1"
+}

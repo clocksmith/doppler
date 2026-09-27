@@ -1,0 +1,39 @@
+{
+  "schema": "doppler.embedding-source-capture/v1",
+  "repository": "sentence-transformers/all-MiniLM-L6-v2",
+  "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+  "sourceDirectory": "/var/tmp/doppler-minilm-embedding-20260926/source",
+  "referenceDevice": "cpu",
+  "referenceDtype": "float32",
+  "threads": 4,
+  "maxInputTokens": 256,
+  "input": {
+    "texts": [
+      "",
+      "Local document search ranks passages.",
+      "Who owns CAB-714?",
+      "Who owns CAB-741?",
+      "The invoice was not approved.",
+      "The invoice was approved.",
+      "Café déjà vu — 東京, naïve, résumé.",
+      "An offline edit must preserve the last complete index.",
+      "Two identical relevant passages may have similar scores.",
+      "Document identifiers remain stable when titles change.",
+      "a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a ",
+      "Leading   and\ntrailing whitespace.  "
+    ]
+  },
+  "embeddingContract": {
+    "dimension": 384,
+    "postprocessor": {
+      "poolingMode": "mean",
+      "includePrompt": true,
+      "projections": [],
+      "normalize": "l2"
+    }
+  },
+  "tolerances": {
+    "embeddingMaxAbs": 0.02,
+    "tokenIds": "exact"
+  }
+}

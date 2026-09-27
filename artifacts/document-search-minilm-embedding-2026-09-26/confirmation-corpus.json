@@ -1,0 +1,938 @@
+{
+  "schema": "doppler.compact-search-evaluation/v1",
+  "scope": "Author-created confirmation v2, frozen before candidate conversion and score capture; not independent adoption. Ranking and unqualified abstention are evaluated separately.",
+  "preprocessing": {
+    "version": "unicode-window-v1",
+    "maxCodePoints": 480,
+    "overlapCodePoints": 80,
+    "preserveOriginalDocuments": true
+  },
+  "search": {
+    "candidateCount": 5,
+    "queryPrefix": "",
+    "documentPrefix": ""
+  },
+  "acceptance": {
+    "minimumAnswerableTop1Rate": 0.9,
+    "requiredIdentifierTop1Rate": 1,
+    "requiredLongDocumentTop1Rate": 1,
+    "maximumNoAnswerFalsePositives": 0,
+    "provisionalCombinedDownloadBytes": 300000000
+  },
+  "documents": [
+    {
+      "id": "calendar",
+      "title": "Calendar reminders",
+      "mediaType": "text/plain",
+      "text": "A dismissed reminder stays dismissed on this device. To see it again, open the event and choose Restore reminder. Editing the event time alone does not restore it."
+    },
+    {
+      "id": "calendar-draft",
+      "title": "Calendar reminders planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed calendar reminders. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "exports",
+      "title": "Exported tables",
+      "mediaType": "text/plain",
+      "text": "The table exporter writes UTF-8 CSV with a header row. Values containing commas are quoted. The first row is column names and must not be imported as a data record."
+    },
+    {
+      "id": "exports-draft",
+      "title": "Exported tables planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed exported tables. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "permissions",
+      "title": "Project access",
+      "mediaType": "text/plain",
+      "text": "Removing someone from a project stops new access but does not erase files they previously downloaded. Transfer ownership before removing the last project owner."
+    },
+    {
+      "id": "permissions-draft",
+      "title": "Project access planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed project access. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "sync",
+      "title": "Conflicting note edits",
+      "mediaType": "text/plain",
+      "text": "When two offline edits target the same note, synchronization retains both versions in a conflict panel. Choose a version or combine them manually; the service never silently chooses the newest timestamp."
+    },
+    {
+      "id": "sync-draft",
+      "title": "Conflicting note edits planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed conflicting note edits. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "attachments",
+      "title": "Missing attachment previews",
+      "mediaType": "text/plain",
+      "text": "Preview generation accepts PDF and plain text. Unsupported files can still be downloaded. A missing preview does not imply that the uploaded file was lost."
+    },
+    {
+      "id": "attachments-draft",
+      "title": "Missing attachment previews planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed missing attachment previews. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "archive",
+      "title": "Archived workspaces",
+      "mediaType": "text/plain",
+      "text": "Archiving a workspace makes it read-only. It preserves its notes and members. An administrator can restore write access by unarchiving it from workspace settings."
+    },
+    {
+      "id": "archive-draft",
+      "title": "Archived workspaces planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed archived workspaces. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "sort",
+      "title": "Sorting by due date",
+      "mediaType": "text/plain",
+      "text": "Items without a due date appear after dated items, even when the direction is descending. Equal dates retain their previous relative order."
+    },
+    {
+      "id": "sort-draft",
+      "title": "Sorting by due date planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed sorting by due date. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "retry",
+      "title": "Retrying an upload",
+      "mediaType": "text/plain",
+      "text": "After a disconnected upload, retry with the same upload identifier. The service resumes acknowledged chunks. Creating a new identifier starts a separate upload instead."
+    },
+    {
+      "id": "retry-draft",
+      "title": "Retrying an upload planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed retrying an upload. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "draft",
+      "title": "Draft publication",
+      "mediaType": "text/plain",
+      "text": "Saving a draft does not make it visible to readers. Publishing creates an immutable revision. Further edits remain in a new draft until the next explicit publication."
+    },
+    {
+      "id": "draft-draft",
+      "title": "Draft publication planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed draft publication. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "audit",
+      "title": "Activity history",
+      "mediaType": "text/plain",
+      "text": "The activity view records who changed a field and its previous value. Exporting history requires the audit-reader permission, which does not grant permission to edit the underlying record."
+    },
+    {
+      "id": "audit-draft",
+      "title": "Activity history planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed activity history. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "timezone",
+      "title": "Recurring meetings",
+      "mediaType": "text/plain",
+      "text": "A recurring meeting follows the organizer’s named time zone. During daylight-saving changes, its UTC hour may move while its local start hour stays fixed."
+    },
+    {
+      "id": "timezone-draft",
+      "title": "Recurring meetings planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed recurring meetings. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "search",
+      "title": "Search result snippets",
+      "mediaType": "text/plain",
+      "text": "Snippets display the matched passage and its document title. A high rank is a relevance estimate, not verification that the passage answers the question. Open the document to inspect its context."
+    },
+    {
+      "id": "search-draft",
+      "title": "Search result snippets planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed search result snippets. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "trash",
+      "title": "Restoring removed pages",
+      "mediaType": "text/plain",
+      "text": "Removed pages stay in the trash until permanent deletion. Restoring a page preserves its identifier and incoming links. A permanently deleted page cannot be restored from the trash."
+    },
+    {
+      "id": "trash-draft",
+      "title": "Restoring removed pages planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed restoring removed pages. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "import",
+      "title": "Import validation",
+      "mediaType": "text/plain",
+      "text": "An import first validates every row, then commits the complete batch. A malformed row rejects the batch and leaves existing records unchanged. Fix the reported row before retrying."
+    },
+    {
+      "id": "import-draft",
+      "title": "Import validation planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed import validation. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "notify",
+      "title": "Quiet notification periods",
+      "mediaType": "text/plain",
+      "text": "Quiet periods suppress push notifications while retaining events in the activity feed. They do not disable email subscriptions. Email preferences are configured separately."
+    },
+    {
+      "id": "notify-draft",
+      "title": "Quiet notification periods planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed quiet notification periods. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "link",
+      "title": "Shared links",
+      "mediaType": "text/plain",
+      "text": "A private sharing link is tied to one revision and can be revoked. Revoking it prevents future access through that link; it does not remove downloaded copies or other independently created links."
+    },
+    {
+      "id": "link-draft",
+      "title": "Shared links planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed shared links. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "undo",
+      "title": "Undo after reopening",
+      "mediaType": "text/plain",
+      "text": "Undo history is local to the current editing session. Closing the editor clears that history. Saved revisions remain available in version history after reopening."
+    },
+    {
+      "id": "undo-draft",
+      "title": "Undo after reopening planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed undo after reopening. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "quota",
+      "title": "Storage quota errors",
+      "mediaType": "text/plain",
+      "text": "When saving would exceed the storage quota, the previous committed snapshot remains readable. Free space or export unused attachments, then retry. A failed save must not be displayed as saved."
+    },
+    {
+      "id": "quota-draft",
+      "title": "Storage quota errors planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed storage quota errors. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "offline",
+      "title": "Offline preparation",
+      "mediaType": "text/plain",
+      "text": "Offline readiness requires retained application files, model artifacts and a complete document index. Caching only the page shell is insufficient for local search after disconnection."
+    },
+    {
+      "id": "offline-draft",
+      "title": "Offline preparation planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed offline preparation. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "cancel",
+      "title": "Cancelling indexing",
+      "mediaType": "text/plain",
+      "text": "Cancelling indexing keeps the previous complete index. Work already submitted to the GPU finishes before cleanup. A cancelled partial index is never published as the current index."
+    },
+    {
+      "id": "cancel-draft",
+      "title": "Cancelling indexing planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed cancelling indexing. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "identity",
+      "title": "Document identity",
+      "mediaType": "text/plain",
+      "text": "The importer uses a stable document identifier independent of the title and content hash. Renaming a document preserves its identifier. Equal text in two documents does not merge their identities."
+    },
+    {
+      "id": "identity-draft",
+      "title": "Document identity planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed document identity. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "rebuild",
+      "title": "Embedding upgrades",
+      "mediaType": "text/plain",
+      "text": "Changing embedding models invalidates stored vectors from the prior embedding space. Rebuild them from preserved documents. Changing only the reranker does not require re-embedding unchanged documents."
+    },
+    {
+      "id": "rebuild-draft",
+      "title": "Embedding upgrades planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed embedding upgrades. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "keyboard",
+      "title": "Keyboard selection",
+      "mediaType": "text/plain",
+      "text": "Shift plus an arrow extends the current selection. Escape clears the selection without deleting text. The Delete key removes selected text and can be undone during the current editing session."
+    },
+    {
+      "id": "keyboard-draft",
+      "title": "Keyboard selection planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed keyboard selection. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "backup",
+      "title": "Backup verification",
+      "mediaType": "text/plain",
+      "text": "A successful export confirms that a backup file was written. Verification imports that backup into an isolated workspace and compares document identifiers and content. Keep the original workspace intact during verification."
+    },
+    {
+      "id": "backup-draft",
+      "title": "Backup verification planning note",
+      "mediaType": "text/plain",
+      "text": "Planning note: the team discussed backup verification. This note records the meeting topic only; it does not specify the feature behavior, access rules, recovery procedure, or configuration."
+    },
+    {
+      "id": "id-CAB-714",
+      "title": "CAB-714 handoff",
+      "mediaType": "text/plain",
+      "text": "The owner assigned to CAB-714 is Mira. This assignment applies only to this exact identifier. Other assignments are tracked separately."
+    },
+    {
+      "id": "id-CAB-741",
+      "title": "CAB-741 handoff",
+      "mediaType": "text/plain",
+      "text": "The owner assigned to CAB-741 is Owen. This assignment applies only to this exact identifier. Other assignments are tracked separately."
+    },
+    {
+      "id": "id-SDK-208",
+      "title": "SDK-208 handoff",
+      "mediaType": "text/plain",
+      "text": "The owner assigned to SDK-208 is Lena. This assignment applies only to this exact identifier. Other assignments are tracked separately."
+    },
+    {
+      "id": "id-SDK-280",
+      "title": "SDK-280 handoff",
+      "mediaType": "text/plain",
+      "text": "The owner assigned to SDK-280 is Ravi. This assignment applies only to this exact identifier. Other assignments are tracked separately."
+    },
+    {
+      "id": "id-JOB-563",
+      "title": "JOB-563 handoff",
+      "mediaType": "text/plain",
+      "text": "The owner assigned to JOB-563 is Nora. This assignment applies only to this exact identifier. Other assignments are tracked separately."
+    },
+    {
+      "id": "id-JOB-536",
+      "title": "JOB-536 handoff",
+      "mediaType": "text/plain",
+      "text": "The owner assigned to JOB-536 is Ivo. This assignment applies only to this exact identifier. Other assignments are tracked separately."
+    },
+    {
+      "id": "long-LT-392",
+      "title": "Locker maintenance LT-392",
+      "mediaType": "text/plain",
+      "text": "The recovery phrase for fictional locker LT-392 is cedar lantern. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. "
+    },
+    {
+      "id": "long-LT-329",
+      "title": "Locker maintenance LT-329",
+      "mediaType": "text/plain",
+      "text": "This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. The recovery phrase for fictional locker LT-329 is violet bridge. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. "
+    },
+    {
+      "id": "long-MV-851",
+      "title": "Locker maintenance MV-851",
+      "mediaType": "text/plain",
+      "text": "This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. The recovery phrase for fictional locker MV-851 is copper meadow. "
+    },
+    {
+      "id": "long-MV-815",
+      "title": "Locker maintenance MV-815",
+      "mediaType": "text/plain",
+      "text": "The recovery phrase for fictional locker MV-815 is silver orchard. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. "
+    },
+    {
+      "id": "long-PK-467",
+      "title": "Locker maintenance PK-467",
+      "mediaType": "text/plain",
+      "text": "This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. The recovery phrase for fictional locker PK-467 is amber harbor. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. "
+    },
+    {
+      "id": "long-PK-476",
+      "title": "Locker maintenance PK-476",
+      "mediaType": "text/plain",
+      "text": "This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. This section describes routine catalog maintenance and ordinary inventory reconciliation. No locker recovery instructions appear in this paragraph. The recovery phrase for fictional locker PK-476 is indigo summit. "
+    }
+  ],
+  "queries": [
+    {
+      "id": "calendar-1",
+      "text": "How can I bring back a dismissed event alert?",
+      "relevantIds": [
+        "calendar"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "calendar-2",
+      "text": "Changing the event time did not restore my alert. What should I do?",
+      "relevantIds": [
+        "calendar"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "exports-1",
+      "text": "Why is the first exported row not a record?",
+      "relevantIds": [
+        "exports"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "exports-2",
+      "text": "How does the table download represent a value containing a comma?",
+      "relevantIds": [
+        "exports"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "permissions-1",
+      "text": "Will removing a collaborator erase their downloaded files?",
+      "relevantIds": [
+        "permissions"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "permissions-2",
+      "text": "What must happen before the last owner is removed?",
+      "relevantIds": [
+        "permissions"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "sync-1",
+      "text": "What happens when two people edit one note while offline?",
+      "relevantIds": [
+        "sync"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "sync-2",
+      "text": "Where can I combine conflicting note revisions?",
+      "relevantIds": [
+        "sync"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "attachments-1",
+      "text": "Can I retrieve a file whose preview is unavailable?",
+      "relevantIds": [
+        "attachments"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "attachments-2",
+      "text": "Which file types can the preview generator render?",
+      "relevantIds": [
+        "attachments"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "archive-1",
+      "text": "How do I make an archived workspace editable again?",
+      "relevantIds": [
+        "archive"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "archive-2",
+      "text": "Does archiving remove the notes?",
+      "relevantIds": [
+        "archive"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "sort-1",
+      "text": "Why are undated tasks still last in descending order?",
+      "relevantIds": [
+        "sort"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "sort-2",
+      "text": "What ordering is used for tasks with identical due dates?",
+      "relevantIds": [
+        "sort"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "retry-1",
+      "text": "How can an interrupted upload reuse the chunks already received?",
+      "relevantIds": [
+        "retry"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "retry-2",
+      "text": "What happens if I retry with a different upload identifier?",
+      "relevantIds": [
+        "retry"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "draft-1",
+      "text": "Why can readers not see my saved changes?",
+      "relevantIds": [
+        "draft"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "draft-2",
+      "text": "Can editing the draft change an already published revision?",
+      "relevantIds": [
+        "draft"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "audit-1",
+      "text": "Does audit-reader access allow record editing?",
+      "relevantIds": [
+        "audit"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "audit-2",
+      "text": "Where can I find the previous value of an edited field?",
+      "relevantIds": [
+        "audit"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "timezone-1",
+      "text": "Why did the UTC hour of my recurring meeting change?",
+      "relevantIds": [
+        "timezone"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "timezone-2",
+      "text": "Which time zone controls a repeating meeting?",
+      "relevantIds": [
+        "timezone"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "search-1",
+      "text": "Does the first search hit prove that it answers my question?",
+      "relevantIds": [
+        "search"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "search-2",
+      "text": "How can I inspect the context around a search snippet?",
+      "relevantIds": [
+        "search"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "trash-1",
+      "text": "Will restoring a page repair its existing incoming links?",
+      "relevantIds": [
+        "trash"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "trash-2",
+      "text": "Can the trash restore a permanently deleted page?",
+      "relevantIds": [
+        "trash"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "import-1",
+      "text": "Can valid rows be committed when another imported row is malformed?",
+      "relevantIds": [
+        "import"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "import-2",
+      "text": "Does an import validation failure alter existing records?",
+      "relevantIds": [
+        "import"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "notify-1",
+      "text": "Why am I still receiving email during quiet hours?",
+      "relevantIds": [
+        "notify"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "notify-2",
+      "text": "Where can I see events suppressed by quiet mode?",
+      "relevantIds": [
+        "notify"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "link-1",
+      "text": "Does revoking one sharing URL disable all other URLs?",
+      "relevantIds": [
+        "link"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "link-2",
+      "text": "Does a sharing link follow future document edits?",
+      "relevantIds": [
+        "link"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "undo-1",
+      "text": "Where can I recover an older saved version after closing the editor?",
+      "relevantIds": [
+        "undo"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "undo-2",
+      "text": "Does the undo stack survive an editor restart?",
+      "relevantIds": [
+        "undo"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "quota-1",
+      "text": "What survives when a save exceeds the storage quota?",
+      "relevantIds": [
+        "quota"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "quota-2",
+      "text": "What should the interface display after a quota failure?",
+      "relevantIds": [
+        "quota"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "offline-1",
+      "text": "Is a cached page enough to search without a connection?",
+      "relevantIds": [
+        "offline"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "offline-2",
+      "text": "Which assets must be retained before offline search is ready?",
+      "relevantIds": [
+        "offline"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "cancel-1",
+      "text": "Does cancelling immediately stop submitted GPU commands?",
+      "relevantIds": [
+        "cancel"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "cancel-2",
+      "text": "Which index remains available after indexing is cancelled?",
+      "relevantIds": [
+        "cancel"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "identity-1",
+      "text": "Do two documents with the same text become one document?",
+      "relevantIds": [
+        "identity"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "identity-2",
+      "text": "Does renaming a document require a new identifier?",
+      "relevantIds": [
+        "identity"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "rebuild-1",
+      "text": "Must I rebuild vectors after changing only the reranker?",
+      "relevantIds": [
+        "rebuild"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "rebuild-2",
+      "text": "Why does an embedding-model upgrade require rebuilding the index?",
+      "relevantIds": [
+        "rebuild"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "keyboard-1",
+      "text": "How can I clear a selection without erasing text?",
+      "relevantIds": [
+        "keyboard"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "keyboard-2",
+      "text": "Which shortcut extends the current selection?",
+      "relevantIds": [
+        "keyboard"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "backup-1",
+      "text": "How can I check that an exported backup is usable?",
+      "relevantIds": [
+        "backup"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "backup-2",
+      "text": "Should backup verification overwrite the original workspace?",
+      "relevantIds": [
+        "backup"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "id-CAB-714",
+      "text": "Who owns CAB-714?",
+      "relevantIds": [
+        "id-CAB-714"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "id-CAB-741",
+      "text": "Who owns CAB-741?",
+      "relevantIds": [
+        "id-CAB-741"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "id-SDK-208",
+      "text": "Who owns SDK-208?",
+      "relevantIds": [
+        "id-SDK-208"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "id-SDK-280",
+      "text": "Who owns SDK-280?",
+      "relevantIds": [
+        "id-SDK-280"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "id-JOB-563",
+      "text": "Who owns JOB-563?",
+      "relevantIds": [
+        "id-JOB-563"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "id-JOB-536",
+      "text": "Who owns JOB-536?",
+      "relevantIds": [
+        "id-JOB-536"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "long-LT-392",
+      "text": "Which recovery phrase opens fictional locker LT-392?",
+      "relevantIds": [
+        "long-LT-392"
+      ],
+      "category": "long-document"
+    },
+    {
+      "id": "long-LT-329",
+      "text": "Which recovery phrase opens fictional locker LT-329?",
+      "relevantIds": [
+        "long-LT-329"
+      ],
+      "category": "long-document"
+    },
+    {
+      "id": "long-MV-851",
+      "text": "Which recovery phrase opens fictional locker MV-851?",
+      "relevantIds": [
+        "long-MV-851"
+      ],
+      "category": "long-document"
+    },
+    {
+      "id": "long-MV-815",
+      "text": "Which recovery phrase opens fictional locker MV-815?",
+      "relevantIds": [
+        "long-MV-815"
+      ],
+      "category": "long-document"
+    },
+    {
+      "id": "long-PK-467",
+      "text": "Which recovery phrase opens fictional locker PK-467?",
+      "relevantIds": [
+        "long-PK-467"
+      ],
+      "category": "long-document"
+    },
+    {
+      "id": "long-PK-476",
+      "text": "Which recovery phrase opens fictional locker PK-476?",
+      "relevantIds": [
+        "long-PK-476"
+      ],
+      "category": "long-document"
+    },
+    {
+      "id": "none-1",
+      "text": "Who owns CAB-174?",
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "none-2",
+      "text": "Who owns SDK-820?",
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "none-3",
+      "text": "Who owns JOB-653?",
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "none-4",
+      "text": "What is the recovery phrase for fictional locker LT-923?",
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "none-5",
+      "text": "What is the recovery phrase for fictional locker MV-518?",
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "none-6",
+      "text": "What is the recovery phrase for fictional locker PK-647?",
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "none-7",
+      "text": "What monthly price is charged for audit-reader permission?",
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "none-8",
+      "text": "What is the maximum supported attachment size in bytes?",
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "none-9",
+      "text": "How many days are removed pages retained before deletion?",
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "none-10",
+      "text": "Which encryption cipher protects the exported backup?",
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "none-11",
+      "text": "What is the guaranteed maximum delay for an upload retry?",
+      "relevantIds": [],
+      "category": "no-answer"
+    },
+    {
+      "id": "none-12",
+      "text": "Which calendar date will the next application release ship?",
+      "relevantIds": [],
+      "category": "no-answer"
+    }
+  ]
+}

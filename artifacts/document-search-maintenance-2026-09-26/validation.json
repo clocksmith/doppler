@@ -1,0 +1,136 @@
+{
+  "schema": "doppler.document-search-maintenance-validation/v1",
+  "baseCommit": "8f4742bd8ad69824d0647d14e6708052f5ca306f",
+  "testFilesPassed": 868,
+  "aggregateCommand": {
+    "command": "TMPDIR=/dev/shm npm run check:green",
+    "exitCode": 1,
+    "failures": [
+      "runtime:closure:check: stale generated ModelIR source hash",
+      "package:smoke: same stale installed closure receipt"
+    ]
+  },
+  "repair": {
+    "command": "npm run runtime:closure:sync",
+    "effect": "One ModelIR source record and total source byte count updated; 71 files unchanged; no forbidden imports.",
+    "checks": [
+      {
+        "command": "npm run runtime:closure:check",
+        "exitCode": 0
+      },
+      {
+        "command": "npm run package:smoke",
+        "exitCode": 0
+      }
+    ],
+    "allRequiredGatesPassedAcrossAggregateAndTargetedReruns": true,
+    "fullAggregateRerunAfterGeneratedReceiptRepair": false
+  },
+  "physicalApplicationEvidence": "acceptance-summary.json and public-consumer-summary.json",
+  "publicationEvidence": "publication.json and publication-verification.json",
+  "miniLMQualified": false,
+  "rebootTested": false,
+  "smallerMemoryTested": false,
+  "externalAdoption": false,
+  "sourceFiles": [
+    {
+      "path": "README.md",
+      "sha256": "b40eb2be9d8782cf60edeec5ff0134a4bf6677bf3679f5509a15a8a9eb3b8e11"
+    },
+    {
+      "path": "docs/architecture-dependencies.json",
+      "sha256": "11e7b9e38eba1bd5aed28ee36ddd3e1bfcab967a72427f4485c80aa5fbc53933"
+    },
+    {
+      "path": "docs/getting-started.md",
+      "sha256": "b60742338532ef7cfcc69b75b3a621fe0954e9856e3829fb0aa8b9285dd2f848"
+    },
+    {
+      "path": "docs/goals.md",
+      "sha256": "935ebccee33e72f4a88af816b950833fb9426c88d554e65562b96e05b722061a"
+    },
+    {
+      "path": "docs/model-ir-v2-source-truth-forge.md",
+      "sha256": "a302fea5ba3ea08031d6e37f5800c38458423fd36274d88b9588a773daba6205"
+    },
+    {
+      "path": "examples/document-search/NODE.md",
+      "sha256": "0c16479e543fbdcf727f1d418c3b8319cd5a29fe729c23823d086f20ed888133"
+    },
+    {
+      "path": "examples/document-search/README.md",
+      "sha256": "6ff9bed77bdcd7077e5a98ca9cb8b75428a4f62ced910cd4fd8d4c32e8813d55"
+    },
+    {
+      "path": "reports/capsule-runtime/runtime-closure.json",
+      "sha256": "a357307fa92a6d3bf047ef425a720947301835f690fd06fb79ef7dffab2963ca"
+    },
+    {
+      "path": "src/config/model-ir-v2.d.ts",
+      "sha256": "64849b2e54093ea59a8c02aa9254380112cf14cd70b5c54e9215e09fe4df1308"
+    },
+    {
+      "path": "src/config/model-ir-v2.js",
+      "sha256": "f64d3b1be9d3c86cfc0bae569af1c095c72701b335fd8a7f4425c3930191a084"
+    },
+    {
+      "path": "src/config/schema/model-ir-v2.schema.json",
+      "sha256": "8ca7fa4b9917a755800804aaec4ce7d5757ec925e3c9473609e20b329917dcb1"
+    },
+    {
+      "path": "tests/config/model-ir-v2.test.js",
+      "sha256": "416d90c5c405b31c61774a85f3152b1f46a28eeb8c47dcf91c7aaaca63713b1d"
+    },
+    {
+      "path": "tests/tooling/document-search-build.test.js",
+      "sha256": "93ad75c5defbd14a35601282b026dd5ab0bf0492fff3e41af1793fed61c40160"
+    },
+    {
+      "path": "tools/build-document-search-app.js",
+      "sha256": "bb49791935fe3829823d9c533051d7321280b3ce42657f259772467340715b78"
+    },
+    {
+      "path": "tools/build-document-search-node.js",
+      "sha256": "0c46537570a54dbe31475ef8520d7531f324c797dd5b182e28c3dd7b9080d46c"
+    },
+    {
+      "path": "tools/capture-embedding-source-reference.py",
+      "sha256": "623826a7c885b654b0c55815a15947617e4c5c4496eddecc800bff8af524aac0"
+    },
+    {
+      "path": "tools/check-public-boundaries.js",
+      "sha256": "40794e2601f89ac76a1291ee3af277ce0c33bf06cf8c12c022d0ea460fd4e900"
+    },
+    {
+      "path": "tools/build-document-search-browser.js",
+      "sha256": "875451996c6d09ca3d84f41142e4d64cbc307a4c81422592464146a5e55f2801"
+    }
+  ],
+  "logs": [
+    {
+      "path": "check-green-final.log.gz",
+      "uncompressedSha256": "41bed5b8681f9c252340e69e7b378deb5855b354f502bb6d100295814c66db76",
+      "sha256": "911a70cdc270dd5aa4f1d833db377d22124f3b4ad3e27c9f67255013a42104cd"
+    },
+    {
+      "path": "closure-repaired.log.gz",
+      "uncompressedSha256": "19d744775907fb8311892c24130cc9b41b1d3098700d512d29a608e7542d1dd5",
+      "sha256": "67dc61e1fbca063f29391552f3f8b811124f6a3e620567141249b787642345ac"
+    },
+    {
+      "path": "package-smoke-repaired.log.gz",
+      "uncompressedSha256": "971a3e12ea37102a4dbbe4486b8b36441936393ea1f67cdfddc232deea36da06",
+      "sha256": "191dd75490b81b6307ad0d89c697d91d294b32e1d0c8b06985539d61ba9f94d5"
+    },
+    {
+      "path": "focused-tests.log.gz",
+      "uncompressedSha256": "e40e2d1824589778a528219c4bbd4a97cf1e9943db1055ac4e245869fa53f6a3",
+      "sha256": "9d16f5aef7cb195b4fe5c4393e2efa4c053a4f9abd1bdec9cd8a6687e36108c4"
+    },
+    {
+      "path": "public-boundaries-repaired.log.gz",
+      "uncompressedSha256": "fed2ed7ec9b695bab795441525e2c9bcc0368c2942df9f22dd95480a473c8867",
+      "sha256": "8e3c7e660c52ddbbdc1c81b02ce67c39b69cfd7a1d53317fce337ff5b5629cea"
+    }
+  ]
+}

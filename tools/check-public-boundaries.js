@@ -125,7 +125,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // same 1864 files; audited in artifacts/document-search-loading-2026-09-26/package-audit.json.
   // Chunk-local legacy-hash scratch reuse adds 403 bytes in one existing file.
   // Evidence: artifacts/document-search-diagnosis-2026-09-26/package-audit.json.
-  maxUnpackedSize: 11_340_622,
+  // Stateless ModelIR validation/declaration and maintenance README: +320 bytes,
+  // unchanged file count. The delivered loader archive remains separately pinned.
+  // Evidence: artifacts/document-search-minilm-embedding-2026-09-26/package-audit.json.
+  maxUnpackedSize: 11_340_942,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

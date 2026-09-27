@@ -1,0 +1,34 @@
+{
+  "authorship": "AI-authored semantic index checked against the installed independent implementation, not upstream metadata",
+  "implementation": {
+    "path": "/home/x/.local/lib/python3.14/site-packages/transformers/models/bert/modeling_bert.py",
+    "sha256": "3c528728e605b420c3092bd243cac8f3431948229de054e3578f2e9882db8c89",
+    "transformersVersion": "5.6.2"
+  },
+  "causal": false,
+  "queryKeyNorm": false,
+  "headDim": 32,
+  "attentionBias": true,
+  "embeddingOrder": [
+    "word-gather",
+    "token-type-gather",
+    "add",
+    "absolute-position-gather",
+    "add",
+    "layernorm"
+  ],
+  "embeddingNorm": "layernorm-with-affine-bias",
+  "normalizationOrder": "after-attention-residual-and-after-ffn-residual",
+  "gated": false,
+  "poolerUsed": false,
+  "normalizationEps": 1e-12,
+  "attentionMask": "bidirectional-padding-mask",
+  "tokenType": "all-zero-for-single-text",
+  "referenceSymbols": [
+    "BertEmbeddings.forward",
+    "BertSelfOutput.forward",
+    "BertIntermediate.forward",
+    "BertOutput.forward",
+    "BertModel.forward"
+  ]
+}

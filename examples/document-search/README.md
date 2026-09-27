@@ -49,15 +49,20 @@ checks. The model identities and trusted publishers are unchanged. Before
 loading, the page displays sizes, required features, storage quota, and missing
 sources; unsupported hardware or missing model files prevent installation.
 
-The physical acceptance used a memory-backed Linux profile (`tmpfs`) because the
-machine's disk was full. It proves browser-process restart, not survival across
-machine reboot; use persistent storage for retained documents in ordinary use.
-Disk-backed installation was rejected when space ran out. No durability or
-performance claim for another filesystem follows from this result.
+The 0.1.1 maintenance acceptance used a persistent ext4 browser profile.
+Installation, browser-process restart, offline search, quota failures and recovery
+passed. Machine reboot and smaller-memory hardware remain unqualified.
+The earlier 0.1.0 tmpfs result remains retained separately.
 
 ### 2. Install and Start
+
+The 0.1.1 archive's signed metadata permits fresh installation before
+**2026-09-28 00:55:40.930 UTC**. Later fresh installations need a new deliverable
+with renewed signed metadata. Already accepted installations retain explicit
+offline use. The archive and its published hashes remain immutable.
+
 ```sh
-cd examples/document-search
+cd /path/to/document-search
 npm ci --omit=optional
 npm start
 ```
@@ -84,8 +89,8 @@ google-chrome --user-data-dir=/absolute/path/to/search-profile \
 ```
 
 Use an existing writable parent for the profile directory and keep that directory
-for later offline use. The acceptance profile was under `/dev/shm`; it is temporary
-across machine reboot. The page checks the features before acquiring model bytes.
+for later offline use. Use persistent storage rather than `/dev/shm`.
+The page checks the features before acquiring model bytes.
 
 ### 3. Usage Walkthrough
 1. Open `http://127.0.0.1:8080/index.html` in a WebGPU-enabled browser.
@@ -101,7 +106,7 @@ across machine reboot. The page checks the features before acquiring model bytes
 
 ## Measured application behavior
 
-The [installed acceptance receipt](https://github.com/clocksmith/doppler/blob/main/artifacts/document-search-delivery-2026-09-23/browser-qualification.json)
+The [installed acceptance receipt](https://github.com/clocksmith/doppler/blob/main/artifacts/document-search-maintenance-2026-09-26/README.md)
 binds the vendored archive, all application assets, both signed model identities,
 browser, hardware, reference corpus, and qualification probe. All six reference
 queries passed online and offline, with identical rankings and scores. Both
@@ -111,13 +116,14 @@ quality or superiority to another library.
 
 | Measurement on the declared host | Observed |
 | --- | ---: |
-| Initial model installation and preparation, fresh browser profile | 128,184 ms |
-| Indexing six reference documents | 1,871 ms |
-| First query with both models loaded | 967 ms |
-| Median of the next five queries | 906 ms |
-| Offline model reopening | 49,182 ms |
+| Initial model installation and preparation, fresh browser profile | 127,455 ms |
+| Indexing six reference documents | 1,896 ms |
+| First query with both models loaded | 978 ms |
+| Median of the next five queries | 908 ms |
+| Offline model reopening | 28,591 ms |
 
-These are observations from one run using `tmpfs`, not promised latency. The UI
+These are observations from one run using ext4, not promised latency or a
+controlled comparison with the older browser release. The UI
 shows installation and query timings on your machine. Cancellation, unchanged
 index reuse, superseded queries, interrupted saves, corruption repair, index
 rebuilding, explicit closure, and device-loss recovery passed in the same run.
@@ -125,8 +131,9 @@ Submitted GPU commands are allowed to finish after cancellation; cancelled resul
 are suppressed and healthy sessions remain reusable.
 
 The inference dependency is the included `doppler-gpu-0.6.2.tgz`, pinned by its
-lockfile and SHA-256 `625b8ed8c8e86c28a5b49e1e5ce43969885acd3df309f456eba719d3eeaa5539`.
-This starter release does not publish or qualify a different npm archive.
+lockfile and SHA-256 `c5be891b3451944f3ff8cf951e46ed6b7fe0f2180d117207bb0b1833669797af`.
+This maintenance release vendors that exact archive; it does not overwrite the
+npm release or change either model Capsule.
 Node model execution, packaged Electron, and Bun are outside this browser release.
 
 Maintainers can reproduce installation and qualification using

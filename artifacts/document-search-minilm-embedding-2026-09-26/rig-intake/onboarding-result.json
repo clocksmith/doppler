@@ -1,0 +1,589 @@
+{
+  "schema": "doppler.model-onboarding-result/v1",
+  "inputDigest": "sha256:2d6b2e8d3cbf732a7af728df39f98319ea7eb591d8b337c49a963472a4214c62",
+  "status": "blocked",
+  "outputs": {
+    "modelIR": {
+      "path": "model-ir-receipt.json",
+      "digest": "sha256:eca44b0ebf3dfa353484a77d1743b53e337cc5cf1a4747892a67e0a16bf82586"
+    },
+    "assessment": {
+      "path": "support-assessment.json",
+      "digest": "sha256:707977fd2d32ec5cb014220d5f4df0ba212e624887cfadd51bcf697d36d771d0"
+    }
+  },
+  "sourceIdentity": {
+    "checkpointId": "sentence-transformers/all-MiniLM-L6-v2",
+    "repository": "sentence-transformers/all-MiniLM-L6-v2",
+    "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "artifacts": [
+      {
+        "artifactId": "config",
+        "path": "config.json",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:953f9c0d463486b10a6871cc2fd59f223b2c70184f49815e7efbcab5d8908b41"
+      },
+      {
+        "artifactId": "pooling",
+        "path": "pooling.json",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:4be450dde3b0273bb9787637cfbd28fe04a7ba6ab9d36ac48e92b11e350ffc23"
+      },
+      {
+        "artifactId": "modules",
+        "path": "modules.json",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:84e40c8e006c9b1d6c122e02cba9b02458120b5fb0c87b746c41e0207cf642cf"
+      },
+      {
+        "artifactId": "semantics",
+        "path": "semantics.json",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:92eb37808941b651ca53f09cd9f45c639051d73869b476169b67b4a7911224a2"
+      },
+      {
+        "artifactId": "embedding",
+        "path": "source-policy.json",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:9ac030dfee3839f5c3031922d0dc9f0762191b983cb483433b0b4bce41c0cc71"
+      },
+      {
+        "artifactId": "headers",
+        "path": "model.safetensors",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:2291ac9b8d5083595cd6a1787e01d694a893af92bc706faf1511231affe822e8"
+      }
+    ]
+  },
+  "manualRequirements": [
+    {
+      "kind": "component-semantics",
+      "entryPointId": "text.embed",
+      "nodeId": "encoder",
+      "reasons": [
+        "Component contract \"text-encoder\" is not declared."
+      ],
+      "sourceEvidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/model_type"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/architectures"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/hidden_size"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/num_hidden_layers"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/num_attention_heads"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/intermediate_size"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/layer_norm_eps"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/hidden_act"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/max_position_embeddings"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/type_vocab_size"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/vocab_size"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/causal"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/queryKeyNorm"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/headDim"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/attentionBias"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/embeddingOrder"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/embeddingNorm"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/normalizationOrder"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/gated"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/poolerUsed"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/normalizationEps"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/attentionMask"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/tokenType"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "embedding",
+          "file": "source-policy.json",
+          "pointer": "/embeddingContract"
+        }
+      ],
+      "semanticRequirement": {
+        "id": "encoder",
+        "type": "text-encoder",
+        "role": "primary",
+        "factRefs": [
+          "config.model_type",
+          "config.architectures",
+          "config.hidden_size",
+          "config.num_hidden_layers",
+          "config.num_attention_heads",
+          "config.intermediate_size",
+          "config.layer_norm_eps",
+          "config.hidden_act",
+          "config.max_position_embeddings",
+          "config.type_vocab_size",
+          "config.vocab_size",
+          "semantics.causal",
+          "semantics.queryKeyNorm",
+          "semantics.headDim",
+          "semantics.attentionBias",
+          "semantics.embeddingOrder",
+          "semantics.embeddingNorm",
+          "semantics.normalizationOrder",
+          "semantics.gated",
+          "semantics.poolerUsed",
+          "semantics.normalizationEps",
+          "semantics.attentionMask",
+          "semantics.tokenType",
+          "embedding.contract"
+        ],
+        "properties": {
+          "modelType": "bert",
+          "hiddenSize": 384,
+          "vocabSize": 30522,
+          "numLayers": 6,
+          "embeddingOrder": [
+            "word-gather",
+            "token-type-gather",
+            "add",
+            "absolute-position-gather",
+            "add",
+            "layernorm"
+          ],
+          "embeddingNormalization": "layernorm-with-affine-bias",
+          "typeVocabularySize": 2,
+          "maxPositionEmbeddings": 512,
+          "poolerUsed": false
+        }
+      },
+      "regression": {
+        "entryPointId": "text.embed",
+        "modelIRHash": "sha256:49551b6af36e8d89868aabcb2c646219b5c9280896e7bcb7e22135e00762cda7",
+        "comparison": {
+          "componentId": "encoder",
+          "componentType": "text-encoder",
+          "compatible": false,
+          "reasons": [
+            "Component contract \"text-encoder\" is not declared."
+          ]
+        }
+      }
+    },
+    {
+      "kind": "output-semantics",
+      "entryPointId": "text.embed",
+      "nodeId": "text.embedding",
+      "reasons": [
+        "Output-head contract \"text-embedding\" does not admit properties.embedding={\"dimension\":384,\"postprocessor\":{\"poolingMode\":\"mean\",\"includePrompt\":true,\"projections\":[],\"normalize\":\"l2\"}}."
+      ],
+      "sourceEvidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "embedding",
+          "file": "source-policy.json",
+          "pointer": "/embeddingContract"
+        }
+      ],
+      "semanticRequirement": {
+        "id": "text.embedding",
+        "componentId": "encoder",
+        "kind": "text-embedding",
+        "factRefs": [
+          "embedding.contract"
+        ],
+        "properties": {
+          "embedding": {
+            "dimension": 384,
+            "postprocessor": {
+              "poolingMode": "mean",
+              "includePrompt": true,
+              "projections": [],
+              "normalize": "l2"
+            }
+          }
+        }
+      },
+      "regression": {
+        "entryPointId": "text.embed",
+        "modelIRHash": "sha256:49551b6af36e8d89868aabcb2c646219b5c9280896e7bcb7e22135e00762cda7",
+        "comparison": {
+          "outputHeadId": "text.embedding",
+          "outputHeadKind": "text-embedding",
+          "compatible": false,
+          "reasons": [
+            "Output-head contract \"text-embedding\" does not admit properties.embedding={\"dimension\":384,\"postprocessor\":{\"poolingMode\":\"mean\",\"includePrompt\":true,\"projections\":[],\"normalize\":\"l2\"}}."
+          ]
+        }
+      }
+    },
+    {
+      "kind": "block-semantics",
+      "entryPointId": "text.embed",
+      "nodeId": "bert-encoder-block",
+      "reasons": [
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.numHeads=12.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.numKvHeads=12.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.headDim=32.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.queryKeyNorm=false.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.causal=false.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.attentionBias=true.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not bind geometry.attentionMask.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit normalization.type=\"layernorm\".",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit normalization.eps=1e-12.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not bind normalization.position.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not bind normalization.affineBias.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit positional.type=\"learned-absolute\".",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not bind positional.appliedAt.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit feedForward.type=\"dense\".",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit feedForward.gated=false.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit feedForward.activation=\"gelu\".",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not admit feedForward.intermediateSize=1536.",
+        "Lowering \"existing-qwen3-embedding-full-attention\" does not bind feedForward.bias."
+      ],
+      "sourceEvidence": [
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/model_type"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/architectures"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/hidden_size"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/num_hidden_layers"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/num_attention_heads"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/intermediate_size"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/layer_norm_eps"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/hidden_act"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/max_position_embeddings"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/type_vocab_size"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "config",
+          "file": "config.json",
+          "pointer": "/vocab_size"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/causal"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/queryKeyNorm"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/headDim"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/attentionBias"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/embeddingOrder"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/embeddingNorm"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/normalizationOrder"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/gated"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/poolerUsed"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/normalizationEps"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/attentionMask"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "semantics",
+          "file": "semantics.json",
+          "pointer": "/tokenType"
+        },
+        {
+          "kind": "json-pointer",
+          "artifactId": "embedding",
+          "file": "source-policy.json",
+          "pointer": "/embeddingContract"
+        }
+      ],
+      "semanticRequirement": {
+        "id": "bert-encoder-block",
+        "kind": "full-attention",
+        "factRefs": [
+          "config.model_type",
+          "config.architectures",
+          "config.hidden_size",
+          "config.num_hidden_layers",
+          "config.num_attention_heads",
+          "config.intermediate_size",
+          "config.layer_norm_eps",
+          "config.hidden_act",
+          "config.max_position_embeddings",
+          "config.type_vocab_size",
+          "config.vocab_size",
+          "semantics.causal",
+          "semantics.queryKeyNorm",
+          "semantics.headDim",
+          "semantics.attentionBias",
+          "semantics.embeddingOrder",
+          "semantics.embeddingNorm",
+          "semantics.normalizationOrder",
+          "semantics.gated",
+          "semantics.poolerUsed",
+          "semantics.normalizationEps",
+          "semantics.attentionMask",
+          "semantics.tokenType",
+          "embedding.contract"
+        ],
+        "geometry": {
+          "numHeads": 12,
+          "numKvHeads": 12,
+          "headDim": 32,
+          "queryKeyNorm": false,
+          "causal": false,
+          "attentionBias": true,
+          "attentionMask": "bidirectional-padding-mask"
+        },
+        "normalization": {
+          "type": "layernorm",
+          "eps": 1e-12,
+          "position": "after-attention-residual-and-after-ffn-residual",
+          "affineBias": true
+        },
+        "positional": {
+          "type": "learned-absolute",
+          "appliedAt": "input-embedding-sum"
+        },
+        "feedForward": {
+          "type": "dense",
+          "gated": false,
+          "activation": "gelu",
+          "intermediateSize": 1536,
+          "bias": true
+        },
+        "phaseBehavior": {
+          "prefill": true,
+          "decode": false
+        }
+      },
+      "regression": {
+        "entryPointId": "text.embed",
+        "modelIRHash": "sha256:49551b6af36e8d89868aabcb2c646219b5c9280896e7bcb7e22135e00762cda7",
+        "comparison": {
+          "blockClassId": "bert-encoder-block",
+          "blockKind": "full-attention",
+          "compatibleLoweringIds": [],
+          "rejectedLowerings": [
+            {
+              "loweringId": "existing-qwen3-embedding-full-attention",
+              "reasons": [
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.numHeads=12.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.numKvHeads=12.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.headDim=32.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.queryKeyNorm=false.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.causal=false.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit geometry.attentionBias=true.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not bind geometry.attentionMask.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit normalization.type=\"layernorm\".",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit normalization.eps=1e-12.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not bind normalization.position.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not bind normalization.affineBias.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit positional.type=\"learned-absolute\".",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not bind positional.appliedAt.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit feedForward.type=\"dense\".",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit feedForward.gated=false.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit feedForward.activation=\"gelu\".",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not admit feedForward.intermediateSize=1536.",
+                "Lowering \"existing-qwen3-embedding-full-attention\" does not bind feedForward.bias."
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "qualified": false,
+  "published": false
+}

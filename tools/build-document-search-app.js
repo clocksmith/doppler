@@ -15,6 +15,10 @@ export async function buildDocumentSearchApplication(config) {
     throw new Error('Explicit previousApplicationDir required; use null only for the initial application build.');
   }
   const retainModels = config.models === null;
+  if (config.renewReleaseEligibility !== undefined && typeof config.renewReleaseEligibility !== 'boolean') {
+    throw new Error('renewReleaseEligibility must be an explicit boolean.');
+  }
+  if (retainModels && config.renewReleaseEligibility) throw new Error('Release renewal requires model signing custody.');
   if (retainModels && config.previousApplicationDir === null) throw new Error('Retaining signed models requires previousApplicationDir.');
   if (!retainModels && (!Array.isArray(config.models) || config.models.length !== 2
     || new Set(config.models.map(model => model.role)).size !== 2
@@ -82,18 +86,26 @@ export async function buildDocumentSearchApplication(config) {
       && computeCanonicalSha256(prior.identity) === computeCanonicalSha256(identity));
     let events = [];
     if (prior) {
+      // Renewal authenticates the complete prior history at its final issuance,
+      // then verifies the appended history at the current time below. It does
+      // not waive expiry for consumers or erase a denial/checkpoint.
+      const verificationTime = config.renewReleaseEligibility
+        ? prior.options.releaseEvents.at(-1)?.issuedAtUtc : issuedAtUtc;
       await verifyCapsuleReleaseEvents(prior.options.releaseEvents, { capsule: built.capsule,
         trustedSigners: options.trustedSigners,
-        policy: { ...prior.options.releasePolicy, now: issuedAtUtc } });
+        policy: { ...prior.options.releasePolicy, now: verificationTime } });
       events = structuredClone(prior.options.releaseEvents);
     }
     let eligible = events.at(-1);
-    if (!eligible || computeCanonicalSha256(eligible.release) !== computeCanonicalSha256(release)) {
+    if (!eligible || config.renewReleaseEligibility || computeCanonicalSha256(eligible.release) !== computeCanonicalSha256(release)) {
       eligible = await signCapsuleReleaseEvent({ capsule: reference, sequence: (eligible?.sequence ?? 0) + 1,
         previousEventDigest: eligible?.digest ?? null, issuedAtUtc, expiresAtUtc, action: 'eligible', release,
         migratedFrom: built.migratedFrom, nextSigner: null }, signer);
       events.push(eligible);
     }
+    await verifyCapsuleReleaseEvents(events, { capsule: built.capsule, trustedSigners: options.trustedSigners,
+      policy: { now: issuedAtUtc, minimumSequence: eligible.sequence,
+        checkpoint: prior?.options.releasePolicy.checkpoint ?? { sequence: 0, digest: null } } });
     const destination = path.join(config.outputDir, 'capsules', model.role);
     await fs.cp(path.join(model.capsuleRoot, 'distribution'), destination, { recursive: true });
     await fs.writeFile(path.join(destination, 'capsule-v3.json'), JSON.stringify(built.capsule, null, 2), { flag: 'wx' });

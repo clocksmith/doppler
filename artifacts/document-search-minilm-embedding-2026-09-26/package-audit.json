@@ -1,0 +1,45 @@
+{
+  "scope": "Current checkout package audit for stateless ModelIR and public documentation. This archive is not the published maintenance runtime and has no physical acceptance.",
+  "publishedMaintenanceSha256": "c5be891b3451944f3ff8cf951e46ed6b7fe0f2180d117207bb0b1833669797af",
+  "candidateSha256": "3f9ce17f091c6c5454f3da09682ba1ce0c2baa418285a2ecaa55c557d3e0d579",
+  "entryCount": 1864,
+  "size": 2155813,
+  "unpackedSize": 11340942,
+  "added": [],
+  "removed": [],
+  "changed": [
+    {
+      "path": "package/README.md",
+      "before": {
+        "sizeBytes": 12028,
+        "sha256": "f1fbd7568ab92ca0b6fddce52cf7f7f5cc3868df45aba2aafe5cbf3459971c34"
+      },
+      "after": {
+        "sizeBytes": 12159,
+        "sha256": "b40eb2be9d8782cf60edeec5ff0134a4bf6677bf3679f5509a15a8a9eb3b8e11"
+      }
+    },
+    {
+      "path": "package/src/config/model-ir-v2.d.ts",
+      "before": {
+        "sizeBytes": 1733,
+        "sha256": "2efd90a4e235a037c14539801c5ce0e0aae7e1cb310047bd2497026e1b3f0e90"
+      },
+      "after": {
+        "sizeBytes": 1814,
+        "sha256": "64849b2e54093ea59a8c02aa9254380112cf14cd70b5c54e9215e09fe4df1308"
+      }
+    },
+    {
+      "path": "package/src/config/model-ir-v2.js",
+      "before": {
+        "sizeBytes": 11405,
+        "sha256": "fb31ca041f39dba1b017c33c21f1e9c6c344a400524a41e0c49614403c5c7f74"
+      },
+      "after": {
+        "sizeBytes": 11513,
+        "sha256": "f64d3b1be9d3c86cfc0bae569af1c095c72701b335fd8a7f4425c3930191a084"
+      }
+    }
+  ]
+}
