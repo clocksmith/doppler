@@ -53,7 +53,7 @@ export interface ResidentPartitionSession {
   close(): Promise<void>;
 }
 export interface ResidentPartitionTokenPorts {
-  tokenize(prompt: unknown, options: { useChatTemplate: boolean }): number[];
+  tokenize(prompt: unknown, options: { useChatTemplate: boolean }): number[] | Promise<number[]>;
   createIncrementalDecoder(): IncrementalTokenDecoder;
   getTokenContract(): GenerationTokenContract;
 }

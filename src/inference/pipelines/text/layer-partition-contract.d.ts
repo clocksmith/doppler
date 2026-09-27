@@ -36,6 +36,8 @@ export declare function createLayerPartitionPlan(options: {
   modelId: string; numLayers: number; hiddenSize: number; vocabSize: number;
   splitLayer?: number | null; activationDtype?: ActivationDtype;
 }): LayerPartitionPlan;
+/** The digest expected by signed resident allocations and TargetPlan qualification. */
+export declare function hashLayerPartitionPlan(plan: LayerPartitionPlan): `sha256:${string}`;
 export declare function resolveLayerPartition(manifest: {
   modelId?: unknown; architecture?: unknown;
 }, allocation: { plan: LayerPartitionPlan; index: 0 | 1 } | null | undefined): Readonly<LayerPartition> | null;

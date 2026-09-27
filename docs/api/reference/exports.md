@@ -780,25 +780,17 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 
 - Audience: unspecified
 - Stability: unspecified
-- Types: [src/inference/pipelines/text/layer-partition-contract.d.ts](../../../src/inference/pipelines/text/layer-partition-contract.d.ts)
-- Implementation: [src/inference/pipelines/text/layer-partition-contract.js](../../../src/inference/pipelines/text/layer-partition-contract.js)
+- Types: [src/partitions.d.ts](../../../src/partitions.d.ts)
+- Implementation: [src/partitions.js](../../../src/partitions.js)
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
-  - `ACTIVATION_TENSOR_SCHEMA`
-  - `ActivationDtype`
-  - `ActivationFrame`
-  - `comparePartitionExecution`
-  - `createLayerPartitionPlan`
-  - `createPartitionContinuation`
-  - `DEFAULT_COSINE_SIMILARITY_MIN`
-  - `DEFAULT_NUMERICAL_TOLERANCE`
-  - `deserializeActivationFrame`
-  - `LAYER_PARTITION_SCHEMA`
-  - `LayerPartition`
-  - `LayerPartitionPlan`
-  - `PARTITION_COMPARISON_SCHEMA`
-  - `PartitionContinuation`
-  - `PartitionTensorContract`
-  - `resolveLayerPartition`
-  - `serializeActivationFrame`
-  - `validateActivationTensorShape`
+  - `*`
+  - `createResidentPartitionFactory`
+  - `ResidentPartitionAllocation`
+  - `ResidentPartitionDescriptor`
+  - `ResidentPartitionFactory`
+  - `ResidentPartitionIdentity`
+  - `ResidentPartitionLimits`
+  - `ResidentPartitionOpenOptions`
+  - `ResidentPartitionSession`
+  - `ResidentPartitionStep`

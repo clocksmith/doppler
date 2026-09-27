@@ -243,6 +243,16 @@ export function validateTargetPlan(plan) {
           || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
           errors.push(`qualification[${index}] requires embeddedTexts and transcriptHash without other operation counts.`);
         }
+      } else if (record.operation === 'residentPartition') {
+        if (!isV2 || !SHA256_PATTERN.test(record.partitionPlanHash ?? '')
+          || ![0, 1].includes(record.partitionIndex)
+          || !Number.isInteger(record.comparedSteps) || record.comparedSteps < 1
+          || !SHA256_PATTERN.test(record.transcriptHash ?? '')
+          || record.generatedTokens !== undefined || record.encodedSequences !== undefined
+          || record.rerankedDocuments !== undefined || record.forecastCases !== undefined
+          || record.embeddedTexts !== undefined) {
+          errors.push(`qualification[${index}] requires a v2 resident partition plan digest, index, comparedSteps and transcriptHash without other operation counts.`);
+        }
       } else if (record.operation !== undefined && record.operation !== 'generate') {
         errors.push(`qualification[${index}].operation is unsupported.`);
       } else if (!Number.isInteger(record.generatedTokens) || record.generatedTokens < 1) {
@@ -366,6 +376,16 @@ export function selectQualifiedTargetPlan(targetPlans, deviceProfile, selectionP
 export function assertQualifiedTargetOperation(plan, surface, operation) {
   if (!isQualifiedTargetOperation(plan, surface, operation)) {
     throw new Error(`TargetPlan "${plan.targetId}" is not qualified for operation "${operation}" on surface "${surface}".`);
+  }
+}
+
+export function assertQualifiedResidentPartition(plan, surface, allocation) {
+  if (plan.schema !== TARGET_PLAN_V2_SCHEMA_ID || !plan.qualification?.some(record => (
+    record.status === 'passed' && record.surface === surface
+    && record.operation === 'residentPartition'
+    && record.partitionPlanHash === allocation.planId && record.partitionIndex === allocation.index
+  ))) {
+    throw new Error(`TargetPlan "${plan.targetId}" has no signed resident partition qualification for group ${allocation.index} on surface "${surface}".`);
   }
 }
 

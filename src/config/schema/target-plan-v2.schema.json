@@ -22,7 +22,23 @@
     "kernelClosure": { "type": "array", "minItems": 1, "items": { "type": "object" } },
     "memoryLayout": { "type": "object" },
     "phases": { "type": "object", "required": ["prefill", "decode"] },
-    "qualification": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+    "qualification": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "operation": { "type": "string" },
+          "partitionPlanHash": { "$ref": "#/$defs/digest" },
+          "partitionIndex": { "type": "integer", "minimum": 0, "maximum": 1 },
+          "comparedSteps": { "type": "integer", "minimum": 1 }
+        },
+        "allOf": [{
+          "if": { "properties": { "operation": { "const": "residentPartition" } }, "required": ["operation"] },
+          "then": { "required": ["surface", "status", "evidenceArtifactId", "evidenceHash",
+            "transcriptHash", "partitionPlanHash", "partitionIndex", "comparedSteps"] }
+        }]
+      }
+    },
     "tokenSelection": {
       "type": "object",
       "required": ["schema", "generationContract", "logitsDtype", "kernelModules"],

@@ -54,9 +54,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The explicit backing-owner port includes its existing declaration in closure.
   // Explicit partition contract JS/types plus extracted model-load orchestration.
   // The minimal Capsule root retains its independent closure check.
-  // fa74c7f5 already packs 1871 files. The scoped-architecture gap fixes change
-  // existing shipped files only; keep that inventory as the checked ceiling.
-  maxEntryCount: 1871,
+  // Resident sessions add ten required JS/declaration files. The installed
+  // package smoke measured 1881 entries on Node 22.22.1/npm 9.2.0.
+  maxEntryCount: 1881,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -113,7 +113,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // artifacts/reploid-partitions-2026-09-26/package-audit.json.
   // Final candidate: 2,170,299 bytes on Node 22/npm 9, plus the retained
   // 2,158-byte cross-npm compression allowance.
-  maxPackedSize: 2_172_457,
+  // Resident candidate with a shared plan digest measures 2,178,189 packed bytes on npm 9; retain the
+  // previously measured 2,158-byte cross-npm compression allowance.
+  maxPackedSize: 2_180_347,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -138,7 +140,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // unchanged file count. The delivered loader archive remains separately pinned.
   // Evidence: artifacts/document-search-minilm-embedding-2026-09-26/package-audit.json.
   // Final measured candidate; no new package entries.
-  maxUnpackedSize: 11_402_015,
+  // Exact resident candidate: 11,435,846 unpacked bytes; no model weights ship.
+  maxUnpackedSize: 11_435_846,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

@@ -1,5 +1,5 @@
 import { resolveExecutionRegistries, assertExecutionRegistriesAccepted } from '../../config/execution-registry-contract.js';
-import { hashTargetPlan, assertQualifiedTargetOperation, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
+import { hashTargetPlan, assertQualifiedTargetOperation, assertQualifiedResidentPartition, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import { getRequiredWgslFeatures, assertWgslFeaturesSupported } from '../../config/wgsl-language-contract.js';
 import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
@@ -22,7 +22,6 @@ import { executeCapsuleEmbedding } from './capsule-embedding.js';
 import { CapsuleReleaseStateError } from '../../config/capsule-release-events.js';
 import { createCapsuleReleaseAuthorization } from './capsule-release-authorization.js';
 import { createCapsuleLoadScope, assertCapsuleLoadActive } from './capsule-acquisition.js';
-import { resolveResidentPartitionAllocation } from '../../inference/pipelines/text/resident-partition-contract.js';
 
 export { createForecastProgramFactory } from './capsule-forecast-program.js';
 
@@ -60,20 +59,22 @@ export function createDopplerRun(ports) {
   if (!ports.trustedSigners) throw new Error('createDopplerRun requires trustedSigners.');
   if (typeof ports.programFactory !== 'function') throw new Error('createDopplerRun requires programFactory.');
   const registries = resolveExecutionRegistries(ports.registries);
-  const { device, capsuleSource = null, artifactStore, cache = null, observer = null, trustedSigners, programFactory } = ports;
+  const { device, capsuleSource = null, artifactStore, cache = null, observer = null, trustedSigners, programFactory,
+    resolveResidentPartitionAllocation } = ports;
 
   return {
     version: RUN_CORE_VERSION,
     ports: { device, capsuleSource, artifactStore, cache, observer },
 
     async openCapsule(capsuleOrId, options = {}) {
+      const residentPartition = options.residentPartition === undefined ? undefined : structuredClone(options.residentPartition);
       const selectionPolicy = normalizeTargetPlanSelectionPolicy({
         acceptedTargetPlanDigests: options.acceptedTargetPlanDigests,
         requiredOperations: options.requiredOperations,
         preferredTargetPlanDigests: options.preferredTargetPlanDigests,
       });
       const acquisition = createCapsuleLoadScope(options);
-      options = acquisition.options;
+      options = { ...acquisition.options, residentPartition };
       let verifiedStore;
       let program;
       try {
@@ -137,10 +138,15 @@ export function createDopplerRun(ports) {
         const manifest = freezeCapsuleV2(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await verifiedStore.readArtifact(manifestArtifact))));
         if (manifest.modelId !== capsule.modelId) throw new Error('Signed manifest model identity mismatch.');
         const residentAllocation = options.residentPartition === undefined ? null
-          : resolveResidentPartitionAllocation(manifest, manifestArtifact.hash, options.residentPartition);
+          : (() => {
+            if (typeof resolveResidentPartitionAllocation !== 'function') {
+              throw new Error('Resident partition opening requires an allocation validator port.');
+            }
+            return resolveResidentPartitionAllocation(manifest, manifestArtifact.hash, options.residentPartition);
+          })();
         if (residentAllocation) {
           releaseAuthorization.assertAssignment(residentAllocation);
-          assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'generate');
+          assertQualifiedResidentPartition(selectedPlan, deviceProfile.surface, residentAllocation);
           if (selectedPlan.tokenSelection !== undefined) throw new Error('Resident partitions require the declared CPU sampling contract.');
           options = { ...options, residentPartition: residentAllocation };
         }

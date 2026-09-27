@@ -5,12 +5,14 @@ import {
   ACTIVATION_TENSOR_SCHEMA,
   PARTITION_COMPARISON_SCHEMA,
   createLayerPartitionPlan,
+  hashLayerPartitionPlan,
   validateActivationTensorShape,
   serializeActivationFrame,
   deserializeActivationFrame,
   createPartitionContinuation,
   comparePartitionExecution
 } from '../../src/inference/pipelines/text/layer-partition-contract.js';
+import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 
 // 1. Partition Plan Creation
 {
@@ -23,6 +25,8 @@ import {
   });
 
   assert.equal(plan.schema, LAYER_PARTITION_SCHEMA);
+  assert.equal(hashLayerPartitionPlan(plan), computeCanonicalSha256(plan));
+  assert.throws(() => hashLayerPartitionPlan({ ...plan, schema: 'wrong' }), /schema mismatch/);
   assert.equal(plan.totalLayers, 24);
   assert.equal(plan.splitLayer, 12);
   assert.equal(plan.partitions.length, 2);

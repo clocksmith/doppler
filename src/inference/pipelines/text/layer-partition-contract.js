@@ -1,3 +1,4 @@
+import { computeCanonicalSha256 } from '../../../formats/canonical-hash.js';
 
 export const LAYER_PARTITION_SCHEMA = 'doppler.layer-partition-contract/v1';
 export const ACTIVATION_TENSOR_SCHEMA = 'doppler.activation-tensor/v1';
@@ -101,6 +102,12 @@ export function createLayerPartitionPlan({
       outputContract: Object.freeze(group.outputContract),
     })))
   });
+}
+
+/** @type {import('./layer-partition-contract.js').hashLayerPartitionPlan} */
+export function hashLayerPartitionPlan(plan) {
+  if (plan?.schema !== LAYER_PARTITION_SCHEMA) throw new Error('Layer partition plan schema mismatch.');
+  return /** @type {`sha256:${string}`} */ (computeCanonicalSha256(plan));
 }
 
 /** @type {import('./layer-partition-contract.js').resolveLayerPartition} */

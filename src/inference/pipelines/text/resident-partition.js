@@ -7,13 +7,14 @@ import { sampleCapsuleLogits, stoppingReason } from '../../generation-step.js';
 import { assertPartitionExecutionSupported, executePartitionLayers } from './partition-execution.js';
 import { createPartitionAttempt } from './partition-attempt.js';
 import { assertResidentPartitionIdentity } from './resident-partition-contract.js';
+import { hashLayerPartitionPlan } from './layer-partition-contract.js';
 
 /** @type {import('./resident-partition.js').createResidentPartitionSession} */
 export async function createResidentPartitionSession(pipeline, allocation, tokens, closeProgram) {
   const descriptor = await runPipelineOperation(pipeline, owner => {
     assertPartitionExecutionSupported(owner, allocation.plan);
     if (owner.modelPartition?.index !== allocation.index
-      || computeCanonicalSha256(owner.modelPartition.plan) !== allocation.planId) {
+      || hashLayerPartitionPlan(owner.modelPartition.plan) !== allocation.planId) {
       throw new Error('Loaded pipeline partition differs from its accepted allocation.');
     }
     return { schema: /** @type {const} */ ('doppler.resident-partition/v1'), ready: true,
@@ -150,7 +151,12 @@ export async function createResidentPartitionSession(pipeline, allocation, token
   }
   /** @type {import('./resident-partition-contract.js').ResidentPartitionSession['closeAttempt']} */
   function closeAttempt({ identity }) {
-    const attempt = attemptFor(identity);
+    const binding = assertResidentPartitionIdentity(identity, allocation);
+    const existing = attempts.get(identity.attemptId);
+    if (existing && existing.binding !== binding) throw new Error('Resident attempt identity collision.');
+    // A closed session cannot accept delayed submissions, so it needs no new tombstone.
+    const attempt = existing ?? (closed ? null : attemptFor(identity));
+    if (!attempt) return Promise.resolve();
     if (attempt.settlement) return attempt.settlement;
     attempt.retired = true;
     attempt.controller.abort(new Error('Resident attempt closed.'));
@@ -164,14 +170,29 @@ export async function createResidentPartitionSession(pipeline, allocation, token
   return {
     getDescriptor: () => ({ ...structuredClone(descriptor), ready: !closed && !isDeviceLost(pipeline.gpuContext?.device) }),
     async tokenize(request) {
-      assertOpen(); request.signal.throwIfAborted(); assertResidentPartitionIdentity(request.identity, allocation);
+      assertOpen(); request.signal.throwIfAborted();
       if (allocation.index !== 0) throw new Error('Only partition A tokenizes input.');
+      const attempt = attemptFor(request.identity);
+      if (attempt.retired || attempt.done || attempt.pending || attempt.step !== 0) {
+        throw new Error('Resident attempt is retired, busy or out of order.');
+      }
       const messages = structuredClone(request.messages);
-      const tokenIds = await runPipelineOperation(pipeline, () => tokens.tokenize(messages, allocation.generation));
-      request.signal.throwIfAborted();
-      checkTokens(tokenIds, tokenIds.length);
-      if (!tokenIds.length || tokenIds.length > allocation.limits.maxPromptTokens) throw new Error('Resident prompt exceeds its token allocation.');
-      return { modelIdentity: allocation.model.identity, tokenIds, generation: resolveGenerationOptions(allocation.generation) };
+      const combined = AbortSignal.any([request.signal, attempt.controller.signal]);
+      const operation = runPipelineOperation(pipeline, async () => {
+        assertOpen(); combined.throwIfAborted();
+        const tokenIds = await tokens.tokenize(messages, allocation.generation);
+        combined.throwIfAborted();
+        return tokenIds;
+      });
+      attempt.pending = operation;
+      try {
+        const tokenIds = await operation;
+        combined.throwIfAborted();
+        checkTokens(tokenIds, tokenIds.length);
+        if (!tokenIds.length || tokenIds.length > allocation.limits.maxPromptTokens) throw new Error('Resident prompt exceeds its token allocation.');
+        return { modelIdentity: allocation.model.identity, tokenIds, generation: resolveGenerationOptions(allocation.generation) };
+      } catch (error) { attempt.retired = true; throw error; }
+      finally { attempt.pending = null; }
     },
     async executeGroup0(request) {
       if (allocation.index !== 0) throw new Error('Partition B cannot execute group A.');

@@ -13,6 +13,15 @@ and model state; Reploid owns grants, placement, transfer, and conversation
 coordination. The [local diagnostic](../../reports/resident-partitions/20260927/README.md)
 records executed checks and their scope.
 
+Resident Capsule opening requires a signed TargetPlan v2 qualification record
+for each assigned group on the observed surface. The record's
+`operation: "residentPartition"`, `partitionPlanHash`, `partitionIndex`,
+`comparedSteps`, `transcriptHash`, and evidence artifact bind that exact split
+to the signed plan. Whole-model `generate` evidence cannot authorize either
+group. The Capsule root checks this record before constructing a program; the
+model host supplies the pure manifest-bound allocation validator through a
+port, keeping the root independent of the inference executor.
+
 ## Current numerical boundary
 
 `createPipeline(manifest, { partition: { plan, index }, ...contexts })` uses the
