@@ -141,7 +141,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: artifacts/document-search-minilm-embedding-2026-09-26/package-audit.json.
   // Final measured candidate; no new package entries.
   // Exact resident candidate: 11,435,846 unpacked bytes; no model weights ship.
-  maxUnpackedSize: 11_435_846,
+  maxUnpackedSize: 11_435_934,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

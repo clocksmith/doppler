@@ -379,7 +379,7 @@ export function createDopplerRun(ports) {
               artifactReceipts: verification.artifactReceipts, releaseEventDigest: verification.lifecycle?.event.digest ?? null,
               ...releaseAuthorization.receiptFields },
             async assertCurrent(request) {
-              requireBaseProgram();
+              if (residentAllocation) throw new Error('A resident partition cannot execute an unsplit Capsule operation.');
               if (closed) throw new Error('Capsule runtime session is closed.');
               releaseAuthorization.assertAssignment(request.assignment);
               await assertExecutionCurrent();
