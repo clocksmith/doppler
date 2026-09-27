@@ -27,5 +27,6 @@ export interface CapsuleProgramAdapter {
 export declare function createCapsuleProgramAdapter(
   modelHandle: DopplerModelHandle,
   capsule: DopplerCapsule,
-  targetPlan: TargetPlan
+  targetPlan: TargetPlan,
+  registries?: import('../../config/execution-registry-contract.js').ResolvedExecutionRegistries | null
 ): CapsuleProgramAdapter;

@@ -80,6 +80,13 @@ export function validateInitialExecutionIdentity(identity) {
   if (!isObject(identity.kvLayout)) errors.push('kvLayout must be an object.');
   if (!isObject(identity.memoryPolicy)) errors.push('memoryPolicy must be an object.');
   if (!isObject(identity.runtimeEngine)) errors.push('runtimeEngine must be an object.');
+  if (identity.runtimeEngine?.registries !== undefined) {
+    const registries = identity.runtimeEngine.registries;
+    if (!isObject(registries) || !SHA256_PATTERN.test(registries.rules || '')
+      || !SHA256_PATTERN.test(registries.kernels || '') || Object.keys(registries).some(key => !['rules', 'kernels'].includes(key))) {
+      errors.push('runtimeEngine.registries requires exact rules and kernels SHA-256 identities.');
+    }
+  }
   if (isV2) {
     if (!SHA256_PATTERN.test(identity.programLoadPolicyHash || '')) {
       errors.push('programLoadPolicyHash must be a SHA-256 digest.');

@@ -1,3 +1,8 @@
+import { enterDiagnosticObserver, resolveDiagnosticObserver } from '../../debug/log.js';
+import { resolveExecutionRegistries } from '../../config/execution-registry-contract.js';
+import { getRuleRegistry, enterRuleRegistry, isRuleRegistry, DEFAULT_RULE_REGISTRY } from '../../rules/rule-registry.js';
+import { getKernelRegistry, enterKernelRegistry, DEFAULT_KERNEL_REGISTRY } from '../../gpu/kernels/kernel-configs.js';
+import { isKernelRegistry } from '../../config/kernel-registry-contract.js';
 import {
   runWithShaderSourceScope,
   streamWithShaderSourceScope,
@@ -5,6 +10,13 @@ import {
 } from '../../gpu/kernels/shader-source-scope.js';
 import { applyPipelineContexts } from './context.js';
 import { isDeviceLost } from '../../gpu/device-state.js';
+
+export function resolvePipelineRegistries({ ruleRegistry = getRuleRegistry(), kernelRegistry = getKernelRegistry() } = {}) {
+  if (!isRuleRegistry(ruleRegistry)) throw new Error('Pipeline requires a constructed rule registry.');
+  const resolved = resolveExecutionRegistries({ ruleRegistry, kernelRegistry });
+  return Object.freeze({ ...resolved, isCanonical: ruleRegistry.identity === DEFAULT_RULE_REGISTRY.identity
+    && kernelRegistry.identity === DEFAULT_KERNEL_REGISTRY.identity });
+}
 
 const owners = new WeakMap();
 // Method syntax is not an ownership contract: forwarding/wrapped functions may
@@ -68,7 +80,7 @@ async function runOperation(owner, key, action, explicit = false) {
   const release = beginOperation(owner);
   try {
     if (explicit) return await action();
-    return await runWithShaderSourceScope(owner.scope, () => invoke(owner.pipeline, key, () => {
+    return await runWithShaderSourceScope(owner.scope, () => invoke(owner, key, () => {
       assertOpen(owner);
       return action();
     }));
@@ -78,7 +90,7 @@ async function runOperation(owner, key, action, explicit = false) {
 async function* streamOperation(owner, key, action) {
   const release = beginOperation(owner);
   try {
-    yield* streamWithShaderSourceScope(owner.scope, () => stream(owner.pipeline, key, () => {
+    yield* streamWithShaderSourceScope(owner.scope, () => stream(owner, key, () => {
       assertOpen(owner);
       return action();
     }));
@@ -91,7 +103,7 @@ function closeOwner(owner, action) {
     const idle = owner.pending || owner.mutating
       ? new Promise(resolve => { owner.onIdle = resolve; }) : Promise.resolve();
     owner.closeTask = idle.then(() => runWithShaderSourceScope(
-      owner.scope, () => invoke(owner.pipeline, 'unload', action)
+      owner.scope, () => invoke(owner, 'unload', action)
     ));
   }
   return owner.closeTask;
@@ -103,7 +115,7 @@ export async function updatePipelineAdapter(pipeline, prepare) {
   assertMutable(owner);
   owner.mutating = true;
   try {
-    return await runWithShaderSourceScope(owner.scope, () => invoke(owner.pipeline, 'setLoRAAdapter', async () => {
+    return await runWithShaderSourceScope(owner.scope, () => invoke(owner, 'setLoRAAdapter', async () => {
       assertOpen(owner);
       const adapter = await prepare();
       assertOpen(owner);
@@ -130,22 +142,38 @@ function enterCompatibilityContext(pipeline, operation) {
   }).restore;
 }
 
-async function invoke(pipeline, operation, action) {
-  const restore = enterCompatibilityContext(pipeline, operation);
-  try { return await action(); } finally { restore(); }
+async function invoke(owner, operation, action) {
+  const restoreObserver = enterDiagnosticObserver(owner.observer);
+  let restore;
+  try { restore = enterCompatibilityContext(owner.pipeline, operation); }
+  catch (error) { restoreObserver(); throw error; }
+  const restoreRules = enterRuleRegistry(owner.ruleRegistry);
+  const restoreKernels = enterKernelRegistry(owner.kernelRegistry);
+  try { return await action(); } finally { restoreKernels(); restoreRules(); restore(); restoreObserver(); }
 }
 
-async function* stream(pipeline, operation, action) {
-  const restore = enterCompatibilityContext(pipeline, operation);
-  try { yield* action(); } finally { restore(); }
+async function* stream(owner, operation, action) {
+  const restoreObserver = enterDiagnosticObserver(owner.observer);
+  let restore;
+  try { restore = enterCompatibilityContext(owner.pipeline, operation); }
+  catch (error) { restoreObserver(); throw error; }
+  const restoreRules = enterRuleRegistry(owner.ruleRegistry);
+  const restoreKernels = enterKernelRegistry(owner.kernelRegistry);
+  try { yield* action(); } finally { restoreKernels(); restoreRules(); restore(); restoreObserver(); }
 }
 
-export function scopePipelineShaders(pipeline, scope, operations = pipeline.operationContract) {
+export function scopePipelineShaders(pipeline, scope, operations = pipeline.operationContract, registries, observer) {
   const existing = owners.get(pipeline);
   if (existing) {
     if (scope !== undefined && scope !== existing.scope) throw new Error('Pipeline shader scope is already bound.');
+    if (registries && (registries.ruleRegistry !== existing.ruleRegistry || registries.kernelRegistry !== existing.kernelRegistry)) {
+      throw new Error('Pipeline registries are already bound.');
+    }
     return existing.proxy;
   }
+  const ruleRegistry = registries?.ruleRegistry ?? getRuleRegistry();
+  const kernelRegistry = registries?.kernelRegistry ?? getKernelRegistry();
+  if (!isRuleRegistry(ruleRegistry) || !isKernelRegistry(kernelRegistry)) throw new Error('Pipeline requires constructed registry instances.');
   const contract = Object.freeze({ ...PIPELINE_OPERATIONS, ...operations });
   for (const [method, definition] of Object.entries(contract)) {
     const kind = typeof definition === 'string' ? definition : definition?.kind;
@@ -155,7 +183,7 @@ export function scopePipelineShaders(pipeline, scope, operations = pipeline.oper
     }
     if (typeof definition !== 'string') Object.freeze(definition);
   }
-  const owner = { pipeline, contract, scope: scope === undefined ? getStorageShaderSourceScope(pipeline.storageContext) : scope,
+  const owner = { pipeline, contract, ruleRegistry, kernelRegistry, observer: resolveDiagnosticObserver(observer), scope: scope === undefined ? getStorageShaderSourceScope(pipeline.storageContext) : scope,
     pending: 0, mutating: false, closing: false, closeTask: null, onIdle: null, proxy: null };
   const methods = new Map();
   const proxy = new Proxy(pipeline, {

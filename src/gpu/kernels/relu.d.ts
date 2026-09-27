@@ -3,6 +3,7 @@ import type { CommandRecorder } from '../command-recorder.js';
 import type { OutputBufferOptions } from './types.js';
 
 export interface ReLUOptions extends OutputBufferOptions {
+  signal?: AbortSignal | null;
   count?: number | null;
 }
 

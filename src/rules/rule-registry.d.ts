@@ -75,3 +75,19 @@ export declare function getInferenceLayerPatternContractArtifact(): {
     layerTypeContexts: number;
   };
 };
+
+export interface RuleRegistry {
+  readonly identity: string;
+  readonly ruleSets: Readonly<Record<string, Readonly<Record<string, Readonly<Record<string, RuleSet>>>>>>;
+  getRuleSet(domain: string, group: string, name: string): RuleSet;
+  selectRuleValue<T>(domain: string, group: string, name: string, context: Record<string, unknown>): T;
+}
+export declare function createRuleRegistry(options?: {
+  base?: RuleRegistry | null;
+  extensions?: Array<{ domain: string; group: string; rules: Record<string, RuleSet> }>;
+}): RuleRegistry;
+export declare const DEFAULT_RULE_REGISTRY: RuleRegistry;
+export declare function isRuleRegistry(value: unknown): value is RuleRegistry;
+export declare function getRuleRegistry(): RuleRegistry;
+/** Internal compatibility lease; caller must serialize the entire operation. */
+export declare function enterRuleRegistry(registry: RuleRegistry): () => void;

@@ -44,3 +44,9 @@ export declare const log: {
    */
   always(module: string, message: string, data?: unknown): void;
 };
+
+export interface DiagnosticObserver { observe(event: Readonly<Record<string, unknown>>): void; }
+export declare function resolveDiagnosticObserver(observer?: DiagnosticObserver | null): DiagnosticObserver | null;
+/** Used only inside the serialized pipeline lease. */
+export declare function enterDiagnosticObserver(observer: DiagnosticObserver | null): () => void;
+export declare function emitDiagnostic(event: Record<string, unknown>): boolean;

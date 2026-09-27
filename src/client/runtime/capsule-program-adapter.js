@@ -1,6 +1,6 @@
 import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import { releaseBuffer } from '../../memory/buffer-pool.js';
-import { observeInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
+import { observeInitialExecutionIdentity, createInitialExecutionIdentityV2 } from '../../config/initial-execution-identity.js';
 import { validateCapsuleTokenSelection } from '../../config/capsule-token-selection.js';
 
 function arraysEqual(left, right) {
@@ -20,7 +20,7 @@ function toPipelineOptions(options, signal) {
   };
 }
 
-export function createCapsuleProgramAdapter(modelHandle, capsule, targetPlan) {
+export function createCapsuleProgramAdapter(modelHandle, capsule, targetPlan, registries = null) {
   if (!modelHandle?.advanced) throw new Error('Capsule program adapter requires a loaded Doppler model handle.');
   if (modelHandle.manifest?.modelId !== capsule.modelId) throw new Error('Loaded program modelId does not match the Capsule.');
   const tokenSelection = targetPlan.tokenSelection === undefined ? null
@@ -59,7 +59,9 @@ export function createCapsuleProgramAdapter(modelHandle, capsule, targetPlan) {
     async unloadAdapter() { await modelHandle.unloadLoRA(); },
 
     getInitialExecutionIdentity() {
-      return observeInitialExecutionIdentity(modelHandle.advanced.getResolvedRuntimeSession());
+      const identity = observeInitialExecutionIdentity(modelHandle.advanced.getResolvedRuntimeSession());
+      return registries ? createInitialExecutionIdentityV2({ ...identity,
+        runtimeEngine: { ...identity.runtimeEngine, registries: registries.identity } }) : identity;
     },
 
     tokenize(prompt, options = {}) {

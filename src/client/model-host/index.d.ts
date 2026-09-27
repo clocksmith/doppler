@@ -85,6 +85,9 @@ export interface DopplerRuntimeService {
 
 export declare function createDopplerRuntimeService(options: {
   ensureWebGPUAvailable: () => Promise<void>;
+  ruleRegistry?: import('../../rules/rule-registry.js').RuleRegistry;
+  kernelRegistry?: import('../../config/kernel-registry-contract.js').KernelRegistry;
+  observer?: { observe(event: Record<string, unknown>): void } | null;
   defaultLoadProgressLogger?: ((event: DopplerLoadProgress) => void) | null;
   resolveCapsuleInput?: ((source: unknown, options?: DopplerCapsuleOpenOptions) => Promise<{ capsule: DopplerCapsule; artifactStore: object }>) | null;
 }): DopplerRuntimeService;

@@ -11,6 +11,7 @@ import type { KernelPathSchema } from '../../config/schema/kernel-path.schema.js
 
 /** GeLU kernel options */
 export interface GeLUOptions extends OutputBufferOptions {
+  signal?: AbortSignal | null;
   size?: number | null;
   gate?: Tensor | null;
   kernelPath?: KernelPathSchema | null;

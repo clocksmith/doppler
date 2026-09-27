@@ -1,3 +1,4 @@
+import { resolveExecutionRegistries, assertExecutionRegistriesAccepted } from '../../config/execution-registry-contract.js';
 import { hashTargetPlan, assertQualifiedTargetOperation, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import { getRequiredWgslFeatures, assertWgslFeaturesSupported } from '../../config/wgsl-language-contract.js';
@@ -57,6 +58,7 @@ export function createDopplerRun(ports) {
   if (!ports.artifactStore) throw new Error('createDopplerRun requires an artifactStore port.');
   if (!ports.trustedSigners) throw new Error('createDopplerRun requires trustedSigners.');
   if (typeof ports.programFactory !== 'function') throw new Error('createDopplerRun requires programFactory.');
+  const registries = resolveExecutionRegistries(ports.registries);
   const { device, capsuleSource = null, artifactStore, cache = null, observer = null, trustedSigners, programFactory } = ports;
 
   return {
@@ -107,6 +109,7 @@ export function createDopplerRun(ports) {
             };
         assertCapsuleLoadActive(options.signal);
         const selectedPlan = selectTargetPlan(capsule.targetPlans, deviceProfile, selectionPolicy);
+        assertExecutionRegistriesAccepted(selectedPlan, registries);
         const assertDeviceAvailable = createDeviceAvailabilityCheck(device);
         assertDeviceAvailable();
         const targetPlanDigest = hashTargetPlan(selectedPlan);
@@ -133,7 +136,7 @@ export function createDopplerRun(ports) {
         const manifest = freezeCapsuleV2(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await verifiedStore.readArtifact(manifestArtifact))));
         if (manifest.modelId !== capsule.modelId) throw new Error('Signed manifest model identity mismatch.');
         let observedInitialExecutionIdentity = null;
-        program = await programFactory({ capsule, targetPlan: selectedPlan, artifactStore: verifiedStore, deviceProfile, options });
+        program = await programFactory({ capsule, targetPlan: selectedPlan, artifactStore: verifiedStore, deviceProfile, options, registries, observer });
         assertCapsuleLoadActive(options.signal);
         assertDeviceAvailable();
         if (selectedPlan.schema === 'doppler.target-plan/v2') {

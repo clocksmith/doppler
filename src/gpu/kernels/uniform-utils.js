@@ -1,7 +1,8 @@
+import { canonicalizeJson } from '../../formats/canonical-hash.js';
 
 
 import { UNIFORM_WRITERS } from './generated/uniform-writers.js';
-import { getKernelConfig } from '../../config/kernel-registry-contract.js';
+import { KERNEL_CONFIGS } from '../../config/kernel-registry-contract.js';
 import { getDevice } from '../device.js';
 import { getUniformCache, toUniformArrayBuffer } from '../uniform-cache.js';
 
@@ -9,12 +10,18 @@ import { getUniformCache, toUniformArrayBuffer } from '../uniform-cache.js';
 // Uniform Buffer Creation
 // ============================================================================
 
+const verifiedLayouts = new WeakSet();
+
 function getUniformWriter(config) {
   const kernel = `${config?.operation}/${config?.variant}`;
   const writer = UNIFORM_WRITERS[kernel];
   if (!writer) throw new Error(`Kernel "${kernel}" has no generated uniform layout.`);
-  if (config.uniforms !== getKernelConfig(config.operation, config.variant).uniforms) {
-    throw new Error(`Kernel "${kernel}" must use its immutable registry uniform layout.`);
+  if (!verifiedLayouts.has(config)) {
+    const canonical = KERNEL_CONFIGS[config.operation]?.[config.variant];
+    if (!Object.isFrozen(config) || canonicalizeJson(config.uniforms) !== canonicalizeJson(canonical?.uniforms)) {
+      throw new Error(`Kernel "${kernel}" must use its immutable registry uniform layout; generate layouts before packaging.`);
+    }
+    verifiedLayouts.add(config);
   }
   return { kernel, writer };
 }

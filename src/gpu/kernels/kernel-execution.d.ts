@@ -7,5 +7,12 @@ export declare function unifiedKernelWrapper(
   workgroups: number | [number, number, number],
   constants?: Record<string, number> | null,
   extraBindings?: unknown[] | null,
-  dispatchLabel?: string | null
-): Promise<void>;
+  dispatchLabel?: string | null,
+  signal?: AbortSignal | null
+): Promise<boolean>;
+
+export declare function withKernelOutput<T>(
+  target: import('../command-recorder.js').CommandRecorder | GPUDevice | null,
+  supplied: GPUBuffer | null, bytes: number, label: string,
+  execute: (output: GPUBuffer) => Promise<T>
+): Promise<T>;

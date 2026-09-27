@@ -1,6 +1,5 @@
-import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
-import { unifiedKernelWrapper } from './kernel-execution.js';
+import { unifiedKernelWrapper, withKernelOutput } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
 import { WORKGROUP_SIZES } from './constants.js';
 
@@ -34,27 +33,21 @@ async function _relu(target, input, options = {}) {
   const { count = null, outputBuffer = null } = options;
   const size = resolveCount(input, count);
   const variant = selectReluVariant(input.dtype);
-  const output = outputBuffer || acquireBuffer(size * dtypeBytes(input.dtype), undefined, 'relu_output');
-  const ownedOutput = outputBuffer ? null : output;
   const dispatchPlan = planReluDispatch(target, size);
 
-  try {
+  options.signal?.throwIfAborted();
+  return withKernelOutput(target, outputBuffer, size * dtypeBytes(input.dtype), 'relu_output', async (output) => {
     await unifiedKernelWrapper(
       'relu',
       target,
       variant,
       [input, output],
       { size, _pad0: dispatchPlan.dispatchStride, _pad1: 0, _pad2: 0 },
-      dispatchPlan.workgroups
+      dispatchPlan.workgroups, null, null, null, options.signal
     );
 
     return createTensor(output, input.dtype, [...input.shape], 'relu_output');
-  } catch (error) {
-    if (ownedOutput) {
-      releaseBuffer(ownedOutput);
-    }
-    throw error;
-  }
+  });
 }
 
 export async function runReLU(input, options = {}) {

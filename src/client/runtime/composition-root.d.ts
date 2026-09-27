@@ -1,3 +1,4 @@
+import type { ExecutionRegistries, ResolvedExecutionRegistries } from '../../config/execution-registry-contract.js';
 import type { CapsuleAdapterArtifactStore } from './capsule-adapter-execution.js';
 import type { CapsuleV2Artifact } from '../../config/capsule-v2.js';
 import type { DopplerCapsule, CapsuleIdentity, verifyCapsule } from '../../config/capsule.js';
@@ -29,6 +30,7 @@ export interface CapsuleSessionOptions extends TargetPlanSelectionPolicy, Capsul
 }
 
 export interface RunPorts {
+  registries?: ExecutionRegistries | null;
   artifactBacking?: CapsuleArtifactBacking;
   device: object;
   capsuleSource?: { fetchCapsule(id: string, options?: object): Promise<DopplerCapsule> };
@@ -40,6 +42,8 @@ export interface RunPorts {
     capsule: DopplerCapsule; targetPlan: TargetPlan;
     artifactStore: ReturnType<typeof createVerifiedCapsuleArtifactStore>;
     deviceProfile: DeviceProfile; options: CapsuleSessionOptions;
+    registries: ResolvedExecutionRegistries | null;
+    observer: RunPorts['observer'];
   }): Promise<object>;
   cache?: { set(key: string, value: unknown): Promise<void> | void } | null;
   observer?: { observe(event: Record<string, unknown>): void } | null;

@@ -1,3 +1,4 @@
+import { installDebugGlobal } from 'doppler-gpu/tooling';
 import { boot, setBootStatus, stopBootProgress, updateBootModelProgress } from './boot.js';
 import { reloadActiveModel, setModelCallbacks } from './models.js';
 import { initInput, setRunHandler } from './input.js';
@@ -40,6 +41,7 @@ function refreshRuntimeNotice() {
 }
 
 async function init() {
+  installDebugGlobal();
   initPwa();
 
   // Wire model callbacks
