@@ -2,8 +2,8 @@
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
-  "fileCount": 71,
-  "sourceBytes": 780494,
+  "fileCount": 72,
+  "sourceBytes": 785116,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -104,8 +104,8 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 21300,
-      "hash": "sha256:9e3824892cfe28ff009a2b06163efecde2e7b6edfd7de0f76afb9dabb4c4a4c9"
+      "sizeBytes": 24349,
+      "hash": "sha256:b0e0968a096ef374a76a822df84ba59abd45ee8d8db28bd54ad6489582959040"
     },
     {
       "path": "src/client/runtime/fetch-capsule-artifact-store.js",
@@ -119,8 +119,8 @@
     },
     {
       "path": "src/client/runtime/session-controller.js",
-      "sizeBytes": 6343,
-      "hash": "sha256:0fc3adfc2082fc621264dabd5dc41699a3738ada9af6e69b9dae7d2d3bb57973"
+      "sizeBytes": 5401,
+      "hash": "sha256:7eb97bac2814396bb245c2b6f0ae8e9d468d0608d54c08fdc24a693bb42c0fac"
     },
     {
       "path": "src/client/runtime/verified-capsule-artifact-store.js",
@@ -294,8 +294,8 @@
     },
     {
       "path": "src/config/target-plan.js",
-      "sizeBytes": 21129,
-      "hash": "sha256:9c7ea4756145e1921cc79b64b6509ef5bcf5ba27f777e618cb68ecbe8803d0e2"
+      "sizeBytes": 22417,
+      "hash": "sha256:0608772621a49db073e55f823a5dd55c4988d0d1c3f98d8943dcd9882cad03c3"
     },
     {
       "path": "src/config/wgsl-language-contract.js",
@@ -376,6 +376,11 @@
       "path": "src/gpu/readback-buffer.js",
       "sizeBytes": 997,
       "hash": "sha256:b106a5b2a92285574331b8cdebbb9e1535a9036a1d75f586a4b75a143ce9beab"
+    },
+    {
+      "path": "src/inference/generation-step.js",
+      "sizeBytes": 1227,
+      "hash": "sha256:69a3b0de11687c65b08faa0ed5c3ec6aed534de814b571e9aaff05fb2955626a"
     },
     {
       "path": "src/inference/token-sampling.js",

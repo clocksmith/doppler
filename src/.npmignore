@@ -654,12 +654,14 @@ inference/pipelines/text/normalization-contract.d.ts
 inference/pipelines/text/operator-events.d.ts
 inference/pipelines/text/operator-identity.d.ts
 inference/pipelines/text/ops.d.ts
+inference/pipelines/text/partition-attempt.d.ts
 inference/pipelines/text/partition-execution.d.ts
 inference/pipelines/text/per-layer-inputs.d.ts
 inference/pipelines/text/per-layer/materialize.d.ts
 inference/pipelines/text/per-layer/plan.d.ts
 inference/pipelines/text/pipeline-load-timing.d.ts
 inference/pipelines/text/probes.d.ts
+inference/pipelines/text/resident-partition.d.ts
 inference/pipelines/text/sequence-state.d.ts
 inference/pipelines/text/stage-names.d.ts
 inference/pipelines/text/stopping.d.ts

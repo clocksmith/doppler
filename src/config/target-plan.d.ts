@@ -63,12 +63,18 @@ export interface TargetPlanV1 {
   }>;
 }
 
-export interface TargetPlanV2 extends Omit<TargetPlanV1, 'schema' | 'schemaVersion'> {
+export interface TargetPlanV2 extends Omit<TargetPlanV1, 'schema' | 'schemaVersion' | 'qualification'> {
   schema: 'doppler.target-plan/v2';
   schemaVersion: 2;
   initialExecutionIdentity: InitialExecutionIdentity;
   adapterExecution?: CapsuleAdapterExecutionDeclaration;
   tokenSelection?: import('./capsule-token-selection.js').CapsuleTokenSelection;
+  qualification: Array<TargetPlanV1['qualification'][number] | {
+    surface: string; status: 'passed'; operation: 'residentPartition';
+    evidenceArtifactId: string; evidenceHash: `sha256:${string}`;
+    transcriptHash: `sha256:${string}`; partitionPlanHash: `sha256:${string}`;
+    partitionIndex: 0 | 1; comparedSteps: number;
+  }>;
 }
 
 export type TargetPlan = TargetPlanV1 | TargetPlanV2;
@@ -101,6 +107,8 @@ export declare function normalizeTargetPlanSelectionPolicy(policy?: TargetPlanSe
 export declare function validateTargetPlan(plan: unknown): { ok: boolean; errors: string[] };
 export declare function hashTargetPlan(plan: unknown): `sha256:${string}`;
 export declare function assertQualifiedTargetOperation(plan: TargetPlan, surface: string, operation: string): void;
+export declare function assertQualifiedResidentPartition(plan: TargetPlan, surface: string,
+  allocation: { planId: string; index: number }): void;
 export declare function matchesDeviceCapability(targetPlan: TargetPlan, deviceProfile: Record<string, unknown>): boolean;
 export declare function selectQualifiedTargetPlan(
   targetPlans: TargetPlan[],

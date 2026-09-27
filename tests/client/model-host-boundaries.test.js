@@ -19,7 +19,8 @@ const setup = new Promise(resolve => { resume = resolve; });
 let observedOptions;
 let setupCalls = 0;
 const applicationPolicy = { acceptedTargetPlanDigests: [`sha256:${'a'.repeat(64)}`],
-  preferredTargetPlanDigests: [`sha256:${'a'.repeat(64)}`], requiredOperations: ['rerank'] };
+  preferredTargetPlanDigests: [`sha256:${'a'.repeat(64)}`], requiredOperations: ['rerank'],
+  residentPartition: { planId: `sha256:${'c'.repeat(64)}`, plan: { partitions: [{ layerRange: [0, 1] }] } } };
 const expectedPolicy = structuredClone(applicationPolicy);
 const delayedHost = host.createDopplerRuntimeService({
   ensureWebGPUAvailable: async () => { setupCalls += 1; },
@@ -29,6 +30,7 @@ const opening = delayedHost.openCapsule('delayed-source', applicationPolicy);
 applicationPolicy.acceptedTargetPlanDigests.length = 0;
 applicationPolicy.preferredTargetPlanDigests[0] = `sha256:${'b'.repeat(64)}`;
 applicationPolicy.requiredOperations[0] = 'generate';
+applicationPolicy.residentPartition.plan.partitions[0].layerRange[0] = 9;
 resume();
 await assert.rejects(opening, /stop before GPU creation/);
 assert.deepEqual(Object.fromEntries(Object.keys(expectedPolicy).map(key => [key, observedOptions[key]])),

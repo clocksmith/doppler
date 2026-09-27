@@ -7,6 +7,7 @@ import {
   selectQualifiedTargetPlan,
   validateTargetPlan,
   assertQualifiedTargetOperation,
+  assertQualifiedResidentPartition,
 } from '../../src/config/target-plan.js';
 import { createInitialExecutionIdentity } from '../../src/config/initial-execution-identity.js';
 
@@ -67,6 +68,20 @@ const planV2 = createTargetPlanV2({
 });
 assert.equal(planV2.schema, 'doppler.target-plan/v2');
 assert.equal(validateTargetPlan(planV2).ok, true);
+const residentQualification = { surface: 'test', status: 'passed', operation: 'residentPartition',
+  evidenceArtifactId: 'evidence', evidenceHash: digest, transcriptHash: digest,
+  partitionPlanHash: digest, partitionIndex: 0, comparedSteps: 2 };
+const residentPlan = createTargetPlanV2({ ...planV2,
+  qualification: [...planV2.qualification, residentQualification] });
+assert.notEqual(hashTargetPlan(residentPlan), hashTargetPlan(planV2));
+assert.throws(() => assertQualifiedResidentPartition(planV2, 'test', { planId: digest, index: 0 }), /no signed resident partition qualification/);
+assert.doesNotThrow(() => assertQualifiedResidentPartition(residentPlan, 'test', { planId: digest, index: 0 }));
+for (const assignment of [{ planId: digest, index: 1 }, { planId: `sha256:${'b'.repeat(64)}`, index: 0 }]) {
+  assert.throws(() => assertQualifiedResidentPartition(residentPlan, 'test', assignment), /no signed resident partition qualification/);
+}
+assert.throws(() => assertQualifiedResidentPartition(residentPlan, 'other', { planId: digest, index: 0 }), /no signed resident partition qualification/);
+assert.equal(validateTargetPlan({ ...plan, qualification: [residentQualification] }).ok, false, 'v1 cannot authorize resident execution');
+assert.equal(validateTargetPlan({ ...residentPlan, qualification: [{ ...residentQualification, comparedSteps: 0 }] }).ok, false);
 const adapterClosure = ['matmul_f16', 'scale', 'residual'].map((file) => ({ moduleId: file, file: `${file}.wgsl`, entry: 'main', digest }));
 const adapterDeclaration = { schema: 'doppler.capsule-adapter-execution/v1', maxAdapters: 1, combination: 'single',
   formats: ['peft_safetensors'], operations: ['generate'], kernelModules: adapterClosure.map(row => row.moduleId) };

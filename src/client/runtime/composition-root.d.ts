@@ -40,6 +40,9 @@ export interface RunPorts {
     hashArtifact?(artifact: CapsuleV2Artifact): Promise<{ hash: string; sizeBytes: number }>;
   };
   trustedSigners: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
+  /** The host's pure manifest-bound partition validator; required for resident opening. */
+  resolveResidentPartitionAllocation?: (manifest: Record<string, unknown>, manifestHash: string,
+    allocation: NonNullable<CapsuleSessionOptions['residentPartition']>) => NonNullable<CapsuleSessionOptions['residentPartition']>;
   programFactory(args: {
     capsule: DopplerCapsule; targetPlan: TargetPlan;
     artifactStore: ReturnType<typeof createVerifiedCapsuleArtifactStore>;

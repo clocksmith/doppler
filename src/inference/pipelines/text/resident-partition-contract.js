@@ -1,4 +1,4 @@
-import { resolveLayerPartition } from './layer-partition-contract.js';
+import { resolveLayerPartition, hashLayerPartitionPlan } from './layer-partition-contract.js';
 import { resolveGenerationOptions } from '../../../config/generation-contract.js';
 import { computeCanonicalSha256 } from '../../../formats/canonical-hash.js';
 import { freezeCapsuleV2 } from '../../../config/capsule-v2.js';
@@ -13,7 +13,7 @@ export function resolveResidentPartitionAllocation(manifest, manifestHash, input
   }
   const allocation = structuredClone(input);
   if (![0, 1].includes(allocation.index) || !allocation.participantId
-    || computeCanonicalSha256(allocation.plan) !== allocation.planId) {
+    || hashLayerPartitionPlan(allocation.plan) !== allocation.planId) {
     throw new Error('Resident partition requires an exact plan digest, index and participant identity.');
   }
   resolveLayerPartition(manifest, { plan: allocation.plan, index: allocation.index });

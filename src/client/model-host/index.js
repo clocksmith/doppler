@@ -35,6 +35,7 @@ import { createDopplerRun } from '../runtime/composition-root.js';
 import { createCapsuleArtifactBacking } from '../runtime/verified-capsule-artifact-store.js';
 import { createCapsuleProgramAdapter } from '../runtime/capsule-program-adapter.js';
 import { createResidentPartitionSession } from '../../inference/pipelines/text/resident-partition.js';
+import { resolveResidentPartitionAllocation } from '../../inference/pipelines/text/resident-partition-contract.js';
 import { createCapsuleArtifactSource } from '../runtime/capsule-artifact-source.js';
 import { resolveProgramLoadRuntimeConfig } from '../../config/initial-execution-identity.js';
 import { normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
@@ -380,11 +381,12 @@ export function createDopplerRuntimeService({
     if (options.modelLoadOptions !== undefined) {
       throw new Error('doppler.openCapsule() prohibits modelLoadOptions because signed TargetPlan policy is authoritative.');
     }
+    const residentPartition = options.residentPartition === undefined ? undefined : structuredClone(options.residentPartition);
     options = { ...options, ...normalizeTargetPlanSelectionPolicy({
       acceptedTargetPlanDigests: options.acceptedTargetPlanDigests,
       requiredOperations: options.requiredOperations,
       preferredTargetPlanDigests: options.preferredTargetPlanDigests,
-    }) };
+    }), residentPartition };
     const acquisition = createCapsuleLoadScope(options);
     options = acquisition.options;
     try {
@@ -423,6 +425,7 @@ export function createDopplerRuntimeService({
         cache: options.verificationCache ?? null,
         observer: options.observer ?? observer,
         registries: extendedRegistries,
+        resolveResidentPartitionAllocation,
         async programFactory({ capsule, targetPlan, artifactStore, registries: programRegistries, options: programOptions }) {
           const source = await createCapsuleArtifactSource(capsule, artifactStore);
           assertCapsuleLoadActive(programOptions.signal);
