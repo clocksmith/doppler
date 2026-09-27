@@ -32,6 +32,12 @@
     "src/storage/model-read-session.js",
     "tests/types/ownership-contracts.js",
     "src/inference/pipelines/text/layer-partition-contract.js",
-    "src/tooling/model-capsule-forge.js"
+    "src/tooling/model-capsule-forge.js",
+    "src/inference/generation-step.js",
+    "src/inference/pipelines/text/partition-attempt.js",
+    "src/inference/pipelines/text/resident-partition.js",
+    "src/inference/pipelines/text/resident-partition-contract.js",
+    "src/client/resident-partitions.js",
+    "src/partitions.js"
   ]
 }
