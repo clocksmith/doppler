@@ -1,0 +1,69 @@
+{
+  "evidenceClass": "local architecture and installed-package correctness checks",
+  "sourceBaseline": "78e9aa6eef1fc96ef9d8dd8616a6e5cc7d8a2ed3",
+  "interimCheckpoint": "59702d13fd944c0fa21f22cd02f5f7a879966f19",
+  "finalSourceIdentity": "source-files.json; containing Git commit identifies the completed diff",
+  "checks": [
+    {
+      "command": "npm run test:unit",
+      "exitCode": 0,
+      "testFiles": 873,
+      "log": "unit-final.log.gz"
+    },
+    {
+      "command": "node tools/run-node-tests.js --scripts typecheck:source typecheck:source-runtime source:architecture:check source:style:check inference:boundaries:check catscan:check config:single-source:check rules:bundle:check kernels:uniforms:check kernels:codegen:check kernels:digests:check runtime:closure:check package:closure:check exports:parity:check api:docs:check demo:shell:check demo:reachability:check",
+      "exitCode": 0,
+      "log": "source-gates.log"
+    },
+    {
+      "command": "node tools/run-node-tests.js tests/kernels/activation-executor-lifecycle.test.js tests/inference/gelu-erf-gpu-regression.test.js",
+      "exitCode": 0,
+      "log": "physical-activation.log",
+      "physicalExecution": true
+    },
+    {
+      "command": "npm run package:smoke -- --retain /tmp/doppler-registry-installed-verified-20260927",
+      "exitCode": 0,
+      "log": "installed-package.log",
+      "physicalExecution": false
+    },
+    {
+      "command": "npm run test:demo:contract",
+      "exitCode": 1,
+      "log": "demo-contract.log",
+      "passedBeforeFailure": "Model selection, load, generation and explicit debug API installation",
+      "failure": "Existing browser control fixture references #chat-controls > summary, absent from unchanged demo HTML"
+    }
+  ],
+  "package": {
+    "filename": "doppler-gpu-0.6.3-dev.split.1.tgz",
+    "version": "0.6.3-dev.split.1",
+    "integrity": "sha512-LQo2iII+0N9Zd6J23EUYYvM44vr+owX1EisraMxw/F6sfqEPT+RzlCkdQb7Zojsb17e87etx2GzSDUeFqaouww==",
+    "sizeBytes": 2166617,
+    "source": "local-npm-pack",
+    "sha256": "caff304b4a4d5ebfaeefb4749af73afac232f160a7b2b638eb5ee6a7a4a96e0d"
+  },
+  "limits": [
+    "Legacy numerical execution remains serialized.",
+    "Validator functions are trusted and identified; closure purity is an extension contract, not a JavaScript sandbox.",
+    "Browser control acceptance remains open.",
+    "No performance comparison, whole-model numerical qualification, release qualification or external adoption was executed.",
+    "Accepted search release and MiniLM feature work are unchanged."
+  ],
+  "inspectedAndPreserved": [
+    "Canonical JSON rules and kernel metadata",
+    "Existing composition root and program factory",
+    "Rig execution graphs, capability-transform compatibility exports and complete-shader generation",
+    "Generated uniform layout ownership",
+    "Host storage injection and operation/device/cancellation checks"
+  ],
+  "skipped": [
+    "Broad operator rewrite",
+    "Additional plugin or graph manager",
+    "Runtime shader fragment assembly",
+    "Concurrent GPU execution",
+    "Whole-model/browser GPU qualification",
+    "Benchmark comparison",
+    "Learned input embeddings and remaining BERT lowering"
+  ]
+}

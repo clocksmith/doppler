@@ -24,6 +24,8 @@ Resolve explicit data-only rule maps deterministically and fail when no permitte
 
 ## Invariants
 
+- Registry instances own frozen snapshots; compatibility registration cannot mutate existing instances.
+
 - Rule maps are JSON data with explicit match and value semantics.
 - Model identity matching cannot broaden through substring heuristics.
 - Missing or ambiguous required selection fails explicitly.

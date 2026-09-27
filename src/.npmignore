@@ -31,12 +31,14 @@ client/runtime/capsule-operation-deltas.d.ts
 client/runtime/capsule-program-adapter.d.ts
 client/runtime/capsule-release-authorization.d.ts
 client/runtime/capsule-session-execution.d.ts
+client/runtime/index.js
 client/runtime/model-rerank.d.ts
 client/runtime/model-session.js
 client/runtime/node-quickstart-cache.d.ts
 client/runtime/source-runtime.d.ts
 client/runtime/source-runtime.js
 client/runtime/storage.d.ts
+client/runtime/target-selector.js
 config/capsule-adapter-policy.d.ts
 config/capsule-sequence-receipt.d.ts
 config/capsule-v0-trusted-signers.d.ts
@@ -763,8 +765,6 @@ rules/kernels/vision-spatial-merge.rules.json
 rules/layer-pattern-contract-check.d.ts
 rules/loader/tensor-loader.rules.json
 rules/loader/weights.rules.json
-rules/rule-matcher.d.ts
-rules/rule-registry.d.ts
 rules/tooling/command-runtime.rules.json
 storage/artifact-storage-context.d.ts
 storage/backend-selection.d.ts

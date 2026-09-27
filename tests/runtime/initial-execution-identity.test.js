@@ -294,3 +294,36 @@ assert.throws(
 );
 
 console.log('✔ initial-execution-identity.test.js passed');
+
+// Execution extensions are a prepared-program dependency, not a mutable host service.
+const { createRuleRegistry } = await import('../../src/rules/rule-registry.js');
+const { createKernelRegistry } = await import('../../src/gpu/kernels/kernel-configs.js');
+const { resolveExecutionRegistries } = await import('../../src/config/execution-registry-contract.js');
+const scopedRegistries = resolveExecutionRegistries({
+  ruleRegistry: createRuleRegistry({ extensions: [{ domain: 'test', group: 'bound', rules: { choose: [{ match: {}, value: 'bound' }] } }] }),
+  kernelRegistry: createKernelRegistry(),
+});
+const boundIdentity = createInitialExecutionIdentityV2({ ...fields,
+  programLoadPolicy: expectedIdentityV2.programLoadPolicy,
+  runtimeEngine: { ...fields.runtimeEngine, registries: scopedRegistries.identity } });
+const boundFixture = await createSignedCapsuleFixture({ initialExecutionIdentity: boundIdentity, operation: 'encodeSequence' });
+const boundObserver = { observe() {} };
+let constructed = 0;
+const boundRuntime = createDopplerRuntime({ device, artifactStore: boundFixture.artifactStore,
+  trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
+  registries: scopedRegistries, observer: boundObserver,
+  async programFactory({ registries, observer }) {
+    constructed++;
+    assert.equal(registries.ruleRegistry, scopedRegistries.ruleRegistry);
+    assert.equal(registries.kernelRegistry, scopedRegistries.kernelRegistry);
+    assert.equal(observer, boundObserver);
+    assert.ok(Object.isFrozen(registries));
+    return { ...baseProgram, getInitialExecutionIdentity: () => boundIdentity };
+  },
+});
+const boundSession = await boundRuntime.openCapsule(boundFixture.capsule);
+await boundSession.close();
+assert.equal(constructed, 1);
+await assert.rejects(boundRuntime.openCapsule(fixture.capsule), /registry extensions.*accepted TargetPlan/);
+assert.equal(constructed, 1, 'unaccepted extensions fail before program construction');
+console.log('initial-execution-identity.test: explicit registry binding passed');

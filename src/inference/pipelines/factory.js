@@ -1,14 +1,13 @@
 import { enterDiagnosticObserver, resolveDiagnosticObserver } from '../../debug/log.js';
-import { getRuleRegistry, enterRuleRegistry } from '../../rules/rule-registry.js';
-import { getKernelRegistry, enterKernelRegistry } from '../../gpu/kernels/kernel-configs.js';
+import { enterRuleRegistry } from '../../rules/rule-registry.js';
+import { enterKernelRegistry } from '../../gpu/kernels/kernel-configs.js';
 import { getStorageShaderSourceScope, runWithShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
-import { scopePipelineShaders } from './shader-scoped-pipeline.js';
+import { scopePipelineShaders, resolvePipelineRegistries } from './shader-scoped-pipeline.js';
 import { releasePipelineContextGlobals } from './context.js';
 import { snapshotRuntimeConfig } from '../../config/runtime.js';
 
 export async function createInitializedPipeline(PipelineClass, manifest, contexts = {}) {
-  const ruleRegistry = contexts.ruleRegistry ?? getRuleRegistry();
-  const kernelRegistry = contexts.kernelRegistry ?? getKernelRegistry();
+  const { ruleRegistry, kernelRegistry } = resolvePipelineRegistries(contexts);
   const observer = resolveDiagnosticObserver(contexts.observer);
   const pipeline = new PipelineClass();
   const scope = getStorageShaderSourceScope(contexts.storage ?? contexts.storageContext);
@@ -26,10 +25,8 @@ export async function createInitializedPipeline(PipelineClass, manifest, context
       try { await pipeline.unload?.(); } catch { /* Preserve the construction failure. */ }
       throw error;
     } finally {
-      releasePipelineContextGlobals(pipeline);
-      restoreKernels?.();
-      restoreRules?.();
-      restoreObserver();
+      try { releasePipelineContextGlobals(pipeline); }
+      finally { restoreKernels?.(); restoreRules?.(); restoreObserver(); }
     }
   });
   return scopePipelineShaders(pipeline, scope, undefined, { ruleRegistry, kernelRegistry }, observer);

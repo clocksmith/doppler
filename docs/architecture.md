@@ -75,6 +75,20 @@ built-in dependency are covered by `tools/policies/runtime-closure-policy.json`.
 The browser view retains its explicit Node bridge exclusions, while package
 inclusion also follows declared JSON and WGSL resources.
 
+### Registry and observation ownership
+
+Preparation binds immutable rule and kernel registry instances through the existing
+composition root and numerical program interfaces. Canonical JSON stays separate
+from validator functions. Extended registry identities must match the accepted
+TargetPlan; compatibility registration never changes an already constructed
+program. Host storage and observation ports remain separate dependencies.
+
+Legacy pipeline execution remains serialized while ambient device, cache and
+runtime dependencies exist. Registry isolation alone does not permit concurrent
+GPU execution. Debug globals require explicit application installation. See the
+[construction and migration contract](developer-guides/config-source-of-truth.md#scoped-registry-construction-and-migration)
+for APIs, identity fields, generated layout ownership, and acceptance tests.
+
 ### GPU preparation and submission
 
 Capsule loading clones and deeply freezes declared metadata before signature,

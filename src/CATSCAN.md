@@ -19,6 +19,8 @@ Implement Doppler's shipped JavaScript and WGSL contracts with explicit policy r
 
 ## Contracts
 
+- Advanced tooling exports immutable registry constructors and explicit debug installation; the minimal runtime facade remains unchanged.
+
 - Input: [Architecture](../docs/architecture.md), manifests, runtime policy, and command requests.
 - Output: [Root package facade](index.js), tooling slices, and executed model results with receipts.
 

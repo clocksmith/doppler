@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 71,
-  "sourceBytes": 772294,
+  "sourceBytes": 780494,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -104,8 +104,8 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 20981,
-      "hash": "sha256:09edec8e1cbc452201901606b823072efbf6dc9c3b202090773be39cb29b1fdd"
+      "sizeBytes": 21300,
+      "hash": "sha256:9e3824892cfe28ff009a2b06163efecde2e7b6edfd7de0f76afb9dabb4c4a4c9"
     },
     {
       "path": "src/client/runtime/fetch-capsule-artifact-store.js",
@@ -121,11 +121,6 @@
       "path": "src/client/runtime/session-controller.js",
       "sizeBytes": 6343,
       "hash": "sha256:0fc3adfc2082fc621264dabd5dc41699a3738ada9af6e69b9dae7d2d3bb57973"
-    },
-    {
-      "path": "src/client/runtime/target-selector.js",
-      "sizeBytes": 94,
-      "hash": "sha256:7f9f1d5fca337d3bf4e355b76f59b7060a01ecea67d48a5c0c5b33f8352b118b"
     },
     {
       "path": "src/client/runtime/verified-capsule-artifact-store.js",
@@ -218,6 +213,11 @@
       "hash": "sha256:23c5dd9d7917d9df824410f3c0cab91d73a04f118c30daec8710b6dbe8a8ecf3"
     },
     {
+      "path": "src/config/execution-registry-contract.js",
+      "sizeBytes": 1830,
+      "hash": "sha256:0618ea0a74131b0f5e046e2d631998d86aaaa46845bdeaf00f75f600e44d6635"
+    },
+    {
       "path": "src/config/forecast-manifest.js",
       "sizeBytes": 3683,
       "hash": "sha256:5d84c8d5bee920a36a3b5bb6d5bb7d5610611f1ee17a9e9bbb9ffe963c15156a"
@@ -234,13 +234,13 @@
     },
     {
       "path": "src/config/initial-execution-identity.js",
-      "sizeBytes": 14517,
-      "hash": "sha256:df1adc683da57e50488c7290c9918bebebc53d1ca000253b391e505f0ab19246"
+      "sizeBytes": 14956,
+      "hash": "sha256:2c25b83186104597025031a9436a53ba0d3a71c1ee170c4f4ccebdd3e4f6d689"
     },
     {
       "path": "src/config/kernel-registry-contract.js",
-      "sizeBytes": 2341,
-      "hash": "sha256:d0f2cf0f6ce8efc99697e497c55dd10f401214239a9eaab38430289eb4ee3387"
+      "sizeBytes": 5392,
+      "hash": "sha256:c37ac8ad8d99f4e9bfe46e06980676976ed693c78811f071f43bef45d7331a7a"
     },
     {
       "path": "src/config/kernels/registry.json",
@@ -319,13 +319,13 @@
     },
     {
       "path": "src/debug/index.js",
-      "sizeBytes": 4238,
-      "hash": "sha256:b78b0ceab208e0edabfb08fa43d411ffefab258ecd268be3ede554d23c039136"
+      "sizeBytes": 4759,
+      "hash": "sha256:d6bb999afcc25fc437bffbfac63bc5653692478b280b04d837e6bf114e181800"
     },
     {
       "path": "src/debug/log.js",
-      "sizeBytes": 3094,
-      "hash": "sha256:04cb62dfcbd14f06e6ea137bf3dfacf31df88d3b3d4b350cc437108309d84b87"
+      "sizeBytes": 4208,
+      "hash": "sha256:0e13a658a145f3dc178138c30860226ea270c91557c07b98f6709c3a116d809a"
     },
     {
       "path": "src/debug/signals.js",
@@ -344,8 +344,8 @@
     },
     {
       "path": "src/debug/trace.js",
-      "sizeBytes": 4438,
-      "hash": "sha256:8eceacab851ed490b520533310f32e8d76aa4bf4fb2e7bf7bba375684758b9d3"
+      "sizeBytes": 5458,
+      "hash": "sha256:410f87a4d37892e28a7e153b072250dfd558c988bcc9a2226f183a1cf2b276ee"
     },
     {
       "path": "src/errors/doppler-error.js",

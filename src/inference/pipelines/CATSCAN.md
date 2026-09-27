@@ -24,6 +24,8 @@ Bind declared model types to pipeline implementations without changing normalize
 
 ## Invariants
 
+- Registry and observer dependencies bind during preparation; legacy execution remains serialized through completion and cleanup.
+
 - Unknown model types fail explicitly.
 - Pipeline selection is declared before execution.
 - Shared command and session semantics survive pipeline-family dispatch.

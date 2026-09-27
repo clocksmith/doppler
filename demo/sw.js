@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:c4a51d2da6895486e60ee9ea7dc6fd6f0323ec2637419fe97656bd2d64d05d57';
-const CACHE_NAME = 'doppler-demo-shell-c4a51d2da6895486';
+const SHELL_MANIFEST_DIGEST = 'sha256:0931dae018318fd56727fdf03824ecbc81ad5e2b03a97c8439b34c42e4e795a4';
+const CACHE_NAME = 'doppler-demo-shell-0931dae018318fd5';
 const APP_SHELL = Object.freeze([
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
@@ -64,7 +64,6 @@ const APP_SHELL = Object.freeze([
   "/src/client/runtime/command-executor.js",
   "/src/client/runtime/composition-root.js",
   "/src/client/runtime/fetch-capsule-artifact-store.js",
-  "/src/client/runtime/index.js",
   "/src/client/runtime/lora.js",
   "/src/client/runtime/model-rerank.js",
   "/src/client/runtime/model-source.js",
@@ -74,7 +73,6 @@ const APP_SHELL = Object.freeze([
   "/src/client/runtime/scoped-session.js",
   "/src/client/runtime/session-controller.js",
   "/src/client/runtime/storage.js",
-  "/src/client/runtime/target-selector.js",
   "/src/client/runtime/verified-capsule-artifact-store.js",
   "/src/config/capsule-adapter-policy.js",
   "/src/config/capsule-adapters.js",
@@ -97,6 +95,7 @@ const APP_SHELL = Object.freeze([
   "/src/config/embedding-contract.js",
   "/src/config/embedding-reference.js",
   "/src/config/execution-contract-check.js",
+  "/src/config/execution-registry-contract.js",
   "/src/config/forecast-manifest.js",
   "/src/config/generation-contract.js",
   "/src/config/generation-contract.json",
@@ -254,7 +253,6 @@ const APP_SHELL = Object.freeze([
   "/src/formats/sha256.js",
   "/src/formats/source-runtime.js",
   "/src/formats/stable-sort-object.js",
-  "/src/generation/index.js",
   "/src/gpu/command-recorder.js",
   "/src/gpu/constant-buffer.js",
   "/src/gpu/device-state.js",
@@ -401,7 +399,6 @@ const APP_SHELL = Object.freeze([
   "/src/inference/browser-harness-contract-helpers.js",
   "/src/inference/browser-harness-diffusion-energy-suites.js",
   "/src/inference/browser-harness-report-helpers.js",
-  "/src/inference/browser-harness-runtime-helpers.js",
   "/src/inference/browser-harness.js",
   "/src/inference/browser-harness/benchmark-execution.js",
   "/src/inference/browser-harness/benchmark-rerank.js",
@@ -536,6 +533,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/kernel-trace.js",
   "/src/inference/pipelines/text/layer-execution-contract.js",
   "/src/inference/pipelines/text/layer-input-execution.js",
+  "/src/inference/pipelines/text/layer-partition-contract.js",
   "/src/inference/pipelines/text/layer-plan-gpu.js",
   "/src/inference/pipelines/text/layer-plan.js",
   "/src/inference/pipelines/text/layer.js",
@@ -633,6 +631,7 @@ const APP_SHELL = Object.freeze([
   "/src/loader/memory-monitor.js",
   "/src/loader/model-executor.js",
   "/src/loader/model-load-validation.js",
+  "/src/loader/model-load.js",
   "/src/loader/per-layer-input-loader.js",
   "/src/loader/quantization-constants.js",
   "/src/loader/shard-cache.js",

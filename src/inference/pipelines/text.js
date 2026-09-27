@@ -2,7 +2,7 @@ import { InferencePipeline, EmbeddingPipeline } from './text/pipeline.js';
 export * from './text/pipeline.js';
 import { createInitializedPipeline } from './factory.js';
 import { registerPipeline, getPipelineFactory } from './registry.js';
-import { selectRuleValue } from '../../rules/rule-registry.js';
+import { resolvePipelineRegistries } from './shader-scoped-pipeline.js';
 
 /** @param {import('../../config/schema/index.js').ManifestSchema} manifest
  * @param {Record<string, unknown>} contexts */
@@ -21,9 +21,10 @@ async function createEmbeddingPipeline(manifest, contexts = {}) {
 
 registerPipeline('embedding', createEmbeddingPipeline);
 
-/** @param {string} modelType */
-function resolveLazyPipelineModules(modelType) {
-  const modules = selectRuleValue('inference', 'config', 'pipelineModules', {
+/** @param {string} modelType
+ * @param {import('../../rules/rule-registry.js').RuleRegistry} ruleRegistry */
+function resolveLazyPipelineModules(modelType, ruleRegistry) {
+  const modules = ruleRegistry.selectRuleValue('inference', 'config', 'pipelineModules', {
     modelType,
     modelTypeLower: String(modelType).toLowerCase(),
   });
@@ -34,6 +35,7 @@ function resolveLazyPipelineModules(modelType) {
 /** @param {import('../../config/schema/index.js').ManifestSchema} manifest
  * @param {Record<string, unknown>} contexts */
 export async function createPipeline(manifest, contexts = {}) {
+  const { ruleRegistry, kernelRegistry } = resolvePipelineRegistries(contexts);
   const modelType = manifest?.modelType;
   if (typeof modelType !== 'string' || modelType.length === 0) {
     throw new Error('Manifest is missing modelType. Re-convert the model with modelType set.');
@@ -41,7 +43,7 @@ export async function createPipeline(manifest, contexts = {}) {
   let factory = getPipelineFactory(modelType);
 
   if (!factory) {
-    for (const modulePath of resolveLazyPipelineModules(modelType)) {
+    for (const modulePath of resolveLazyPipelineModules(modelType, ruleRegistry)) {
       await import(modulePath);
     }
     factory = getPipelineFactory(modelType);
@@ -51,5 +53,5 @@ export async function createPipeline(manifest, contexts = {}) {
     throw new Error(`No pipeline registered for modelType "${modelType}".`);
   }
 
-  return factory(manifest, contexts);
+  return factory(manifest, { ...contexts, ruleRegistry, kernelRegistry });
 }

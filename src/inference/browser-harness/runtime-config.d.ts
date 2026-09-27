@@ -1,3 +1,4 @@
+export { installDebugGlobal } from '../../debug/index.js';
 export declare function resolveRuntime(options: Record<string, unknown>): Record<string, unknown>;
 export declare function loadRuntimeConfigFromRef(
   ref: string,

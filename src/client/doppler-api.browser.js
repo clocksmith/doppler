@@ -1,5 +1,5 @@
 import { createDefaultNodeLoadProgressLogger } from './runtime/model-source.js';
-import { createDopplerRuntimeService } from './runtime/index.js';
+import { createDopplerRuntimeService } from './model-host/index.js';
 import { createFetchCapsuleArtifactStore } from './runtime/fetch-capsule-artifact-store.js';
 import { fetchCapsuleMetadata } from './runtime/capsule-acquisition.js';
 

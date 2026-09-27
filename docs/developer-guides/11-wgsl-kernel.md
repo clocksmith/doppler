@@ -16,7 +16,8 @@ Add a new GPU kernel implementation or a new variant of an existing kernel.
 ## Required Touch Points
 
 - `src/gpu/kernels/<name>.wgsl`
-- `src/gpu/kernels/<name>.js` and `.d.ts`
+- Reuse or generate an adapter where supported; add `src/gpu/kernels/<name>.js`
+  and `.d.ts` only when operator behavior requires JavaScript.
 - `src/gpu/kernels/index.js` and `.d.ts`
 - `src/config/kernels/registry.json` for operation ID, variant ID, WGSL file,
   entry point, feature requirements, bindings, uniforms, and metadata
@@ -28,7 +29,9 @@ Add a new GPU kernel implementation or a new variant of an existing kernel.
 
 1. Use the WGSL topology test first: decide whether you need a new file, a new entry point, or only new `override` constants.
 2. Implement the WGSL kernel.
-3. Add the JS wrapper and matching declaration file under `src/gpu/kernels/`.
+3. Reuse the existing executor and adapter, or generate an adapter where supported.
+   Write a small JS wrapper with matching declarations when shape calculations,
+   asynchronous behavior, or ownership require it.
 4. Register the kernel identity in `src/config/kernels/registry.json`; do not
    create a parallel filename map.
 5. Re-export it through `src/gpu/kernels/index.js` and `.d.ts`.
@@ -44,6 +47,13 @@ writer and declarations live in `src/gpu/kernels/generated/`; identical layouts
 share a writer. Use `createKernelBindingEntries` for named buffer roles and
 `getKernelBindGroupLayout` for an explicit layout. Keep meaningful scalar
 transformations, such as a disabled token's sentinel value, in the wrapper.
+
+Registry configurations are deeply immutable. Supply executable validators in a
+companion map when constructing a kernel registry; never attach functions to
+canonical JSON or mutate `KERNEL_CONFIGS`. New layouts require generated writers
+before packaging. Keep shader composition in Rig and existing code generation;
+package complete deterministic shaders with source provenance, never runtime
+shader fragments.
 
 The generator checks declarations rather than parsing shader function bodies.
 It does not certify the numerical algorithm. The physical uniform echo test
@@ -71,6 +81,9 @@ or `tools/policies/kernel-usage-allowlist.json`.
 - Treating `src/gpu/kernel-selector.js` as the main implementation point. New work belongs under `src/gpu/kernels/`.
 - Forgetting `.d.ts` and index exports.
 - Adding a WGSL file or JS wrapper without a registry entry.
+- Duplicating dispatch or output rollback already owned by `unifiedKernelWrapper()`
+  and `withKernelOutput()`. Borrowed outputs stay caller-owned; failed recorded
+  outputs remain retained until recorder cleanup.
 - Encoding selection policy in WGSL or filename suffixes instead of registry
   metadata, rule maps, and execution graphs.
 - Changing execution identity when the kernel is only a selection detail, or skipping the execution graph update when identity really changed.

@@ -25,6 +25,8 @@ Resolve all runtime-visible policy from validated, traceable, single-source conf
 
 ## Invariants
 
+- Immutable registry data and identified companion validators bind to accepted execution identity.
+
 - Required values are never recreated as hidden runtime defaults.
 - Nullable disabled state remains distinct from missing state.
 - Runtime overlays cannot silently rewrite conversion-owned facts.

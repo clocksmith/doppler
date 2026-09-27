@@ -57,6 +57,7 @@ async function assertControlContrast(page) {
 }
 
 export async function checkDemoControls(page) {
+  assert.equal(await page.evaluate(() => typeof globalThis.DOPPLER?.log?.info), 'function');
   await page.locator('#chat-controls > summary').click();
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
   assert.equal(await page.locator('#set-word-quality').isChecked(), false);
