@@ -1,0 +1,15 @@
+{
+  "schema": "doppler.model-onboarding/v1",
+  "sourceSpec": {
+    "path": "artifacts/document-search-minilm-embedding-2026-09-26/source-spec.json",
+    "digest": "sha256:c787a783e10ff18305d99b33cb8fc68478397cea4f5addc37651874499cc815b"
+  },
+  "vocabulary": {
+    "path": "reports/model-revision-discovery/20260907/inputs/embedding-vocabulary.json",
+    "digest": "sha256:7a6f1804887d259601116310ec109f2daa9cc4e6ae769ac188c9a328af1203e5"
+  },
+  "entryPointIds": [
+    "text.embed"
+  ],
+  "lineage": null
+}

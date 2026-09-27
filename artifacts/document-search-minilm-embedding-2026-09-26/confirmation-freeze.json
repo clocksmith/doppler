@@ -1,0 +1,11 @@
+{
+  "sha256": "473ae5cef5c9d4630484c7b9fab8851de1982904895e13336e2acfb58eff9e64",
+  "documents": 60,
+  "queries": 72,
+  "answerable": 60,
+  "noAnswer": 12,
+  "selection": "MiniLM embedding plus incumbent reranker only; incumbent pair comparison with the same preprocessing",
+  "scoringCaptured": false,
+  "abstention": "unassessed; no threshold selection; no-answer queries cannot create an accepted-answer claim",
+  "independentDeveloperSupplied": false
+}

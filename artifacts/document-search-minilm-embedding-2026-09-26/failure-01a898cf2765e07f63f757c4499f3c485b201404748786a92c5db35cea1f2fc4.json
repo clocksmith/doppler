@@ -1,0 +1,7 @@
+{
+  "schema": "doppler.model-onboarding-failure/v1",
+  "inputDigest": "sha256:2d6b2e8d3cbf732a7af728df39f98319ea7eb591d8b337c49a963472a4214c62",
+  "stage": "source-facts",
+  "message": "Failed to create valid ModelIR v2: stateSpaces must be a non-empty array.",
+  "outputs": {}
+}

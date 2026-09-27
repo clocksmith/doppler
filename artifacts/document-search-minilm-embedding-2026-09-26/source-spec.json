@@ -1,0 +1,2830 @@
+{
+  "modelId": "all-minilm-l6-v2-embedding-candidate",
+  "sources": {
+    "config": {
+      "path": "artifacts/document-search-minilm-embedding-2026-09-26/source/config.json",
+      "format": "json",
+      "hash": "sha256:953f9c0d463486b10a6871cc2fd59f223b2c70184f49815e7efbcab5d8908b41"
+    },
+    "pooling": {
+      "path": "artifacts/document-search-minilm-embedding-2026-09-26/source/pooling.json",
+      "format": "json",
+      "hash": "sha256:4be450dde3b0273bb9787637cfbd28fe04a7ba6ab9d36ac48e92b11e350ffc23"
+    },
+    "modules": {
+      "path": "artifacts/document-search-minilm-embedding-2026-09-26/source/modules.json",
+      "format": "json",
+      "hash": "sha256:84e40c8e006c9b1d6c122e02cba9b02458120b5fb0c87b746c41e0207cf642cf"
+    },
+    "semantics": {
+      "path": "artifacts/document-search-minilm-embedding-2026-09-26/source/semantics.json",
+      "format": "json",
+      "hash": "sha256:92eb37808941b651ca53f09cd9f45c639051d73869b476169b67b4a7911224a2"
+    },
+    "embedding": {
+      "path": "artifacts/document-search-minilm-embedding-2026-09-26/source-policy.json",
+      "format": "json",
+      "hash": "sha256:9ac030dfee3839f5c3031922d0dc9f0762191b983cb483433b0b4bce41c0cc71"
+    },
+    "headers": {
+      "path": "/var/tmp/doppler-minilm-embedding-20260926/source/model.safetensors",
+      "format": "safetensors-header",
+      "hash": "sha256:2291ac9b8d5083595cd6a1787e01d694a893af92bc706faf1511231affe822e8"
+    }
+  },
+  "sourceIdentity": {
+    "checkpointId": "sentence-transformers/all-MiniLM-L6-v2",
+    "repository": "sentence-transformers/all-MiniLM-L6-v2",
+    "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "artifacts": [
+      {
+        "artifactId": "config",
+        "path": "config.json",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:953f9c0d463486b10a6871cc2fd59f223b2c70184f49815e7efbcab5d8908b41"
+      },
+      {
+        "artifactId": "pooling",
+        "path": "pooling.json",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:4be450dde3b0273bb9787637cfbd28fe04a7ba6ab9d36ac48e92b11e350ffc23"
+      },
+      {
+        "artifactId": "modules",
+        "path": "modules.json",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:84e40c8e006c9b1d6c122e02cba9b02458120b5fb0c87b746c41e0207cf642cf"
+      },
+      {
+        "artifactId": "semantics",
+        "path": "semantics.json",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:92eb37808941b651ca53f09cd9f45c639051d73869b476169b67b4a7911224a2"
+      },
+      {
+        "artifactId": "embedding",
+        "path": "source-policy.json",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:9ac030dfee3839f5c3031922d0dc9f0762191b983cb483433b0b4bce41c0cc71"
+      },
+      {
+        "artifactId": "headers",
+        "path": "model.safetensors",
+        "role": "pinned-source-evidence",
+        "hash": "sha256:2291ac9b8d5083595cd6a1787e01d694a893af92bc706faf1511231affe822e8"
+      }
+    ]
+  },
+  "defaultAuthorship": {
+    "kind": "ai",
+    "actor": "openai-codex",
+    "proposalId": "minilm-embedding-intake-20260926"
+  },
+  "facts": [
+    {
+      "id": "config.model_type",
+      "subject": "encoder",
+      "predicate": "model_type",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/model_type"
+      }
+    },
+    {
+      "id": "config.architectures",
+      "subject": "encoder",
+      "predicate": "architectures",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/architectures"
+      }
+    },
+    {
+      "id": "config.hidden_size",
+      "subject": "encoder",
+      "predicate": "hidden_size",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/hidden_size"
+      }
+    },
+    {
+      "id": "config.num_hidden_layers",
+      "subject": "encoder",
+      "predicate": "num_hidden_layers",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/num_hidden_layers"
+      }
+    },
+    {
+      "id": "config.num_attention_heads",
+      "subject": "encoder",
+      "predicate": "num_attention_heads",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/num_attention_heads"
+      }
+    },
+    {
+      "id": "config.intermediate_size",
+      "subject": "encoder",
+      "predicate": "intermediate_size",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/intermediate_size"
+      }
+    },
+    {
+      "id": "config.layer_norm_eps",
+      "subject": "encoder",
+      "predicate": "layer_norm_eps",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/layer_norm_eps"
+      }
+    },
+    {
+      "id": "config.hidden_act",
+      "subject": "encoder",
+      "predicate": "hidden_act",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/hidden_act"
+      }
+    },
+    {
+      "id": "config.max_position_embeddings",
+      "subject": "encoder",
+      "predicate": "max_position_embeddings",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/max_position_embeddings"
+      }
+    },
+    {
+      "id": "config.type_vocab_size",
+      "subject": "encoder",
+      "predicate": "type_vocab_size",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/type_vocab_size"
+      }
+    },
+    {
+      "id": "config.vocab_size",
+      "subject": "encoder",
+      "predicate": "vocab_size",
+      "source": {
+        "artifactId": "config",
+        "file": "config.json",
+        "pointer": "/vocab_size"
+      }
+    },
+    {
+      "id": "semantics.causal",
+      "subject": "encoder",
+      "predicate": "causal",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/causal"
+      }
+    },
+    {
+      "id": "semantics.queryKeyNorm",
+      "subject": "encoder",
+      "predicate": "queryKeyNorm",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/queryKeyNorm"
+      }
+    },
+    {
+      "id": "semantics.headDim",
+      "subject": "encoder",
+      "predicate": "headDim",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/headDim"
+      }
+    },
+    {
+      "id": "semantics.attentionBias",
+      "subject": "encoder",
+      "predicate": "attentionBias",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/attentionBias"
+      }
+    },
+    {
+      "id": "semantics.embeddingOrder",
+      "subject": "encoder",
+      "predicate": "embeddingOrder",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/embeddingOrder"
+      }
+    },
+    {
+      "id": "semantics.embeddingNorm",
+      "subject": "encoder",
+      "predicate": "embeddingNorm",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/embeddingNorm"
+      }
+    },
+    {
+      "id": "semantics.normalizationOrder",
+      "subject": "encoder",
+      "predicate": "normalizationOrder",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/normalizationOrder"
+      }
+    },
+    {
+      "id": "semantics.gated",
+      "subject": "encoder",
+      "predicate": "gated",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/gated"
+      }
+    },
+    {
+      "id": "semantics.poolerUsed",
+      "subject": "encoder",
+      "predicate": "poolerUsed",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/poolerUsed"
+      }
+    },
+    {
+      "id": "semantics.normalizationEps",
+      "subject": "encoder",
+      "predicate": "normalizationEps",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/normalizationEps"
+      }
+    },
+    {
+      "id": "semantics.attentionMask",
+      "subject": "encoder",
+      "predicate": "attentionMask",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/attentionMask"
+      }
+    },
+    {
+      "id": "semantics.tokenType",
+      "subject": "encoder",
+      "predicate": "tokenType",
+      "source": {
+        "artifactId": "semantics",
+        "file": "semantics.json",
+        "pointer": "/tokenType"
+      }
+    },
+    {
+      "id": "embedding.contract",
+      "subject": "encoder",
+      "predicate": "contract",
+      "source": {
+        "artifactId": "embedding",
+        "file": "source-policy.json",
+        "pointer": "/embeddingContract"
+      }
+    },
+    {
+      "id": "tensor.embeddings.position_ids",
+      "subject": "embeddings.position_ids",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "embeddings.position_ids"
+      }
+    },
+    {
+      "id": "tensor.embeddings.LayerNorm.bias",
+      "subject": "embeddings.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "embeddings.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.embeddings.LayerNorm.weight",
+      "subject": "embeddings.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "embeddings.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.embeddings.position_embeddings.weight",
+      "subject": "embeddings.position_embeddings.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "embeddings.position_embeddings.weight"
+      }
+    },
+    {
+      "id": "tensor.embeddings.token_type_embeddings.weight",
+      "subject": "embeddings.token_type_embeddings.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "embeddings.token_type_embeddings.weight"
+      }
+    },
+    {
+      "id": "tensor.embeddings.word_embeddings.weight",
+      "subject": "embeddings.word_embeddings.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "embeddings.word_embeddings.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.attention.output.LayerNorm.bias",
+      "subject": "encoder.layer.0.attention.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.attention.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.attention.output.LayerNorm.weight",
+      "subject": "encoder.layer.0.attention.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.attention.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.attention.output.dense.bias",
+      "subject": "encoder.layer.0.attention.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.attention.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.attention.output.dense.weight",
+      "subject": "encoder.layer.0.attention.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.attention.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.attention.self.key.bias",
+      "subject": "encoder.layer.0.attention.self.key.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.attention.self.key.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.attention.self.key.weight",
+      "subject": "encoder.layer.0.attention.self.key.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.attention.self.key.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.attention.self.query.bias",
+      "subject": "encoder.layer.0.attention.self.query.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.attention.self.query.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.attention.self.query.weight",
+      "subject": "encoder.layer.0.attention.self.query.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.attention.self.query.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.attention.self.value.bias",
+      "subject": "encoder.layer.0.attention.self.value.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.attention.self.value.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.attention.self.value.weight",
+      "subject": "encoder.layer.0.attention.self.value.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.attention.self.value.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.intermediate.dense.bias",
+      "subject": "encoder.layer.0.intermediate.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.intermediate.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.intermediate.dense.weight",
+      "subject": "encoder.layer.0.intermediate.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.intermediate.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.output.LayerNorm.bias",
+      "subject": "encoder.layer.0.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.output.LayerNorm.weight",
+      "subject": "encoder.layer.0.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.output.dense.bias",
+      "subject": "encoder.layer.0.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.0.output.dense.weight",
+      "subject": "encoder.layer.0.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.0.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.attention.output.LayerNorm.bias",
+      "subject": "encoder.layer.1.attention.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.attention.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.attention.output.LayerNorm.weight",
+      "subject": "encoder.layer.1.attention.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.attention.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.attention.output.dense.bias",
+      "subject": "encoder.layer.1.attention.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.attention.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.attention.output.dense.weight",
+      "subject": "encoder.layer.1.attention.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.attention.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.attention.self.key.bias",
+      "subject": "encoder.layer.1.attention.self.key.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.attention.self.key.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.attention.self.key.weight",
+      "subject": "encoder.layer.1.attention.self.key.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.attention.self.key.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.attention.self.query.bias",
+      "subject": "encoder.layer.1.attention.self.query.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.attention.self.query.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.attention.self.query.weight",
+      "subject": "encoder.layer.1.attention.self.query.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.attention.self.query.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.attention.self.value.bias",
+      "subject": "encoder.layer.1.attention.self.value.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.attention.self.value.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.attention.self.value.weight",
+      "subject": "encoder.layer.1.attention.self.value.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.attention.self.value.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.intermediate.dense.bias",
+      "subject": "encoder.layer.1.intermediate.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.intermediate.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.intermediate.dense.weight",
+      "subject": "encoder.layer.1.intermediate.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.intermediate.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.output.LayerNorm.bias",
+      "subject": "encoder.layer.1.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.output.LayerNorm.weight",
+      "subject": "encoder.layer.1.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.output.dense.bias",
+      "subject": "encoder.layer.1.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.1.output.dense.weight",
+      "subject": "encoder.layer.1.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.1.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.attention.output.LayerNorm.bias",
+      "subject": "encoder.layer.2.attention.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.attention.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.attention.output.LayerNorm.weight",
+      "subject": "encoder.layer.2.attention.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.attention.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.attention.output.dense.bias",
+      "subject": "encoder.layer.2.attention.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.attention.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.attention.output.dense.weight",
+      "subject": "encoder.layer.2.attention.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.attention.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.attention.self.key.bias",
+      "subject": "encoder.layer.2.attention.self.key.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.attention.self.key.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.attention.self.key.weight",
+      "subject": "encoder.layer.2.attention.self.key.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.attention.self.key.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.attention.self.query.bias",
+      "subject": "encoder.layer.2.attention.self.query.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.attention.self.query.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.attention.self.query.weight",
+      "subject": "encoder.layer.2.attention.self.query.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.attention.self.query.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.attention.self.value.bias",
+      "subject": "encoder.layer.2.attention.self.value.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.attention.self.value.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.attention.self.value.weight",
+      "subject": "encoder.layer.2.attention.self.value.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.attention.self.value.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.intermediate.dense.bias",
+      "subject": "encoder.layer.2.intermediate.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.intermediate.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.intermediate.dense.weight",
+      "subject": "encoder.layer.2.intermediate.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.intermediate.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.output.LayerNorm.bias",
+      "subject": "encoder.layer.2.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.output.LayerNorm.weight",
+      "subject": "encoder.layer.2.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.output.dense.bias",
+      "subject": "encoder.layer.2.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.2.output.dense.weight",
+      "subject": "encoder.layer.2.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.2.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.attention.output.LayerNorm.bias",
+      "subject": "encoder.layer.3.attention.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.attention.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.attention.output.LayerNorm.weight",
+      "subject": "encoder.layer.3.attention.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.attention.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.attention.output.dense.bias",
+      "subject": "encoder.layer.3.attention.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.attention.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.attention.output.dense.weight",
+      "subject": "encoder.layer.3.attention.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.attention.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.attention.self.key.bias",
+      "subject": "encoder.layer.3.attention.self.key.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.attention.self.key.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.attention.self.key.weight",
+      "subject": "encoder.layer.3.attention.self.key.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.attention.self.key.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.attention.self.query.bias",
+      "subject": "encoder.layer.3.attention.self.query.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.attention.self.query.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.attention.self.query.weight",
+      "subject": "encoder.layer.3.attention.self.query.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.attention.self.query.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.attention.self.value.bias",
+      "subject": "encoder.layer.3.attention.self.value.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.attention.self.value.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.attention.self.value.weight",
+      "subject": "encoder.layer.3.attention.self.value.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.attention.self.value.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.intermediate.dense.bias",
+      "subject": "encoder.layer.3.intermediate.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.intermediate.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.intermediate.dense.weight",
+      "subject": "encoder.layer.3.intermediate.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.intermediate.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.output.LayerNorm.bias",
+      "subject": "encoder.layer.3.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.output.LayerNorm.weight",
+      "subject": "encoder.layer.3.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.output.dense.bias",
+      "subject": "encoder.layer.3.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.3.output.dense.weight",
+      "subject": "encoder.layer.3.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.3.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.attention.output.LayerNorm.bias",
+      "subject": "encoder.layer.4.attention.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.attention.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.attention.output.LayerNorm.weight",
+      "subject": "encoder.layer.4.attention.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.attention.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.attention.output.dense.bias",
+      "subject": "encoder.layer.4.attention.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.attention.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.attention.output.dense.weight",
+      "subject": "encoder.layer.4.attention.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.attention.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.attention.self.key.bias",
+      "subject": "encoder.layer.4.attention.self.key.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.attention.self.key.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.attention.self.key.weight",
+      "subject": "encoder.layer.4.attention.self.key.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.attention.self.key.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.attention.self.query.bias",
+      "subject": "encoder.layer.4.attention.self.query.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.attention.self.query.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.attention.self.query.weight",
+      "subject": "encoder.layer.4.attention.self.query.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.attention.self.query.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.attention.self.value.bias",
+      "subject": "encoder.layer.4.attention.self.value.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.attention.self.value.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.attention.self.value.weight",
+      "subject": "encoder.layer.4.attention.self.value.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.attention.self.value.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.intermediate.dense.bias",
+      "subject": "encoder.layer.4.intermediate.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.intermediate.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.intermediate.dense.weight",
+      "subject": "encoder.layer.4.intermediate.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.intermediate.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.output.LayerNorm.bias",
+      "subject": "encoder.layer.4.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.output.LayerNorm.weight",
+      "subject": "encoder.layer.4.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.output.dense.bias",
+      "subject": "encoder.layer.4.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.4.output.dense.weight",
+      "subject": "encoder.layer.4.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.4.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.attention.output.LayerNorm.bias",
+      "subject": "encoder.layer.5.attention.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.attention.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.attention.output.LayerNorm.weight",
+      "subject": "encoder.layer.5.attention.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.attention.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.attention.output.dense.bias",
+      "subject": "encoder.layer.5.attention.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.attention.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.attention.output.dense.weight",
+      "subject": "encoder.layer.5.attention.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.attention.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.attention.self.key.bias",
+      "subject": "encoder.layer.5.attention.self.key.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.attention.self.key.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.attention.self.key.weight",
+      "subject": "encoder.layer.5.attention.self.key.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.attention.self.key.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.attention.self.query.bias",
+      "subject": "encoder.layer.5.attention.self.query.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.attention.self.query.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.attention.self.query.weight",
+      "subject": "encoder.layer.5.attention.self.query.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.attention.self.query.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.attention.self.value.bias",
+      "subject": "encoder.layer.5.attention.self.value.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.attention.self.value.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.attention.self.value.weight",
+      "subject": "encoder.layer.5.attention.self.value.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.attention.self.value.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.intermediate.dense.bias",
+      "subject": "encoder.layer.5.intermediate.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.intermediate.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.intermediate.dense.weight",
+      "subject": "encoder.layer.5.intermediate.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.intermediate.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.output.LayerNorm.bias",
+      "subject": "encoder.layer.5.output.LayerNorm.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.output.LayerNorm.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.output.LayerNorm.weight",
+      "subject": "encoder.layer.5.output.LayerNorm.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.output.LayerNorm.weight"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.output.dense.bias",
+      "subject": "encoder.layer.5.output.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.output.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.encoder.layer.5.output.dense.weight",
+      "subject": "encoder.layer.5.output.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "encoder.layer.5.output.dense.weight"
+      }
+    },
+    {
+      "id": "tensor.pooler.dense.bias",
+      "subject": "pooler.dense.bias",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "pooler.dense.bias"
+      }
+    },
+    {
+      "id": "tensor.pooler.dense.weight",
+      "subject": "pooler.dense.weight",
+      "predicate": "header",
+      "source": {
+        "kind": "tensor-header",
+        "artifactId": "headers",
+        "file": "model.safetensors",
+        "tensorName": "pooler.dense.weight"
+      }
+    }
+  ],
+  "topology": {
+    "components": [
+      {
+        "id": "encoder",
+        "type": "text-encoder",
+        "role": "primary",
+        "factRefs": [
+          "config.model_type",
+          "config.architectures",
+          "config.hidden_size",
+          "config.num_hidden_layers",
+          "config.num_attention_heads",
+          "config.intermediate_size",
+          "config.layer_norm_eps",
+          "config.hidden_act",
+          "config.max_position_embeddings",
+          "config.type_vocab_size",
+          "config.vocab_size",
+          "semantics.causal",
+          "semantics.queryKeyNorm",
+          "semantics.headDim",
+          "semantics.attentionBias",
+          "semantics.embeddingOrder",
+          "semantics.embeddingNorm",
+          "semantics.normalizationOrder",
+          "semantics.gated",
+          "semantics.poolerUsed",
+          "semantics.normalizationEps",
+          "semantics.attentionMask",
+          "semantics.tokenType",
+          "embedding.contract"
+        ],
+        "properties": {
+          "modelType": {
+            "$fact": "config.model_type"
+          },
+          "hiddenSize": {
+            "$fact": "config.hidden_size"
+          },
+          "vocabSize": {
+            "$fact": "config.vocab_size"
+          },
+          "numLayers": {
+            "$fact": "config.num_hidden_layers"
+          },
+          "embeddingOrder": {
+            "$fact": "semantics.embeddingOrder"
+          },
+          "embeddingNormalization": {
+            "$fact": "semantics.embeddingNorm"
+          },
+          "typeVocabularySize": {
+            "$fact": "config.type_vocab_size"
+          },
+          "maxPositionEmbeddings": {
+            "$fact": "config.max_position_embeddings"
+          },
+          "poolerUsed": false
+        }
+      }
+    ],
+    "blockClasses": [
+      {
+        "id": "bert-encoder-block",
+        "kind": "full-attention",
+        "factRefs": [
+          "config.model_type",
+          "config.architectures",
+          "config.hidden_size",
+          "config.num_hidden_layers",
+          "config.num_attention_heads",
+          "config.intermediate_size",
+          "config.layer_norm_eps",
+          "config.hidden_act",
+          "config.max_position_embeddings",
+          "config.type_vocab_size",
+          "config.vocab_size",
+          "semantics.causal",
+          "semantics.queryKeyNorm",
+          "semantics.headDim",
+          "semantics.attentionBias",
+          "semantics.embeddingOrder",
+          "semantics.embeddingNorm",
+          "semantics.normalizationOrder",
+          "semantics.gated",
+          "semantics.poolerUsed",
+          "semantics.normalizationEps",
+          "semantics.attentionMask",
+          "semantics.tokenType",
+          "embedding.contract"
+        ],
+        "geometry": {
+          "numHeads": {
+            "$fact": "config.num_attention_heads"
+          },
+          "numKvHeads": {
+            "$fact": "config.num_attention_heads"
+          },
+          "headDim": {
+            "$fact": "semantics.headDim"
+          },
+          "queryKeyNorm": false,
+          "causal": false,
+          "attentionBias": true,
+          "attentionMask": {
+            "$fact": "semantics.attentionMask"
+          }
+        },
+        "normalization": {
+          "type": "layernorm",
+          "eps": {
+            "$fact": "config.layer_norm_eps"
+          },
+          "position": {
+            "$fact": "semantics.normalizationOrder"
+          },
+          "affineBias": true
+        },
+        "positional": {
+          "type": "learned-absolute",
+          "appliedAt": "input-embedding-sum"
+        },
+        "feedForward": {
+          "type": "dense",
+          "gated": false,
+          "activation": {
+            "$fact": "config.hidden_act"
+          },
+          "intermediateSize": {
+            "$fact": "config.intermediate_size"
+          },
+          "bias": true
+        },
+        "phaseBehavior": {
+          "prefill": true,
+          "decode": false
+        }
+      }
+    ],
+    "blockSchedules": [
+      {
+        "id": "encoder.schedule",
+        "componentId": "encoder",
+        "factRefs": [
+          "config.num_hidden_layers"
+        ],
+        "blocksFromCount": {
+          "factId": "config.num_hidden_layers",
+          "blockClassId": "bert-encoder-block"
+        }
+      }
+    ],
+    "stateSpaces": [],
+    "tensorRoleBindings": [
+      {
+        "id": "embeddings.position_ids",
+        "factRefs": [
+          "tensor.embeddings.position_ids"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "embeddings.position_ids"
+        }
+      },
+      {
+        "id": "embeddings.LayerNorm.bias",
+        "factRefs": [
+          "tensor.embeddings.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "embeddings.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "embeddings.LayerNorm.weight",
+        "factRefs": [
+          "tensor.embeddings.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "embeddings.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "embeddings.position_embeddings.weight",
+        "factRefs": [
+          "tensor.embeddings.position_embeddings.weight"
+        ],
+        "componentId": "encoder",
+        "role": "absolute-position-embedding",
+        "selector": {
+          "exact": "embeddings.position_embeddings.weight"
+        }
+      },
+      {
+        "id": "embeddings.token_type_embeddings.weight",
+        "factRefs": [
+          "tensor.embeddings.token_type_embeddings.weight"
+        ],
+        "componentId": "encoder",
+        "role": "token-type-embedding",
+        "selector": {
+          "exact": "embeddings.token_type_embeddings.weight"
+        }
+      },
+      {
+        "id": "embeddings.word_embeddings.weight",
+        "factRefs": [
+          "tensor.embeddings.word_embeddings.weight"
+        ],
+        "componentId": "encoder",
+        "role": "token-embedding",
+        "selector": {
+          "exact": "embeddings.word_embeddings.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.output.dense.weight"
+        }
+      },
+      {
+        "id": "pooler.dense.bias",
+        "factRefs": [
+          "tensor.pooler.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "unused-pooler",
+        "selector": {
+          "exact": "pooler.dense.bias"
+        }
+      },
+      {
+        "id": "pooler.dense.weight",
+        "factRefs": [
+          "tensor.pooler.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "unused-pooler",
+        "selector": {
+          "exact": "pooler.dense.weight"
+        }
+      }
+    ],
+    "entryPoints": [
+      {
+        "id": "text.embed",
+        "componentId": "encoder",
+        "kind": "embed",
+        "factRefs": [
+          "config.model_type",
+          "config.architectures",
+          "config.hidden_size",
+          "config.num_hidden_layers",
+          "config.num_attention_heads",
+          "config.intermediate_size",
+          "config.layer_norm_eps",
+          "config.hidden_act",
+          "config.max_position_embeddings",
+          "config.type_vocab_size",
+          "config.vocab_size",
+          "semantics.causal",
+          "semantics.queryKeyNorm",
+          "semantics.headDim",
+          "semantics.attentionBias",
+          "semantics.embeddingOrder",
+          "semantics.embeddingNorm",
+          "semantics.normalizationOrder",
+          "semantics.gated",
+          "semantics.poolerUsed",
+          "semantics.normalizationEps",
+          "semantics.attentionMask",
+          "semantics.tokenType",
+          "embedding.contract"
+        ],
+        "status": "unlowered",
+        "reason": "BERT learned input embeddings and post-residual normalization require an exact prepared implementation.",
+        "phases": [
+          "prefill"
+        ]
+      }
+    ],
+    "outputHeads": [
+      {
+        "id": "text.embedding",
+        "componentId": "encoder",
+        "kind": "text-embedding",
+        "factRefs": [
+          "embedding.contract"
+        ],
+        "properties": {
+          "embedding": {
+            "$fact": "embedding.contract"
+          }
+        }
+      }
+    ],
+    "supportScope": {
+      "sourceTopology": "complete",
+      "loweredEntryPoints": [],
+      "qualifiedEntryPoints": [],
+      "unloweredEntryPoints": [
+        "text.embed"
+      ]
+    }
+  }
+}

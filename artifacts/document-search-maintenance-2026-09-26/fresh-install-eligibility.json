@@ -1,0 +1,16 @@
+{
+  "expiresAtUtc": {
+    "node": {
+      "embedding": "2026-09-28T00:59:12.562Z",
+      "reranker": "2026-09-28T00:59:12.954Z"
+    },
+    "browser": {
+      "embedding": "2026-09-28T00:55:40.930Z",
+      "reranker": "2026-09-28T00:55:41.245Z"
+    }
+  },
+  "policyUnchanged": true,
+  "staticMetadata": true,
+  "retainedOfflineAuthorization": "Explicit retained-local decision; cannot discover unseen revocations.",
+  "renewal": "Requires a newly signed release event; existing archive is immutable."
+}

@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "archive": "4ac65ca5152f43ef0ba39ea2c50a012950de2ba1bdec7cfc236442b04dd85a8c",
+  "url": "https://huggingface.co/clocksmith/rdrr/resolve/eafe756a6b11d19eafc9e030b720a2c92e63b2c7/document-search/releases/0.1.1/4ac65ca5152f43ef0ba39ea2c50a012950de2ba1bdec7cfc236442b04dd85a8c/doppler-document-search-0.1.1.tgz",
+  "identity": {
+    "packageSha256": "c5be891b3451944f3ff8cf951e46ed6b7fe0f2180d117207bb0b1833669797af",
+    "lockSha256": "2a13c64ff6fb63c4cfc5c2e368f498cba185d6e871e0dd19769a167797b24a76",
+    "tooling": {
+      "server.js": "8438aa695fbbf8d8eb362102a322e3a0706a9b6321748166c11eef6573b9d778",
+      "prepare.js": "d6f0800429d848adfe522700850a8c22c6ec1258d885749418a6de758685d200"
+    },
+    "applicationManifestSha256": "91cdd3b22a97741662e8f6845c2a6f1bbe874a15ef2d5c1319ff5363fc7ff2bf",
+    "assetCount": 1883,
+    "models": [
+      {
+        "role": "embedding",
+        "identity": {
+          "schema": "doppler.capsule/v3",
+          "capsuleId": "qwen-3-embedding-0-6b-f16-af32-capsule-v3-a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+          "semanticRoot": "sha256:a4f0e9a4fbbb299ad254b5a813f7b15b309dbfcb798567faf5f8783043b894fd",
+          "envelopeDigest": "sha256:32503db6b070ac78d0355bc6d9538bcd0a660543f1867f754543013b5de0f86e",
+          "artifactClosureDigest": "sha256:987b6e88da6e461449bc5c9c69c90a57d1c81a49ba7bba983ac184f8f9bfe8b3"
+        }
+      },
+      {
+        "role": "reranker",
+        "identity": {
+          "schema": "doppler.capsule/v3",
+          "capsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-capsule-v3-4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+          "semanticRoot": "sha256:4be4d8fc9bef38244246b1fb2e863053ec8469c82ab097267e9905ed8de8f3e2",
+          "envelopeDigest": "sha256:bdaa28c214bd5ae65bb04945eb3aa07a0937f2c3fa81cf54de39b5fc2d21876a",
+          "artifactClosureDigest": "sha256:a32ad7bad893bb14a4221eeb97a47c0b6646ab270800fccbf902c6803272d0b0"
+        }
+      }
+    ]
+  },
+  "sourceSubstitution": false
+}

@@ -95,7 +95,8 @@ function validateFactRefs(value, label, factIds, errors) {
   }
 }
 
-function validateNodes(nodes, label, factIds, errors, validateNode) {
+function validateNodes(nodes, label, factIds, errors, validateNode, allowEmpty = false) {
+  if (allowEmpty && Array.isArray(nodes) && nodes.length === 0) return new Map();
   if (!requireArray(nodes, label, errors)) return new Map();
   const byId = new Map();
   nodes.forEach((node, index) => {
@@ -198,7 +199,7 @@ export function validateModelIRV2(ir) {
     requireString(state.kind, `${label}.kind`, errors);
     requireString(state.persistence, `${label}.persistence`, errors);
     if (!isObject(state.contract)) errors.push(`${label}.contract must be an object.`);
-  });
+  }, true);
   validateNodes(ir.tensorRoleBindings, 'tensorRoleBindings', factIds, errors, (binding, label) => {
     if (!components.has(binding.componentId)) errors.push(`${label}.componentId must reference components.`);
     requireString(binding.role, `${label}.role`, errors);

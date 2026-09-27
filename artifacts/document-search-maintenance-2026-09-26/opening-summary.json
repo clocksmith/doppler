@@ -1,0 +1,100 @@
+{
+  "samples": [
+    {
+      "receipt": "session-1-1-baseline.json.gz",
+      "sha256": "122dd1d9843f863ed784d1c428e7378b181d742ba5b29ab54d18b36b36b3f4ba",
+      "arm": "baseline",
+      "openMs": 18481.296324000003,
+      "passed": true
+    },
+    {
+      "receipt": "session-1-2-candidate.json.gz",
+      "sha256": "eaee2249055502dc611c844bca0fa0e78d045c9b9cfd78a0453d4dbd124408c7",
+      "arm": "candidate",
+      "openMs": 12471.931561000001,
+      "passed": true
+    },
+    {
+      "receipt": "session-1-3-candidate.json.gz",
+      "sha256": "6624270177d1b1509df062e5f0bed6da66d84579853f63586d892ca23c18094a",
+      "arm": "candidate",
+      "openMs": 12493.68822,
+      "passed": true
+    },
+    {
+      "receipt": "session-1-4-baseline.json.gz",
+      "sha256": "b7bf15c9089864b7de00544337048aa57c1bf85562c027a71787eef8deaddfe4",
+      "arm": "baseline",
+      "openMs": 18000.981082000002,
+      "passed": true
+    },
+    {
+      "receipt": "session-2-1-candidate.json.gz",
+      "sha256": "c1ed7654ff3698b3622e40973690b604a6bd8195297c8d44f626d8b01d1eb458",
+      "arm": "candidate",
+      "openMs": 12301.873335,
+      "passed": true
+    },
+    {
+      "receipt": "session-2-2-baseline.json.gz",
+      "sha256": "b729f335e15c956ea531e56e2b512138e74c6c78d5a03014bbbb433e84fc0e66",
+      "arm": "baseline",
+      "openMs": 18119.761398,
+      "passed": true
+    },
+    {
+      "receipt": "session-2-3-baseline.json.gz",
+      "sha256": "7d40eb57208b530cdfec64be6ab40f1658842e8ee39ab80a7239c94aefd67f27",
+      "arm": "baseline",
+      "openMs": 17814.720878,
+      "passed": true
+    },
+    {
+      "receipt": "session-2-4-candidate.json.gz",
+      "sha256": "8214cec9aa2cf277828ee013d1bfeaa4002ac440eb97d9ace8ad94d8db194363",
+      "arm": "candidate",
+      "openMs": 12273.224345,
+      "passed": true
+    },
+    {
+      "receipt": "session-3-1-baseline.json.gz",
+      "sha256": "22dd36b99acb6ac1449e8898a9089f24b15729bc116702c3c9e1e1ee3ae64095",
+      "arm": "baseline",
+      "openMs": 17999.739379,
+      "passed": true
+    },
+    {
+      "receipt": "session-3-2-candidate.json.gz",
+      "sha256": "64f3b2d461ea6353f9a5412a75c716d209546a6fde27d8ffb324e240cc106335",
+      "arm": "candidate",
+      "openMs": 12438.815778999999,
+      "passed": true
+    },
+    {
+      "receipt": "session-3-3-candidate.json.gz",
+      "sha256": "47c7838da2c8cdcee2a4bdd618333642ac46ebf90fdf6e21be091673b159e726",
+      "arm": "candidate",
+      "openMs": 12594.274917,
+      "passed": true
+    },
+    {
+      "receipt": "session-3-4-baseline.json.gz",
+      "sha256": "8a58e06633af3a038cbff0534874450aa33e1c02210d8d5181e19a960f921eea",
+      "arm": "baseline",
+      "openMs": 18183.175701,
+      "passed": true
+    }
+  ],
+  "medianMs": {
+    "baseline": 18060.37124,
+    "candidate": 12455.37367
+  },
+  "reductionPercent": 31.034786026912254,
+  "conditions": "three balanced blocks; six fresh Node processes per archive; same boot; ext4 retained state and warm OS cache",
+  "claims": {
+    "localWarmReopening": true,
+    "browser": false,
+    "afterReboot": false,
+    "coldFilesystemCache": false
+  }
+}

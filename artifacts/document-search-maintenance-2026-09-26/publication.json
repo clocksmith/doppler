@@ -1,0 +1,57 @@
+{
+  "repoId": "clocksmith/rdrr",
+  "revision": "eafe756a6b11d19eafc9e030b720a2c92e63b2c7",
+  "previousRevision": "fa3325d41d43bf7ec3a9dcd39e77587fefabdd89",
+  "archives": [
+    {
+      "host": "node",
+      "archive": "/var/tmp/doppler-maintenance-20260926/release/doppler-node-document-search-0.1.1.tgz",
+      "sha256": "c0a5c9097725842067aa04808861bebcda2c5ba7bd296b891731dee25f470939",
+      "sizeBytes": 8559534,
+      "consumer": "/var/tmp/doppler-maintenance-20260926/node-installed-02",
+      "frozenInstall": true,
+      "remotePath": "document-search/node/releases/0.1.1/c0a5c9097725842067aa04808861bebcda2c5ba7bd296b891731dee25f470939/doppler-node-document-search-0.1.1.tgz",
+      "revision": "eafe756a6b11d19eafc9e030b720a2c92e63b2c7",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/eafe756a6b11d19eafc9e030b720a2c92e63b2c7/document-search/node/releases/0.1.1/c0a5c9097725842067aa04808861bebcda2c5ba7bd296b891731dee25f470939/doppler-node-document-search-0.1.1.tgz"
+    },
+    {
+      "host": "browser",
+      "archive": "/var/tmp/doppler-maintenance-20260926/release/doppler-document-search-0.1.1.tgz",
+      "sha256": "4ac65ca5152f43ef0ba39ea2c50a012950de2ba1bdec7cfc236442b04dd85a8c",
+      "sizeBytes": 8089329,
+      "consumer": "/var/tmp/doppler-maintenance-20260926/browser-final/document-search",
+      "frozenInstall": true,
+      "archiveRoot": "document-search",
+      "remotePath": "document-search/releases/0.1.1/4ac65ca5152f43ef0ba39ea2c50a012950de2ba1bdec7cfc236442b04dd85a8c/doppler-document-search-0.1.1.tgz",
+      "revision": "eafe756a6b11d19eafc9e030b720a2c92e63b2c7",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/eafe756a6b11d19eafc9e030b720a2c92e63b2c7/document-search/releases/0.1.1/4ac65ca5152f43ef0ba39ea2c50a012950de2ba1bdec7cfc236442b04dd85a8c/doppler-document-search-0.1.1.tgz"
+    }
+  ],
+  "fullDiagnostics": [
+    {
+      "source": "/dev/shm/doppler-diagnosis-20260926/f16-operator-boundaries/qualification.json",
+      "archive": "/var/tmp/doppler-full-diagnostics-20260926/f16-qualification.json.gz",
+      "uncompressedBytes": 167951872,
+      "compressedBytes": 42755096,
+      "sha256": "fb4df1c08c23438151114d06ba36c559db143798c16f1de31d18b859c97c602f",
+      "archiveSha256": "1abd9913df3c0033b4c20d797b0f8a295842342fae2b4c35ff45f0cbd45e5716",
+      "roundTripVerified": true,
+      "remotePath": "document-search/diagnostics/sha256/1abd9913df3c0033b4c20d797b0f8a295842342fae2b4c35ff45f0cbd45e5716/f16-qualification.json.gz",
+      "revision": "eafe756a6b11d19eafc9e030b720a2c92e63b2c7",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/eafe756a6b11d19eafc9e030b720a2c92e63b2c7/document-search/diagnostics/sha256/1abd9913df3c0033b4c20d797b0f8a295842342fae2b4c35ff45f0cbd45e5716/f16-qualification.json.gz"
+    },
+    {
+      "source": "/dev/shm/doppler-diagnosis-20260926/q4-operator-boundaries/qualification.json",
+      "archive": "/var/tmp/doppler-full-diagnostics-20260926/q4-qualification.json.gz",
+      "uncompressedBytes": 167927787,
+      "compressedBytes": 42740703,
+      "sha256": "acf918e4ce4df74bdc023df65e8df1b4061db34462ef0ecaad44be504828d452",
+      "archiveSha256": "157c3dabb041fd97e15cff13a35a497c107be64b63e5c8317b0fc9e4bf6ed716",
+      "roundTripVerified": true,
+      "remotePath": "document-search/diagnostics/sha256/157c3dabb041fd97e15cff13a35a497c107be64b63e5c8317b0fc9e4bf6ed716/q4-qualification.json.gz",
+      "revision": "eafe756a6b11d19eafc9e030b720a2c92e63b2c7",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/eafe756a6b11d19eafc9e030b720a2c92e63b2c7/document-search/diagnostics/sha256/157c3dabb041fd97e15cff13a35a497c107be64b63e5c8317b0fc9e4bf6ed716/q4-qualification.json.gz"
+    }
+  ],
+  "scope": "Immutable application bytes after installed physical qualification; no npm overwrite or compact-model promotion."
+}

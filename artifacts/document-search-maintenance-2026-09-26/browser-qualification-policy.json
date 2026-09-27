@@ -1,0 +1,20 @@
+{
+  "requiredVendor": "amd",
+  "timeoutMs": 1200000,
+  "channel": "chrome",
+  "temporaryDirectory": "/var/tmp",
+  "launchArgs": [
+    "--enable-unsafe-webgpu",
+    "--enable-webgpu-developer-features",
+    "--disable-dawn-features=disallow_unsafe_apis",
+    "--ignore-gpu-blocklist",
+    "--use-angle=vulkan",
+    "--enable-features=Vulkan",
+    "--disable-vulkan-surface",
+    "--enable-precise-memory-info"
+  ],
+  "fixturePath": "/home/x/deco/doppler/artifacts/document-search-delivery-2026-09-23/reference-corpus.json",
+  "recovery": true,
+  "applicationDir": "/var/tmp/doppler-maintenance-20260926/browser-installed",
+  "outputDir": "/var/tmp/doppler-maintenance-20260926/browser-qualification"
+}

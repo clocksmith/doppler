@@ -55,6 +55,11 @@ persistent state, tensor roles, and legal phases. A block schedule references
 classes; it does not copy one global attention contract across heterogeneous
 layers.
 
+`stateSpaces` is always explicit. A stateless encoder declares `[]`; it must not
+invent KV or recurrent state to satisfy the schema. Missing, null, malformed, and
+unproven state descriptions remain invalid. This representation does not supply
+a lowering or qualify an executable implementation.
+
 The implementation is validated by `src/config/model-ir-v2.js` and
 `src/config/schema/model-ir-v2.schema.json`. ModelIR v1 remains valid only for
 its homogeneous scope.

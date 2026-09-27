@@ -89,7 +89,7 @@ explicit maintainer decision, not a side effect of passing checks.
 #### Bounded portability after browser delivery
 
 The retained browser and Node starters have completed their scoped acceptance;
-see the [maintenance receipt](../artifacts/document-search-maintenance-2026-09-25/README.md).
+see the [maintenance delivery](../artifacts/document-search-maintenance-2026-09-26/README.md).
 They are reference configurations, not evidence of minimum memory, reboot
 persistence, or independent adoption. Do not reopen the completed Node runner or
 repository-hygiene work as unfinished milestones.
@@ -100,10 +100,10 @@ the standalone generation work above:
 1. Measure complete opening, accelerate authenticated loading, distinguish
    preparation costs, and bound acquisition and verified-backing lifetimes while
    keeping both search models resident.
-2. Keep the rejected compact candidates rejected while isolating component
-   failures. Compare exact quantized bytes through an independent decoder and
-   execution reference before changing precision. Evaluate mixed retriever and
-   reranker pairs, and calibrate then freeze abstention independently of ranking.
+2. Advance MiniLM embeddings against their own source reference, then qualify
+   the installed mixed pair with the incumbent reranker and a rebuilt index.
+   Keep Qwen quantization and abstention rejected and independent: their diagnosis
+   is retained, and further experiments require a new explicit hypothesis.
    A 300 MB combined download remains a provisional objective, not a feasibility
    claim or an all-or-nothing gate. Qualify persistent storage and an ordinary
    smaller-memory machine without developer-only browser flags.
@@ -116,13 +116,22 @@ Rig supplies qualified implementations. Capsules preserve their identities. Run
 selects and executes approved compatible choices without inventing another model
 implementation. Optimize time and resources to a useful complete search result.
 
-The [September 26 loading candidate](../artifacts/document-search-loading-2026-09-26/README.md)
+The [September 26 loading work](../artifacts/document-search-loading-2026-09-26/README.md)
 adds native Node authentication, explicit verified-backing limits and release,
-and a compatible secondary-digest optimization. Installed disk-backed Node
-reopening and lifecycle recovery pass on the reference machine. This is retained
-installation evidence, not fresh-release, browser-performance, reboot, or
-smaller-memory acceptance; renewed release eligibility and those probes remain
-outstanding.
+and a compatible secondary-digest optimization. Its exact later candidate is now
+delivered in [immutable browser and Node 0.1.1 archives](../artifacts/document-search-maintenance-2026-09-26/README.md).
+Fresh public acquisition, persistent-disk lifecycle recovery, offline reopening,
+and Node reuse of a prior index passed. Six observations per version support a
+local warm-filesystem Node opening reduction of 31.035%; browser acceptance is
+not a paired speed comparison. Reboot and smaller-memory acceptance remain
+outstanding. Static signed metadata has an explicit fresh-install expiry;
+renewal requires a new deliverable and does not mutate these archives.
+
+The [MiniLM embedding checkpoint](../artifacts/document-search-minilm-embedding-2026-09-26/README.md)
+retains a larger frozen confirmation corpus and its independent source reference.
+Stateless source ModelIR validates, but BERT lowering, Doppler numerical parity,
+signed release, and installed mixed-pair acceptance remain unfinished. CPU
+screening does not establish WebGPU support or a distribution size.
 
 The [first compact-candidate experiments](../artifacts/document-search-compact-2026-09-26/README.md)
 freeze application quality inputs and retain failed smaller-model and quantized

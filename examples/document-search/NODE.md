@@ -1,9 +1,12 @@
 # Local document search in Node
 
-[Download the standalone Node archive](https://huggingface.co/clocksmith/rdrr/resolve/fa3325d41d43bf7ec3a9dcd39e77587fefabdd89/document-search/node/releases/0.1.0/caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e/doppler-node-document-search-0.1.0.tgz)
-and verify SHA-256 `caa1f395d8a0943d9cd62442f87860a1ccbe6e5abb2eb3b5ff54375e4b1e1a6e` before extracting it.
-The [acceptance record](../../artifacts/document-search-maintenance-2026-09-25/README.md#node)
-binds that archive to its installed runtime, models, hardware, and probes.
+[Download the Node starter 0.1.1](https://huggingface.co/clocksmith/rdrr/resolve/eafe756a6b11d19eafc9e030b720a2c92e63b2c7/document-search/node/releases/0.1.1/c0a5c9097725842067aa04808861bebcda2c5ba7bd296b891731dee25f470939/doppler-node-document-search-0.1.1.tgz)
+and verify SHA-256 `c0a5c9097725842067aa04808861bebcda2c5ba7bd296b891731dee25f470939` before extracting it.
+The [maintenance receipt](../../artifacts/document-search-maintenance-2026-09-26/README.md)
+binds the archive to installed execution, models, hardware, and probes.
+Its signed metadata permits fresh installation before **2026-09-28
+00:59:12.562 UTC**. Later fresh installations need a new deliverable with renewed
+signed metadata. Already accepted installations retain explicit offline use.
 
 This application uses the same document controller and search implementation as
 the browser starter. Embedding and reranking stay loaded together in interactive
@@ -19,7 +22,9 @@ sizes are not measurements of physical residency. Electron and Bun are separate.
 Download size is approximately 2.15 GB for the two models, plus this application
 and npm dependencies. Allow at least 3 GB of free private storage for models,
 atomic replacement files, and a small corpus; larger corpora need additional
-space. Persistent disk and reboot qualification remain outstanding. Each process
+space. Persistent-disk Node reopening, lifecycle recovery, and offline execution
+passed in the [loading qualification](../../artifacts/document-search-diagnosis-2026-09-26/README.md).
+Machine-reboot persistence and smaller-memory hardware remain unqualified. Each process
 opening verifies the retained artifacts and prepares both models on the GPU.
 
 From the extracted application directory:

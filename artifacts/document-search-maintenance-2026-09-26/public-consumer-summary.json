@@ -1,0 +1,166 @@
+{
+  "public-node-fresh": {
+    "passed": true,
+    "receipt": "public-node-fresh.json.gz",
+    "sha256": "7585be7c800a142662ccc2dc1d488c9672d11fb7a6dfd88d53fa28aa95843a18",
+    "archiveSha256": "1a37f6a55726288216434cd459f3f538c60314ee88ed50f6f3f90b70cdae46a3",
+    "phases": {
+      "install": 112809.66949,
+      "index": 2170.577384999997,
+      "unchangedIndex": 14.787727000002633,
+      "search-0-bread": 964.8572129999957,
+      "search-0-bike": 1059.4688610000012,
+      "search-0-moon": 1069.1563380000007,
+      "search-0-sun": 886.47551199999,
+      "search-0-restore": 1064.2855800000107,
+      "search-0-motor": 870.3916929999978,
+      "search-1-bread": 1068.564394000001,
+      "search-1-bike": 876.3479090000037,
+      "search-1-moon": 1056.5054810000001,
+      "search-1-sun": 1071.471875000003,
+      "search-1-restore": 900.4583970000094,
+      "search-1-motor": 1027.5662449999945,
+      "close": 22.363263999999617,
+      "detectCorruption": 164.81604099999822,
+      "repair": 14182.993103,
+      "deviceLossRecovery": 13784.28625199999
+    },
+    "checks": {
+      "unchangedDocumentReuse": true,
+      "repeatedSearch": true,
+      "cancelledIndexAfterSubmission": {
+        "passed": true,
+        "submissions": 12
+      },
+      "cancelledQueryAfterSubmission": {
+        "passed": true,
+        "submissions": 12
+      },
+      "supersededQuery": true,
+      "interruptedSave": true,
+      "explicitClosure": true,
+      "corruptionRepair": true,
+      "deviceLossRecovery": true
+    },
+    "memory": {
+      "sampledPeakProcessRssBytes": 2221133824,
+      "processHighWaterRssBytes": 2221133824,
+      "gpu": {
+        "submitCalls": 1293,
+        "createdBufferBytes": 33507633344,
+        "liveRequestedBufferBytes": 0,
+        "peakRequestedBufferBytes": 3989755736
+      },
+      "gpuScope": "Requested buffer allocation sizes and explicit destruction; not measured physical GPU residency."
+    },
+    "networkRequestCount": 32,
+    "networkIsolation": null,
+    "runtimeSha256": "c5be891b3451944f3ff8cf951e46ed6b7fe0f2180d117207bb0b1833669797af"
+  },
+  "public-node-offline": {
+    "passed": true,
+    "receipt": "public-node-offline.json.gz",
+    "sha256": "1d2a30ecc96974470bb073f84cfcf24407cae04eaf5f0af1f1f6f0a0a1e5b0d4",
+    "archiveSha256": "9e9ca9b55d33f758cd306263bd4ad67f18209d437d0b8d57ab5b6bf40edaabfc",
+    "phases": {
+      "openRetained": 13443.016896000001,
+      "index": 24.11533800000143,
+      "unchangedIndex": 15.251272000001336,
+      "search-0-bread": 1141.3129229999995,
+      "search-0-bike": 895.663466,
+      "search-0-moon": 1162.4883710000013,
+      "search-0-sun": 1050.8479759999973,
+      "search-0-restore": 906.2405099999996,
+      "search-0-motor": 1026.7475659999982,
+      "search-1-bread": 910.2182869999997,
+      "search-1-bike": 1054.7229399999997,
+      "search-1-moon": 876.1746090000015,
+      "search-1-sun": 1034.3398159999997,
+      "search-1-restore": 1051.1917130000002,
+      "search-1-motor": 870.925438000002,
+      "close": 33.414482000000135
+    },
+    "checks": {
+      "unchangedDocumentReuse": true,
+      "repeatedSearch": true,
+      "restartResults": true,
+      "explicitClosure": true
+    },
+    "memory": {
+      "sampledPeakProcessRssBytes": 1842319360,
+      "processHighWaterRssBytes": 1850273792,
+      "gpu": {
+        "submitCalls": 719,
+        "createdBufferBytes": 18616952928,
+        "liveRequestedBufferBytes": 0,
+        "peakRequestedBufferBytes": 3986806328
+      },
+      "gpuScope": "Requested buffer allocation sizes and explicit destruction; not measured physical GPU residency."
+    },
+    "networkRequestCount": 0,
+    "networkIsolation": [
+      {
+        "host": "127.0.0.1",
+        "error": "EPERM"
+      },
+      {
+        "host": "::1",
+        "error": "EPERM"
+      }
+    ],
+    "runtimeSha256": "c5be891b3451944f3ff8cf951e46ed6b7fe0f2180d117207bb0b1833669797af"
+  },
+  "prior-state-upgrade": {
+    "passed": true,
+    "receipt": "prior-state-upgrade.json.gz",
+    "sha256": "782268c03c901e0413fac1bbf8021da055a1e76c5b79efc556475c13cb4a13d2",
+    "archiveSha256": "ef20193356f1c691d646104bb9a7724f980be14b426702990844494bd420f117",
+    "phases": {
+      "openRetained": 12530.271089,
+      "index": 16.82265400000142,
+      "unchangedIndex": 15.513797999999952,
+      "search-0-bread": 1142.1351149999991,
+      "search-0-bike": 913.4396419999994,
+      "search-0-moon": 1166.2917820000002,
+      "search-0-sun": 1071.883009000001,
+      "search-0-restore": 912.0595720000019,
+      "search-0-motor": 1031.2692070000012,
+      "search-1-bread": 915.8394359999984,
+      "search-1-bike": 1041.0276889999986,
+      "search-1-moon": 876.6470550000013,
+      "search-1-sun": 1043.8431259999998,
+      "search-1-restore": 1061.9650789999978,
+      "search-1-motor": 867.9710750000013,
+      "close": 28.319170999999187
+    },
+    "checks": {
+      "unchangedDocumentReuse": true,
+      "repeatedSearch": true,
+      "restartResults": true,
+      "explicitClosure": true
+    },
+    "memory": {
+      "sampledPeakProcessRssBytes": 1861287936,
+      "processHighWaterRssBytes": 1861287936,
+      "gpu": {
+        "submitCalls": 719,
+        "createdBufferBytes": 18616952928,
+        "liveRequestedBufferBytes": 0,
+        "peakRequestedBufferBytes": 3986806328
+      },
+      "gpuScope": "Requested buffer allocation sizes and explicit destruction; not measured physical GPU residency."
+    },
+    "networkRequestCount": 0,
+    "networkIsolation": [
+      {
+        "host": "127.0.0.1",
+        "error": "EPERM"
+      },
+      {
+        "host": "::1",
+        "error": "EPERM"
+      }
+    ],
+    "runtimeSha256": "c5be891b3451944f3ff8cf951e46ed6b7fe0f2180d117207bb0b1833669797af"
+  }
+}

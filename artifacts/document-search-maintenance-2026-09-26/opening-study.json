@@ -1,0 +1,49 @@
+{
+  "schema": "doppler.document-search-opening-study/v1",
+  "sourceCommit": "1bdf60b42590abe835746e7b9dd2efad82e4f28a",
+  "sessions": [
+    [
+      "baseline",
+      "candidate",
+      "candidate",
+      "baseline"
+    ],
+    [
+      "candidate",
+      "baseline",
+      "baseline",
+      "candidate"
+    ],
+    [
+      "baseline",
+      "candidate",
+      "candidate",
+      "baseline"
+    ]
+  ],
+  "cache": "persistent ext4 model store; warm operating-system filesystem cache; fresh Node process for every observation",
+  "reboot": false,
+  "separateSessions": "Each balanced block is launched by a separate parent process; same boot and hardware.",
+  "scope": "local installed application comparison; no cold-start, browser, minimum-memory, or general throughput claim",
+  "warmups": 0,
+  "excludeSamples": false,
+  "models": "unchanged accepted embedding and reranker; references and 12 searches checked in every run",
+  "packages": {
+    "baseline": {
+      "filename": "doppler-gpu-0.6.2.tgz",
+      "version": "0.6.2",
+      "integrity": "sha512-VkMwqPbciwX6QvcT1OZx7fLwnTLU4iDiIAXK6TXnpZeV3tZOgKLXsEsL166x4MF8PNLRyVIlcZwNE29QxOyg8A==",
+      "sizeBytes": 2155610,
+      "source": "local-npm-pack",
+      "sha256": "32af41c69fc8f25b04ea0461d32dd8947217bb18a995e68d15fd65b1a643b1c4"
+    },
+    "candidate": {
+      "filename": "doppler-gpu-0.6.2.tgz",
+      "version": "0.6.2",
+      "integrity": "sha512-LincpkPPF6AC8PU/vAxj7NwiJ5yKNdRWorMQvVF2/9ZOnlQuBKZPBGrNKjNwql945AW3nh1x/w0cNDqx2rvbzw==",
+      "sizeBytes": 2155735,
+      "source": "local-npm-pack",
+      "sha256": "c5be891b3451944f3ff8cf951e46ed6b7fe0f2180d117207bb0b1833669797af"
+    }
+  }
+}

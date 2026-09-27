@@ -1,0 +1,5788 @@
+{
+  "schema": "doppler.source-truth-forge-receipt/v2",
+  "modelIR": {
+    "schema": "doppler.model-ir/v2",
+    "schemaVersion": 2,
+    "modelId": "all-minilm-l6-v2-embedding-candidate",
+    "sourceIdentity": {
+      "checkpointId": "sentence-transformers/all-MiniLM-L6-v2",
+      "repository": "sentence-transformers/all-MiniLM-L6-v2",
+      "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+      "artifacts": [
+        {
+          "artifactId": "config",
+          "path": "config.json",
+          "role": "pinned-source-evidence",
+          "hash": "sha256:953f9c0d463486b10a6871cc2fd59f223b2c70184f49815e7efbcab5d8908b41"
+        },
+        {
+          "artifactId": "pooling",
+          "path": "pooling.json",
+          "role": "pinned-source-evidence",
+          "hash": "sha256:4be450dde3b0273bb9787637cfbd28fe04a7ba6ab9d36ac48e92b11e350ffc23"
+        },
+        {
+          "artifactId": "modules",
+          "path": "modules.json",
+          "role": "pinned-source-evidence",
+          "hash": "sha256:84e40c8e006c9b1d6c122e02cba9b02458120b5fb0c87b746c41e0207cf642cf"
+        },
+        {
+          "artifactId": "semantics",
+          "path": "semantics.json",
+          "role": "pinned-source-evidence",
+          "hash": "sha256:92eb37808941b651ca53f09cd9f45c639051d73869b476169b67b4a7911224a2"
+        },
+        {
+          "artifactId": "embedding",
+          "path": "source-policy.json",
+          "role": "pinned-source-evidence",
+          "hash": "sha256:9ac030dfee3839f5c3031922d0dc9f0762191b983cb483433b0b4bce41c0cc71"
+        },
+        {
+          "artifactId": "headers",
+          "path": "model.safetensors",
+          "role": "pinned-source-evidence",
+          "hash": "sha256:2291ac9b8d5083595cd6a1787e01d694a893af92bc706faf1511231affe822e8"
+        }
+      ]
+    },
+    "provenance": {
+      "forgeVersion": "2.0.0",
+      "intakeDigest": "sha256:55f6142ef1731caddd0e4fbaaaa955227d8922d2a277d0f04360c6297ade1c87",
+      "facts": [
+        {
+          "id": "config.model_type",
+          "subject": "encoder",
+          "predicate": "model_type",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/model_type"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": "bert",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d0cb6ad38bf3236decad1f00eceee4e942dd037bde02da47e7bd2d583218c280"
+          }
+        },
+        {
+          "id": "config.architectures",
+          "subject": "encoder",
+          "predicate": "architectures",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/architectures"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": [
+            "BertModel"
+          ],
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:0de4e2ed883b20069a66c9bfe2779cf07c4ff95008333138b2590c149d1f79eb"
+          }
+        },
+        {
+          "id": "config.hidden_size",
+          "subject": "encoder",
+          "predicate": "hidden_size",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/hidden_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": 384,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:5890df7350def0bc02625680da127fab6961590eae23c07fe56e0cb2c58e1f5d"
+          }
+        },
+        {
+          "id": "config.num_hidden_layers",
+          "subject": "encoder",
+          "predicate": "num_hidden_layers",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/num_hidden_layers"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": 6,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ce51b8d2801bdce2f61c9d7fdacb72f9ff94a9efc0952de2f62620ec50af2008"
+          }
+        },
+        {
+          "id": "config.num_attention_heads",
+          "subject": "encoder",
+          "predicate": "num_attention_heads",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/num_attention_heads"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": 12,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:fc7187ec07b32b3f78156994302a62b50794b7d2e9c5286e701e6c98df852475"
+          }
+        },
+        {
+          "id": "config.intermediate_size",
+          "subject": "encoder",
+          "predicate": "intermediate_size",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/intermediate_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": 1536,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4eed3ffe83bae5f4b40f2977b6f53ddf759363147ff9ab26c006c8291c959c5a"
+          }
+        },
+        {
+          "id": "config.layer_norm_eps",
+          "subject": "encoder",
+          "predicate": "layer_norm_eps",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/layer_norm_eps"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": 1e-12,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c7fdad8b4e95ad2370de100be73f6ce02ce6ed31ba97c36feb0df429b1a2c4d4"
+          }
+        },
+        {
+          "id": "config.hidden_act",
+          "subject": "encoder",
+          "predicate": "hidden_act",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/hidden_act"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": "gelu",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d492b8bf18548a62136b483bf2ebd5b2e1c18761beb2826f7ace44e3673d88fc"
+          }
+        },
+        {
+          "id": "config.max_position_embeddings",
+          "subject": "encoder",
+          "predicate": "max_position_embeddings",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/max_position_embeddings"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": 512,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:2b6c88ec4d7840a164103935112d1798caa21144fa00fa54328b0753e6a93428"
+          }
+        },
+        {
+          "id": "config.type_vocab_size",
+          "subject": "encoder",
+          "predicate": "type_vocab_size",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/type_vocab_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": 2,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:668997459e9f426ad93e46b8c4505890892287fda74ac3e523fe262965471b75"
+          }
+        },
+        {
+          "id": "config.vocab_size",
+          "subject": "encoder",
+          "predicate": "vocab_size",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "config",
+              "file": "config.json",
+              "pointer": "/vocab_size"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": 30522,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:e6dee25afb4e6b8ae5740c9e3709445e81103615aa0f53434b8fd7c266116d8f"
+          }
+        },
+        {
+          "id": "semantics.causal",
+          "subject": "encoder",
+          "predicate": "causal",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/causal"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ae1e6735e48dbc2957977cad3d2d59c32a9f4298a2b0b3c3a2e3da8e8eac334b"
+          }
+        },
+        {
+          "id": "semantics.queryKeyNorm",
+          "subject": "encoder",
+          "predicate": "queryKeyNorm",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/queryKeyNorm"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:752cccbf77ce82dd68b1297b8e2ca11508140b80e6e44c3315b748a896034995"
+          }
+        },
+        {
+          "id": "semantics.headDim",
+          "subject": "encoder",
+          "predicate": "headDim",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/headDim"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": 32,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4081a52cd1af0073af7faeacf4f620c4b87f0a2c9fce83b763e3ebf0c57acc5e"
+          }
+        },
+        {
+          "id": "semantics.attentionBias",
+          "subject": "encoder",
+          "predicate": "attentionBias",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/attentionBias"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": true,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4943a4040350fbcdffc39d272d23b5139018aad2142f69a422dc1e0fa145b118"
+          }
+        },
+        {
+          "id": "semantics.embeddingOrder",
+          "subject": "encoder",
+          "predicate": "embeddingOrder",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/embeddingOrder"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": [
+            "word-gather",
+            "token-type-gather",
+            "add",
+            "absolute-position-gather",
+            "add",
+            "layernorm"
+          ],
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d061f0a96a445a6c4c4c2640713db4824e86eeadd59df552f3c05cfb13e7145f"
+          }
+        },
+        {
+          "id": "semantics.embeddingNorm",
+          "subject": "encoder",
+          "predicate": "embeddingNorm",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/embeddingNorm"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": "layernorm-with-affine-bias",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:bec7384558c5a0c01dd608580ee3b63631953db1494bc4add41eacfb5e82f293"
+          }
+        },
+        {
+          "id": "semantics.normalizationOrder",
+          "subject": "encoder",
+          "predicate": "normalizationOrder",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/normalizationOrder"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": "after-attention-residual-and-after-ffn-residual",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:7df05328b0fb183a3f910aebad4fba8c9a73372e1d500def670b25457a689705"
+          }
+        },
+        {
+          "id": "semantics.gated",
+          "subject": "encoder",
+          "predicate": "gated",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/gated"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:9472f09344e4615f813445f9e996e5580ba835978e22fc8ccb6954285a2b4ce5"
+          }
+        },
+        {
+          "id": "semantics.poolerUsed",
+          "subject": "encoder",
+          "predicate": "poolerUsed",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/poolerUsed"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": false,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:fabedd30a3e890416f05120533c1253d94bb32d33ba8b37390d978057aca2191"
+          }
+        },
+        {
+          "id": "semantics.normalizationEps",
+          "subject": "encoder",
+          "predicate": "normalizationEps",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/normalizationEps"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": 1e-12,
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:60b2a1b3be673b7523609a37676d49b8ec89570b6380bcef22239ba09ada300f"
+          }
+        },
+        {
+          "id": "semantics.attentionMask",
+          "subject": "encoder",
+          "predicate": "attentionMask",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/attentionMask"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": "bidirectional-padding-mask",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:643c35b863571122172f99380dc53dca5343748b30c0886e8a1d2c606e9311b6"
+          }
+        },
+        {
+          "id": "semantics.tokenType",
+          "subject": "encoder",
+          "predicate": "tokenType",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "semantics",
+              "file": "semantics.json",
+              "pointer": "/tokenType"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": "all-zero-for-single-text",
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:2651d3fe2905dd4c65aa1993b3fda63db0f63b2bf0bf9780aecbc4b3bee6fe22"
+          }
+        },
+        {
+          "id": "embedding.contract",
+          "subject": "encoder",
+          "predicate": "contract",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "json-pointer",
+              "artifactId": "embedding",
+              "file": "source-policy.json",
+              "pointer": "/embeddingContract"
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "dimension": 384,
+            "postprocessor": {
+              "poolingMode": "mean",
+              "includePrompt": true,
+              "projections": [],
+              "normalize": "l2"
+            }
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:24707705d183f9ef936f453d38c941806c12f80d43885529e6530780721ac629"
+          }
+        },
+        {
+          "id": "tensor.embeddings.position_ids",
+          "subject": "embeddings.position_ids",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "embeddings.position_ids",
+              "dtype": "I64",
+              "shape": [
+                1,
+                512
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1,
+              512
+            ],
+            "dtype": "I64"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:8455316752ec3a467fe9cc717556c576d2bca0265e5648883ab4e30c752a4b65"
+          }
+        },
+        {
+          "id": "tensor.embeddings.LayerNorm.bias",
+          "subject": "embeddings.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "embeddings.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d3930bea1a877170c428474b63b9b289caeff97bfe550e034d9a63f33221595b"
+          }
+        },
+        {
+          "id": "tensor.embeddings.LayerNorm.weight",
+          "subject": "embeddings.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "embeddings.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:8e59ae4cc67fc5abeaa344c265e7c5e10ea7b2ab6c9988f783721bc3819e6d09"
+          }
+        },
+        {
+          "id": "tensor.embeddings.position_embeddings.weight",
+          "subject": "embeddings.position_embeddings.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "embeddings.position_embeddings.weight",
+              "dtype": "F32",
+              "shape": [
+                512,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              512,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:3556b96b50d12b81f9964f69b260129df709057a245435f06541728077b96e78"
+          }
+        },
+        {
+          "id": "tensor.embeddings.token_type_embeddings.weight",
+          "subject": "embeddings.token_type_embeddings.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "embeddings.token_type_embeddings.weight",
+              "dtype": "F32",
+              "shape": [
+                2,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              2,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:0bc0072c21dc64be59ed62393ca8c0da26c1db8d0154ad8a00be9bacba71bd5e"
+          }
+        },
+        {
+          "id": "tensor.embeddings.word_embeddings.weight",
+          "subject": "embeddings.word_embeddings.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "embeddings.word_embeddings.weight",
+              "dtype": "F32",
+              "shape": [
+                30522,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              30522,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:f6f561d2c5a846ed00c942c2f8a0b079945aaca5148d334a3cd1dd06a7586eb1"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.attention.output.LayerNorm.bias",
+          "subject": "encoder.layer.0.attention.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.attention.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:18574905d1e18906458174c002affc75d987b19da1d1f515cc1923cc412ceb8d"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.attention.output.LayerNorm.weight",
+          "subject": "encoder.layer.0.attention.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.attention.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:651bce5e85f2627018e77cc1185ee6e85b8e8622134c4f708868900a0f0d7ecb"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.attention.output.dense.bias",
+          "subject": "encoder.layer.0.attention.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.attention.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:21c9f98243f557fe4c13813e784ad4c3117b1fc7db59d06497d83ed51301e106"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.attention.output.dense.weight",
+          "subject": "encoder.layer.0.attention.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.attention.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:85b3e3703166aa8e609278ccf37495c7b350d1d7e35da775638c2d49abd29aba"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.attention.self.key.bias",
+          "subject": "encoder.layer.0.attention.self.key.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.attention.self.key.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:7873f7f3a146b8b6317b04a3b0cbe99900d63556c7a72c94cb350e7aaebc0c16"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.attention.self.key.weight",
+          "subject": "encoder.layer.0.attention.self.key.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.attention.self.key.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:7c82c029a1c272a4f206089732ee1f0523c08f4c6b35aa95c045ec6ef54865a8"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.attention.self.query.bias",
+          "subject": "encoder.layer.0.attention.self.query.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.attention.self.query.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:b9f9d2dad9cfbd56d06857474021fdb352670fb3bdcd72a99738dfffed13e1ec"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.attention.self.query.weight",
+          "subject": "encoder.layer.0.attention.self.query.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.attention.self.query.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:af6b2cc8b04e4df0d5a28d6ad0a3241a5790f2a3840c0524aa859e19446d2b2e"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.attention.self.value.bias",
+          "subject": "encoder.layer.0.attention.self.value.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.attention.self.value.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:062620a60a21074cde717dbcf0ccb843f0ac3a6c51bc3cb2f8b5d97ec4e3a916"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.attention.self.value.weight",
+          "subject": "encoder.layer.0.attention.self.value.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.attention.self.value.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:64ad6340c4d57045fa5ac0002b506b9e550fee06c3019536bb1bc356fee7b8b9"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.intermediate.dense.bias",
+          "subject": "encoder.layer.0.intermediate.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.intermediate.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:597519b9c9a90e6dc78a8587380cf5be82bd1b6e8364abaa274e2f045d1f4b2f"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.intermediate.dense.weight",
+          "subject": "encoder.layer.0.intermediate.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.intermediate.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                1536,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:32db93648b3433703e7056f2d7ce052a5c1999de3a56d4680ee2e7396b14d130"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.output.LayerNorm.bias",
+          "subject": "encoder.layer.0.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:85ccfeb0f30bbbd77ac9c5bb6d0b597ff9481930b39a131a6d36737c5561d291"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.output.LayerNorm.weight",
+          "subject": "encoder.layer.0.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:bf9d4e8ce8840427c61f1e870f84a4d10b342f1b5572552636d3216b299ff6b1"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.output.dense.bias",
+          "subject": "encoder.layer.0.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:04886481bf41b9f3d8032547017b28f9b284ec769243dd9203ee1cb4510d387b"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.0.output.dense.weight",
+          "subject": "encoder.layer.0.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.0.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:54d30a4d8bce3e7d12c855802eaa5681e98d0ed58961c61c02196e5fe5954a47"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.attention.output.LayerNorm.bias",
+          "subject": "encoder.layer.1.attention.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.attention.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:95642e4a2fc15df7e8df6aa7d27cc11807b629f85b9763bacaef4728f881c373"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.attention.output.LayerNorm.weight",
+          "subject": "encoder.layer.1.attention.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.attention.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:bdc5bfd1ee7f2e4d270e3dc700f740af38c0bcbb44ed1acb8c67804a4d093185"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.attention.output.dense.bias",
+          "subject": "encoder.layer.1.attention.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.attention.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:1147f57070a358d3b4eca98da068302b5aa31f5dc9cc09b21e538e1e2d385577"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.attention.output.dense.weight",
+          "subject": "encoder.layer.1.attention.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.attention.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4cbfa4aad8a6c5993a95f4d9623acee935777f1dd534abc3eb372ad159c38ccd"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.attention.self.key.bias",
+          "subject": "encoder.layer.1.attention.self.key.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.attention.self.key.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ec60d5171d44bccad25f32c71c5aead45541e9cb4902d5c9b836d197d9582e63"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.attention.self.key.weight",
+          "subject": "encoder.layer.1.attention.self.key.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.attention.self.key.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:8bf52c6a0d8a8da496ecf7c445d3e9b16a10874cbade53941e83ad9d62addfea"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.attention.self.query.bias",
+          "subject": "encoder.layer.1.attention.self.query.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.attention.self.query.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:feecec89d18b900c744ed8bb3bebfac0fd9a14561f39d0f674eec5a69ea25279"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.attention.self.query.weight",
+          "subject": "encoder.layer.1.attention.self.query.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.attention.self.query.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:9ef946ca93b6f8bd257987c11b6b5175e9b4bf8b5557bbb67f629dfdb0d00496"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.attention.self.value.bias",
+          "subject": "encoder.layer.1.attention.self.value.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.attention.self.value.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:72f9c66e3f12d33b8d449d32b769b313d5c0682531c276944bdcb48ce92229ea"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.attention.self.value.weight",
+          "subject": "encoder.layer.1.attention.self.value.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.attention.self.value.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:b713dac1a6775f26320497c384930d1fd5fe27756374ccb35d9676927d0f27bd"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.intermediate.dense.bias",
+          "subject": "encoder.layer.1.intermediate.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.intermediate.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:904a3824b470f5e126e0251ac1d9ab4399846078303bbdb8081b13b7e26b54d4"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.intermediate.dense.weight",
+          "subject": "encoder.layer.1.intermediate.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.intermediate.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                1536,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ce57b95005c40b12b0a7555d1a3036e89cda69c9e05c1f2f5f912cbb14476b15"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.output.LayerNorm.bias",
+          "subject": "encoder.layer.1.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ef67798d38f94e798a741a7943f3d65c0a39ac61fcad67d02491bc6ccb4e2924"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.output.LayerNorm.weight",
+          "subject": "encoder.layer.1.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:5c3b218996d07eddd1885355556f0a24314f77f2c9e50a1d3a71a63ce2856891"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.output.dense.bias",
+          "subject": "encoder.layer.1.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:74b7a6851516d9e52c71ae4868c5c693af4a3e8400645e8c685deb5d8fe4a788"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.1.output.dense.weight",
+          "subject": "encoder.layer.1.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.1.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c338c8f71c1e057c41c284ef6ca0a3b52aa6894e16e7eb0bade4fc749b3cd814"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.attention.output.LayerNorm.bias",
+          "subject": "encoder.layer.2.attention.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.attention.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:b4f72f53be5aa2e4b5b920549a1674397568a21e039c2cd39a7147bcfe27d4ac"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.attention.output.LayerNorm.weight",
+          "subject": "encoder.layer.2.attention.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.attention.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:31624ce6df1cf52e608a7d64547738d8759dd3c26a82a18724022b1a820a5d1b"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.attention.output.dense.bias",
+          "subject": "encoder.layer.2.attention.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.attention.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ff967bc549161f2e3721b5e74420d6b6af221ad5b780f8237ce033cee4cdc385"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.attention.output.dense.weight",
+          "subject": "encoder.layer.2.attention.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.attention.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:0ff3599d7c514245b1e0b130cb97be5b8dfe926bf4d465622e462051ced367b9"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.attention.self.key.bias",
+          "subject": "encoder.layer.2.attention.self.key.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.attention.self.key.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4ed181e05e60cfb123cf99a8231b3b175180447e21b9053692ae462f63b31f23"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.attention.self.key.weight",
+          "subject": "encoder.layer.2.attention.self.key.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.attention.self.key.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:6a705d4a35e480d8802aea989cca264fe008c98b3fa8a9f58457cd3209df15d2"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.attention.self.query.bias",
+          "subject": "encoder.layer.2.attention.self.query.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.attention.self.query.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c7aad7fefb747abbd1224f86c861f93d9324428d26c69fbdc2d9a3d8dc7a0a60"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.attention.self.query.weight",
+          "subject": "encoder.layer.2.attention.self.query.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.attention.self.query.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d67b635c3d24775df6a8b2aa00e026c2e0b2bb0df31b88ac4e17093c94a9db75"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.attention.self.value.bias",
+          "subject": "encoder.layer.2.attention.self.value.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.attention.self.value.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:16bdbafbc9d092e76198bc447cdc90af1979702ca438fdd2957639f9dea0691e"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.attention.self.value.weight",
+          "subject": "encoder.layer.2.attention.self.value.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.attention.self.value.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:fea1fab66e460193dca82a52e0e1f09ede36b0912cad0b113cc2ad5c266e0173"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.intermediate.dense.bias",
+          "subject": "encoder.layer.2.intermediate.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.intermediate.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:836d4013aca1988a61a29d8bf31d41b4e6edaced2260bc2a69d34150d454fbd5"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.intermediate.dense.weight",
+          "subject": "encoder.layer.2.intermediate.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.intermediate.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                1536,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:da454e0e2996f53ac80e9d19674062c1d2ee24563d6ee86eadf2d7a83093cbe0"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.output.LayerNorm.bias",
+          "subject": "encoder.layer.2.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4c20d29ac85665921c25fcc118233fd904a865f1e17623b13bfc0aa02b0fdd57"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.output.LayerNorm.weight",
+          "subject": "encoder.layer.2.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:8fd703f47ec35dd9d15609e6b66c0e17eb732e67124dde8b1a060c9b44ac239b"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.output.dense.bias",
+          "subject": "encoder.layer.2.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:0a2059c57a467e69959c0285f86d6b58f0474585f71c84d5503bba502c90e9ce"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.2.output.dense.weight",
+          "subject": "encoder.layer.2.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.2.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:0cb261ab4fd1b853a094d447f8a7425afc5a1261054773e294adbc677aa81d11"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.attention.output.LayerNorm.bias",
+          "subject": "encoder.layer.3.attention.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.attention.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d84e9828c8c389c05cd55681c38aff4a02e83119d26a6e6087d9a693a64d9424"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.attention.output.LayerNorm.weight",
+          "subject": "encoder.layer.3.attention.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.attention.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:f7c6728c69973112462066ee283e7d608da7f4caceea0cfda9beaa81cad338dc"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.attention.output.dense.bias",
+          "subject": "encoder.layer.3.attention.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.attention.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:33f7a4760c8ee67b756c32eb92acd1cd4315d2bd89b911b34f7c75ffeafd6e6c"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.attention.output.dense.weight",
+          "subject": "encoder.layer.3.attention.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.attention.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:bfa301c582a25d8a850efd2705cc52035de3ddb102745cc393f27597ed9094ba"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.attention.self.key.bias",
+          "subject": "encoder.layer.3.attention.self.key.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.attention.self.key.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:7ea3f7d6e3598a209e34ceb1d8bbe7f41694f524d998086670b20ee8786b4582"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.attention.self.key.weight",
+          "subject": "encoder.layer.3.attention.self.key.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.attention.self.key.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ae9cea4a564b5b367ea36e8ec4ff1a7d0116b3a37809d999d27f9ec980efd2a5"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.attention.self.query.bias",
+          "subject": "encoder.layer.3.attention.self.query.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.attention.self.query.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c0e794bd31eae2858848c988a03a5694eeffff0bfa31caba5c53668e243ea52b"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.attention.self.query.weight",
+          "subject": "encoder.layer.3.attention.self.query.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.attention.self.query.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ec877fb3e9e9b3ca7e7c7dcc73aebe78fd873776c3e0c58a70b918b9de9925dd"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.attention.self.value.bias",
+          "subject": "encoder.layer.3.attention.self.value.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.attention.self.value.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:0ffc5adc3e7674906ff9d8c4f0a7fdc35737b6c009cdecf9de878fd603e5d441"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.attention.self.value.weight",
+          "subject": "encoder.layer.3.attention.self.value.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.attention.self.value.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a49ad3caad7f514d2389abeb39355c52d18f61e35ce706d59e3ccd7e373b5f16"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.intermediate.dense.bias",
+          "subject": "encoder.layer.3.intermediate.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.intermediate.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:74aef78d64ba75cdfc79e270cac707658a46afe263c8617f4a0316ebedacfeeb"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.intermediate.dense.weight",
+          "subject": "encoder.layer.3.intermediate.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.intermediate.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                1536,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:273b8d0fb027aa5274987c48341a6ea317c59e4127ced92bb9f4b335136d4b55"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.output.LayerNorm.bias",
+          "subject": "encoder.layer.3.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:fdb194ba5f4914644b1bddc3fd1c8426b532fba9120471a0357562e59bef7067"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.output.LayerNorm.weight",
+          "subject": "encoder.layer.3.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:0cfc9586640a33bda6c307f072a341f76e519a84b0eaaf06f4ee9cfd8455009b"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.output.dense.bias",
+          "subject": "encoder.layer.3.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:32f4df8b5fe0ca689fe871995bf0a8fd40db49a6e4a0619d20c5a231adb83353"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.3.output.dense.weight",
+          "subject": "encoder.layer.3.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.3.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ca279205a9bf85fb9e3d4d488abbf601f8f0717019a0b33c2de6f3702eaf1ca6"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.attention.output.LayerNorm.bias",
+          "subject": "encoder.layer.4.attention.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.attention.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:026506fe599c04f1171d45ee835d2f1073646b518b19ae6241bfeda3a51bce97"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.attention.output.LayerNorm.weight",
+          "subject": "encoder.layer.4.attention.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.attention.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:183c6d41f18fa2d323ca005d1ac7a2c785367266bad88bfe190aa192b5182bf2"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.attention.output.dense.bias",
+          "subject": "encoder.layer.4.attention.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.attention.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:773618f7d5ddddda5f147bbb2f06b30343303ac22b4906c384e52334f1cf47ff"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.attention.output.dense.weight",
+          "subject": "encoder.layer.4.attention.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.attention.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4e6f5c78d13d732d5e96850ca9bfdc02de53c9a6e40a53511dbf3c354a733ab7"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.attention.self.key.bias",
+          "subject": "encoder.layer.4.attention.self.key.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.attention.self.key.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:0be0d0e0605cbe3e53cf4c73851fd567deb0c3a6dc4847bbab47ea67faa8c1c7"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.attention.self.key.weight",
+          "subject": "encoder.layer.4.attention.self.key.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.attention.self.key.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:a08d8a89444d7b6932fa1caf47a8c7ea16afa1e9cddcf9e92f19cdedcbe7751c"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.attention.self.query.bias",
+          "subject": "encoder.layer.4.attention.self.query.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.attention.self.query.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:df5e93380c08a06e807c267fb42729323c291c8afcc614bff3288a300446b242"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.attention.self.query.weight",
+          "subject": "encoder.layer.4.attention.self.query.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.attention.self.query.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:763bb2ec4ee30303a8cc6a65678e609b1f64fe81a4c073cbdebb10d51f4de728"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.attention.self.value.bias",
+          "subject": "encoder.layer.4.attention.self.value.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.attention.self.value.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:f5ad2bad749e00c80de6d09a31a1095f2614a0300210c044412f5a66a29fe83b"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.attention.self.value.weight",
+          "subject": "encoder.layer.4.attention.self.value.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.attention.self.value.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:f6f90ec912b330ae58ca4fd937bcf12dedc26b9147cfacb08b9ce74bf449e3f5"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.intermediate.dense.bias",
+          "subject": "encoder.layer.4.intermediate.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.intermediate.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:636655ea17381a2aad7c183e99980700057ef719d12419187955d50b92e8534d"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.intermediate.dense.weight",
+          "subject": "encoder.layer.4.intermediate.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.intermediate.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                1536,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:b243329752c7bccf39ddaed62e1c0bee5221b44e3da0fe650c3dc31b74eeeeff"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.output.LayerNorm.bias",
+          "subject": "encoder.layer.4.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:d4645c58d3706d9b4c9451997c5f9c9c4b8767a149bcdac52c572e3a4625ad7f"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.output.LayerNorm.weight",
+          "subject": "encoder.layer.4.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4fbfe46f9e2047e1b93846eac6d95e910a632b81575e94cac4791f322e4c689d"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.output.dense.bias",
+          "subject": "encoder.layer.4.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:386ad19c23ae906fd749bc28db840ba8cca4f9dc83aca1537fffe4aa9b2489c0"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.4.output.dense.weight",
+          "subject": "encoder.layer.4.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.4.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:ddf19ff0356630bf5c8d481487bcd6533c5fce73d52fef7ffce5f266ba638218"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.attention.output.LayerNorm.bias",
+          "subject": "encoder.layer.5.attention.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.attention.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c2e259e3438cbb02e133b5f06d0279604f516d2ef5e569113036e0e8cda57468"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.attention.output.LayerNorm.weight",
+          "subject": "encoder.layer.5.attention.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.attention.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:4e996dc9045c50c24a202ea70372d26dc50a61a17f97b08c9c9b4dd73b2288e3"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.attention.output.dense.bias",
+          "subject": "encoder.layer.5.attention.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.attention.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:3b36d2c45c9efe89e9313f31367b45979a7fa14779104f0edb0c40ebf93ccba3"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.attention.output.dense.weight",
+          "subject": "encoder.layer.5.attention.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.attention.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:e114266918b07dfcf03267f0cf3042a5c22f94bcb25875ffe373ce2c70a8c17f"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.attention.self.key.bias",
+          "subject": "encoder.layer.5.attention.self.key.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.attention.self.key.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:48a1a58336425d749e9f25bcbfe214125592c65993678299b27c69f24fb15073"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.attention.self.key.weight",
+          "subject": "encoder.layer.5.attention.self.key.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.attention.self.key.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:358ee3aa0f7979ff71340d5ed15b90846484b2ca62cf96b3f24f9e51917c5342"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.attention.self.query.bias",
+          "subject": "encoder.layer.5.attention.self.query.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.attention.self.query.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:7a9b5f19b9e2693d885e1f79a22e6f8f94af5e14a0b513345e943c9778a955e7"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.attention.self.query.weight",
+          "subject": "encoder.layer.5.attention.self.query.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.attention.self.query.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:1231e16f149f320a0c3b4c1a92438117c2f5ed37850a856d246aff4c11f62ff4"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.attention.self.value.bias",
+          "subject": "encoder.layer.5.attention.self.value.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.attention.self.value.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:1b1b8fbe300796d4f374e6c7b953c5b99c4a8f0eea4ae00e5a1ee19dd4653e32"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.attention.self.value.weight",
+          "subject": "encoder.layer.5.attention.self.value.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.attention.self.value.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:21b71c39b54ae4b8056c19324c0c8aaceb914eda682cb95d1df45f56fcd924ed"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.intermediate.dense.bias",
+          "subject": "encoder.layer.5.intermediate.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.intermediate.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:e4821c98a9f4329c09f19b81cb222ec5cf0e60fcb6f78d787f44a2d481c59535"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.intermediate.dense.weight",
+          "subject": "encoder.layer.5.intermediate.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.intermediate.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                1536,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              1536,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:c6ffb03c871a08c4f3d6271ec930ad44c782241d14ed547d163329f83b0416f8"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.output.LayerNorm.bias",
+          "subject": "encoder.layer.5.output.LayerNorm.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.output.LayerNorm.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:9ef61f3e843c3efff8646e4d47ed084198429a3faf8be522819c2ee1831d2ebf"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.output.LayerNorm.weight",
+          "subject": "encoder.layer.5.output.LayerNorm.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.output.LayerNorm.weight",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:17715997ba832d93d0c9fa5489547d4bf1640dd22d1fb3e9f15a37c64f538591"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.output.dense.bias",
+          "subject": "encoder.layer.5.output.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.output.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:cb25e782d45d919498d559be9b35ecbe8b4eeb393a9ae6919e4e64211ff7e6b9"
+          }
+        },
+        {
+          "id": "tensor.encoder.layer.5.output.dense.weight",
+          "subject": "encoder.layer.5.output.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "encoder.layer.5.output.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                1536
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              1536
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:35748730fcff5c5f627477d17f1dd95dc009c3fbd796425192cd8e16a63f0bfc"
+          }
+        },
+        {
+          "id": "tensor.pooler.dense.bias",
+          "subject": "pooler.dense.bias",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "pooler.dense.bias",
+              "dtype": "F32",
+              "shape": [
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:9ce849e16f118b1823daad070ed627263a66dd8971e55261d92c262c8dc1b39e"
+          }
+        },
+        {
+          "id": "tensor.pooler.dense.weight",
+          "subject": "pooler.dense.weight",
+          "predicate": "header",
+          "confidence": "direct",
+          "disposition": "accepted",
+          "evidence": [
+            {
+              "kind": "tensor-header",
+              "artifactId": "headers",
+              "file": "model.safetensors",
+              "tensorName": "pooler.dense.weight",
+              "dtype": "F32",
+              "shape": [
+                384,
+                384
+              ]
+            }
+          ],
+          "authorship": {
+            "kind": "ai",
+            "actor": "openai-codex",
+            "proposalId": "minilm-embedding-intake-20260926"
+          },
+          "value": {
+            "shape": [
+              384,
+              384
+            ],
+            "dtype": "F32"
+          },
+          "validation": {
+            "status": "passed",
+            "validator": "doppler.source-truth-forge/v2",
+            "receipt": "sha256:00658da688a673623b8f7c61604b176dd4ee9e09a56d248e9a2a4b559fd1e9b1"
+          }
+        }
+      ]
+    },
+    "components": [
+      {
+        "id": "encoder",
+        "type": "text-encoder",
+        "role": "primary",
+        "factRefs": [
+          "config.model_type",
+          "config.architectures",
+          "config.hidden_size",
+          "config.num_hidden_layers",
+          "config.num_attention_heads",
+          "config.intermediate_size",
+          "config.layer_norm_eps",
+          "config.hidden_act",
+          "config.max_position_embeddings",
+          "config.type_vocab_size",
+          "config.vocab_size",
+          "semantics.causal",
+          "semantics.queryKeyNorm",
+          "semantics.headDim",
+          "semantics.attentionBias",
+          "semantics.embeddingOrder",
+          "semantics.embeddingNorm",
+          "semantics.normalizationOrder",
+          "semantics.gated",
+          "semantics.poolerUsed",
+          "semantics.normalizationEps",
+          "semantics.attentionMask",
+          "semantics.tokenType",
+          "embedding.contract"
+        ],
+        "properties": {
+          "modelType": "bert",
+          "hiddenSize": 384,
+          "vocabSize": 30522,
+          "numLayers": 6,
+          "embeddingOrder": [
+            "word-gather",
+            "token-type-gather",
+            "add",
+            "absolute-position-gather",
+            "add",
+            "layernorm"
+          ],
+          "embeddingNormalization": "layernorm-with-affine-bias",
+          "typeVocabularySize": 2,
+          "maxPositionEmbeddings": 512,
+          "poolerUsed": false
+        }
+      }
+    ],
+    "blockClasses": [
+      {
+        "id": "bert-encoder-block",
+        "kind": "full-attention",
+        "factRefs": [
+          "config.model_type",
+          "config.architectures",
+          "config.hidden_size",
+          "config.num_hidden_layers",
+          "config.num_attention_heads",
+          "config.intermediate_size",
+          "config.layer_norm_eps",
+          "config.hidden_act",
+          "config.max_position_embeddings",
+          "config.type_vocab_size",
+          "config.vocab_size",
+          "semantics.causal",
+          "semantics.queryKeyNorm",
+          "semantics.headDim",
+          "semantics.attentionBias",
+          "semantics.embeddingOrder",
+          "semantics.embeddingNorm",
+          "semantics.normalizationOrder",
+          "semantics.gated",
+          "semantics.poolerUsed",
+          "semantics.normalizationEps",
+          "semantics.attentionMask",
+          "semantics.tokenType",
+          "embedding.contract"
+        ],
+        "geometry": {
+          "numHeads": 12,
+          "numKvHeads": 12,
+          "headDim": 32,
+          "queryKeyNorm": false,
+          "causal": false,
+          "attentionBias": true,
+          "attentionMask": "bidirectional-padding-mask"
+        },
+        "normalization": {
+          "type": "layernorm",
+          "eps": 1e-12,
+          "position": "after-attention-residual-and-after-ffn-residual",
+          "affineBias": true
+        },
+        "positional": {
+          "type": "learned-absolute",
+          "appliedAt": "input-embedding-sum"
+        },
+        "feedForward": {
+          "type": "dense",
+          "gated": false,
+          "activation": "gelu",
+          "intermediateSize": 1536,
+          "bias": true
+        },
+        "phaseBehavior": {
+          "prefill": true,
+          "decode": false
+        }
+      }
+    ],
+    "blockSchedules": [
+      {
+        "id": "encoder.schedule",
+        "componentId": "encoder",
+        "factRefs": [
+          "config.num_hidden_layers"
+        ],
+        "blocks": [
+          {
+            "index": 0,
+            "blockClassId": "bert-encoder-block"
+          },
+          {
+            "index": 1,
+            "blockClassId": "bert-encoder-block"
+          },
+          {
+            "index": 2,
+            "blockClassId": "bert-encoder-block"
+          },
+          {
+            "index": 3,
+            "blockClassId": "bert-encoder-block"
+          },
+          {
+            "index": 4,
+            "blockClassId": "bert-encoder-block"
+          },
+          {
+            "index": 5,
+            "blockClassId": "bert-encoder-block"
+          }
+        ]
+      }
+    ],
+    "stateSpaces": [],
+    "tensorRoleBindings": [
+      {
+        "id": "embeddings.position_ids",
+        "factRefs": [
+          "tensor.embeddings.position_ids"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "embeddings.position_ids"
+        }
+      },
+      {
+        "id": "embeddings.LayerNorm.bias",
+        "factRefs": [
+          "tensor.embeddings.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "embeddings.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "embeddings.LayerNorm.weight",
+        "factRefs": [
+          "tensor.embeddings.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "embeddings.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "embeddings.position_embeddings.weight",
+        "factRefs": [
+          "tensor.embeddings.position_embeddings.weight"
+        ],
+        "componentId": "encoder",
+        "role": "absolute-position-embedding",
+        "selector": {
+          "exact": "embeddings.position_embeddings.weight"
+        }
+      },
+      {
+        "id": "embeddings.token_type_embeddings.weight",
+        "factRefs": [
+          "tensor.embeddings.token_type_embeddings.weight"
+        ],
+        "componentId": "encoder",
+        "role": "token-type-embedding",
+        "selector": {
+          "exact": "embeddings.token_type_embeddings.weight"
+        }
+      },
+      {
+        "id": "embeddings.word_embeddings.weight",
+        "factRefs": [
+          "tensor.embeddings.word_embeddings.weight"
+        ],
+        "componentId": "encoder",
+        "role": "token-embedding",
+        "selector": {
+          "exact": "embeddings.word_embeddings.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.0.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.0.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.0.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.0.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.0.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.1.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.1.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.1.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.1.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.1.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.2.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.2.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.2.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.2.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.2.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.3.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.3.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.3.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.3.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.3.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.4.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.4.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.4.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.4.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.4.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.output.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.key.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.key.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.key.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.key.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.key.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.key.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.query.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.query.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.query.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.query.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.query.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.query.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.value.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.value.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.value.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.attention.self.value.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.attention.self.value.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.attention.self.value.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.intermediate.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.intermediate.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.intermediate.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.intermediate.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.intermediate.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.intermediate.dense.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.output.LayerNorm.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.output.LayerNorm.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.output.LayerNorm.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.output.LayerNorm.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.output.LayerNorm.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.output.LayerNorm.weight"
+        }
+      },
+      {
+        "id": "encoder.layer.5.output.dense.bias",
+        "factRefs": [
+          "tensor.encoder.layer.5.output.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.output.dense.bias"
+        }
+      },
+      {
+        "id": "encoder.layer.5.output.dense.weight",
+        "factRefs": [
+          "tensor.encoder.layer.5.output.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "encoder-parameter",
+        "selector": {
+          "exact": "encoder.layer.5.output.dense.weight"
+        }
+      },
+      {
+        "id": "pooler.dense.bias",
+        "factRefs": [
+          "tensor.pooler.dense.bias"
+        ],
+        "componentId": "encoder",
+        "role": "unused-pooler",
+        "selector": {
+          "exact": "pooler.dense.bias"
+        }
+      },
+      {
+        "id": "pooler.dense.weight",
+        "factRefs": [
+          "tensor.pooler.dense.weight"
+        ],
+        "componentId": "encoder",
+        "role": "unused-pooler",
+        "selector": {
+          "exact": "pooler.dense.weight"
+        }
+      }
+    ],
+    "entryPoints": [
+      {
+        "id": "text.embed",
+        "componentId": "encoder",
+        "kind": "embed",
+        "factRefs": [
+          "config.model_type",
+          "config.architectures",
+          "config.hidden_size",
+          "config.num_hidden_layers",
+          "config.num_attention_heads",
+          "config.intermediate_size",
+          "config.layer_norm_eps",
+          "config.hidden_act",
+          "config.max_position_embeddings",
+          "config.type_vocab_size",
+          "config.vocab_size",
+          "semantics.causal",
+          "semantics.queryKeyNorm",
+          "semantics.headDim",
+          "semantics.attentionBias",
+          "semantics.embeddingOrder",
+          "semantics.embeddingNorm",
+          "semantics.normalizationOrder",
+          "semantics.gated",
+          "semantics.poolerUsed",
+          "semantics.normalizationEps",
+          "semantics.attentionMask",
+          "semantics.tokenType",
+          "embedding.contract"
+        ],
+        "status": "unlowered",
+        "reason": "BERT learned input embeddings and post-residual normalization require an exact prepared implementation.",
+        "phases": [
+          "prefill"
+        ]
+      }
+    ],
+    "outputHeads": [
+      {
+        "id": "text.embedding",
+        "componentId": "encoder",
+        "kind": "text-embedding",
+        "factRefs": [
+          "embedding.contract"
+        ],
+        "properties": {
+          "embedding": {
+            "dimension": 384,
+            "postprocessor": {
+              "poolingMode": "mean",
+              "includePrompt": true,
+              "projections": [],
+              "normalize": "l2"
+            }
+          }
+        }
+      }
+    ],
+    "supportScope": {
+      "sourceTopology": "complete",
+      "loweredEntryPoints": [],
+      "qualifiedEntryPoints": [],
+      "unloweredEntryPoints": [
+        "text.embed"
+      ]
+    }
+  },
+  "intakeDigest": "sha256:55f6142ef1731caddd0e4fbaaaa955227d8922d2a277d0f04360c6297ade1c87",
+  "unresolvedFacts": [],
+  "generatedCandidates": 1,
+  "rejectedCandidates": 0,
+  "acceptedCandidates": 1,
+  "acceptedProposalId": "source-truth-baseline"
+}

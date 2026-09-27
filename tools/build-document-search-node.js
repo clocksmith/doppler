@@ -8,6 +8,8 @@ import { hashBytesSha256 } from '../src/formats/canonical-hash.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export async function buildDocumentSearchNode(config) {
+  const version = config.applicationVersion ?? '0.1.0';
+  if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error('applicationVersion must be a numeric release version.');
   const built = await buildDocumentSearchApplication(config);
   const root = config.outputDir;
   const source = path.join(ROOT, 'examples/document-search');
@@ -28,13 +30,18 @@ export async function buildDocumentSearchNode(config) {
   // The existing builder owns migration and release history. Only the Node
   // application files and installed-package loader differ at this boundary.
   for (const name of ['node.js', 'node-store.js', 'shard-sources.json']) await fs.copyFile(path.join(source, name), path.join(root, name));
-  await fs.copyFile(path.join(source, 'NODE.md'), path.join(root, 'README.md'));
+  const guide = await fs.readFile(path.join(source, 'NODE.md'), 'utf8');
+  const bodyStart = guide.indexOf('This application uses');
+  if (bodyStart < 0) throw new Error('Node installation guide is missing its application introduction.');
+  await fs.writeFile(path.join(root, 'README.md'), `# Local document search ${version}\n\n`
+    + `Bundled runtime SHA-256: \`${built.installedPackage.sha256}\`.\n\n`
+    + guide.slice(bodyStart).replace('../../artifacts/', 'https://github.com/clocksmith/doppler/blob/main/artifacts/'));
   for (const name of ['index.html', 'browser.js', 'service-worker.js', 'document-import.js', 'application-assets.js', 'requirements.json', 'runtime']) {
     await fs.rm(path.join(root, name), { recursive: true, force: true });
   }
   await fs.mkdir(path.join(root, 'vendor'));
   await fs.copyFile(path.join(config.packageBundlePath, built.installedPackage.filename), path.join(root, 'vendor', built.installedPackage.filename));
-  await fs.writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'doppler-node-document-search', version: '0.1.0',
+  await fs.writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'doppler-node-document-search', version,
     private: true, type: 'module', engines: { node: '>=22' },
     dependencies: { 'doppler-gpu': `file:vendor/${built.installedPackage.filename}`, webgpu: '0.4.0' } }, null, 2) + '\n');
   execFileSync('npm', ['install', '--package-lock-only', '--ignore-scripts', '--omit=optional', '--no-audit', '--no-fund'], { cwd: root, stdio: 'pipe' });
