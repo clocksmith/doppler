@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:0931dae018318fd56727fdf03824ecbc81ad5e2b03a97c8439b34c42e4e795a4';
-const CACHE_NAME = 'doppler-demo-shell-0931dae018318fd5';
+const SHELL_MANIFEST_DIGEST = 'sha256:c0339e9b8201286b971da1e5450d1b3d590728bab62c88631dbafb7b244367bc';
+const CACHE_NAME = 'doppler-demo-shell-c0339e9b8201286b';
 const APP_SHELL = Object.freeze([
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
@@ -421,10 +421,10 @@ const APP_SHELL = Object.freeze([
   "/src/inference/decode-ring.js",
   "/src/inference/fixtures/embedding-semantic-fixtures.json",
   "/src/inference/fixtures/rerank-semantic-fixtures.json",
-  "/src/inference/kv-cache.js",
   "/src/inference/kv-cache/base.js",
   "/src/inference/kv-cache/basis-decomposed-paged.js",
   "/src/inference/kv-cache/index.js",
+  "/src/inference/kv-cache/layer-range.js",
   "/src/inference/kv-cache/mixed-geometry.js",
   "/src/inference/kv-cache/quantized.js",
   "/src/inference/kv-cache/sliding-window.js",
@@ -569,6 +569,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/operator-events.js",
   "/src/inference/pipelines/text/operator-identity.js",
   "/src/inference/pipelines/text/ops.js",
+  "/src/inference/pipelines/text/partition-execution.js",
   "/src/inference/pipelines/text/per-layer-inputs.js",
   "/src/inference/pipelines/text/per-layer/materialize.js",
   "/src/inference/pipelines/text/per-layer/plan.js",

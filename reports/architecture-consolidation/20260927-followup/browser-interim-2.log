@@ -1,0 +1,19 @@
+
+> doppler-gpu@0.6.3-dev.split.1 test:demo:contract
+> node tools/demo-contract-smoke.js
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#sample-run-btn')[22m
+
+    at checkDemoControls (/home/x/deco/doppler/tests/demo/browser-controls.js:75:41)
+    at async main (/home/x/deco/doppler/tools/demo-contract-smoke.js:203:5)
+    at async file:///home/x/deco/doppler/tools/demo-contract-smoke.js:243:1 {
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.1

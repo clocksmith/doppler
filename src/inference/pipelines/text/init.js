@@ -7,7 +7,7 @@ import {
   BasisDecomposedPagedCache,
   QuantizedKVCache,
   MixedGeometryKVCache,
-} from '../../kv-cache.js';
+} from '../../kv-cache/index.js';
 import {
   retainTurboQuantSharedBuffers,
 } from '../../../gpu/kernels/turboquant-codebook.js';

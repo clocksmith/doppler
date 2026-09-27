@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict';
 
 export async function checkDemoStreaming(page) {
+  await page.locator('#settings-toggle').click();
+  assert.equal(await page.locator('#settings-panel').isVisible(), true);
   await page.locator('#set-word-quality').uncheck();
   await page.locator('#xray-toggle-all').uncheck();
+  await page.locator('#settings-toggle').click();
+  assert.equal(await page.locator('#settings-panel').isVisible(), false);
   const url = page.url();
   let navigations = 0;
   const onNavigation = () => { navigations++; };

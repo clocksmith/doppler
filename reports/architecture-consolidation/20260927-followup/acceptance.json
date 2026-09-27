@@ -1,0 +1,43 @@
+{
+  "baseline": "473bb358c3592e5a82ea48485b0a5621a8340491",
+  "implementationCommit": "344c1e51",
+  "evidenceClass": "local architecture verification",
+  "checks": [
+    {
+      "command": "node tools/run-node-tests.js tests/demo/*.test.js tests/config/registry-instances.test.js tests/inference/pipeline-registry-isolation.test.js tests/runtime/initial-execution-identity.test.js tests/gpu/matmul-config-immutability.test.js tests/inference/partition-kv-cache.test.js",
+      "log": "focused.log",
+      "executionClass": "unit-contract",
+      "exitCode": 0,
+      "testFiles": 11
+    },
+    {
+      "command": "node tools/run-node-tests.js --scripts typecheck:source typecheck:source-runtime source:architecture:check source:style:check source:dependencies:check inference:boundaries:check catscan:check config:single-source:check rules:bundle:check kernels:uniforms:check kernels:codegen:check kernels:digests:check runtime:closure:check package:closure:check exports:parity:check api:docs:check demo:shell:check demo:reachability:check",
+      "log": "source-gates.log",
+      "executionClass": "source-contract",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run package:smoke -- --retain /tmp/doppler-architecture-installed-final",
+      "log": "installed-package.log",
+      "executionClass": "installed-synthetic",
+      "exitCode": 0
+    },
+    {
+      "command": "node tools/run-node-tests.js tests/kernels/activation-executor-lifecycle.test.js tests/inference/gelu-erf-gpu-regression.test.js",
+      "log": "physical-activation.log",
+      "executionClass": "physical-operator",
+      "exitCode": 0,
+      "testFiles": 2
+    },
+    {
+      "command": "npm run test:demo:contract",
+      "log": "browser-contract.log",
+      "executionClass": "mocked-browser",
+      "exitCode": 0
+    }
+  ],
+  "releaseQualification": false,
+  "performanceClaim": false,
+  "fullUnitSuiteRerun": false,
+  "sourceIdentity": "source-files.json and containing commit"
+}

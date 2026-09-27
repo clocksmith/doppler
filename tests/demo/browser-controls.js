@@ -58,19 +58,22 @@ async function assertControlContrast(page) {
 
 export async function checkDemoControls(page) {
   assert.equal(await page.evaluate(() => typeof globalThis.DOPPLER?.log?.info), 'function');
-  await page.locator('#chat-controls > summary').click();
-  assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
-  assert.equal(await page.locator('#set-word-quality').isChecked(), false);
-  assert.equal(await page.locator('#token-inspector-toggle').getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.locator('#settings-panel').isVisible(), false);
+  await page.locator('#settings-toggle').click();
+  assert.equal(await page.locator('#settings-panel').isVisible(), true);
+  assert.equal(await page.locator('#xray-toggle-all').isChecked(), true);
+  assert.equal(await page.locator('#set-word-quality').isChecked(), true);
+  assert.equal(await page.locator('#token-inspector-toggle').isChecked(), true);
   assert.equal(await page.inputValue('#set-max-tokens'), '256');
-  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality');
-  assert.match(await page.locator('#runtime-notice').textContent(), /Guided quality.*changes execution/);
+  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/deep-xray');
+  await page.locator('#xray-toggle-all').uncheck();
+  await page.locator('#set-word-quality').uncheck();
+  assert.match(await page.locator('#runtime-notice').textContent(), /Token inspection changes execution/);
   assert.equal(await page.locator('#runtime-notice').isVisible(), true);
   await page.locator('#token-inspector-toggle').click();
   assert.equal(await page.locator('#runtime-notice').isVisible(), false);
-  await page.locator('#sample-run-btn').click();
-  assert.equal(await page.locator('#token-inspector-toggle').getAttribute('aria-pressed'), 'true');
-  assert.equal(await page.locator('#runtime-notice').isVisible(), true, 'Sample inspection reenables the Tokens policy notice');
+  await page.locator('#token-inspector-toggle').check();
+  assert.equal(await page.locator('#runtime-notice').isVisible(), true);
   await page.locator('#xray-toggle-all').focus();
   await page.keyboard.press('Space');
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), true);
@@ -78,18 +81,14 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
   await page.locator('#xray-toggle-all').check();
   assert.equal(await page.locator('#runtime-notice').isVisible(), true);
-  assert.equal(await page.locator('#settings-panel').isVisible(), false);
-  if (!await page.locator('#inspection-workspace').evaluate(element => element.open)) {
-    await page.locator('#inspection-workspace > summary').click();
-  }
-  assert.deepEqual(await page.evaluate(() => ({
-    workspaceOpen: document.querySelector('#inspection-workspace').open,
-    xrayHidden: document.querySelector('#xray-shell').hidden,
-  })), { workspaceOpen: true, xrayHidden: false });
-  if (!await page.locator('#xray-shell').evaluate(element => element.open)) {
-    await page.locator('#xray-shell > summary').click();
-  }
-  assert.equal(await page.locator('#xray-container .xray-section').count(), 5, 'X-Ray can inspect an existing receipt');
+  assert.equal(await page.locator('#settings-panel').isVisible(), true);
+  assert.equal(await page.locator('#inspection-workspace').isVisible(), true);
+  assert.equal(await page.locator('#xray-shell').isVisible(), true);
+  assert.equal(await page.locator('#xray-container h3').first().textContent(), 'Where time went');
+  await page.locator('#xray-container .xray-section > summary').click();
+  await page.waitForFunction(() => document.querySelector('#xray-container pre').textContent.length > 0);
+  const inspectedReceipt = JSON.parse(await page.locator('#xray-container pre').textContent());
+  assert.equal(inspectedReceipt.outputText, 'Contract generation passed.', 'X-Ray inspects the existing receipt');
   await assertControlContrast(page);
 
   await page.locator('#set-word-quality').uncheck();
@@ -109,12 +108,10 @@ export async function checkDemoControls(page) {
   // Tokens start enabled in the new UI and intentionally request guided evidence.
   // Disable that observer too before asserting the standard, non-diagnostic lane.
   await page.locator('#token-inspector-toggle').click();
-  assert.equal(await page.locator('#token-inspector-toggle').getAttribute('aria-pressed'), 'false');
+  assert.equal(await page.locator('#token-inspector-toggle').isChecked(), false);
   assert.equal(await page.locator('#runtime-notice').isVisible(), false);
 
-  await page.locator('#settings-toggle').click();
   assert.equal(await page.locator('#settings-panel').isVisible(), true);
-  await page.locator('.profile-details > summary').click();
   for (const id of ['set-trace', 'set-batch-max-tokens', 'set-readback', 'set-kv-dtype', 'set-kv-max-seq', 'set-log-level']) {
     assert.equal(await page.locator(`#${id}`).isDisabled(), true, `${id} is explicitly profile-owned`);
   }
@@ -202,6 +199,10 @@ export async function checkDemoControls(page) {
   assert.equal(await page.evaluate(() => __demoContract.resets), 1);
   assert.equal(await page.locator('#clear-history-btn').isEnabled(), true, 'Loaded model remains resettable');
 
+  await page.locator('#sample-run-btn').click();
+  assert.equal(await page.locator('#token-inspector-toggle').isChecked(), false, 'Sample inspection preserves the selected observers');
+  assert.equal(await page.locator('#runtime-notice').isVisible(), false);
+
   await checkDemoStreaming(page);
 
   await page.evaluate(() => {
@@ -214,11 +215,13 @@ export async function checkDemoControls(page) {
       return originalFetch(...args);
     };
   });
+  assert.equal(await page.locator('#precision-replay-toggle').isVisible(), true, 'Closed replay keeps its opening control visible');
   await page.click('#precision-replay-toggle');
   await page.waitForFunction(() => document.querySelector('#precision-replay-status').textContent.includes('Contract evidence failure'));
   assert.equal(await page.locator('#precision-replay-toggle').isEnabled(), true);
   await page.click('#precision-replay-toggle');
   assert.equal(await page.locator('#precision-replay-panel').isVisible(), false);
+  assert.equal(await page.locator('#precision-replay-toggle').isVisible(), true, 'Failed evidence loading remains retryable after closing');
   await page.click('#precision-replay-toggle');
   await page.waitForSelector('#precision-replay-table-body tr');
   for (const button of await page.locator('[data-precision-mode]').all()) {
