@@ -28,6 +28,18 @@ See the goals for host prerequisites, release-history limits, and GPU lifecycle 
 
 **See also:** [REPLOID](https://github.com/clocksmith/reploid) for browser-native AI agent orchestration.
 
+## Git workflow: direct to main
+
+- Work and commit directly on the owning repository's `main` branch, then push
+  directly to its existing `origin/main` remote branch.
+- Do not create feature/task branches, branch-backed worktrees, or GitHub pull
+  requests. Do not use a branch/PR workflow unless the user explicitly requests it.
+- If the checkout is on another branch, preserve its work and move the task to
+  `main` safely; never discard changes to switch branches.
+- Stage only task-related changes, run the applicable checks, and integrate remote
+  updates without overwriting unrelated work. Never force-push `main`.
+- Report the pushed commit or the concrete blocker. A local commit is not a push.
+
 ### MANDATORY: Read Style Guides First
 
 Before any non-trivial code edit, read the **invariant files** (compact, must-know rules):
