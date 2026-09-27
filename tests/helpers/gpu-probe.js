@@ -47,5 +47,5 @@ export async function probeNodeGPU({ installFileFetchShim } = {}) {
     return { ready: false, reason: 'f16 shader compilation failed' };
   }
 
-  return { ready: true, reason: null };
+  return { ready: true, reason: null, providerReceipt: bootstrap.receipt };
 }

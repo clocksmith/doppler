@@ -1,6 +1,5 @@
-
-
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../../gpu/device.js';
+import { scopeKVCacheLayerRange, resolveKVCacheLayerCount } from '../../kv-cache/layer-range.js';
 import {
   KVCache,
   SlidingWindowKVCache,
@@ -154,7 +153,6 @@ function createRemoteStorageContext(baseUrl, manifest) {
   }
   return createHttpArtifactStorageContext(baseUrl, manifest);
 }
-
 
 function normalizeLayerType(layerType) {
   return typeof layerType === 'string' ? layerType.trim().toLowerCase() : '';
@@ -331,13 +329,12 @@ function assertQuantizedKVKernelSupport(modelConfig, cacheLayout, cacheMaxSeqLen
   }
 }
 
-
 // ============================================================================
 // KV Cache Setup
 // ============================================================================
 
-
-export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig) {
+export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig, layerRange = null) {
+  const allocatedLayerCount = resolveKVCacheLayerCount(modelConfig.numLayers, layerRange);
   if (modelConfig?.decodeStrategy === 'replay_prefill') {
     throw new Error(
       'Live KV cache creation is not supported for models that require replay-prefill decode. ' +
@@ -346,6 +343,9 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
   }
   const runtimeKV = resolveRuntimeKVConfig(runtimeConfig);
   const requiresMixedGeometryKVCache = usesMixedGeometryKVCache(modelConfig);
+  if (layerRange !== null && requiresMixedGeometryKVCache) {
+    throw new Error('Resident partition KV cache does not support mixed geometry or shared KV layers.');
+  }
   const contiguousKVPolicy = resolveContiguousKVPolicy(modelConfig);
   const forceContiguousKVCache = contiguousKVPolicy.forceContiguousKVCache;
   const modelMaxSeqLen = modelConfig.maxSeqLen;
@@ -393,6 +393,9 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
       'Paged KV cache layout is not supported for models with full-attention layers. ' +
       'Set runtime.inference.session.kvcache.layout to "contiguous" instead.'
     );
+  }
+  if (layerRange !== null && cacheLayout !== 'contiguous') {
+    throw new Error(`Resident partition KV cache requires resolved contiguous layout; got ${cacheLayout}.`);
   }
   if (requiresMixedGeometryKVCache) {
     if (cacheLayout !== 'contiguous') {
@@ -496,7 +499,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
 
   
 	  const cacheConfig = {
-	    numLayers: modelConfig.numLayers,
+	    numLayers: allocatedLayerCount,
 	    numHeads: modelConfig.numKVHeads,
 	    headDim: modelConfig.headDim,
 	    maxSeqLen: cacheMaxSeqLen,
@@ -597,7 +600,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig)
     log.debug('Pipeline', `KV cache: type=${kvCache?.constructor?.name || 'unknown'}, kvDtype=${kvCache.kvDtype}, layout=${kvCache.layout}, maxSeqLen=${kvCache.maxSeqLen}, windowSize=${isSliding ? kvCache.windowSize : null}`);
   }
 
-  return kvCache;
+  return layerRange === null ? kvCache : scopeKVCacheLayerRange(kvCache, layerRange[0]);
 }
 
 function requirePlainObject(value, label) {
@@ -625,7 +628,6 @@ function requirePositiveInteger(value, label) {
 // Tokenizer Setup
 // ============================================================================
 
-
 export async function initTokenizer(manifest, options = {}) {
   const { baseUrl, tokenizerHints, storageContext } = options;
   const tokenizer = new Tokenizer();
@@ -645,7 +647,6 @@ export async function initTokenizer(manifest, options = {}) {
 // ============================================================================
 // Weight Loading
 // ============================================================================
-
 
 export async function loadWeights(manifest, modelConfig, options = {}) {
   const {
@@ -827,7 +828,6 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
 // MoE Router Setup
 // ============================================================================
 
-
 export function initMoERouter(modelConfig, moeRoutingConfig, layerWeights) {
   if (!modelConfig.useMoE) return null;
 
@@ -859,7 +859,6 @@ export function initMoERouter(modelConfig, moeRoutingConfig, layerWeights) {
 // ============================================================================
 // Speculative Decoder Setup
 // ============================================================================
-
 
 // EXPERIMENTAL: Speculative decoding is parsed and initialized but the full
 // verify-and-accept loop is not yet wired into the generation pipeline.

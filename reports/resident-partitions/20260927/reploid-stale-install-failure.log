@@ -1,0 +1,37 @@
+
+ RUN  v4.1.10 /home/x/deco/reploid
+
+ ❯ tests/unit/partition-api.test.js (0 test)
+ ✓ tests/unit/surface-claim-index.test.js (3 tests) 14ms
+ ✓ tests/unit/catscan.test.js (5 tests) 65ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/partition-api.test.js [ tests/unit/partition-api.test.js ]
+Error: Missing "./partitions" specifier in "doppler-gpu" package
+  Plugin: vite:import-analysis
+  File: /home/x/deco/reploid/tests/unit/partition-api.test.js:2:26
+  1  |  import { describe, it, expect, vi, afterEach } from 'vitest';
+  2  |  import * as runtime from 'doppler-gpu/partitions';
+     |                            ^
+  3  |  import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
+  4  |  import { createPartitionGrantAuthority, createResidentPartition, createPartitionPeer,
+ ❯ e node_modules/vite/dist/node/chunks/config.js:6667:8
+ ❯ n node_modules/vite/dist/node/chunks/config.js:6679:14
+ ❯ o node_modules/vite/dist/node/chunks/config.js:6707:10
+ ❯ resolveExportsOrImports node_modules/vite/dist/node/chunks/config.js:32907:45
+ ❯ resolveDeepImport node_modules/vite/dist/node/chunks/config.js:32921:22
+ ❯ tryNodeResolve node_modules/vite/dist/node/chunks/config.js:32796:70
+ ❯ ResolveIdContext.handler node_modules/vite/dist/node/chunks/config.js:32635:16
+ ❯ EnvironmentPluginContainer.resolveId node_modules/vite/dist/node/chunks/config.js:28797:56
+ ❯ TransformPluginContext.resolve node_modules/vite/dist/node/chunks/config.js:29009:13
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/config.js:27191:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  8 passed (8)
+   Start at  15:44:39
+   Duration  498ms (transform 70ms, setup 0ms, import 159ms, tests 79ms, environment 683ms)
+

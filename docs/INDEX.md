@@ -51,6 +51,7 @@ Primary documentation index.
 - [Doppler Program Bundle](integration/program-bundle.md) - closed portable
   model-program export shape for browser, Node provider, Doe.js capture, and
   Doe backend lowering.
+- [Resident partition execution](distribution/resident-partition-execution.md) - bounded numerical execution, retained local evidence, and remaining Reploid session acceptance.
 - [MoM Layer Draft](distribution/mom-layer-draft.md) - implementation-side draft
   for Cross Family Router, debate/adjudication, recursive MoM receipts,
   residency metadata, and Debate-adjudicated Distillation exports.

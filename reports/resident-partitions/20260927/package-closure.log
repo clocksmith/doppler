@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.3-dev.split.1 package:closure:check
+> node tools/package-source-closure.js
+
+package source closure check passed (931 runtime JS, 471 declarations, 464 resources)

@@ -1,0 +1,5 @@
+
+> reploid@0.1.0 verify:catscan
+> node scripts/verify-catscan.js
+
+[catscan] 39 component charters and generated index passed

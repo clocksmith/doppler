@@ -99,7 +99,8 @@ function applyMatmulConstants(config, constants) {
   }
 
   if (!updated) return config;
-  return { ...config, workgroupSize, variantMetadata };
+  return Object.freeze({ ...config, workgroupSize: Object.freeze(workgroupSize),
+    variantMetadata: variantMetadata === null ? null : Object.freeze(variantMetadata) });
 }
 
 

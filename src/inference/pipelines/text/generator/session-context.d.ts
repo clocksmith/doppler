@@ -1,5 +1,5 @@
 import type { ExecutionV1PerLayerInputsSessionSchema } from '../../../../config/schema/execution-v1.schema.js';
-import type { ExecutionSessionPlan } from '../execution-plan.js';
+import type { ExecutionSessionPlan, StaticExecutionPlan } from '../execution-plan.js';
 import type { PipelineState } from '../state.js';
 import type { LayerContext } from '../types.js';
 
@@ -27,5 +27,5 @@ export declare function buildLayerContext(
     numTokens: number,
     expectedDim?: number
   ) => Promise<void>,
-  executionPlan?: ExecutionSessionPlan | null
+  executionPlan?: ExecutionSessionPlan | StaticExecutionPlan | null
 ): LayerContext;

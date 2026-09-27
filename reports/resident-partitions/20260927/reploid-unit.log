@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /home/x/deco/reploid
+
+ ✓ tests/unit/surface-claim-index.test.js (3 tests) 15ms
+ ✓ tests/unit/catscan.test.js (5 tests) 84ms
+ ✓ tests/unit/partition-api.test.js (11 tests) 274ms
+
+ Test Files  3 passed (3)
+      Tests  19 passed (19)
+   Start at  15:47:46
+   Duration  734ms (transform 163ms, setup 0ms, import 241ms, tests 373ms, environment 427ms)
+
