@@ -4,8 +4,8 @@ export declare function unifiedKernelWrapper(
   variant: string,
   bindings: unknown[],
   uniforms: Record<string, number>,
-  workgroups: number | [number, number, number],
-  constants?: Record<string, number> | null,
+  workgroups: number | number[] | { indirectBuffer: GPUBuffer; indirectOffset?: number },
+  constants?: Record<string, number | boolean> | null,
   extraBindings?: unknown[] | null,
   dispatchLabel?: string | null,
   signal?: AbortSignal | null

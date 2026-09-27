@@ -14,7 +14,10 @@ const validatedAttentionVariants = [
   'prefill_f16kv', 'prefill_small_f16kv', 'decode_small_f16kv', 'prefill_streaming_f16kv',
 ];
 const attentionValidators = Object.fromEntries(validatedAttentionVariants.map(variant => [variant,
-  Object.freeze({ id: 'doppler.attention-limits/v1', validate: validateAttentionLimits }),
+  Object.freeze({
+    id: 'doppler.attention-limits/v1',
+    validate: ({ uniforms }) => validateAttentionLimits(uniforms.seqLen, uniforms.numHeads, uniforms.headDim),
+  }),
 ]));
 
 export function createKernelRegistry({ extensions = {}, validators = {} } = {}) {

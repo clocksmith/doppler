@@ -72,6 +72,13 @@ async function writeImportSmoke(consumerDir, packageJson) {
     "assert.notEqual(ka, kb);",
     "assert.throws(() => { ka.getKernelConfig('gelu', 'gelu').bindings[0].index = 7; }, TypeError);",
     "assert.equal(kb.getKernelConfig('gelu', 'gelu').bindings[0].index, 0);",
+    "const calls = [];",
+    "const va = createKernelRegistry({ validators: { gelu: { gelu: { id: 'installed.a/v1', validate: ({ uniforms }) => { calls.push('a:' + uniforms.size); throw new Error('installed A rejects'); } } } } });",
+    "const vb = createKernelRegistry({ validators: { gelu: { gelu: { id: 'installed.b/v1', validate: ({ uniforms }) => { calls.push('b:' + uniforms.size); throw new Error('installed B rejects'); } } } } });",
+    "const validationContext = { operation: 'gelu', variant: 'gelu', bindings: [], uniforms: { size: 8 }, workgroups: 1, constants: null, extraBindings: null };",
+    "assert.throws(() => va.getKernelValidator('gelu', 'gelu')(validationContext), /installed A rejects/);",
+    "assert.throws(() => vb.getKernelValidator('gelu', 'gelu')(validationContext), /installed B rejects/);",
+    "assert.deepEqual(calls, ['a:8', 'b:8']);",
     `const { installDebugGlobal } = await import('${packageJson.name}/tooling');`,
     "const target = { DOPPLER: { retained: true } }; const previous = target.DOPPLER;",
     "const uninstall = installDebugGlobal(target); assert.equal(typeof target.DOPPLER.log.info, 'function');",
@@ -114,6 +121,41 @@ import { serializeActivationFrame } from '${packageJson.name}/runtime';
 import { serializeActivationFrame as leakedRunHelper } from '${packageJson.name}/run';
 import { createDopplerRun, RUN_CORE_VERSION } from '${packageJson.name}/run';
 import type { RunPorts, DopplerRun, DopplerRunSession } from '${packageJson.name}/run';
+import { createKernelRegistry, createRuleRegistry } from '${packageJson.name}/tooling/runtime';
+const mutableRequires: Array<'shader-f16' | 'subgroups'> = [];
+const mutableWorkgroup: [number, number, number] = [256, 1, 1];
+const kernels = createKernelRegistry({ extensions: { gelu: { variants: {
+  consumer: { wgsl: 'gelu.wgsl', entryPoint: 'main', workgroup: mutableWorkgroup, requires: mutableRequires },
+} } } });
+mutableRequires.push('shader-f16');
+mutableWorkgroup[0] = 128;
+const config = kernels.getKernelConfig('gelu', 'consumer');
+// @ts-expect-error Resolved kernel properties are frozen.
+config.shaderFile = 'replacement.wgsl';
+// @ts-expect-error Resolved workgroup tuples are frozen.
+config.workgroupSize[0] = 1;
+// @ts-expect-error Resolved requirements are frozen.
+config.requires.push('probe');
+// @ts-expect-error Resolved binding entries are frozen.
+config.bindings[0].index = 99;
+// @ts-expect-error Registry maps are frozen.
+kernels.configs.gelu = {};
+if (config.uniforms) {
+  // @ts-expect-error Nested resolved uniform fields are frozen.
+  config.uniforms.fields[0].offset = 99;
+}
+const mutableRules = [{ match: {}, value: { nested: ['a'] } }];
+const rules = createRuleRegistry({ extensions: [{ domain: 'consumer', group: 'test', rules: { choice: mutableRules } }] });
+mutableRules[0].value.nested.push('b');
+const resolvedRules = rules.getRuleSet('consumer', 'test', 'choice');
+// @ts-expect-error Resolved rule arrays are frozen.
+resolvedRules.push(mutableRules[0]);
+// @ts-expect-error Resolved rule entries are frozen.
+resolvedRules[0].match = {};
+// @ts-expect-error Nested resolved rule matches are frozen.
+resolvedRules[0].match.feature = 'changed';
+// @ts-expect-error Rule registry maps are frozen.
+rules.ruleSets.consumer.test = {};
 declare const runPorts: RunPorts;
 const run: DopplerRun = createDopplerRun(runPorts);
 const coreVersion: string = RUN_CORE_VERSION;

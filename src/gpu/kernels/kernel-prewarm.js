@@ -1,28 +1,34 @@
 import { getKernelCapabilities } from '../device.js';
-import { KERNEL_CONFIGS } from './kernel-configs.js';
+import { getKernelRegistry } from './kernel-configs.js';
 import { createPipeline, clearPipelineCaches } from './pipeline-cache.js';
 import { clearShaderCaches } from './shader-cache.js';
-import { hasRequiredFeatures } from './feature-check.js';
+import { getKernelWgslRequirements, hasRequiredFeatures } from './feature-check.js';
 import { log } from '../../debug/index.js';
+
+export function listPrewarmKernels(registry, capabilities) {
+  return Object.entries(registry.configs)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([operation, variants]) => [
+      operation,
+      Object.entries(variants)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .filter(([, config]) => hasRequiredFeatures(
+          config.requires, capabilities, getKernelWgslRequirements(config)
+        )),
+    ]);
+}
 
 export async function prewarmKernels(options = {}) {
   const capabilities = getKernelCapabilities();
   const mode = options.mode ?? 'parallel';
-  const entries = Object.entries(KERNEL_CONFIGS)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([operation, variants]) => [
-      operation,
-      Object.entries(variants).sort(([left], [right]) => left.localeCompare(right)),
-    ]);
+  const registry = getKernelRegistry();
+  const entries = listPrewarmKernels(registry, capabilities);
 
   try {
     if (mode === 'sequential') {
       let count = 0;
       for (const [operation, variants] of entries) {
-        for (const [variant, config] of variants) {
-          if (config.requires && !hasRequiredFeatures(config.requires, capabilities)) {
-            continue;
-          }
+        for (const [variant] of variants) {
           try {
             await createPipeline(operation, variant);
             count += 1;
@@ -37,10 +43,7 @@ export async function prewarmKernels(options = {}) {
 
     const jobs = [];
     for (const [operation, variants] of entries) {
-      for (const [variant, config] of variants) {
-        if (config.requires && !hasRequiredFeatures(config.requires, capabilities)) {
-          continue;
-        }
+      for (const [variant] of variants) {
         jobs.push(
           createPipeline(operation, variant)
             .then(() => {})

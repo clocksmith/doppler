@@ -8,29 +8,44 @@ export interface VariantMetadata {
 
 import type { BindingSchema, UniformsSchema } from './schema/kernel-registry.schema.js';
 
+export type DeepReadonly<T> = T extends (...args: never[]) => unknown ? T
+  : T extends readonly unknown[] ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+  : T extends object ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+  : T;
+
 export interface KernelConfig {
-  operation: string;
-  variant: string;
-  shaderFile: string;
-  entryPoint: string;
-  workgroupSize: [number, number, number];
-  requires: string[];
-  requiredWgslFeatures: string[];
-  bindings: BindingSchema[];
-  readonly uniforms: UniformsSchema | null;
-  wgslOverrides?: Record<string, unknown>;
-  sharedMemory?: number;
-  outputDtype?: 'f16' | 'f32';
-  weightDtype?: string;
-  variantMetadata?: VariantMetadata;
+  readonly operation: string;
+  readonly variant: string;
+  readonly shaderFile: string;
+  readonly entryPoint: string;
+  readonly workgroupSize: readonly [number, number, number];
+  readonly requires: readonly string[];
+  readonly requiredWgslFeatures: readonly string[];
+  readonly bindings: readonly DeepReadonly<BindingSchema>[];
+  readonly uniforms: DeepReadonly<UniformsSchema> | null;
+  readonly wgslOverrides?: DeepReadonly<Record<string, unknown>>;
+  readonly sharedMemory?: number;
+  readonly outputDtype?: 'f16' | 'f32';
+  readonly weightDtype?: string;
+  readonly variantMetadata?: DeepReadonly<VariantMetadata>;
 }
 
-export const KERNEL_CONFIGS: Record<string, Record<string, KernelConfig>>;
+export const KERNEL_CONFIGS: Readonly<Record<string, Readonly<Record<string, KernelConfig>>>>;
 export function getKernelConfig(operation: string, variant: string): KernelConfig;
+
+export interface KernelValidationContext {
+  readonly operation: string;
+  readonly variant: string;
+  readonly bindings: readonly unknown[];
+  readonly uniforms: Readonly<Record<string, number>>;
+  readonly workgroups: number | readonly number[] | Readonly<{ indirectBuffer: GPUBuffer; indirectOffset?: number }>;
+  readonly constants: Readonly<Record<string, number | boolean>> | null;
+  readonly extraBindings: readonly unknown[] | null;
+}
 
 export interface KernelValidator {
   readonly id: string;
-  readonly validate: (seqLen: number, numHeads: number, headDim: number) => void;
+  readonly validate: (context: KernelValidationContext) => void;
 }
 export interface KernelRegistry {
   readonly identity: string;

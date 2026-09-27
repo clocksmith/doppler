@@ -1,6 +1,10 @@
 import type { Rule } from './rule-matcher.js';
 
 type RuleSet = Array<Rule<unknown>>;
+type DeepReadonly<T> = T extends readonly unknown[] ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+  : T extends object ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+  : T;
+export type ResolvedRuleSet = ReadonlyArray<DeepReadonly<Rule<unknown>>>;
 
 type RuleDomain = 'kernels' | 'inference' | 'shared' | 'loader' | 'converter' | 'tooling';
 
@@ -33,7 +37,7 @@ type KernelRuleGroup =
 
 type RuleGroup = KernelRuleGroup | string;
 
-export declare function getRuleSet(domain: RuleDomain, group: RuleGroup, name: string): RuleSet;
+export declare function getRuleSet(domain: RuleDomain, group: RuleGroup, name: string): ResolvedRuleSet;
 
 export declare function selectRuleValue<T>(
   domain: RuleDomain,
@@ -78,8 +82,8 @@ export declare function getInferenceLayerPatternContractArtifact(): {
 
 export interface RuleRegistry {
   readonly identity: string;
-  readonly ruleSets: Readonly<Record<string, Readonly<Record<string, Readonly<Record<string, RuleSet>>>>>>;
-  getRuleSet(domain: string, group: string, name: string): RuleSet;
+  readonly ruleSets: Readonly<Record<string, Readonly<Record<string, Readonly<Record<string, ResolvedRuleSet>>>>>>;
+  getRuleSet(domain: string, group: string, name: string): ResolvedRuleSet;
   selectRuleValue<T>(domain: string, group: string, name: string, context: Record<string, unknown>): T;
 }
 export declare function createRuleRegistry(options?: {

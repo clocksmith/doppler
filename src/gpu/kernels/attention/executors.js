@@ -5,7 +5,7 @@ import { KernelBase } from '../kernel-base.js';
 import { TILE_SIZES } from '../constants.js';
 import { getKernelThresholds, padToQ4KBlock } from '../../../config/schema/index.js';
 import { createUniformBufferWithView } from '../uniform-utils.js';
-import { getKernelConfig } from '../kernel-configs.js';
+import { getKernelConfig, getKernelValidator } from '../kernel-configs.js';
 import { getPipelineBindGroupLayout } from '../pipeline-cache.js';
 import { hasRequiredFeatures } from '../feature-check.js';
 import { dispatchIndirect, recordDispatchIndirect } from '../dispatch.js';
@@ -19,13 +19,9 @@ import { getRuntimeConfig } from '../../../config/runtime.js';
 import { getRequiredVariantMaxKVLen, resolveAttentionPlan } from './plan.js';
 
 export let kvLenFallbackBuffer = null;
-
 export let kvLenFallbackBufferEpoch = -1;
-
 export const U32_BYTES = Uint32Array.BYTES_PER_ELEMENT;
-
 export const F32_BYTES = Float32Array.BYTES_PER_ELEMENT;
-
 export function getKvLenFallbackBuffer(device) {
   const epoch = getDeviceEpoch();
   if (!kvLenFallbackBuffer || kvLenFallbackBufferEpoch !== epoch) {
@@ -41,9 +37,7 @@ export function getKvLenFallbackBuffer(device) {
 }
 
 export let pageTableFallbackBuffer = null;
-
 export let pageTableFallbackBufferEpoch = -1;
-
 export function getPageTableFallbackBuffer(device) {
   const epoch = getDeviceEpoch();
   if (!pageTableFallbackBuffer || pageTableFallbackBufferEpoch !== epoch) {
@@ -494,6 +488,12 @@ export async function executeAttention(
     isPaged,
     kernelPath
   );
+
+  getKernelValidator('attention', plan.variant)?.({
+    operation: 'attention', variant: plan.variant, bindings: [Q, K, V, outputBuffer],
+    uniforms: { seqLen, numHeads, headDim, kvLen, numKVHeads },
+    workgroups: plan.workgroups, constants: null, extraBindings: null,
+  });
 
   if (execution.recorder) {
     trace.attn(0, `recordAttention: isDecode=${plan.isDecode}, tier=${plan.tier}, variant=${plan.variant}, seqLen=${seqLen}, kvLen=${kvLen}, numHeads=${numHeads}, headDim=${headDim}, useF16KV=${plan.useF16KV}`);

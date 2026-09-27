@@ -1,4 +1,4 @@
-import { getKernelConfig } from './kernel-configs.js';
+import { getKernelRegistry } from './kernel-configs.js';
 import { getCachedPipeline, getPipelineFast, getPipelineBindGroupLayout } from './pipeline-cache.js';
 import { getDevice } from '../device.js';
 import { dispatchKernel, dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
@@ -35,7 +35,9 @@ export async function unifiedKernelWrapper(
   signal?.throwIfAborted();
   const device = target?.device ?? (target?.createCommandEncoder ? target : getDevice());
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
-  const config = getKernelConfig(opName, variant);
+  const registry = getKernelRegistry();
+  const config = registry.getKernelConfig(opName, variant);
+  const validate = registry.getKernelValidator(opName, variant);
   const pipeline = getCachedPipeline(opName, variant, constants, device)
     ?? await getPipelineFast(opName, variant, null, constants, device);
 
@@ -50,6 +52,8 @@ export async function unifiedKernelWrapper(
       `(excluding uniforms) but got ${bindings.length}`
     );
   }
+
+  validate?.({ operation: opName, variant, bindings, uniforms, workgroups, constants, extraBindings });
 
   for (let i = 0; i < bindings.length; i++) {
     const binding = bindings[i];
