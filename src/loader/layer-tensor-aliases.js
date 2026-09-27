@@ -31,8 +31,10 @@ export const ATTN_SUFFIXES = {
     'ffn_norm.weight',
   ],
   postAttentionNormBias: ['post_attention_layernorm.bias', 'post_attention_norm.bias', 'ffn_norm.bias'],
+  preFeedforwardNormBias: ['pre_feedforward_layernorm.bias'],
   preFeedforwardNorm: ['pre_feedforward_layernorm.weight', 'post_attention_layernorm.weight'],
   preFeedforwardNorm2: ['pre_feedforward_layernorm_2.weight'],
+  postFeedforwardNormBias: ['post_feedforward_layernorm.bias'],
   postFeedforwardNorm: [
     'post_feedforward_layernorm.weight',
     'post_mlp_layernorm.weight',

@@ -176,6 +176,7 @@ export type LayerPipelineOp =
   | 'conv'
   | 'attention'
   | 'rmsnorm'
+  | 'layernorm'
   | 'ffn'
   | 'residual_add'
   | 'cast'
@@ -201,7 +202,7 @@ export interface LayerPipelineStepSchema {
   dst?: string;
   /** Slot name for save/load operations */
   name?: string;
-  /** Norm weight selector (rmsnorm only) */
+  /** Norm affine parameter selector (rmsnorm or layernorm) */
   weight?: LayerPipelineNormWeight;
   /** Residual slot for fused ops (optional) */
   residual?: string | null;
@@ -210,7 +211,7 @@ export interface LayerPipelineStepSchema {
   b?: string;
   /** FFN variant override */
   variant?: 'auto' | 'dense' | 'moe';
-  /** Skip input norm inside attention (use when providing explicit rmsnorm) */
+  /** Skip input norm inside attention (use when providing explicit normalization) */
   skipInputNorm?: boolean;
   /** Optional probe stage to emit for this step */
   probeStage?: ProbeStage;

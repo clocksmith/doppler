@@ -100,15 +100,22 @@ function compileStep(step, index) {
         dst,
         probeStage: step.probeStage,
       });
+    case 'layernorm':
     case 'rmsnorm': {
       if (!step.weight) {
-        throw new Error(`Layer pipeline step "rmsnorm@${index}" requires weight`);
+        throw new Error(`Layer pipeline step "${op}@${index}" requires weight`);
       }
       if (step.weight === 'post_attention') {
         throw new Error(
-          `Layer pipeline step "rmsnorm@${index}" uses removed weight key "post_attention". ` +
+          `Layer pipeline step "${op}@${index}" uses removed weight key "post_attention". ` +
           'Use "post_attn".'
         );
+      }
+      if (op === 'layernorm' && step.residual != null) {
+        throw new Error('LayerNorm requires an explicit residual_add step before normalization.');
+      }
+      if (op === 'layernorm' && !['input', 'post_attn', 'pre_ffn', 'post_ffn'].includes(step.weight)) {
+        throw new Error(`LayerNorm has unknown affine weight selector "${step.weight}".`);
       }
       return withCommon({
         op,
