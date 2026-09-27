@@ -1,6 +1,6 @@
 {
   "name": "doppler-gpu",
-  "version": "0.6.2",
+  "version": "0.6.3-dev.split.1",
   "description": "Doppler Rig prepares signed model Capsules; Doppler Run executes them locally through WebGPU for JavaScript",
   "main": "src/capsule-runtime.js",
   "types": "src/capsule-runtime.d.ts",
@@ -366,6 +366,10 @@
     "./energy": {
       "types": "./src/experimental/energy/index.d.ts",
       "import": "./src/experimental/energy/index.js"
+    },
+    "./partitions": {
+      "types": "./src/inference/pipelines/text/layer-partition-contract.d.ts",
+      "import": "./src/inference/pipelines/text/layer-partition-contract.js"
     }
   },
   "repository": {

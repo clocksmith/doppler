@@ -281,9 +281,9 @@ async function runPartitionApiSmoke(consumerDir, packageJson) {
   if (JSON.stringify(closure) !== JSON.stringify(retained)) throw new Error('Installed runtime closure differs from checked receipt.');
   for (const suffix of ['.js', '.d.ts']) {
     const name = path.join(installedRoot, 'src/inference/pipelines/text/layer-partition-contract' + suffix);
-    if (await fs.stat(name).then(() => true, () => false)) throw new Error('Internal partition source leaked into the installed package.');
+    await fs.access(name);
   }
-  console.log('installed runtime closure and internal-source exclusion checks passed');
+  console.log('installed minimal runtime closure and explicit partition entry checks passed');
 }
 
 async function runCliSmokes(consumerDir, packageJson) {

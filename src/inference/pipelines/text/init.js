@@ -766,7 +766,7 @@ export async function loadWeights(manifest, modelConfig, options = {}) {
   }
   try {
     await dopplerLoader.load(modelId, {
-      verifyHashes,
+      verifyHashes, partition: options.partition,
       onProgress: onProgress || ((info) => {
         // Shard and layer progress are logged by loader with source info
         if (info.stage !== 'layers' && info.stage !== 'shards') {

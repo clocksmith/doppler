@@ -16,6 +16,7 @@
   },
   "include": [],
   "files": [
+    "src/loader/model-load.js",
     "src/inference/pipelines/text.js",
     "src/inference/pipelines/text/embedding-batch.js",
     "src/client/runtime/fetch-capsule-artifact-store.js",

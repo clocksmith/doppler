@@ -52,7 +52,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // rotary source contracts and experimental training; no repository tools.
   // Evidence: artifacts/main-integration-2026-09-19/package-audit.json.
   // The explicit backing-owner port includes its existing declaration in closure.
-  maxEntryCount: 1864,
+  // Explicit partition contract JS/types plus extracted model-load orchestration.
+  // The minimal Capsule root retains its independent closure check.
+  maxEntryCount: 1867,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -104,7 +106,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: artifacts/bounded-consolidation-2026-09-20/cleanup-package-audit.json.
   // Explicit operation contracts, checked scheduling, and cycle-free model dispatch.
   // Evidence: artifacts/bounded-consolidation-2026-09-20/contracts-package-audit.json.
-  maxPackedSize: 2_157_826,
+  // Partition contracts and typed load orchestration: 2,164,412 measured bytes
+  // plus the retained 2,158-byte npm compression allowance. Inventory and scope:
+  // artifacts/reploid-partitions-2026-09-26/package-audit.json.
+  maxPackedSize: 2_166_570,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -128,7 +133,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Stateless ModelIR validation/declaration and maintenance README: +320 bytes,
   // unchanged file count. The delivered loader archive remains separately pinned.
   // Evidence: artifacts/document-search-minilm-embedding-2026-09-26/package-audit.json.
-  maxUnpackedSize: 11_340_942,
+  maxUnpackedSize: 11_359_930,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

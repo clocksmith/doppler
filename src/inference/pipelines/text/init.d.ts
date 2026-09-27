@@ -87,6 +87,7 @@ export function createNodeFileShardStorageContext(
  * External contexts that can be injected into the pipeline.
  */
 export interface PipelineContexts {
+  partition?: import('../../../loader/loader-types.js').LoadOptions['partition'];
   /** Immutable normalized command identity; observation-only, never numeric policy */
   commandContext?: CommandContext | null;
   /** GPU context (device, capabilities) */
@@ -264,6 +265,7 @@ export type ResolvedQ4KConfig = ResolvedWeightLoadingConfig;
 
 /** Options for loadWeights */
 export interface LoadWeightsOptions {
+  partition?: import('../../../loader/loader-types.js').LoadOptions['partition'];
   storageContext?: PipelineStorageContext;
   loadingConfig?: LoadingConfigSchema;
   onProgress?: (info: { stage: string; progress: number }) => void;

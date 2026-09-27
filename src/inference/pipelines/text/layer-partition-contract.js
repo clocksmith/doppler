@@ -94,8 +94,47 @@ export function createLayerPartitionPlan({
     vocabSize,
     splitLayer: split,
     activationDtype,
-    partitions: Object.freeze([Object.freeze(group0), Object.freeze(group1)])
+    partitions: Object.freeze([group0, group1].map(group => Object.freeze({
+      ...group,
+      layerRange: Object.freeze(group.layerRange),
+      inputContract: Object.freeze(group.inputContract),
+      outputContract: Object.freeze(group.outputContract),
+    })))
   });
+}
+
+/** @type {import('./layer-partition-contract.js').resolveLayerPartition} */
+export function resolveLayerPartition(manifest, allocation) {
+  if (allocation == null) return null;
+  const { plan, index } = allocation;
+  if (!plan || plan.schema !== LAYER_PARTITION_SCHEMA || ![0, 1].includes(index)) {
+    throw new Error('Partition allocation requires a Doppler plan and group index.');
+  }
+  const architecture = manifest?.architecture;
+  if (typeof manifest?.modelId !== 'string' || architecture === null || typeof architecture !== 'object'
+    || !('numLayers' in architecture) || typeof architecture.numLayers !== 'number'
+    || !('hiddenSize' in architecture) || typeof architecture.hiddenSize !== 'number'
+    || !('vocabSize' in architecture) || typeof architecture.vocabSize !== 'number') {
+    throw new Error('Partition allocation requires explicit model identity and architecture dimensions.');
+  }
+  const canonical = createLayerPartitionPlan({ modelId: manifest?.modelId,
+    numLayers: architecture?.numLayers, hiddenSize: architecture?.hiddenSize,
+    vocabSize: architecture?.vocabSize, splitLayer: plan.splitLayer,
+    activationDtype: plan.activationDtype });
+  /** @type {(actual: unknown, expected: unknown) => boolean} */
+  const matches = (actual, expected) => {
+    if (expected === null || typeof expected !== 'object') return actual === expected;
+    if (actual === null || typeof actual !== 'object'
+      || Array.isArray(actual) !== Array.isArray(expected)) return false;
+    const keys = Object.keys(expected);
+    return Object.keys(actual).length === keys.length
+      && keys.every(key => Object.hasOwn(actual, key)
+        && matches(Reflect.get(actual, key), Reflect.get(expected, key)));
+  };
+  if (!matches(plan, canonical)) {
+    throw new Error('Partition plan does not match the model manifest.');
+  }
+  return canonical.partitions[index];
 }
 
 /** @type {import('./layer-partition-contract.js').validateActivationTensorShape} */
