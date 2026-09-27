@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": "doppler",
-  "updatedAtUtc": "2026-09-04T00:00:00.000Z",
+  "updatedAtUtc": "2026-09-27T01:34:32.466Z",
   "goals": [
     {
       "id": "open-execution-network",
@@ -125,7 +125,9 @@
           "smokeCommand": null,
           "evidencePaths": [
             "docs/goals.md",
-            "tools/policies/model-release-platform.json"
+            "tools/policies/model-release-platform.json",
+            "artifacts/document-search-maintenance-2026-09-26/README.md",
+            "artifacts/document-search-minilm-embedding-2026-09-26/README.md"
           ],
           "blockers": [
             "external-executable-model-adoption-missing"
@@ -233,7 +235,8 @@
             "docs/product-integration-qualification.md",
             "tools/policies/product-integration-qualification.json",
             "tools/check-product-integration-qualification.js",
-            "tests/config/product-integration-qualification.test.js"
+            "tests/config/product-integration-qualification.test.js",
+            "artifacts/document-search-maintenance-2026-09-26/README.md"
           ],
           "blockers": []
         },
@@ -470,7 +473,8 @@
             "tools/check-provider-conformance.js",
             "tools/record-provider-conformance.js",
             "tools/lib/provider-conformance-evidence.js",
-            "tests/config/provider-conformance.test.js"
+            "tests/config/provider-conformance.test.js",
+            "docs/goals.md"
           ],
           "blockers": [
             "provider-conformance-receipts-missing"
@@ -963,7 +967,8 @@
             "src/config/schema/provider-conformance-suite-promotion.schema.json",
             "src/tooling/program-bundle-parity.js",
             "tests/config/provider-conformance.test.js",
-            "tests/tooling/record-provider-conformance.test.js"
+            "tests/tooling/record-provider-conformance.test.js",
+            "docs/goals.md"
           ],
           "blockers": [
             "provider-conformance-receipts-missing"
@@ -1089,7 +1094,9 @@
       "exitCriteria": "Retain unrelated maintainer acceptance, frozen application-owned outcome improvement with parity-qualified incumbent comparison, maintainer-operated devices, a rejected candidate and recovery, continued use, and a second model revision with measured lower release effort. Free adoption qualifies. Payment, Doe, Poolday, and Reploid are not prerequisites, and neither payment nor peer delivery satisfies this gate.",
       "evidencePaths": [
         "docs/goals.md",
-        "tools/policies/model-release-platform.json"
+        "tools/policies/model-release-platform.json",
+        "artifacts/document-search-maintenance-2026-09-26/README.md",
+        "artifacts/document-search-minilm-embedding-2026-09-26/README.md"
       ]
     },
     {
@@ -1148,8 +1155,8 @@
       "owner": "doppler-runtime",
       "completionClass": "hardware",
       "statusCommand": "npm run provider:conformance:check",
-      "description": "The general three-workload provider portfolio is not qualified. It remains outside the immediate Electron release gate unless that customer's exact workload selects one of these provider lanes.",
-      "exitCriteria": "When an external support commitment requires the broader portfolio, retain current browser and Node provider receipts plus canonical-digest semantic receipts for the exact selected workloads, then promote only the evidenced provider and paired suites. Do not broaden the first Electron release to generation or embedding merely to close this blocker.",
+      "description": "The broader provider portfolio remains unqualified. The next bounded experiment is the unchanged installed search application on Doe and the supported provider; no complete shared comparison or Doe advantage is claimed. Doe remains optional and does not gate unrelated maintenance releases.",
+      "exitCriteria": "Retain the frozen shared search comparison specified in docs/goals.md: identical application, model/program bytes, inputs, quality gates, hardware scope, and timing boundaries; opening, complete queries, allocation peaks, cancellation, cleanup and recovery; minimal reproductions for failed boundaries. An unsupported result closes diagnosis, not provider qualification. Promote only exact evidenced provider/workload tuples and paired suites through the existing conformance path; broader portfolio support remains separate. No customer or payment is required to run or publish this bounded experiment.",
       "evidencePaths": [
         "docs/provider-conformance.md",
         "tools/policies/provider-conformance.json",
@@ -1161,7 +1168,8 @@
         "src/config/schema/provider-conformance-evidence.schema.json",
         "src/config/schema/provider-conformance-provider-promotion.schema.json",
         "src/config/schema/provider-conformance-suite-promotion.schema.json",
-        "tests/tooling/record-provider-conformance.test.js"
+        "tests/tooling/record-provider-conformance.test.js",
+        "docs/goals.md"
       ]
     },
     {
