@@ -1,9 +1,11 @@
 # Resident partition execution
 
-The numerical foundation executes the assigned transformer layers with Doppler's
-existing GPU kernels. It is internal and is not an `openResidentPartition`
-implementation. The public `doppler-gpu/partitions` import remains a contract and
-codec surface.
+The numerical foundation executes assigned transformer layers with Doppler's
+existing GPU kernels. A resident-session implementation and public factory are
+now present in source. The [session checkpoint](../../reports/resident-partitions/20260927-session-checkpoint/README.md)
+retains a physical, same-runtime numerical comparison and the unfinished
+lifecycle, Capsule, packaging, and Reploid integration work. This is not a
+qualified distributed release.
 
 The [Reploid consumer handoff](https://github.com/clocksmith/reploid/blob/main/docs/doppler-partition-handoff.md)
 defines the intended resident-session boundary. Doppler owns numerical execution
@@ -52,9 +54,9 @@ specified in its report.
    Close and cancellation must settle operations before freeing attempt state;
    resident weights survive attempt closure.
 3. Bind sampling, stopping, incremental decoding and allocation limits during
-   opening. Reconcile per-request output limits with decoder finalization: the
-   current Reploid step interface does not carry the request's `maxTokens`.
-   A runner stopping early must not lose the decoder's pending text.
+   opening. Reploid `f5763690` forwards the effective `maxTokens` and requires
+   final decoder output. Connect generation settings and authorized token
+   context to the resident contract; validate both through the public path.
 4. Run Reploid's existing `qualifyDopplerPartitionSessions` harness with real
    residents and an unsplit reference, including multiple attempts and failures.
    Then replace injected browser arithmetic and qualify the installed-package

@@ -1,0 +1,112 @@
+TAP version 13
+# [296.5ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+# [297.7ms][Tokenizer] Loaded HuggingFace 257 tokens (bpe), 1 special patterns, 0 merges
+# capsule-incremental-stream.test: Unicode, stop boundaries, reconstruction, integrity, backpressure, cancellation, limits and embedding deltas passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.650616
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 370.433938
+[node-tests] ok: tests/runtime/capsule-incremental-stream.test.js
+TAP version 13
+# capsule-loading.test: ok (signed metadata; synthetic device)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.831377
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 207.175497
+[node-tests] ok: tests/runtime/capsule-loading.test.js
+TAP version 13
+# ✔ capsule-operation.test.js passed (injected program; contract evidence only)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.804015
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 192.27919
+[node-tests] ok: tests/runtime/capsule-operation.test.js
+TAP version 13
+# ✔ capsule-runtime-entrypoint.test.js passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.04571
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 168.641313
+[node-tests] ok: tests/runtime/capsule-runtime-entrypoint.test.js
+TAP version 13
+# capsule-session-execution: exclusion, cancellation, draining and cleanup failure passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.487309
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100.545391
+[node-tests] ok: tests/runtime/capsule-session-execution.test.js
+TAP version 13
+# ✔ initial-execution-identity.test.js passed
+# initial-execution-identity.test: explicit registry binding passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.650386
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 333.836774
+[node-tests] ok: tests/runtime/initial-execution-identity.test.js
+[node-tests] ok: 6 files

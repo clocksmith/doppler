@@ -413,6 +413,7 @@
     "utils": "compatibility surfaces for relocated neutral contracts"
   },
   "rootFileOwners": {
+    "partitions": "client",
     "bootstrap": "client",
     "index-browser": "client",
     "index": "client",
