@@ -135,7 +135,9 @@ renewal requires a new deliverable and does not mutate these archives.
 
 The [MiniLM embedding checkpoint](../artifacts/document-search-minilm-embedding-2026-09-26/README.md)
 retains a larger frozen confirmation corpus and its independent source reference.
-Stateless source ModelIR validates, but BERT lowering, Doppler numerical parity,
+The [affine normalization prerequisite](../artifacts/document-search-minilm-layernorm-2026-09-26/README.md)
+adds explicit layer-plan LayerNorm and failure cleanup with scoped physical checks.
+Stateless source ModelIR validates, but complete BERT lowering, Doppler numerical parity,
 signed release, and installed mixed-pair acceptance remain unfinished. CPU
 screening does not establish WebGPU support or a distribution size.
 

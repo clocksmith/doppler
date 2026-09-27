@@ -260,8 +260,10 @@ export async function loadLayer(ctx, layerIdx) {
     postAttentionNorm: null,
     postAttentionNormBias: null,
     preFeedforwardNorm: null,
+    preFeedforwardNormBias: null,
     preFeedforwardNorm2: null,
     postFeedforwardNorm: null,
+    postFeedforwardNormBias: null,
     postFeedforwardNorm1: null,
     postFeedforwardNorm2: null,
     postNorm: null,
@@ -422,8 +424,10 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     postAttentionNorm,
     postAttentionNormBias,
     preFeedforwardNorm,
+    preFeedforwardNormBias,
     preFeedforwardNorm2,
     postFeedforwardNorm,
+    postFeedforwardNormBias,
     postFeedforwardNorm1,
     postFeedforwardNorm2,
     postPerLayerInputNorm,
@@ -458,8 +462,10 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     tryLoadNorm(ATTN_SUFFIXES.postAttentionNorm),
     tryLoadNorm(ATTN_SUFFIXES.postAttentionNormBias),
     tryLoadNorm(ATTN_SUFFIXES.preFeedforwardNorm),
+    tryLoadNorm(ATTN_SUFFIXES.preFeedforwardNormBias),
     tryLoadNorm(ATTN_SUFFIXES.preFeedforwardNorm2),
     tryLoadNorm(ATTN_SUFFIXES.postFeedforwardNorm),
+    tryLoadNorm(ATTN_SUFFIXES.postFeedforwardNormBias),
     tryLoadNorm(ATTN_SUFFIXES.postFeedforwardNorm1),
     tryLoadNorm(ATTN_SUFFIXES.postFeedforwardNorm2),
     tryLoadNorm(ATTN_SUFFIXES.postPerLayerInputNorm),
@@ -504,8 +510,10 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
   weights.postAttentionNorm = postAttentionNorm;
   weights.postAttentionNormBias = postAttentionNormBias;
   weights.preFeedforwardNorm = preFeedforwardNorm;
+  weights.preFeedforwardNormBias = preFeedforwardNormBias;
   weights.preFeedforwardNorm2 = preFeedforwardNorm2;
   weights.postFeedforwardNorm = postFeedforwardNorm;
+  weights.postFeedforwardNormBias = postFeedforwardNormBias;
   weights.postFeedforwardNorm1 = postFeedforwardNorm1;
   weights.postFeedforwardNorm2 = postFeedforwardNorm2;
   weights.postPerLayerInputNorm = postPerLayerInputNorm;

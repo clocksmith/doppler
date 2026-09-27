@@ -66,8 +66,10 @@ export interface LayerWeights {
   postAttentionNorm: GPUBuffer | Float32Array | null;
   postAttentionNormBias?: GPUBuffer | Float32Array | null;
   preFeedforwardNorm: GPUBuffer | Float32Array | null;
+  preFeedforwardNormBias?: GPUBuffer | Float32Array | null;
   preFeedforwardNorm2?: GPUBuffer | Float32Array | null;
   postFeedforwardNorm: GPUBuffer | Float32Array | null;
+  postFeedforwardNormBias?: GPUBuffer | Float32Array | null;
   postFeedforwardNorm1?: GPUBuffer | Float32Array | null;
   postFeedforwardNorm2?: GPUBuffer | Float32Array | null;
   postNorm: GPUBuffer | Float32Array | null;

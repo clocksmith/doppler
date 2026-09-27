@@ -118,3 +118,24 @@ Theta-generated execution leaves the shader's default path selected, allowing
 older signed shaders without that specialization to remain executable. Their
 sealed WGSL is not replaced during opening. The physical GPU regression retains
 the exact pre-change shader as its compatibility input.
+
+## Explicit affine LayerNorm in layer plans
+
+A layer plan may declare `op: "layernorm"` with `weight` selecting `input`,
+`post_attn`, `pre_ffn`, or `post_ffn`. The corresponding affine scale and bias
+must both exist. The execution-v1 tuple form is
+`["layernorm", "<pinned kernel key>", "<affine selector>"]`; lowering preserves
+that selector in the layer plan. Missing parameters fail rather than synthesizing
+identity scale or zero bias. Pre/post-FFN bias tensors use the canonical
+`pre_feedforward_layernorm.bias` and `post_feedforward_layernorm.bias` names.
+
+LayerNorm consumes the declared normalization epsilon and preserves input dtype.
+Dtype changes require a separate cast. A residual addition must be an explicit
+preceding `residual_add` step, preserving source order; LayerNorm does not accept
+a fused `residual` operand. Existing `rmsnorm` plans retain their semantics.
+
+This additive operation requires a newly prepared and qualified execution plan;
+it does not rewrite signed artifacts or establish BERT/MiniLM support. Immediate
+and recorded execution use the existing LayerNorm WGSL implementation. Failure
+cleanup retains borrowed inputs and releases owned current-state and temporary
+buffers, with recorded buffers retained until recorder cleanup permits reuse.

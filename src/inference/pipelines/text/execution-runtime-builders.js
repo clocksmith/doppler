@@ -11,6 +11,7 @@ export const PIPELINE_COMPATIBLE_OPS = new Set([
   'conv',
   'attention',
   'rmsnorm',
+  'layernorm',
   'ffn',
   'residual_add',
   'cast',
@@ -327,6 +328,7 @@ export function buildLayerPipelineFromExecution(steps, options = {}) {
         ...(step.probeStage ? { probeStage: step.probeStage } : {}),
         ...(step.name ? { name: step.name } : {}),
         ...(step.weight ? { weight: step.weight } : {}),
+        ...(step.op === 'layernorm' && step.weights ? { weight: step.weights } : {}),
       };
     });
 

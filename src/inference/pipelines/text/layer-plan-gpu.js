@@ -3,7 +3,7 @@
 import { getDevice } from '../../../gpu/device.js';
 import { releaseBuffer } from '../../../memory/buffer-pool.js';
 import { createTensor } from '../../../gpu/tensor.js';
-import { doAttention, doRMSNorm, doResidualAdd, doConv, doCast, releaseOrTrack } from './ops.js';
+import { doAttention, doRMSNorm, doLayerNorm, doResidualAdd, doConv, doCast, releaseOrTrack } from './ops.js';
 import { getWeightBuffer, getNormWeightBuffer } from './weights.js';
 import { runProbes } from './probes.js';
 import { getLayerPlanSteps, filterLayerPlanStepsByPhase } from './layer-plan.js';
@@ -11,7 +11,7 @@ import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { recordCheckFiniteness } from '../../../gpu/kernels/check-finiteness.js';
 import { shouldRunFinitenessGuard } from './finiteness-policy.js';
 import { isRoPEDisabledForLayer } from './attention/heterogeneous-contract.js';
-import { isGpuBufferInstance, isWeightBuffer } from '../../../gpu/weight-buffer.js';
+import { isGpuBufferInstance, isWeightBuffer, requireWeightDtype } from '../../../gpu/weight-buffer.js';
 import {
   isSlidingLayerType,
   resolveActivationDtype,
@@ -57,6 +57,13 @@ function resolveResidualOutputScaleForPlan(steps, stepIndex, config, context, la
   }
   return resolveLayerScalarValue(layerWeights?.layerScalar ?? null);
 }
+
+const PLAN_NORM_BIAS_FIELDS = Object.freeze({
+  input: 'inputNormBias',
+  post_attn: 'postAttentionNormBias',
+  pre_ffn: 'preFeedforwardNormBias',
+  post_ffn: 'postFeedforwardNormBias',
+});
 
 function resolveNormWeightForPlan(weight, layerWeights) {
   if (!layerWeights) return null;
@@ -208,18 +215,10 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
   setSlot('state', inputBuffer, activationDtype);
 
   const cleanupSlots = () => {
-    for (const [name, buf] of slots) {
-      if (name === 'state' || protectedBuffers.has(buf)) continue;
-      const refs = refCounts.get(buf) ?? 0;
-      if (refs > 0) {
-        refCounts.delete(buf);
-        if (recorder) {
-          recorder.trackTemporaryBuffer(buf);
-        } else {
-          releaseBuffer(buf);
-        }
-      }
+    for (const buf of refCounts.keys()) {
+      if (!protectedBuffers.has(buf)) releaseOrTrack(recorder, buf);
     }
+    refCounts.clear();
   };
 
   try {
@@ -366,6 +365,46 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
               recorder,
               operatorDiagnostics: context.operatorDiagnostics,
               dtype: outputDtype,
+            });
+          }
+          break;
+        }
+        case 'layernorm': {
+          const inputDtype = resolveStepInputDtype(step, step.src);
+          const outputDtype = resolveStepOutputDtype(step, inputDtype);
+          const weight = resolveNormWeightForPlan(step.weight, layerWeights);
+          const bias = layerWeights?.[PLAN_NORM_BIAS_FIELDS[step.weight]];
+          if (!weight || !bias) {
+            throw new Error(`Layer pipeline LayerNorm requires affine weight and bias for "${step.weight}" at L${layerIdx}.`);
+          }
+          const srcTensor = createTensor(
+            getSlot(step.src), inputDtype, [numTokens, hiddenSize], 'plan_layernorm_src'
+          );
+          let weightBuffer = null;
+          let biasBuffer = null;
+          try {
+            weightBuffer = getNormWeightBuffer(weight, 'plan_layernorm_weight', weightConfig, debugFlags, device);
+            biasBuffer = getNormWeightBuffer(bias, 'plan_layernorm_bias', weightConfig, debugFlags, device);
+            const output = await doLayerNorm(srcTensor, weightBuffer, biasBuffer, rmsNormEps, {
+              batchSize: numTokens,
+              hiddenSize,
+              normWeightDtype: requireWeightDtype(weightBuffer, 'plan LayerNorm weight'),
+              label: `L${layerIdx}.layernorm_${step.weight}`,
+              layerIdx,
+            }, recorder);
+            setSlot(step.dst, output.buffer, outputDtype);
+          } finally {
+            if (weightBuffer && !isGpuBufferInstance(weight) && !isWeightBuffer(weight)) {
+              releaseOrTrack(recorder, weightBuffer);
+            }
+            if (biasBuffer && !isGpuBufferInstance(bias) && !isWeightBuffer(bias)) {
+              releaseOrTrack(recorder, biasBuffer);
+            }
+          }
+          if (step.probeStage) {
+            await runProbes(step.probeStage, getSlot(step.dst), {
+              layerIdx, numTokens, hiddenSize, probes: context.debugProbes,
+              recorder, operatorDiagnostics: context.operatorDiagnostics, dtype: outputDtype,
             });
           }
           break;
@@ -563,37 +602,37 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
         setSlot('state', scaledTensor.buffer, resolveActivationDtype(scaledTensor.dtype));
       }
     }
+
+    const output = getSlot('state');
+    await runProbes('layer_out', output, {
+      layerIdx,
+      numTokens,
+      hiddenSize,
+      probes: context.debugProbes,
+      recorder,
+      operatorDiagnostics: context.operatorDiagnostics,
+      dtype: getSlotDtype('state') ?? activationDtype,
+    });
+
+    const computeConfig = context.runtimeComputeConfig ?? null;
+    const shouldCheckFiniteness = context.finitenessGuardEnabled !== undefined
+      ? context.finitenessGuardEnabled
+      : shouldRunFinitenessGuard(context.activationDtype, computeConfig);
+    if (context.finitenessBuffer && context.activationDtype === 'f16' && shouldCheckFiniteness) {
+      await recordCheckFiniteness(
+        recorder,
+        output,
+        size,
+        context.finitenessBuffer,
+        layerIdx,
+        context.step,
+        context.finitenessAbsThreshold
+      );
+    }
+
+    return output;
   } catch (err) {
     cleanupSlots();
     throw err;
   }
-
-  const output = getSlot('state');
-  await runProbes('layer_out', output, {
-    layerIdx,
-    numTokens,
-    hiddenSize,
-    probes: context.debugProbes,
-    recorder,
-    operatorDiagnostics: context.operatorDiagnostics,
-    dtype: getSlotDtype('state') ?? activationDtype,
-  });
-
-  const computeConfig = context.runtimeComputeConfig ?? null;
-  const shouldCheckFiniteness = context.finitenessGuardEnabled !== undefined
-    ? context.finitenessGuardEnabled
-    : shouldRunFinitenessGuard(context.activationDtype, computeConfig);
-  if (context.finitenessBuffer && context.activationDtype === 'f16' && shouldCheckFiniteness) {
-    await recordCheckFiniteness(
-      recorder,
-      output,
-      size,
-      context.finitenessBuffer,
-      layerIdx,
-      context.step,
-      context.finitenessAbsThreshold
-    );
-  }
-
-  return output;
 }

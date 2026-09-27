@@ -1,0 +1,125 @@
+TAP version 13
+# [91.3ms][ExecutionV1] Capability transforms applied: [useQwenF16PrimaryMatmuls] (Runtime explicitly requested the selective f16 probe lane for Qwen 3.5 small execution-v1 Q4K models with the shared linear/full attention graph. Promotion remains device- and evidence-specific.)
+# [99.1ms][ExecutionRuntime] [Execution] Layer pipeline contains ops not in PIPELINE_COMPATIBLE_OPS: input_norm, q_proj, k_proj, v_proj, rope_q, rope_k, o_proj, attn_residual, post_attn_norm, gate_proj, up_proj, activation, down_proj, ffn_residual. Pipeline will be degraded.
+# [99.4ms][ExecutionV1] Capability transforms applied: [narrowToF16Activations] (Runtime requested f16 activations on a shader-f16 GPU.)
+# [100.5ms][ExecutionV1] Capability transforms applied: [widenToF32CorrectnessFallback] (Runtime KV cache resolved f32.)
+# [101.2ms][ExecutionV1] Capability transforms applied: [widenToF32CorrectnessFallback] (Runtime KV cache resolved f32.)
+# [101.8ms][ExecutionV1] Capability transforms applied: [widenToF32CorrectnessFallback] (Runtime KV cache resolved f32.)
+# execution-v1-schema.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.117385
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 140.200996
+[node-tests] ok: tests/config/execution-v1-schema.test.js
+TAP version 13
+# ffn-execution-v1-precision-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.126863
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 208.691231
+[node-tests] ok: tests/inference/ffn-execution-v1-precision-contract.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# layer-plan-layernorm.test: physical immediate/recorded parity and failure cleanup passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.186826
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 285.762141
+[node-tests] ok: tests/inference/layer-plan-layernorm.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+# [234.2ms][KernelSelect] matmul variant=f32 reason=default
+# lfm2-layer-plan-conv-state.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.259262
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 290.333342
+[node-tests] ok: tests/inference/lfm2-layer-plan-conv-state.test.js
+TAP version 13
+# Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+# [GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.9ms
+# layer-loader-affine-norm.test: declared affine biases retained; missing biases remain null
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.313274
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 240.364048
+[node-tests] ok: tests/loader/layer-loader-affine-norm.test.js
+TAP version 13
+# layer-loader-qk-norm-shape.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.155717
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 180.183598
+[node-tests] ok: tests/loader/layer-loader-qk-norm-shape.test.js
+[node-tests] ok: 6 files
