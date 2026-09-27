@@ -24,6 +24,14 @@ as RAG remains a separate application decision. Treat privacy, offline availabil
 portability as scoped acceptance requirements, not automatic WebGPU guarantees.
 See the goals for host prerequisites, release-history limits, and GPU lifecycle semantics.
 
+**Current Search Sequence:** Maintain the published faster starter; qualify MiniLM
+embeddings with the incumbent reranker; complete one bounded unchanged-application
+Doe/provider comparison; support independent use through a second application
+revision. Follow the [canonical sequence and acceptance](docs/goals.md#bounded-portability-after-browser-delivery).
+Qwen quantization and abstention research do not block delivery. Doe stays optional;
+generation remains an independent active priority. Do not reopen delivered loader
+or Node work as unfinished, or mark MiniLM/Doe acceptance complete from planning.
+
 **File Extensions:** Always use `.js`. Never create `.mjs` files. The repo uses `"type": "module"` in `package.json`, so all `.js` files are ES modules. The `.mjs` extension is redundant and prohibited.
 
 **See also:** [REPLOID](https://github.com/clocksmith/reploid) for browser-native AI agent orchestration.

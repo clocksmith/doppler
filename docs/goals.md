@@ -97,9 +97,12 @@ repository-hygiene work as unfinished milestones.
 The next bounded search increments precede Electron expansion; they do not gate
 the standalone generation work above:
 
-1. Measure complete opening, accelerate authenticated loading, distinguish
-   preparation costs, and bound acquisition and verified-backing lifetimes while
-   keeping both search models resident.
+1. Maintain the delivered faster starter and its exact retained runtime archive.
+   Preserve historical digest behavior and previous archives. Report fresh
+   acquisition, process reopening, and repeated queries separately; distinguish
+   warm filesystem cache from reboot/cold-cache evidence. Browser qualification
+   is separate. Reboot and smaller-memory work must not delay a narrowly qualified
+   Node maintenance release. Profile before selecting another loading change.
 2. Advance MiniLM embeddings against their own source reference, then qualify
    the installed mixed pair with the incumbent reranker and a rebuilt index.
    Keep Qwen quantization and abstention rejected and independent: their diagnosis
@@ -107,7 +110,10 @@ the standalone generation work above:
    A 300 MB combined download remains a provisional objective, not a feasibility
    claim or an all-or-nothing gate. Qualify persistent storage and an ordinary
    smaller-memory machine without developer-only browser flags.
-3. Supply a versioned application setup recipe around the existing controller,
+3. Complete one [shared search comparison with Doe](#bounded-doe-search-integration)
+   using the unchanged application and a supported incumbent provider. Doe is an
+   optional evaluated provider, never a release prerequisite or automatic winner.
+4. Supply a versioned application setup recipe around the existing controller,
    then support an independently operated integration through a second revision.
    Actual corpus, download, quality, opening, hardware, and maintenance constraints
    determine success; payment is optional.
@@ -133,6 +139,55 @@ Stateless source ModelIR validates, but BERT lowering, Doppler numerical parity,
 signed release, and installed mixed-pair acceptance remain unfinished. CPU
 screening does not establish WebGPU support or a distribution size.
 
+#### Bounded Doe search integration
+
+This is planned work: the maintenance acceptance does not establish a completed
+Doe comparison, useful Doe advantage, or Doe support for this application.
+Package the same installed `search.js` and application controller as a shared
+provider comparison. Use the existing provider adapter and conformance path;
+do not build a parallel search implementation or require another architecture
+campaign. Keep browser and Node claims separate.
+
+Freeze exact runtime, application, model/weight, tokenizer, shader/Program Bundle,
+corpus, preprocessing, input-shape, quality-gate, and timing-boundary identities
+before measuring. Run the supported incumbent provider and Doe on the same
+declared hardware/workload with both models resident. A provider-specific signed
+release may bind its environment; it must not silently change computation.
+Record missing capabilities or failed qualification rather than changing the
+workload to make the comparison pass. A smaller embedding release is a separate
+experiment and must not replace either arm mid-comparison.
+
+Measure fresh acquisition, opening, complete embedding-plus-reranking queries,
+and repeated use separately. Retain balanced repeated observations, process RSS,
+peak requested GPU allocations (not physical residency), index reuse, submitted
+cancellation, explicit cleanup, corruption repair, and device-loss recovery.
+Preserve failed attempts and numerical/quality results alongside timing; a
+provider cannot win by omitting a stage or weakening the frozen quality gate.
+
+Doppler owns model preparation, authenticated loading, and application probes;
+Doe owns its shader compilation and native execution diagnosis. Retain minimal
+reproductions with exact inputs/program bytes and observations at that boundary.
+Publish reproduction artifacts and the scoped comparison result, including a
+negative or inconclusive result. The comparison is complete when both executions
+and lifecycle outcomes are reviewable under the frozen contract, or an explicit
+unsupported boundary is reproduced; an unsupported result is not application
+qualification. Adopt Doe only where it demonstrates a useful measured advantage
+with accepted correctness and maintenance cost. Keep alternative providers
+supported. No portfolio-wide provider promotion, payment, or external adoption
+is required to release unrelated technically qualified maintenance improvements.
+
+#### Research and independent integration
+
+Keep rejected Qwen quantization and abstention policies separate from delivery.
+Do not resume threshold tuning without a new decision-rule hypothesis, waive
+numerical gates, or imply calibrated answers from ranked passages. Recruit one
+unrelated developer with a real text-search feature; retain setup friction, their
+own documents, comparison against a feasible alternative, useful query quality,
+opening cost, and voluntary use through a second application revision. An
+invitation or controlled upgrade is not adoption. Fix observed integration
+problems; avoid adding governance machinery as a substitute for useful software.
+Payment and completed independent adoption are not release prerequisites.
+
 The [first compact-candidate experiments](../artifacts/document-search-compact-2026-09-26/README.md)
 freeze application quality inputs and retain failed smaller-model and quantized
 embedding results. Neither candidate replaces the reference pair. The expanded
@@ -147,9 +202,9 @@ after policy development. A missing qualified abstention policy means
 Do not begin a broad model search on the basis of the combined-pair failure.
 
 Keep useful search computation callable without browser storage, page configuration,
-or UI events. After browser acceptance, reuse that computation through a small Node
-command-line runner with the current candidate, host-qualified models, and unchanged
-correctness references. Historical Node receipts do not qualify newer archives.
+or UI events. The installed Node runner already reuses it with host-qualified
+models. Maintain that runner and requalify changed assets against unchanged
+correctness references; historical Node receipts do not qualify newer archives.
 
 Then test installed assets, loading, cancellation, window closure, reopening, and
 recovery in a packaged application with an explicitly pinned Electron version.

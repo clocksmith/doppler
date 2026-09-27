@@ -24,6 +24,13 @@ it does not wait for compact search acceptance. Evaluate a bounded selected-text
 rewriting application first, retaining facts and user control. This is a use-case
 hypothesis, not a claim of model quality or a decision to add RAG.
 
+The [bounded search sequence](docs/goals.md#bounded-portability-after-browser-delivery)
+maintains the faster released starter, advances an independently qualified smaller
+embedding component, and evaluates one unchanged search application on Doe and
+the supported provider. Rig → Capsule → Run stays intact. Provider comparison
+and independent integration produce evidence; neither makes Doe or payment a
+prerequisite for shipping qualified improvements.
+
 ## Invariants
 
 - Model execution runs locally through declared WebGPU implementations; no silent

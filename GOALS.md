@@ -61,6 +61,15 @@ Prioritize it over nonzero-adapter qualification and further structural cleanup,
 except for a concrete defect blocking the application. Preserve the completed
 loading and resource-ownership repairs.
 
+The [current bounded search priorities](docs/goals.md#bounded-portability-after-browser-delivery)
+are maintaining the faster released starter, qualifying MiniLM embeddings with
+the incumbent reranker, and one rigorous comparison of the unchanged application
+on Doe and the supported provider. Keep Qwen quantization and abstention research
+independent. Recruit a developer using real documents through a second application
+revision; neither payment nor completed adoption gates technical release. Doe
+remains optional and earns adoption through measured useful advantages. These
+search priorities do not cancel the standalone generation work above.
+
 Build around the existing `createDocumentSearch()` in
 `examples/document-search/search.js`, not a second search engine in the generic
 capability example. Open embedding and reranking sessions once, index unchanged
@@ -86,10 +95,10 @@ outcome to earn, not permission to ship. Report exact-package execution,
 declared support, and adoption separately; customer fleets, paid releases, and
 design partners cannot create or invalidate physical qualification.
 
-Preserve the scoped browser search delivery. Keep its computation independent of browser storage
-and UI events, then exercise it through a small Node runner and a packaged
-Electron application using current candidate bytes and unchanged correctness
-references. Qualify each host separately. Electron acceptance includes isolated,
+Preserve the scoped browser and Node search deliveries. Keep their shared computation
+independent of browser storage and UI events; packaged Electron remains a later
+extension using current candidate bytes and unchanged correctness references.
+Qualify each host separately. Electron acceptance includes isolated,
 sandboxed renderers, installed assets, cancellation, window closure/reopening,
 and recovery. Bun stays experimental while individual capabilities acquire scoped
 execution and lifecycle evidence; incomplete portfolio support must not hide a
