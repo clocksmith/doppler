@@ -9,7 +9,7 @@ export type {
 export function setKernelValidator(
   operation: string,
   variant: string,
-  validator: (seqLen: number, numHeads: number, headDim: number) => void
+  validator: KernelValidator['validate']
 ): void;
 
 import type { KernelRegistry, KernelRegistryOptions, KernelConfig, KernelValidator } from '../../config/kernel-registry-contract.js';

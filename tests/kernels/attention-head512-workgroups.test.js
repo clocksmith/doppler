@@ -7,6 +7,7 @@ import { probeNodeGPU } from '../helpers/gpu-probe.js';
 import { destroyDevice, getDevice } from '../../src/gpu/device.js';
 import { createTensor } from '../../src/gpu/tensor.js';
 import { runAttention } from '../../src/gpu/kernels/attention.js';
+import { createKernelRegistry, enterKernelRegistry, getDefaultKernelRegistry } from '../../src/gpu/kernels/kernel-configs.js';
 import { readBuffer } from '../../src/memory/buffer-pool.js';
 import { f32ToF16Array, f16ToF32Bits } from '../../src/inference/kv-cache/types.js';
 
@@ -86,13 +87,11 @@ try {
     },
     decode: { steps: [] },
   };
-  const output = await runAttention(
+  const attentionArgs = [
     createTensor(qBuffer, 'f32', [seqLen, numHeads, headDim], 'attention_head512_q'),
     createTensor(kBuffer, 'f16', [kvLen, numKVHeads * headDim], 'attention_head512_k'),
     createTensor(vBuffer, 'f16', [kvLen, numKVHeads * headDim], 'attention_head512_v'),
-    null,
-    numHeads,
-    headDim,
+    null, numHeads, headDim,
     {
       seqLen,
       kvLen,
@@ -102,8 +101,9 @@ try {
       layerIdx: 5,
       kernelPath,
       outputBuffer,
-    }
-  );
+    },
+  ];
+  const output = await runAttention(...attentionArgs);
   const actual = new Float32Array(await readBuffer(output.buffer, seqLen * numHeads * headDim * 4));
   const checkedToken = 18;
   const checkedOffset = (checkedToken * numHeads) * headDim;
@@ -112,6 +112,26 @@ try {
     Math.abs(actual[checkedOffset] - expected) < 1e-3,
     `head512 prefill must dispatch tail query block: got ${actual[checkedOffset]}, expected ${expected}`
   );
+  const defaultValidator = getDefaultKernelRegistry().getKernelValidator('attention', 'prefill');
+  assert.throws(() => defaultValidator({
+    operation: 'attention', variant: 'prefill', bindings: [], workgroups: 1,
+    constants: null, extraBindings: null,
+    uniforms: { seqLen: device.limits.maxComputeWorkgroupsPerDimension + 1, numHeads: 1, headDim: 64 },
+  }), /Attention parameters exceed device limits/);
+  let validations = 0;
+  const scopedRegistry = createKernelRegistry({ validators: { attention: { prefill_head512_f16kv: {
+    id: 'test.attention.head512/v1', validate: ({ uniforms }) => {
+      validations++;
+      assert.equal(uniforms.seqLen, seqLen);
+      assert.equal(uniforms.headDim, headDim);
+      throw new Error('scoped attention rejected');
+    },
+  } } } });
+  const restore = enterKernelRegistry(scopedRegistry);
+  try { await assert.rejects(runAttention(...attentionArgs), /scoped attention rejected/); }
+  finally { restore(); }
+  assert.equal(validations, 1);
+  assert.deepEqual(new Float32Array(await readBuffer(outputBuffer, actual.byteLength)), actual);
 } finally {
   qBuffer.destroy();
   kBuffer.destroy();

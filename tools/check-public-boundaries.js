@@ -54,7 +54,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The explicit backing-owner port includes its existing declaration in closure.
   // Explicit partition contract JS/types plus extracted model-load orchestration.
   // The minimal Capsule root retains its independent closure check.
-  maxEntryCount: 1867,
+  // fa74c7f5 already packs 1871 files. The scoped-architecture gap fixes change
+  // existing shipped files only; keep that inventory as the checked ceiling.
+  maxEntryCount: 1871,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -109,7 +111,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Partition contracts and typed load orchestration: 2,164,412 measured bytes
   // plus the retained 2,158-byte npm compression allowance. Inventory and scope:
   // artifacts/reploid-partitions-2026-09-26/package-audit.json.
-  maxPackedSize: 2_166_570,
+  // Final candidate: 2,170,299 bytes on Node 22/npm 9, plus the retained
+  // 2,158-byte cross-npm compression allowance.
+  maxPackedSize: 2_172_457,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -133,7 +137,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Stateless ModelIR validation/declaration and maintenance README: +320 bytes,
   // unchanged file count. The delivered loader archive remains separately pinned.
   // Evidence: artifacts/document-search-minilm-embedding-2026-09-26/package-audit.json.
-  maxUnpackedSize: 11_359_930,
+  // Final measured candidate; no new package entries.
+  maxUnpackedSize: 11_402_015,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

@@ -10,7 +10,7 @@ import {
   setActiveKernelPath,
 } from '../../../config/kernel-path-loader.js';
 import { prewarmKernels } from '../../../gpu/kernels/index.js';
-import { KERNEL_CONFIGS } from '../../../gpu/kernels/kernel-configs.js';
+import { getKernelRegistry } from '../../../gpu/kernels/kernel-configs.js';
 import { initTokenizer } from './init.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { mergeRuntimeValues } from '../../../config/runtime-merge.js';
@@ -352,37 +352,34 @@ function normalizeKernelFileName(kernel) {
   return parts[parts.length - 1] ?? normalized;
 }
 
-function buildKernelRequiredFeaturesByShaderEntry() {
+function buildKernelRequiredFeaturesByShaderEntry(registry) {
   const index = new Map();
-  for (const variantsByOperation of Object.values(KERNEL_CONFIGS ?? {})) {
-    if (!variantsByOperation || typeof variantsByOperation !== 'object') continue;
-    for (const variantConfig of Object.values(variantsByOperation)) {
-      if (!variantConfig || typeof variantConfig !== 'object') continue;
-      const shaderFile = normalizeKernelFileName(variantConfig.shaderFile);
+  for (const variants of Object.values(registry.configs)) {
+    for (const config of Object.values(variants)) {
+      const shaderFile = normalizeKernelFileName(config.shaderFile);
       if (!shaderFile) continue;
-      const entryPoint = String(variantConfig.entryPoint ?? 'main').trim() || 'main';
-      const key = `${shaderFile}#${entryPoint}`;
+      const key = `${shaderFile}#${config.entryPoint}`;
       const requires = index.get(key) ?? new Set();
-      for (const requirement of variantConfig.requires ?? []) {
-        const normalizedRequirement = String(requirement ?? '').trim();
-        if (!normalizedRequirement) continue;
-        requires.add(normalizedRequirement);
-      }
+      for (const requirement of config.requires) requires.add(requirement);
       index.set(key, requires);
     }
   }
   return index;
 }
 
-const KERNEL_REQUIRED_FEATURES_BY_SHADER_ENTRY = buildKernelRequiredFeaturesByShaderEntry();
+const requiredFeaturesByRegistry = new WeakMap();
+function getKernelRequiredFeaturesByShaderEntry(registry) {
+  const cached = requiredFeaturesByRegistry.get(registry);
+  if (cached) return cached;
+  const index = buildKernelRequiredFeaturesByShaderEntry(registry);
+  requiredFeaturesByRegistry.set(registry, index);
+  return index;
+}
 
 function collectKernelPathSteps(kernelPath) {
   const steps = [];
   const append = (list) => {
-    for (const step of list ?? []) {
-      if (!step || typeof step !== 'object') continue;
-      steps.push(step);
-    }
+    for (const step of list ?? []) if (step && typeof step === 'object') steps.push(step);
   };
   append(kernelPath?.decode?.steps);
   append(kernelPath?.prefill?.steps);
@@ -396,10 +393,10 @@ function collectKernelPathSteps(kernelPath) {
   }
   return steps;
 }
-
-function findKernelPathUnsupportedFeatureUsages(kernelPath, capabilities) {
+function findKernelPathUnsupportedFeatureUsages(kernelPath, capabilities, registry) {
   const offenders = [];
   const seen = new Set();
+  const requiredFeatures = getKernelRequiredFeaturesByShaderEntry(registry);
   const hasSubgroups = capabilities?.hasSubgroups === true;
   const hasF16 = capabilities?.hasF16 === true;
   for (const step of collectKernelPathSteps(kernelPath)) {
@@ -407,7 +404,7 @@ function findKernelPathUnsupportedFeatureUsages(kernelPath, capabilities) {
     if (!kernelFile) continue;
     const entryPoint = String(step.entry ?? 'main').trim() || 'main';
     const key = `${kernelFile}#${entryPoint}`;
-    const requirements = KERNEL_REQUIRED_FEATURES_BY_SHADER_ENTRY.get(key);
+    const requirements = requiredFeatures.get(key);
     if (!requirements) continue;
 
     for (const requirement of requirements) {
@@ -448,9 +445,10 @@ function assertKernelPathFeatureCompatibility(
   resolvedKernelPath,
   kernelPathSource,
   capabilities,
-  kernelPathPolicy
+  kernelPathPolicy,
+  registry
 ) {
-  const unsupportedUsages = findKernelPathUnsupportedFeatureUsages(resolvedKernelPath, capabilities);
+  const unsupportedUsages = findKernelPathUnsupportedFeatureUsages(resolvedKernelPath, capabilities, registry);
   if (unsupportedUsages.length === 0) return;
 
   const sourceScope = kernelPathPolicy.sourceScope ?? kernelPathPolicy.allowSources ?? [];
@@ -749,6 +747,7 @@ function applyKernelPathRuntimeDtypeContract(
 }
 
 export function resolveKernelPathState(options) {
+  const kernelRegistry = getKernelRegistry();
   const {
     manifest,
     runtimeConfig,
@@ -797,7 +796,8 @@ export function resolveKernelPathState(options) {
         resolvedKernelPath,
         kernelPathSource,
         capabilities,
-        kernelPathPolicy
+        kernelPathPolicy,
+        kernelRegistry
       );
     }
 

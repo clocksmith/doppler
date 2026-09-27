@@ -210,7 +210,13 @@ Validators belong to the companion `validators[operation][variant]` map as
 `{ id, validate }`, not JSON metadata. The ID must identify the trusted immutable
 validator implementation. Validators must not mutate captured policy or depend
 on mutable shared state; a JavaScript closure is not sandboxed by freezing a
-registry. Use `getKernelValidator()` instead of a `config.validate` property.
+registry. Each validator receives a dispatch context containing the operation,
+variant, bindings, uniforms, workgroups, and constants. Wrappers call the captured
+registry's validator for every dispatch, including cached pipelines, before GPU
+work is recorded or submitted. The attention limit check adapts its numerical
+arguments from that context. Use `getKernelValidator()` instead of a
+`config.validate` property. Preflight feature indexes are cached by registry
+instance, and prewarm enumerates and filters the active captured registry.
 Compatibility `registerRuleGroup()` and `setKernelValidator()` replace only the
 compatibility default for future construction. Open pipelines retain their
 original instances. Legacy validator registrations lack a portable implementation
