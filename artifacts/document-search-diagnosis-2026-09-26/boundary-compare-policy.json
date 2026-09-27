@@ -1,0 +1,10 @@
+{
+  "threads": 8,
+  "quantizedBoundaries": "/dev/shm/doppler-diagnosis-20260926/q4-boundaries.npz",
+  "sourceDir": "reports/capsule-baseline/20260906/embedding-source-c54f2e6e",
+  "referencePath": "reports/capsule-baseline/20260906/embedding-related-frozen-reference.json",
+  "sourceBoundaries": "/dev/shm/doppler-diagnosis-20260926/f16-source-boundaries.npz",
+  "quantizedDoppler": "/dev/shm/doppler-diagnosis-20260926/q4-operator-boundaries/qualification.json",
+  "f16Doppler": "/dev/shm/doppler-diagnosis-20260926/f16-operator-boundaries/qualification.json",
+  "outputPath": "artifacts/document-search-diagnosis-2026-09-26/boundary-comparison.json"
+}

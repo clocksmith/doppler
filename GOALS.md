@@ -40,7 +40,21 @@ not the primary reason developers install Doppler.
    understandable through honest progress and observations. Preserve token-level
    inspection and kernel timing where supported, without changing computation.
 
-## Next Product Increment: Copy-and-run Local Search
+## Active Product Priorities: Generation and Search
+
+Advance a bounded standalone text-generation application alongside local search.
+Completing the compact embedding/reranking release is not a prerequisite for
+generation. First evaluate selected-text rewriting for clarity with one resident
+model: preserve names, numbers, negation and meaning; stream output; cancel;
+accept or discard the revision; and reopen offline. This is a proposed use case
+to qualify, not existing product acceptance. Compare a feasible alternative on
+the same inputs, output quality, opening cost and supported machines.
+
+Preserve the accepted search starter and its remaining quality and portability
+work. Both paths use Rig → Capsule → Run and the same public host contracts.
+Generated answers over retrieved passages remain a separate application choice.
+
+### Copy-and-run Local Search
 
 Deliver a complete local-search application developers can copy, run, and modify.
 Prioritize it over nonzero-adapter qualification and further structural cleanup,
@@ -72,7 +86,7 @@ outcome to earn, not permission to ship. Report exact-package execution,
 declared support, and adoption separately; customer fleets, paid releases, and
 design partners cannot create or invalidate physical qualification.
 
-Finish browser search first. Keep its computation independent of browser storage
+Preserve the scoped browser search delivery. Keep its computation independent of browser storage
 and UI events, then exercise it through a small Node runner and a packaged
 Electron application using current candidate bytes and unchanged correctness
 references. Qualify each host separately. Electron acceptance includes isolated,

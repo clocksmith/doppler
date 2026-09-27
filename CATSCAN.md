@@ -6,7 +6,7 @@ Parent: none
 
 ## Target
 
-Make local AI an ordinary JavaScript dependency. Prioritize copy-and-run local search; long-term success is independent adoption.
+Make local AI an ordinary JavaScript dependency. Advance generation and search independently; success is retained adoption.
 
 ## Authority
 

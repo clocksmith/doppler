@@ -1,0 +1,16 @@
+{
+  "distribution": "gguf",
+  "version": "0.19.0",
+  "files": [
+    {
+      "path": "/dev/shm/doppler-quant-diagnostic-deps/gguf/quants.py",
+      "sha256": "db403c3b2292d3f2c5cfef4109d4b5745f437b5599c7afc94d4b97feca7e9247"
+    },
+    {
+      "path": "/dev/shm/doppler-quant-diagnostic-deps/gguf/constants.py",
+      "sha256": "19e98ab20fb4d197efb4e23e5fc8de21a8c0d528af1dffc14695af84a0015f24"
+    }
+  ],
+  "torchVersion": "2.11.0+cu130",
+  "transformersVersion": "5.6.2"
+}

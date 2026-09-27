@@ -1,0 +1,51 @@
+{
+  "mode": "model",
+  "packageBundlePath": "/var/tmp/doppler-loading-package-20260926-04",
+  "modelDir": "/dev/shm/doppler-compact-20260926/qwen-embedding",
+  "referencePath": "/home/x/deco/doppler/artifacts/document-search-diagnosis-2026-09-26/boundary-input.json",
+  "outputDir": "/dev/shm/doppler-diagnosis-20260926/q4-operator-boundaries",
+  "requiredVendor": "amd",
+  "timeoutMs": 600000,
+  "repeatRuns": 1,
+  "launchArgs": [
+    "--enable-unsafe-webgpu",
+    "--enable-webgpu-developer-features",
+    "--disable-dawn-features=disallow_unsafe_apis",
+    "--ignore-gpu-blocklist",
+    "--use-angle=vulkan",
+    "--enable-features=Vulkan",
+    "--disable-vulkan-surface",
+    "--enable-precise-memory-info"
+  ],
+  "runtimeConfig": {
+    "shared": {
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "silent"
+        },
+        "logOutput": {
+          "stdout": false
+        },
+        "trace": {
+          "enabled": false
+        }
+      }
+    },
+    "inference": {
+      "batching": {
+        "maxTokens": 1024
+      }
+    }
+  },
+  "diagnostics": {
+    "enabled": true,
+    "captureConfig": {
+      "defaultLevel": "slice",
+      "targetLayers": [
+        0,
+        27
+      ],
+      "targetLevel": "full"
+    }
+  }
+}

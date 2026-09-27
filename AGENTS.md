@@ -9,15 +9,18 @@ qualified, signed immutable Capsules; the deliberately uncreative Run validates,
 selects, binds, executes, and observes their declared programs. Browser and Node
 support are qualified separately; Bun remains experimental.
 
-**Current Product Priority:** Deliver the complete copy-and-run local-search
-application specified in [docs/goals.md](docs/goals.md#next-product-increment-copy-and-run-local-search).
+**Current Product Priority:** Advance standalone text generation alongside the
+copy-and-run local-search application. Compact search completion is not a gate
+on generation work. See [active product priorities](docs/goals.md#active-product-priorities-generation-and-search)
+and the [search acceptance contract](docs/goals.md#next-product-increment-copy-and-run-local-search).
 Reuse `examples/document-search/search.js`; keep application lifetime, indexing,
 and presentation outside the runtime. This precedes nonzero-adapter qualification
 and structural cleanup except for concrete application-blocking defects. Preserve
 the one-shot capability example, existing trust/checkpoint protections, and
 completed loading repairs. Reploid consumes the same public inference contracts.
-Embeddings and reranking complete this increment; generation/RAG is optional later
-work. Treat privacy, offline availability, cancellation, memory, and numerical
+Embeddings and reranking complete the search workflow. A bounded standalone
+generation application is an active priority; combining generation with search
+as RAG remains a separate application decision. Treat privacy, offline availability, cancellation, memory, and numerical
 portability as scoped acceptance requirements, not automatic WebGPU guarantees.
 See the goals for host prerequisites, release-history limits, and GPU lifecycle semantics.
 

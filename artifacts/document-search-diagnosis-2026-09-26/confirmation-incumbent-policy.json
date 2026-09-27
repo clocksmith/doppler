@@ -1,0 +1,11 @@
+{
+  "applicationDir": "/var/tmp/doppler-search-loading-installed-20260926-05",
+  "storageDir": "/var/tmp/doppler-loading-disk-state-20260926",
+  "requiredVendor": "amd",
+  "corpusPath": "/home/x/deco/doppler/artifacts/document-search-diagnosis-2026-09-26/confirmation-corpus.json",
+  "freezePath": "/home/x/deco/doppler/artifacts/document-search-diagnosis-2026-09-26/confirmation-freeze.json",
+  "minimumRerankScore": -1e+30,
+  "thresholdScope": "Incumbent always returns a ranking; no abstention claim. This bound admits every finite observed score.",
+  "outputPath": "/dev/shm/doppler-diagnosis-20260926/confirmation-incumbent-screen.json",
+  "capturePath": "/dev/shm/doppler-diagnosis-20260926/confirmation-incumbent-components.json"
+}

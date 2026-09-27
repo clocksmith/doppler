@@ -1,0 +1,11 @@
+{
+  "policyPath": "artifacts/document-search-diagnosis-2026-09-26/abstention-frozen.json",
+  "corpusPath": "artifacts/document-search-diagnosis-2026-09-26/confirmation-corpus.json",
+  "freezePath": "artifacts/document-search-diagnosis-2026-09-26/confirmation-freeze.json",
+  "developmentMatrix": "artifacts/document-search-diagnosis-2026-09-26/component-matrix.json",
+  "captures": {
+    "incumbent": "/dev/shm/doppler-diagnosis-20260926/confirmation-incumbent-components.json",
+    "minilm": "/dev/shm/doppler-diagnosis-20260926/confirmation-minilm.json"
+  },
+  "outputPath": "artifacts/document-search-diagnosis-2026-09-26/abstention-confirmation.json"
+}

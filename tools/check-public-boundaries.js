@@ -123,7 +123,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Exact inventory: artifacts/rig-run-naming-2026-09-26/package-audit.json.
   // Loading limits, owned-backing release and digest-preserving hash acceleration:
   // same 1864 files; audited in artifacts/document-search-loading-2026-09-26/package-audit.json.
-  maxUnpackedSize: 11_340_219,
+  // Chunk-local legacy-hash scratch reuse adds 403 bytes in one existing file.
+  // Evidence: artifacts/document-search-diagnosis-2026-09-26/package-audit.json.
+  maxUnpackedSize: 11_340_622,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

@@ -1,0 +1,36 @@
+{
+  "scope": "64 MiB CPU probe during other diagnostics; not application timing",
+  "bytes": 67108864,
+  "rows": [
+    {
+      "name": "baseline",
+      "ms": 366.141976,
+      "hash": "0de95de972e54e1a2cb58499e85f1181e8da242eff0aa06967f5a1d4480c09a8"
+    },
+    {
+      "name": "candidate",
+      "ms": 213.60200500000002,
+      "hash": "0de95de972e54e1a2cb58499e85f1181e8da242eff0aa06967f5a1d4480c09a8"
+    },
+    {
+      "name": "candidate",
+      "ms": 202.20089200000007,
+      "hash": "0de95de972e54e1a2cb58499e85f1181e8da242eff0aa06967f5a1d4480c09a8"
+    },
+    {
+      "name": "baseline",
+      "ms": 356.68409599999995,
+      "hash": "0de95de972e54e1a2cb58499e85f1181e8da242eff0aa06967f5a1d4480c09a8"
+    },
+    {
+      "name": "baseline",
+      "ms": 351.68054400000005,
+      "hash": "0de95de972e54e1a2cb58499e85f1181e8da242eff0aa06967f5a1d4480c09a8"
+    },
+    {
+      "name": "candidate",
+      "ms": 201.8920700000001,
+      "hash": "0de95de972e54e1a2cb58499e85f1181e8da242eff0aa06967f5a1d4480c09a8"
+    }
+  ]
+}

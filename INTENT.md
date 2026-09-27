@@ -14,12 +14,15 @@ Deliver a simple, fast, portable JavaScript inference library, supported by Rig
 model preparation and signed immutable Capsules. Run executes the declared
 implementation; the application retains publisher trust and upgrade authority.
 
-The next product increment is the complete copy-and-run local-search application
+Active product work covers standalone text generation and the copy-and-run local-search application
 specified in [docs/goals.md](docs/goals.md#next-product-increment-copy-and-run-local-search).
 Reuse `examples/document-search/search.js`; retain `runCapability()` as a one-shot
 example. Nonzero-adapter qualification and structural cleanup follow this increment
 unless a concrete defect blocks it. Embeddings and reranking complete this search
-increment; generation is an independently usable, optional subsequent capability.
+increment. Standalone generation is independently usable and an active priority;
+it does not wait for compact search acceptance. Evaluate a bounded selected-text
+rewriting application first, retaining facts and user control. This is a use-case
+hypothesis, not a claim of model quality or a decision to add RAG.
 
 ## Invariants
 

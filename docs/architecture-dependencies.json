@@ -815,6 +815,7 @@
         "tools/compare-wgsl-repair-adapter-parity.js",
         "tools/compare-wgsl-rollouts.js",
         "tools/compare-wgsl-stratified-rollouts.js",
+        "tools/confirm-search-abstention.js",
         "tools/convert-safetensors-node.js",
         "tools/create-manifest-conversion-postflight.js",
         "tools/create-manifest-conversion-preflight.js",
@@ -834,6 +835,7 @@
         "tools/emit-training-contract-delta.js",
         "tools/evaluate-document-search-corpus.js",
         "tools/evaluate-installed-search-corpus.js",
+        "tools/evaluate-search-components.js",
         "tools/evaluate-wgsl-family-distillation.js",
         "tools/export-program-bundle.js",
         "tools/export-v11-grpo-adapter.js",
@@ -4716,6 +4718,7 @@
         "tests/tooling/qualify-capsule-v0-node.test.js",
         "tests/tooling/qualify-sequence-capsule.test.js",
         "tests/tooling/quickstart-registry-sync-contract.test.js",
+        "tests/tooling/qwen-q4k-independent-blocks.test.js",
         "tests/tooling/rdrr-integrity-refresh.test.js",
         "tests/tooling/record-bun-product-qualification.test.js",
         "tests/tooling/record-product-integration-evaluation.test.js",
@@ -4742,6 +4745,7 @@
         "tests/tooling/runtime-optimization.test.js",
         "tests/tooling/runtime-ownership-execution-evidence.test.js",
         "tests/tooling/runtime-promotion-monitoring.test.js",
+        "tests/tooling/search-abstention.test.js",
         "tests/tooling/sequence-full-reference-coverage.test.js",
         "tests/tooling/sequence-model-qualification.test.js",
         "tests/tooling/sequence-reference-transcript.test.js",
@@ -6294,7 +6298,7 @@
     {
       "file": "tools/evaluate-installed-search-corpus.js",
       "kind": "dynamic",
-      "line": 62,
+      "line": 94,
       "expression": "import(pathToFileURL(path.join(config.applicationDir, 'node_modules/doppler-gpu/src/client/doppler-api.js')))"
     },
     {

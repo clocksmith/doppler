@@ -1,0 +1,3939 @@
+{
+  "schema": "doppler.search-component-isolation/v1",
+  "config": {
+    "corpusPath": "artifacts/document-search-compact-2026-09-26/corpus-v2.json",
+    "freezePath": "artifacts/document-search-compact-2026-09-26/corpus-v2-freeze.json",
+    "captures": {
+      "incumbent": "/dev/shm/doppler-diagnosis-20260926/incumbent-components.json",
+      "minilm": "/dev/shm/doppler-compact-20260926/minilm-source.json"
+    },
+    "outputPath": "artifacts/document-search-diagnosis-2026-09-26/component-matrix.json"
+  },
+  "corpusSha256": "dd7c2b6a6e3d1e7aac3ba4a9739c066cf6ffe38be45c48127433cfe842f2a080",
+  "modelIdentities": {
+    "incumbent": "0fda1c1160111e350f57d43babe976616325071e2f5d66d359a61c2dc85829af",
+    "minilm": "0bad62a8002db6b23ca2a036d08aed601f828a8f13b6c91a669f168c747e2284"
+  },
+  "captureHashes": {
+    "incumbent": "4194db1c83e78effec662b0825135f74a1f169afd80a0d5e99d9e4cf9883bfa4",
+    "minilm": "f2f2382b29aa7a58a8166d0e47bb4b1e8aa7eb50bc18f2796b759675530193a5"
+  },
+  "probeSha256": "bb29845c48fc7df1d5cf7af2960f36e02b9b723ea9544a9abe1809c8cf7ee55d",
+  "pairs": [
+    {
+      "embedding": "incumbent",
+      "reranker": "incumbent",
+      "binding": "d6b4dd05208401a0d2c76627029409076a164a55b5036e80fd179f47a6e7503f",
+      "categories": {
+        "paraphrase": {
+          "total": 11,
+          "retrieved": 11,
+          "rankedCorrect": 11
+        },
+        "identifier": {
+          "total": 5,
+          "retrieved": 5,
+          "rankedCorrect": 5
+        },
+        "long-document": {
+          "total": 2,
+          "retrieved": 2,
+          "rankedCorrect": 2
+        }
+      },
+      "rows": [
+        {
+          "id": "bread",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "sourdough",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 4.239882999999992,
+          "results": [
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.5998381006487414,
+              "score": 20.549711227416992
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.35283151883595204,
+              "score": 0.8869991898536682
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.3481842884129204,
+              "score": 0.3478497266769409
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.36990828574473994,
+              "score": -0.6754555702209473
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.35557232351618007,
+              "score": -1.7718918323516846
+            }
+          ]
+        },
+        {
+          "id": "bike",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "tire",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 1.6292910000000091,
+          "results": [
+            {
+              "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+              "documentId": "tire",
+              "similarity": 0.6759757015083403,
+              "score": 20.673477172851562
+            },
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.32701593573556076,
+              "score": 2.3478808403015137
+            },
+            {
+              "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+              "documentId": "copper",
+              "similarity": 0.31443207925841604,
+              "score": 1.3419742584228516
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.30449972663370256,
+              "score": 0.9343013763427734
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.324949815293968,
+              "score": -0.573983907699585
+            }
+          ]
+        },
+        {
+          "id": "moon",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "eclipse",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.3349410000000006,
+          "results": [
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.60195115982002,
+              "score": 19.973217010498047
+            },
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.5743728512090914,
+              "score": 19.583702087402344
+            },
+            {
+              "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+              "documentId": "copper",
+              "similarity": 0.33910540742920775,
+              "score": 0.8667050004005432
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.3531947830109418,
+              "score": 0.18311762809753418
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.3612848640104422,
+              "score": -1.687732219696045
+            }
+          ]
+        },
+        {
+          "id": "sun",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "solar",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.28527800000000525,
+          "results": [
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.6926672092294072,
+              "score": 19.89818572998047
+            },
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.4767333595792332,
+              "score": 17.664379119873047
+            },
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.40831685988577665,
+              "score": 0.5820070505142212
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.3519875915258045,
+              "score": 0.05026042461395264
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.3493001591764627,
+              "score": -1.2095096111297607
+            }
+          ]
+        },
+        {
+          "id": "restore",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "git",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.21876199999999812,
+          "results": [
+            {
+              "passageId": "0cb3952e9b8628cc92cd138890faa8c7027c9ab5e6dfbaae0d2a0152b79ab2f9",
+              "documentId": "git",
+              "similarity": 0.7691672336340447,
+              "score": 21.327960968017578
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.5474316323997862,
+              "score": 15.619993209838867
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.46407813511945445,
+              "score": 8.475459098815918
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.594347011369905,
+              "score": 6.949317932128906
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.526575370203679,
+              "score": 4.729133605957031
+            }
+          ]
+        },
+        {
+          "id": "motor",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "starter-motor",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.2213169999999991,
+          "results": [
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.6278766338879229,
+              "score": 20.69369125366211
+            },
+            {
+              "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+              "documentId": "tire",
+              "similarity": 0.36170234028854464,
+              "score": 1.6394991874694824
+            },
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.5388525329202677,
+              "score": 1.61954927444458
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.3164989309284306,
+              "score": 0.20718348026275635
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.3369257316355558,
+              "score": 0.20034384727478027
+            }
+          ]
+        },
+        {
+          "id": "id-e17",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "sync-e17",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.22105700000000184,
+          "results": [
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.6033398556465642,
+              "score": 20.889511108398438
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.5573084581207561,
+              "score": 15.950262069702148
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.4695682688668424,
+              "score": 6.674344539642334
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.4146223076018342,
+              "score": 4.684234619140625
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.4176483826457655,
+              "score": 3.7454774379730225
+            }
+          ]
+        },
+        {
+          "id": "id-e71",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "sync-e71",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.21210999999999558,
+          "results": [
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.6302189355563487,
+              "score": 21.38123893737793
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.5696185867337015,
+              "score": 11.26207160949707
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.46929425484566706,
+              "score": 7.004271507263184
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.4945137358663752,
+              "score": 6.4228715896606445
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.466881910788672,
+              "score": 4.359631061553955
+            }
+          ]
+        },
+        {
+          "id": "id-4821",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "ticket-4821",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.3033319999999975,
+          "results": [
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.5446770126305146,
+              "score": 21.10451316833496
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5165253201424184,
+              "score": 18.2528076171875
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.5645170439208,
+              "score": 12.579849243164062
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.422100958194402,
+              "score": 5.018147945404053
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.45031103716872245,
+              "score": 3.1312358379364014
+            }
+          ]
+        },
+        {
+          "id": "id-4812",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "ticket-4812",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.2354739999999964,
+          "results": [
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5797727884394361,
+              "score": 21.013385772705078
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.5325703858299936,
+              "score": 19.881982803344727
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.5887072206961506,
+              "score": 8.78417682647705
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.4614179560625827,
+              "score": 2.344996690750122
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.46123321210346846,
+              "score": 2.2628352642059326
+            }
+          ]
+        },
+        {
+          "id": "gpu",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "device",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.22362200000000598,
+          "results": [
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.6141037573379837,
+              "score": 19.721574783325195
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.6272083536729413,
+              "score": 18.343910217285156
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.49453257901282455,
+              "score": 7.973550319671631
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.5372078419796082,
+              "score": 7.480609893798828
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.4768545898996582,
+              "score": 5.444280624389648
+            }
+          ]
+        },
+        {
+          "id": "upgrade",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "ticket-4821",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.2577760000000069,
+          "results": [
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.7057322236180854,
+              "score": 20.885257720947266
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.704583450300841,
+              "score": 20.695554733276367
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.5810204127900304,
+              "score": 17.262981414794922
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.5473284940050699,
+              "score": 14.53302001953125
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5530386773665679,
+              "score": 9.294093132019043
+            }
+          ]
+        },
+        {
+          "id": "backup",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "export",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.21421400000001256,
+          "results": [
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.65006975007524,
+              "score": 16.247072219848633
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.5342310860083467,
+              "score": 12.743380546569824
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.4708247054368747,
+              "score": 9.346619606018066
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.45570694135559814,
+              "score": 7.0131096839904785
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.45387610614018375,
+              "score": 6.417730331420898
+            }
+          ]
+        },
+        {
+          "id": "escapement",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "clock",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.2123200000000054,
+          "results": [
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.8237839783257406,
+              "score": 21.473739624023438
+            },
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.4292967197781802,
+              "score": 1.1970493793487549
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.36608882726504566,
+              "score": 0.5332483053207397
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.3397391325419519,
+              "score": 0.2004408836364746
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.3814098034646823,
+              "score": -1.1064409017562866
+            }
+          ]
+        },
+        {
+          "id": "pan",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "copper",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.22240899999999897,
+          "results": [
+            {
+              "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+              "documentId": "copper",
+              "similarity": 0.7607346683787586,
+              "score": 22.057376861572266
+            },
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.29291429164650096,
+              "score": 2.047694444656372
+            },
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.30443278281800584,
+              "score": 1.4963858127593994
+            },
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.3119196155588247,
+              "score": 1.3599635362625122
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.3068155711886395,
+              "score": 0.7609879970550537
+            }
+          ]
+        },
+        {
+          "id": "version",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "release",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.2077419999999961,
+          "results": [
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.783014144491228,
+              "score": 21.233821868896484
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.5610669906293442,
+              "score": 15.84029769897461
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.5195549987744325,
+              "score": 9.309280395507812
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5334674299633849,
+              "score": 6.5913310050964355
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.5138613843245818,
+              "score": 6.4756903648376465
+            }
+          ]
+        },
+        {
+          "id": "tail",
+          "category": "long-document",
+          "answerable": true,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.21718900000000474,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.821694781059965,
+              "score": 21.378986358642578
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.45917999417751537,
+              "score": 7.105932235717773
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.4720761778056715,
+              "score": 4.94399881362915
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.5154022537170205,
+              "score": 4.778236389160156
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.4587769051235869,
+              "score": 3.8816380500793457
+            }
+          ]
+        },
+        {
+          "id": "tail-neighbor",
+          "category": "long-document",
+          "answerable": true,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.21817100000001233,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.8124651759836852,
+              "score": 21.285634994506836
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.4633953951909694,
+              "score": 4.686912536621094
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.4676008475268631,
+              "score": 3.5864527225494385
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.5127391864604327,
+              "score": 3.3572590351104736
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.4620899365270479,
+              "score": 2.218041181564331
+            }
+          ]
+        },
+        {
+          "id": "weather",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "export",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.28035900000000424,
+          "results": [
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.24836868432826767,
+              "score": 0.3715376853942871
+            },
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.23730267353919804,
+              "score": -0.4986894130706787
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.2273541000478931,
+              "score": -0.5690720081329346
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.25528436215951167,
+              "score": -0.6203669309616089
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.22984980204206523,
+              "score": -1.4849956035614014
+            }
+          ]
+        },
+        {
+          "id": "refund",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "ticket-4812",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.2116890000000069,
+          "results": [
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.3888931262898907,
+              "score": 0.7771235108375549
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.3111025011262763,
+              "score": 0.6611552834510803
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.3804088234390562,
+              "score": 0.349839448928833
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.339472119316669,
+              "score": 0.059716224670410156
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.35697359579142157,
+              "score": -1.1844630241394043
+            }
+          ]
+        },
+        {
+          "id": "missing-cabinet",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.2182109999999966,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.7930469718106817,
+              "score": 21.340328216552734
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.471558135064889,
+              "score": 6.881306171417236
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.4423630892394603,
+              "score": 4.641366004943848
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.49878720431950196,
+              "score": 4.002936363220215
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.433130541767219,
+              "score": 3.310666561126709
+            }
+          ]
+        }
+      ],
+      "rankingCorrect": 18,
+      "candidateRecall": 18,
+      "answerableCount": 18,
+      "abstention": "unassessed",
+      "releaseQualified": false
+    },
+    {
+      "embedding": "incumbent",
+      "reranker": "minilm",
+      "binding": "9584ba875feef81bc32fedfce708ff92642fc7b5ad4e04e3257eed5e378163a4",
+      "categories": {
+        "paraphrase": {
+          "total": 11,
+          "retrieved": 11,
+          "rankedCorrect": 11
+        },
+        "identifier": {
+          "total": 5,
+          "retrieved": 5,
+          "rankedCorrect": 4
+        },
+        "long-document": {
+          "total": 2,
+          "retrieved": 2,
+          "rankedCorrect": 2
+        }
+      },
+      "rows": [
+        {
+          "id": "bread",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "sourdough",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.2265469999999965,
+          "results": [
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.5998381006487414,
+              "score": -8.134312629699707
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.3481842884129204,
+              "score": -11.24041748046875
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.35283151883595204,
+              "score": -11.245613098144531
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.35557232351618007,
+              "score": -11.374600410461426
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.36990828574473994,
+              "score": -11.383190155029297
+            }
+          ]
+        },
+        {
+          "id": "bike",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "tire",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.21230100000001073,
+          "results": [
+            {
+              "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+              "documentId": "tire",
+              "similarity": 0.6759757015083403,
+              "score": 2.958466053009033
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.30449972663370256,
+              "score": -11.211583137512207
+            },
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.32701593573556076,
+              "score": -11.271320343017578
+            },
+            {
+              "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+              "documentId": "copper",
+              "similarity": 0.31443207925841604,
+              "score": -11.323095321655273
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.324949815293968,
+              "score": -11.444625854492188
+            }
+          ]
+        },
+        {
+          "id": "moon",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "eclipse",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.39116700000001003,
+          "results": [
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.60195115982002,
+              "score": 3.8131256103515625
+            },
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.5743728512090914,
+              "score": -4.588477611541748
+            },
+            {
+              "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+              "documentId": "copper",
+              "similarity": 0.33910540742920775,
+              "score": -11.293627738952637
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.3612848640104422,
+              "score": -11.35799789428711
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.3531947830109418,
+              "score": -11.414458274841309
+            }
+          ]
+        },
+        {
+          "id": "sun",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "solar",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.20821300000000065,
+          "results": [
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.6926672092294072,
+              "score": 0.6253890991210938
+            },
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.4767333595792332,
+              "score": -4.134842395782471
+            },
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.40831685988577665,
+              "score": -11.119549751281738
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.3493001591764627,
+              "score": -11.188844680786133
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.3519875915258045,
+              "score": -11.219459533691406
+            }
+          ]
+        },
+        {
+          "id": "restore",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "git",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.21213000000000193,
+          "results": [
+            {
+              "passageId": "0cb3952e9b8628cc92cd138890faa8c7027c9ab5e6dfbaae0d2a0152b79ab2f9",
+              "documentId": "git",
+              "similarity": 0.7691672336340447,
+              "score": 4.881794452667236
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.5474316323997862,
+              "score": -5.523190498352051
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.594347011369905,
+              "score": -10.188042640686035
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.46407813511945445,
+              "score": -10.300315856933594
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.526575370203679,
+              "score": -10.662724494934082
+            }
+          ]
+        },
+        {
+          "id": "motor",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "starter-motor",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.21134800000000098,
+          "results": [
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.6278766338879229,
+              "score": 2.4427073001861572
+            },
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.5388525329202677,
+              "score": -11.248246192932129
+            },
+            {
+              "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+              "documentId": "tire",
+              "similarity": 0.36170234028854464,
+              "score": -11.292664527893066
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.3369257316355558,
+              "score": -11.380321502685547
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.3164989309284306,
+              "score": -11.416665077209473
+            }
+          ]
+        },
+        {
+          "id": "id-e17",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "sync-e17",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.24348899999999674,
+          "results": [
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.6033398556465642,
+              "score": 2.5181312561035156
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.5573084581207561,
+              "score": -9.83024787902832
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.4176483826457655,
+              "score": -11.079428672790527
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.4695682688668424,
+              "score": -11.332940101623535
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.4146223076018342,
+              "score": -11.365506172180176
+            }
+          ]
+        },
+        {
+          "id": "id-e71",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "sync-e71",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.22217799999999954,
+          "results": [
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.6302189355563487,
+              "score": 2.902420997619629
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.5696185867337015,
+              "score": -7.387427806854248
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.46929425484566706,
+              "score": -11.155433654785156
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.466881910788672,
+              "score": -11.396303176879883
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.4945137358663752,
+              "score": -11.407878875732422
+            }
+          ]
+        },
+        {
+          "id": "id-4821",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "ticket-4821",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.21019699999999375,
+          "results": [
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.5446770126305146,
+              "score": 6.530535697937012
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5165253201424184,
+              "score": 1.1980156898498535
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.5645170439208,
+              "score": -8.91843318939209
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.422100958194402,
+              "score": -11.234206199645996
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.45031103716872245,
+              "score": -11.362879753112793
+            }
+          ]
+        },
+        {
+          "id": "id-4812",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "ticket-4812",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.39922200000000885,
+          "results": [
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5797727884394361,
+              "score": 7.9240922927856445
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.5325703858299936,
+              "score": 4.484963417053223
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.5887072206961506,
+              "score": -10.744638442993164
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.46123321210346846,
+              "score": -11.029118537902832
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.4614179560625827,
+              "score": -11.409131050109863
+            }
+          ]
+        },
+        {
+          "id": "gpu",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "device",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.22318099999999674,
+          "results": [
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.6141037573379837,
+              "score": -0.040040310472249985
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.6272083536729413,
+              "score": -6.706327438354492
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.4768545898996582,
+              "score": -11.183995246887207
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.49453257901282455,
+              "score": -11.227210998535156
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.5372078419796082,
+              "score": -11.251412391662598
+            }
+          ]
+        },
+        {
+          "id": "upgrade",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "ticket-4821",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.23057500000000175,
+          "results": [
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.7057322236180854,
+              "score": 0.5428842306137085
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.704583450300841,
+              "score": -5.387733459472656
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.5473284940050699,
+              "score": -6.921382904052734
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.5810204127900304,
+              "score": -10.397696495056152
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5530386773665679,
+              "score": -11.384846687316895
+            }
+          ]
+        },
+        {
+          "id": "backup",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "export",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.2453919999999954,
+          "results": [
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.65006975007524,
+              "score": -5.370590686798096
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.5342310860083467,
+              "score": -6.962040901184082
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.45387610614018375,
+              "score": -10.672258377075195
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.4708247054368747,
+              "score": -11.150016784667969
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.45570694135559814,
+              "score": -11.17652416229248
+            }
+          ]
+        },
+        {
+          "id": "escapement",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "clock",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.2157669999999996,
+          "results": [
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.8237839783257406,
+              "score": 4.444169998168945
+            },
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.4292967197781802,
+              "score": -10.552413940429688
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.3397391325419519,
+              "score": -11.361700057983398
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.36608882726504566,
+              "score": -11.408649444580078
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.3814098034646823,
+              "score": -11.437661170959473
+            }
+          ]
+        },
+        {
+          "id": "pan",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "copper",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.21774100000000374,
+          "results": [
+            {
+              "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+              "documentId": "copper",
+              "similarity": 0.7607346683787586,
+              "score": 1.9751757383346558
+            },
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.3119196155588247,
+              "score": -11.402801513671875
+            },
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.29291429164650096,
+              "score": -11.406051635742188
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.3068155711886395,
+              "score": -11.429658889770508
+            },
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.30443278281800584,
+              "score": -11.441438674926758
+            }
+          ]
+        },
+        {
+          "id": "version",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "ticket-4821",
+          "accepted": true,
+          "rankingCorrect": false,
+          "correct": false,
+          "candidateRecall": true,
+          "elapsedMs": 0.20854300000000592,
+          "results": [
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.5610669906293442,
+              "score": -3.23600697517395
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.783014144491228,
+              "score": -3.9437661170959473
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.5195549987744325,
+              "score": -10.719828605651855
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5334674299633849,
+              "score": -10.986331939697266
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.5138613843245818,
+              "score": -11.412423133850098
+            }
+          ]
+        },
+        {
+          "id": "tail",
+          "category": "long-document",
+          "answerable": true,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.21100699999999506,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.821694781059965,
+              "score": 9.238301277160645
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.45917999417751537,
+              "score": -11.311840057373047
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.4720761778056715,
+              "score": -11.363221168518066
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.4587769051235869,
+              "score": -11.39792251586914
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.5154022537170205,
+              "score": -11.47491455078125
+            }
+          ]
+        },
+        {
+          "id": "tail-neighbor",
+          "category": "long-document",
+          "answerable": true,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.24926999999999566,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.8124651759836852,
+              "score": 8.909509658813477
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.4633953951909694,
+              "score": -11.310315132141113
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.4676008475268631,
+              "score": -11.36866569519043
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.4620899365270479,
+              "score": -11.397400856018066
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.5127391864604327,
+              "score": -11.477739334106445
+            }
+          ]
+        },
+        {
+          "id": "weather",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "solar",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.20577799999999513,
+          "results": [
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.23730267353919804,
+              "score": -11.270313262939453
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.22984980204206523,
+              "score": -11.324926376342773
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.25528436215951167,
+              "score": -11.33426284790039
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.2273541000478931,
+              "score": -11.343549728393555
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.24836868432826767,
+              "score": -11.363442420959473
+            }
+          ]
+        },
+        {
+          "id": "refund",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "ticket-4812",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.21731900000000337,
+          "results": [
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.3888931262898907,
+              "score": -10.903809547424316
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.3804088234390562,
+              "score": -11.308684349060059
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.35697359579142157,
+              "score": -11.378959655761719
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.3111025011262763,
+              "score": -11.427178382873535
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.339472119316669,
+              "score": -11.42759895324707
+            }
+          ]
+        },
+        {
+          "id": "missing-cabinet",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.2110980000000069,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.7930469718106817,
+              "score": 7.808856964111328
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.471558135064889,
+              "score": -11.161173820495605
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.4423630892394603,
+              "score": -11.298324584960938
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.433130541767219,
+              "score": -11.343347549438477
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.49878720431950196,
+              "score": -11.459210395812988
+            }
+          ]
+        }
+      ],
+      "rankingCorrect": 17,
+      "candidateRecall": 18,
+      "answerableCount": 18,
+      "abstention": "unassessed",
+      "releaseQualified": false
+    },
+    {
+      "embedding": "minilm",
+      "reranker": "incumbent",
+      "binding": "e92b43254b64434950f0f98c47c8a5081417fadcefe5a840233a9c1048d7f1e0",
+      "categories": {
+        "paraphrase": {
+          "total": 11,
+          "retrieved": 11,
+          "rankedCorrect": 11
+        },
+        "identifier": {
+          "total": 5,
+          "retrieved": 5,
+          "rankedCorrect": 5
+        },
+        "long-document": {
+          "total": 2,
+          "retrieved": 2,
+          "rankedCorrect": 2
+        }
+      },
+      "rows": [
+        {
+          "id": "bread",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "sourdough",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08732499999999277,
+          "results": [
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.35972882430135567,
+              "score": 20.549711227416992
+            },
+            {
+              "passageId": "073920fcec387ed6fa64d65563f955b9530eb4fdd405b5bca83afe60ef447f9b",
+              "documentId": "archive",
+              "similarity": 0.1954242253886706,
+              "score": 1.507365345954895
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.21258510400116382,
+              "score": 0.9534422159194946
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.16735685780604673,
+              "score": 0.4994872212409973
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.165561305032093,
+              "score": -0.6754555702209473
+            }
+          ]
+        },
+        {
+          "id": "bike",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "tire",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.0898600000000016,
+          "results": [
+            {
+              "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+              "documentId": "tire",
+              "similarity": 0.49448453682646465,
+              "score": 20.673477172851562
+            },
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.07542247131704807,
+              "score": 2.3796067237854004
+            },
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.06216469912376186,
+              "score": 2.3478808403015137
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.1042566793403662,
+              "score": 0.9343013763427734
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.04609571814477949,
+              "score": 0.8891962766647339
+            }
+          ]
+        },
+        {
+          "id": "moon",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "eclipse",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08660400000000834,
+          "results": [
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.6200793216824602,
+              "score": 19.973217010498047
+            },
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.4202974695558815,
+              "score": 19.583702087402344
+            },
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.07880812554831713,
+              "score": 1.1941419839859009
+            },
+            {
+              "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+              "documentId": "tire",
+              "similarity": 0.1335096231974852,
+              "score": 0.5077048540115356
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.05195829102136428,
+              "score": -1.687732219696045
+            }
+          ]
+        },
+        {
+          "id": "sun",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "solar",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08368699999999762,
+          "results": [
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.5963544268565596,
+              "score": 19.89818572998047
+            },
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.4365523502207958,
+              "score": 17.664379119873047
+            },
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.07095760005895385,
+              "score": 1.6264071464538574
+            },
+            {
+              "passageId": "1c066de9de4cb527ec6f0855981d85cf4160d8b722ab5057dd2949e8d630e5da",
+              "documentId": "archive",
+              "similarity": 0.056585522371200854,
+              "score": 0.5492357611656189
+            },
+            {
+              "passageId": "8b9efbf8f938bb5cfbbb10e57bc2a129825201f231f44dd6174dd673596c4cae",
+              "documentId": "archive",
+              "similarity": 0.065693756909151,
+              "score": 0.1801646649837494
+            }
+          ]
+        },
+        {
+          "id": "restore",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "git",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08764499999999487,
+          "results": [
+            {
+              "passageId": "0cb3952e9b8628cc92cd138890faa8c7027c9ab5e6dfbaae0d2a0152b79ab2f9",
+              "documentId": "git",
+              "similarity": 0.7111310001227252,
+              "score": 21.327960968017578
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.2699727515537777,
+              "score": 15.619993209838867
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.26044919895425156,
+              "score": 3.6126437187194824
+            },
+            {
+              "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+              "documentId": "archive",
+              "similarity": 0.2512800580009341,
+              "score": 3.25569486618042
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.25789210283404307,
+              "score": 2.772515296936035
+            }
+          ]
+        },
+        {
+          "id": "motor",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "starter-motor",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.19070999999999572,
+          "results": [
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.3620995597916505,
+              "score": 20.69369125366211
+            },
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.21971712241813385,
+              "score": 1.61954927444458
+            },
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.12262452563936381,
+              "score": 1.290895938873291
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.11760739282035067,
+              "score": 0.20718348026275635
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.1379163241448069,
+              "score": -0.9884259700775146
+            }
+          ]
+        },
+        {
+          "id": "id-e17",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "sync-e17",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08314699999999675,
+          "results": [
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.42949481799096767,
+              "score": 20.889511108398438
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.2112017244312267,
+              "score": 15.950262069702148
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.09339487506428759,
+              "score": 7.782623767852783
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.1293770753495672,
+              "score": 7.034109592437744
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.1455176070656899,
+              "score": 5.852116584777832
+            }
+          ]
+        },
+        {
+          "id": "id-e71",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "sync-e71",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.0822650000000067,
+          "results": [
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.334114651356187,
+              "score": 21.38123893737793
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.2556073620590389,
+              "score": 11.26207160949707
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.24977896651102152,
+              "score": 7.004271507263184
+            },
+            {
+              "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+              "documentId": "tire",
+              "similarity": 0.15762414585161483,
+              "score": 5.8701958656311035
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.1350324796511359,
+              "score": 5.639815330505371
+            }
+          ]
+        },
+        {
+          "id": "id-4821",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "ticket-4821",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.0855409999999921,
+          "results": [
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.5721706713703578,
+              "score": 21.10451316833496
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5065899151820183,
+              "score": 18.2528076171875
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.33690917548661925,
+              "score": 12.579849243164062
+            },
+            {
+              "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+              "documentId": "archive",
+              "similarity": 0.26991367965916524,
+              "score": 3.8726511001586914
+            },
+            {
+              "passageId": "310b7e995a34568c11ebc5c70c939de648a9164c02e847e6acee40a39e3bb3bc",
+              "documentId": "archive",
+              "similarity": 0.23508275833515693,
+              "score": 3.1360063552856445
+            }
+          ]
+        },
+        {
+          "id": "id-4812",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "ticket-4812",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08237499999999898,
+          "results": [
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.6220185898005041,
+              "score": 21.013385772705078
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.5803721249767525,
+              "score": 19.881982803344727
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.3284761993472374,
+              "score": 8.78417682647705
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.2098212281178162,
+              "score": 5.165525913238525
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.22210488535771306,
+              "score": 2.2628352642059326
+            }
+          ]
+        },
+        {
+          "id": "gpu",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "device",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08434900000000312,
+          "results": [
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.5904413142340024,
+              "score": 19.721574783325195
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5234320170783916,
+              "score": 18.343910217285156
+            },
+            {
+              "passageId": "0cb3952e9b8628cc92cd138890faa8c7027c9ab5e6dfbaae0d2a0152b79ab2f9",
+              "documentId": "git",
+              "similarity": 0.36500183395938857,
+              "score": 10.301057815551758
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.22178557942292904,
+              "score": 8.541997909545898
+            },
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.2064223030684548,
+              "score": 4.309576988220215
+            }
+          ]
+        },
+        {
+          "id": "upgrade",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "ticket-4821",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08494999999999209,
+          "results": [
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.3789283476947044,
+              "score": 20.885257720947266
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.5498373440055626,
+              "score": 20.695554733276367
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.2580372785382416,
+              "score": 17.262981414794922
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.2464915131120749,
+              "score": 5.51080322265625
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.24920772813226358,
+              "score": 5.450435638427734
+            }
+          ]
+        },
+        {
+          "id": "backup",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "export",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08866700000000094,
+          "results": [
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.36961628746423447,
+              "score": 16.247072219848633
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.3168790433843194,
+              "score": 9.346619606018066
+            },
+            {
+              "passageId": "b6e74f43faa11ca3c8ecafbed26dc546a4f07349a7a7fa01b8688579243fc5f2",
+              "documentId": "archive",
+              "similarity": 0.32379609970610895,
+              "score": 8.578376770019531
+            },
+            {
+              "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+              "documentId": "archive",
+              "similarity": 0.3209857025424813,
+              "score": 7.704010963439941
+            },
+            {
+              "passageId": "073920fcec387ed6fa64d65563f955b9530eb4fdd405b5bca83afe60ef447f9b",
+              "documentId": "archive",
+              "similarity": 0.3315761534890434,
+              "score": 6.94580078125
+            }
+          ]
+        },
+        {
+          "id": "escapement",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "clock",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.0844589999999954,
+          "results": [
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.6380843986838202,
+              "score": 21.473739624023438
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.17001857425531325,
+              "score": 0.3446718156337738
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.17816352326284252,
+              "score": 0.2909672260284424
+            },
+            {
+              "passageId": "b6e74f43faa11ca3c8ecafbed26dc546a4f07349a7a7fa01b8688579243fc5f2",
+              "documentId": "archive",
+              "similarity": 0.17382817784957696,
+              "score": -0.027578413486480713
+            },
+            {
+              "passageId": "8b9efbf8f938bb5cfbbb10e57bc2a129825201f231f44dd6174dd673596c4cae",
+              "documentId": "archive",
+              "similarity": 0.17618811688001593,
+              "score": -0.5222184062004089
+            }
+          ]
+        },
+        {
+          "id": "pan",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "copper",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08325700000000325,
+          "results": [
+            {
+              "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+              "documentId": "copper",
+              "similarity": 0.6501785439288187,
+              "score": 22.057376861572266
+            },
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.18434421547018623,
+              "score": 7.421701908111572
+            },
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.08715138650202457,
+              "score": 2.3209338188171387
+            },
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.08074808465340037,
+              "score": 2.047694444656372
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.05089114613495994,
+              "score": 0.9999793767929077
+            }
+          ]
+        },
+        {
+          "id": "version",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "release",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.07999000000000933,
+          "results": [
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.6161436985107979,
+              "score": 21.233821868896484
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.42243616429950553,
+              "score": 15.84029769897461
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.32750241365777966,
+              "score": 6.5913310050964355
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.21402368452359868,
+              "score": 4.243936538696289
+            },
+            {
+              "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+              "documentId": "archive",
+              "similarity": 0.2145376551353708,
+              "score": 3.578875780105591
+            }
+          ]
+        },
+        {
+          "id": "tail",
+          "category": "long-document",
+          "answerable": true,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08083299999999838,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.6636654819281437,
+              "score": 21.378986358642578
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.36703894488586664,
+              "score": 4.94399881362915
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.3658178490043638,
+              "score": 4.6553955078125
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.36848959715513235,
+              "score": 4.486053466796875
+            },
+            {
+              "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+              "documentId": "archive",
+              "similarity": 0.3567771949375392,
+              "score": 3.420424461364746
+            }
+          ]
+        },
+        {
+          "id": "tail-neighbor",
+          "category": "long-document",
+          "answerable": true,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08437899999999843,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.6520625063386356,
+              "score": 21.285634994506836
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.359555915325362,
+              "score": 3.5864527225494385
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.35741886737832573,
+              "score": 3.344526767730713
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.36123062928055655,
+              "score": 2.9335403442382812
+            },
+            {
+              "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+              "documentId": "archive",
+              "similarity": 0.353258408458271,
+              "score": 2.184753894805908
+            }
+          ]
+        },
+        {
+          "id": "weather",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "sourdough",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.08440899999999374,
+          "results": [
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.0906593619128412,
+              "score": 1.2712103128433228
+            },
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.05725579904405461,
+              "score": 0.6817007064819336
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.04394131131147635,
+              "score": 0.29415225982666016
+            },
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.059148954805598494,
+              "score": -0.4986894130706787
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.15069325793857552,
+              "score": -0.5690720081329346
+            }
+          ]
+        },
+        {
+          "id": "refund",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.08465899999998783,
+          "results": [
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.16146539656813916,
+              "score": 1.0128452777862549
+            },
+            {
+              "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+              "documentId": "archive",
+              "similarity": 0.1681081592270053,
+              "score": 0.8600677251815796
+            },
+            {
+              "passageId": "310b7e995a34568c11ebc5c70c939de648a9164c02e847e6acee40a39e3bb3bc",
+              "documentId": "archive",
+              "similarity": 0.1687186848162299,
+              "score": 0.847196102142334
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.23462649088515766,
+              "score": 0.7771235108375549
+            },
+            {
+              "passageId": "772650a2f1e184f1afca362d8c2446e2fee93ee1e54802319c1d192866913ec8",
+              "documentId": "archive",
+              "similarity": 0.18334107931011978,
+              "score": 0.07796043157577515
+            }
+          ]
+        },
+        {
+          "id": "missing-cabinet",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.08182399999999745,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.6554368321573013,
+              "score": 21.340328216552734
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.3859612395523094,
+              "score": 4.641366004943848
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.3771610327652055,
+              "score": 4.5179901123046875
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.39118336303366497,
+              "score": 4.393282890319824
+            },
+            {
+              "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+              "documentId": "archive",
+              "similarity": 0.37537162836987026,
+              "score": 3.6229639053344727
+            }
+          ]
+        }
+      ],
+      "rankingCorrect": 18,
+      "candidateRecall": 18,
+      "answerableCount": 18,
+      "abstention": "unassessed",
+      "releaseQualified": false
+    },
+    {
+      "embedding": "minilm",
+      "reranker": "minilm",
+      "binding": "d6cab7aca62e3d5fe53798224df7a6e1e770893c4d8af711b45fde12395d40db",
+      "categories": {
+        "paraphrase": {
+          "total": 11,
+          "retrieved": 11,
+          "rankedCorrect": 11
+        },
+        "identifier": {
+          "total": 5,
+          "retrieved": 5,
+          "rankedCorrect": 4
+        },
+        "long-document": {
+          "total": 2,
+          "retrieved": 2,
+          "rankedCorrect": 2
+        }
+      },
+      "rows": [
+        {
+          "id": "bread",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "sourdough",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08818600000000743,
+          "results": [
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.35972882430135567,
+              "score": -8.134312629699707
+            },
+            {
+              "passageId": "073920fcec387ed6fa64d65563f955b9530eb4fdd405b5bca83afe60ef447f9b",
+              "documentId": "archive",
+              "similarity": 0.1954242253886706,
+              "score": -11.230130195617676
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.21258510400116382,
+              "score": -11.232375144958496
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.16735685780604673,
+              "score": -11.237902641296387
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.165561305032093,
+              "score": -11.383190155029297
+            }
+          ]
+        },
+        {
+          "id": "bike",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "tire",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.081704000000002,
+          "results": [
+            {
+              "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+              "documentId": "tire",
+              "similarity": 0.49448453682646465,
+              "score": 2.958466053009033
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.04609571814477949,
+              "score": -11.18680477142334
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.1042566793403662,
+              "score": -11.211583137512207
+            },
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.06216469912376186,
+              "score": -11.271320343017578
+            },
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.07542247131704807,
+              "score": -11.290515899658203
+            }
+          ]
+        },
+        {
+          "id": "moon",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "eclipse",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08465999999999951,
+          "results": [
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.6200793216824602,
+              "score": 3.8131256103515625
+            },
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.4202974695558815,
+              "score": -4.588477611541748
+            },
+            {
+              "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+              "documentId": "tire",
+              "similarity": 0.1335096231974852,
+              "score": -11.259883880615234
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.05195829102136428,
+              "score": -11.35799789428711
+            },
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.07880812554831713,
+              "score": -11.407357215881348
+            }
+          ]
+        },
+        {
+          "id": "sun",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "solar",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.1141449999999935,
+          "results": [
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.5963544268565596,
+              "score": 0.6253890991210938
+            },
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.4365523502207958,
+              "score": -4.134842395782471
+            },
+            {
+              "passageId": "8b9efbf8f938bb5cfbbb10e57bc2a129825201f231f44dd6174dd673596c4cae",
+              "documentId": "archive",
+              "similarity": 0.065693756909151,
+              "score": -11.07497787475586
+            },
+            {
+              "passageId": "1c066de9de4cb527ec6f0855981d85cf4160d8b722ab5057dd2949e8d630e5da",
+              "documentId": "archive",
+              "similarity": 0.056585522371200854,
+              "score": -11.087839126586914
+            },
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.07095760005895385,
+              "score": -11.19727611541748
+            }
+          ]
+        },
+        {
+          "id": "restore",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "git",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08513999999999555,
+          "results": [
+            {
+              "passageId": "0cb3952e9b8628cc92cd138890faa8c7027c9ab5e6dfbaae0d2a0152b79ab2f9",
+              "documentId": "git",
+              "similarity": 0.7111310001227252,
+              "score": 4.881794452667236
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.2699727515537777,
+              "score": -5.523190498352051
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.26044919895425156,
+              "score": -9.108197212219238
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.25789210283404307,
+              "score": -9.17408275604248
+            },
+            {
+              "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+              "documentId": "archive",
+              "similarity": 0.2512800580009341,
+              "score": -9.355557441711426
+            }
+          ]
+        },
+        {
+          "id": "motor",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "starter-motor",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.0838279999999969,
+          "results": [
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.3620995597916505,
+              "score": 2.4427073001861572
+            },
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.21971712241813385,
+              "score": -11.248246192932129
+            },
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.12262452563936381,
+              "score": -11.251691818237305
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.11760739282035067,
+              "score": -11.416665077209473
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.1379163241448069,
+              "score": -11.4396333694458
+            }
+          ]
+        },
+        {
+          "id": "id-e17",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "sync-e17",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08462000000000103,
+          "results": [
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.42949481799096767,
+              "score": 2.5181312561035156
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.2112017244312267,
+              "score": -9.83024787902832
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.1293770753495672,
+              "score": -10.458123207092285
+            },
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.09339487506428759,
+              "score": -10.704147338867188
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.1455176070656899,
+              "score": -11.338227272033691
+            }
+          ]
+        },
+        {
+          "id": "id-e71",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "sync-e71",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.09134299999999484,
+          "results": [
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.334114651356187,
+              "score": 2.902420997619629
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.2556073620590389,
+              "score": -7.387427806854248
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.24977896651102152,
+              "score": -11.155433654785156
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.1350324796511359,
+              "score": -11.304685592651367
+            },
+            {
+              "passageId": "28bdbb6b1d7b45c0cf62e6879bf8ac2507e1d85bf1bb96c861b5e9b9219fd99f",
+              "documentId": "tire",
+              "similarity": 0.15762414585161483,
+              "score": -11.322829246520996
+            }
+          ]
+        },
+        {
+          "id": "id-4821",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "ticket-4821",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.0853310000000107,
+          "results": [
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.5721706713703578,
+              "score": 6.530535697937012
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5065899151820183,
+              "score": 1.1980156898498535
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.33690917548661925,
+              "score": -8.91843318939209
+            },
+            {
+              "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+              "documentId": "archive",
+              "similarity": 0.26991367965916524,
+              "score": -11.062561988830566
+            },
+            {
+              "passageId": "310b7e995a34568c11ebc5c70c939de648a9164c02e847e6acee40a39e3bb3bc",
+              "documentId": "archive",
+              "similarity": 0.23508275833515693,
+              "score": -11.154481887817383
+            }
+          ]
+        },
+        {
+          "id": "id-4812",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "ticket-4812",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08396799999999871,
+          "results": [
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.6220185898005041,
+              "score": 7.9240922927856445
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.5803721249767525,
+              "score": 4.484963417053223
+            },
+            {
+              "passageId": "b25d5c71f9496468ecd8aa161c3f6a5fcd8ea8ddf3f51d3dbe8efcb9d2ee4208",
+              "documentId": "sync-e71",
+              "similarity": 0.2098212281178162,
+              "score": -10.455972671508789
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.3284761993472374,
+              "score": -10.744638442993164
+            },
+            {
+              "passageId": "10512c41b51ba08950c94fddd831678c416f098ad2d5faf0354605433ad4632a",
+              "documentId": "sync-e17",
+              "similarity": 0.22210488535771306,
+              "score": -11.029118537902832
+            }
+          ]
+        },
+        {
+          "id": "gpu",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "device",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.0874250000000103,
+          "results": [
+            {
+              "passageId": "e474ca6f5d768709512eb70c4fc57e74c30605e05c507a3f51061bf92a544a50",
+              "documentId": "device",
+              "similarity": 0.5904413142340024,
+              "score": -0.040040310472249985
+            },
+            {
+              "passageId": "0cb3952e9b8628cc92cd138890faa8c7027c9ab5e6dfbaae0d2a0152b79ab2f9",
+              "documentId": "git",
+              "similarity": 0.36500183395938857,
+              "score": -5.74217414855957
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.5234320170783916,
+              "score": -6.706327438354492
+            },
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.2064223030684548,
+              "score": -10.80771541595459
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.22178557942292904,
+              "score": -11.02267837524414
+            }
+          ]
+        },
+        {
+          "id": "upgrade",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "ticket-4821",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.0806919999999991,
+          "results": [
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.3789283476947044,
+              "score": 0.5428842306137085
+            },
+            {
+              "passageId": "9e3dd917038a5d712c74f2c78da66e06f9e95c0bb1d95b5f9945a7b0e118a7db",
+              "documentId": "recipe",
+              "similarity": 0.5498373440055626,
+              "score": -5.387733459472656
+            },
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.2580372785382416,
+              "score": -10.397696495056152
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.24920772813226358,
+              "score": -11.26391887664795
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.2464915131120749,
+              "score": -11.27436351776123
+            }
+          ]
+        },
+        {
+          "id": "backup",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "export",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.09087100000000703,
+          "results": [
+            {
+              "passageId": "bf522bc7438780eccbc320deed4d3986c8e35b11088117e430b24ef047127ecf",
+              "documentId": "export",
+              "similarity": 0.36961628746423447,
+              "score": -5.370590686798096
+            },
+            {
+              "passageId": "073920fcec387ed6fa64d65563f955b9530eb4fdd405b5bca83afe60ef447f9b",
+              "documentId": "archive",
+              "similarity": 0.3315761534890434,
+              "score": -11.052440643310547
+            },
+            {
+              "passageId": "b6e74f43faa11ca3c8ecafbed26dc546a4f07349a7a7fa01b8688579243fc5f2",
+              "documentId": "archive",
+              "similarity": 0.32379609970610895,
+              "score": -11.123165130615234
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.3168790433843194,
+              "score": -11.150016784667969
+            },
+            {
+              "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+              "documentId": "archive",
+              "similarity": 0.3209857025424813,
+              "score": -11.173786163330078
+            }
+          ]
+        },
+        {
+          "id": "escapement",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "clock",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.0814539999999937,
+          "results": [
+            {
+              "passageId": "cce16a71dc775ef76b0266cec9c7ea88e2076f92c24324fec28718979853b2eb",
+              "documentId": "clock",
+              "similarity": 0.6380843986838202,
+              "score": 4.444169998168945
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.17816352326284252,
+              "score": -11.311577796936035
+            },
+            {
+              "passageId": "b6e74f43faa11ca3c8ecafbed26dc546a4f07349a7a7fa01b8688579243fc5f2",
+              "documentId": "archive",
+              "similarity": 0.17382817784957696,
+              "score": -11.3123779296875
+            },
+            {
+              "passageId": "8b9efbf8f938bb5cfbbb10e57bc2a129825201f231f44dd6174dd673596c4cae",
+              "documentId": "archive",
+              "similarity": 0.17618811688001593,
+              "score": -11.313309669494629
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.17001857425531325,
+              "score": -11.319881439208984
+            }
+          ]
+        },
+        {
+          "id": "pan",
+          "category": "paraphrase",
+          "answerable": true,
+          "topId": "copper",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.0860930000000053,
+          "results": [
+            {
+              "passageId": "b02d6e1203d627814c834567f9a25a45560b6585e5bc726113d18a7d25d78803",
+              "documentId": "copper",
+              "similarity": 0.6501785439288187,
+              "score": 1.9751757383346558
+            },
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.18434421547018623,
+              "score": -10.646489143371582
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.05089114613495994,
+              "score": -11.310885429382324
+            },
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.08715138650202457,
+              "score": -11.369648933410645
+            },
+            {
+              "passageId": "5bb0c89f14aafef92c93bae0abf5294b119b826e9c503b31feb79da7b13a1c5b",
+              "documentId": "starter-motor",
+              "similarity": 0.08074808465340037,
+              "score": -11.406051635742188
+            }
+          ]
+        },
+        {
+          "id": "version",
+          "category": "identifier",
+          "answerable": true,
+          "topId": "ticket-4821",
+          "accepted": true,
+          "rankingCorrect": false,
+          "correct": false,
+          "candidateRecall": true,
+          "elapsedMs": 0.08627200000000812,
+          "results": [
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.42243616429950553,
+              "score": -3.23600697517395
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.6161436985107979,
+              "score": -3.9437661170959473
+            },
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.32750241365777966,
+              "score": -10.986331939697266
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.21402368452359868,
+              "score": -11.40024471282959
+            },
+            {
+              "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+              "documentId": "archive",
+              "similarity": 0.2145376551353708,
+              "score": -11.407306671142578
+            }
+          ]
+        },
+        {
+          "id": "tail",
+          "category": "long-document",
+          "answerable": true,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.20257200000000353,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.6636654819281437,
+              "score": 9.238301277160645
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.36848959715513235,
+              "score": -11.353205680847168
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.3658178490043638,
+              "score": -11.358138084411621
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.36703894488586664,
+              "score": -11.363221168518066
+            },
+            {
+              "passageId": "8cf02f1dac934a028bdc8a638105369cea80432d7074d511d9d93c5a396935e3",
+              "documentId": "archive",
+              "similarity": 0.3567771949375392,
+              "score": -11.383562088012695
+            }
+          ]
+        },
+        {
+          "id": "tail-neighbor",
+          "category": "long-document",
+          "answerable": true,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": true,
+          "correct": true,
+          "candidateRecall": true,
+          "elapsedMs": 0.08795600000000547,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.6520625063386356,
+              "score": 8.909509658813477
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.36123062928055655,
+              "score": -11.355175971984863
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.35741886737832573,
+              "score": -11.363807678222656
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.359555915325362,
+              "score": -11.36866569519043
+            },
+            {
+              "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+              "documentId": "archive",
+              "similarity": 0.353258408458271,
+              "score": -11.371889114379883
+            }
+          ]
+        },
+        {
+          "id": "weather",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "sourdough",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.08975900000000081,
+          "results": [
+            {
+              "passageId": "00944c7117e6d9eb0abcb0d3e8781ed7c7d2a610e4bb55034673f496d7ea9270",
+              "documentId": "sourdough",
+              "similarity": 0.0906593619128412,
+              "score": -11.164410591125488
+            },
+            {
+              "passageId": "9b866d50b79f8e348ff8db0c2751d31538255f90f544179a0ccc611e57193afa",
+              "documentId": "eclipse",
+              "similarity": 0.05725579904405461,
+              "score": -11.25377082824707
+            },
+            {
+              "passageId": "fb0acc646b2a3dca512e79a42fd36e6c8b0d60ffa5c8f1c1941634c6bafcc546",
+              "documentId": "solar",
+              "similarity": 0.059148954805598494,
+              "score": -11.270313262939453
+            },
+            {
+              "passageId": "3954f2dcf41ba11283d164a417c3d0de243519e48906290c4667fcc64bb823b7",
+              "documentId": "release",
+              "similarity": 0.15069325793857552,
+              "score": -11.343549728393555
+            },
+            {
+              "passageId": "0eb9f5e54bc71b7c2d8deccef640f150671db8fc8009aa7b4504f6c359ccdf13",
+              "documentId": "ticket-4821",
+              "similarity": 0.04394131131147635,
+              "score": -11.35326099395752
+            }
+          ]
+        },
+        {
+          "id": "refund",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "ticket-4812",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.08953900000000203,
+          "results": [
+            {
+              "passageId": "ac38e6b2b63752a51b946e303b8728d9ad06ec6892dde9a94433217bb5862f68",
+              "documentId": "ticket-4812",
+              "similarity": 0.23462649088515766,
+              "score": -10.903809547424316
+            },
+            {
+              "passageId": "772650a2f1e184f1afca362d8c2446e2fee93ee1e54802319c1d192866913ec8",
+              "documentId": "archive",
+              "similarity": 0.18334107931011978,
+              "score": -11.273426055908203
+            },
+            {
+              "passageId": "6b908d5b5a42fee671c6305c214dba969ce2bbdfa917a09d411a732b93824e65",
+              "documentId": "archive",
+              "similarity": 0.16146539656813916,
+              "score": -11.276299476623535
+            },
+            {
+              "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+              "documentId": "archive",
+              "similarity": 0.1681081592270053,
+              "score": -11.279587745666504
+            },
+            {
+              "passageId": "310b7e995a34568c11ebc5c70c939de648a9164c02e847e6acee40a39e3bb3bc",
+              "documentId": "archive",
+              "similarity": 0.1687186848162299,
+              "score": -11.288403511047363
+            }
+          ]
+        },
+        {
+          "id": "missing-cabinet",
+          "category": "no-answer",
+          "answerable": false,
+          "topId": "archive",
+          "accepted": true,
+          "rankingCorrect": null,
+          "correct": false,
+          "candidateRecall": null,
+          "elapsedMs": 0.0894090000000034,
+          "results": [
+            {
+              "passageId": "414e9eddbd0e3dab873baf3256e971f2398e81df80f899cc8d32689e99ece4cb",
+              "documentId": "archive",
+              "similarity": 0.6554368321573013,
+              "score": 7.808856964111328
+            },
+            {
+              "passageId": "026a4561eda851a837f319eb230cf6f9b2208c9b5aef1e00d1081e63abb43118",
+              "documentId": "archive",
+              "similarity": 0.39118336303366497,
+              "score": -11.272957801818848
+            },
+            {
+              "passageId": "cd5c4bca52208d268d28a92221d0ed6a5004e0904cd6ba0647f601664847694e",
+              "documentId": "archive",
+              "similarity": 0.3771610327652055,
+              "score": -11.297393798828125
+            },
+            {
+              "passageId": "5f9b57d90169aa8304fb2e4993e9f48f558bbadfcf27c81b95adc7aa4c592c3f",
+              "documentId": "archive",
+              "similarity": 0.3859612395523094,
+              "score": -11.298324584960938
+            },
+            {
+              "passageId": "2d06a759343f2df7450555a2c33286be9a22bd156c2995ba684c29ea7ec87858",
+              "documentId": "archive",
+              "similarity": 0.37537162836987026,
+              "score": -11.305242538452148
+            }
+          ]
+        }
+      ],
+      "rankingCorrect": 17,
+      "candidateRecall": 18,
+      "answerableCount": 18,
+      "abstention": "unassessed",
+      "releaseQualified": false
+    }
+  ],
+  "fixedCandidateReranking": {
+    "incumbent": [
+      {
+        "query": "bread",
+        "topId": "sourdough",
+        "correct": true
+      },
+      {
+        "query": "bike",
+        "topId": "tire",
+        "correct": true
+      },
+      {
+        "query": "moon",
+        "topId": "eclipse",
+        "correct": true
+      },
+      {
+        "query": "sun",
+        "topId": "solar",
+        "correct": true
+      },
+      {
+        "query": "restore",
+        "topId": "git",
+        "correct": true
+      },
+      {
+        "query": "motor",
+        "topId": "starter-motor",
+        "correct": true
+      },
+      {
+        "query": "id-e17",
+        "topId": "sync-e17",
+        "correct": true
+      },
+      {
+        "query": "id-e71",
+        "topId": "sync-e71",
+        "correct": true
+      },
+      {
+        "query": "id-4821",
+        "topId": "ticket-4821",
+        "correct": true
+      },
+      {
+        "query": "id-4812",
+        "topId": "ticket-4812",
+        "correct": true
+      },
+      {
+        "query": "gpu",
+        "topId": "device",
+        "correct": true
+      },
+      {
+        "query": "upgrade",
+        "topId": "ticket-4821",
+        "correct": true
+      },
+      {
+        "query": "backup",
+        "topId": "export",
+        "correct": true
+      },
+      {
+        "query": "escapement",
+        "topId": "clock",
+        "correct": true
+      },
+      {
+        "query": "pan",
+        "topId": "copper",
+        "correct": true
+      },
+      {
+        "query": "version",
+        "topId": "release",
+        "correct": true
+      },
+      {
+        "query": "tail",
+        "topId": "archive",
+        "correct": true
+      },
+      {
+        "query": "tail-neighbor",
+        "topId": "archive",
+        "correct": true
+      }
+    ],
+    "minilm": [
+      {
+        "query": "bread",
+        "topId": "sourdough",
+        "correct": true
+      },
+      {
+        "query": "bike",
+        "topId": "tire",
+        "correct": true
+      },
+      {
+        "query": "moon",
+        "topId": "eclipse",
+        "correct": true
+      },
+      {
+        "query": "sun",
+        "topId": "solar",
+        "correct": true
+      },
+      {
+        "query": "restore",
+        "topId": "git",
+        "correct": true
+      },
+      {
+        "query": "motor",
+        "topId": "starter-motor",
+        "correct": true
+      },
+      {
+        "query": "id-e17",
+        "topId": "sync-e17",
+        "correct": true
+      },
+      {
+        "query": "id-e71",
+        "topId": "sync-e71",
+        "correct": true
+      },
+      {
+        "query": "id-4821",
+        "topId": "ticket-4821",
+        "correct": true
+      },
+      {
+        "query": "id-4812",
+        "topId": "ticket-4812",
+        "correct": true
+      },
+      {
+        "query": "gpu",
+        "topId": "device",
+        "correct": true
+      },
+      {
+        "query": "upgrade",
+        "topId": "ticket-4821",
+        "correct": true
+      },
+      {
+        "query": "backup",
+        "topId": "export",
+        "correct": true
+      },
+      {
+        "query": "escapement",
+        "topId": "clock",
+        "correct": true
+      },
+      {
+        "query": "pan",
+        "topId": "copper",
+        "correct": true
+      },
+      {
+        "query": "version",
+        "topId": "ticket-4821",
+        "correct": false
+      },
+      {
+        "query": "tail",
+        "topId": "archive",
+        "correct": true
+      },
+      {
+        "query": "tail-neighbor",
+        "topId": "archive",
+        "correct": true
+      }
+    ]
+  },
+  "fixedCandidateScope": "All frozen passages supplied; not end-to-end retrieval."
+}
