@@ -1,0 +1,76 @@
+{
+  "schema": "doppler.search-abstention-experiment/v1",
+  "frozenAt": "2026-09-27T00:08:42.729Z",
+  "developmentMatrixSha256": "27a7f14c4f60ecc086b2a2c4a6295f5cd7dd7559536b0ea025e8097ba0b51f5e",
+  "confirmationSha256": "de0387ee3729d7f26df5bb4138f5e8241a21cfe8f716dd9b9d7c27b4f4a64aea",
+  "contract": {
+    "minimumUsefulAcceptance": 0.9,
+    "maximumFalseAcceptance": 0
+  },
+  "policies": [
+    {
+      "embedding": "incumbent",
+      "reranker": "incumbent",
+      "binding": "d6b4dd05208401a0d2c76627029409076a164a55b5036e80fd179f47a6e7503f",
+      "status": "candidate",
+      "rule": "highest-score-at-least",
+      "threshold": 21.378986358642578,
+      "usefulAccepted": 4,
+      "answerableCount": 18,
+      "usefulAcceptance": 0.2222222222222222,
+      "falseAccepts": 0,
+      "noAnswerCount": 3,
+      "falseAcceptance": 0,
+      "rankingTop1": 1,
+      "calibrationPassed": false
+    },
+    {
+      "embedding": "incumbent",
+      "reranker": "minilm",
+      "binding": "9584ba875feef81bc32fedfce708ff92642fc7b5ad4e04e3257eed5e378163a4",
+      "status": "candidate",
+      "rule": "highest-score-at-least",
+      "threshold": 7.9240922927856445,
+      "usefulAccepted": 3,
+      "answerableCount": 18,
+      "usefulAcceptance": 0.16666666666666666,
+      "falseAccepts": 0,
+      "noAnswerCount": 3,
+      "falseAcceptance": 0,
+      "rankingTop1": 0.9444444444444444,
+      "calibrationPassed": false
+    },
+    {
+      "embedding": "minilm",
+      "reranker": "incumbent",
+      "binding": "e92b43254b64434950f0f98c47c8a5081417fadcefe5a840233a9c1048d7f1e0",
+      "status": "candidate",
+      "rule": "highest-score-at-least",
+      "threshold": 21.378986358642578,
+      "usefulAccepted": 4,
+      "answerableCount": 18,
+      "usefulAcceptance": 0.2222222222222222,
+      "falseAccepts": 0,
+      "noAnswerCount": 3,
+      "falseAcceptance": 0,
+      "rankingTop1": 1,
+      "calibrationPassed": false
+    },
+    {
+      "embedding": "minilm",
+      "reranker": "minilm",
+      "binding": "d6cab7aca62e3d5fe53798224df7a6e1e770893c4d8af711b45fde12395d40db",
+      "status": "candidate",
+      "rule": "highest-score-at-least",
+      "threshold": 7.9240922927856445,
+      "usefulAccepted": 3,
+      "answerableCount": 18,
+      "usefulAcceptance": 0.16666666666666666,
+      "falseAccepts": 0,
+      "noAnswerCount": 3,
+      "falseAcceptance": 0,
+      "rankingTop1": 0.9444444444444444,
+      "calibrationPassed": false
+    }
+  ]
+}

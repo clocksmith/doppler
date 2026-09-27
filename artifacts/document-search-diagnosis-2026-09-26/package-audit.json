@@ -1,0 +1,24 @@
+{
+  "entryCount": 1864,
+  "addedDependencies": false,
+  "changed": [
+    {
+      "path": "package/src/storage/blake3.js",
+      "beforeBytes": 9634,
+      "afterBytes": 10037,
+      "beforeSha256": "3f0601ef21ff38a9ed69a2a30b2fb9e8f1bd5fd90bd5a6ee72f43237862cee47",
+      "afterSha256": "e64c56aeeb1065bf8a5699d4c6188495e49dd0051d2d35c2ae61329e4e6d85ff"
+    }
+  ],
+  "additionalUnpackedBytes": 403,
+  "archives": [
+    {
+      "path": "/var/tmp/doppler-loading-package-20260926-04/doppler-gpu-0.6.2.tgz",
+      "sha256": "32af41c69fc8f25b04ea0461d32dd8947217bb18a995e68d15fd65b1a643b1c4"
+    },
+    {
+      "path": "/var/tmp/doppler-diagnosis-package-20260926/doppler-gpu-0.6.2.tgz",
+      "sha256": "c5be891b3451944f3ff8cf951e46ed6b7fe0f2180d117207bb0b1833669797af"
+    }
+  ]
+}

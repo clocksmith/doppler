@@ -1,0 +1,9 @@
+{
+  "corpusPath": "artifacts/document-search-compact-2026-09-26/corpus-v2.json",
+  "freezePath": "artifacts/document-search-compact-2026-09-26/corpus-v2-freeze.json",
+  "captures": {
+    "incumbent": "/dev/shm/doppler-diagnosis-20260926/incumbent-components.json",
+    "minilm": "/dev/shm/doppler-compact-20260926/minilm-source.json"
+  },
+  "outputPath": "artifacts/document-search-diagnosis-2026-09-26/component-matrix-reproduced.json"
+}

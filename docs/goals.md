@@ -34,6 +34,40 @@ must use this engine, not a second execution path bypassing its checks.
 
 ## Goal 1: Earn standalone executable-model adoption
 
+### Active product priorities: generation and search
+
+Standalone text generation is active product work alongside search. The compact
+embedding/reranking target, no-answer calibration and independent search adoption
+must not become prerequisites for a useful generation deliverable. This updates
+product sequencing; Rig → Capsule → Run and all execution/trust boundaries remain
+unchanged. Maintain the accepted search application and reuse its proven loading
+and lifecycle work where the contracts match.
+
+The first generation use-case hypothesis is rewriting selected text for clarity.
+Ship one qualified model and a small application outside Run, with streaming,
+honest cancellation, and user-controlled accept/discard. Freeze representative
+inputs and criteria before model selection: preserve names, numbers, negation,
+meaning and requested format; retain the original; reject oversized inputs
+explicitly; measure opening, first useful output, completion, memory, repeated
+use and offline reopening. A coherent smoke response or numerical source parity
+does not establish useful rewriting quality. Qualify installed assets, session
+reuse, closure and recovery separately on each claimed host.
+
+Chrome's [Rewriter API](https://developer.chrome.com/docs/ai/rewriter-api) and
+[Summarizer API](https://developer.chrome.com/docs/ai/summarizer-api) provide
+concrete alternative workflows to evaluate where available. Their existence
+supports the use-case comparison, not a claim that Doppler is faster or more
+portable. Doppler must demonstrate a useful difference on the adopter's actual
+constraints. The first model and final application choice remain subject to
+task-quality evidence.
+
+Document retrieval within an existing application remains the leading use case
+for the embedding/reranking pair: find relevant passages and improve their order.
+Keep reranking only where its measured relevance benefit justifies its cost.
+The internal compact screening has not established a stronger independent-use
+case that warrants postponing generation. RAG composition remains optional;
+generation does not need a retrieval pipeline to be useful.
+
 ### Next product increment: copy-and-run local search
 
 Deliver a complete local-search application that developers can copy, run, and
@@ -60,14 +94,18 @@ They are reference configurations, not evidence of minimum memory, reboot
 persistence, or independent adoption. Do not reopen the completed Node runner or
 repository-hygiene work as unfinished milestones.
 
-The next bounded increments precede Electron expansion:
+The next bounded search increments precede Electron expansion; they do not gate
+the standalone generation work above:
 
 1. Measure complete opening, accelerate authenticated loading, distinguish
    preparation costs, and bound acquisition and verified-backing lifetimes while
    keeping both search models resident.
-2. Freeze a search evaluation corpus before choosing a compact embedding and
-   reranking pair. Target 300 MB combined provisionally; retain the existing
-   reference pair when quality fails. Qualify persistent storage and an ordinary
+2. Keep the rejected compact candidates rejected while isolating component
+   failures. Compare exact quantized bytes through an independent decoder and
+   execution reference before changing precision. Evaluate mixed retriever and
+   reranker pairs, and calibrate then freeze abstention independently of ranking.
+   A 300 MB combined download remains a provisional objective, not a feasibility
+   claim or an all-or-nothing gate. Qualify persistent storage and an ordinary
    smaller-memory machine without developer-only browser flags.
 3. Supply a versioned application setup recipe around the existing controller,
    then support an independently operated integration through a second revision.
@@ -91,6 +129,13 @@ freeze application quality inputs and retain failed smaller-model and quantized
 embedding results. Neither candidate replaces the reference pair. The expanded
 corpus also exposes the incumbent's lack of a qualified no-answer decision;
 ordinary ranking must not be presented as calibrated answerability.
+
+The [component diagnosis](../artifacts/document-search-diagnosis-2026-09-26/README.md)
+separates exact-byte quantization approximation, retrieval, reranking, and
+abstention. Preserve original failed observations and use fresh confirmation
+after policy development. A missing qualified abstention policy means
+`unassessed`; it does not invalidate retained installation or lifecycle evidence.
+Do not begin a broad model search on the basis of the combined-pair failure.
 
 Keep useful search computation callable without browser storage, page configuration,
 or UI events. After browser acceptance, reuse that computation through a small Node

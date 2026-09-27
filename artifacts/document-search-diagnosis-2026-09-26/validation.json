@@ -1,0 +1,41 @@
+{
+  "schema": "doppler.diagnostic-validation/v1",
+  "baseCommit": "5825e4f20841f3d568c0c6bc4b5c098334abf352",
+  "workingTreeCandidate": true,
+  "generatedAtUtc": "2026-09-27T00:27:29.902406+00:00",
+  "commands": [
+    {
+      "command": "npm run check:green",
+      "exitCode": 0,
+      "testFiles": 868,
+      "scripts": 48,
+      "log": "check-green.log.gz"
+    },
+    {
+      "command": "node tools/run-node-tests.js --scripts agents:verify catscan:check goals:check source:dependencies:check",
+      "exitCode": 0,
+      "log": "final-doc-checks.log.gz"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "python3 -m py_compile tools/diagnose-qwen-quantized-reference.py tools/compare-qwen-quantized-boundaries.py",
+      "exitCode": 0
+    }
+  ],
+  "physicalProbes": {
+    "lifecycle": {
+      "passed": true,
+      "receipt": "lifecycle.json.gz"
+    },
+    "offline": {
+      "passed": true,
+      "receipt": "offline.json.gz"
+    }
+  },
+  "promotedCompactCandidates": false,
+  "qualifiedAbstentionPolicies": 0,
+  "published": false
+}

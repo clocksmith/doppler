@@ -1,0 +1,11 @@
+{
+  "preparedPath": "/dev/shm/doppler-diagnosis-20260926/confirmation-prepared.json",
+  "sourcesPath": "/dev/shm/doppler-compact-20260926/sources.json",
+  "outputPath": "/dev/shm/doppler-diagnosis-20260926/confirmation-minilm.json",
+  "threads": 4,
+  "embeddingMaxTokens": 256,
+  "rerankerMaxTokens": 512,
+  "minimumRerankScore": 0,
+  "scoreContract": "Raw scalar cross-encoder logit, accept >=0; fixed before source outputs.",
+  "pooling": "attention-mask mean, L2 normalize; include special tokens"
+}

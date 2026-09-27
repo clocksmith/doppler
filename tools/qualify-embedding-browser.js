@@ -22,6 +22,7 @@ export async function qualifyEmbeddingBrowser(config) {
   if (config.mode === 'capsule' && (!config.capsulePath || !config.application || !config.openOptions?.trustedSigners)) {
     throw new Error('Capsule qualification requires a Capsule path, application and explicit trust.');
   }
+  if (config.diagnostics && config.mode !== 'model') throw new Error('Raw diagnostics require model mode.');
   const bundle = config.packageBundlePath;
   const installed = JSON.parse(await fs.readFile(path.join(bundle, 'receipt.json'), 'utf8'));
   if (!installed.passed || hashBytesSha256(await fs.readFile(path.join(bundle, installed.package.filename))) !== `sha256:${installed.package.sha256}`) {
@@ -109,9 +110,11 @@ export async function qualifyEmbeddingBrowser(config) {
               if (!completed) throw new Error('Embedding operation ended without completion.');
               evidence = completed.output.embeddings[0];
               receipts.push(completed.receipt);
-            } else evidence = await session.embedWithEvidence(text);
+            } else evidence = await session.embedWithEvidence(text, config.diagnostics
+              ? { diagnostics: config.diagnostics } : {});
             timings.push({ repeat, index, elapsedMs: performance.now() - began });
-            if (repeat === 0) outputs.push({ text, tokenIds: evidence.tokens, embedding: Array.from(evidence.embedding) });
+            if (repeat === 0) outputs.push({ text, tokenIds: evidence.tokens, embedding: Array.from(evidence.embedding),
+              ...(config.diagnostics ? { diagnostics: session.advanced.getStats().operatorDiagnostics } : {}) });
             else if (JSON.stringify(Array.from(evidence.embedding)) !== JSON.stringify(outputs[index].embedding)) throw new Error('Repeated embedding changed.');
           }
         }

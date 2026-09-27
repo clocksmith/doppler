@@ -26,15 +26,15 @@ function toBytes(data) {
   return data instanceof Uint8Array ? data : new Uint8Array(data);
 }
 
-function blockWordsFromBytes(bytes, offset, length) {
-  const words = new Uint32Array(16);
+function blockWordsFromBytes(bytes, offset, length, words) {
+  words.fill(0);
   for (let i = 0; i < length; i++) {
     words[i >> 2] |= bytes[offset + i] << ((i & 3) * 8);
   }
   return words;
 }
 
-function compress(cv, blockWords, counter, blockLen, flags) {
+function compress(cv, blockWords, counter, blockLen, flags, out = new Uint32Array(16)) {
   let v0 = cv[0];
   let v1 = cv[1];
   let v2 = cv[2];
@@ -150,11 +150,14 @@ function compress(cv, blockWords, counter, blockLen, flags) {
     v4 ^= v9;
     v4 = (v4 >>> 7) | (v4 << 25);
   }
-  return new Uint32Array([v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15]);
+  out[0] = v0; out[1] = v1; out[2] = v2; out[3] = v3;
+  out[4] = v4; out[5] = v5; out[6] = v6; out[7] = v7;
+  out[8] = v8; out[9] = v9; out[10] = v10; out[11] = v11;
+  out[12] = v12; out[13] = v13; out[14] = v14; out[15] = v15;
+  return out;
 }
 
-function chainingValue(state) {
-  const cv = new Uint32Array(8);
+function chainingValue(state, cv = new Uint32Array(8)) {
   for (let i = 0; i < 8; i++) {
     cv[i] = (state[i] ^ state[i + 8]) >>> 0;
   }
@@ -175,7 +178,9 @@ function stateToBytes(state) {
 }
 
 function createChunkOutput(chunkBytes, chunkLen, chunkCounter, key) {
-  let cv = key;
+  const cv = key.slice();
+  const blockWords = new Uint32Array(16);
+  const state = new Uint32Array(16);
   const blockCount = chunkLen === 0 ? 1 : Math.ceil(chunkLen / BLOCK_LEN);
   let output = null;
 
@@ -184,22 +189,20 @@ function createChunkOutput(chunkBytes, chunkLen, chunkCounter, key) {
     const blockLen = chunkLen === 0
       ? 0
       : Math.min(BLOCK_LEN, chunkLen - blockOffset);
-    const blockWords = blockWordsFromBytes(chunkBytes, blockOffset, blockLen);
+    blockWordsFromBytes(chunkBytes, blockOffset, blockLen, blockWords);
 
     let flags = 0;
     if (blockIndex === 0) flags |= CHUNK_START;
     if (blockIndex === blockCount - 1) flags |= CHUNK_END;
 
-    output = {
-      inputCv: cv,
-      blockWords,
-      counter: chunkCounter,
-      blockLen,
-      flags,
-    };
+    if (blockIndex === blockCount - 1) {
+      // Only the final block survives this chunk. Its input must remain immutable
+      // while the working chaining value is updated for the parent tree.
+      output = { inputCv: cv.slice(), blockWords, counter: chunkCounter, blockLen, flags };
+    }
 
-    const state = compress(cv, blockWords, chunkCounter, blockLen, flags);
-    cv = chainingValue(state);
+    compress(cv, blockWords, chunkCounter, blockLen, flags, state);
+    chainingValue(state, cv);
   }
 
   return { cv, output };

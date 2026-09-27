@@ -1,0 +1,178 @@
+{
+  "schema": "doppler.quantized-boundary-comparison/v1",
+  "policy": {
+    "threads": 8,
+    "quantizedBoundaries": "/dev/shm/doppler-diagnosis-20260926/q4-boundaries.npz",
+    "sourceDir": "reports/capsule-baseline/20260906/embedding-source-c54f2e6e",
+    "referencePath": "reports/capsule-baseline/20260906/embedding-related-frozen-reference.json",
+    "sourceBoundaries": "/dev/shm/doppler-diagnosis-20260926/f16-source-boundaries.npz",
+    "quantizedDoppler": "/dev/shm/doppler-diagnosis-20260926/q4-operator-boundaries/qualification.json",
+    "f16Doppler": "/dev/shm/doppler-diagnosis-20260926/f16-operator-boundaries/qualification.json",
+    "outputPath": "artifacts/document-search-diagnosis-2026-09-26/boundary-comparison.json"
+  },
+  "probeSha256": "f106720d80d328da560750e605242d92a560cab1001ad099609bb82e9274b66b",
+  "inputs": {
+    "quantizedBoundaries": "2d40ed69bf9c14b3ef2c4d63c452736bf00b3939f37086517242a6a893a5e0a5",
+    "sourceBoundaries": "605f167e7c1be657c64326e3360a4d6b316c9ff9118649868c0822b7ba1e07e2",
+    "referencePath": "b44cabb137aa84f617cd6a9e45765a5f4d1c4307d729fe8b6f559c869f1845c8",
+    "quantizedDoppler": "acf918e4ce4df74bdc023df65e8df1b4061db34462ef0ecaad44be504828d452",
+    "f16Doppler": "fb4df1c08c23438151114d06ba36c559db143798c16f1de31d18b859c97c602f"
+  },
+  "equivalentComputations": [
+    {
+      "mode": "quantized",
+      "operator": "embed.out",
+      "values": 8,
+      "maxAbsoluteError": 0.0,
+      "rootMeanSquareError": 0.0,
+      "referenceMaxAbsolute": 0.062255859375
+    },
+    {
+      "mode": "quantized",
+      "operator": "layer.0.attn.post_input_norm",
+      "values": 37888,
+      "maxAbsoluteError": 3.5762786865234375e-07,
+      "rootMeanSquareError": 1.1761844027017874e-08,
+      "referenceMaxAbsolute": 3.1299474239349365
+    },
+    {
+      "mode": "quantized",
+      "operator": "layer.0.attn.q_proj",
+      "values": 75776,
+      "maxAbsoluteError": 8.58306884765625e-06,
+      "rootMeanSquareError": 2.479989354507302e-07,
+      "referenceMaxAbsolute": 6.19545841217041
+    },
+    {
+      "mode": "quantized",
+      "operator": "layer.0.attn.k_proj",
+      "values": 37888,
+      "maxAbsoluteError": 9.5367431640625e-06,
+      "rootMeanSquareError": 2.8393278077043613e-07,
+      "referenceMaxAbsolute": 5.339269161224365
+    },
+    {
+      "mode": "quantized",
+      "operator": "layer.0.attn.v_proj",
+      "values": 37888,
+      "maxAbsoluteError": 1.1920928955078125e-06,
+      "rootMeanSquareError": 9.882229795402855e-08,
+      "referenceMaxAbsolute": 1.4494773149490356
+    },
+    {
+      "mode": "quantized",
+      "operator": "layer.0.layer.out",
+      "values": 37888,
+      "maxAbsoluteError": 0.0006532669067382812,
+      "rootMeanSquareError": 5.464482816589785e-05,
+      "referenceMaxAbsolute": 6.123655319213867
+    },
+    {
+      "mode": "quantized",
+      "operator": "layer.27.layer.out",
+      "values": 37888,
+      "maxAbsoluteError": 0.09930419921875,
+      "rootMeanSquareError": 0.006082945119726734,
+      "referenceMaxAbsolute": 1432.79443359375
+    },
+    {
+      "mode": "f16",
+      "operator": "embed.out",
+      "values": 8,
+      "maxAbsoluteError": 0.0,
+      "rootMeanSquareError": 0.0,
+      "referenceMaxAbsolute": 0.062255859375
+    },
+    {
+      "mode": "f16",
+      "operator": "layer.0.attn.post_input_norm",
+      "values": 37888,
+      "maxAbsoluteError": 3.5762786865234375e-07,
+      "rootMeanSquareError": 1.2015655722401809e-08,
+      "referenceMaxAbsolute": 3.1299474239349365
+    },
+    {
+      "mode": "f16",
+      "operator": "layer.0.attn.q_proj",
+      "values": 75776,
+      "maxAbsoluteError": 8.106231689453125e-06,
+      "rootMeanSquareError": 2.46415830030637e-07,
+      "referenceMaxAbsolute": 6.193272113800049
+    },
+    {
+      "mode": "f16",
+      "operator": "layer.0.attn.k_proj",
+      "values": 37888,
+      "maxAbsoluteError": 4.76837158203125e-06,
+      "rootMeanSquareError": 2.708072525059761e-07,
+      "referenceMaxAbsolute": 5.409646034240723
+    },
+    {
+      "mode": "f16",
+      "operator": "layer.0.attn.v_proj",
+      "values": 37888,
+      "maxAbsoluteError": 1.6689300537109375e-06,
+      "rootMeanSquareError": 1.0022339957615245e-07,
+      "referenceMaxAbsolute": 1.435960292816162
+    },
+    {
+      "mode": "f16",
+      "operator": "layer.0.layer.out",
+      "values": 37888,
+      "maxAbsoluteError": 0.0010347366333007812,
+      "rootMeanSquareError": 4.8928357893762074e-05,
+      "referenceMaxAbsolute": 6.088250160217285
+    },
+    {
+      "mode": "f16",
+      "operator": "layer.27.layer.out",
+      "values": 37888,
+      "maxAbsoluteError": 0.16064453125,
+      "rootMeanSquareError": 0.006066638335015713,
+      "referenceMaxAbsolute": 1153.49853515625
+    }
+  ],
+  "quantizationApproximation": [
+    {
+      "boundary": "embed_tokens",
+      "maxAbsoluteError": 2.9802322387695312e-08,
+      "rmsError": 2.420857680984767e-10
+    },
+    {
+      "boundary": "layers.0.input_layernorm",
+      "maxAbsoluteError": 1.980060915229842e-07,
+      "rmsError": 1.58435731201223e-09
+    },
+    {
+      "boundary": "layers.0.self_attn.q_proj",
+      "maxAbsoluteError": 0.2690706253051758,
+      "rmsError": 0.016308391466736794
+    },
+    {
+      "boundary": "layers.0.self_attn.k_proj",
+      "maxAbsoluteError": 0.14818787574768066,
+      "rmsError": 0.015386638231575489
+    },
+    {
+      "boundary": "layers.0.self_attn.v_proj",
+      "maxAbsoluteError": 0.054715558886528015,
+      "rmsError": 0.012778539210557938
+    },
+    {
+      "boundary": "layers.0",
+      "maxAbsoluteError": 0.18071937561035156,
+      "rmsError": 0.026295950636267662
+    },
+    {
+      "boundary": "layers.27",
+      "maxAbsoluteError": 2586.29296875,
+      "rmsError": 34.513771057128906
+    },
+    {
+      "boundary": "norm",
+      "maxAbsoluteError": 75.58444213867188,
+      "rmsError": 1.354101538658142
+    }
+  ],
+  "scope": "One input, complete selected matrices and layers, embedding slice. No new acceptance tolerance."
+}

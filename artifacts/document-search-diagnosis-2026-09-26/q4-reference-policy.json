@@ -1,0 +1,20 @@
+{
+  "threads": 8,
+  "candidateDir": "/dev/shm/doppler-compact-20260926/qwen-embedding",
+  "candidateReceipt": "artifacts/document-search-compact-2026-09-26/qwen-receipt.json",
+  "sourceDir": "reports/capsule-baseline/20260906/embedding-source-c54f2e6e",
+  "referencePath": "reports/capsule-baseline/20260906/embedding-related-frozen-reference.json",
+  "dopplerPath": "/dev/shm/doppler-compact-20260926/qwen-qualification/qualification.json",
+  "boundaries": [
+    "embed_tokens",
+    "layers.0.input_layernorm",
+    "layers.0.self_attn.q_proj",
+    "layers.0.self_attn.k_proj",
+    "layers.0.self_attn.v_proj",
+    "layers.0",
+    "layers.27",
+    "norm"
+  ],
+  "boundaryPath": "/dev/shm/doppler-diagnosis-20260926/q4-boundaries.npz",
+  "outputPath": "/dev/shm/doppler-diagnosis-20260926/q4-reference.json"
+}

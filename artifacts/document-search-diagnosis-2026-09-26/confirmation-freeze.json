@@ -1,0 +1,44 @@
+{
+  "sha256": "de0387ee3729d7f26df5bb4138f5e8241a21cfe8f716dd9b9d7c27b4f4a64aea",
+  "frozenBeforeScoreCapture": true,
+  "developmentCorpus": "../document-search-compact-2026-09-26/corpus-v2.json",
+  "minimumUsefulAcceptance": 0.9,
+  "maximumFalseAcceptance": 0,
+  "corpusSubsets": {
+    "full": [
+      "sourdough",
+      "tire",
+      "eclipse",
+      "solar",
+      "git",
+      "starter-motor",
+      "sync-e17",
+      "sync-e71",
+      "ticket-4821",
+      "ticket-4812",
+      "device",
+      "recipe",
+      "export",
+      "clock",
+      "copper",
+      "release",
+      "archive",
+      "beginning",
+      "middle",
+      "end",
+      "export-copy"
+    ],
+    "small": [
+      "beginning",
+      "middle",
+      "end",
+      "export",
+      "export-copy",
+      "sync-e71",
+      "ticket-4821",
+      "sourdough",
+      "release",
+      "archive"
+    ]
+  }
+}

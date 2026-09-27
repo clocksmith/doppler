@@ -1,0 +1,265 @@
+{
+  "schema": "doppler.compact-search-evaluation/v1",
+  "scope": "Author-created confirmation, written before its score capture; related development corpus is not unseen.",
+  "preprocessing": {
+    "version": "unicode-window-v1",
+    "maxCodePoints": 480,
+    "overlapCodePoints": 80,
+    "preserveOriginalDocuments": true
+  },
+  "search": {
+    "candidateCount": 5,
+    "queryPrefix": "",
+    "documentPrefix": ""
+  },
+  "acceptance": {
+    "minimumAnswerableTop1Rate": 0.9,
+    "requiredIdentifierTop1Rate": 1,
+    "requiredLongDocumentTop1Rate": 1,
+    "maximumNoAnswerFalsePositives": 0,
+    "provisionalCombinedDownloadBytes": 300000000
+  },
+  "documents": [
+    {
+      "id": "sourdough",
+      "title": "Maintaining a sourdough starter",
+      "mediaType": "text/markdown",
+      "text": "# Maintaining a sourdough starter\nA starter is a living mixture of flour, water, yeast and bacteria. Feed it fresh flour and water regularly. For occasional baking, keep it refrigerated and refresh it before mixing dough. Discard any starter showing fuzzy mold or pink discoloration."
+    },
+    {
+      "id": "tire",
+      "title": "Repairing a bicycle puncture",
+      "mediaType": "text/plain",
+      "text": "Remove the bicycle wheel and lift one tire bead off the rim. Pull out the tube and inflate it to locate the puncture. Check the tire for glass or thorns before patching the tube or fitting a replacement. Seat the bead and inflate to the tire manufacturer's pressure range."
+    },
+    {
+      "id": "eclipse",
+      "title": "How a lunar eclipse happens",
+      "mediaType": "text/markdown",
+      "text": "# Lunar eclipses\nA lunar eclipse occurs when Earth moves between the Sun and the Moon and Earth's shadow falls on the Moon. It can happen only at full moon, but the tilt of the lunar orbit means most full moons are not eclipses. A total lunar eclipse can make the Moon look copper red."
+    },
+    {
+      "id": "solar",
+      "title": "How a solar eclipse happens",
+      "mediaType": "text/plain",
+      "text": "A solar eclipse occurs when the Moon moves between Earth and the Sun. The Moon's shadow crosses part of Earth and blocks the bright solar disk. This geometry is possible at new moon. Observing the Sun requires suitable solar viewing protection."
+    },
+    {
+      "id": "git",
+      "title": "Restoring a removed Git file",
+      "mediaType": "text/markdown",
+      "text": "# Recover a tracked file\nIf a tracked file was removed from the working tree but the deletion has not been committed, git restore -- path/to/file restores it from the index. To recover a version from a particular commit, specify --source followed by that commit. Untracked files cannot be recovered from Git history unless they were previously committed."
+    },
+    {
+      "id": "starter-motor",
+      "title": "What a starter motor does",
+      "mediaType": "text/plain",
+      "text": "The starter motor uses electricity from a vehicle battery to rotate the engine until combustion can continue on its own. A clicking sound with no engine rotation can indicate a weak battery or poor connection. This electrical starter does not use flour or yeast."
+    },
+    {
+      "id": "sync-e17",
+      "title": "Sync error E-17",
+      "mediaType": "text/plain",
+      "text": "Error E-17 means the local document snapshot could not be committed because storage is full. Free storage, export your original documents, and retry the save. The previous committed snapshot remains usable."
+    },
+    {
+      "id": "sync-e71",
+      "title": "Sync error E-71",
+      "mediaType": "text/plain",
+      "text": "Error E-71 means the remote authentication credential expired. Sign in again. Deleting local documents does not repair authentication."
+    },
+    {
+      "id": "ticket-4821",
+      "title": "Ticket SEARCH-4821",
+      "mediaType": "text/plain",
+      "text": "SEARCH-4821 fixes unchanged-document embedding reuse. Editing only a title should preserve its content vector. Changing the embedding model requires rebuilding incompatible vectors."
+    },
+    {
+      "id": "ticket-4812",
+      "title": "Ticket SEARCH-4812",
+      "mediaType": "text/plain",
+      "text": "SEARCH-4812 fixes reranker cancellation. Submitted GPU commands may finish before buffers can be released. A cancelled query must not replace newer results."
+    },
+    {
+      "id": "device",
+      "title": "Graphics device recovery",
+      "mediaType": "text/plain",
+      "text": "After graphics device loss, close invalid model sessions and open new sessions on a replacement device. Retain original documents and rebuild only an incompatible or damaged index."
+    },
+    {
+      "id": "recipe",
+      "title": "Keeping an application release",
+      "mediaType": "text/plain",
+      "text": "Pin the application setup recipe and accepted model identities. A reranker-only update can reuse document embeddings when the embedding model and preprocessing contract remain unchanged."
+    },
+    {
+      "id": "export",
+      "title": "Exporting documents",
+      "mediaType": "text/plain",
+      "text": "Export original documents, stable identifiers and application settings to a user-owned file. Downloaded model shards are replaceable cached assets. A browser persistence grant is not a backup."
+    },
+    {
+      "id": "clock",
+      "title": "Repairing an analogue clock",
+      "mediaType": "text/plain",
+      "text": "A mechanical clock stores energy in a wound spring or a suspended weight. Its escapement releases that energy in controlled increments. A pendulum or balance wheel regulates the movement."
+    },
+    {
+      "id": "copper",
+      "title": "Copper cookware",
+      "mediaType": "text/plain",
+      "text": "Copper pots conduct heat efficiently. Acidic food should not touch unlined copper surfaces. Many copper pans have a tin or stainless steel lining."
+    },
+    {
+      "id": "release",
+      "title": "Release ledger",
+      "mediaType": "text/plain",
+      "text": "The fictional project Larch shipped release 3.8 with a search-results export. Release 3.9 added keyboard navigation. Release 4.0 changed the embedding space and requires a fresh index."
+    },
+    {
+      "id": "archive",
+      "title": "Archive operating notes",
+      "mediaType": "text/markdown",
+      "text": "Archive shelf 01: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 02: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 03: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 04: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 05: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 06: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 07: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 08: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 09: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 10: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 11: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 12: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 13: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 14: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 15: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 16: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 17: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 18: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 19: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 20: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 21: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 22: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 23: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 24: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 25: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 26: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 27: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nArchive shelf 28: retain the original note, its stable identifier, and the date entered. Inspect the shelf label when returning a folder. This routine entry records no access credential.\n\nThe emergency recovery phrase for archive cabinet AZ-904 is violet heron. Cabinet AZ-940 uses amber finch. Keep these two fictional cabinet identifiers distinct."
+    },
+    {
+      "id": "beginning",
+      "title": "BX-120",
+      "text": "The fictional locker BX-120 has recovery phrase silver wren.The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. ",
+      "mediaType": "text/plain"
+    },
+    {
+      "id": "middle",
+      "title": "BX-210",
+      "text": "The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The fictional locker BX-210 has recovery phrase silver wren.The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. ",
+      "mediaType": "text/plain"
+    },
+    {
+      "id": "end",
+      "title": "BX-201",
+      "text": "The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The daily inventory note records shelf inspection and routine cleaning, without an access phrase. The fictional locker BX-201 has recovery phrase silver wren.",
+      "mediaType": "text/plain"
+    },
+    {
+      "id": "export-copy",
+      "title": "Second export guide",
+      "text": "Export original documents, stable identifiers and application settings to a user-owned file. Downloaded model shards are replaceable cached assets. A browser persistence grant is not a backup.",
+      "mediaType": "text/plain"
+    }
+  ],
+  "queries": [
+    {
+      "id": "beginning",
+      "text": "Which recovery phrase opens fictional locker BX-120?",
+      "relevantIds": [
+        "beginning"
+      ],
+      "category": "long-document"
+    },
+    {
+      "id": "middle",
+      "text": "Which recovery phrase opens fictional locker BX-210?",
+      "relevantIds": [
+        "middle"
+      ],
+      "category": "long-document"
+    },
+    {
+      "id": "end",
+      "text": "Which recovery phrase opens fictional locker BX-201?",
+      "relevantIds": [
+        "end"
+      ],
+      "category": "long-document"
+    },
+    {
+      "id": "duplicate",
+      "text": "What should my backup export retain?",
+      "relevantIds": [
+        "export",
+        "export-copy"
+      ],
+      "category": "duplicate-relevant"
+    },
+    {
+      "id": "e71",
+      "text": "How do I resolve sync error E-71?",
+      "relevantIds": [
+        "sync-e71"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "4821",
+      "text": "Does SEARCH-4821 require new vectors when only a title changes?",
+      "relevantIds": [
+        "ticket-4821"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "bread-new",
+      "text": "Where can a bread starter wait between occasional bakes?",
+      "relevantIds": [
+        "sourdough"
+      ],
+      "category": "paraphrase"
+    },
+    {
+      "id": "release-new",
+      "text": "Which Larch release added keyboard navigation?",
+      "relevantIds": [
+        "release"
+      ],
+      "category": "identifier"
+    },
+    {
+      "id": "absent-locker",
+      "text": "Which recovery phrase opens fictional locker BX-121?",
+      "relevantIds": [],
+      "category": "near-miss-identifier"
+    },
+    {
+      "id": "absent-cabinet",
+      "text": "What is the recovery phrase for archive cabinet AZ-905?",
+      "relevantIds": [],
+      "category": "near-miss-identifier"
+    },
+    {
+      "id": "absent-ticket",
+      "text": "What does SEARCH-4822 fix?",
+      "relevantIds": [],
+      "category": "near-miss-identifier"
+    },
+    {
+      "id": "absent-error",
+      "text": "How do I resolve sync error E-72?",
+      "relevantIds": [],
+      "category": "near-miss-identifier"
+    },
+    {
+      "id": "bread-ratio",
+      "text": "What exact flour-to-water ratio does this bread starter require?",
+      "relevantIds": [],
+      "category": "topical-no-answer"
+    },
+    {
+      "id": "export-password",
+      "text": "What password encrypts the exported backup file?",
+      "relevantIds": [],
+      "category": "topical-no-answer"
+    },
+    {
+      "id": "release-price",
+      "text": "What was the purchase price of Larch release 3.9?",
+      "relevantIds": [],
+      "category": "topical-no-answer"
+    },
+    {
+      "id": "unrelated",
+      "text": "Who won the sailing regatta last Sunday?",
+      "relevantIds": [],
+      "category": "no-answer"
+    }
+  ]
+}

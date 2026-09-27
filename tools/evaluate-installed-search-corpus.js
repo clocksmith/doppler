@@ -49,6 +49,38 @@ try {
   const sessions = app.controller.getSessions();
   assert.deepEqual(Object.keys(sessions).sort(), ['embedding', 'reranker']);
   report.models = models.map(({ role, identity }) => ({ role, identity }));
+  if (config.capturePath) {
+    assert(!config.embeddingCandidateDir, 'Component capture uses the unchanged signed pair.');
+    const prepared = prepareEvaluation(corpus);
+    const embeddings = [];
+    const texts = [...new Set([
+      ...prepared.documents.map(row => corpus.search.documentPrefix + row.text),
+      ...prepared.queries.map(row => corpus.search.queryPrefix + row.text),
+    ])];
+    for (const text of texts) {
+      const result = await sessions.embedding.embed({ application: embedding.application, text });
+      embeddings.push({ text, vector: Array.from(result.embedding) });
+    }
+    const reranking = [];
+    for (const query of prepared.queries) {
+      // Exhaustive scores support a separately labelled fixed-candidate diagnostic.
+      const scores = [];
+      for (const document of prepared.documents) {
+        const result = await sessions.reranker.rerank({ application: reranker.application,
+          query: query.text, documents: [document.text] });
+        assert.equal(result.evidence.scores.length, 1);
+        scores.push({ text: document.text, score: result.evidence.scores[0].score });
+      }
+      reranking.push({ query: query.text, scores });
+      console.log(`Captured incumbent components: ${query.id}`);
+    }
+    await fs.writeFile(config.capturePath, JSON.stringify({
+      schema: 'doppler.search-component-capture/v1', dimension: app.config.search.dimension,
+      corpusSha256: hash(corpusBytes), models: report.models, embeddings, reranking,
+      installedPackage: report.installedPackage, hardware: report.hardware,
+      probeSha256: report.probeSha256, searchSha256: report.searchSha256,
+    }, null, 2) + '\n', { flag: 'wx' });
+  }
   let embeddingIdentity = embedding.identity;
   if (config.embeddingCandidateDir) {
     const manifestBytes = await fs.readFile(path.join(config.embeddingCandidateDir, 'manifest.json'));
