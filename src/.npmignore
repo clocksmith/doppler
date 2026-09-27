@@ -624,8 +624,6 @@ inference/pipelines/text/init-qkv-fusion.d.ts
 inference/pipelines/text/kernel-trace.d.ts
 inference/pipelines/text/layer-execution-contract.d.ts
 inference/pipelines/text/layer-input-execution.d.ts
-inference/pipelines/text/layer-partition-contract.d.ts
-inference/pipelines/text/layer-partition-contract.js
 inference/pipelines/text/layer-plan-gpu.d.ts
 inference/pipelines/text/layer.d.ts
 inference/pipelines/text/lifecycle.d.ts
@@ -695,6 +693,7 @@ loader/layer-weight-shape.d.ts
 loader/load-timing.d.ts
 loader/model-executor.d.ts
 loader/model-load-validation.d.ts
+loader/model-load.d.ts
 loader/per-layer-input-loader.d.ts
 loader/tensor-load-error.d.ts
 loader/tensor-shard-indices.d.ts

@@ -65,6 +65,7 @@ import {
 } from '../vision/weight-loading.js';
 
 export async function initialize(contexts = {}) {
+    this.modelPartition = contexts.partition == null ? null : structuredClone(contexts.partition);
     const { runtimeConfig, sharedDebug } = applyPipelineContexts(this, contexts, {
       assignGpuContext: true,
       assignUseGPU: true,
@@ -424,6 +425,7 @@ export async function _loadWeights() {
       (this.manifest),
       (this.modelConfig),
       {
+        partition: this.modelPartition,
         storageContext: this.storageContext ?? undefined,
         loadingConfig: this.runtimeConfig.loading,
         baseUrl: this.baseUrl ?? undefined,

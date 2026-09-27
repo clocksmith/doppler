@@ -26,6 +26,9 @@ Implement Doppler's shipped JavaScript and WGSL contracts with explicit policy r
 
 - JSON owns behavior policy, JavaScript owns orchestration, and WGSL owns math.
 - Public facades delegate rather than acquire hidden execution semantics.
+- The explicit `doppler-gpu/partitions` entry exposes model allocation and
+  activation contracts. The minimal Capsule root remains independent of those
+  helpers; neither entry alone qualifies distributed execution.
 - Missing required runtime choices fail before dispatch.
 
 ## Acceptance

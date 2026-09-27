@@ -1,0 +1,16 @@
+{
+  "scope": "unpublished partition-contract and loader candidate; no distributed execution qualification",
+  "base": "3da88feb",
+  "node": "v22.23.2",
+  "npm": "10.9.8",
+  "version": "0.6.3-dev.split.1",
+  "integrity": "sha512-gKMWz8nMrevyZCA/dn0ckcA80HzXUVpMTpgJIclfGUxUgLWtKETdehS9ofC5OByx5ljf+/SxogF42aV3OIQ/3Q==",
+  "size": 2164412,
+  "unpackedSize": 11359930,
+  "entryCount": 1867,
+  "addedPackageFiles": [
+    "src/inference/pipelines/text/layer-partition-contract.js",
+    "src/inference/pipelines/text/layer-partition-contract.d.ts",
+    "src/loader/model-load.js"
+  ]
+}

@@ -27,6 +27,10 @@ Materialize validated artifact tensors into runtime-owned CPU and GPU representa
 - Loader code never mutates inference configuration.
 - Materialized dtype and source transforms remain inspectable.
 - Partial loads and failures clean up owned resources.
+- Partition allocations are validated against the manifest before materializing
+  assigned layers at their original indices. Tied endpoint weights remain
+  explicit shared dependencies. Layer selection does not imply selective shard
+  acquisition: verification of shared artifacts is accounted for separately.
 
 ## Acceptance
 

@@ -1115,13 +1115,6 @@
         "loader/doppler-loader-components.js"
       ]
     },
-    "loader/model-executor.js": {
-      "reviewedLines": 819,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "loader/model-executor-components.js"
-      ]
-    },
     "loader/tensors/source-transform.js": {
       "reviewedLines": 810,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",

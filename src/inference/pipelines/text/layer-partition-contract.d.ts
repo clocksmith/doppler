@@ -15,7 +15,7 @@ export interface PartitionTensorContract {
 }
 export interface LayerPartition {
   index: number;
-  layerRange: number[];
+  layerRange: readonly number[];
   layerCount: number;
   hasEmbedding: boolean;
   hasLmHead: boolean;
@@ -36,6 +36,9 @@ export declare function createLayerPartitionPlan(options: {
   modelId: string; numLayers: number; hiddenSize: number; vocabSize: number;
   splitLayer?: number | null; activationDtype?: ActivationDtype;
 }): LayerPartitionPlan;
+export declare function resolveLayerPartition(manifest: {
+  modelId?: unknown; architecture?: unknown;
+}, allocation: { plan: LayerPartitionPlan; index: 0 | 1 } | null | undefined): Readonly<LayerPartition> | null;
 export declare function validateActivationTensorShape(options: {
   shape: readonly number[]; dtype: ActivationDtype | 'i32';
   byteLength?: number | null; hiddenSize?: number | null;
