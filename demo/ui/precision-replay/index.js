@@ -315,8 +315,6 @@ function setPanelOpen(open) {
   const toggle = $('precision-replay-toggle');
   if (panel) {
     panel.hidden = !open;
-    const area = panel.closest('.precision-replay-area');
-    if (area) area.hidden = !open;
   }
   if (toggle) toggle.setAttribute('aria-expanded', String(open));
 }

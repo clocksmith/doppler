@@ -1,0 +1,37 @@
+[node-tests] script: typecheck:source
+[source-types] 17 strict roots; 1047 explicitly inventoried unchecked implementations; no debt growth
+[node-tests] script: typecheck:source-runtime
+[node-tests] script: source:architecture:check
+source architecture check passed: 21 owners, 2805 files, 0 governed oversize files, 54 reviewed soft-limit files, 25 reviewed generic modules (6 semantic owners, 19 facades, 0 legacy debt)
+[node-tests] script: source:style:check
+[source:style:check] 1063 governed JavaScript modules have sibling declarations, 227 reviewed numeric candidate(s), no runtime tensor compute, implementation annotations limited to checked strict roots, no undeclared raw console calls, and no banned geometry inference
+[node-tests] script: source:dependencies:check
+[source-dependencies] 2506 files; 53 test-only; 92 computed/unresolved diagnostics
+[node-tests] script: inference:boundaries:check
+inference boundary check passed
+- INV-ATTN-003: no getRuntimeConfig() calls under attention/
+[node-tests] script: catscan:check
+catscan: current docs/component-index.md (30 components)
+[node-tests] script: config:single-source:check
+[config:single-source:check] config contract single-source checks passed
+Generation declarations match the public definition.
+[node-tests] script: rules:bundle:check
+rule bundle: current (56 source files)
+[node-tests] script: kernels:uniforms:check
+[kernels:uniforms] 355 variants, 296 WGSL modules, 132 shared layouts; checked.
+[node-tests] script: kernels:codegen:check
+[wgsl:check] variants=42 changed=0 unchanged=42
+[node-tests] script: kernels:digests:check
+[kernels:digests:check] kernel-ref-digests.js is up to date
+[node-tests] script: runtime:closure:check
+Capsule runtime closure passed: 71 files, 780494 source bytes.
+[node-tests] script: package:closure:check
+package source closure check passed (931 runtime JS, 471 declarations, 464 resources)
+[node-tests] script: exports:parity:check
+[exports-parity:check] 1063 JavaScript modules have declarations; paired named exports agree
+[node-tests] script: api:docs:check
+[api-docs] up to date (docs/api/reference/exports.md)
+[node-tests] script: demo:shell:check
+demo shell manifest: 744 files, 700 modules, 6415195 bytes (sha256:c0339e9b8201286b971da1e5450d1b3d590728bab62c88631dbafb7b244367bc)
+[node-tests] script: demo:reachability:check
+demo reachability: 18 live modules, no duplicate implementation

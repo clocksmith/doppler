@@ -1,0 +1,24 @@
+
+> doppler-gpu@0.6.3-dev.split.1 test:demo:contract
+> node tools/demo-contract-smoke.js
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: X-Ray can inspect an existing receipt
+
+1 !== 5
+
+    at checkDemoControls (file:///home/x/deco/doppler/tests/demo/browser-controls.js:87:10)
+    at async main (file:///home/x/deco/doppler/tools/demo-contract-smoke.js:203:5)
+    at async file:///home/x/deco/doppler/tools/demo-contract-smoke.js:243:1 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 5,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

@@ -2,7 +2,7 @@
 
 import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { createTensor } from '../../../../gpu/tensor.js';
-import { SlidingWindowKVCache } from '../../../kv-cache.js';
+import { SlidingWindowKVCache } from '../../../kv-cache/sliding-window.js';
 import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer } from '../../../../memory/buffer-pool.js';
 

@@ -245,3 +245,5 @@ activation-executor-lifecycle, and installed `package:smoke` imports. Architectu
 policy prevents registry contracts from reaching execution or host machinery.
 
 Retained implementation and validation evidence: [scoped execution dependencies](../../reports/architecture-consolidation/20260927/README.md).
+The [follow-up verification](../../reports/architecture-consolidation/20260927-followup/README.md)
+rechecks the installed package and closes the browser-control acceptance gap.

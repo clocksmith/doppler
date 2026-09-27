@@ -415,7 +415,6 @@
         "src/gpu/weight-buffer.js",
         "src/inference/decode-buffers.js",
         "src/inference/decode-ring.js",
-        "src/inference/kv-cache.js",
         "src/inference/kv-cache/base.js",
         "src/inference/kv-cache/basis-decomposed-paged.js",
         "src/inference/kv-cache/index.js",
@@ -1542,7 +1541,6 @@
         "src/inference/browser-harness/timing-diagnostics.js",
         "src/inference/decode-buffers.js",
         "src/inference/decode-ring.js",
-        "src/inference/kv-cache.js",
         "src/inference/kv-cache/base.js",
         "src/inference/kv-cache/basis-decomposed-paged.js",
         "src/inference/kv-cache/index.js",
@@ -6038,13 +6036,13 @@
     {
       "file": "tests/demo/browser-streaming.js",
       "kind": "dynamic",
-      "line": 71,
+      "line": 75,
       "expression": "import(`${base}/demo/output.js`)"
     },
     {
       "file": "tests/demo/browser-streaming.js",
       "kind": "dynamic",
-      "line": 115,
+      "line": 119,
       "expression": "import(`${base}/demo/ui/chat-markdown.js`)"
     },
     {
