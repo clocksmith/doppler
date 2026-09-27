@@ -91,3 +91,5 @@ export declare function isRuleRegistry(value: unknown): value is RuleRegistry;
 export declare function getRuleRegistry(): RuleRegistry;
 /** Internal compatibility lease; caller must serialize the entire operation. */
 export declare function enterRuleRegistry(registry: RuleRegistry): () => void;
+
+export declare function getDefaultRuleRegistry(): RuleRegistry;

@@ -24,6 +24,8 @@ Expose structured runtime observation without silently changing execution or evi
 
 ## Invariants
 
+- Reusable imports do not install console globals. Applications opt in explicitly; scoped observers cannot leak events into another instance.
+
 - Observation that changes execution is labeled and excluded from representative timing.
 - Runtime code uses the shared debug system rather than ad hoc logging.
 - Evidence records first failure boundaries without conflating them with causes.

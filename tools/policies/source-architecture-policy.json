@@ -518,6 +518,7 @@
     }
   },
   "constitutionalDomains": {
+    "registry-contracts": ["rules/rule-registry.js", "config/kernel-registry-contract.js", "config/execution-registry-contract.js"],
     "capsule-http": ["cli/serve/capsule-handler.js", "cli/serve/capsule-http.js"],
     "capsule": [
       "config/model-ir.js",
@@ -544,6 +545,11 @@
     ]
   },
   "constitutionalImportGraphs": [
+    {
+      "domain": "registry-contracts",
+      "entryPoints": ["rules/rule-registry.js", "config/kernel-registry-contract.js", "config/execution-registry-contract.js"],
+      "forbiddenPathPrefixes": ["client/", "gpu/", "inference/", "loader/", "converter/", "tooling/"]
+    },
     {
       "domain": "capsule-http",
       "entryPoints": ["cli/serve/capsule-handler.js"],

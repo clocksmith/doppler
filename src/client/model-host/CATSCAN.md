@@ -10,7 +10,7 @@ Compose model acquisition and application handles above the injected Capsule exe
 
 ## Authority
 
-- Owns convenience loading, device initialization coordination, model caching, input formatting, and model-handle evidence construction.
+- Owns loading, device initialization coordination, model caching, input formatting, and model-handle evidence construction.
 - Does not own Capsule semantics, qualification, application trust, or GPU computation.
 
 ## Scope
@@ -26,9 +26,11 @@ Compose model acquisition and application handles above the injected Capsule exe
 
 ## Invariants
 
+- Resolve registries before construction; inject storage and observation separately.
+
 - Host composition may depend on Capsule execution; Capsule execution cannot import this host layer.
 - Evidence construction cannot acquire GPU resources or invoke a model pipeline.
-- Forwarding entry points expose the same Capsule contract without former Pack-name aliases.
+- Forwarding entry points expose the same Capsule contract without Pack-name aliases.
 - Loading and cancellation failures preserve cleanup and the original failure.
 - Applications own session lifetime, initialization coalescing, query supersession,
   indexing, and UI; these are not new model-host abstractions.

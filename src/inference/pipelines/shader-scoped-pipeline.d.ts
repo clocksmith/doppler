@@ -1,3 +1,4 @@
+export { createRuleRegistry } from '../../rules/rule-registry.js';
 import type { ShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
 export type PipelineOperationKind = 'execution' | 'streaming' | 'mutation' | 'reset' | 'inspection' | 'shutdown';
 export type PipelineOperationContract = Readonly<Record<string, PipelineOperationKind

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { createInitializedPipeline } from '../../src/inference/pipelines/factory.js';
-import { createRuleRegistry, registerRuleGroup, selectRuleValue } from '../../src/rules/rule-registry.js';
-import { createKernelRegistry, getKernelConfig, setKernelValidator } from '../../src/gpu/kernels/kernel-configs.js';
+import { createRuleRegistry, registerRuleGroup, selectRuleValue, enterRuleRegistry } from '../../src/rules/rule-registry.js';
+import { createKernelRegistry, getKernelConfig, setKernelValidator, enterKernelRegistry } from '../../src/gpu/kernels/kernel-configs.js';
+import { resolvePipelineRegistries } from '../../src/inference/pipelines/shader-scoped-pipeline.js';
 import { log } from '../../src/debug/log.js';
 
 const eventsA = [], eventsB = [], sequence = [];
@@ -26,6 +27,14 @@ class Pipeline {
   async *generate() { yield value(); await Promise.resolve(); yield value(); }
   async unload() { log.always('test', `close:${value()[0]}`); }
 }
+const defaults = resolvePipelineRegistries();
+const restoreRules = enterRuleRegistry(rules('active-other-instance'));
+const restoreKernels = enterKernelRegistry(kernels('active-other-instance'));
+try {
+  const independent = resolvePipelineRegistries();
+  assert.equal(independent.ruleRegistry, defaults.ruleRegistry);
+  assert.equal(independent.kernelRegistry, defaults.kernelRegistry);
+} finally { restoreKernels(); restoreRules(); }
 const a = await createInitializedPipeline(Pipeline, {}, {
   ruleRegistry: rules('A'), kernelRegistry: kernels('A'), observer: { observe: e => eventsA.push(e) },
 });

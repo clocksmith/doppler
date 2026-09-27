@@ -68,10 +68,6 @@ const {
 } = ruleBundle.files;
 
 
-// deepFreeze assumes all values in the tree are plain objects, arrays, or
-// primitives. Typed arrays, Maps, Sets, and other exotic objects will be
-// frozen but their internal slots are not traversed. This is acceptable
-// because rule JSON payloads only contain plain JSON-representable values.
 function deepFreeze(value, seen = new WeakSet()) {
   if (!value || typeof value !== 'object' || seen.has(value)) {
     return value;
@@ -221,6 +217,7 @@ export const DEFAULT_RULE_REGISTRY = createRuleRegistry();
 let compatibilityRegistry = DEFAULT_RULE_REGISTRY;
 let activeRegistry = null;
 
+export function getDefaultRuleRegistry() { return compatibilityRegistry; }
 export function getRuleRegistry() { return activeRegistry ?? compatibilityRegistry; }
 
 // Only the serialized legacy pipeline boundary enters this adapter.

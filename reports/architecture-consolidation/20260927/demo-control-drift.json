@@ -1,0 +1,19 @@
+{
+  "baseline": "78e9aa6eef1fc96ef9d8dd8616a6e5cc7d8a2ed3",
+  "inspectionOnly": true,
+  "files": {
+    "demo/index.html": {
+      "baselineSha256": "37af5a1c3edc1120605983e4d3e56153a66401cbed4f4c32ff236a1ae2553128",
+      "currentSha256": "37af5a1c3edc1120605983e4d3e56153a66401cbed4f4c32ff236a1ae2553128",
+      "baselineContainsRemovedSelector": false,
+      "currentContainsRemovedSelector": false
+    },
+    "tests/demo/browser-controls.js": {
+      "baselineSha256": "2d3ec7653a656360d88895ffc07c5b55f8df9c4a11b8cda0b20912f24189e1b8",
+      "currentSha256": "757ec94442f6d12fbcb9f55d3a7f1ade17dfecc7b8e45f5873f09df1f6a6978f",
+      "baselineContainsRemovedSelector": true,
+      "currentContainsRemovedSelector": true
+    }
+  },
+  "observation": "Control test references chat-controls, absent from demo HTML at the task baseline and current source. Current test additionally verifies explicit debug installation before the existing failure."
+}

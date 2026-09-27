@@ -26,6 +26,7 @@ export function createKernelRegistry({ extensions = {}, validators = {} } = {}) 
 export const DEFAULT_KERNEL_REGISTRY = createKernelRegistry();
 let compatibilityRegistry = DEFAULT_KERNEL_REGISTRY;
 let compatibilityValidatorRevision = 0;
+export function getDefaultKernelRegistry() { return compatibilityRegistry; }
 export function getKernelRegistry() { return getActiveKernelRegistry() ?? compatibilityRegistry; }
 
 export function getKernelConfig(operation, variant) {

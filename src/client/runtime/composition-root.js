@@ -11,7 +11,7 @@ import { createVerifiedCapsuleArtifactStore } from './verified-capsule-artifact-
 import { createResourceBinder, createDeviceAvailabilityCheck } from './resource-binder.js';
 import { createCommandExecutor } from './command-executor.js';
 import { createSessionController } from './session-controller.js';
-import { selectTargetPlan } from './target-selector.js';
+import { selectQualifiedTargetPlan as selectTargetPlan } from '../../config/target-plan.js';
 import { executeCapsuleRerank } from './capsule-rerank.js';
 import { createCapsuleOperationAdapters } from './capsule-operation-adapters.js';
 import { createCapsuleAdapterExecution } from './capsule-adapter-execution.js';

@@ -50,3 +50,5 @@ export declare function isKernelRegistry(value: unknown): value is KernelRegistr
 export declare function getActiveKernelRegistry(): KernelRegistry | null;
 export declare function enterKernelRegistry(registry: KernelRegistry): () => void;
 export declare function getKernelConfigs(): KernelRegistry['configs'];
+
+export declare function getKernelRegistryIdentity(): string;

@@ -1,6 +1,6 @@
 import { resolvePipelineRegistries } from '../../inference/pipelines/shader-scoped-pipeline.js';
 import { log } from '../../debug/index.js';
-import { createPipeline } from '../../generation/index.js';
+import { createPipeline } from '../../inference/pipelines/text.js';
 import { createCapsuleLoadScope, assertCapsuleLoadActive } from '../runtime/capsule-acquisition.js';
 import { listQuickstartModels } from '../doppler-registry.js';
 import {

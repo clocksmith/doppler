@@ -1,3 +1,4 @@
+export { installDebugGlobal } from '../../debug/index.js';
 import { mergeRuntimeValues } from '../../config/runtime-merge.js';
 import { getRuntimeConfig, setRuntimeConfig } from '../../config/runtime.js';
 import { validateRuntimeProfileMetadata } from '../../config/schema/runtime-profile.schema.js';

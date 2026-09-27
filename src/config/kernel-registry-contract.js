@@ -20,55 +20,54 @@ export function isKernelRegistry(value) { return instances.has(value); }
 
 export function createKernelRegistry({ extensions = {}, validators = {} } = {}) {
   const operations = structuredClone(registry.operations);
-  for (const [name, extension] of Object.entries(structuredClone(extensions))) {
+  for (const [name, extension] of Object.entries(freezeConfig(structuredClone(extensions)))) {
     if (['__proto__', 'constructor', 'prototype'].includes(name)) throw new Error('Invalid kernel operation name.');
     operations[name] = { ...operations[name], ...extension,
       variants: { ...operations[name]?.variants, ...extension.variants } };
   }
   const configs = Object.fromEntries(
+    Object.entries(operations).map(([operation, operationSchema]) => {
+      const variants = Object.fromEntries(
+        Object.entries(operationSchema.variants).map(([variant, variantSchema]) => {
+          const resolved = resolveKernelConfig(operation, variant, operationSchema, variantSchema);
+          if (!resolved.wgsl || typeof resolved.wgsl !== 'string') {
+            throw new Error(
+              `Kernel config ${operation}/${variant} is missing required field "shaderFile" (wgsl).`
+            );
+          }
+          if (!resolved.entryPoint || typeof resolved.entryPoint !== 'string') {
+            throw new Error(
+              `Kernel config ${operation}/${variant} is missing required field "entryPoint".`
+            );
+          }
+          const config = {
+            operation,
+            variant,
+            shaderFile: resolved.wgsl,
+            entryPoint: resolved.entryPoint,
+            workgroupSize: resolved.workgroup,
+            requires: resolved.requires,
+            requiredWgslFeatures: resolved.requiredWgslFeatures,
+            bindings: resolved.bindings,
+            uniforms: resolved.uniforms,
+            wgslOverrides: resolved.wgslOverrides,
+            sharedMemory: resolved.sharedMemory,
+            outputDtype: resolved.outputDtype ?? undefined,
+            weightDtype: resolved.weightDtype ?? undefined,
+            variantMetadata: resolved.variantMetadata ?? undefined,
+          };
+          return [variant, config];
+        })
+      );
+      return [operation, variants];
+    })
+  );
 
-  Object.entries(operations).map(([operation, operationSchema]) => {
-    const variants = Object.fromEntries(
-      Object.entries(operationSchema.variants).map(([variant, variantSchema]) => {
-        const resolved = resolveKernelConfig(operation, variant, operationSchema, variantSchema);
-        if (!resolved.wgsl || typeof resolved.wgsl !== 'string') {
-          throw new Error(
-            `Kernel config ${operation}/${variant} is missing required field "shaderFile" (wgsl).`
-          );
-        }
-        if (!resolved.entryPoint || typeof resolved.entryPoint !== 'string') {
-          throw new Error(
-            `Kernel config ${operation}/${variant} is missing required field "entryPoint".`
-          );
-        }
-        const config = {
-          operation,
-          variant,
-          shaderFile: resolved.wgsl,
-          entryPoint: resolved.entryPoint,
-          workgroupSize: resolved.workgroup,
-          requires: resolved.requires,
-          requiredWgslFeatures: resolved.requiredWgslFeatures,
-          bindings: resolved.bindings,
-          uniforms: resolved.uniforms,
-          wgslOverrides: resolved.wgslOverrides,
-          sharedMemory: resolved.sharedMemory,
-          outputDtype: resolved.outputDtype ?? undefined,
-          weightDtype: resolved.weightDtype ?? undefined,
-          variantMetadata: resolved.variantMetadata ?? undefined,
-        };
-        return [variant, config];
-      })
-    );
-    return [operation, variants];
-  })
-);
-
-  const companion = {};
-  const validatorIdentities = {};
+  const companion = Object.create(null);
+  const validatorIdentities = Object.create(null);
   for (const [operation, variants] of Object.entries(validators)) {
-    companion[operation] = {};
-    validatorIdentities[operation] = {};
+    companion[operation] = Object.create(null);
+    validatorIdentities[operation] = Object.create(null);
     for (const [variant, descriptor] of Object.entries(variants)) {
       if (!Object.hasOwn(configs, operation) || !Object.hasOwn(configs[operation], variant)) {
         throw new Error(`Validator references unknown kernel: ${operation}/${variant}`);
@@ -115,3 +114,4 @@ export function getKernelConfig(operation, variant) {
 }
 export function getKernelConfigs() { return (activeRegistry ?? DEFAULT_KERNEL_REGISTRY).configs; }
 
+export function getKernelRegistryIdentity() { return (activeRegistry ?? DEFAULT_KERNEL_REGISTRY).identity; }

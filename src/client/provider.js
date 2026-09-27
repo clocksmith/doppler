@@ -1,6 +1,6 @@
 import { log } from '../debug/index.js';
 import { ERROR_CODES, createDopplerError } from '../errors/doppler-error.js';
-import { createDopplerRuntimeService } from './runtime/index.js';
+import { createDopplerRuntimeService } from './model-host/index.js';
 import { classifyProviderFailure } from './failure-taxonomy.js';
 import { buildProviderReceiptV1 } from './receipt.js';
 import { createFaultInjector } from './fault-injection.js';

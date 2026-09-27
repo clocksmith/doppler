@@ -24,6 +24,8 @@ Implement registered deterministic tensor operations whose numeric behavior and 
 
 ## Invariants
 
+- Resolved registry configurations are deeply immutable; companion validators and cache identity remain scoped to the prepared program.
+
 - Registry IDs, files, entrypoints, bindings, and digests remain aligned.
 - Immediate and recorded adapters consume the same semantic plan.
 - Numerical changes pass operator and continuation evidence appropriate to the change.

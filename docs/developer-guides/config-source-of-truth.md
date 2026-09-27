@@ -29,7 +29,7 @@ Add new behavior by plugging into the existing layer that owns that concern:
 - new model behavior: conversion config and manifest fields
 - new runtime tuning: runtime profile or runtime config payload
 - new capability adaptation: rule-map entry or execution graph transform policy
-- new WGSL implementation: kernel registry entry plus wrapper and tests
+- new WGSL implementation: kernel registry entry, reused/generated adapter or specialized wrapper, and tests
 - new hosted model: catalog entry plus verified artifact publication metadata
 - new benchmark lane: benchmark policy/profile plus committed evidence artifacts
 
@@ -196,3 +196,52 @@ The Doppler Program Bundle references the manifest execution graph, WGSL
 digests, runtime/capture profile, and artifact identities from these owners.
 It must not invent a Doe-specific duplicate list of model behavior, kernels, or
 weight layout. See `docs/integration/program-bundle.md`.
+
+## Scoped registry construction and migration
+
+`createRuleRegistry()` and `createKernelRegistry()` are available through
+`doppler-gpu/tooling/runtime`. They construct immutable instances from the existing
+canonical metadata, without changing another instance. Rule extensions are
+`{ domain, group, rules }` entries. Kernel extensions are operation schemas keyed
+by operation, with explicitly supplied variants. All resolved metadata, including
+bindings, workgroups, overrides and variant metadata, is deeply frozen.
+
+Validators belong to the companion `validators[operation][variant]` map as
+`{ id, validate }`, not JSON metadata. The ID must identify the trusted immutable
+validator implementation. Validators must not mutate captured policy or depend
+on mutable shared state; a JavaScript closure is not sandboxed by freezing a
+registry. Use `getKernelValidator()` instead of a `config.validate` property.
+Compatibility `registerRuleGroup()` and `setKernelValidator()` replace only the
+compatibility default for future construction. Open pipelines retain their
+original instances. Legacy validator registrations lack a portable implementation
+identity and cannot qualify a Capsule.
+
+The model host resolves registries before constructing a numerical program.
+`createDopplerRun({ registries, ...ports })` injects the immutable pair into its
+existing `programFactory`. A noncanonical pair must match the accepted TargetPlan's
+`initialExecutionIdentity.runtimeEngine.registries = { rules, kernels }` digests.
+That optional field is covered by the existing engine and identity hashes and
+validated by the TargetPlan schema. Existing signed plans without extensions keep
+their identity; extensions require a newly prepared and qualified plan. Host
+observers, device and artifact storage remain separate ports, outside that policy
+identity. Input, cancellation, live program and device checks remain per operation.
+
+Legacy execution still leases the existing serialized pipeline boundary, including
+stream return and shutdown. Immutable registries do not establish concurrent GPU
+safety. Kernel-path and pipeline caches include registry identity. Complete shader
+sources, execution graphs, and the Rig → Capsule → Run boundary remain unchanged.
+Capability transformations remain in Rig behind the existing
+`config/transforms/execution-graph-transforms.js` compatibility export.
+
+Reusable debug imports never install `globalThis.DOPPLER`. Applications may call
+`installDebugGlobal()` from `doppler-gpu/tooling` explicitly; its return value
+restores the previous property. The demo opts in during initialization. Separate
+pipeline observers use the existing `observe(event)` port, while JSON continues
+to select levels and categories. JavaScript observers own formatting, redaction,
+buffering and transport. Scoped log/trace events do not enter global log history.
+
+Tests: registry-instance, pipeline-registry-isolation, initial-execution-identity,
+activation-executor-lifecycle, and installed `package:smoke` imports. Architecture
+policy prevents registry contracts from reaching execution or host machinery.
+
+Retained implementation and validation evidence: [scoped execution dependencies](../../reports/architecture-consolidation/20260927/README.md).

@@ -1,7 +1,8 @@
+export { createRuleRegistry } from '../../rules/rule-registry.js';
 import { enterDiagnosticObserver, resolveDiagnosticObserver } from '../../debug/log.js';
 import { resolveExecutionRegistries } from '../../config/execution-registry-contract.js';
-import { getRuleRegistry, enterRuleRegistry, isRuleRegistry, DEFAULT_RULE_REGISTRY } from '../../rules/rule-registry.js';
-import { getKernelRegistry, enterKernelRegistry, DEFAULT_KERNEL_REGISTRY } from '../../gpu/kernels/kernel-configs.js';
+import { getDefaultRuleRegistry, enterRuleRegistry, isRuleRegistry, DEFAULT_RULE_REGISTRY } from '../../rules/rule-registry.js';
+import { getDefaultKernelRegistry, enterKernelRegistry, DEFAULT_KERNEL_REGISTRY } from '../../gpu/kernels/kernel-configs.js';
 import { isKernelRegistry } from '../../config/kernel-registry-contract.js';
 import {
   runWithShaderSourceScope,
@@ -11,7 +12,7 @@ import {
 import { applyPipelineContexts } from './context.js';
 import { isDeviceLost } from '../../gpu/device-state.js';
 
-export function resolvePipelineRegistries({ ruleRegistry = getRuleRegistry(), kernelRegistry = getKernelRegistry() } = {}) {
+export function resolvePipelineRegistries({ ruleRegistry = getDefaultRuleRegistry(), kernelRegistry = getDefaultKernelRegistry() } = {}) {
   if (!isRuleRegistry(ruleRegistry)) throw new Error('Pipeline requires a constructed rule registry.');
   const resolved = resolveExecutionRegistries({ ruleRegistry, kernelRegistry });
   return Object.freeze({ ...resolved, isCanonical: ruleRegistry.identity === DEFAULT_RULE_REGISTRY.identity
@@ -134,32 +135,37 @@ function assertDeviceAvailable(pipeline, operation) {
   return lost;
 }
 
-function enterCompatibilityContext(pipeline, operation) {
+function enterCompatibilityContext(owner, operation) {
+  const pipeline = owner.pipeline;
   const lost = assertDeviceAvailable(pipeline, operation);
-  return applyPipelineContexts({}, {
-    runtimeConfig: pipeline.runtimeConfig,
-    gpu: lost ? null : pipeline.gpuContext,
-  }).restore;
+  const restoreObserver = enterDiagnosticObserver(owner.observer);
+  const restoreRules = enterRuleRegistry(owner.ruleRegistry);
+  const restoreKernels = enterKernelRegistry(owner.kernelRegistry);
+  let restoreContext;
+  const restore = () => {
+    try { restoreContext?.(); }
+    finally { restoreKernels(); restoreRules(); restoreObserver(); }
+  };
+  try {
+    restoreContext = applyPipelineContexts({}, {
+      runtimeConfig: pipeline.runtimeConfig,
+      gpu: lost ? null : pipeline.gpuContext,
+    }).restore;
+    return restore;
+  } catch (error) {
+    restore();
+    throw error;
+  }
 }
 
 async function invoke(owner, operation, action) {
-  const restoreObserver = enterDiagnosticObserver(owner.observer);
-  let restore;
-  try { restore = enterCompatibilityContext(owner.pipeline, operation); }
-  catch (error) { restoreObserver(); throw error; }
-  const restoreRules = enterRuleRegistry(owner.ruleRegistry);
-  const restoreKernels = enterKernelRegistry(owner.kernelRegistry);
-  try { return await action(); } finally { restoreKernels(); restoreRules(); restore(); restoreObserver(); }
+  const restore = enterCompatibilityContext(owner, operation);
+  try { return await action(); } finally { restore(); }
 }
 
 async function* stream(owner, operation, action) {
-  const restoreObserver = enterDiagnosticObserver(owner.observer);
-  let restore;
-  try { restore = enterCompatibilityContext(owner.pipeline, operation); }
-  catch (error) { restoreObserver(); throw error; }
-  const restoreRules = enterRuleRegistry(owner.ruleRegistry);
-  const restoreKernels = enterKernelRegistry(owner.kernelRegistry);
-  try { yield* action(); } finally { restoreKernels(); restoreRules(); restore(); restoreObserver(); }
+  const restore = enterCompatibilityContext(owner, operation);
+  try { yield* action(); } finally { restore(); }
 }
 
 export function scopePipelineShaders(pipeline, scope, operations = pipeline.operationContract, registries, observer) {
@@ -171,8 +177,8 @@ export function scopePipelineShaders(pipeline, scope, operations = pipeline.oper
     }
     return existing.proxy;
   }
-  const ruleRegistry = registries?.ruleRegistry ?? getRuleRegistry();
-  const kernelRegistry = registries?.kernelRegistry ?? getKernelRegistry();
+  const ruleRegistry = registries?.ruleRegistry ?? getDefaultRuleRegistry();
+  const kernelRegistry = registries?.kernelRegistry ?? getDefaultKernelRegistry();
   if (!isRuleRegistry(ruleRegistry) || !isKernelRegistry(kernelRegistry)) throw new Error('Pipeline requires constructed registry instances.');
   const contract = Object.freeze({ ...PIPELINE_OPERATIONS, ...operations });
   for (const [method, definition] of Object.entries(contract)) {

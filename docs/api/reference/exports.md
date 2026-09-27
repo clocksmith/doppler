@@ -423,7 +423,10 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Exported symbols:
   - `applyRuntimeConfigFromUrl`
   - `applyRuntimeProfile`
+  - `createKernelRegistry`
+  - `createRuleRegistry`
   - `getRuntimeConfig`
+  - `installDebugGlobal`
   - `loadRuntimeConfigFromUrl`
   - `loadRuntimeProfile`
   - `setRuntimeConfig`
@@ -772,3 +775,30 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `EnergyPipeline`
   - `mergeQuintelConfig`
   - `runQuintelEnergyLoop`
+
+## `doppler-gpu/partitions`
+
+- Audience: unspecified
+- Stability: unspecified
+- Types: [src/inference/pipelines/text/layer-partition-contract.d.ts](../../../src/inference/pipelines/text/layer-partition-contract.d.ts)
+- Implementation: [src/inference/pipelines/text/layer-partition-contract.js](../../../src/inference/pipelines/text/layer-partition-contract.js)
+- Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `ACTIVATION_TENSOR_SCHEMA`
+  - `ActivationDtype`
+  - `ActivationFrame`
+  - `comparePartitionExecution`
+  - `createLayerPartitionPlan`
+  - `createPartitionContinuation`
+  - `DEFAULT_COSINE_SIMILARITY_MIN`
+  - `DEFAULT_NUMERICAL_TOLERANCE`
+  - `deserializeActivationFrame`
+  - `LAYER_PARTITION_SCHEMA`
+  - `LayerPartition`
+  - `LayerPartitionPlan`
+  - `PARTITION_COMPARISON_SCHEMA`
+  - `PartitionContinuation`
+  - `PartitionTensorContract`
+  - `resolveLayerPartition`
+  - `serializeActivationFrame`
+  - `validateActivationTensorShape`

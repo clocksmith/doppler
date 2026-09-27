@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { createRuleRegistry, getRuleRegistry, registerRuleGroup } from '../../src/rules/rule-registry.js';
 import { createKernelRegistry, getKernelRegistry, setKernelValidator } from '../../src/gpu/kernels/kernel-configs.js';
-import { KERNEL_CONFIGS } from '../../src/config/kernel-registry-contract.js';
+import { getKernelPathActivationSpec } from '../../src/config/kernel-path-loader.js';
+import { enterKernelRegistry, KERNEL_CONFIGS } from '../../src/config/kernel-registry-contract.js';
 import { resolveExecutionRegistries, assertExecutionRegistriesAccepted } from '../../src/config/execution-registry-contract.js';
 
 const group = { choice: [{ match: {}, value: { nested: ['A'] } }] };
@@ -32,6 +33,17 @@ for (const config of [KERNEL_CONFIGS.gelu.gelu, ka.getKernelConfig('gelu', 'gelu
   for (const mutate of [() => { config.shaderFile = 'bad'; }, () => config.requires.push('bad'),
     () => { config.bindings[0].index = 9; }, () => { config.workgroupSize[0] = 1; },
     () => { config.wgslOverrides.BAD = 1; }, () => { config.uniforms.fields[0].offset = 99; }]) assert.throws(mutate, TypeError);
+}
+assert.throws(() => createKernelRegistry({ extensions: { gelu: { ignored: new Map() } } }), /JSON/);
+const variant = { wgsl: 'gelu.wgsl', entryPoint: 'main', workgroup: [256, 1, 1] };
+const alternate = createKernelRegistry({ extensions: { gelu: { variants: {
+  gelu: { ...variant, wgsl: 'alternate.wgsl' }, alternate: variant,
+} } } });
+const path = { prefill: { steps: [{ op: 'activation', kernel: 'gelu.wgsl', entry: 'main' }] } };
+for (const [registry, expected] of [[ka, 'gelu'], [alternate, 'alternate'], [ka, 'gelu']]) {
+  const restore = enterKernelRegistry(registry);
+  try { assert.equal(getKernelPathActivationSpec('gelu', 'prefill', 0, path).variant, expected); }
+  finally { restore(); }
 }
 const registries = resolveExecutionRegistries({ ruleRegistry: a, kernelRegistry: ka });
 assert.throws(() => assertExecutionRegistriesAccepted({}, registries), /accepted TargetPlan/);

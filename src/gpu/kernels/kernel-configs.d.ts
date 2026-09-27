@@ -20,3 +20,5 @@ export declare function getKernelConfig(operation: string, variant: string): Ker
 export declare function getKernelValidator(operation: string, variant: string): KernelValidator['validate'] | null;
 /** Internal compatibility lease; caller must serialize the entire operation. */
 export declare function enterKernelRegistry(registry: KernelRegistry): () => void;
+
+export declare function getDefaultKernelRegistry(): KernelRegistry;
