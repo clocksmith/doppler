@@ -6,6 +6,7 @@ import type { CapsuleRerankRequest } from './capsule-rerank.js';
 import type { LoRAWeightLayoutName } from '../../config/lora-layouts.js';
 
 export interface CapsuleProgramAdapter {
+  residentPartition?: import('../../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionSession;
   executionGraphHash: string;
   getActiveAdapterIdentity(): Readonly<Record<string, unknown>> | null;
   loadAdapter(manifest: Record<string, unknown>, control: { bytes: Uint8Array; signal: AbortSignal; weightsLayout: LoRAWeightLayoutName }): Promise<void>;
@@ -14,7 +15,7 @@ export interface CapsuleProgramAdapter {
   tokenize(prompt: unknown, options?: Record<string, unknown>): number[];
   createIncrementalDecoder(): import('../../inference/tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder;
   decodeTokens(tokenIds: number[]): string;
-  getTokenContract(): Record<string, unknown>;
+  getTokenContract(): import('../../inference/generation-step.js').GenerationTokenContract;
   reset(): void;
   rerank(request: Omit<CapsuleRerankRequest, 'application'>): ReturnType<DopplerModelHandle['rerankWithEvidence']>;
   embed(text: string, options?: { signal?: AbortSignal }): ReturnType<DopplerModelHandle['embedWithEvidence']>;

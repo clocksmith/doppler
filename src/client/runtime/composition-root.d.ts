@@ -23,6 +23,8 @@ export { createForecastProgramFactory } from './capsule-forecast-program.js';
 export const RUN_CORE_VERSION: '2.0.0';
 
 export interface CapsuleSessionOptions extends TargetPlanSelectionPolicy, CapsuleAcquisitionOptions {
+  /** Explicit placement of the verified program; whole-model qualification does not qualify distributed execution. */
+  residentPartition?: import('../../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionAllocation;
   releaseEvents?: CapsuleReleaseEvent[];
   releaseTrustedSigners?: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
   releasePolicy?: CapsuleReleasePolicy;
@@ -50,6 +52,7 @@ export interface RunPorts {
 }
 
 export interface DopplerRunSession {
+  readonly residentPartition?: import('../../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionSession;
   readonly generationContract: typeof GENERATION_CONTRACT;
   schema: 'doppler.capsule-session/v1';
   readonly loaded: boolean;
