@@ -1,0 +1,92 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.4ms
+[733.0ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[733.2ms][Config] Using manifest-first config (source of truth)
+[736.6ms][Pipeline] Resolved session applied (gemma-3-270m-it-f16-af32): batchSize=1, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[737.2ms][Pipeline] KernelPath: gemma-3-270m-it-f16-af32-execution-inline (15 decode steps, 10 kernels, source=execution-v1)
+[737.5ms][Pipeline] 18L/640H/4heads (256dim), kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[737.9ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[936.9ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[1332.2ms][Tokenizer] Loaded HuggingFace 262145 tokens (bpe), 6413 special patterns, 514906 merges
+[1332.7ms][Pipeline] Tokenizer vocabSize=262145 differs from model=262144, using model size
+[1333.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=32768, requestedKvDtype=f16, requestedMaxSeqLen=128
+[1334.3ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[1374.4ms][ShardCache] Custom shard loader configured
+[1374.6ms][Loader] Initializing...
+[1400.3ms][HeapManager] Allocated segment 0: 1024MB
+[1400.4ms][HeapManager] Segmented heap: 1GB per segment
+[1400.4ms][HeapManager] Initialized with strategy: SEGMENTED
+[1400.5ms][Loader] Initialized (f16, subgroups)
+[1401.1ms][Loader] Loading: gemma-3-270m-it-f16-af32
+[1402.4ms][Loader] [0.0s] Memory (start): | RSS=389.55 MB (heap=87.56 MB/168.22 MB, external=1.06 GB, arrayBuffers=1.06 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1403.1ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1406.0ms][Loader] Embedding "model.embed_tokens.weight" GPU-resident: shouldStreamLargeWeight returned false.
+[1486.7ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[262144,640], isWeightBuffer=true
+[1487.1ms][Loader] Layers: 0-17
+[1576.0ms][Loader] Layers: 18 complete (0.09s)
+[1577.0ms][Loader] Complete: 511.36 MB in 0.17s (2.92 GB/s)
+[1577.6ms][Loader] [0.2s] Memory (complete): | RSS=411.84 MB (heap=94.08 MB/127.47 MB, external=1.07 GB, arrayBuffers=1.07 GB) | GPU=511.41 MB (236 active, 0 pooled, peak=511.41 MB) | ShardCache=0 B (0 shards) | Layers=18, GPUBuffers=236
+[1590.3ms][Pipeline] Model loaded successfully (861ms)
+[1593.8ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[1593.9ms][Config] Using manifest-first config (source of truth)
+[1594.4ms][Pipeline] Resolved session applied (gemma-3-270m-it-f16-af32): batchSize=1, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[1594.6ms][Pipeline] KernelPath: gemma-3-270m-it-f16-af32-execution-inline (15 decode steps, 10 kernels, source=execution-v1)
+[1594.6ms][Pipeline] 18L/640H/4heads (256dim), kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[1594.6ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1594.6ms][Tokenizer] Bundled tokenizer cache hit: tokenizer.json
+[1594.7ms][Pipeline] Tokenizer vocabSize=262145 differs from model=262144, using model size
+[1595.0ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=32768, requestedKvDtype=f16, requestedMaxSeqLen=128
+[1595.1ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[1626.1ms][ShardCache] Custom shard loader configured
+[1626.2ms][Loader] Initializing...
+[1628.6ms][Loader] Initialized (f16, subgroups)
+[1628.8ms][Loader] Loading: gemma-3-270m-it-f16-af32
+[1629.1ms][Loader] [0.0s] Memory (start): | RSS=436.34 MB (heap=119.16 MB/151.86 MB, external=2.07 GB, arrayBuffers=2.07 GB) | GPU=575.41 MB (240 active, 1 pooled, peak=575.41 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1629.4ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1630.1ms][Loader] Embedding "model.embed_tokens.weight" GPU-resident: shouldStreamLargeWeight returned false.
+[1722.6ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[262144,640], isWeightBuffer=true
+[1723.0ms][Loader] Layers: 0-8
+[1772.0ms][Loader] Layers: 9 complete (0.05s)
+[1772.1ms][Loader] Complete: 415.68 MB in 0.14s (2.84 GB/s)
+[1772.5ms][Loader] [0.1s] Memory (complete): | RSS=418.82 MB (heap=90.97 MB/129.22 MB, external=1.07 GB, arrayBuffers=1.07 GB) | GPU=991.11 MB (358 active, 1 pooled, peak=991.11 MB) | ShardCache=0 B (0 shards) | Layers=9, GPUBuffers=118
+[1774.7ms][Pipeline] Model loaded successfully (182ms)
+[1776.8ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[1776.9ms][Config] Using manifest-first config (source of truth)
+[1777.5ms][Pipeline] Resolved session applied (gemma-3-270m-it-f16-af32): batchSize=1, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[1777.6ms][Pipeline] KernelPath: gemma-3-270m-it-f16-af32-execution-inline (15 decode steps, 10 kernels, source=execution-v1)
+[1777.6ms][Pipeline] 18L/640H/4heads (256dim), kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[1777.7ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1777.7ms][Tokenizer] Bundled tokenizer cache hit: tokenizer.json
+[1777.7ms][Pipeline] Tokenizer vocabSize=262145 differs from model=262144, using model size
+[1777.9ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=32768, requestedKvDtype=f16, requestedMaxSeqLen=128
+[1777.9ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[1808.7ms][ShardCache] Custom shard loader configured
+[1808.8ms][Loader] Initializing...
+[1811.0ms][Loader] Initialized (f16, subgroups)
+[1811.1ms][Loader] Loading: gemma-3-270m-it-f16-af32
+[1811.5ms][Loader] [0.0s] Memory (start): | RSS=441.82 MB (heap=115.19 MB/152.36 MB, external=2.07 GB, arrayBuffers=2.07 GB) | GPU=991.11 MB (358 active, 1 pooled, peak=991.11 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1811.7ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1812.1ms][Loader] Embedding "model.embed_tokens.weight" GPU-resident: shouldStreamLargeWeight returned false.
+[1901.2ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[262144,640], isWeightBuffer=true
+[1901.3ms][Loader] Layers: 9-17
+[1946.0ms][Loader] Layers: 9 complete (0.04s)
+[1946.4ms][Loader] Complete: 415.68 MB in 0.13s (3.03 GB/s)
+[1946.9ms][Loader] [0.1s] Memory (complete): | RSS=426.92 MB (heap=92.50 MB/125.47 MB, external=1.10 GB, arrayBuffers=1.10 GB) | GPU=1.37 GB (477 active, 1 pooled, peak=1.37 GB) | ShardCache=0 B (0 shards) | Layers=9, GPUBuffers=119
+[1949.1ms][Pipeline] Model loaded successfully (173ms)
+[1968.2ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=path_override
+[1985.0ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+{"step":0,"tokenId":496,"splitTokenId":496,"activationBytes":17920,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":0.9999999999999999,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":262144}}
+[2170.8ms][KernelSelect] matmul variant=gemv_subgroup_vec4 reason=path_override
+[2176.4ms][KernelSelect] attention variant=decode_online_head256_f16kv reason=path_override:subgroup
+[2211.1ms][KernelSelect] matmul variant=gemv_subgroup_multicol reason=path_override
+{"step":1,"tokenId":3996,"splitTokenId":3996,"activationBytes":2560,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":1,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":262144}}
+{"step":2,"tokenId":532,"splitTokenId":532,"activationBytes":2560,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":1,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":262144}}
+[2333.8ms][BufferPool] Releasing buffer not tracked as active
+{"kind":"local-partition-numerical-diagnostic","modelId":"gemma-3-270m-it-f16-af32","manifestHash":"sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05","plan":{"schema":"doppler.layer-partition-contract/v1","modelId":"gemma-3-270m-it-f16-af32","totalLayers":18,"hiddenSize":640,"vocabSize":262144,"splitLayer":9,"activationDtype":"f32","partitions":[{"index":0,"layerRange":[0,8],"layerCount":9,"hasEmbedding":true,"hasLmHead":false,"inputContract":{"type":"token-ids","rank":2,"shapeDescription":"[batchSize, seqLen]","dtype":"i32"},"outputContract":{"type":"activation-tensor","rank":3,"shapeDescription":"[batchSize, seqLen, hiddenSize]","hiddenSize":640,"dtype":"f32"}},{"index":1,"layerRange":[9,17],"layerCount":9,"hasEmbedding":false,"hasLmHead":true,"inputContract":{"type":"activation-tensor","rank":3,"shapeDescription":"[batchSize, seqLen, hiddenSize]","hiddenSize":640,"dtype":"f32"},"outputContract":{"type":"logits","rank":3,"shapeDescription":"[batchSize, seqLen, vocabSize]","vocabSize":262144,"dtype":"f32"}}]},"runtimeConfig":{"inference":{"session":{"kvcache":{"maxSeqLen":128}}}},"steps":[{"step":0,"tokenId":496,"splitTokenId":496,"activationBytes":17920,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":0.9999999999999999,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":262144}},{"step":1,"tokenId":3996,"splitTokenId":3996,"activationBytes":2560,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":1,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":262144}},{"step":2,"tokenId":532,"splitTokenId":532,"activationBytes":2560,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":1,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":262144}}],"artifacts":[{"filename":"manifest.json","bytes":100357,"sha256":"8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05"},{"filename":"tokenizer.json","bytes":14386247,"sha256":"be6955513a2509d69d18e82180c2a477ad99358d15212fb81d957566d8186075"},{"filename":"shard_00000.bin","bytes":67108864,"sha256":"93d8ad2033e7ec42376dafb41c1e89753d0ca40896835c6f012efe47dbdda6d1"},{"filename":"shard_00001.bin","bytes":67108864,"sha256":"7896aa344a3da4539cdb76bdbfec3a5f665da5e23d15d15ef9a3b0536ebcf3c5"},{"filename":"shard_00002.bin","bytes":67108864,"sha256":"ff2fc36d9b0008d734f0a82923d47db2383e5a5bae055172630e8ad93ad23ca5"},{"filename":"shard_00003.bin","bytes":67108864,"sha256":"6170b5f1376dbfe33a58de2603987abde826c0eb7318d6c0a1baa78cdf42f77b"},{"filename":"shard_00004.bin","bytes":67108864,"sha256":"5c8767e71c920596247b7ea3d0d55b45d6af4255757758dda6aedd907cfa3e2c"},{"filename":"shard_00005.bin","bytes":67108864,"sha256":"a26b3303591c926848ac163cfba66001b8107ebc5db7f4ef657ff4d03e62849d"},{"filename":"shard_00006.bin","bytes":67108864,"sha256":"389c6b84fc40d415cbdf3ce40f9bf671b4dc7c4e7ef22d2fcf715c188bcc2105"},{"filename":"shard_00007.bin","bytes":66434304,"sha256":"d38f344e23bce1119434c50b411c3e253e9f4f7115b1d678aead88edc223b696"}],"adapter":{"vendor":"amd","architecture":"rdna-3","device":"radeon-8060s-graphics-radv-strix-halo-","description":"radv: Mesa 26.0.3-1ubuntu1"},"prompt":"The color of the sky is","promptTokenIds":[2,818,2258,529,506,7217,563],"cacheAllocations":[{"theoretical":2359296,"allocated":2359296,"used":0,"efficiency":0,"seqLen":0,"maxSeqLen":128,"layout":"contiguous","kvDtype":"f16","counters":{"updateCalls":0,"gpuUpdateCalls":0,"recordedGpuUpdateCalls":0,"tokensWritten":0}},{"theoretical":1179648,"allocated":1179648,"used":0,"efficiency":0,"seqLen":0,"maxSeqLen":128,"layout":"contiguous","kvDtype":"f16","counters":{"updateCalls":0,"gpuUpdateCalls":0,"recordedGpuUpdateCalls":0,"tokensWritten":0}},{"theoretical":1179648,"allocated":1179648,"used":0,"efficiency":0,"seqLen":0,"maxSeqLen":128,"layout":"contiguous","kvDtype":"f16","counters":{"updateCalls":0,"gpuUpdateCalls":0,"recordedGpuUpdateCalls":0,"tokensWritten":0}}],"gpuWeightAllocationBytes":[571641856,453592064,453594112],"weightLayers":[["layer_0","layer_1","layer_2","layer_3","layer_4","layer_5","layer_6","layer_7","layer_8","layer_9","layer_10","layer_11","layer_12","layer_13","layer_14","layer_15","layer_16","layer_17"],["layer_0","layer_1","layer_2","layer_3","layer_4","layer_5","layer_6","layer_7","layer_8"],["layer_9","layer_10","layer_11","layer_12","layer_13","layer_14","layer_15","layer_16","layer_17"]],"failureChecks":["invalid-token","activation-length","cancel-before-dispatch","recording-failure","output-allocation-failure","cancel-during-readback","cancel-after-submit"]}
+[2362.4ms][ExpertCache] Cache cleared
+[2362.8ms][Pipeline] Unloaded
+[2363.6ms][ExpertCache] Cache cleared
+[2363.9ms][Pipeline] Unloaded
+[2364.8ms][ExpertCache] Cache cleared
+[2365.1ms][Pipeline] Unloaded

@@ -1,0 +1,106 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.9ms
+[390.0ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[390.3ms][Config] Using manifest-first config (source of truth)
+[394.5ms][Pipeline] Resolved session applied (gemma-3-270m-it-f16-af32): batchSize=1, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[395.2ms][Pipeline] KernelPath: gemma-3-270m-it-f16-af32-execution-inline (15 decode steps, 10 kernels, source=execution-v1)
+[395.5ms][Pipeline] 18L/640H/4heads (256dim), kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[396.1ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[614.5ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[885.3ms][Tokenizer] Loaded HuggingFace 262145 tokens (bpe), 6413 special patterns, 514906 merges
+[885.9ms][Pipeline] Tokenizer vocabSize=262145 differs from model=262144, using model size
+[886.9ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=32768, requestedKvDtype=f16, requestedMaxSeqLen=128
+[887.4ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[935.4ms][ShardCache] Custom shard loader configured
+[935.7ms][Loader] Initializing...
+[959.9ms][HeapManager] Allocated segment 0: 1024MB
+[960.0ms][HeapManager] Segmented heap: 1GB per segment
+[960.0ms][HeapManager] Initialized with strategy: SEGMENTED
+[960.1ms][Loader] Initialized (f16, subgroups)
+[960.5ms][Loader] Loading: gemma-3-270m-it-f16-af32
+[961.6ms][Loader] [0.0s] Memory (start): | RSS=322.69 MB (heap=88.13 MB/168.22 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[962.0ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[963.9ms][Loader] Embedding "model.embed_tokens.weight" GPU-resident: shouldStreamLargeWeight returned false.
+[1041.2ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[262144,640], isWeightBuffer=true
+[1041.5ms][Loader] Layers: 0-17
+[1143.3ms][Loader] Layers: 18 complete (0.10s)
+[1144.4ms][Loader] Complete: 511.36 MB in 0.18s (2.76 GB/s)
+[1145.1ms][Loader] [0.2s] Memory (complete): | RSS=349.79 MB (heap=96.34 MB/129.47 MB, external=1.01 GB, arrayBuffers=1.01 GB) | GPU=511.41 MB (236 active, 0 pooled, peak=511.41 MB) | ShardCache=0 B (0 shards) | Layers=18, GPUBuffers=236
+[1156.9ms][Pipeline] Model loaded successfully (771ms)
+[1160.1ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[1160.1ms][Config] Using manifest-first config (source of truth)
+[1160.7ms][Pipeline] Resolved session applied (gemma-3-270m-it-f16-af32): batchSize=1, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[1160.8ms][Pipeline] KernelPath: gemma-3-270m-it-f16-af32-execution-inline (15 decode steps, 10 kernels, source=execution-v1)
+[1160.9ms][Pipeline] 18L/640H/4heads (256dim), kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[1160.9ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1160.9ms][Tokenizer] Bundled tokenizer cache hit: tokenizer.json
+[1161.0ms][Pipeline] Tokenizer vocabSize=262145 differs from model=262144, using model size
+[1161.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=32768, requestedKvDtype=f16, requestedMaxSeqLen=128
+[1161.3ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[1194.4ms][ShardCache] Custom shard loader configured
+[1194.5ms][Loader] Initializing...
+[1196.5ms][Loader] Initialized (f16, subgroups)
+[1196.6ms][Loader] Loading: gemma-3-270m-it-f16-af32
+[1196.9ms][Loader] [0.0s] Memory (start): | RSS=346.75 MB (heap=121.54 MB/154.36 MB, external=2.01 GB, arrayBuffers=2.00 GB) | GPU=575.41 MB (240 active, 1 pooled, peak=575.41 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1197.1ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1197.5ms][Loader] Embedding "model.embed_tokens.weight" GPU-resident: shouldStreamLargeWeight returned false.
+[1293.6ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[262144,640], isWeightBuffer=true
+[1294.0ms][Loader] Layers: 0-8
+[1339.2ms][Loader] Layers: 9 complete (0.05s)
+[1339.4ms][Loader] Complete: 415.68 MB in 0.14s (2.86 GB/s)
+[1339.8ms][Loader] [0.1s] Memory (complete): | RSS=354.22 MB (heap=95.19 MB/131.72 MB, external=1.01 GB, arrayBuffers=1.01 GB) | GPU=991.11 MB (358 active, 1 pooled, peak=991.11 MB) | ShardCache=0 B (0 shards) | Layers=9, GPUBuffers=118
+[1342.0ms][Pipeline] Model loaded successfully (183ms)
+[1344.2ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[1344.2ms][Config] Using manifest-first config (source of truth)
+[1344.8ms][Pipeline] Resolved session applied (gemma-3-270m-it-f16-af32): batchSize=1, stopCheckMode=batch, readbackInterval=1, disableCommandBatching=false
+[1344.9ms][Pipeline] KernelPath: gemma-3-270m-it-f16-af32-execution-inline (15 decode steps, 10 kernels, source=execution-v1)
+[1344.9ms][Pipeline] 18L/640H/4heads (256dim), kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[1345.0ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1345.0ms][Tokenizer] Bundled tokenizer cache hit: tokenizer.json
+[1345.0ms][Pipeline] Tokenizer vocabSize=262145 differs from model=262144, using model size
+[1345.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=32768, requestedKvDtype=f16, requestedMaxSeqLen=128
+[1345.2ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=gemma-3-270m-it-f16-af32-execution-inline
+[1378.8ms][ShardCache] Custom shard loader configured
+[1378.9ms][Loader] Initializing...
+[1380.8ms][Loader] Initialized (f16, subgroups)
+[1380.9ms][Loader] Loading: gemma-3-270m-it-f16-af32
+[1381.3ms][Loader] [0.0s] Memory (start): | RSS=348.22 MB (heap=119.70 MB/154.86 MB, external=2.01 GB, arrayBuffers=2.00 GB) | GPU=991.11 MB (358 active, 1 pooled, peak=991.11 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1381.5ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1381.9ms][Loader] Embedding "model.embed_tokens.weight" GPU-resident: shouldStreamLargeWeight returned false.
+[1473.5ms][Loader] Embeddings tensor loaded: name=model.embed_tokens.weight, hasShape=true, shape=[262144,640], isWeightBuffer=true
+[1473.7ms][Loader] Layers: 9-17
+[1522.2ms][Loader] Layers: 9 complete (0.05s)
+[1522.6ms][Loader] Complete: 415.68 MB in 0.14s (2.88 GB/s)
+[1523.2ms][Loader] [0.1s] Memory (complete): | RSS=354.40 MB (heap=93.90 MB/131.72 MB, external=1.01 GB, arrayBuffers=1.01 GB) | GPU=1.37 GB (477 active, 1 pooled, peak=1.37 GB) | ShardCache=0 B (0 shards) | Layers=9, GPUBuffers=119
+[1525.3ms][Pipeline] Model loaded successfully (182ms)
+[1554.1ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=path_override
+[1572.0ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+{"step":0,"tokenId":496,"splitTokenId":496,"activationBytes":17920,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":0.9999999999999999,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":262144}}
+[1753.2ms][KernelSelect] matmul variant=gemv_subgroup_vec4 reason=path_override
+[1768.1ms][KernelSelect] attention variant=decode_online_head256_f16kv reason=path_override:subgroup
+[1802.0ms][KernelSelect] matmul variant=gemv_subgroup_multicol reason=path_override
+[1805.3ms][BufferPool] Releasing buffer not tracked as active
+[1806.8ms][ExpertCache] Cache cleared
+[1807.2ms][Pipeline] Unloaded
+[1808.0ms][ExpertCache] Cache cleared
+[1808.2ms][Pipeline] Unloaded
+[1809.1ms][ExpertCache] Cache cleared
+[1809.3ms][Pipeline] Unloaded
+file:///home/x/deco/doppler/src/gpu/kernels/uniform-utils.js:22
+      throw new Error(`Kernel "${kernel}" must use its immutable registry uniform layout; generate layouts before packaging.`);
+            ^
+
+Error: Kernel "matmul/gemv_subgroup_multicol" must use its immutable registry uniform layout; generate layouts before packaging.
+    at getUniformWriter (file:///home/x/deco/doppler/src/gpu/kernels/uniform-utils.js:22:13)
+    at getUniformByteLength (file:///home/x/deco/doppler/src/gpu/kernels/uniform-utils.js:40:10)
+    at createKernelUniformBuffer (file:///home/x/deco/doppler/src/gpu/kernels/uniform-utils.js:46:5)
+    at createMatmulUniformBuffer (file:///home/x/deco/doppler/src/gpu/kernels/matmul-dispatch.js:90:10)
+    at executeMatmul (file:///home/x/deco/doppler/src/gpu/kernels/matmul.js:513:21)
+    at async computeLogitsGPU (file:///home/x/deco/doppler/src/inference/pipelines/text/logits/gpu.js:687:24)
+    at async decodeStepLogits (file:///home/x/deco/doppler/src/inference/pipelines/text/generator/decode.js:908:28)
+    at async invoke (file:///home/x/deco/doppler/src/inference/pipelines/shader-scoped-pipeline.js:163:16)
+    at async runWithShaderSourceScope (file:///home/x/deco/doppler/src/gpu/kernels/shader-source-scope.js:70:16)
+    at async runOperation (file:///home/x/deco/doppler/src/inference/pipelines/shader-scoped-pipeline.js:84:12)
+
+Node.js v22.22.1

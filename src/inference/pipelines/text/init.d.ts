@@ -198,7 +198,8 @@ export function createKVCache(
   modelConfig: ParsedModelConfig,
   useGPU: boolean,
   debug?: boolean,
-  runtimeConfig?: KVCacheConfigSchema | RuntimeConfigSchema['inference']
+  runtimeConfig?: KVCacheConfigSchema | RuntimeConfigSchema['inference'],
+  layerRange?: readonly [number, number] | null
 ): KVCache
   | SlidingWindowKVCache
   | TieredKVCache

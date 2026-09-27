@@ -1,0 +1,162 @@
+TAP version 13
+# kernel-uniform-writers.test: 355 variants, 2976 fields passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.166118
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 544.713852
+[node-tests] ok: tests/gpu/kernel-uniform-writers.test.js
+TAP version 13
+# matmul-config-immutability: specialized dispatch retains immutable generated uniform contract
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.334735
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 211.723322
+[node-tests] ok: tests/gpu/matmul-config-immutability.test.js
+TAP version 13
+# [216.7ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [217.4ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [217.5ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [217.6ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [217.7ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [218.1ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [218.2ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [217.3ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [217.5ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [217.6ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [217.6ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [217.8ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [218.2ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8191, layout=contiguous, modelMaxSeqLen=8191, requestedKvDtype=f16, requestedMaxSeqLen=8191
+# [218.2ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [218.4ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=1024, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=1024
+# [218.5ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=512, layout=contiguous, modelMaxSeqLen=2048, requestedKvDtype=f16, requestedMaxSeqLen=2048
+# [218.7ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=2048, layout=contiguous, modelMaxSeqLen=2048, requestedKvDtype=f16, requestedMaxSeqLen=2048
+# [218.9ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [218.9ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [218.9ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [218.9ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=paged, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [219.0ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [218.4ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [218.5ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [218.7ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [218.9ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [218.9ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [218.9ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [218.9ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [219.0ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [219.0ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [219.1ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [219.1ms][Pipeline] KV cache kvDtype mismatch: requested=f16, actual=f32 (rule-based resolution may have changed the dtype due to GPU capabilities or softcap policy)
+# [219.0ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [219.1ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# [219.1ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=8192, requestedKvDtype=f16, requestedMaxSeqLen=8192
+# kvcache-layout-policy.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.074014
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 262.654492
+[node-tests] ok: tests/inference/kvcache-layout-policy.test.js
+TAP version 13
+# [238.4ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=16, layout=contiguous, modelMaxSeqLen=16, requestedKvDtype=f32, requestedMaxSeqLen=16
+# [239.0ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=16, layout=contiguous, modelMaxSeqLen=16, requestedKvDtype=f32, requestedMaxSeqLen=16
+# [239.2ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=16, layout=contiguous, modelMaxSeqLen=16, requestedKvDtype=f32, requestedMaxSeqLen=16
+# [240.6ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=4, layout=contiguous, modelMaxSeqLen=16, requestedKvDtype=f32, requestedMaxSeqLen=16
+# partition-kv-cache: range allocation, model policy, isolation, bounds, subclass identity, and cleanup passed
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.122666
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 281.01919
+[node-tests] ok: tests/inference/partition-kv-cache.test.js
+TAP version 13
+# [199.1ms][Loader] Loading: synthetic-transformer
+# [200.5ms][Loader] Layers: 0-1
+# [203.1ms][Loader] Layers: 2 complete (0.00s)
+# [203.2ms][Loader] Complete: 0 B in 0.00s (0 B/s)
+# [204.1ms][Loader] Loading: synthetic-transformer
+# [204.3ms][Loader] Layers: 2-3
+# [206.4ms][Loader] Layers: 2 complete (0.00s)
+# [206.5ms][Loader] Complete: 0 B in 0.00s (0 B/s)
+# [206.7ms][Loader] Loading: synthetic-transformer
+# [206.9ms][Loader] Layers: 0-1
+# [209.2ms][Loader] Layers: 2 complete (0.00s)
+# [209.2ms][Loader] Complete: 0 B in 0.00s (0 B/s)
+# [209.3ms][Loader] Loading: synthetic-transformer
+# [209.4ms][Loader] Layers: 2-3
+# [211.6ms][Loader] Layers: 2 complete (0.00s)
+# [211.7ms][Loader] Complete: 0 B in 0.00s (0 B/s)
+# [211.8ms][Loader] Loading: synthetic-transformer
+# [211.9ms][Loader] Layers: 0-3
+# [216.4ms][Loader] Layers: 4 complete (0.00s)
+# [216.5ms][Loader] Complete: 0 B in 0.01s (0 B/s)
+# [216.7ms][Loader] Loading: synthetic-transformer
+# [216.8ms][Loader] Layers: 2-3
+# [217.3ms][Loader] Loading: synthetic-transformer
+# [217.5ms][Loader] Loading: synthetic-transformer
+# [217.7ms][Loader] Loading: synthetic-transformer
+# [218.0ms][Loader] Loading: synthetic-transformer
+# [218.2ms][Loader] Loading: synthetic-transformer
+# [218.5ms][Loader] Loading: synthetic-transformer
+# [218.6ms][Loader] Layers: 0-1
+# [220.7ms][Loader] Layers: 2 complete (0.00s)
+# [220.8ms][Loader] Complete: 0 B in 0.00s (0 B/s)
+# layer-partition-loading.test: passed (materialization coordination only)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.039389
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 265.55066
+[node-tests] ok: tests/loader/layer-partition-loading.test.js
+[node-tests] ok: 5 files

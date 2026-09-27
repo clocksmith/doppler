@@ -16,6 +16,7 @@ Execute manifest-declared transformer generation, embedding, reranking, and decl
 ## Scope
 
 - Transformer pipeline state, generators, layers, attention, FFN, logits, and declared encoder bridges.
+- Bounded layer partitions preserve original model indices, precision, and cache-layout policy; partition execution owns no peer transport or grant authority.
 
 ## Contracts
 
@@ -27,11 +28,13 @@ Execute manifest-declared transformer generation, embedding, reranking, and decl
 - Config resolution order and source attribution remain explicit.
 - Prefill and decode choices are resolved before adapter execution.
 - Load, reset, unload, abort, and failure paths release owned resources.
+- Partial pipelines allocate only assigned layer caches. Unsupported cross-partition dependencies fail before weight materialization. Local numerical agreement does not qualify a resident session or distributed inference.
 
 ## Acceptance
 
 - Text generation parity, dtype, attention, resource, and workload tests pass.
 - Evidence: [text inference tests](../../../../tests/inference).
+- Partition evidence: [physical layer comparison](../../../../tests/integration/partition-layers-physical.test.js) and [retained local diagnostic](../../../../reports/resident-partitions/20260927/README.md).
 
 ## Non-goals
 

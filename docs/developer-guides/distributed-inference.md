@@ -19,6 +19,11 @@ separately in [`MoM Layer Draft`](../distribution/mom-layer-draft.md).
 
 ## Ordering Constraint
 
+The current bounded implementation and evidence live in
+[resident partition execution](../distribution/resident-partition-execution.md).
+Local split-layer qualification can progress independently; it does not advance
+the claimable P2P promotion boundary described below.
+
 Distributed inference should prove whole-model replicated execution before
 remote model partitioning. The first claimable P2P lane is several peers running
 the same canonical artifact and producing deterministic receipts for the same

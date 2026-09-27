@@ -16,6 +16,8 @@
   },
   "include": [],
   "files": [
+    "src/inference/kv-cache/layer-range.js",
+    "src/inference/pipelines/text/partition-execution.js",
     "src/config/execution-registry-contract.js",
     "src/loader/model-load.js",
     "src/inference/pipelines/text.js",

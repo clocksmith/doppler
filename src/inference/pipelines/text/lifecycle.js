@@ -48,6 +48,8 @@ import { registerPipeline, getPipelineFactory } from '../registry.js';
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { createObservationContext } from '../../observation-context.js';
 import { createResolvedRuntimeSession } from './resolved-runtime-session.js';
+import { resolveLayerPartition } from './layer-partition-contract.js';
+import { assertPartitionExecutionSupported } from './partition-execution.js';
 import { assertBundledAdapterAuthorized } from '../../../config/revocation-policy.js';
 import { initConvLayerState } from './ops.js';
 import { destroyPleBufferCache, destroyPleRuntimeCache } from './per-layer-inputs.js';
@@ -327,7 +329,9 @@ export async function loadModel(manifest) {
         'because the model config did not resolve explicit layerTypes for mixed-geometry/shared-KV decode.'
       );
     } else {
-      this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug, this.runtimeConfig.inference);
+      const partition = resolveLayerPartition(manifest, this.modelPartition);
+      this.kvCache = createKVCache(this.modelConfig, this.useGPU, this.debug,
+        this.runtimeConfig.inference, partition?.layerRange ?? null);
     }
     this.executionPlanState = compileExecutionPlanState({
       runtimeConfig: this.runtimeConfig,
@@ -336,6 +340,7 @@ export async function loadModel(manifest) {
       fallbackKernelPath: this.executionV1State?.fallbackKernelPath ?? null,
     });
     const activeExecutionPlan = resolveActiveExecutionPlan(this);
+    if (this.modelPartition) assertPartitionExecutionSupported(this, this.modelPartition.plan);
     log.info(
       'Pipeline',
       `Execution plan: active=${activeExecutionPlan.id}, dtype=${activeExecutionPlan.activationDtype}, ` +

@@ -1,0 +1,252 @@
+{
+  "schema": "doppler.local-partition-diagnostic/v1",
+  "classification": "local diagnostic; not resident-session or distributed qualification",
+  "sourceBases": {
+    "doppler": "344c1e51b699094b1bdcaacb6c26d3a3fcf6d3d6",
+    "reploid": "7e5011cdcd3e291853940eae1bb79ef82a2b3a9f"
+  },
+  "candidateSourceFiles": [
+    {
+      "path": "src/.npmignore",
+      "sha256": "3c1e1891c182f35310130d329439d4a175eabc166df06808ebf2f8faed643ea1"
+    },
+    {
+      "path": "src/gpu/kernels/matmul-selection.js",
+      "sha256": "5a53b982ca9271205f47e355e5fca5f59f3fdf398a9f04d87de37533961f0c0f"
+    },
+    {
+      "path": "src/inference/kv-cache/layer-range.d.ts",
+      "sha256": "740cec5e7cfb685e76a303caaf2b8556727a5e35291a68674dc84b2e07cab509"
+    },
+    {
+      "path": "src/inference/kv-cache/layer-range.js",
+      "sha256": "8c5d03b5242b21a2813bf9665fa02327ef59bc4032b11336f12b52f4976fc82e"
+    },
+    {
+      "path": "src/inference/pipelines/text/CATSCAN.md",
+      "sha256": "82f6ac4f4a3b8f4df6b15a3d30bd6f5152145d259344c9337c9bed13aa413d40"
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/session-context.d.ts",
+      "sha256": "30984ddb8f2772f06908aeb07c0c34b90aa3463a02bb8b3ee7efc03c2465fe5e"
+    },
+    {
+      "path": "src/inference/pipelines/text/init.d.ts",
+      "sha256": "034fc0f1b3dee80b116300afc118b0f5d3a13aff849bc863536120242490d6b4"
+    },
+    {
+      "path": "src/inference/pipelines/text/init.js",
+      "sha256": "c7f7ab06de974a1b14715748614e8236286a493f82e65e50da6f342f20481bd5"
+    },
+    {
+      "path": "src/inference/pipelines/text/lifecycle.js",
+      "sha256": "a5e1e61b45f4e756c06eec7bd10c566aab3d1b6c3491076deb900c924077f621"
+    },
+    {
+      "path": "src/inference/pipelines/text/partition-execution.d.ts",
+      "sha256": "804ec7a9a68610082160b44554c79f2907d8709c89b9911fce0aeb08129c3fab"
+    },
+    {
+      "path": "src/inference/pipelines/text/partition-execution.js",
+      "sha256": "6242622ea41a5b2ccd5a586c95acb36bca1c9a0b3b39066aa3ca42c46f799efc"
+    },
+    {
+      "path": "tests/gpu/matmul-config-immutability.test.js",
+      "sha256": "f06eca257bb208a521e44a456f0ed2e69c3cc62170c7f7acb3b752d04e12a1b2"
+    },
+    {
+      "path": "tests/helpers/gpu-probe.js",
+      "sha256": "b97500b27d2a3383cc56e1226fdaee55ea8db8b3a652b4002f5b4ef95ac1413b"
+    },
+    {
+      "path": "tests/inference/partition-kv-cache.test.js",
+      "sha256": "5cb11354688322263768daf2e3f91e1138da0ba848c44affddd5168ac7055161"
+    },
+    {
+      "path": "tests/integration/partition-layers-physical.test.js",
+      "sha256": "a00f48220cc809d6af976523d6e1ed8ba774ad18b23cf8555a83964039b17d43"
+    },
+    {
+      "path": "tsconfig.source-strict.json",
+      "sha256": "cd645d609b69aef6fdef185ed7e732612cb1daa0ba28503a8b07fd4bee404016"
+    }
+  ],
+  "environment": {
+    "node": "v22.22.1",
+    "platform": "Linux-7.0.0-29-generic-x86_64-with-glibc2.43",
+    "webgpuPackage": "0.4.0",
+    "nativeLibrary": {
+      "path": "node_modules/webgpu/dist/linux-x64.dawn.node",
+      "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1"
+    },
+    "providerConfigSha256": "930cc0ed5404bdc14e3cb2753ebc7d9b21366a29c28653c6701385afa954f608"
+  },
+  "checks": [
+    {
+      "command": "npm run test:unit",
+      "exitCode": 0,
+      "passedFiles": 876,
+      "log": "unit.log",
+      "scope": "full unit suite; physical model test skips without explicit model directory; final focused and physical checks follow resource cleanup repair"
+    },
+    {
+      "command": "node tools/run-node-tests.js tests/inference/partition-kv-cache.test.js tests/gpu/matmul-config-immutability.test.js tests/inference/kvcache-layout-policy.test.js tests/loader/layer-partition-loading.test.js tests/gpu/kernel-uniform-writers.test.js",
+      "exitCode": 0,
+      "passedFiles": 5,
+      "log": "focused.log"
+    },
+    {
+      "command": "DOPPLER_PARTITION_MODEL_DIR=models/local/gemma-3-270m-it-f16-af32 node tests/integration/partition-layers-physical.test.js",
+      "exitCode": 0,
+      "log": "physical.log"
+    },
+    {
+      "command": "npm run typecheck:source",
+      "exitCode": 0,
+      "log": "source-types.log"
+    },
+    {
+      "command": "npm run source:architecture:check",
+      "exitCode": 0,
+      "log": "architecture.log"
+    },
+    {
+      "command": "npm run catscan:check",
+      "exitCode": 0,
+      "log": "catscan.log"
+    },
+    {
+      "command": "npm run package:smoke",
+      "exitCode": 0,
+      "log": "package.log"
+    },
+    {
+      "command": "npm run source:style:check",
+      "exitCode": 0,
+      "log": "style.log"
+    },
+    {
+      "repo": "reploid",
+      "command": "npm ci",
+      "exitCode": 0,
+      "log": "reploid-install.log",
+      "scope": "restore committed lockfile; installed Doppler was stale"
+    },
+    {
+      "repo": "reploid",
+      "command": "npx vitest run tests/unit/partition-api.test.js tests/unit/surface-claim-index.test.js tests/unit/catscan.test.js",
+      "exitCode": 0,
+      "passedTests": 19,
+      "log": "reploid-unit.log"
+    },
+    {
+      "repo": "reploid",
+      "command": "npm run verify:catscan",
+      "exitCode": 0,
+      "log": "reploid-catscan.log"
+    },
+    {
+      "command": "npm run source:dependencies:check",
+      "exitCode": 0,
+      "log": "dependencies.log"
+    },
+    {
+      "command": "npm run package:closure:check",
+      "exitCode": 0,
+      "log": "package-closure.log"
+    }
+  ],
+  "priorFailures": [
+    {
+      "log": "initial-physical-failure.log",
+      "cause": "matmul specialization returned mutable config; fixed without weakening generated uniform validation"
+    },
+    {
+      "log": "intermediate-allocation-warning.log",
+      "cause": "allocation failure released hidden intermediate twice; recorder now owns deduplicated cleanup"
+    },
+    {
+      "log": "reploid-stale-install-failure.log",
+      "cause": "installed Doppler 0.5.1 lacked partitions subpath; restored lockfile-pinned archive with npm ci"
+    }
+  ],
+  "unexecuted": [
+    "Reploid qualifyDopplerPartitionSessions with real resident factory",
+    "signed Capsule partition delivery",
+    "real model through browser RTC transport",
+    "physical multi-machine execution",
+    "capacity-pooling qualification",
+    "performance comparison",
+    "upstream independent model oracle"
+  ],
+  "artifacts": [
+    {
+      "path": "initial-physical-failure.log",
+      "sha256": "481ff7d8dcdac4b4da2c5b8d7499c37223ecce3c62bfb5bab161e7f2b1e54317"
+    },
+    {
+      "path": "intermediate-allocation-warning.log",
+      "sha256": "a15b3b03ff2c02d7498de70f72534fe3994dceb50037838e17803ef5d318ebfd"
+    },
+    {
+      "path": "physical.log",
+      "sha256": "728e0ceee81613904d3a3ef0ef6ab4bbc5aad287747a94f60cb23eb7b8816fca"
+    },
+    {
+      "path": "unit.log",
+      "sha256": "0bea79e295c47f3e65fd11d394f75c3df21fe6d0bd14fe3eb7126ee49efce1bf"
+    },
+    {
+      "path": "focused.log",
+      "sha256": "b32b5fa74260a676416842abf37630b836f2036467b1bbc87431b39105d84eb5"
+    },
+    {
+      "path": "source-types.log",
+      "sha256": "191a6bc817d62149ed36cbeb87a95d7a39525d4e3ee01c13b5ba2a4ac7112614"
+    },
+    {
+      "path": "architecture.log",
+      "sha256": "cb8a6bd54d1f9f9a5955003163c7c48fd634da088b592fd6bd903a0a42f45a5f"
+    },
+    {
+      "path": "catscan.log",
+      "sha256": "20f7674db6be11773c88f1a7cfe0f40e174324e721ebcd93c98660c8da5c5e0a"
+    },
+    {
+      "path": "package.log",
+      "sha256": "3ec4a4c5a1b69d849db00b9c2c171b7e9f044da3311449fb79ff716e7e492c84"
+    },
+    {
+      "path": "style.log",
+      "sha256": "8443e251f9b6658d15289afe991b862a3eebb4c402d54e245b823fcc3f5fa8ca"
+    },
+    {
+      "path": "reploid-stale-install-failure.log",
+      "sha256": "c10fdd8a469225e74d4ed6e1b8522dd7bc0b411694cc81588475cbb44a5c39fc"
+    },
+    {
+      "path": "reploid-install.log",
+      "sha256": "1dccb2c41abe281609bbafb6f75a21f5483180960bea2906415a8983bce1d92d"
+    },
+    {
+      "path": "reploid-unit.log",
+      "sha256": "8167e9f6b382e2ee12877cedd040de8b5daa01cad40454775b281b351a6d7667"
+    },
+    {
+      "path": "reploid-catscan.log",
+      "sha256": "462ce329868b81c1954a53d9e813ddd23d934d41ec803d3f65f99a2e22838a72"
+    },
+    {
+      "path": "physical-result.json",
+      "sha256": "3e9d5b2636ae9275d0d2648e4881dabb5880d4b55385133aca68a2d89b4fa0b6"
+    },
+    {
+      "path": "dependencies.log",
+      "sha256": "b374e3dd802c4a0692b342762ef1df302bc69b68268a366cca32aeb545db25a6"
+    },
+    {
+      "path": "package-closure.log",
+      "sha256": "2cf7847500708f2f422a6de0c608e7bd52a3304a07519ad0fb81f1e8fc56e2c8"
+    }
+  ]
+}
