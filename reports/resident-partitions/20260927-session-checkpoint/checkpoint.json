@@ -1,0 +1,69 @@
+{
+  "classification": "implementation checkpoint; local diagnostic; not release qualification",
+  "recordedAt": "2026-09-27T22:24:43.097289+00:00",
+  "runtimeCommit": "ff8925ea330ca11ea48609564d6d3fea86ebb6ef",
+  "reploidCommit": "f5763690bef36177f4ca8746f6e64f9714c437c2",
+  "sourceSha256": {
+    "package.json": "f1ee661c364920c8654067a6d862b8c76ad595b6b6d22f0247a8f92de1785183",
+    "src/client/model-host/index.js": "04916c591979105d20b41c693e88b9ff4f28c109fa144e6dad826308d4026f02",
+    "src/client/resident-partitions.d.ts": "38278241b5a912b72da3d41db0257dc22f626da340e93278924fa742a5ec7054",
+    "src/client/resident-partitions.js": "feec8c4eef4899a7b538a3dc16ead3b8156b4dd67baf81ea7e66b5af40f49da7",
+    "src/client/runtime/capsule-program-adapter.d.ts": "647e9cea71f1f3d5945a850ab23c57e902ee2f145b41d27f8df643fc72ccee31",
+    "src/client/runtime/composition-root.d.ts": "e3b3b02ec54e2e4a4ae716c113b0f278cd272e3b713aa5b4702674e9e42676e2",
+    "src/client/runtime/composition-root.js": "d48c517ac086ef651aaa153c16aeb470b61a6823f4b1e8c1dabffff0350d90d9",
+    "src/client/runtime/session-controller.js": "7eb97bac2814396bb245c2b6f0ae8e9d468d0608d54c08fdc24a693bb42c0fac",
+    "src/inference/generation-step.d.ts": "fb911fd0d0a27bb43b285421b2b670925ad1a21e9f5442cddec463bc750076ea",
+    "src/inference/generation-step.js": "69a3b0de11687c65b08faa0ed5c3ec6aed534de814b571e9aaff05fb2955626a",
+    "src/inference/pipelines/text/init.d.ts": "0f4bee67f453d380375834b37d6094ddf25369d60c1588b69c19412f89b26f75",
+    "src/inference/pipelines/text/partition-attempt.d.ts": "c1392b57980c5fd1784aa4e2876139aaa73fdb29f12259244c268d87c5f52342",
+    "src/inference/pipelines/text/partition-attempt.js": "c40f0af57ef21d37e15265626ff8d03eafe6f57f113bc5b750f37890a40c255c",
+    "src/inference/pipelines/text/resident-partition-contract.d.ts": "c8b172469b0c433462284269cb815f35da56f23a268bc0ea22db0993b9c1ebb6",
+    "src/inference/pipelines/text/resident-partition-contract.js": "f1d7655be1c5b709c98eb1ac59b4f058b5a05fe5abd55f713440ac48dc755a33",
+    "src/inference/pipelines/text/resident-partition.d.ts": "3b073f7e54ab07e02cc9a53790fca27a7c071853f72adac2e463c07c4d0b0679",
+    "src/inference/pipelines/text/resident-partition.js": "6baaf528f6880c20aef252b08e37bf6eaed6e42b6db22c73c044dff8330333f0",
+    "src/partitions.d.ts": "c06afdb0675221017050a092c558147de9cd2b94823306691c3e367f31505741",
+    "src/partitions.js": "18abfc9e26c6124058c613c81eada99f1d5f8fcd73038c7e7651ce389b2f62d0",
+    "tests/integration/resident-partition-physical.test.js": "ae5cae0fba43b7a7fb6e2ca615337e8d979dcf301a46cbeae8fb10605a354a14",
+    "tsconfig.source-strict.json": "7c01cd69b4f5b7cbbd69b8e8a323fb79e3bb46620c13df842231eb1af8c2ff3c"
+  },
+  "checks": [
+    {
+      "command": "DOPPLER_PARTITION_MODEL_DIR=models/local/gemma-3-270m-it-f16-af32 node tests/integration/resident-partition-physical.test.js",
+      "exitCode": 0,
+      "log": "physical.log"
+    },
+    {
+      "command": "node tools/run-node-tests.js tests/runtime/capsule-loading.test.js tests/runtime/capsule-session-execution.test.js tests/runtime/capsule-runtime-entrypoint.test.js tests/runtime/capsule-incremental-stream.test.js tests/runtime/capsule-operation.test.js tests/runtime/initial-execution-identity.test.js",
+      "exitCode": 0,
+      "log": "focused-tests.log"
+    },
+    {
+      "command": "npm run source:architecture:check",
+      "exitCode": 0,
+      "log": "architecture.log"
+    },
+    {
+      "command": "npm run typecheck:source",
+      "exitCode": 0,
+      "log": "types.log"
+    },
+    {
+      "command": "npm run source:style:check",
+      "exitCode": 0,
+      "log": "style.log"
+    },
+    {
+      "command": "npm run catscan:check",
+      "exitCode": 0,
+      "log": "catscan.log"
+    }
+  ],
+  "limitations": [
+    "Same machine, Node Dawn provider; no browser transport.",
+    "Reference is unsplit Doppler, not an independent numerical implementation.",
+    "Public Capsule acquisition and installed-package resident path not exercised.",
+    "No full check:green rerun for resident changes.",
+    "Cancel-before-submit only; in-flight lifecycle and device loss remain unqualified.",
+    "Allocation byte totals are owned buffers, not physical VRAM."
+  ]
+}
