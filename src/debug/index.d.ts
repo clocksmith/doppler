@@ -264,3 +264,6 @@ declare global {
     DOPPLER?: DopplerDebugAPI;
   }
 }
+
+/** Explicit console API installation; return value restores the previous descriptor. */
+export declare function installDebugGlobal(target?: object): () => void;

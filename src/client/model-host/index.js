@@ -1,3 +1,4 @@
+import { resolvePipelineRegistries } from '../../inference/pipelines/shader-scoped-pipeline.js';
 import { log } from '../../debug/index.js';
 import { createPipeline } from '../../generation/index.js';
 import { createCapsuleLoadScope, assertCapsuleLoadActive } from '../runtime/capsule-acquisition.js';
@@ -181,11 +182,18 @@ export function createDopplerRuntimeService({
   ensureWebGPUAvailable,
   defaultLoadProgressLogger = null,
   resolveCapsuleInput = null,
+  ruleRegistry,
+  kernelRegistry,
+  observer = null,
 } = {}) {
   if (typeof ensureWebGPUAvailable !== 'function') {
     throw new Error('createDopplerRuntimeService requires ensureWebGPUAvailable.');
   }
 
+  const registries = resolvePipelineRegistries({ ruleRegistry, kernelRegistry });
+  ruleRegistry = registries.ruleRegistry;
+  kernelRegistry = registries.kernelRegistry;
+  const extendedRegistries = registries.isCanonical ? null : registries;
   const convenienceModelCache = new Map();
   const inFlightLoadCache = new Map();
   const capsuleArtifactBacking = createCapsuleArtifactBacking();
@@ -297,6 +305,7 @@ export function createDopplerRuntimeService({
     let pipeline;
     try {
       pipeline = await createPipeline(loadSource.manifest, {
+        ruleRegistry, kernelRegistry, observer,
         baseUrl: effectiveBaseUrl ?? undefined,
         storage: storageContext ?? undefined,
         runtimeConfig: options.runtimeConfig,
@@ -405,8 +414,9 @@ export function createDopplerRuntimeService({
         artifactBacking: capsuleArtifactBacking,
         trustedSigners: options.trustedSigners ?? {},
         cache: options.verificationCache ?? null,
-        observer: options.observer ?? null,
-        async programFactory({ capsule, targetPlan, artifactStore, options: programOptions }) {
+        observer: options.observer ?? observer,
+        registries: extendedRegistries,
+        async programFactory({ capsule, targetPlan, artifactStore, registries: programRegistries, options: programOptions }) {
           const source = await createCapsuleArtifactSource(capsule, artifactStore);
           assertCapsuleLoadActive(programOptions.signal);
           const modelHandle = await load(source, { ...resolveCapsuleProgramLoadOptions(targetPlan), isolatedLoader: true });
@@ -414,7 +424,7 @@ export function createDopplerRuntimeService({
             assertCapsuleLoadActive(programOptions.signal);
             await artifactStore.releaseBacking();
             assertCapsuleLoadActive(programOptions.signal);
-            return createCapsuleProgramAdapter(modelHandle, capsule, targetPlan);
+            return createCapsuleProgramAdapter(modelHandle, capsule, targetPlan, programRegistries);
           } catch (error) {
             try { await modelHandle.unload(); } catch (cleanupError) {
               throw new AggregateError([error, cleanupError], 'Capsule program binding and cleanup failed.', { cause: error });

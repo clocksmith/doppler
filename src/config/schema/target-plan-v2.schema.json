@@ -61,7 +61,16 @@
         "memoryPolicy": { "type": "object" },
         "memoryPolicyHash": { "$ref": "#/$defs/digest" },
         "executionPlanDigest": { "$ref": "#/$defs/digest" },
-        "runtimeEngine": { "type": "object" },
+        "runtimeEngine": {
+          "type": "object",
+          "properties": {
+            "registries": {
+              "type": "object", "additionalProperties": false,
+              "required": ["rules", "kernels"],
+              "properties": { "rules": { "$ref": "#/$defs/digest" }, "kernels": { "$ref": "#/$defs/digest" } }
+            }
+          }
+        },
         "runtimeEngineDigest": { "$ref": "#/$defs/digest" },
         "programLoadPolicy": {
           "oneOf": [

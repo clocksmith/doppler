@@ -1,5 +1,5 @@
 import { DEFAULT_ENTRY } from './schema/kernel-path.schema.js';
-import { KERNEL_CONFIGS } from './kernel-registry-contract.js';
+import { getKernelConfigs } from './kernel-registry-contract.js';
 import { mergeKernelPathPolicy } from './merge/kernel-path-policy.js';
 
 const PATH_LOOKUP_CACHE = new WeakMap();
@@ -285,7 +285,7 @@ function resolveKernelVariant(
   phase,
   constants
 ) {
-  const variants = KERNEL_CONFIGS[operation];
+  const variants = getKernelConfigs()[operation];
   if (!variants) return null;
 
   const entryMatches = [];
@@ -420,7 +420,7 @@ export function getKernelPathActivationSpec(op, phase, layerIndex, path) {
   }
   const step = steps[0];
   const variant = findKernelVariant(op, step.kernel, step.entry, phase, step.constants);
-  if (!variant || KERNEL_CONFIGS[op][variant].entryPoint !== step.entry) {
+  if (!variant || getKernelConfigs()[op][variant].entryPoint !== step.entry) {
     throw new Error(`Activation ${op} has no exact registered kernel for ${step.kernel}#${step.entry}.`);
   }
   return { variant, constants: step.constants ?? null };
@@ -610,7 +610,7 @@ export function kernelPathRequiresWeightDtype(path = undefined, weightDtype, ope
     const normalizedKernel = normalizeKernelFile(step.kernel);
     const normalizedEntry = step.entry ?? DEFAULT_ENTRY;
     const operationConfigs = operation
-      ? [KERNEL_CONFIGS[operation]]
+      ? [getKernelConfigs()[operation]]
       : Object.values(KERNEL_CONFIGS);
     return operationConfigs.some((variants) => Object.values(variants ?? {}).some((config) =>
       config.shaderFile === normalizedKernel

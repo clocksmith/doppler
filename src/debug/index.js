@@ -144,13 +144,19 @@ const DOPPLER_API = {
   signalProgress,
 };
 
-// Expose to globalThis in browser-like environments
-if (typeof globalThis !== 'undefined') {
-  globalThis.DOPPLER = {
-    ...(globalThis.DOPPLER || {}),
-    ...DOPPLER_API,
+// Opt in from an application entrypoint, never from a reusable import.
+export function installDebugGlobal(target = globalThis) {
+  if (!target || (typeof target !== 'object' && typeof target !== 'function')) {
+    throw new Error('installDebugGlobal requires a global object.');
+  }
+  const previous = Object.getOwnPropertyDescriptor(target, 'DOPPLER');
+  const api = Object.freeze({ ...target.DOPPLER, ...DOPPLER_API });
+  Object.defineProperty(target, 'DOPPLER', { value: api, configurable: true, writable: true, enumerable: true });
+  return () => {
+    if (target.DOPPLER !== api) return;
+    if (previous) Object.defineProperty(target, 'DOPPLER', previous);
+    else delete target.DOPPLER;
   };
-
 }
 
 // ============================================================================

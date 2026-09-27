@@ -9,6 +9,26 @@ import {
   getLogHistoryLimit,
 } from './config.js';
 
+let diagnosticObserver = null;
+
+export function resolveDiagnosticObserver(observer) {
+  if (observer == null) return null;
+  if (typeof observer.observe !== 'function') throw new Error('Diagnostic observer requires observe(event).');
+  return Object.freeze({ observe: observer.observe.bind(observer) });
+}
+
+export function enterDiagnosticObserver(observer) {
+  const previous = diagnosticObserver;
+  diagnosticObserver = observer;
+  return () => { diagnosticObserver = previous; };
+}
+
+export function emitDiagnostic(event) {
+  if (!diagnosticObserver) return false;
+  diagnosticObserver.observe(Object.freeze({ type: 'diagnostic', ...event }));
+  return true;
+}
+
 // ============================================================================
 // Internal Helpers
 // ============================================================================
@@ -62,6 +82,7 @@ export const log = {
   
   debug(module, message, data) {
     if (!shouldLog(module, LOG_LEVELS.DEBUG)) return;
+    if (emitDiagnostic({ level: 'DEBUG', module, message, data })) return;
     const formatted = formatMessage(module, message);
     storeLog('DEBUG', module, message, data);
     if (data !== undefined) {
@@ -74,6 +95,7 @@ export const log = {
   
   verbose(module, message, data) {
     if (!shouldLog(module, LOG_LEVELS.VERBOSE)) return;
+    if (emitDiagnostic({ level: 'VERBOSE', module, message, data })) return;
     const formatted = formatMessage(module, message);
     storeLog('VERBOSE', module, message, data);
     if (data !== undefined) {
@@ -86,6 +108,7 @@ export const log = {
   
   info(module, message, data) {
     if (!shouldLog(module, LOG_LEVELS.INFO)) return;
+    if (emitDiagnostic({ level: 'INFO', module, message, data })) return;
     const formatted = formatMessage(module, message);
     storeLog('INFO', module, message, data);
     if (data !== undefined) {
@@ -98,6 +121,7 @@ export const log = {
   
   warn(module, message, data) {
     if (!shouldLog(module, LOG_LEVELS.WARN)) return;
+    if (emitDiagnostic({ level: 'WARN', module, message, data })) return;
     const formatted = formatMessage(module, message);
     storeLog('WARN', module, message, data);
     if (data !== undefined) {
@@ -110,6 +134,7 @@ export const log = {
   
   error(module, message, data) {
     if (!shouldLog(module, LOG_LEVELS.ERROR)) return;
+    if (emitDiagnostic({ level: 'ERROR', module, message, data })) return;
     const formatted = formatMessage(module, message);
     storeLog('ERROR', module, message, data);
     if (data !== undefined) {
@@ -121,6 +146,7 @@ export const log = {
 
   
   always(module, message, data) {
+    if (emitDiagnostic({ level: 'ALWAYS', module, message, data })) return;
     const formatted = formatMessage(module, message);
     storeLog('ALWAYS', module, message, data);
     if (data !== undefined) {

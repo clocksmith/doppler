@@ -1,3 +1,4 @@
+import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 import { selectByRules } from './rule-matcher.js';
 import { buildInferenceExecutionRulesContractArtifact } from './execution-rules-contract-check.js';
 import { buildLayerPatternContractArtifact } from './layer-pattern-contract-check.js';
@@ -74,6 +75,9 @@ const {
 function deepFreeze(value, seen = new WeakSet()) {
   if (!value || typeof value !== 'object' || seen.has(value)) {
     return value;
+  }
+  if (!Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null) {
+    throw new Error('RuleRegistry: rules must contain only JSON values.');
   }
   seen.add(value);
   for (const entry of Object.values(value)) {
@@ -176,33 +180,68 @@ const RULE_SETS = {
   },
 };
 
+const instances = new WeakSet();
+export function isRuleRegistry(value) { return instances.has(value); }
+
+export function createRuleRegistry({ extensions = [], base = null } = {}) {
+  if (base !== null && !instances.has(base)) throw new Error('RuleRegistry: invalid base instance.');
+  const sets = cloneRuleValue(base ? base.ruleSets : RULE_SETS);
+  for (const { domain, group, rules } of extensions) {
+    for (const key of [domain, group]) {
+      if (typeof key !== 'string' || !key || ['__proto__', 'constructor', 'prototype'].includes(key)) {
+        throw new Error('RuleRegistry: extension requires safe domain and group names.');
+      }
+    }
+    if (!rules || typeof rules !== 'object' || Array.isArray(rules)) {
+      throw new Error('RuleRegistry: extension rules must be a JSON rule group.');
+    }
+    sets[domain] = { ...sets[domain], [group]: cloneRuleValue(rules) };
+  }
+  const identity = computeCanonicalSha256(sets);
+  deepFreeze(sets);
+  const instance = Object.freeze({
+    identity,
+    ruleSets: sets,
+    getRuleSet(domain, group, name) {
+      if (!Object.hasOwn(sets, domain)) throw new Error(`RuleRegistry: unknown domain "${domain}".`);
+      if (!Object.hasOwn(sets[domain], group)) throw new Error(`RuleRegistry: unknown rule group "${domain}.${group}".`);
+      const rules = sets[domain][group];
+      if (!Object.hasOwn(rules, name)) throw new Error(`RuleRegistry: unknown rule set "${domain}.${group}.${name}".`);
+      return rules[name];
+    },
+    selectRuleValue(domain, group, name, context) {
+      return resolveRuleValue(selectByRules(instance.getRuleSet(domain, group, name), context), context);
+    },
+  });
+  instances.add(instance);
+  return instance;
+}
+
+export const DEFAULT_RULE_REGISTRY = createRuleRegistry();
+let compatibilityRegistry = DEFAULT_RULE_REGISTRY;
+let activeRegistry = null;
+
+export function getRuleRegistry() { return activeRegistry ?? compatibilityRegistry; }
+
+// Only the serialized legacy pipeline boundary enters this adapter.
+export function enterRuleRegistry(registry) {
+  if (!instances.has(registry)) throw new Error('RuleRegistry: expected a constructed registry instance.');
+  const previous = activeRegistry;
+  activeRegistry = registry;
+  return () => { activeRegistry = previous; };
+}
+
 export function getRuleSet(domain, group, name) {
-  const domainRules = RULE_SETS[domain];
-  if (!domainRules) {
-    throw new Error(`RuleRegistry: unknown domain "${domain}".`);
-  }
-  const groupRules = domainRules[group];
-  if (!groupRules) {
-    throw new Error(`RuleRegistry: unknown rule group "${domain}.${group}".`);
-  }
-  const rules = groupRules[name];
-  if (!rules) {
-    throw new Error(`RuleRegistry: unknown rule set "${domain}.${group}.${name}".`);
-  }
-  return rules;
+  return getRuleRegistry().getRuleSet(domain, group, name);
 }
 
 export function selectRuleValue(domain, group, name, context) {
-  const rules = getRuleSet(domain, group, name);
-  const value = selectByRules(rules, context);
-  return resolveRuleValue(value, context);
+  return getRuleRegistry().selectRuleValue(domain, group, name, context);
 }
 
+// Compatibility registration replaces the default for future construction only.
 export function registerRuleGroup(domain, group, rules) {
-  if (!RULE_SETS[domain]) {
-    RULE_SETS[domain] = {};
-  }
-  RULE_SETS[domain][group] = deepFreeze(cloneRuleValue(rules));
+  compatibilityRegistry = createRuleRegistry({ base: compatibilityRegistry, extensions: [{ domain, group, rules }] });
 }
 
 export function getInferenceExecutionRulesContractArtifact() {

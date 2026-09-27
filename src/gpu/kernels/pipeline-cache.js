@@ -2,7 +2,7 @@
 
 import { getDevice, getDeviceEpoch } from '../device.js';
 import { isDeviceLost, observeDeviceLoss } from '../device-state.js';
-import { getKernelConfig } from './kernel-configs.js';
+import { getKernelConfig, getKernelRegistry } from './kernel-configs.js';
 import { getShaderModule, getShaderSourceIdentity, getShaderModuleIdentity } from './shader-cache.js';
 import { canonicalizeJson } from '../../formats/canonical-hash.js';
 import { hasRequiredFeatures, getKernelWgslRequirements } from './feature-check.js';
@@ -153,7 +153,7 @@ function buildPipelineCacheKey(operation, variant, constants, bindGroupLayout, d
   const source = sourceIdentity ?? getShaderSourceIdentity(config.shaderFile);
   if (source === null) return null;
   return canonicalizeJson([
-    getDeviceId(device), source, config.entryPoint, constants ?? {},
+    getDeviceId(device), getKernelRegistry().identity, source, config.entryPoint, constants ?? {},
     bindGroupLayout ? getLayoutId(bindGroupLayout) : 'auto',
   ]);
 }

@@ -1,3 +1,4 @@
+import { emitDiagnostic } from './log.js';
 import {
   enabledTraceCategories,
   traceLayerFilter,
@@ -46,6 +47,7 @@ function storeTrace(category, module, message, data) {
 export const trace = {
   loader(message, data) {
     if (!isEnabled('loader')) return;
+    if (emitDiagnostic({ level: 'TRACE', category: 'loader', message, data })) return;
     const formatted = formatTraceMessage('loader', message);
     storeTrace('loader', 'Loader', message, data);
     if (data !== undefined) {
@@ -57,6 +59,7 @@ export const trace = {
 
   kernels(message, data) {
     if (!isEnabled('kernels')) return;
+    if (emitDiagnostic({ level: 'TRACE', category: 'kernels', message, data })) return;
     const formatted = formatTraceMessage('kernels', message);
     storeTrace('kernels', 'Kernels', message, data);
     if (data !== undefined) {
@@ -68,6 +71,7 @@ export const trace = {
 
   logits(message, data) {
     if (!isEnabled('logits')) return;
+    if (emitDiagnostic({ level: 'TRACE', category: 'logits', message, data })) return;
     const formatted = formatTraceMessage('logits', message);
     storeTrace('logits', 'Logits', message, data);
     if (data !== undefined) {
@@ -79,6 +83,7 @@ export const trace = {
 
   embed(message, data) {
     if (!isEnabled('embed')) return;
+    if (emitDiagnostic({ level: 'TRACE', category: 'embed', message, data })) return;
     const formatted = formatTraceMessage('embed', message);
     storeTrace('embed', 'Embed', message, data);
     if (data !== undefined) {
@@ -90,6 +95,7 @@ export const trace = {
 
   attn(layerIdx, message, data) {
     if (!isEnabled('attn', layerIdx)) return;
+    if (emitDiagnostic({ level: 'TRACE', category: 'attn', message, data, layerIdx })) return;
     const formatted = formatTraceMessage('attn', message, layerIdx);
     storeTrace('attn', `Attn:L${layerIdx}`, message, data);
     if (data !== undefined) {
@@ -101,6 +107,7 @@ export const trace = {
 
   ffn(layerIdx, message, data) {
     if (!isEnabled('ffn', layerIdx)) return;
+    if (emitDiagnostic({ level: 'TRACE', category: 'ffn', message, data, layerIdx })) return;
     const formatted = formatTraceMessage('ffn', message, layerIdx);
     storeTrace('ffn', `FFN:L${layerIdx}`, message, data);
     if (data !== undefined) {
@@ -112,6 +119,7 @@ export const trace = {
 
   kv(layerIdx, message, data) {
     if (!isEnabled('kv', layerIdx)) return;
+    if (emitDiagnostic({ level: 'TRACE', category: 'kv', message, data, layerIdx })) return;
     const formatted = formatTraceMessage('kv', message, layerIdx);
     storeTrace('kv', `KV:L${layerIdx}`, message, data);
     if (data !== undefined) {
@@ -123,6 +131,7 @@ export const trace = {
 
   sample(message, data) {
     if (!isEnabled('sample')) return;
+    if (emitDiagnostic({ level: 'TRACE', category: 'sample', message, data })) return;
     const formatted = formatTraceMessage('sample', message);
     storeTrace('sample', 'Sample', message, data);
     if (data !== undefined) {
@@ -134,6 +143,7 @@ export const trace = {
 
   buffers(message, data) {
     if (!isEnabled('buffers')) return;
+    if (emitDiagnostic({ level: 'TRACE', category: 'buffers', message, data })) return;
     const formatted = formatTraceMessage('buffers', message);
     storeTrace('buffers', 'Buffers', message, data);
     if (data !== undefined) {
@@ -145,6 +155,7 @@ export const trace = {
 
   perf(message, data) {
     if (!isEnabled('perf')) return;
+    if (emitDiagnostic({ level: 'TRACE', category: 'perf', message, data })) return;
     const formatted = formatTraceMessage('perf', message);
     storeTrace('perf', 'Perf', message, data);
     if (data !== undefined) {
@@ -156,6 +167,7 @@ export const trace = {
 
   energy(message, data) {
     if (!isEnabled('energy')) return;
+    if (emitDiagnostic({ level: 'TRACE', category: 'energy', message, data })) return;
     const formatted = formatTraceMessage('energy', message);
     storeTrace('energy', 'Energy', message, data);
     if (data !== undefined) {

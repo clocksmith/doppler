@@ -5,7 +5,10 @@ export type PipelineOperationContract = Readonly<Record<string, PipelineOperatio
 export declare const PIPELINE_OPERATIONS: PipelineOperationContract;
 /** One owner per pipeline; unload seals it immediately and drains queued cleanup. */
 export declare function scopePipelineShaders<T extends object>(pipeline: T, scope?: ShaderSourceScope | null,
-  operations?: PipelineOperationContract): T;
+  operations?: PipelineOperationContract, registries?: {
+    ruleRegistry: import('../../rules/rule-registry.js').RuleRegistry;
+    kernelRegistry: import('../../config/kernel-registry-contract.js').KernelRegistry;
+  }, observer?: import('../../debug/log.js').DiagnosticObserver | null): T;
 /** Retain the session through a host operation and its evidence construction. */
 export declare function runPipelineOperation<P extends object, T>(pipeline: P, action: (pipeline: P) => T | Promise<T>): Promise<T>;
 /** Prepare and activate an adapter exclusively; closing prevents late activation. */
@@ -13,3 +16,6 @@ export declare function updatePipelineAdapter<T>(
   pipeline: { setLoRAAdapter(adapter: T): void },
   prepare: () => T | Promise<T>
 ): Promise<T>;
+
+export declare function resolvePipelineRegistries(registries?: Partial<import('../../config/execution-registry-contract.js').ExecutionRegistries>):
+  import('../../config/execution-registry-contract.js').ResolvedExecutionRegistries & { readonly isCanonical: boolean };

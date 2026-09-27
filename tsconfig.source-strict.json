@@ -16,6 +16,7 @@
   },
   "include": [],
   "files": [
+    "src/config/execution-registry-contract.js",
     "src/loader/model-load.js",
     "src/inference/pipelines/text.js",
     "src/inference/pipelines/text/embedding-batch.js",

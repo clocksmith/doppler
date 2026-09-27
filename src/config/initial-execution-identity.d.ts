@@ -17,7 +17,7 @@ export interface InitialExecutionIdentityV1 {
   memoryPolicy: Record<string, unknown>;
   memoryPolicyHash: `sha256:${string}`;
   executionPlanDigest: `sha256:${string}`;
-  runtimeEngine: Record<string, unknown>;
+  runtimeEngine: Record<string, unknown> & { registries?: { rules: string; kernels: string } };
   runtimeEngineDigest: `sha256:${string}`;
   digest: `sha256:${string}`;
 }

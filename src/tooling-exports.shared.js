@@ -8,7 +8,7 @@
 // ============================================================================
 
 // Debug
-export { log } from './debug/index.js';
+export { log, installDebugGlobal } from './debug/index.js';
 
 // Config
 export {

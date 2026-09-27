@@ -2,8 +2,8 @@ import { getKernelConfig } from './kernel-configs.js';
 import { getCachedPipeline, getPipelineFast, getPipelineBindGroupLayout } from './pipeline-cache.js';
 import { getDevice } from '../device.js';
 import { dispatchKernel, dispatchIndirect, recordDispatchIndirect } from './dispatch.js';
-import { createUniformBufferWithView as createUniformBuffer } from './uniform-utils.js';
-import { getUniformByteLength, writeUniformsFromObject } from './uniform-utils.js';
+import { createKernelUniformBuffer } from './uniform-utils.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 
 const dataBindingsByConfig = new WeakMap();
 
@@ -29,14 +29,17 @@ export async function unifiedKernelWrapper(
   workgroups,
   constants = null,
   extraBindings = null,
-  dispatchLabel = null
+  dispatchLabel = null,
+  signal = null
 ) {
+  signal?.throwIfAborted();
   const device = target?.device ?? (target?.createCommandEncoder ? target : getDevice());
   const recorder = target && typeof target.beginComputePass === 'function' ? target : null;
   const config = getKernelConfig(opName, variant);
   const pipeline = getCachedPipeline(opName, variant, constants, device)
     ?? await getPipelineFast(opName, variant, null, constants, device);
 
+  signal?.throwIfAborted();
   const bindGroupEntries = [];
 
   const dataBindings = getDataBindings(config);
@@ -92,20 +95,19 @@ export async function unifiedKernelWrapper(
 
   let uniformBuffer = null;
   try {
-    uniformBuffer = createUniformBuffer(
-      `${opName}_uniforms`,
-      getUniformByteLength(config),
-      (view) => writeUniformsFromObject(view, config, uniforms),
-      recorder,
-      device
-    );
-    bindGroupEntries.unshift({ binding: 0, resource: { buffer: uniformBuffer } });
+    if (config.uniforms !== null) {
+      uniformBuffer = createKernelUniformBuffer(`${opName}_uniforms`, config, uniforms, recorder, device);
+      const uniformBinding = config.bindings.find(binding => binding.type === 'uniform');
+      if (!uniformBinding) throw new Error(`Kernel ${opName}/${variant} declares uniforms without a binding.`);
+      bindGroupEntries.unshift({ binding: uniformBinding.index, resource: { buffer: uniformBuffer } });
+    }
     const bindGroup = device.createBindGroup({
       label: `${opName}_bind_group`,
       layout: getPipelineBindGroupLayout(pipeline, 0),
       entries: bindGroupEntries,
     });
 
+    signal?.throwIfAborted();
     const label = typeof dispatchLabel === 'string' && dispatchLabel.length > 0
       ? dispatchLabel
       : opName;
@@ -126,7 +128,7 @@ export async function unifiedKernelWrapper(
     throw error;
   }
 
-  if (!recorder) {
+  if (!recorder && uniformBuffer) {
     device.queue.onSubmittedWorkDone()
       .then(() => {
         uniformBuffer.destroy();
@@ -137,4 +139,18 @@ export async function unifiedKernelWrapper(
   }
 
   return true;
+}
+
+// The wrapper retains shape semantics; this executor owns only allocated output
+// rollback. Recorded commands retain failed outputs until recorder cleanup.
+export async function withKernelOutput(target, supplied, bytes, label, execute) {
+  const output = supplied ?? acquireBuffer(bytes, undefined, label);
+  try { return await execute(output); }
+  catch (error) {
+    if (!supplied) {
+      if (target && typeof target.beginComputePass === 'function') target.trackTemporaryBuffer(output);
+      else releaseBuffer(output);
+    }
+    throw error;
+  }
 }
