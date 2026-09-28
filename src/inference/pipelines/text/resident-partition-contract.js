@@ -35,5 +35,13 @@ export function assertResidentPartitionIdentity(identity, allocation) {
     || identity[allocation.index === 0 ? 'participantA' : 'participantB'] !== allocation.participantId) {
     throw new Error('Resident partition attempt identity mismatch.');
   }
-  return JSON.stringify(IDENTITY_FIELDS.map(key => identity[/** @type {keyof typeof identity} */ (key)]));
+  if (identity.requesterId !== undefined || identity.placementGeneration !== undefined) {
+    if (typeof identity.requesterId !== 'string' || !identity.requesterId
+      || typeof identity.placementGeneration !== 'number'
+      || !Number.isSafeInteger(identity.placementGeneration) || identity.placementGeneration < 0) {
+      throw new Error('Resident requester placement binding mismatch.');
+    }
+  }
+  return JSON.stringify([...IDENTITY_FIELDS.map(key => identity[/** @type {keyof typeof identity} */ (key)]),
+    identity.requesterId ?? null, identity.placementGeneration ?? null]);
 }
