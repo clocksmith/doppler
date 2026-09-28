@@ -138,10 +138,11 @@ export function resolveTensorTargetQuant(tensorOrName, fallbackQuant, quantizati
   return normalizeStorageQuant(quantizationInfo.weights ?? fallback) ?? fallback;
 }
 
+const bf16DecodeView = new DataView(new ArrayBuffer(4));
+
 export function bf16ToFloat32(value) {
-  const view = new DataView(new ArrayBuffer(4));
-  view.setUint32(0, (value & 0xffff) << 16, true);
-  return view.getFloat32(0, true);
+  bf16DecodeView.setUint32(0, (value & 0xffff) << 16, true);
+  return bf16DecodeView.getFloat32(0, true);
 }
 
 export function isCompressedTensorsW4A16CompanionTensor(tensor) {
