@@ -23,3 +23,60 @@ export function createResidentPartitionFactory({ openCapsule, capsuleOptions }) 
     }
   } });
 }
+
+/** Explicit pinned-manifest development lane. Unlike createResidentPartitionFactory,
+ * this does not assert signed Capsule qualification. Hosts supply already verified
+ * storage and an exact manifest identity; no model identity is inferred from a URL.
+ * @type {import('./resident-partitions.js').createManifestResidentPartitionFactory}
+ */
+export function createManifestResidentPartitionFactory({ manifest, manifestIdentity, runtimeConfig, createStorage }) {
+  const source = structuredClone(manifest), config = structuredClone(runtimeConfig);
+  if (!/^sha256:[a-f0-9]{64}$/.test(manifestIdentity) || typeof createStorage !== 'function'
+    || !config || !source?.modelId) throw new Error('Pinned manifest, verified storage and explicit runtime configuration required.');
+  return Object.freeze({
+    async openResidentPartition(input) {
+      const [{ createPipeline, InferencePipeline }, { createModelHandle }, { createResidentPartitionSession }, { resolveResidentPartitionAllocation }] = await Promise.all([
+        import('../inference/pipelines/text.js'), import('./model-host/model-session.js'),
+        import('../inference/pipelines/text/resident-partition.js'), import('../inference/pipelines/text/resident-partition-contract.js'),
+      ]);
+      input.signal.throwIfAborted();
+      const { signal, ...allocationInput } = input;
+      const allocation = resolveResidentPartitionAllocation(source, manifestIdentity, { ...allocationInput, generation: input.model.generation });
+      const storage = await createStorage(input);
+      /** @type {ReturnType<typeof createModelHandle> | null} */
+      let handle = null;
+      try {
+        const pipeline = await createPipeline(source, { runtimeConfig: config, storage: {
+          ...storage, loadShardRange: storage.loadShardRange ?? undefined, streamShardRange: storage.streamShardRange ?? undefined,
+          loadTokenizerJson: storage.loadTokenizerJson ?? undefined, loadTokenizerModel: storage.loadTokenizerModel ?? undefined,
+          loadAuxiliaryFile: storage.loadAuxiliaryFile ?? undefined, loadTensorsJson: storage.loadTensorsJson ?? undefined,
+          close: storage.close ?? undefined },
+          partition: { plan: allocation.plan, index: allocation.index } });
+        if (!(pipeline instanceof InferencePipeline)) {
+          await pipeline.unload();
+          throw new Error('Resident partitions require a text inference pipeline.');
+        }
+        const opened = createModelHandle(pipeline, { modelId: source.modelId, manifestHash: manifestIdentity.slice(7) });
+        handle = opened;
+        input.signal.throwIfAborted();
+        /** @type {import('../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionTokenPorts} */
+        const tokens = {
+          tokenize: (prompt, options) => opened.advanced.tokenizePrompt(prompt, options),
+          createIncrementalDecoder: () => opened.advanced.createIncrementalDecoder(),
+          getTokenContract: () => {
+            const special = opened.advanced.getSpecialTokens();
+            return { padTokenId: Number.isInteger(special.pad) ? special.pad : null,
+              eosTokenId: Number.isInteger(special.eos) ? special.eos : null,
+              stopTokenIds: opened.advanced.getStopTokenIds() };
+          },
+        };
+        return await createResidentPartitionSession(pipeline, allocation, tokens, async () => {
+          try { await opened.unload(); } finally { await storage.close?.(); }
+        });
+      } catch (error) {
+        try { await handle?.unload(); } finally { await storage.close?.(); }
+        throw error;
+      }
+    },
+  });
+}

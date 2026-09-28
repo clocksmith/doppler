@@ -14,3 +14,10 @@ export function createResidentPartitionFactory(options: {
   openCapsule(capsule: string | DopplerCapsule, options: DopplerCapsuleOpenOptions): Promise<DopplerRunSession>;
   capsuleOptions: DopplerCapsuleOpenOptions;
 }): ResidentPartitionFactory;
+
+/** Pinned RDRR development lane; does not assert signed Capsule qualification. */
+export function createManifestResidentPartitionFactory(options: {
+  manifest: import('../formats/rdrr/index.js').RDRRManifest; manifestIdentity: string;
+  runtimeConfig: object;
+  createStorage: (input: Omit<ResidentPartitionOpenOptions, 'model'> & {model: {id:string;identity:string;generation:GenerationOptions}}) => Promise<ReturnType<typeof import('../storage/artifact-storage-context.js').createArtifactStorageContext>>;
+}): { openResidentPartition(options: Omit<ResidentPartitionOpenOptions, 'model'> & {model:{id:string;identity:string;generation:GenerationOptions}}): Promise<ResidentPartitionSession> };

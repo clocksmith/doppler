@@ -14,6 +14,7 @@ export interface ResidentPartitionAllocation {
 export interface ResidentPartitionIdentity {
   modelId: string; modelIdentity: string; planId: string; threadId: string;
   attemptId: string; participantA: string; participantB: string;
+  requesterId?: string; placementGeneration?: number;
 }
 export interface ResidentPartitionDescriptor {
   schema: 'doppler.resident-partition/v1'; ready: boolean;

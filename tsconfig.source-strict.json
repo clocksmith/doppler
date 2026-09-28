@@ -38,6 +38,7 @@
     "src/inference/pipelines/text/resident-partition.js",
     "src/inference/pipelines/text/resident-partition-contract.js",
     "src/client/resident-partitions.js",
-    "src/partitions.js"
+    "src/partitions.js",
+    "src/storage/verified-piece-storage.js"
   ]
 }

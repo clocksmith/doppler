@@ -7,7 +7,7 @@ import type { StructuredJsonHeadPipeline } from './structured/json-head-pipeline
 import type { EnergyRowHeadPipeline } from './energy-head/row-head-pipeline.js';
 
 export declare function createPipeline(
-  manifest: Manifest,
+  manifest: Manifest | import('../../formats/rdrr/index.js').RDRRManifest,
   contexts?: PipelineContexts
 ): Promise<
   InferencePipeline |
