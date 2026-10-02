@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { setRuntimeConfig, resetRuntimeConfig } from '../../src/config/runtime.js';
 import { setDevice } from '../../src/gpu/device.js';
 import { loadEmbeddings } from '../../src/loader/embedding-loader.js';
+import { loadFloat } from '../../src/loader/tensors/tensor-loader.js';
 import { destroyBufferPool, getBufferPool } from '../../src/memory/buffer-pool.js';
 
 globalThis.GPUBufferUsage ??= {
@@ -159,6 +160,41 @@ try {
   );
 
   assert.equal(loadTensorCalls, 0);
+
+  // The selected no-f16 lane requires F32 GPU weights, never CPU row gathering.
+  destroyBufferPool();
+  setDevice(createTinyStorageLimitDevice({ maxBufferSize: 1024, maxStorageBufferBindingSize: 256 }), { platformConfig: null });
+  getBufferPool().configure({ enablePooling: false });
+  const location = { shape: [4, 4], size: 32, dtype: 'F16', role: 'embedding', group: 'embed', layout: 'row' };
+  const source = new Uint16Array(16).fill(0x3c00);
+  const noF16Context = {
+    tensorLocations: new Map([[embeddingName, location]]),
+    gpuBuffers: new Set(),
+    hostHasShaderF16: false,
+    keepF32Weights: true,
+    embeddingKernel: { kernel: 'gather.wgsl', entry: 'main' },
+    shouldStreamLargeWeight: () => true,
+    resolveWeightLayout: (value) => value.layout,
+    loadShardRange() { throw new Error('CPU range source must not be selected'); },
+    async loadTensor(name, toGPU) {
+      assert.equal(toGPU, true);
+      const result = await loadFloat(source, location, name, {
+        gpuCapabilities: { hasF16: false }, keepF32Weights: true,
+      });
+      return result.data;
+    },
+  };
+  const resident = await loadEmbeddings(noF16Context);
+  assert.equal(resident.dtype, 'f32');
+  assert.ok(resident.buffer.size >= 64);
+
+  // Stored F16 fits, but its required F32 GPU representation does not.
+  location.shape = [16, 8];
+  location.size = 256;
+  await assert.rejects(() => loadEmbeddings(noF16Context), (error) => {
+    assert.equal(error.details?.weightLoadFailure?.tensorSizeBytes, 512);
+    return /cannot be GPU-resident/.test(error.message);
+  });
 
   destroyBufferPool();
   setDevice(createTinyStorageLimitDevice({

@@ -2,7 +2,6 @@
 
 import {
   createWeightBuffer,
-  createCpuWeightBuffer,
   createSplitWeightBuffer,
   isWeightBuffer,
   isCpuWeightBuffer,
@@ -56,34 +55,6 @@ function normalizeLiteRTInt4StorageEncoding(transform, name) {
     );
   }
   return storageEncoding;
-}
-
-function createRangeBackedTensorSource(ctx, name, location) {
-  if (typeof ctx.loadShardRange !== 'function') {
-    return null;
-  }
-  const normalizedLocationDtype = typeof location?.dtype === 'string'
-    ? location.dtype.toLowerCase()
-    : 'f32';
-  return {
-    kind: 'tensor_range_source',
-    sourceDtype: normalizedLocationDtype,
-    async loadRange(byteOffset, byteLength) {
-      return loadTensorRange(location, name, byteOffset, byteLength, ctx.loadShardRange);
-    },
-  };
-}
-
-function createRangeBackedWeightBuffer(ctx, name, location) {
-  const source = createRangeBackedTensorSource(ctx, name, location);
-  if (!source || !location?.shape || location.shape.length !== 2) {
-    return null;
-  }
-  const layout = ctx.resolveWeightLayout(location);
-  const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
-    locationDtype: location.dtype,
-  });
-  return createCpuWeightBuffer(source, dtype, layout, location.shape, name);
 }
 
 function isFixedLiteRTInt4AffineEmbedding(ctx, name, location) {
@@ -299,34 +270,6 @@ async function createSplitGpuEmbeddingWeightBuffer(ctx, name, location) {
   }
 }
 
-function shouldUseRangeBackedEmbeddingSource(ctx, name, location) {
-  if (!location) {
-    return false;
-  }
-  if (String(location.dtype ?? '').toUpperCase() === 'F16' && ctx.hostHasShaderF16 === false) {
-    log.info(
-      'Loader',
-      `Embedding "${name}" range-backed: F16 source on device without shader-f16 support.`
-    );
-    return true;
-  }
-  if (hasSourceTransform(location) && typeof ctx.loadShardRange === 'function') {
-    log.info(
-      'Loader',
-      `Embedding "${name}" range-backed: sourceTransform.kind="${location.sourceTransform.kind}" defers full materialization.`
-    );
-    return true;
-  }
-  const stream = ctx.shouldStreamLargeWeight(name, location, 'Embedding');
-  if (!stream) {
-    log.info(
-      'Loader',
-      `Embedding "${name}" GPU-resident: shouldStreamLargeWeight returned false.`
-    );
-  }
-  return stream;
-}
-
 // ============================================================================
 // Main Function
 // ============================================================================
@@ -350,41 +293,35 @@ export async function loadEmbeddings(ctx) {
   for (const name of candidates) {
     const loc = ctx.tensorLocations.get(name);
     const packedLiteRTTensor = await createLiteRTInt4GpuEmbeddingWeightBuffer(ctx, name, loc);
-    const shouldStream = packedLiteRTTensor ? false : shouldUseRangeBackedEmbeddingSource(ctx, name, loc);
     const splitGpuTensor = packedLiteRTTensor ? null : await createSplitGpuEmbeddingWeightBuffer(ctx, name, loc);
-    if (!packedLiteRTTensor && !splitGpuTensor && !shouldStream) {
+    if (!packedLiteRTTensor && !splitGpuTensor) {
       const limitError = createGpuResidentEmbeddingLimitError({
         name,
         location: loc,
         embeddingKernel: ctx.embeddingKernel,
+        materializedDtype: selectRuleValue('loader', 'weights', 'matmulWeightDtype', {
+          locationDtype: loc.dtype,
+          hasF16: ctx.hostHasShaderF16 !== false,
+          isMatmulWeight: true,
+          keepF32Weights: Boolean(ctx.keepF32Weights),
+        }),
       });
       if (limitError) {
         throw limitError;
       }
     }
 
-    // Load tensor (to CPU if streaming, to GPU otherwise)
-    const tensor = packedLiteRTTensor ?? splitGpuTensor ?? (shouldStream
-      ? (
-        createRangeBackedWeightBuffer(ctx, name, loc)
-        ?? await ctx.loadTensor(name, false, true)
-      )
-      : await ctx.loadTensor(name, true, true));
-    const tensorShouldStream = splitGpuTensor ? false : shouldStream;
-
-    // Skip if not found
+    // Main-token gather consumes GPU weights. Range-backed CPU sources belong
+    // to the separately prepared per-layer-input path, not this contract.
+    const tensor = packedLiteRTTensor ?? splitGpuTensor ?? await ctx.loadTensor(name, true, true);
     if (!tensor) continue;
-
-    // Handle streaming path (CPU)
-    if (tensorShouldStream && !(tensor instanceof Float32Array) && !isCpuWeightBuffer(tensor)) {
-      throw new Error(
-        `[Loader] Embedding "${name}" too large for GPU and cannot be loaded on CPU (dtype=${loc?.dtype ?? 'unknown'}).`
-      );
+    if (isCpuWeightBuffer(tensor) || tensor instanceof Float32Array) {
+      throw new Error(`[Loader] Embedding "${name}" must materialize GPU weights for token gather.`);
     }
 
     // Handle valid tensor types
     if (isGpuBufferInstance(tensor) || isWeightBuffer(tensor) || isCpuWeightBuffer(tensor) || isSplitWeightBuffer(tensor) || tensor instanceof Float32Array) {
-      const result = await processEmbeddingTensor(ctx, tensor, name, loc, tensorShouldStream);
+      const result = await processEmbeddingTensor(ctx, tensor, name, loc);
       if (result) {
         return result;
       }
@@ -401,7 +338,7 @@ export async function loadEmbeddings(ctx) {
 // ============================================================================
 
 
-async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
+async function processEmbeddingTensor(ctx, tensor, name, loc) {
   log.info(
     'Loader',
     `Embeddings tensor loaded: name=${name}, hasShape=${!!loc?.shape}, ` +
@@ -420,23 +357,6 @@ async function processEmbeddingTensor(ctx, tensor, name, loc, shouldStream) {
   // WeightBuffer already has layout set correctly from _loadTensor
   if (isWeightBuffer(promoted)) {
     return maybeDowncastEmbeddings(ctx, promoted, name, loc);
-  }
-
-  if (isCpuWeightBuffer(promoted)) {
-    log.warn('Loader', `Embeddings stored on CPU via range-backed source (layout=${promoted.layout})`);
-    return promoted;
-  }
-
-  // Float32Array streaming path
-  if (promoted instanceof Float32Array && loc?.shape && shouldStream) {
-    const layout = ctx.resolveWeightLayout(loc);
-    
-    const dtype = selectRuleValue('loader', 'weights', 'floatLocationDtype', {
-      locationDtype: loc.dtype,
-    });
-    const result = createCpuWeightBuffer(promoted, dtype, layout, loc.shape, name);
-    log.warn('Loader', `Embeddings stored on CPU for chunked gather (layout=${layout})`);
-    return result;
   }
 
   // Raw GPUBuffer - wrap with dtype/layout metadata

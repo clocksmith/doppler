@@ -1,0 +1,10 @@
+
+> doppler-gpu@0.6.3-dev.split.4 kernels:package-digests:check
+> npm run kernels:digests:check && node tools/sync-conversion-kernel-digests.js --source-only --check
+
+
+> doppler-gpu@0.6.3-dev.split.4 kernels:digests:check
+> node tools/sync-kernel-ref-digests.js --check
+
+[kernels:digests:check] kernel-ref-digests.js is up to date
+[kernels:conversion-digests:check] registered kernel digests match in 48 configuration files

@@ -770,7 +770,6 @@ rules/layer-pattern-contract-check.d.ts
 rules/loader/tensor-loader.rules.json
 rules/loader/weights.rules.json
 rules/tooling/command-runtime.rules.json
-storage/artifact-storage-context.d.ts
 storage/backend-selection.d.ts
 storage/blake3.d.ts
 storage/download-types.d.ts

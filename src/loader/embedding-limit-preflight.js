@@ -73,7 +73,7 @@ function alignByteLength(byteLength) {
   return Math.ceil(byteLength / 4) * 4;
 }
 
-function estimateEmbeddingTensorBytes(location, embeddingKernel = null) {
+function estimateEmbeddingTensorBytes(location, embeddingKernel = null, materializedDtype = null) {
   if (!location?.shape || location.shape.length !== 2) {
     return null;
   }
@@ -81,7 +81,7 @@ function estimateEmbeddingTensorBytes(location, embeddingKernel = null) {
   if (!Number.isFinite(rows) || rows <= 0 || !Number.isFinite(hidden) || hidden <= 0) {
     return null;
   }
-  const dtype = getEmbeddingFloatDtype(location, embeddingKernel);
+  const dtype = materializedDtype ?? getEmbeddingFloatDtype(location, embeddingKernel);
   const bytesPerElement = DTYPE_SIZES[dtype];
   if (!Number.isFinite(bytesPerElement) || bytesPerElement <= 0) {
     return null;
@@ -100,8 +100,8 @@ function estimateEmbeddingTensorBytes(location, embeddingKernel = null) {
   };
 }
 
-export function createGpuResidentEmbeddingLimitError({ name, location, embeddingKernel = null }) {
-  const estimate = estimateEmbeddingTensorBytes(location, embeddingKernel);
+export function createGpuResidentEmbeddingLimitError({ name, location, embeddingKernel = null, materializedDtype = null }) {
+  const estimate = estimateEmbeddingTensorBytes(location, embeddingKernel, materializedDtype);
   if (!estimate) {
     return null;
   }

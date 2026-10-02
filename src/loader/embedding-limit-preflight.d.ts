@@ -20,6 +20,7 @@ export function createGpuResidentEmbeddingLimitError(options: {
   name: string;
   location: unknown;
   embeddingKernel?: unknown;
+  materializedDtype?: string | null;
 }): Error | null;
 
 export function resolveManifestGpuResidentEmbeddingLimitError(

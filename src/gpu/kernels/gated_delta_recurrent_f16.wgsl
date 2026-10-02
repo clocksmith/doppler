@@ -94,6 +94,8 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
       workgroupBarrier();
     }
     let q_norm_scale = head_scale / sqrt(shared_sq[0] + params.qk_l2norm_eps);
+    // All invocations must consume the reduction before shared_sq is reused.
+    workgroupBarrier();
 
     var k_norm_sq = 0.0;
     for (var d: u32 = vd; d < head_k_dim; d = d + WORKGROUP_SIZE) {
@@ -109,6 +111,8 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
       workgroupBarrier();
     }
     let k_norm_scale = inverseSqrt(shared_sq[0] + params.qk_l2norm_eps);
+    // All invocations must consume the reduction before shared_sq is reused.
+    workgroupBarrier();
     let b_index = select(ab_row_base, params.b_proj_offset_elements + ab_row_base, (params.packed_flags & 1u) != 0u);
     let beta = 1.0 / (1.0 + exp(-f32(b_proj[b_index])));
     let g = -exp(a_log[head]) * softplus(f32(a_proj[ab_row_base]) + dt_bias[head]);
@@ -156,6 +160,8 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
       workgroupBarrier();
     }
     let inv_rms = inverseSqrt(shared_sq[0] / f32(head_v_dim) + params.rms_norm_eps);
+    // All invocations must consume the reduction before shared_sq is reused.
+    workgroupBarrier();
 
     if (is_active) {
       let z_index = select(z_row_base + vd, z_packed_base + vd, (params.packed_flags & 2u) != 0u);

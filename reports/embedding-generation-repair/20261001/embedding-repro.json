@@ -1,0 +1,2780 @@
+{
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "manifestHash": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "partition": null,
+  "generation": {
+    "maxTokens": 1024,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "stopSequences": [],
+    "useChatTemplate": true
+  },
+  "events": [],
+  "device": {
+    "vendor": "google",
+    "architecture": "swiftshader",
+    "device": "unknown",
+    "description": ""
+  },
+  "resolved": {
+    "schema": "doppler.resolved-runtime-session/v1",
+    "id": "sha256:452c5086ed4dc04942fbb2579020680ee03b63fd9f096cf1d222c1814e47901f",
+    "model": {
+      "id": "qwen-3-5-0-8b-q4k-ehaf16",
+      "type": "transformer",
+      "architecture": "transformer",
+      "numLayers": 24,
+      "hiddenSize": 1024,
+      "numHeads": 8,
+      "numKVHeads": 2,
+      "headDim": 256
+    },
+    "manifestInference": {
+      "schema": "doppler.execution/v1",
+      "attention": {
+        "queryKeyNormType": "rmsnorm",
+        "queryKeyNormAxis": "head",
+        "queryPreAttnScalar": 256,
+        "attnLogitSoftcapping": null,
+        "slidingWindow": null,
+        "queryKeyNorm": true,
+        "valueNorm": false,
+        "causal": true,
+        "attentionBias": false,
+        "attentionOutputGate": true
+      },
+      "normalization": {
+        "rmsNormEps": 1e-06,
+        "rmsNormWeightOffset": true,
+        "postAttentionNorm": true,
+        "preFeedforwardNorm": false,
+        "postFeedforwardNorm": false
+      },
+      "ffn": {
+        "activation": "silu",
+        "gatedActivation": true,
+        "branchMode": "auto",
+        "useDoubleWideMlp": false,
+        "swigluLimit": null
+      },
+      "rope": {
+        "ropeTheta": 10000000,
+        "ropeLocalTheta": null,
+        "mropeInterleaved": true,
+        "mropeSection": [
+          11,
+          11,
+          10
+        ],
+        "partialRotaryFactor": 0.25,
+        "ropeLocalPartialRotaryFactor": null,
+        "ropeFrequencyBaseDim": null,
+        "ropeLocalFrequencyBaseDim": null,
+        "ropeScalingType": null,
+        "ropeScalingFactor": 1,
+        "ropeLocalScalingType": null,
+        "ropeLocalScalingFactor": 1,
+        "yarnBetaFast": null,
+        "yarnBetaSlow": null,
+        "yarnOriginalMaxPos": null,
+        "ropeLocalYarnBetaFast": null,
+        "ropeLocalYarnBetaSlow": null,
+        "ropeLocalYarnOriginalMaxPos": null,
+        "longropeShortFactor": null,
+        "longropeLongFactor": null,
+        "longropeOriginalMaxPos": null
+      },
+      "output": {
+        "finalLogitSoftcapping": null,
+        "tieWordEmbeddings": true,
+        "scaleEmbeddings": false,
+        "embeddingTranspose": false,
+        "embeddingVocabSize": null,
+        "embeddingPostprocessor": null,
+        "embeddingScale": null,
+        "logitInputScale": 1
+      },
+      "layerPattern": {
+        "type": "custom",
+        "globalPattern": null,
+        "period": null,
+        "offset": null,
+        "layerTypes": [
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention"
+        ],
+        "residualBranchScale": 1
+      },
+      "chatTemplate": {
+        "type": "qwen",
+        "enabled": true,
+        "thinking": false
+      },
+      "supportsEmbedding": false,
+      "supportsSequence": false,
+      "supportsRerank": false,
+      "supportsTranscription": false,
+      "supportsVision": false,
+      "rerank": null,
+      "sequence": null,
+      "diffusionGemma": null,
+      "pipeline": null,
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "outputDtype": "f32"
+          }
+        },
+        "kvcache": {
+          "kvDtype": "f16",
+          "layout": "contiguous",
+          "maxSeqLen": 8192,
+          "pageSize": 256,
+          "tiering": {
+            "mode": "off",
+            "hotWindow": 1024,
+            "coldPageSize": 256,
+            "coldDtype": "f16",
+            "compression": {
+              "mode": "none",
+              "blockSize": 1,
+              "bitWidth": 4,
+              "prodMode": false
+            },
+            "gating": {
+              "mode": "auto",
+              "minAluBwRatio": 0
+            }
+          },
+          "quantization": {
+            "mode": "none",
+            "bitWidth": 4,
+            "prodMode": false
+          }
+        },
+        "decodeLoop": {
+          "batchSize": 4,
+          "stopCheckMode": "batch",
+          "readbackInterval": 8,
+          "readbackMode": "sequential",
+          "submitLatencyThresholdMs": null,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1,
+          "disableCommandBatching": false
+        },
+        "perLayerInputs": {
+          "materialization": "auto",
+          "rowCache": {
+            "mode": "lru",
+            "maxRows": 256,
+            "maxBytes": 134217728,
+            "decodedDtype": "f32"
+          },
+          "prefetch": {
+            "mode": "next_token",
+            "rowsAhead": 1
+          },
+          "gpuUpload": {
+            "mode": "per_step_slices",
+            "stagingRows": 2
+          },
+          "hotCache": {
+            "mode": "prepared_tokens",
+            "maxTokens": 1024,
+            "maxBytes": 134217728,
+            "outputDtype": "f32"
+          }
+        },
+        "speculation": {
+          "mode": "self",
+          "tokens": 1,
+          "verify": "greedy",
+          "threshold": null,
+          "rollbackOnReject": true
+        },
+        "prefillChunkSubmitMode": "async",
+        "useFlashPrefillAttention": false,
+        "useWideTileQ4KPrefill": false,
+        "retainQ4KMaterialization": false
+      },
+      "execution": {
+        "inlineKernelPath": true,
+        "kernels": {
+          "embed": {
+            "kernel": "gather_f16.wgsl",
+            "entry": "main",
+            "digest": "sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9"
+          },
+          "rmsnorm": {
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+          },
+          "q4_decode": {
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_multicol",
+            "digest": "sha256:c97827b7ca42c0215756d91c7166106e189174c1a64fe473f0c017b3eb27188e"
+          },
+          "rope": {
+            "kernel": "rope.wgsl",
+            "entry": "main",
+            "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+          },
+          "attn_decode": {
+            "kernel": "attention_decode_online_f16kv.wgsl",
+            "entry": "main",
+            "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+            "precision": {
+              "kvDtype": "f16"
+            }
+          },
+          "residual": {
+            "kernel": "residual.wgsl",
+            "entry": "main",
+            "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+          },
+          "silu": {
+            "kernel": "silu.wgsl",
+            "entry": "main",
+            "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
+            "constants": {
+              "HAS_GATE": true
+            }
+          },
+          "q4_prefill": {
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+          },
+          "q4_widetile": {
+            "kernel": "fused_matmul_q4_widetile.wgsl",
+            "entry": "main",
+            "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62"
+          },
+          "tiled": {
+            "kernel": "matmul_f16w_f32a.wgsl",
+            "entry": "main",
+            "digest": "sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc"
+          },
+          "attn_stream": {
+            "kernel": "attention_streaming_f16kv.wgsl",
+            "entry": "main",
+            "digest": "sha256:c3ec920699a81ee6df04a64eb0ea2477bec168ebb809af29f2d4b0924a4bdf8f",
+            "precision": {
+              "kvDtype": "f16"
+            }
+          },
+          "attn_head256": {
+            "kernel": "attention_head256_f16kv.wgsl",
+            "entry": "main",
+            "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+            "precision": {
+              "kvDtype": "f16"
+            }
+          },
+          "lm_head_gemv": {
+            "kernel": "matmul_gemv_subgroup_f16a.wgsl",
+            "entry": "main_multicol",
+            "digest": "sha256:8f62e404087d4e6a7b786f15951b7f817d6ecf71625786a16ad8d744e3dd9eb3",
+            "constants": {
+              "MULTICOL_COLS_PER_WG": 64,
+              "MULTICOL_THREADS_PER_COL": 4
+            },
+            "precision": {
+              "inputDtype": "f16",
+              "outputDtype": "f16"
+            }
+          },
+          "lm_head_q4": {
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            }
+          },
+          "sample": {
+            "kernel": "sample.wgsl",
+            "entry": "sample_single_pass",
+            "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+          },
+          "q4_decode_gemv": {
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            }
+          }
+        },
+        "preLayer": [
+          [
+            "embed",
+            "embed",
+            "embed_tokens"
+          ]
+        ],
+        "decode": [
+          [
+            "input_norm",
+            "rmsnorm"
+          ],
+          [
+            "q_proj",
+            "q4_decode_gemv",
+            "layer.{L}.self_attn.q_proj"
+          ],
+          [
+            "k_proj",
+            "q4_decode_gemv",
+            "layer.{L}.self_attn.k_proj"
+          ],
+          [
+            "v_proj",
+            "q4_decode_gemv",
+            "layer.{L}.self_attn.v_proj"
+          ],
+          [
+            "rope_q",
+            "rope"
+          ],
+          [
+            "rope_k",
+            "rope"
+          ],
+          [
+            "attention",
+            "attn_decode"
+          ],
+          [
+            "o_proj",
+            "q4_decode_gemv",
+            "layer.{L}.self_attn.o_proj"
+          ],
+          [
+            "attn_residual",
+            "residual"
+          ],
+          [
+            "post_attn_norm",
+            "rmsnorm"
+          ],
+          [
+            "gate_proj",
+            "q4_decode_gemv",
+            "layer.{L}.mlp.gate_proj"
+          ],
+          [
+            "up_proj",
+            "q4_decode_gemv",
+            "layer.{L}.mlp.up_proj"
+          ],
+          [
+            "activation",
+            "silu"
+          ],
+          [
+            "down_proj",
+            "q4_decode_gemv",
+            "layer.{L}.mlp.down_proj"
+          ],
+          [
+            "ffn_residual",
+            "residual"
+          ]
+        ],
+        "prefill": [
+          [
+            "input_norm",
+            "rmsnorm"
+          ],
+          [
+            "q_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.q_proj"
+          ],
+          [
+            "k_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.k_proj"
+          ],
+          [
+            "v_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.v_proj"
+          ],
+          [
+            "rope_q",
+            "rope"
+          ],
+          [
+            "rope_k",
+            "rope"
+          ],
+          [
+            "attention",
+            "attn_head256"
+          ],
+          [
+            "o_proj",
+            "q4_widetile",
+            "layer.{L}.self_attn.o_proj"
+          ],
+          [
+            "attn_residual",
+            "residual"
+          ],
+          [
+            "post_attn_norm",
+            "rmsnorm"
+          ],
+          [
+            "gate_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.gate_proj"
+          ],
+          [
+            "up_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.up_proj"
+          ],
+          [
+            "activation",
+            "silu"
+          ],
+          [
+            "down_proj",
+            "q4_widetile",
+            "layer.{L}.mlp.down_proj"
+          ],
+          [
+            "ffn_residual",
+            "residual"
+          ]
+        ],
+        "postLayer": [
+          [
+            "final_norm",
+            "rmsnorm"
+          ],
+          [
+            "lm_head",
+            "lm_head_q4",
+            "lm_head"
+          ],
+          [
+            "lm_head_prefill",
+            "q4_prefill",
+            "lm_head"
+          ],
+          [
+            "sample",
+            "sample"
+          ]
+        ],
+        "policies": {
+          "unsupportedPrecision": "error",
+          "dtypeTransition": "require_cast_step",
+          "unresolvedKernel": "error"
+        }
+      }
+    },
+    "runtime": {
+      "session": {
+        "kvcache": {
+          "maxSeqLen": 4096,
+          "gpuPagedFallbackMaxSeqLen": 4096,
+          "kvDtype": "f32",
+          "forceF32Softcap": false,
+          "layout": "contiguous",
+          "pageSize": 256,
+          "bdpaVocabSize": 2048,
+          "windowSize": 1024,
+          "tiering": {
+            "mode": "off",
+            "hotWindow": 1024,
+            "coldPageSize": 256,
+            "coldDtype": "f16",
+            "compression": {
+              "mode": "none",
+              "blockSize": 1,
+              "bitWidth": 4,
+              "prodMode": false
+            },
+            "gating": {
+              "mode": "auto",
+              "minAluBwRatio": 0
+            }
+          },
+          "quantization": {
+            "mode": "none",
+            "bitWidth": 4,
+            "prodMode": false
+          }
+        },
+        "speculation": {
+          "mode": "none",
+          "tokens": 1,
+          "verify": "greedy",
+          "threshold": null,
+          "rollbackOnReject": true
+        },
+        "prefillChunkSubmitMode": "sync",
+        "prefillChunkLayers": 4,
+        "prefillTokenChunkSize": null,
+        "skipEmbeddingKVCacheWrites": false,
+        "useFlashPrefillAttention": false,
+        "useFusedGateUpGelu": false,
+        "useLargeBatchF16F32FusedGateUp": false,
+        "useTiledQ4KPrefill": false,
+        "retainQ4KMaterialization": false,
+        "useWideTileQ4KPrefill": false,
+        "useWideTileQ4KDecode": false,
+        "useSandwichRMSNormPairFusion": false,
+        "usePostFfnNextInputRMSNormPairFusion": false,
+        "usePostAttnNormFusedGateUp": false,
+        "fusedFfnQ4K": null,
+        "lmHeadArgmaxQ4K": null,
+        "attentionDecodeOnline": null,
+        "useLinearAttentionABProjectionFusion": false,
+        "useLinearAttentionQKVZProjectionFusion": false,
+        "useLinearAttentionFusedDecodeCore": false,
+        "useOrtFlashPrefillAttention": false,
+        "useWideTileResidualFusion": false,
+        "useFusedRmsnormWideTile": false,
+        "useFusedQKVSplitQKNorm": false,
+        "useFusedQKVSplitQKNormRoPE": false,
+        "useGreedyLmHeadArgmaxFusion": false,
+        "compute": {
+          "defaults": {
+            "activationDtype": "f32",
+            "mathDtype": "f32",
+            "accumDtype": "f32",
+            "outputDtype": "f32"
+          }
+        },
+        "decodeLoop": {
+          "batchSize": 4,
+          "stopCheckMode": "batch",
+          "readbackInterval": 8,
+          "readbackMode": "sequential",
+          "submitLatencyThresholdMs": null,
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 1,
+          "disableCommandBatching": false
+        },
+        "perLayerInputs": {
+          "materialization": "auto",
+          "rowCache": {
+            "mode": "lru",
+            "maxRows": 256,
+            "maxBytes": 134217728,
+            "decodedDtype": "f32"
+          },
+          "prefetch": {
+            "mode": "next_token",
+            "rowsAhead": 1
+          },
+          "gpuUpload": {
+            "mode": "per_step_slices",
+            "stagingRows": 2
+          },
+          "hotCache": {
+            "mode": "prepared_tokens",
+            "maxTokens": 1024,
+            "maxBytes": 134217728,
+            "outputDtype": "f32"
+          }
+        }
+      },
+      "compute": {
+        "activationDtype": "f32"
+      }
+    },
+    "kernelPath": {
+      "id": "qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+      "source": "execution-v1",
+      "hash": "sha256:cc96adaf516724003b52520f127884f7cc69364549bf7b53260c6fc0e11ac7d3",
+      "definition": {
+        "id": "qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+        "name": "Execution inline kernel path",
+        "description": "Generated from manifest.inference.execution",
+        "activationDtype": "f32",
+        "kvDtype": "f32",
+        "decode": {
+          "steps": [
+            {
+              "op": "input_norm",
+              "kernel": "rmsnorm.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "q_proj",
+              "kernel": "fused_matmul_q4.wgsl",
+              "entry": "main_gemv",
+              "weights": "layer.{L}.self_attn.q_proj",
+              "constants": {
+                "COLS_PER_WG": 64,
+                "THREADS_PER_COL_GEMV": 4
+              }
+            },
+            {
+              "op": "k_proj",
+              "kernel": "fused_matmul_q4.wgsl",
+              "entry": "main_gemv",
+              "weights": "layer.{L}.self_attn.k_proj",
+              "constants": {
+                "COLS_PER_WG": 64,
+                "THREADS_PER_COL_GEMV": 4
+              }
+            },
+            {
+              "op": "v_proj",
+              "kernel": "fused_matmul_q4.wgsl",
+              "entry": "main_gemv",
+              "weights": "layer.{L}.self_attn.v_proj",
+              "constants": {
+                "COLS_PER_WG": 64,
+                "THREADS_PER_COL_GEMV": 4
+              }
+            },
+            {
+              "op": "rope_q",
+              "kernel": "rope.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "rope_k",
+              "kernel": "rope.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "attention",
+              "kernel": "attention_streaming.wgsl",
+              "entry": "main",
+              "precision": {
+                "kvDtype": "f32",
+                "activationDtype": "f32"
+              }
+            },
+            {
+              "op": "o_proj",
+              "kernel": "fused_matmul_q4.wgsl",
+              "entry": "main_gemv",
+              "weights": "layer.{L}.self_attn.o_proj",
+              "constants": {
+                "COLS_PER_WG": 64,
+                "THREADS_PER_COL_GEMV": 4
+              }
+            },
+            {
+              "op": "attn_residual",
+              "kernel": "residual.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "post_attn_norm",
+              "kernel": "rmsnorm.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "gate_proj",
+              "kernel": "fused_matmul_q4.wgsl",
+              "entry": "main_gemv",
+              "weights": "layer.{L}.mlp.gate_proj",
+              "constants": {
+                "COLS_PER_WG": 64,
+                "THREADS_PER_COL_GEMV": 4
+              }
+            },
+            {
+              "op": "up_proj",
+              "kernel": "fused_matmul_q4.wgsl",
+              "entry": "main_gemv",
+              "weights": "layer.{L}.mlp.up_proj",
+              "constants": {
+                "COLS_PER_WG": 64,
+                "THREADS_PER_COL_GEMV": 4
+              }
+            },
+            {
+              "op": "activation",
+              "kernel": "silu.wgsl",
+              "entry": "main",
+              "constants": {
+                "HAS_GATE": true
+              }
+            },
+            {
+              "op": "down_proj",
+              "kernel": "fused_matmul_q4.wgsl",
+              "entry": "main_gemv",
+              "weights": "layer.{L}.mlp.down_proj",
+              "constants": {
+                "COLS_PER_WG": 64,
+                "THREADS_PER_COL_GEMV": 4
+              }
+            },
+            {
+              "op": "ffn_residual",
+              "kernel": "residual.wgsl",
+              "entry": "main"
+            }
+          ]
+        },
+        "prefill": {
+          "steps": [
+            {
+              "op": "input_norm",
+              "kernel": "rmsnorm.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "q_proj",
+              "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+              "entry": "main",
+              "weights": "layer.{L}.self_attn.q_proj",
+              "precision": {
+                "inputDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            {
+              "op": "k_proj",
+              "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+              "entry": "main",
+              "weights": "layer.{L}.self_attn.k_proj",
+              "precision": {
+                "inputDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            {
+              "op": "v_proj",
+              "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+              "entry": "main",
+              "weights": "layer.{L}.self_attn.v_proj",
+              "precision": {
+                "inputDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            {
+              "op": "rope_q",
+              "kernel": "rope.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "rope_k",
+              "kernel": "rope.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "attention",
+              "kernel": "attention_small.wgsl",
+              "entry": "main",
+              "precision": {
+                "kvDtype": "f32",
+                "activationDtype": "f32"
+              }
+            },
+            {
+              "op": "o_proj",
+              "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+              "entry": "main",
+              "weights": "layer.{L}.self_attn.o_proj",
+              "precision": {
+                "inputDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            {
+              "op": "attn_residual",
+              "kernel": "residual.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "post_attn_norm",
+              "kernel": "rmsnorm.wgsl",
+              "entry": "main"
+            },
+            {
+              "op": "gate_proj",
+              "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+              "entry": "main",
+              "weights": "layer.{L}.mlp.gate_proj",
+              "precision": {
+                "inputDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            {
+              "op": "up_proj",
+              "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+              "entry": "main",
+              "weights": "layer.{L}.mlp.up_proj",
+              "precision": {
+                "inputDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            {
+              "op": "activation",
+              "kernel": "silu.wgsl",
+              "entry": "main",
+              "constants": {
+                "HAS_GATE": true
+              }
+            },
+            {
+              "op": "down_proj",
+              "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+              "entry": "main",
+              "weights": "layer.{L}.mlp.down_proj",
+              "precision": {
+                "inputDtype": "f32",
+                "outputDtype": "f32"
+              }
+            },
+            {
+              "op": "ffn_residual",
+              "kernel": "residual.wgsl",
+              "entry": "main"
+            }
+          ]
+        },
+        "preLayer": [
+          {
+            "op": "embed",
+            "kernel": "gather.wgsl",
+            "entry": "main",
+            "weights": "embed_tokens"
+          }
+        ],
+        "postLayer": [
+          {
+            "op": "final_norm",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main"
+          },
+          {
+            "op": "lm_head",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "lm_head",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            }
+          },
+          {
+            "op": "lm_head_prefill",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "lm_head"
+          },
+          {
+            "op": "sample",
+            "kernel": "sample.wgsl",
+            "entry": "sample_single_pass"
+          }
+        ]
+      }
+    },
+    "capabilityPolicy": {
+      "kind": "hardware-compatibility",
+      "dtypeEffect": "full-f32",
+      "reason": "GPU lacks shader-f16.",
+      "evidence": [
+        "tests/integration/execution-v1-capability-policy.test.js"
+      ]
+    },
+    "laneIntegrity": {
+      "declared": {
+        "activationDtype": "f32",
+        "mathDtype": "f32",
+        "accumDtype": "f32",
+        "kvDtype": "f16"
+      },
+      "executed": {
+        "activationDtype": "f32",
+        "mathDtype": "f32",
+        "accumDtype": "f32",
+        "kvDtype": "f32"
+      },
+      "status": "transformed",
+      "transforms": [
+        "widenToF32Activations"
+      ],
+      "policy": {
+        "kind": "hardware-compatibility",
+        "dtypeEffect": "full-f32",
+        "reason": "GPU lacks shader-f16.",
+        "evidence": [
+          "tests/integration/execution-v1-capability-policy.test.js"
+        ]
+      }
+    },
+    "execution": {
+      "primary": {
+        "id": "primary",
+        "source": "configured",
+        "activationDtype": "f32",
+        "kernelPathId": "qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "kernelPathHash": "sha256:cc96adaf516724003b52520f127884f7cc69364549bf7b53260c6fc0e11ac7d3",
+        "finitenessGuardEnabled": false,
+        "finitenessOnTrigger": "error",
+        "defaultDisableCommandBatching": false,
+        "defaultDisableMultiTokenDecode": false,
+        "defaultBatchSize": 4,
+        "defaultStopCheckMode": "batch",
+        "readbackInterval": 8,
+        "readbackMode": "sequential",
+        "maxBatchDecodeTokens": null
+      },
+      "fallback": null,
+      "resolvedSteps": {
+        "prefill": [
+          {
+            "id": "preLayer_both_0_embed",
+            "phase": "both",
+            "section": "preLayer",
+            "op": "embed",
+            "src": "state",
+            "dst": "state",
+            "kernel": "gather.wgsl",
+            "entry": "main",
+            "weights": "embed_tokens",
+            "layers": "all",
+            "kernelRef": {
+              "id": "gather.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "embed.out"
+          },
+          {
+            "id": "layer_prefill_16_input_norm",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "input_norm",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rmsnorm.main",
+              "version": "1.0.0",
+              "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+            },
+            "canonicalOpId": "exec.input_norm"
+          },
+          {
+            "id": "layer_prefill_17_q_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "q_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.self_attn.q_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.q_proj"
+          },
+          {
+            "id": "layer_prefill_18_k_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "k_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.self_attn.k_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.k_proj"
+          },
+          {
+            "id": "layer_prefill_19_v_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "v_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.self_attn.v_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.v_proj"
+          },
+          {
+            "id": "layer_prefill_20_rope_q",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "rope_q",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rope.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rope.main",
+              "version": "1.0.0",
+              "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+            },
+            "canonicalOpId": "exec.rope_q"
+          },
+          {
+            "id": "layer_prefill_21_rope_k",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "rope_k",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rope.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rope.main",
+              "version": "1.0.0",
+              "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+            },
+            "canonicalOpId": "exec.rope_k"
+          },
+          {
+            "id": "layer_prefill_22_attention",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "attention",
+            "src": "state",
+            "dst": "state",
+            "kernel": "attention_small.wgsl",
+            "entry": "main",
+            "precision": {
+              "kvDtype": "f32",
+              "activationDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "attention_small.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "attn.out"
+          },
+          {
+            "id": "layer_prefill_23_o_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "o_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.self_attn.o_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.o_proj"
+          },
+          {
+            "id": "layer_prefill_24_attn_residual",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "attn_residual",
+            "src": "state",
+            "dst": "state",
+            "kernel": "residual.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "residual.main",
+              "version": "1.0.0",
+              "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+            },
+            "canonicalOpId": "exec.attn_residual"
+          },
+          {
+            "id": "layer_prefill_25_post_attn_norm",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "post_attn_norm",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rmsnorm.main",
+              "version": "1.0.0",
+              "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+            },
+            "canonicalOpId": "exec.post_attn_norm"
+          },
+          {
+            "id": "layer_prefill_26_gate_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "gate_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.mlp.gate_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.gate_proj"
+          },
+          {
+            "id": "layer_prefill_27_up_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "up_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.mlp.up_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.up_proj"
+          },
+          {
+            "id": "layer_prefill_28_activation",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "activation",
+            "src": "state",
+            "dst": "state",
+            "kernel": "silu.wgsl",
+            "entry": "main",
+            "constants": {
+              "HAS_GATE": true
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "silu.main",
+              "version": "1.0.0",
+              "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5"
+            },
+            "canonicalOpId": "exec.activation"
+          },
+          {
+            "id": "layer_prefill_29_down_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "down_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.mlp.down_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.down_proj"
+          },
+          {
+            "id": "layer_prefill_30_ffn_residual",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "ffn_residual",
+            "src": "state",
+            "dst": "state",
+            "kernel": "residual.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "residual.main",
+              "version": "1.0.0",
+              "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+            },
+            "canonicalOpId": "exec.ffn_residual"
+          },
+          {
+            "id": "postLayer_both_31_final_norm",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "final_norm",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rmsnorm.main",
+              "version": "1.0.0",
+              "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+            },
+            "canonicalOpId": "final_norm.out"
+          },
+          {
+            "id": "postLayer_both_32_lm_head",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "lm_head",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "lm_head",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.lm_head"
+          },
+          {
+            "id": "postLayer_both_33_lm_head_prefill",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "lm_head_prefill",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "lm_head",
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+            },
+            "canonicalOpId": "exec.lm_head_prefill"
+          },
+          {
+            "id": "postLayer_both_34_sample",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "sample",
+            "src": "state",
+            "dst": "state",
+            "kernel": "sample.wgsl",
+            "entry": "sample_single_pass",
+            "layers": "all",
+            "kernelRef": {
+              "id": "sample.sample_single_pass",
+              "version": "1.0.0",
+              "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+            },
+            "canonicalOpId": "exec.sample"
+          }
+        ],
+        "decode": [
+          {
+            "id": "preLayer_both_0_embed",
+            "phase": "both",
+            "section": "preLayer",
+            "op": "embed",
+            "src": "state",
+            "dst": "state",
+            "kernel": "gather.wgsl",
+            "entry": "main",
+            "weights": "embed_tokens",
+            "layers": "all",
+            "kernelRef": {
+              "id": "gather.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "embed.out"
+          },
+          {
+            "id": "layer_decode_1_input_norm",
+            "phase": "decode",
+            "section": "layer",
+            "op": "input_norm",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rmsnorm.main",
+              "version": "1.0.0",
+              "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+            },
+            "canonicalOpId": "exec.input_norm"
+          },
+          {
+            "id": "layer_decode_2_q_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "q_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.self_attn.q_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.q_proj"
+          },
+          {
+            "id": "layer_decode_3_k_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "k_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.self_attn.k_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.k_proj"
+          },
+          {
+            "id": "layer_decode_4_v_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "v_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.self_attn.v_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.v_proj"
+          },
+          {
+            "id": "layer_decode_5_rope_q",
+            "phase": "decode",
+            "section": "layer",
+            "op": "rope_q",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rope.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rope.main",
+              "version": "1.0.0",
+              "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+            },
+            "canonicalOpId": "exec.rope_q"
+          },
+          {
+            "id": "layer_decode_6_rope_k",
+            "phase": "decode",
+            "section": "layer",
+            "op": "rope_k",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rope.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rope.main",
+              "version": "1.0.0",
+              "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+            },
+            "canonicalOpId": "exec.rope_k"
+          },
+          {
+            "id": "layer_decode_7_attention",
+            "phase": "decode",
+            "section": "layer",
+            "op": "attention",
+            "src": "state",
+            "dst": "state",
+            "kernel": "attention_streaming.wgsl",
+            "entry": "main",
+            "precision": {
+              "kvDtype": "f32",
+              "activationDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "attention_streaming.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "attn.out"
+          },
+          {
+            "id": "layer_decode_8_o_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "o_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.self_attn.o_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.o_proj"
+          },
+          {
+            "id": "layer_decode_9_attn_residual",
+            "phase": "decode",
+            "section": "layer",
+            "op": "attn_residual",
+            "src": "state",
+            "dst": "state",
+            "kernel": "residual.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "residual.main",
+              "version": "1.0.0",
+              "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+            },
+            "canonicalOpId": "exec.attn_residual"
+          },
+          {
+            "id": "layer_decode_10_post_attn_norm",
+            "phase": "decode",
+            "section": "layer",
+            "op": "post_attn_norm",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rmsnorm.main",
+              "version": "1.0.0",
+              "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+            },
+            "canonicalOpId": "exec.post_attn_norm"
+          },
+          {
+            "id": "layer_decode_11_gate_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "gate_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.mlp.gate_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.gate_proj"
+          },
+          {
+            "id": "layer_decode_12_up_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "up_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.mlp.up_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.up_proj"
+          },
+          {
+            "id": "layer_decode_13_activation",
+            "phase": "decode",
+            "section": "layer",
+            "op": "activation",
+            "src": "state",
+            "dst": "state",
+            "kernel": "silu.wgsl",
+            "entry": "main",
+            "constants": {
+              "HAS_GATE": true
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "silu.main",
+              "version": "1.0.0",
+              "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5"
+            },
+            "canonicalOpId": "exec.activation"
+          },
+          {
+            "id": "layer_decode_14_down_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "down_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.mlp.down_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.down_proj"
+          },
+          {
+            "id": "layer_decode_15_ffn_residual",
+            "phase": "decode",
+            "section": "layer",
+            "op": "ffn_residual",
+            "src": "state",
+            "dst": "state",
+            "kernel": "residual.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "residual.main",
+              "version": "1.0.0",
+              "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+            },
+            "canonicalOpId": "exec.ffn_residual"
+          },
+          {
+            "id": "postLayer_both_31_final_norm",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "final_norm",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rmsnorm.main",
+              "version": "1.0.0",
+              "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+            },
+            "canonicalOpId": "final_norm.out"
+          },
+          {
+            "id": "postLayer_both_32_lm_head",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "lm_head",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "lm_head",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.lm_head"
+          },
+          {
+            "id": "postLayer_both_33_lm_head_prefill",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "lm_head_prefill",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "lm_head",
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+            },
+            "canonicalOpId": "exec.lm_head_prefill"
+          },
+          {
+            "id": "postLayer_both_34_sample",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "sample",
+            "src": "state",
+            "dst": "state",
+            "kernel": "sample.wgsl",
+            "entry": "sample_single_pass",
+            "layers": "all",
+            "kernelRef": {
+              "id": "sample.sample_single_pass",
+              "version": "1.0.0",
+              "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+            },
+            "canonicalOpId": "exec.sample"
+          }
+        ],
+        "all": [
+          {
+            "id": "preLayer_both_0_embed",
+            "phase": "both",
+            "section": "preLayer",
+            "op": "embed",
+            "src": "state",
+            "dst": "state",
+            "kernel": "gather.wgsl",
+            "entry": "main",
+            "weights": "embed_tokens",
+            "layers": "all",
+            "kernelRef": {
+              "id": "gather.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "embed.out"
+          },
+          {
+            "id": "layer_decode_1_input_norm",
+            "phase": "decode",
+            "section": "layer",
+            "op": "input_norm",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rmsnorm.main",
+              "version": "1.0.0",
+              "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+            },
+            "canonicalOpId": "exec.input_norm"
+          },
+          {
+            "id": "layer_decode_2_q_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "q_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.self_attn.q_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.q_proj"
+          },
+          {
+            "id": "layer_decode_3_k_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "k_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.self_attn.k_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.k_proj"
+          },
+          {
+            "id": "layer_decode_4_v_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "v_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.self_attn.v_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.v_proj"
+          },
+          {
+            "id": "layer_decode_5_rope_q",
+            "phase": "decode",
+            "section": "layer",
+            "op": "rope_q",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rope.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rope.main",
+              "version": "1.0.0",
+              "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+            },
+            "canonicalOpId": "exec.rope_q"
+          },
+          {
+            "id": "layer_decode_6_rope_k",
+            "phase": "decode",
+            "section": "layer",
+            "op": "rope_k",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rope.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rope.main",
+              "version": "1.0.0",
+              "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+            },
+            "canonicalOpId": "exec.rope_k"
+          },
+          {
+            "id": "layer_decode_7_attention",
+            "phase": "decode",
+            "section": "layer",
+            "op": "attention",
+            "src": "state",
+            "dst": "state",
+            "kernel": "attention_streaming.wgsl",
+            "entry": "main",
+            "precision": {
+              "kvDtype": "f32",
+              "activationDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "attention_streaming.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "attn.out"
+          },
+          {
+            "id": "layer_decode_8_o_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "o_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.self_attn.o_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.o_proj"
+          },
+          {
+            "id": "layer_decode_9_attn_residual",
+            "phase": "decode",
+            "section": "layer",
+            "op": "attn_residual",
+            "src": "state",
+            "dst": "state",
+            "kernel": "residual.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "residual.main",
+              "version": "1.0.0",
+              "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+            },
+            "canonicalOpId": "exec.attn_residual"
+          },
+          {
+            "id": "layer_decode_10_post_attn_norm",
+            "phase": "decode",
+            "section": "layer",
+            "op": "post_attn_norm",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rmsnorm.main",
+              "version": "1.0.0",
+              "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+            },
+            "canonicalOpId": "exec.post_attn_norm"
+          },
+          {
+            "id": "layer_decode_11_gate_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "gate_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.mlp.gate_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.gate_proj"
+          },
+          {
+            "id": "layer_decode_12_up_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "up_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.mlp.up_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.up_proj"
+          },
+          {
+            "id": "layer_decode_13_activation",
+            "phase": "decode",
+            "section": "layer",
+            "op": "activation",
+            "src": "state",
+            "dst": "state",
+            "kernel": "silu.wgsl",
+            "entry": "main",
+            "constants": {
+              "HAS_GATE": true
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "silu.main",
+              "version": "1.0.0",
+              "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5"
+            },
+            "canonicalOpId": "exec.activation"
+          },
+          {
+            "id": "layer_decode_14_down_proj",
+            "phase": "decode",
+            "section": "layer",
+            "op": "down_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "layer.{L}.mlp.down_proj",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.down_proj"
+          },
+          {
+            "id": "layer_decode_15_ffn_residual",
+            "phase": "decode",
+            "section": "layer",
+            "op": "ffn_residual",
+            "src": "state",
+            "dst": "state",
+            "kernel": "residual.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "residual.main",
+              "version": "1.0.0",
+              "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+            },
+            "canonicalOpId": "exec.ffn_residual"
+          },
+          {
+            "id": "layer_prefill_16_input_norm",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "input_norm",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rmsnorm.main",
+              "version": "1.0.0",
+              "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+            },
+            "canonicalOpId": "exec.input_norm"
+          },
+          {
+            "id": "layer_prefill_17_q_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "q_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.self_attn.q_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.q_proj"
+          },
+          {
+            "id": "layer_prefill_18_k_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "k_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.self_attn.k_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.k_proj"
+          },
+          {
+            "id": "layer_prefill_19_v_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "v_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.self_attn.v_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.v_proj"
+          },
+          {
+            "id": "layer_prefill_20_rope_q",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "rope_q",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rope.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rope.main",
+              "version": "1.0.0",
+              "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+            },
+            "canonicalOpId": "exec.rope_q"
+          },
+          {
+            "id": "layer_prefill_21_rope_k",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "rope_k",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rope.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rope.main",
+              "version": "1.0.0",
+              "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+            },
+            "canonicalOpId": "exec.rope_k"
+          },
+          {
+            "id": "layer_prefill_22_attention",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "attention",
+            "src": "state",
+            "dst": "state",
+            "kernel": "attention_small.wgsl",
+            "entry": "main",
+            "precision": {
+              "kvDtype": "f32",
+              "activationDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "attention_small.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "attn.out"
+          },
+          {
+            "id": "layer_prefill_23_o_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "o_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.self_attn.o_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.o_proj"
+          },
+          {
+            "id": "layer_prefill_24_attn_residual",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "attn_residual",
+            "src": "state",
+            "dst": "state",
+            "kernel": "residual.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "residual.main",
+              "version": "1.0.0",
+              "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+            },
+            "canonicalOpId": "exec.attn_residual"
+          },
+          {
+            "id": "layer_prefill_25_post_attn_norm",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "post_attn_norm",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rmsnorm.main",
+              "version": "1.0.0",
+              "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+            },
+            "canonicalOpId": "exec.post_attn_norm"
+          },
+          {
+            "id": "layer_prefill_26_gate_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "gate_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.mlp.gate_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.gate_proj"
+          },
+          {
+            "id": "layer_prefill_27_up_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "up_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.mlp.up_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.up_proj"
+          },
+          {
+            "id": "layer_prefill_28_activation",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "activation",
+            "src": "state",
+            "dst": "state",
+            "kernel": "silu.wgsl",
+            "entry": "main",
+            "constants": {
+              "HAS_GATE": true
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "silu.main",
+              "version": "1.0.0",
+              "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5"
+            },
+            "canonicalOpId": "exec.activation"
+          },
+          {
+            "id": "layer_prefill_29_down_proj",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "down_proj",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "layer.{L}.mlp.down_proj",
+            "precision": {
+              "inputDtype": "f32",
+              "outputDtype": "f32"
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": null
+            },
+            "canonicalOpId": "exec.down_proj"
+          },
+          {
+            "id": "layer_prefill_30_ffn_residual",
+            "phase": "prefill",
+            "section": "layer",
+            "op": "ffn_residual",
+            "src": "state",
+            "dst": "state",
+            "kernel": "residual.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "residual.main",
+              "version": "1.0.0",
+              "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+            },
+            "canonicalOpId": "exec.ffn_residual"
+          },
+          {
+            "id": "postLayer_both_31_final_norm",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "final_norm",
+            "src": "state",
+            "dst": "state",
+            "kernel": "rmsnorm.wgsl",
+            "entry": "main",
+            "layers": "all",
+            "kernelRef": {
+              "id": "rmsnorm.main",
+              "version": "1.0.0",
+              "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+            },
+            "canonicalOpId": "final_norm.out"
+          },
+          {
+            "id": "postLayer_both_32_lm_head",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "lm_head",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4.wgsl",
+            "entry": "main_gemv",
+            "weights": "lm_head",
+            "constants": {
+              "COLS_PER_WG": 64,
+              "THREADS_PER_COL_GEMV": 4
+            },
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4.main_gemv",
+              "version": "1.0.0",
+              "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
+            },
+            "canonicalOpId": "exec.lm_head"
+          },
+          {
+            "id": "postLayer_both_33_lm_head_prefill",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "lm_head_prefill",
+            "src": "state",
+            "dst": "state",
+            "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
+            "entry": "main",
+            "weights": "lm_head",
+            "layers": "all",
+            "kernelRef": {
+              "id": "fused_matmul_q4_batched_multicol_shared.main",
+              "version": "1.0.0",
+              "digest": "sha256:142817adcacb28750a92793996cd15c2d9fe13d03e0c2d0aadf3e674dc7a35d6"
+            },
+            "canonicalOpId": "exec.lm_head_prefill"
+          },
+          {
+            "id": "postLayer_both_34_sample",
+            "phase": "both",
+            "section": "postLayer",
+            "op": "sample",
+            "src": "state",
+            "dst": "state",
+            "kernel": "sample.wgsl",
+            "entry": "sample_single_pass",
+            "layers": "all",
+            "kernelRef": {
+              "id": "sample.sample_single_pass",
+              "version": "1.0.0",
+              "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
+            },
+            "canonicalOpId": "exec.sample"
+          }
+        ]
+      },
+      "resolvedStepsHash": "sha256:75e6d76a1fb1a5412efb5c7f205f64cee16e2f4cffb7959c823b3d2e2081d3e2",
+      "appliedTransforms": [
+        "widenToF32Activations"
+      ]
+    },
+    "dtypes": {
+      "activation": "f32",
+      "output": "f32",
+      "kv": "f32",
+      "math": "f32",
+      "accumulation": "f32"
+    }
+  },
+  "before": {
+    "prefillTimeMs": 0,
+    "decodeTimeMs": 0,
+    "ttftMs": 0,
+    "loadTiming": {
+      "schemaVersion": 1,
+      "source": "doppler-loader",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "status": "complete",
+      "customShardLoader": true,
+      "byteAccountingMode": "custom-loader-read-progress",
+      "totalBytes": 1146048704,
+      "totalShards": 18,
+      "bytesLoaded": 424839872,
+      "shardsLoaded": 10,
+      "bytesPerSecond": 7157597,
+      "phasesMs": {
+        "preflight": 1.6,
+        "tensorLocations": 1.2,
+        "embeddings": 0.7,
+        "layers": 52346.1,
+        "finalWeights": 7005.2,
+        "cleanup": 0
+      },
+      "layers": {
+        "count": 24,
+        "totalMs": 52338.7,
+        "meanMs": 2180.779,
+        "maxMs": 5366.9,
+        "maxLayer": 0
+      },
+      "totalMs": 59355.1,
+      "failedPhase": null,
+      "error": null
+    },
+    "pipelineLoadTiming": {
+      "schemaVersion": 1,
+      "source": "doppler-pipeline",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "status": "complete",
+      "phasesMs": {
+        "reset": 0,
+        "configResolution": 4.6,
+        "kernelWarmup": 0,
+        "tokenizer": 151.2,
+        "executionSetup": 4.4,
+        "loadWeights": 76904.5,
+        "rope": 42.2,
+        "convStates": 0.3
+      },
+      "details": {
+        "tokenizer": {
+          "schemaVersion": 1,
+          "source": "doppler-tokenizer",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "status": "complete",
+          "tokenizerType": "bundled",
+          "tokenizerFile": "tokenizer.json",
+          "backend": "bundled",
+          "assetSource": "custom-loader",
+          "cacheHit": false,
+          "phasesMs": {
+            "configResolution": 0,
+            "cacheLookup": 0,
+            "backendCreate": 0.1,
+            "assetLoad": 53,
+            "assetParse": 0,
+            "backendLoad": 97.6,
+            "cacheStore": 0
+          },
+          "totalMs": 151,
+          "error": null
+        }
+      },
+      "totalMs": 77107.2
+    },
+    "prefillTokens": 0,
+    "decodeTokens": 0,
+    "memoryUsageBytes": 0,
+    "tokensGenerated": 0,
+    "totalTimeMs": 0,
+    "decodeRecordMs": 0,
+    "decodeRecordOps": 0,
+    "decodeRecordPasses": 0,
+    "decodeRecordOpLabels": {},
+    "decodeSubmitWaitMs": 0,
+    "decodeReadbackWaitMs": 0,
+    "decodeReadbackMapWaitMs": 0,
+    "decodeReadbackCleanupMs": 0,
+    "decodeReadbackCopyMs": 0,
+    "prefillRecordMs": 0,
+    "prefillRecordOps": 0,
+    "prefillRecordPasses": 0,
+    "prefillRecordOpLabels": {},
+    "prefillSubmitWaitMs": 0,
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 8,
+        "readbackMode": "sequential",
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "disableCommandBatching": false,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": "primary",
+      "finalActivePlanId": "primary",
+      "transitions": []
+    },
+    "kernelPathId": "qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+    "kernelPathSource": "none",
+    "operatorDiagnostics": null,
+    "attentionInputs": [],
+    "decodeMode": null,
+    "batchGuardReason": null,
+    "singleTokenSubmitWaitMs": 0,
+    "singleTokenReadbackWaitMs": 0,
+    "singleTokenReadbackMapWaitMs": 0,
+    "singleTokenReadbackCleanupMs": 0,
+    "singleTokenReadbackCopyMs": 0,
+    "singleTokenOrchestrationMs": 0,
+    "plePreparedTokenCacheHits": 0,
+    "plePreparedTokenCacheMisses": 0,
+    "plePreparedTokenCacheEntries": 0,
+    "plePreparedTokenCacheBytes": 0,
+    "pleHotVocabularyHits": 0,
+    "pleHotVocabularyMisses": 0,
+    "modelLoadMs": 77107.19999992847,
+    "batching": {
+      "batchedForwardCalls": 0,
+      "unbatchedForwardCalls": 0,
+      "totalBatchedTimeMs": 0,
+      "totalUnbatchedTimeMs": 0,
+      "gpuSubmissions": 0,
+      "requestedBatchTokens": 0,
+      "effectiveBatchTokens": 0,
+      "executedBatchTokens": 0,
+      "resolvedBatchTokens": 0,
+      "maxBatchTokenCap": null,
+      "batchClampCount": 0
+    }
+  },
+  "tokens": [
+    248045,
+    846,
+    198,
+    20206,
+    440,
+    1132,
+    279,
+    3299,
+    21251,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271
+  ],
+  "error": {
+    "message": "[Embed] CPU-resident embedding gather requires a verified preloaded row; materialize a GPU or split embedding weight.",
+    "stack": "Error: [Embed] CPU-resident embedding gather requires a verified preloaded row; materialize a GPU or split embedding weight.\n    at embed (http://localhost:8000/vendor/doppler/0.6.2/src/inference/pipelines/text/embed.js:293:13)\n    at PipelineGenerator._prefill (http://localhost:8000/vendor/doppler/0.6.2/src/inference/pipelines/text/generator/prefill-runtime.js:296:32)\n    at PipelineGenerator._prefill (http://localhost:8000/vendor/doppler/0.6.2/src/inference/pipelines/text/generator.js:584:25)\n    at PipelineGenerator._prefillInputIdsToLogits (http://localhost:8000/vendor/doppler/0.6.2/src/inference/pipelines/text/generator/prefill-runtime.js:68:19)\n    at PipelineGenerator._prefillInputIdsToLogits (http://localhost:8000/vendor/doppler/0.6.2/src/inference/pipelines/text/generator.js:424:41)\n    at runPrefill (http://localhost:8000/vendor/doppler/0.6.2/src/inference/pipelines/text/generator/prefill-runtime.js:96:35)\n    at PipelineGenerator._prefillPromptToLogits (http://localhost:8000/vendor/doppler/0.6.2/src/inference/pipelines/text/generator/prefill-runtime.js:98:22)\n    at PipelineGenerator._prefillPromptToLogits (http://localhost:8000/vendor/doppler/0.6.2/src/inference/pipelines/text/generator.js:428:39)\n    at PipelineGenerator._generateTokensInternal (http://localhost:8000/vendor/doppler/0.6.2/src/inference/pipelines/text/generator/decode-runtime.js:188:69)\n    at _generateTokensInternal.next (<anonymous>)"
+  },
+  "after": {
+    "prefillTimeMs": 0,
+    "decodeTimeMs": 0,
+    "ttftMs": 0,
+    "loadTiming": {
+      "schemaVersion": 1,
+      "source": "doppler-loader",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "status": "complete",
+      "customShardLoader": true,
+      "byteAccountingMode": "custom-loader-read-progress",
+      "totalBytes": 1146048704,
+      "totalShards": 18,
+      "bytesLoaded": 424839872,
+      "shardsLoaded": 10,
+      "bytesPerSecond": 7157597,
+      "phasesMs": {
+        "preflight": 1.6,
+        "tensorLocations": 1.2,
+        "embeddings": 0.7,
+        "layers": 52346.1,
+        "finalWeights": 7005.2,
+        "cleanup": 0
+      },
+      "layers": {
+        "count": 24,
+        "totalMs": 52338.7,
+        "meanMs": 2180.779,
+        "maxMs": 5366.9,
+        "maxLayer": 0
+      },
+      "totalMs": 59355.1,
+      "failedPhase": null,
+      "error": null
+    },
+    "pipelineLoadTiming": {
+      "schemaVersion": 1,
+      "source": "doppler-pipeline",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "status": "complete",
+      "phasesMs": {
+        "reset": 0,
+        "configResolution": 4.6,
+        "kernelWarmup": 0,
+        "tokenizer": 151.2,
+        "executionSetup": 4.4,
+        "loadWeights": 76904.5,
+        "rope": 42.2,
+        "convStates": 0.3
+      },
+      "details": {
+        "tokenizer": {
+          "schemaVersion": 1,
+          "source": "doppler-tokenizer",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "status": "complete",
+          "tokenizerType": "bundled",
+          "tokenizerFile": "tokenizer.json",
+          "backend": "bundled",
+          "assetSource": "custom-loader",
+          "cacheHit": false,
+          "phasesMs": {
+            "configResolution": 0,
+            "cacheLookup": 0,
+            "backendCreate": 0.1,
+            "assetLoad": 53,
+            "assetParse": 0,
+            "backendLoad": 97.6,
+            "cacheStore": 0
+          },
+          "totalMs": 151,
+          "error": null
+        }
+      },
+      "totalMs": 77107.2
+    },
+    "prefillTokens": 0,
+    "decodeTokens": 0,
+    "memoryUsageBytes": 0,
+    "tokensGenerated": 0,
+    "totalTimeMs": 0,
+    "decodeRecordMs": 0,
+    "decodeRecordOps": 0,
+    "decodeRecordPasses": 0,
+    "decodeRecordOpLabels": {},
+    "decodeSubmitWaitMs": 0,
+    "decodeReadbackWaitMs": 0,
+    "decodeReadbackMapWaitMs": 0,
+    "decodeReadbackCleanupMs": 0,
+    "decodeReadbackCopyMs": 0,
+    "prefillRecordMs": 0,
+    "prefillRecordOps": 0,
+    "prefillRecordPasses": 0,
+    "prefillRecordOpLabels": {},
+    "prefillSubmitWaitMs": 0,
+    "prefillProfileSteps": [],
+    "decodeProfileSteps": [],
+    "executionPlan": {
+      "primary": {
+        "id": "primary",
+        "kernelPathId": "qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+        "kernelPathSource": "execution-v1",
+        "activationDtype": "f32",
+        "readbackInterval": 8,
+        "readbackMode": "sequential",
+        "maxBatchDecodeTokens": null,
+        "batchSize": 4,
+        "stopCheckMode": "batch",
+        "disableCommandBatching": false,
+        "ringTokens": 1,
+        "ringStop": 1,
+        "ringStaging": 1
+      },
+      "fallback": null,
+      "activePlanIdAtStart": null,
+      "finalActivePlanId": null,
+      "transitions": []
+    },
+    "kernelPathId": "qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+    "kernelPathSource": "execution-v1",
+    "operatorDiagnostics": null,
+    "attentionInputs": [],
+    "decodeMode": null,
+    "batchGuardReason": null,
+    "singleTokenSubmitWaitMs": 0,
+    "singleTokenReadbackWaitMs": 0,
+    "singleTokenReadbackMapWaitMs": 0,
+    "singleTokenReadbackCleanupMs": 0,
+    "singleTokenReadbackCopyMs": 0,
+    "singleTokenOrchestrationMs": 0,
+    "plePreparedTokenCacheHits": 0,
+    "plePreparedTokenCacheMisses": 0,
+    "plePreparedTokenCacheEntries": 0,
+    "plePreparedTokenCacheBytes": 0,
+    "pleHotVocabularyHits": 0,
+    "pleHotVocabularyMisses": 0,
+    "modelLoadMs": 77107.19999992847,
+    "stopReason": null,
+    "stopTokenId": null,
+    "batching": {
+      "batchedForwardCalls": 0,
+      "unbatchedForwardCalls": 0,
+      "totalBatchedTimeMs": 0,
+      "totalUnbatchedTimeMs": 0,
+      "gpuSubmissions": 0,
+      "requestedBatchTokens": 0,
+      "effectiveBatchTokens": 0,
+      "executedBatchTokens": 0,
+      "resolvedBatchTokens": 0,
+      "maxBatchTokenCap": null,
+      "batchClampCount": 0
+    }
+  }
+}
