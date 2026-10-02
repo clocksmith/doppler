@@ -1,0 +1,67 @@
+{
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "identity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "events": [],
+  "plan": {
+    "schema": "doppler.layer-partition-contract/v1",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "totalLayers": 24,
+    "hiddenSize": 1024,
+    "vocabSize": 248320,
+    "splitLayer": 12,
+    "activationDtype": "f32",
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          11
+        ],
+        "layerCount": 12,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32"
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          12,
+          23
+        ],
+        "layerCount": 12,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32"
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 248320,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "error": {
+    "message": "Resident partition execution supports dense causal attention without shared KV, recurrent, per-layer-input, adapter, multimodal, or cross-layer fusion dependencies.",
+    "stack": "Error: Resident partition execution supports dense causal attention without shared KV, recurrent, per-layer-input, adapter, multimodal, or cross-layer fusion dependencies.\n    at assertPartitionExecutionSupported (http://localhost:8000/vendor/doppler/0.6.3-dev.split.4/src/inference/pipelines/text/partition-execution.js:23:11)\n    at InferencePipeline.loadModel (http://localhost:8000/vendor/doppler/0.6.3-dev.split.4/src/inference/pipelines/text/lifecycle.js:343:30)\n    at async http://localhost:8000/vendor/doppler/0.6.3-dev.split.4/src/inference/pipelines/factory.js:22:7\n    at async runWithShaderSourceScope (http://localhost:8000/vendor/doppler/0.6.3-dev.split.4/src/gpu/kernels/shader-source-scope.js:70:16)\n    at async createInitializedPipeline (http://localhost:8000/vendor/doppler/0.6.3-dev.split.4/src/inference/pipelines/factory.js:14:3)\n    at async Object.openResidentPartition (http://localhost:8000/vendor/doppler/0.6.3-dev.split.4/src/client/resident-partitions.js:49:26)\n    at async eval (eval at evaluate (:290:30), <anonymous>:14:17)\n    at async <anonymous>:316:30"
+  }
+}

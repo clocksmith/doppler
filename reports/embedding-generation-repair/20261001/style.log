@@ -1,0 +1,5 @@
+
+> doppler-gpu@0.6.3-dev.split.4 source:style:check
+> node tools/check-source-style.js
+
+[source:style:check] 1070 governed JavaScript modules have sibling declarations, 227 reviewed numeric candidate(s), no runtime tensor compute, implementation annotations limited to checked strict roots, no undeclared raw console calls, and no banned geometry inference

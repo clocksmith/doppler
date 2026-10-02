@@ -1,0 +1,15 @@
+
+> doppler-gpu@0.6.3-dev.split.4 typecheck:source
+> tsc -p tsconfig.declarations.json --noEmit && node tools/check-source-types.js
+
+[source-types] 24 strict roots; 1047 explicitly inventoried unchecked implementations; no debt growth
+
+> doppler-gpu@0.6.3-dev.split.4 source:architecture:check
+> node tools/check-source-architecture.js
+
+source architecture check passed: 21 owners, 2820 files, 0 governed oversize files, 54 reviewed soft-limit files, 25 reviewed generic modules (6 semantic owners, 19 facades, 0 legacy debt)
+
+> doppler-gpu@0.6.3-dev.split.4 package:closure:check
+> node tools/package-source-closure.js
+
+package source closure check passed (938 runtime JS, 477 declarations, 465 resources)

@@ -2,8 +2,7 @@
  * Embedding Loader - Load embedding weights.
  *
  * Handles loading of token embedding weights with support for:
- * - GPU and CPU paths
- * - Large weight streaming
+ * - GPU-resident and explicitly declared split weights
  * - F32 to F16 downcast
  * - WeightBuffer wrapping
  *
@@ -33,9 +32,7 @@ export interface EmbeddingLoaderContext {
   tensorLocations: Map<string, TensorLocation>;
   /** Load a tensor by name */
   loadTensor: TensorLoader;
-  /** Check if large weight should stream to CPU */
-  shouldStreamLargeWeight: (name: string, loc: TensorLocation, label: string) => boolean;
-  /** Load a shard byte range for range-backed CPU sources */
+  /** Load a shard byte range for GPU weight materialization */
   loadShardRange?: (index: number, offset: number, length: number) => Promise<ArrayBuffer>;
   /** Resolve weight layout from location */
   resolveWeightLayout: (loc: TensorLocation) => WeightLayout;
@@ -45,7 +42,7 @@ export interface EmbeddingLoaderContext {
   keepF32Weights: boolean;
   /** Preserve F32 embeddings when manifest quantization requires F32 embedding weights */
   preserveF32Embeddings?: boolean;
-  /** Host shader-f16 capability, used to choose CPU F16->F32 fallback on no-f16 devices */
+  /** Host shader-f16 capability used by GPU weight materialization preflight */
   hostHasShaderF16?: boolean | null;
   /** Manifest-declared embedding kernel identity. */
   embeddingKernel?: {

@@ -1,0 +1,597 @@
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 2.3ms
+# linear-attention-core-gpu-regression.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.60775
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 438.523084
+[node-tests] ok: tests/inference/linear-attention-core-gpu-regression.test.js
+TAP version 13
+# runtime-embedding-limit-preflight.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.096
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 580.718375
+[node-tests] ok: tests/integration/runtime-embedding-limit-preflight.test.js
+TAP version 13
+# doppler-loader-gpu-tensor-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 2.4175
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 427.482125
+[node-tests] ok: tests/loader/doppler-loader-gpu-tensor-contract.test.js
+TAP version 13
+# dtype-utils.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.4775
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 150.1195
+[node-tests] ok: tests/loader/dtype-utils.test.js
+TAP version 13
+# [442.8ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[4,4], isWeightBuffer=true
+# [449.6ms][Loader] Embedding "model.language_model.embed_tokens.weight" stored as split GPU sections (7 sections, dtype=f16, layout=row).
+# [450.8ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[14,16], isWeightBuffer=false
+# embedding-loader-limit.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.025875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 496.604
+[node-tests] ok: tests/loader/embedding-loader-limit.test.js
+TAP version 13
+# expert-loader-gemma4.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.560375
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 309.5005
+[node-tests] ok: tests/loader/expert-loader-gemma4.test.js
+TAP version 13
+# [255.0ms][Loader] [FinalNorm] Falling back to role-only final norm selection because tensor groups are missing in manifest.
+# final-norm-selection.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.619209
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 290.624084
+[node-tests] ok: tests/loader/final-norm-selection.test.js
+TAP version 13
+# functional-descriptor-loader.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.67875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 430.251125
+[node-tests] ok: tests/loader/functional-descriptor-loader.test.js
+TAP version 13
+# gguf-types-safe-int.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.590709
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 101.453958
+[node-tests] ok: tests/loader/gguf-types-safe-int.test.js
+TAP version 13
+# glmocr-layer-norm-aliases.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.551375
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 398.098833
+[node-tests] ok: tests/loader/glmocr-layer-norm-aliases.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.8ms
+# layer-loader-affine-norm.test: declared affine biases retained; missing biases remain null
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.927584
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 589.268708
+[node-tests] ok: tests/loader/layer-loader-affine-norm.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 1.0ms
+# layer-loader-conv-precision.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.578875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 979.65325
+[node-tests] ok: tests/loader/layer-loader-conv-precision.test.js
+TAP version 13
+# [GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 1.5ms
+# layer-loader-gemma4-ple-projection-stability.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.025833
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 761.770542
+[node-tests] ok: tests/loader/layer-loader-gemma4-ple-projection-stability.test.js
+TAP version 13
+# layer-loader-qk-norm-shape.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.709
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 428.484458
+[node-tests] ok: tests/loader/layer-loader-qk-norm-shape.test.js
+TAP version 13
+# [614.5ms][Loader] Loading: synthetic-transformer
+# [618.4ms][Loader] Layers: 0-1
+# [621.4ms][Loader] Layers: 2 complete (0.00s)
+# [621.8ms][Loader] Complete: 0 B in 0.00s (0 B/s)
+# [622.9ms][Loader] Loading: synthetic-transformer
+# [623.1ms][Loader] Layers: 2-3
+# [631.4ms][Loader] Layers: 2 complete (0.01s)
+# [631.5ms][Loader] Complete: 0 B in 0.01s (0 B/s)
+# [631.9ms][Loader] Loading: synthetic-transformer
+# [632.1ms][Loader] Layers: 0-1
+# [634.6ms][Loader] Layers: 2 complete (0.00s)
+# [634.8ms][Loader] Complete: 0 B in 0.00s (0 B/s)
+# [635.2ms][Loader] Loading: synthetic-transformer
+# [635.3ms][Loader] Layers: 2-3
+# [638.2ms][Loader] Layers: 2 complete (0.00s)
+# [638.3ms][Loader] Complete: 0 B in 0.00s (0 B/s)
+# [638.6ms][Loader] Loading: synthetic-transformer
+# [638.8ms][Loader] Layers: 0-3
+# [643.9ms][Loader] Layers: 4 complete (0.01s)
+# [644.1ms][Loader] Complete: 0 B in 0.01s (0 B/s)
+# [644.5ms][Loader] Loading: synthetic-transformer
+# [644.8ms][Loader] Layers: 2-3
+# [645.5ms][Loader] Loading: synthetic-transformer
+# [646.4ms][Loader] Loading: synthetic-transformer
+# [646.8ms][Loader] Loading: synthetic-transformer
+# [647.7ms][Loader] Loading: synthetic-transformer
+# [647.9ms][Loader] Loading: synthetic-transformer
+# [648.2ms][Loader] Loading: synthetic-transformer
+# [648.3ms][Loader] Layers: 0-1
+# [651.4ms][Loader] Layers: 2 complete (0.00s)
+# [651.4ms][Loader] Complete: 0 B in 0.00s (0 B/s)
+# layer-partition-loading.test: passed (materialization coordination only)
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.591583
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 687.113375
+[node-tests] ok: tests/loader/layer-partition-loading.test.js
+TAP version 13
+# manifest-config.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 5.031209
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 168.069583
+[node-tests] ok: tests/loader/manifest-config.test.js
+TAP version 13
+# [69.7ms][Loader] [0.0s] Memory (start): | RSS=56.41 MB (heap=8.47 MB/11.16 MB, external=2.18 MB, arrayBuffers=33.31 KB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+# [70.4ms][Loader] [0.0s] Memory (start): | RSS=56.47 MB (heap=8.50 MB/11.16 MB, external=2.18 MB, arrayBuffers=33.31 KB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+# [70.5ms][Loader] [0.0s] Memory (done): | RSS=56.47 MB (heap=8.50 MB/11.16 MB, external=2.18 MB, arrayBuffers=33.31 KB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+# memory-monitor.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.09425
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 134.364417
+[node-tests] ok: tests/loader/memory-monitor.test.js
+TAP version 13
+# multi-model-loader-lifecycle.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.739125
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 881.305375
+[node-tests] ok: tests/loader/multi-model-loader-lifecycle.test.js
+TAP version 13
+# [267.5ms][Loader] Per-layer input tensor loaded: perLayerProjectionNorm <- model.language_model.per_layer_projection_norm.weight
+# [268.1ms][Loader] Per-layer input tensor loaded: perLayerModelProjection <- model.language_model.per_layer_model_projection.weight
+# [268.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.embed_tokens_per_layer.weight (cpu_resident)
+# [268.6ms][Loader] Per-layer input tensor loaded: perLayerProjectionNorm <- model.language_model.per_layer_projection_norm.weight
+# [268.7ms][Loader] Per-layer input tensor loaded: perLayerModelProjectionInputActivationStaticScale <- model.language_model.per_layer_model_projection.input_activation_static_scale (cpu scalar)
+# [268.7ms][Loader] Per-layer input tensor loaded: perLayerModelProjectionOutputActivationStaticScale <- model.language_model.per_layer_model_projection.output_activation_static_scale (cpu scalar)
+# [268.7ms][Loader] Per-layer input tensor loaded: perLayerModelProjection <- model.language_model.per_layer_model_projection.weight
+# [268.8ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.embed_tokens_per_layer.weight (cpu_resident)
+# [269.1ms][Loader] Per-layer input tensor loaded: perLayerProjectionNorm <- model.language_model.per_layer_projection_norm.weight
+# [269.3ms][Loader] Per-layer input tensor loaded: perLayerModelProjectionInputActivationStaticScale <- model.language_model.per_layer_model_projection.input_activation_static_scale (cpu scalar)
+# [269.4ms][Loader] Per-layer input tensor loaded: perLayerModelProjection <- model.language_model.per_layer_model_projection.weight
+# [269.5ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.embed_tokens_per_layer.weight (cpu_resident)
+# [269.9ms][Loader] Per-layer input tensor loaded: perLayerModelProjection <- model.language_model.per_layer_model_projection.weight (range-backed CPU source)
+# [270.0ms][Loader] Per-layer input tensor loaded: perLayerProjectionNorm <- model.language_model.per_layer_projection_norm.weight
+# [270.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.embed_tokens_per_layer.weight (range-backed CPU source)
+# [271.0ms][Loader] Per-layer input tensor loaded: perLayerProjectionNorm <- model.language_model.per_layer_projection_norm.weight
+# [271.1ms][Loader] Per-layer input tensor loaded: perLayerModelProjection <- model.language_model.per_layer_model_projection.weight (range-backed CPU source)
+# [271.1ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.embed_tokens_per_layer.weight (gpu_resident)
+# [271.2ms][Loader] Per-layer input tensor loaded: perLayerProjectionNorm <- model.language_model.per_layer_projection_norm.weight
+# [271.2ms][Loader] Per-layer input tensor loaded: perLayerModelProjection <- model.language_model.per_layer_model_projection.weight
+# [271.2ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.embed_tokens_per_layer.weight (gpu_resident)
+# [271.0ms][Loader] Per-layer input projection "model.language_model.per_layer_model_projection.weight" materialized to 2048 bytes, but its declared shape/dtype requires 4096 bytes. Falling back to range-backed CPU source to preserve manifest tensor contract.
+# [275.6ms][Loader] Per-layer input tensor loaded: perLayerProjectionNorm <- model.language_model.per_layer_projection_norm.weight
+# [275.7ms][Loader] Per-layer input tensor loaded: perLayerModelProjection <- model.language_model.per_layer_model_projection.weight (reference q4k -> f32)
+# [275.7ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.embed_tokens_per_layer.weight (gpu_resident)
+# [275.8ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.0.embed_tokens_per_layer.weight (gpu_resident)
+# [275.8ms][Loader] Per-layer input tensor loaded: embedTokensPerLayer <- model.language_model.layers.1.embed_tokens_per_layer.weight (gpu_resident)
+# [275.9ms][Loader] Per-layer input tensor loaded: perLayerProjectionNorm <- model.language_model.per_layer_projection_norm.weight
+# [275.9ms][Loader] Per-layer input tensor loaded: perLayerModelProjection <- model.language_model.per_layer_model_projection.weight
+# per-layer-input-loader.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.805584
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 329.097041
+[node-tests] ok: tests/loader/per-layer-input-loader.test.js
+TAP version 13
+# rdrr-tensor-map-reader.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.64175
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 277.961333
+[node-tests] ok: tests/loader/rdrr-tensor-map-reader.test.js
+TAP version 13
+# [650.1ms][ExpertCache] Cache cleared
+# loader-runtime-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.661459
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 698.1035
+[node-tests] ok: tests/loader/runtime-cleanup.test.js
+TAP version 13
+# shard-cache-fallbacks.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.823792
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 288.882875
+[node-tests] ok: tests/loader/shard-cache-fallbacks.test.js
+TAP version 13
+# [101.5ms][Loader] Embedding weight "model.language_model.embed_tokens.weight" forced GPU-resident via inference.largeWeights.gpuResidentOverrides.
+# should-stream-large-weight-overrides.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 0.75175
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 144.1615
+[node-tests] ok: tests/loader/should-stream-large-weight-overrides.test.js
+TAP version 13
+# source-transform-contract-matrix.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.397208
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 314.113875
+[node-tests] ok: tests/loader/source-transform-contract-matrix.test.js
+TAP version 13
+# tensor-loader-cleanup.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.0005
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 545.855667
+[node-tests] ok: tests/loader/tensor-loader-cleanup.test.js
+TAP version 13
+# tensor-loader-q4k-parity-probe-contract.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.042291
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 63.552291
+[node-tests] ok: tests/loader/tensor-loader-q4k-parity-probe-contract.test.js
+TAP version 13
+# [527.1ms][Loader] Q4K dense materialization for "low_limit_q4k_down_proj" would require 2097152 bytes, exceeding maxStorageBufferBindingSize=1048576; retaining packed Q4K for fused matmul.
+# tensor-loader-q4k-reference-path.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 3.022666
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 567.235583
+[node-tests] ok: tests/loader/tensor-loader-q4k-reference-path.test.js
+TAP version 13
+# tensor-loader-weight-ownership.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 3.52875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 572.414042
+[node-tests] ok: tests/loader/tensor-loader-weight-ownership.test.js
+TAP version 13
+# tensor-source-transform.test: ok
+# Subtest: test module initialization completed
+ok 1 - test module initialization completed
+  ---
+  duration_ms: 1.173041
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 480.243792
+[node-tests] ok: tests/loader/tensor-source-transform.test.js
+[node-tests] ok: 29 files

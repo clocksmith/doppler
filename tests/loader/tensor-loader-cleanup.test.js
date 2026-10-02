@@ -294,7 +294,7 @@ const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|cr
   const tensorLocations = new Map([
     ['embed.weight', { role: 'embedding', group: 'embed', shape: [2, 2], dtype: 'F32' }],
   ]);
-  const embeddings = await loadEmbeddings({
+  await assert.rejects(() => loadEmbeddings({
     tensorLocations,
     loadTensor: async () => new Float32Array([1, 2, 3, 4]),
     shouldStreamLargeWeight: () => false,
@@ -302,8 +302,7 @@ const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|cr
     gpuBuffers: new Set(),
     keepF32Weights: false,
     preserveF32Embeddings: false,
-  });
-  assert.ok(embeddings instanceof Float32Array);
+  }), /must materialize GPU weights for token gather/);
 }
 
 {
@@ -314,7 +313,7 @@ const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|cr
     ['embed.weight', { role: 'embedding', group: 'embed', shape: [2, 2], dtype: 'F16' }],
   ]);
   const toGpuCalls = [];
-  const embeddings = await loadEmbeddings({
+  await assert.rejects(() => loadEmbeddings({
     tensorLocations,
     loadTensor: async (_name, toGPU) => {
       toGpuCalls.push(toGPU);
@@ -326,10 +325,8 @@ const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|cr
     keepF32Weights: false,
     preserveF32Embeddings: false,
     hostHasShaderF16: false,
-  });
-  assert.deepEqual(toGpuCalls, [false]);
-  assert.equal(embeddings.dtype, 'f16');
-  assert.ok(embeddings.data instanceof Float32Array);
+  }), /must materialize GPU weights for token gather/);
+  assert.deepEqual(toGpuCalls, [true]);
 }
 
 {
@@ -350,7 +347,7 @@ const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|cr
     }],
   ]);
   const toGpuCalls = [];
-  const embeddings = await loadEmbeddings({
+  await assert.rejects(() => loadEmbeddings({
     tensorLocations,
     loadTensor: async (_name, toGPU) => {
       toGpuCalls.push(toGPU);
@@ -363,10 +360,8 @@ const PIPELINE_FAILURE = /shader-f16|createShaderModule|createComputePipeline|cr
     keepF32Weights: false,
     preserveF32Embeddings: false,
     hostHasShaderF16: true,
-  });
-  assert.deepEqual(toGpuCalls, [], 'source-transformed embeddings should stay range-backed');
-  assert.equal(embeddings.dtype, 'f16');
-  assert.equal(embeddings.data.kind, 'tensor_range_source');
+  }), /must materialize GPU weights for token gather/);
+  assert.deepEqual(toGpuCalls, [true], 'source transforms must materialize before GPU gather');
 }
 
 {

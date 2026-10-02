@@ -82,7 +82,10 @@ fn reduce_sum(value: f32, lid: u32) -> f32 {
     }
     workgroupBarrier();
   }
-  return shared_reduce[0];
+  let result = shared_reduce[0];
+  // The next reduction may overwrite shared_reduce as soon as we return.
+  workgroupBarrier();
+  return result;
 }
 
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)

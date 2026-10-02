@@ -128,8 +128,10 @@ function buildReferenceOutput({ qkv, z, a, b, layerState, numTokens, qkL2NormEps
 }
 
 function createGpuBuffer(values, label) {
-  const buffer = acquireBuffer(values.byteLength, undefined, label);
-  uploadData(buffer, values);
+  const bytes = new Uint8Array(Math.ceil(values.byteLength / 4) * 4);
+  bytes.set(new Uint8Array(values.buffer, values.byteOffset, values.byteLength));
+  const buffer = acquireBuffer(bytes.byteLength, undefined, label);
+  uploadData(buffer, bytes);
   return buffer;
 }
 
@@ -187,7 +189,10 @@ const layerState = {
   recurrentState: new Float32Array(8),
 };
 
-async function runCase(inputDtype) {
+const smallFixture = { qkv, z, a, b, layerState, numTokens };
+
+async function runCase(inputDtype, fixture = smallFixture) {
+  const { qkv, z, a, b, layerState, numTokens } = fixture;
   const qkvInput = inputDtype === 'f16' ? createF16View(qkv) : null;
   const zInput = inputDtype === 'f16' ? createF16View(z) : null;
   const aInput = inputDtype === 'f16' ? createF16View(a) : null;
@@ -256,6 +261,30 @@ async function runCase(inputDtype) {
 
 await runCase('f32');
 await runCase('f16');
+
+// A full workgroup and multiple recurrent steps expose shared-reduction reuse
+// races that the two-active-lane fixture cannot reliably detect.
+const recurrentTokens = 19;
+const recurrentDim = 128;
+const recurrentState = {
+  ...layerState, convKernelSize: 4, convDim: 384, keyDim: 128, valueDim: 128,
+  numKHeads: 1, numVHeads: 1, headKDim: 128, headVDim: 128,
+  qSize: 128, kSize: 128, vSize: 128, qRep: 1,
+  convWeight: Float32Array.from({ length: 384 * 4 }, (_, i) => 0.1 + (i % 7) / 20),
+  dtBias: new Float32Array([0.2]), aLog: new Float32Array([-0.5]),
+  normWeight: Float32Array.from({ length: recurrentDim }, (_, i) => 0.8 + (i % 5) / 10),
+  convState: new Float32Array(384 * 4), recurrentState: new Float32Array(128 * 128),
+};
+const recurrentFixture = {
+  numTokens: recurrentTokens, layerState: recurrentState,
+  qkv: Float32Array.from({ length: recurrentTokens * 384 }, (_, i) => Math.sin(i * 0.31) * 2),
+  z: Float32Array.from({ length: recurrentTokens * 128 }, (_, i) => Math.cos(i * 0.17)),
+  a: Float32Array.from({ length: recurrentTokens }, (_, i) => Math.sin(i)),
+  b: Float32Array.from({ length: recurrentTokens }, (_, i) => Math.cos(i)),
+};
+await runCase('f32', recurrentFixture);
+await runCase('f16', recurrentFixture);
+
 
 const fusedDecodeQkv = new Float32Array([
   0.2, -0.1, 0.4, 0.3,

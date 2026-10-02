@@ -1,0 +1,40 @@
+{
+  "components": [
+    "doppler.runtime-source.loader",
+    "doppler.runtime-source.gpu.kernels",
+    "doppler.tests"
+  ],
+  "intent": "preserved",
+  "boundaryEffects": [
+    "Reploid consumes corrected package via existing tarball mechanism"
+  ],
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "identity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "runtimeVersion": "0.6.3-dev.split.4",
+  "fixes": [
+    {
+      "failure": "Main-token GPU gather received an unprepared CPU range source on a device without shader-f16.",
+      "change": "Materialize main token embeddings through the selected GPU tensor loader; preflight the materialized size. Existing gather guard remains."
+    },
+    {
+      "failure": "After fixing embeddings, layer.0.attn.linear_core_out first produced non-finite values; its inputs were finite.",
+      "change": "Barrier after consuming workgroup reductions before scratch reuse, in recurrent and fused-decode f32/f16 shaders."
+    },
+    {
+      "failure": "Packed public partition declaration referenced an excluded declaration.",
+      "change": "Regenerate package closure to include artifact-storage-context.d.ts."
+    }
+  ],
+  "acceptance": [
+    "29 focused loader/inference/integration test files passed, including f32/f16 GPU reference parity on Apple Metal",
+    "Installed immutable tarball imports/types/runtime smoke passed",
+    "Source types, architecture, style, kernel generation/digests and package closure passed",
+    "Original SwiftShader diagnostic completes Hello with stop-token 248046, two generated tokens; no source overlays"
+  ],
+  "limits": [
+    "Original 0.6.2 reproduction used maxSeqLen=4096; corrected package resolves maxSeqLen=8192 from the manifest. User generation options and model bytes are unchanged.",
+    "Local-byte diagnostic does not establish P2P acquisition. Reploid retains its separate peer conversation evidence.",
+    "Exact Qwen model has linear_attention layers. Public resident partition factory fails before weights at assertPartitionExecutionSupported; no guard was bypassed.",
+    "No multi-device partitioned answer or model requiring combined capacity is proven."
+  ]
+}
