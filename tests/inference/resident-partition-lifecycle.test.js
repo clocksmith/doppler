@@ -15,8 +15,9 @@ const identity = attemptId => ({ modelId: 'model', modelIdentity: 'sha256:model'
 
 async function sessionWith(tokenize) {
   const device = {};
-  let closes = 0;
+  let closes = 0, openingCacheCloses = 0;
   const pipeline = { useGPU: true, modelPartition: { plan, index: 0 },
+    kvCache: { destroy() { openingCacheCloses++; } },
     modelConfig: { useMoE: false, numKvSharedLayers: 0, hiddenSizePerLayerInput: null,
       decodeStrategy: 'incremental', causalAttention: true },
     executionPlanState: { primaryPlan: { activationDtype: 'f32', finitenessGuardEnabled: false } },
@@ -25,6 +26,8 @@ async function sessionWith(tokenize) {
   scopePipelineShaders(pipeline);
   const session = await createResidentPartitionSession(pipeline, allocation,
     { tokenize, createIncrementalDecoder() {}, getTokenContract() {} }, async () => { closes++; });
+  assert.equal(openingCacheCloses, 1, 'Resident attempts must not retain the unused opening cache');
+  assert.equal(pipeline.kvCache, null);
   return { session, device, pipeline, get closes() { return closes; } };
 }
 

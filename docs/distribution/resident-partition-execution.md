@@ -75,3 +75,29 @@ specified in its report.
 Partial materialization does not establish selective acquisition. Verification
 can read an entire shared shard. Tied embeddings can be required by both
 partitions. Allocation totals are runtime-owned bytes, not physical VRAM.
+
+## Device allocation budgets and observations
+
+The public partitions entry exposes `configureDeviceMemoryBudget({maxBytes})`
+and `inspectDeviceMemory()`. Configure the host's positive byte ceiling before
+opening a model (`null` explicitly disables the ceiling). Every GPUBuffer on
+that Doppler device counts, including direct weight/cache allocations, pooled
+buffers, uniforms, staging and loading temporaries. Allocation fails before the
+native call when it would exceed the ceiling. Changing an active finite ceiling
+requires releasing the existing allocations. This is a GPUBuffer allocation
+budget, not physical VRAM, process RSS, driver, shader or JavaScript heap accounting.
+
+Snapshots retain live and peak bytes, denied allocations, and labeled current
+allocations. Resident preparation identifies loaded weight buffers; attention and
+recurrent state labels remain separately visible. Other allocations include RoPE,
+fused weights and reusable temporaries; the detailed labels distinguish them.
+Resident sessions release the unused opening KV cache; every attempt still owns
+its independent cache and recurrent state.
+
+Partition steps report wall durations for encoding, submission/wait, upload,
+activation/logit readback and sampling. Encoding includes upload; GPU kernel
+measurements are a subset of execution, never an additive latency bucket.
+`runtime.shared.debug.profiler.enabled` enables timestamp observations when the
+device supports them. Absent GPU timestamps stay null. Peer waiting and transport
+remain the application's responsibility. Performance observations do not change
+precision, token selection, context limits or continuation rules.

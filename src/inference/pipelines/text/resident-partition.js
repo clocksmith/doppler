@@ -8,15 +8,22 @@ import { assertPartitionExecutionSupported, executePartitionLayers } from './par
 import { createPartitionAttempt } from './partition-attempt.js';
 import { assertResidentPartitionIdentity } from './resident-partition-contract.js';
 import { hashLayerPartitionPlan } from './layer-partition-contract.js';
+import { markDeviceWeights, getDeviceMemorySnapshot } from '../../../memory/device-budget.js';
 
 /** @type {import('./resident-partition.js').createResidentPartitionSession} */
 export async function createResidentPartitionSession(pipeline, allocation, tokens, closeProgram) {
   const descriptor = await runPipelineOperation(pipeline, owner => {
+    if (owner.gpuContext?.device) markDeviceWeights(owner.gpuContext.device, owner.dopplerLoader?.gpuBuffers ?? []);
     assertPartitionExecutionSupported(owner, allocation.plan);
     if (owner.modelPartition?.index !== allocation.index
       || hashLayerPartitionPlan(owner.modelPartition.plan) !== allocation.planId) {
       throw new Error('Loaded pipeline partition differs from its accepted allocation.');
     }
+    // Resident execution creates one cache per attempt. The opening pipeline's
+    // empty cache is never used by those attempts and must not reserve a second
+    // copy of the participant's entire context allocation.
+    owner.kvCache?.destroy();
+    owner.kvCache = null;
     return { schema: /** @type {const} */ ('doppler.resident-partition/v1'), ready: true,
       modelId: allocation.model.id, modelIdentity: allocation.model.identity, planId: allocation.planId,
       index: allocation.index, layerRange: [...allocation.plan.partitions[allocation.index].layerRange],
@@ -103,25 +110,34 @@ export async function createResidentPartitionSession(pipeline, allocation, token
             throw new Error('Resident activation identity or shape mismatch.');
           }
         }
+        const executionStarted = performance.now();
         const result = await executePartitionLayers(state, { numTokens: request.inputTokenCount,
           ...('tokenIds' in request ? { tokenIds: ids } : { activationBytes: request.activation.tensorData }) }, combined);
         state.currentSeqLen += request.inputTokenCount;
         state.decodeStepCount++;
         attempt.step++; attempt.position = state.currentSeqLen;
         const next = { nonce: attempt.nonce, step: attempt.step, position: attempt.position };
+        const memory = getDeviceMemorySnapshot(owner.gpuContext?.device ?? null);
+        const metrics = { ...result.timing, executionMs: performance.now() - executionStarted,
+          logitsReadbackMs: 0, samplingMs: 0,
+          memory: memory && { maxBytes: memory.maxBytes, liveBytes: memory.liveBytes,
+            peakBytes: memory.peakBytes, categories: memory.categories } };
         if ('activationBytes' in result && result.activationBytes) {
           if (result.activationBytes.byteLength > allocation.limits.maxActivationBytes) throw new Error('Resident activation exceeds its byte allocation.');
           return { activationTensor: { shape: [1, request.inputTokenCount, allocation.plan.hiddenSize],
             dtype: allocation.plan.activationDtype, data: result.activationBytes, step: request.step,
-            seqOffset: request.tokenPosition }, continuation: next };
+            seqOffset: request.tokenPosition }, continuation: next, metrics };
         }
         if (!result.logits) throw new Error('Resident B did not produce logits.');
         let logits;
+        const readbackStarted = performance.now();
         try { logits = new Float32Array(await readBuffer(result.logits.logitsBuffer, result.logits.vocabSize * Float32Array.BYTES_PER_ELEMENT)); }
         finally { releaseBuffer(result.logits.logitsBuffer); }
+        metrics.logitsReadbackMs = performance.now() - readbackStarted;
         combined.throwIfAborted();
         if (request.step === 0) attempt.contextTokens.push(...ids);
         else if (ids.length !== 1 || ids[0] !== attempt.contextTokens.at(-1)) throw new Error('Resident continuation token differs from the selected token.');
+        const samplingStarted = performance.now();
         const tokenContract = tokens.getTokenContract();
         const tokenId = sampleCapsuleLogits(logits, attempt.contextTokens, generation, tokenContract);
         attempt.contextTokens.push(tokenId);
@@ -133,8 +149,9 @@ export async function createResidentPartitionSession(pipeline, allocation, token
           () => attempt.text + decoder.pendingText());
         if (stopReason) { const final = decoder.finish(); delta += final; attempt.text += final; attempt.done = true; }
         if (attempt.text.length > allocation.limits.maxOutputCharacters) throw new Error('Resident output exceeds its character allocation.');
+        metrics.samplingMs = performance.now() - samplingStarted;
         return { identity: request.identity, step: request.step, tokenPosition: request.tokenPosition,
-          tokenId, delta, done: attempt.done, stopReason, continuation: next, logits };
+          tokenId, delta, done: attempt.done, stopReason, continuation: next, logits, metrics };
       } catch (error) {
         attempt.retired = true;
         throw error;
