@@ -15,6 +15,8 @@ import { createCapsuleProgramAdapter } from '../../src/client/runtime/capsule-pr
 import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import { resolveGenerationOptions } from '../../src/config/generation-contract.js';
 import { sampleCapsuleLogits, stoppingReason } from '../../src/inference/generation-step.js';
+import { createPartitionAttempt } from '../../src/inference/pipelines/text/partition-attempt.js';
+import { acquireBuffer, isBufferActive } from '../../src/memory/buffer-pool.js';
 import { destroyDevice, getDevice } from '../../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
 
@@ -28,10 +30,12 @@ if (!modelDirectory) {
   const plan = createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
     activationDtype: manifest.inference.session.compute.defaults.activationDtype });
   const planId = computeCanonicalSha256(plan);
-  const generation = resolveGenerationOptions({ maxTokens: 3, maxSeqLen: 128, temperature: 0,
+  const chat = process.env.DOPPLER_PARTITION_CHAT === '1';
+  const generation = resolveGenerationOptions(chat ? { maxTokens: 1024, maxSeqLen: 4096, temperature: 0,
+    topK: 1, topP: 1, repetitionPenalty: 1, repetitionPenaltyWindow: 0, presencePenalty: 0, useChatTemplate: true } : { maxTokens: 3, maxSeqLen: 128, temperature: 0,
     topK: 0, topP: 1, repetitionPenalty: 1.1, repetitionPenaltyWindow: 0,
     presencePenalty: 0.1, useChatTemplate: false });
-  const limits = { maxTokens: 3, maxPromptTokens: 64, maxActivationBytes: 1024 * 1024,
+  const limits = { maxTokens: generation.maxTokens, maxPromptTokens: 2048, maxActivationBytes: 1024 * 1024,
     maxOutputCharacters: 1024, maxAttempts: 16, maxConcurrentAttempts: 2 };
   const runtimeConfig = { inference: { session: { kvcache: { maxSeqLen: generation.maxSeqLen } } } };
   const signal = new AbortController().signal;
@@ -80,9 +84,23 @@ if (!modelDirectory) {
         text += decoder.finish(); return { steps, text, input };
       } finally { snapshot?.destroy(); }
     }
-    const prompts = ['The color of the sky is', 'The capital of France is'];
+    const probes = [createPartitionAttempt(pipelines[1]), createPartitionAttempt(pipelines[1])];
+    const buffers = probes.map(() => acquireBuffer(64, undefined, 'partition_recurrent_cleanup'));
+    probes.forEach((probe, index) => probe.state.linearAttentionRuntime.layers.set(0, { recurrentStateGPU: buffers[index] }));
+    probes[0].close(); probes[0].close();
+    assert.equal(isBufferActive(buffers[0]), false);
+    assert.equal(isBufferActive(buffers[1]), true, 'Closing one attempt must preserve the other recurrent state');
+    probes[1].close(); assert.equal(isBufferActive(buffers[1]), false);
+    const prompts = chat ? [[{ role: 'user', content: 'Reply with only the word Hello.' }],
+      [{ role: 'user', content: 'What is two plus two? Answer briefly.' }]]
+      : ['The color of the sky is', 'The capital of France is'];
     const expected = [];
     for (const prompt of prompts) expected.push(await unsplit(prompt, generation));
+    if (process.env.DOPPLER_PARTITION_REFERENCE_OUT) {
+      await fs.writeFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, JSON.stringify({ modelIdentity, planId, generation, prompts,
+        expected: expected.map(result => ({ text: result.text, steps: result.steps.map(step => ({ tokenId: step.tokenId,
+          stopReason: step.stopReason, logits: Buffer.from(step.logits.buffer, step.logits.byteOffset, step.logits.byteLength).toString('base64') })) })) }));
+    }
     const requests = await Promise.all(prompts.map((messages, index) => a.tokenize({ messages, identity: identity(String(index)), signal })));
     const states = requests.map((request, index) => ({ identity: identity(String(index)), ids: request.tokenIds,
       position: 0, continuationA: null, continuationB: null, text: '', done: false }));
@@ -105,11 +123,12 @@ if (!modelDirectory) {
         assert.ok(comparison.matches, JSON.stringify(comparison));
         assert.equal(result.tokenId, expectedStep.tokenId);
         assert.equal(result.stopReason, expectedStep.stopReason);
-        report.steps.push({ thread, step: index, tokenId: result.tokenId, comparison });
+        report.steps.push({ thread, step: index, tokenId: result.tokenId, stopReason: result.stopReason, comparison });
       }
     }
     assert.deepEqual(states.map(state => state.text), expected.map(result => result.text));
     report.texts = states.map(state => state.text);
+    if (chat) assert.ok(states.every(state => state.done), 'Each chat must complete with model stopping');
     for (const state of states) for (const resident of residents) await resident.closeAttempt({ identity: state.identity });
     for (const resident of residents) assert.equal(resident.getDescriptor().ready, true);
     const short = { identity: identity('short'), ids: requests[0].tokenIds, position: 0, continuationA: null, continuationB: null, text: '' };
@@ -117,14 +136,14 @@ if (!modelDirectory) {
     assert.equal(result.done, true); assert.equal(result.stopReason, 'max-tokens');
     for (const resident of residents) await resident.closeAttempt({ identity: short.identity });
     await assert.rejects(a.executeGroup0({ identity: short.identity, tokenIds: requests[0].tokenIds, step: 0,
-      tokenPosition: 0, inputTokenCount: requests[0].tokenIds.length, maxTokens: 3, generation, continuation: null, signal }), /retired/);
+      tokenPosition: 0, inputTokenCount: requests[0].tokenIds.length, maxTokens: generation.maxTokens, generation, continuation: null, signal }), /retired/);
     const victim = { identity: identity('cancel'), ids: requests[0].tokenIds, position: 0, continuationA: null, continuationB: null, text: '' };
     const cancelled = new AbortController(); cancelled.abort(new Error('cancel-before-submit'));
     await assert.rejects(a.executeGroup0({ identity: victim.identity, tokenIds: victim.ids, step: 0,
-      tokenPosition: 0, inputTokenCount: victim.ids.length, maxTokens: 3, generation, continuation: null,
+      tokenPosition: 0, inputTokenCount: victim.ids.length, maxTokens: generation.maxTokens, generation, continuation: null,
       signal: cancelled.signal }), /cancel-before-submit/);
     await Promise.all(residents.map(resident => resident.closeAttempt({ identity: victim.identity })));
-    report.checks = ['interleaved-attempts', 'full-logit-parity', 'sampling-penalties', 'text-parity', 'length-finalization', 'closed-replay', 'cancel-before-submit'];
+    report.checks = ['isolated-recurrent-buffer-cleanup', 'interleaved-attempts', 'full-logit-parity', 'sampling-penalties', 'text-parity', 'length-finalization', 'closed-replay', 'cancel-before-submit'];
     console.log(JSON.stringify(report));
   } finally {
     await Promise.allSettled(residents.map(resident => resident.close()));

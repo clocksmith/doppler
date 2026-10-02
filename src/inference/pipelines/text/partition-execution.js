@@ -17,10 +17,12 @@ export function assertPartitionExecutionSupported(state, plan) {
   if (!state.useGPU || !config) throw new Error('Resident partition execution requires a loaded WebGPU model.');
   if (config.useMoE || config.numKvSharedLayers > 0 || (config.hiddenSizePerLayerInput !== null && config.hiddenSizePerLayerInput > 0)
     || config.decodeStrategy !== 'incremental' || config.causalAttention !== true
-    || config.layerTypes?.some(type => !['full_attention', 'sliding_attention'].includes(type))
-    || state.lora || state.visionCapable || state.audioCapable || config.diffusionGemma
+    || config.layerTypes?.some(type => !['full_attention', 'sliding_attention', 'linear_attention'].includes(type))
+    || state.lora || config.diffusionGemma
+    || ((state.visionCapable || state.audioCapable)
+      && plan.partitions[0]?.inputContract?.type !== 'token-ids')
     || state.runtimeConfig.inference.session.usePostFfnNextInputRMSNormPairFusion === true) {
-    throw new Error('Resident partition execution supports dense causal attention without shared KV, recurrent, per-layer-input, adapter, multimodal, or cross-layer fusion dependencies.');
+    throw new Error('Resident partition execution supports token-only causal full, sliding and linear attention without shared KV, per-layer-input, adapter, multimodal input, or cross-layer fusion dependencies.');
   }
   if (!state.executionPlanState) throw new Error('Resident partition requires a resolved execution plan.');
   const execution = resolveActiveExecutionPlan(state.executionPlanState);
@@ -42,6 +44,16 @@ export async function executePartitionLayers(state, input, signal) {
   assertPartitionExecutionSupported(state, state.modelPartition.plan);
   const partition = resolveLayerPartition(state.manifest, state.modelPartition);
   if (!partition) throw new Error('Resident partition allocation is missing.');
+  // A missing recurrent prefix cannot be reconstructed from a sequence number.
+  // Fail before dispatch rather than letting the whole-model reset path invent it.
+  for (let layer = partition.layerRange[0]; layer <= partition.layerRange[1]; layer++) {
+    if (config.layerTypes?.[layer] !== 'linear_attention') continue;
+    const recurrent = state.linearAttentionRuntime?.layers.get(layer);
+    if ((state.currentSeqLen > 0 && !recurrent)
+      || (recurrent && recurrent.seqLen !== state.currentSeqLen)) {
+      throw new Error(`Resident recurrent state missing or out of order at layer ${layer}; restart the attempt from its prompt.`);
+    }
+  }
   const executionPlan = resolveActiveExecutionPlan(state.executionPlanState);
   const dtype = executionPlan.activationDtype;
   const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });

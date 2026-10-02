@@ -69,5 +69,11 @@ export async function createVerifiedPieceStorage({ manifestBytes, indexBytes, in
     // The range reader verifies its independently pinned pieces before returning.
     // Whole-shard verification would acquire unrelated partition dependencies.
     verifyHashes: true, hashesTrusted: true, close: async () => { closed = true; } });
+  // The authenticated index already checks file coverage. Probing every shard's
+  // tail would acquire unrelated partitions before selective loading starts.
+  storage.preflight = async () => {
+    signal?.throwIfAborted();
+    if (closed) throw new Error('Piece storage closed.');
+  };
   return { manifest, storage, getReceipt: () => structuredClone(receipt) };
 }

@@ -172,11 +172,16 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     async tokenize(request) {
       assertOpen(); request.signal.throwIfAborted();
       if (allocation.index !== 0) throw new Error('Only partition A tokenizes input.');
+      const messages = structuredClone(request.messages);
+      if (typeof messages !== 'string' && (!Array.isArray(messages) || messages.some(message =>
+        !message || !['system', 'user', 'assistant'].includes(message.role) || typeof message.content !== 'string'
+        || Object.keys(message).some(key => !['role', 'content'].includes(key))))) {
+        throw new Error('Resident partitions accept text-only messages; multimodal input requires a different partition contract.');
+      }
       const attempt = attemptFor(request.identity);
       if (attempt.retired || attempt.done || attempt.pending || attempt.step !== 0) {
         throw new Error('Resident attempt is retired, busy or out of order.');
       }
-      const messages = structuredClone(request.messages);
       const combined = AbortSignal.any([request.signal, attempt.controller.signal]);
       const operation = runPipelineOperation(pipeline, async () => {
         assertOpen(); combined.throwIfAborted();

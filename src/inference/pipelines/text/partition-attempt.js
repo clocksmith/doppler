@@ -2,6 +2,7 @@ import { PipelineState } from './state.js';
 import { createKVCache } from './init.js';
 import { assertPartitionExecutionSupported } from './partition-execution.js';
 import { resolveLayerPartition } from './layer-partition-contract.js';
+import { createLinearAttentionRuntime, resetLinearAttentionRuntime } from './linear-attention.js';
 
 /** @type {import('./partition-attempt.js').createPartitionAttempt} */
 export function createPartitionAttempt(owner) {
@@ -20,6 +21,7 @@ export function createPartitionAttempt(owner) {
     resolvedKernelPath: owner.resolvedKernelPath, kernelPathSource: owner.kernelPathSource,
     executionV1State: owner.executionV1State,
     executionPlanState: structuredClone(owner.executionPlanState),
+    linearAttentionRuntime: createLinearAttentionRuntime(),
     useGPU: owner.useGPU, gpuContext: owner.gpuContext,
     ropeFreqsCos: owner.ropeFreqsCos, ropeFreqsSin: owner.ropeFreqsSin,
     ropeLocalCos: owner.ropeLocalCos, ropeLocalSin: owner.ropeLocalSin,
@@ -36,6 +38,7 @@ export function createPartitionAttempt(owner) {
     closed = true;
     state.kvCache?.destroy();
     state.kvCache = null;
+    resetLinearAttentionRuntime(state.linearAttentionRuntime);
     state.isLoaded = false;
   } };
 }

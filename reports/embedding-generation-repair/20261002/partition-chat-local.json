@@ -1,0 +1,200 @@
+{
+  "kind": "same-device-resident-partition-diagnostic",
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+  "generation": {
+    "maxTokens": 1024,
+    "maxSeqLen": 4096,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "actualModelInference": true,
+  "publicCapsuleAcquisition": false,
+  "steps": [
+    {
+      "thread": 0,
+      "step": 0,
+      "tokenId": 9419,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 1,
+      "step": 0,
+      "tokenId": 19,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 0,
+      "step": 1,
+      "tokenId": 248046,
+      "stopReason": "eos-token",
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 1,
+      "step": 1,
+      "tokenId": 248046,
+      "stopReason": "eos-token",
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    }
+  ],
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": false
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "descriptors": [
+    {
+      "schema": "doppler.resident-partition/v1",
+      "ready": true,
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+      "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+      "index": 0,
+      "layerRange": [
+        0,
+        11
+      ],
+      "residentWeightBytes": 650989568,
+      "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+    },
+    {
+      "schema": "doppler.resident-partition/v1",
+      "ready": true,
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+      "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+      "index": 1,
+      "layerRange": [
+        12,
+        23
+      ],
+      "residentWeightBytes": 794056704,
+      "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+    }
+  ],
+  "texts": [
+    "Hello",
+    "4"
+  ],
+  "checks": [
+    "isolated-recurrent-buffer-cleanup",
+    "interleaved-attempts",
+    "full-logit-parity",
+    "sampling-penalties",
+    "text-parity",
+    "length-finalization",
+    "closed-replay",
+    "cancel-before-submit"
+  ],
+  "packageVersion": "0.6.3-dev.split.6"
+}

@@ -8,7 +8,8 @@ const plan = { schema: 'doppler.layer-partition-contract/v1', activationDtype: '
   partitions: [{ layerRange: [0, 0] }, { layerRange: [1, 1] }] };
 const planId = computeCanonicalSha256(plan);
 const allocation = { model: { id: 'model', identity: 'sha256:model' }, plan, planId, index: 0,
-  participantId: 'left', generation: {}, limits: { maxAttempts: 1, maxConcurrentAttempts: 1, maxPromptTokens: 4 } };
+  participantId: 'left', generation: { maxTokens: 1, maxSeqLen: 16, temperature: 0, topK: 1, topP: 1,
+    repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false }, limits: { maxAttempts: 1, maxConcurrentAttempts: 1, maxPromptTokens: 4 } };
 const identity = attemptId => ({ modelId: 'model', modelIdentity: 'sha256:model', planId,
   threadId: attemptId, attemptId, participantA: 'left', participantB: 'right' });
 
@@ -63,3 +64,11 @@ await assert.rejects(lost.session.tokenize({ identity: identity('lost'), message
 await lost.session.closeAttempt({ identity: identity('lost') });
 await lost.session.close();
 assert.equal(lost.closes, 1);
+
+const textOnly = await sessionWith(() => [1]);
+for (const messages of [[null], [{ role: 'user', content: 'text', images: ['image'] }]]) {
+  await assert.rejects(textOnly.session.tokenize({ identity: identity('invalid'), messages, signal }), /text-only/);
+}
+// Rejected multimodal input never reserves the sole attempt slot.
+await textOnly.session.tokenize({ identity: identity('valid'), messages: 'prompt', signal });
+await textOnly.session.close();
