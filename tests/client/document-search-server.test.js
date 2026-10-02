@@ -5,7 +5,9 @@ import path from 'node:path';
 import { createServer } from '../../examples/document-search/server.js';
 
 const root = await fs.mkdtemp(path.join(os.tmpdir(), 'doppler-starter-server-'));
-const server = createServer({ root });
+const alias = root + '-alias', outside = root + '-outside.txt';
+await fs.symlink(root, alias);
+const server = createServer({ root: alias });
 try {
   await fs.mkdir(path.join(root, 'runtime/src'), { recursive: true });
   await fs.writeFile(path.join(root, 'runtime/src/capsule-runtime.js'), 'must not serve a substituted runtime');
@@ -17,6 +19,9 @@ try {
   assert.equal((await fetch(url + '/capsules/embedding/artifacts/model/shard_00017.bin')).status, 503);
   assert.equal((await fetch(url + '/index.html', { headers: { range: 'bytes=100-1' } })).status, 416);
   assert.equal(await (await fetch(url + '/index.html', { headers: { range: 'bytes=0-2' } })).text(), 'sta');
+  await fs.writeFile(outside, 'outside the approved root');
+  await fs.symlink(outside, path.join(root, 'escape'));
+  assert.equal((await fetch(url + '/escape')).status, 404);
   assert.equal((await fetch(url + '/runtime/%2e%2e%2fpackage.json')).status, 400);
   await fs.mkdir(path.join(root, 'node_modules/doppler-gpu/src'), { recursive: true });
   await fs.writeFile(path.join(root, 'node_modules/doppler-gpu/src/capsule-runtime.js'), 'installed');
@@ -24,5 +29,7 @@ try {
 } finally {
   await new Promise(resolve => server.close(resolve));
   await fs.rm(root, { recursive: true, force: true });
+  await fs.rm(alias, { force: true });
+  await fs.rm(outside, { force: true });
 }
 console.log('document-search-server: installed-only runtime, unavailable-artifact and range regressions passed');

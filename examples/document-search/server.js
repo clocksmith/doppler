@@ -12,7 +12,9 @@ const MIME_TYPES = { '.html': 'text/html', '.js': 'application/javascript', '.js
 const inside = (root, filename) => filename.startsWith(root + path.sep);
 
 export function createServer({ root = DIR, fetch: acquire = globalThis.fetch } = {}) {
-  root = path.resolve(root);
+  // Compare paths in the same canonical namespace (macOS /var and /tmp are
+  // commonly symlinks). Descendant symlinks must still remain inside this root.
+  root = fs.realpathSync(path.resolve(root));
   return http.createServer(async (req, res) => {
     try {
       if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405).end(); return; }
