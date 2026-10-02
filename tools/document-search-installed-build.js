@@ -6,6 +6,7 @@ import { getCapsuleIdentity } from '../src/capsule.js';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 export async function verifyInstalledSearchBuild(root, build) {
+  root = await fs.realpath(root);
   assert.equal(build.schema, 'doppler.installed-document-search-build/v1');
   assert.equal(build.sourceSubstitution, false);
   for (const name of ['server.js', 'prepare.js']) assert.equal(hash(await fs.readFile(path.join(root, name))), build.tooling?.[name], name);

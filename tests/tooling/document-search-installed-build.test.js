@@ -40,6 +40,9 @@ try {
     applicationManifestSha256: hash(manifest), models,
     tooling: { 'server.js': hash('// fixture server'), 'prepare.js': hash('// fixture preparation') } };
   assert.equal((await verifyInstalledSearchBuild(root, build)).assetCount, 2);
+  const alias = path.join(root, 'root-alias');
+  await fs.symlink(root, alias);
+  assert.equal((await verifyInstalledSearchBuild(alias, build)).assetCount, 2);
   await write('node_modules/doppler-gpu/src/host.js', 'substitute bytes');
   await assert.rejects(verifyInstalledSearchBuild(root, build), /runtime\/src\/host.js/);
   await fs.unlink(path.join(root, 'node_modules/doppler-gpu/src/host.js'));

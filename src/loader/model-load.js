@@ -7,6 +7,7 @@ import { validateManifestInference } from '../config/schema/index.js';
 import { detectMoE } from './model-load-validation.js';
 import { createLoadTiming, finishLoadPhase, finishLoadTiming, nowMs, roundLoadTimingMs } from './load-timing.js';
 import { resolveLayerPartition } from '../inference/pipelines/text/layer-partition-contract.js';
+import { requiresTiedEmbeddingLoad } from './final-weights-loader.js';
 
 /** @type {import('./model-load.js').load} */
 export async function load(modelId, options) {
@@ -232,7 +233,7 @@ async function loadModel(modelId, options) {
       // A owns input embeddings. A tied output head is an explicit shared weight
       // dependency of B; neither group loads the other group's decoder layers.
       if (!partition || partition.hasEmbedding
-        || partition.hasLmHead && this.manifest.inference.output.tieWordEmbeddings === true) {
+        || partition.hasLmHead && requiresTiedEmbeddingLoad(this.tensorLocations, this.manifest.inference.output.tieWordEmbeddings)) {
         await this._loadEmbeddings(onProgress);
       }
       finishLoadPhase(this.loadTiming, activeLoadPhase, phaseStart);

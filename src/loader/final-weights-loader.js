@@ -78,6 +78,14 @@ function isDenseTiedLmHeadLocation(location) {
   return true;
 }
 
+// The source may contain a separately quantized output head even when its
+// original model tied endpoint weights. Such a head cannot reuse embeddings.
+export function requiresTiedEmbeddingLoad(tensorLocations, tieWordEmbeddings) {
+  if (tieWordEmbeddings !== true) return false;
+  const heads = getTensorNamesByRole(tensorLocations, LM_HEAD_ROLE, HEAD_GROUP);
+  return heads.length === 0 || heads.some(name => isDenseTiedLmHeadLocation(tensorLocations.get(name)));
+}
+
 function getLoadedWeightShape(weight) {
   if (isWeightBuffer(weight) || isCpuWeightBuffer(weight) || isSplitWeightBuffer(weight)) {
     return weight.shape;

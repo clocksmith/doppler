@@ -5,7 +5,7 @@ import { createRDRRManifestFixture } from '../helpers/rdrr-manifest-fixture.js';
 
 // Exercise the production load coordinator with observed materialization ports.
 // This does not claim GPU execution or selective artifact acquisition.
-function fixture({ tied = false, failLayer = null } = {}) {
+function fixture({ tied = false, failLayer = null, head = null } = {}) {
   const manifest = createRDRRManifestFixture();
   manifest.architecture.numLayers = 4;
   manifest.inference.output.tieWordEmbeddings = tied;
@@ -26,7 +26,9 @@ function fixture({ tied = false, failLayer = null } = {}) {
     _startMemoryLogging() { this._memoryMonitor = {}; },
     _stopMemoryLogging() { this._memoryMonitor = null; },
     _assertResidentBudget() {},
-    async _buildTensorLocations() {},
+    async _buildTensorLocations() {
+      if (head) this.tensorLocations.set('output', { role: 'lm_head', group: 'head', shape: [8, 4], ...head });
+    },
     async _loadShard() { throw new Error('Unexpected shard acquisition in materialization-port test'); },
     async _loadEmbeddings() { calls.push('embed'); },
     async _loadFinalWeights() { calls.push('head'); },
@@ -48,6 +50,15 @@ function fixture({ tied = false, failLayer = null } = {}) {
     verifyHashes: true, partition, onProgress: event => progress.push(event),
   });
   return { manifest, loader, plan, calls, progress, execute };
+}
+
+// Source tying does not make a separately quantized head depend on input
+// embeddings. Dense aliases and absent heads still retain the shared weight.
+for (const [head, shared] of [[{ dtype: 'Q4_K' }, false], [{ dtype: 'F16' }, true],
+  [{ dtype: 'F16', storage: { encoding: 'q4k' } }, false], [null, true]]) {
+  const f = fixture({ tied: true, head });
+  await f.execute({ plan: f.plan, index: 1 });
+  assert.deepEqual(f.calls, shared ? ['embed', 2, 3, 'head'] : [2, 3, 'head']);
 }
 
 for (const tied of [false, true]) {

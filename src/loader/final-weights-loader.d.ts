@@ -21,6 +21,8 @@ import type {
 import type { TensorLocation } from './loader-types.js';
 import type { DiffusionGemmaSelfConditioningWeights } from './loader-types.js';
 
+export function requiresTiedEmbeddingLoad(tensorLocations: Map<string, TensorLocation>, tieWordEmbeddings: boolean): boolean;
+
 /** Tensor loading function signature */
 export type TensorLoader = (
   name: string,

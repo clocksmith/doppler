@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 72,
-  "sourceBytes": 786594,
+  "sourceBytes": 786595,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -389,8 +389,8 @@
     },
     {
       "path": "src/version.js",
-      "sizeBytes": 109,
-      "hash": "sha256:9d33aaf778d93da6968a3d77f336e21480f89fe3d2659ce442ec29410e5924e0"
+      "sizeBytes": 110,
+      "hash": "sha256:79670cf428a9fdf30cac0f7d750c17a4f52f20bf39b88440ff8bad0c2beca5a4"
     }
   ],
   "passed": true
