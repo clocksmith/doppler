@@ -2,6 +2,10 @@ import type { LayerPartitionPlan } from './layer-partition-contract.js';
 import type { GenerationOptions, ResolvedGenerationOptions } from '../../../config/generation-contract.js';
 import type { IncrementalTokenDecoder } from '../../tokenizers/bundled/incremental-decoder.js';
 import type { GenerationTokenContract } from '../../generation-step.js';
+export interface PartitionTiming {
+  inputUploadMs: number; encodeMs: number; submitWaitMs: number; activationReadbackMs: number;
+  logitsMs: number; gpuKernelsMs: number | null;
+}
 export interface ResidentPartitionLimits {
   maxTokens: number; maxPromptTokens: number; maxActivationBytes: number;
   maxOutputCharacters: number; maxAttempts: number; maxConcurrentAttempts: number;
@@ -38,11 +42,17 @@ export interface ResidentPartitionBRequest extends ResidentPartitionStep {
 export interface ResidentPartitionAResult {
   activationTensor: { shape: number[]; dtype: 'f16' | 'f32'; data: ArrayBuffer; step: number; seqOffset: number };
   continuation: unknown;
+  metrics: ResidentPartitionMetrics;
+}
+export interface ResidentPartitionMetrics extends PartitionTiming {
+  executionMs: number; logitsReadbackMs: number; samplingMs: number;
+  memory: Pick<import('../../../memory/device-budget.js').DeviceMemorySnapshot,
+    'maxBytes' | 'liveBytes' | 'peakBytes' | 'categories'> | null;
 }
 export interface ResidentPartitionBResult {
   identity: ResidentPartitionIdentity; step: number; tokenPosition: number;
   tokenId: number; delta: string; done: boolean; stopReason: string | null;
-  continuation: unknown; logits: Float32Array;
+  continuation: unknown; logits: Float32Array; metrics: ResidentPartitionMetrics;
 }
 export interface ResidentPartitionSession {
   getDescriptor(): ResidentPartitionDescriptor;

@@ -3,6 +3,8 @@ import type { GenerationOptions } from '../config/generation-contract.js';
 import type { DopplerCapsuleOpenOptions } from './model-host/index.js';
 import type { DopplerRunSession } from './runtime/composition-root.js';
 import type { ResidentPartitionAllocation, ResidentPartitionSession } from '../inference/pipelines/text/resident-partition-contract.js';
+export function configureDeviceMemoryBudget(options: {maxBytes: number | null}): Promise<import('../memory/device-budget.js').DeviceMemorySnapshot>;
+export function inspectDeviceMemory(): import('../memory/device-budget.js').DeviceMemorySnapshot | null;
 export interface ResidentPartitionOpenOptions extends Omit<ResidentPartitionAllocation, 'generation' | 'model'> {
   model: { id: string; identity: string; capsule: string | DopplerCapsule; generation: GenerationOptions };
   signal: AbortSignal;

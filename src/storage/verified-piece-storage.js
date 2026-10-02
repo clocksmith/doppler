@@ -32,8 +32,9 @@ export async function createVerifiedPieceStorage({ manifestBytes, indexBytes, in
     if (files.get(shard.filename)?.size !== shard.size) throw new Error('Piece index shard mismatch.');
   }
   let closed = false;
-  /** @type {{indexIdentity:string;manifestIdentity:string;requestedBytes:number;verifiedBytes:number;pieces:string[]}} */
-  const receipt = { indexIdentity, manifestIdentity: index.manifestIdentity, requestedBytes: 0, verifiedBytes: 0, pieces: [] };
+  /** @type {import('./verified-piece-storage.js').VerifiedPieceReceipt} */
+  const receipt = { indexIdentity, manifestIdentity: index.manifestIdentity, requestedBytes: 0, verifiedBytes: 0, pieces: [],
+    acquisitionMs: 0, verificationMs: 0, copyMs: 0, activeReadBytes: 0, peakReadBytes: 0 };
   const seen = new Set();
   /** @param {string} path @param {number} offset @param {number | null} length */
   async function readRange(path, offset, length) {
@@ -43,20 +44,30 @@ export async function createVerifiedPieceStorage({ manifestBytes, indexBytes, in
     if (closed || !file || !Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(length)
       || length < 0 || offset + length > file.size) throw new Error('Piece range outside its declared file.');
     const output = new Uint8Array(length);
-    for (const piece of file.pieces) {
-      if (piece.offset >= offset + length || piece.offset + piece.size <= offset) continue;
-      signal?.throwIfAborted();
-      const received = await acquire(Object.freeze({ ...piece, path }), { signal });
-      const bytes = received instanceof Uint8Array ? new Uint8Array(received) : new Uint8Array(received);
-      if (bytes.byteLength !== piece.size || await digest(bytes) !== piece.identity) throw new Error('Acquired piece integrity mismatch.');
-      signal?.throwIfAborted();
-      if (closed) throw new Error('Piece storage closed.');
-      const start = Math.max(offset, piece.offset), end = Math.min(offset + length, piece.offset + piece.size);
-      output.set(bytes.subarray(start - piece.offset, end - piece.offset), start - offset);
-      receipt.requestedBytes += end - start;
-      if (!seen.has(piece.identity)) { seen.add(piece.identity); receipt.verifiedBytes += bytes.byteLength; receipt.pieces.push(piece.identity); }
-    }
-    return output.buffer;
+    receipt.activeReadBytes += length;
+    receipt.peakReadBytes = Math.max(receipt.peakReadBytes, receipt.activeReadBytes);
+    try {
+      for (const piece of file.pieces) {
+        if (piece.offset >= offset + length || piece.offset + piece.size <= offset) continue;
+        signal?.throwIfAborted();
+        const acquisitionStarted = performance.now();
+        const received = await acquire(Object.freeze({ ...piece, path }), { signal });
+        receipt.acquisitionMs += performance.now() - acquisitionStarted;
+        const verificationStarted = performance.now();
+        const bytes = received instanceof Uint8Array ? new Uint8Array(received) : new Uint8Array(received);
+        if (bytes.byteLength !== piece.size || await digest(bytes) !== piece.identity) throw new Error('Acquired piece integrity mismatch.');
+        receipt.verificationMs += performance.now() - verificationStarted;
+        signal?.throwIfAborted();
+        if (closed) throw new Error('Piece storage closed.');
+        const start = Math.max(offset, piece.offset), end = Math.min(offset + length, piece.offset + piece.size);
+        const copyStarted = performance.now();
+        output.set(bytes.subarray(start - piece.offset, end - piece.offset), start - offset);
+        receipt.copyMs += performance.now() - copyStarted;
+        receipt.requestedBytes += end - start;
+        if (!seen.has(piece.identity)) { seen.add(piece.identity); receipt.verifiedBytes += bytes.byteLength; receipt.pieces.push(piece.identity); }
+      }
+      return output.buffer;
+    } finally { receipt.activeReadBytes -= length; }
   }
   /** @param {string} path */
   const readBinary = path => {

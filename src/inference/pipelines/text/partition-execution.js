@@ -70,7 +70,12 @@ export async function executePartitionLayers(state, input, signal) {
   }
   const byteLength = numTokens * config.hiddenSize * bytesPerElement;
   if (!Number.isSafeInteger(byteLength)) throw new Error('Resident activation size exceeds the safe integer range.');
-  const recorder = createCommandRecorder('resident_partition_layers');
+  const recorder = createCommandRecorder('resident_partition_layers', {
+    profile: state.runtimeConfig.shared.debug.profiler.enabled,
+  });
+  const timing = { inputUploadMs: 0, encodeMs: 0, submitWaitMs: 0, activationReadbackMs: 0,
+    logitsMs: 0, gpuKernelsMs: /** @type {number | null} */ (null) };
+  const encodeStarted = performance.now();
   let context = null;
   /** @type {GPUBuffer | null} */
   let hidden = null;
@@ -99,7 +104,9 @@ export async function executePartitionLayers(state, input, signal) {
     } else {
       if (input.activationBytes?.byteLength !== byteLength) throw new Error('Partition activation byte length mismatch.');
       hidden = acquireBuffer(byteLength, undefined, 'resident_partition_input');
+      const uploadStarted = performance.now();
       uploadData(hidden, input.activationBytes);
+      timing.inputUploadMs = performance.now() - uploadStarted;
     }
     for (let layer = partition.layerRange[0]; layer <= partition.layerRange[1]; layer++) {
       signal.throwIfAborted();
@@ -118,19 +125,28 @@ export async function executePartitionLayers(state, input, signal) {
     recorder.trackTemporaryBuffer(hidden);
     hidden = null;
     releaseSharedAttentionState(context.sharedAttentionState, recorder);
+    timing.encodeMs = performance.now() - encodeStarted;
+    const submitStarted = performance.now();
     await recorder.submitAndWait();
+    timing.submitWaitMs = performance.now() - submitStarted;
+    const kernels = await recorder.resolveProfileTimings();
+    if (kernels) timing.gpuKernelsMs = Object.values(kernels).reduce((sum, ms) => sum + ms, 0);
     signal.throwIfAborted();
     if (!partition.hasLmHead) {
+      const readbackStarted = performance.now();
       const activationBytes = await readBuffer(output, byteLength);
+      timing.activationReadbackMs = performance.now() - readbackStarted;
       signal.throwIfAborted();
-      return { activationBytes };
+      return { activationBytes, timing };
     }
+    const logitsStarted = performance.now();
     const logits = await computeLogits(output, numTokens, getLogitsWeights(state), getLogitsConfig(state),
       true, state.debugFlags, undefined, undefined, state.runtimeConfig.shared.debug.probes,
       { lastPositionOnly: true, returnGpuBuffer: true }, state.operatorDiagnostics);
     try {
       signal.throwIfAborted();
-      return { logits };
+      timing.logitsMs = performance.now() - logitsStarted;
+      return { logits, timing };
     } catch (error) {
       releaseBuffer(logits.logitsBuffer);
       throw error;

@@ -1,3 +1,16 @@
+import { initDevice, getDevice } from '../gpu/device.js';
+import { setDeviceMemoryBudget, getDeviceMemorySnapshot } from '../memory/device-budget.js';
+
+/** Explicit host allocation limit; shared by all model sessions on this device.
+ * @type {import('./resident-partitions.js').configureDeviceMemoryBudget} */
+export async function configureDeviceMemoryBudget({ maxBytes }) {
+  return setDeviceMemoryBudget(await initDevice(), maxBytes);
+}
+
+export function inspectDeviceMemory() {
+  return getDeviceMemorySnapshot(getDevice());
+}
+
 /** @type {import('./resident-partitions.js').createResidentPartitionFactory} */
 export function createResidentPartitionFactory({ openCapsule, capsuleOptions }) {
   if (typeof openCapsule !== 'function' || !capsuleOptions || typeof capsuleOptions !== 'object') {

@@ -14,10 +14,13 @@ assert.deepEqual(reads, [], 'preflight must not acquire unassigned shard tails')
 assert.deepEqual([...new Uint8Array(await opened.storage.loadShardRange(0,1,2))],[2,3]);
 assert.deepEqual(reads,[0]); // Hash checking does not fetch the unrelated second piece.
 assert.equal(opened.getReceipt().verifiedBytes,4);
+assert.equal(opened.getReceipt().activeReadBytes,0);
+assert.equal(opened.getReceipt().peakReadBytes,2);
 await opened.storage.close();await assert.rejects(opened.storage.loadShardRange(0,0,1),/closed|outside/);
 await assert.rejects(createVerifiedPieceStorage({manifestBytes,indexBytes,indexIdentity:'sha256:'+'0'.repeat(64),acquire:async()=>data[0]}),/identity/);
 const corrupt=await createVerifiedPieceStorage({manifestBytes,indexBytes,indexIdentity,acquire:async()=>new Uint8Array(4)});
 await assert.rejects(corrupt.storage.loadShardRange(0,0,1),/integrity/);
+assert.equal(corrupt.getReceipt().activeReadBytes,0, 'Failed verification releases read ownership');
 const changed=encode({...index,manifestIdentity:'sha256:'+'0'.repeat(64)});
 await assert.rejects(createVerifiedPieceStorage({manifestBytes,indexBytes:changed,indexIdentity:sha(changed),acquire:async()=>data[0]}),/binding/);
 console.log('verified-piece-storage: selective reads, corruption, binding and close passed');

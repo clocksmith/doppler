@@ -91,7 +91,9 @@ if (!modelDirectory) {
     assert.equal(isBufferActive(buffers[0]), false);
     assert.equal(isBufferActive(buffers[1]), true, 'Closing one attempt must preserve the other recurrent state');
     probes[1].close(); assert.equal(isBufferActive(buffers[1]), false);
-    const prompts = chat ? [[{ role: 'user', content: 'Reply with only the word Hello.' }],
+    const prompts = process.env.DOPPLER_PARTITION_PROMPTS
+      ? JSON.parse(await fs.readFile(process.env.DOPPLER_PARTITION_PROMPTS, 'utf8'))
+      : chat ? [[{ role: 'user', content: 'Reply with only the word Hello.' }],
       [{ role: 'user', content: 'What is two plus two? Answer briefly.' }]]
       : ['The color of the sky is', 'The capital of France is'];
     const expected = [];
@@ -114,16 +116,21 @@ if (!modelDirectory) {
       state.continuationB = right.continuation; state.text += right.delta; state.done = right.done;
       return right;
     }
-    for (let index = 0; index < generation.maxTokens; index++) {
-      for (let thread = 0; thread < states.length; thread++) {
-        if (states[thread].done) continue;
-        const result = await step(states[thread], index);
-        const expectedStep = expected[thread].steps[index];
-        const comparison = comparePartitionExecution({ splitOutput: result.logits, referenceOutput: expectedStep.logits, tolerance: 1e-4 });
-        assert.ok(comparison.matches, JSON.stringify(comparison));
-        assert.equal(result.tokenId, expectedStep.tokenId);
-        assert.equal(result.stopReason, expectedStep.stopReason);
-        report.steps.push({ thread, step: index, tokenId: result.tokenId, stopReason: result.stopReason, comparison });
+    for (let start = 0; start < states.length; start += limits.maxConcurrentAttempts) {
+      for (let index = 0; index < generation.maxTokens; index++) {
+        for (let thread = start; thread < Math.min(states.length, start + limits.maxConcurrentAttempts); thread++) {
+          if (states[thread].done) continue;
+          const result = await step(states[thread], index);
+          const expectedStep = expected[thread].steps[index];
+          const comparison = comparePartitionExecution({ splitOutput: result.logits, referenceOutput: expectedStep.logits, tolerance: 1e-4 });
+          assert.ok(comparison.matches, JSON.stringify(comparison));
+          assert.equal(result.tokenId, expectedStep.tokenId);
+          assert.equal(result.stopReason, expectedStep.stopReason);
+          report.steps.push({ thread, step: index, tokenId: result.tokenId, stopReason: result.stopReason, comparison });
+        }
+      }
+      for (const state of states.slice(start, start + limits.maxConcurrentAttempts)) {
+        for (const resident of residents) await resident.closeAttempt({ identity: state.identity });
       }
     }
     assert.deepEqual(states.map(state => state.text), expected.map(result => result.text));
