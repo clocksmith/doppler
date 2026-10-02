@@ -1,6 +1,6 @@
 {
   "name": "doppler-gpu",
-  "version": "0.6.3-dev.split.4",
+  "version": "0.6.3-dev.split.6",
   "description": "Doppler Rig prepares signed model Capsules; Doppler Run executes them locally through WebGPU for JavaScript",
   "main": "src/capsule-runtime.js",
   "types": "src/capsule-runtime.d.ts",

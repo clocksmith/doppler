@@ -1,0 +1,25 @@
+{
+  "component": "resident partitions and verified piece storage",
+  "intent": "preserved",
+  "checks": {
+    "localPhysicalPartitionChat": "passed; exact full-logit agreement and stop tokens for Hello and 4",
+    "recurrentBufferIsolation": "passed on physical GPU",
+    "recurrentContinuation": "passed missing/mismatched prefix rejection",
+    "pieceStoragePreflight": "passed no unrelated acquisition",
+    "sourceTypes": "passed",
+    "sourceArchitecture": "passed",
+    "runtimeClosure": "passed",
+    "packedConsumer": "passed; synthetic execution",
+    "unitSuite": {
+      "passed": 878,
+      "failed": 4,
+      "total": 882,
+      "canonicalTemporaryDirectoryRerun": "document-search-server and document-search-installed-build passed with TMPDIR=/private/tmp",
+      "remainingFailures": [
+        "model-support-inventory-contract: pre-existing stale conversion inventory",
+        "tracked-benchmark-evidence-contract: same stale inventory"
+      ]
+    }
+  },
+  "physicalCrossDeviceProof": "Owned by Reploid browser harness; this file proves local computation only"
+}

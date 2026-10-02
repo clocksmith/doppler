@@ -9,6 +9,8 @@ const index = {schema:'doppler.verified-pieces/v1',manifestIdentity:sha(manifest
  files:[{path:'weights.bin',size:8,pieces:data.map((bytes,i)=>({offset:i*4,size:4,identity:sha(bytes)}))}]};
 const indexBytes=encode(index),indexIdentity=sha(indexBytes),reads=[];
 const opened=await createVerifiedPieceStorage({manifestBytes,indexBytes,indexIdentity,acquire:async p=>{reads.push(p.offset);return data[p.offset/4];}});
+await opened.storage.preflight();
+assert.deepEqual(reads, [], 'preflight must not acquire unassigned shard tails');
 assert.deepEqual([...new Uint8Array(await opened.storage.loadShardRange(0,1,2))],[2,3]);
 assert.deepEqual(reads,[0]); // Hash checking does not fetch the unrelated second piece.
 assert.equal(opened.getReceipt().verifiedBytes,4);
