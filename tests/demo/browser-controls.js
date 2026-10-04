@@ -288,7 +288,8 @@ export async function checkDemoControls(page) {
   await page.click('#model-select-remove');
   await page.click('#remove-model-confirm-btn');
   await page.waitForFunction(() => __demoContract.removals === 1);
-  assert.equal(await page.locator('#run-btn').isDisabled(), true);
+  assert.equal(await page.locator('#run-btn').textContent(), 'Choose a model');
+  assert.equal(await page.locator('#run-btn').isEnabled(), true);
   assert.equal(await page.locator('#model-select-remove').isVisible(), false);
   assert.equal(await page.locator('#status-text').textContent(), 'Select model');
 
