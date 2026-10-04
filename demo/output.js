@@ -42,23 +42,12 @@ function createEmptyState() {
   empty.id = 'chat-empty';
   empty.className = 'chat-empty';
 
-  const mark = document.createElement('span');
-  mark.className = 'chat-empty-mark';
-  mark.setAttribute('aria-hidden', 'true');
-  mark.textContent = 'D';
-
-  const heading = document.createElement('strong');
-  heading.textContent = state.model ? 'What shall we write?' : 'What could come next?';
-
   const sample = document.createElement('button');
   sample.id = 'sample-run-btn';
   sample.className = 'btn btn-ghost sample-run-btn';
   sample.type = 'button';
-  sample.textContent = 'See word choices';
-  const note = document.createElement('small');
-  note.textContent = 'Precomputed run';
-
-  empty.append(mark, heading, sample, note);
+  sample.textContent = 'View precomputed run';
+  empty.append(sample);
   return empty;
 }
 

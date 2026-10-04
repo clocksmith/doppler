@@ -163,8 +163,8 @@ export function getSettings() {
   for (const field of GENERATION_FIELDS) {
     const input = $(field.id);
     if (input && (!input.checkValidity() || field.parse(input.value) === undefined)) {
-      $('settings-panel')?.classList.add('is-open');
-      $('settings-toggle')?.setAttribute('aria-expanded', 'true');
+      const advanced = $('advanced-settings');
+      if (advanced) advanced.open = true;
       // All editable settings share one panel.
       input.focus();
       input.reportValidity();
@@ -196,16 +196,6 @@ export async function initSettings({ requireDefaultProfile = false, onProfileCha
     wordQualityToggle.addEventListener('change', () => {
       state.wordQualityEnabled = wordQualityToggle.checked;
       writeBooleanPreference(WORD_QUALITY_STORAGE_KEY, wordQualityToggle.checked);
-    });
-  }
-
-  // Toggle panel visibility
-  const toggle = $('settings-toggle');
-  const panel = $('settings-panel');
-  if (toggle && panel) {
-    toggle.addEventListener('click', () => {
-      const isOpen = panel.classList.toggle('is-open');
-      toggle.setAttribute('aria-expanded', String(isOpen));
     });
   }
 

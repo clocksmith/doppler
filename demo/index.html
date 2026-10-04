@@ -217,7 +217,6 @@
 <main class="demo-flow demo-stack">
 <section class="chat-workspace flow-card demo-panel demo-stack" aria-label="Doppler playground">
       <div class="chat-toolbar">
-        <button id="settings-toggle" class="btn btn-ghost btn-small" type="button" aria-expanded="false" aria-controls="settings-panel">Advanced</button>
         <div class="chat-toolbar-run">
           <div class="chat-run-status" role="status" aria-live="polite">
             <span id="output-phase" class="output-phase"></span>
@@ -226,7 +225,92 @@
         </div>
       </div>
 
+      <div class="demo-playground">
+        <div class="example-pane">
+      <!-- Output -->
+      <section id="output-area" class="output-area">
+        <div id="output-prefill-bar" class="output-prefill-bar" style="width: 0%"></div>
+        <div class="chat-surface">
+          <div id="chat-thread" class="chat-thread" aria-live="polite">
+            <div id="chat-empty" class="chat-empty">
+              <button id="sample-run-btn" class="btn btn-ghost sample-run-btn" type="button">View precomputed run</button>
+            </div>
+          </div>
+          <article id="live-assistant-message" class="chat-message chat-message--assistant" aria-live="polite" aria-atomic="false" hidden>
+            <div class="chat-role">Doppler</div>
+            <div id="output-text" class="output-text"></div>
+            <!-- Token logits container (optional) -->
+            <div id="word-quality-output" hidden></div>
+            <div id="word-quality-legend" class="word-quality-legend" hidden>
+              <span class="quality-low">Lower perplexity</span>
+              <span class="quality-high">Higher perplexity</span>
+              <span>Model surprise, not accuracy</span>
+            </div>
+            <!-- Interactive Token Generation Inspector container -->
+            <div id="token-inspector-view" class="token-inspector-view" hidden>
+              <div id="token-stream-container" class="token-stream-container"></div>
+              <div id="token-inspector-card-container" class="token-inspector-card-container"></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+        </div>
+        <div class="try-pane">
+      <!-- Chat composer -->
+      <section id="input-area" class="input-area">
+        <div class="input-row">
+          <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Message Doppler…" rows="3"></textarea>
+        </div>
+        <div id="prompt-suggestions" class="prompt-suggestions" aria-label="Suggested prompts">
+          <button id="shuffle-btn" class="btn btn-ghost btn-small" type="button" title="Try another prompt idea">Surprise</button>
+        </div>
+        <div class="input-actions">
+          <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Send a prompt locally">Send</button>
+          <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
+        </div>
+      </section>    <!-- Model picker -->
+
+
+
+        </div>
+      </div>
+
+    </section>
+    </main>
+
+    <details id="advanced-settings" class="advanced-settings">
+      <summary id="settings-toggle">Advanced</summary>
 <div id="settings-panel" class="settings-panel demo-panel demo-panel--inset demo-stack">
+<details id="model-picker" class="model-picker flow-card demo-panel demo-stack" >
+<summary>Model and downloads</summary>
+<div class="demo-stack">
+<div class="model-picker-heading demo-row">
+        <div>
+          <label id="model-picker-label" class="flow-title" for="model-select">Model</label>
+        </div>
+        <span id="model-select-status" class="model-select-status" aria-live="polite">Loading catalog...</span>
+      </div>
+      <div class="model-select-row">
+        <select id="model-select" disabled>
+          <option value="">Loading models...</option>
+        </select>
+        <button id="model-select-action" class="btn" type="button" disabled>Load model</button>
+        <button id="model-select-remove" class="btn btn-ghost" type="button" hidden>Remove</button>
+      </div>
+      <div id="model-select-detail" class="model-select-detail"></div>
+      <div id="model-select-progress-row" class="model-card-progress-row model-select-progress-row" hidden>
+        <div id="model-select-progress" class="model-card-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="model-card-progress-fill"></div>
+        </div>
+        <span id="model-select-progress-label" class="model-card-progress-percent">0%</span>
+      </div>
+      <details id="model-browser" class="model-browser">
+        <summary><span>Browse models</span><span id="model-browser-count" class="model-browser-count"></span></summary>
+        <div id="model-cards" class="model-cards"></div>
+      </details>
+</div>
+    </details>
         <fieldset class="settings-group">
           <legend>Response</legend>
           <div id="runtime-notice" class="runtime-notice" role="status" hidden></div>
@@ -330,92 +414,7 @@
           </label>
         </fieldset>
       </div>
-
-      <div class="demo-playground">
-        <div class="example-pane">
-      <!-- Output -->
-      <section id="output-area" class="output-area">
-        <div id="output-prefill-bar" class="output-prefill-bar" style="width: 0%"></div>
-        <div class="chat-surface">
-          <div id="chat-thread" class="chat-thread" aria-live="polite">
-            <div id="chat-empty" class="chat-empty">
-              <span class="chat-empty-mark" aria-hidden="true">D</span>
-              <strong>What could come next?</strong>
-              <button id="sample-run-btn" class="btn btn-ghost sample-run-btn" type="button">See word choices</button>
-              <small>Precomputed run</small>
-            </div>
-          </div>
-          <article id="live-assistant-message" class="chat-message chat-message--assistant" aria-live="polite" aria-atomic="false" hidden>
-            <div class="chat-role">Doppler</div>
-            <div id="output-text" class="output-text"></div>
-            <!-- Token logits container (optional) -->
-            <div id="word-quality-output" hidden></div>
-            <div id="word-quality-legend" class="word-quality-legend" hidden>
-              <span class="quality-low">Lower perplexity</span>
-              <span class="quality-high">Higher perplexity</span>
-              <span>Model surprise, not accuracy</span>
-            </div>
-            <!-- Interactive Token Generation Inspector container -->
-            <div id="token-inspector-view" class="token-inspector-view" hidden>
-              <div id="token-stream-container" class="token-stream-container"></div>
-              <div id="token-inspector-card-container" class="token-inspector-card-container"></div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-        </div>
-        <div class="try-pane">
-      <!-- Chat composer -->
-      <section id="input-area" class="input-area">
-        <label class="composer-heading" for="prompt-input">Try your own</label>
-        <div id="prompt-suggestions" class="prompt-suggestions" aria-label="Suggested prompts">
-          <button id="shuffle-btn" class="btn btn-ghost btn-small" type="button" title="Try another prompt idea">Surprise</button>
-        </div>
-        <div class="input-row">
-          <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Type a prompt or choose one above…" rows="4"></textarea>
-        </div>
-        <div class="input-actions">
-          <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Load a model to send">Send</button>
-          <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
-        </div>
-      </section>    <!-- Model picker -->
-<details id="model-picker" class="model-picker flow-card demo-panel demo-stack" >
-<summary>Run on your device</summary>
-<div class="demo-stack">
-<div class="model-picker-heading demo-row">
-        <div>
-          <label id="model-picker-label" class="flow-title" for="model-select">Model</label>
-        </div>
-        <span id="model-select-status" class="model-select-status" aria-live="polite">Loading catalog...</span>
-      </div>
-      <div class="model-select-row">
-        <select id="model-select" disabled>
-          <option value="">Loading models...</option>
-        </select>
-        <button id="model-select-action" class="btn" type="button" disabled>Load model</button>
-        <button id="model-select-remove" class="btn btn-ghost" type="button" hidden>Remove</button>
-      </div>
-      <div id="model-select-detail" class="model-select-detail"></div>
-      <div id="model-select-progress-row" class="model-card-progress-row model-select-progress-row" hidden>
-        <div id="model-select-progress" class="model-card-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-          <div class="model-card-progress-fill"></div>
-        </div>
-        <span id="model-select-progress-label" class="model-card-progress-percent">0%</span>
-      </div>
-      <details id="model-browser" class="model-browser">
-        <summary><span>Browse models</span><span id="model-browser-count" class="model-browser-count"></span></summary>
-        <div id="model-cards" class="model-cards"></div>
-      </details>
-</div>
     </details>
-
-
-        </div>
-      </div>
-
-    </section>
-    </main>
 
     <section id="inspection-workspace" class="inspection-workspace" aria-label="Run inspection">
 <div class="inspection-workspace-body demo-stack">
@@ -447,33 +446,35 @@
 
     <section class="precision-replay-area demo-panel demo-stack" aria-label="Stored precision comparison">
       <div class="precision-replay-heading demo-row">
-        <button id="precision-replay-toggle" class="btn btn-ghost precision-replay-toggle" type="button" aria-expanded="false" aria-controls="precision-replay-panel" title="Expand checked-in precision evidence.">Compare precision</button>
+        <button id="precision-replay-toggle" class="btn btn-ghost precision-replay-toggle" type="button" aria-expanded="false" aria-controls="precision-replay-panel" title="Compare recorded results">Compare precision</button>
         <span id="precision-replay-status" class="precision-replay-status">Recorded comparison</span>
       </div>
       <div id="precision-replay-panel" class="precision-replay-panel" hidden>
-<p class="precision-replay-note">Precomputed Gemma 3 270M runs.</p>
+<p class="precision-replay-note">Same model. Different number precision. Precomputed results.</p>
 
         <div class="precision-replay-controls">
           <div class="setting-field">
             <label for="precision-replay-prompt-select">Prompt</label>
             <select id="precision-replay-prompt-select"></select>
           </div>
-          <div class="setting-field">
-            <label>Score table sort</label>
-            <div id="precision-replay-mode-group" class="precision-replay-mode-group"></div>
-          </div>
-          <button id="precision-replay-use-prompt" class="btn btn-ghost" type="button">Use prompt</button>
+          <button id="precision-replay-use-prompt" class="btn btn-ghost" type="button">Try this prompt</button>
         </div>
         <div class="precision-replay-layout">
           <article class="precision-replay-card">
             <div class="type-label">Prompt</div>
-            <pre id="precision-replay-prompt" class="precision-replay-prompt"></pre>
+            <p id="precision-replay-prompt" class="precision-replay-prompt"></p>
           </article>
           <div id="precision-replay-winners" class="precision-replay-winners"></div>
         </div>
-        <div id="precision-replay-branch" class="precision-replay-branch"></div>
+        <p id="precision-replay-outcome" class="precision-replay-outcome" role="status"></p>
         <details class="precision-evidence-details">
-          <summary>Scores &amp; evidence</summary>
+          <summary>Technical details</summary>
+          <div class="setting-field">
+            <label>Sort scores</label>
+            <div id="precision-replay-mode-group" class="precision-replay-mode-group"></div>
+          </div>
+<div id="precision-replay-winner-scores"></div>
+<div id="precision-replay-branch" class="precision-replay-branch"></div>
           <div id="precision-replay-stats" class="precision-replay-stats"></div>
         <div id="precision-replay-watch-pairs" class="precision-replay-watch-pairs"></div>
         <div class="precision-replay-broad">

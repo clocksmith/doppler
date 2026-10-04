@@ -33,12 +33,19 @@ function tokenButton(token, index) {
     : 0.5;
   element.style.setProperty('--token-surprisal', String(surprise));
   element.classList.toggle('token-chip--unavailable', !Number.isFinite(token?.probability));
-  element.title = [
+  const description = [
     `Token ${index + 1} · ID ${token?.tokenId ?? 'unavailable'}`,
     `Probability ${pct(token?.probability)}`,
-    'Select for alternatives',
+    'Hover or select for probabilities',
   ].join('\n');
-  element.setAttribute('aria-label', `${element.title}: ${JSON.stringify(token?.text ?? '')}`);
+  element.setAttribute('aria-label', `${description}: ${JSON.stringify(token?.text ?? '')}`);
+  element.addEventListener('pointerenter', (event) => {
+    if (event.pointerType !== 'mouse' || !matchMedia('(any-hover: hover) and (any-pointer: fine)').matches) return;
+    selectToken(index);
+  });
+  element.addEventListener('focus', () => {
+    if (selectedIndex !== index) selectToken(index);
+  });
   element.addEventListener('click', () => selectToken(index, { focus: true }));
   return element;
 }
