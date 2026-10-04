@@ -224,6 +224,29 @@ const ropeConfig = {
 {
   const device = createFakeDevice();
   resetRuntimeState(device);
+  const state = { useGPU: true, modelPartition: { index: 0 },
+    runtimeConfig: { inference: { session: { kvcache: { maxSeqLen: 8 } } } },
+    modelConfig: { ...ropeConfig, maxSeqLen: 8192, globalHeadDim: ropeConfig.headDim,
+      headDim: ropeConfig.localHeadDim, ropeRotaryDim: ropeConfig.rotaryDim } };
+  await _initRoPE.call(state);
+  const bounded = await initRoPEFrequencies(ropeConfig, true);
+  assert.equal(state.ropeFreqsCos, bounded.cos,
+    'Resident tables cover the accepted session, not the full model context.');
+  assert.equal(state.modelConfig.maxSeqLen, 8192, 'Model contract remains unchanged.');
+  const existing = state.ropeFrequencyLease;
+  for (const maxSeqLen of [undefined, null, 0, -1, 1.5]) {
+    state.runtimeConfig.inference.session.kvcache.maxSeqLen = maxSeqLen;
+    await assert.rejects(() => _initRoPE.call(state), /positive session maxSeqLen/);
+    assert.equal(state.ropeFrequencyLease, existing, 'Invalid replacement preserves the live lease.');
+  }
+  releaseRoPEFrequencies(existing);
+  releaseRoPEFrequencies(bounded);
+  resetRuntimeState();
+}
+
+{
+  const device = createFakeDevice();
+  resetRuntimeState(device);
   await assert.rejects(() => initRoPEFrequencies({
     ...ropeConfig, ropeLocalTheta: 10000, ropeLocalScalingType: 'unsupported',
   }, true));

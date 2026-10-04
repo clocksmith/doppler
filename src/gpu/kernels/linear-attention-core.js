@@ -254,7 +254,6 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
   const convOutSize = numTokens * layerState.convDim * Float32Array.BYTES_PER_ELEMENT;
   const outputSize = numTokens * layerState.valueDim * Float32Array.BYTES_PER_ELEMENT;
   let convOutBuffer = null;
-  const outputBuffer = acquireBuffer(outputSize, undefined, `L${options.layerIdx ?? 0}.linear_attention_core_out`);
   const outputDtype = resolveOutputDtype(options.outputDtype);
   const outputShape = [numTokens, layerState.valueDim];
   const paramsPayload = {
@@ -277,14 +276,15 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     bProjOffsetElements: options.bProjOffsetElements,
   };
   const useFusedDecodeCore = canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor);
+  const outputBuffer = acquireBuffer(outputSize, undefined, `L${options.layerIdx ?? 0}.linear_attention_core_out`);
   if (useFusedDecodeCore) {
     if (useRecorder) {
-      const paramsBuffer = createUniformBufferFromData(
-        'linear_attention_params',
-        buildParamsData(paramsPayload),
-        recorder
-      );
       try {
+        const paramsBuffer = createUniformBufferFromData(
+          'linear_attention_params',
+          buildParamsData(paramsPayload),
+          recorder
+        );
         const fusedBindGroup = device.createBindGroup({
           label: 'linear_attention_fused_decode_bind_group',
           layout: fusedDecodeBindGroupLayout,
@@ -334,15 +334,16 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       }
     }
 
-    const paramsBuffer = createUniformBufferFromData(
-      'linear_attention_params',
-      buildParamsData(paramsPayload),
-      null,
-      device,
-      { useCache: false }
-    );
+    let paramsBuffer = null;
     let submitted = false;
     try {
+      paramsBuffer = createUniformBufferFromData(
+        'linear_attention_params',
+        buildParamsData(paramsPayload),
+        null,
+        device,
+        { useCache: false }
+      );
       const fusedBindGroup = device.createBindGroup({
         label: 'linear_attention_fused_decode_bind_group',
         layout: fusedDecodeBindGroupLayout,
@@ -395,43 +396,48 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
       if (submitted) {
         device.queue.onSubmittedWorkDone()
           .then(() => {
-            paramsBuffer.destroy();
+            paramsBuffer?.destroy();
           })
           .catch(() => {
-            paramsBuffer.destroy();
+            paramsBuffer?.destroy();
           });
       } else {
-        paramsBuffer.destroy();
+        paramsBuffer?.destroy();
       }
     }
   }
 
-  convOutBuffer = acquireBuffer(convOutSize, undefined, `L${options.layerIdx ?? 0}.linear_conv_out`);
+  try {
+    convOutBuffer = acquireBuffer(convOutSize, undefined, `L${options.layerIdx ?? 0}.linear_conv_out`);
+  } catch (error) {
+    releaseBuffer(outputBuffer);
+    throw error;
+  }
   if (useRecorder) {
-    const paramsBuffer = createUniformBufferFromData(
-      'linear_attention_params',
-      buildParamsData({
-        numTokens,
-        convDim: layerState.convDim,
-        convKernelSize: layerState.convKernelSize,
-        numVHeads: layerState.numVHeads,
-        numKHeads: layerState.numKHeads,
-        headKDim: layerState.headKDim,
-        headVDim: layerState.headVDim,
-        qSize: layerState.qSize,
-        kSize: layerState.kSize,
-        valueDim: layerState.valueDim,
-        qRep: layerState.qRep,
-        normMode: layerState.normMode === 'per_head' ? 1 : 0,
-        rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
-        qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
-        abPacked: options.abPacked === true,
-        qkvzPacked: options.qkvzPacked === true,
-        bProjOffsetElements: options.bProjOffsetElements,
-      }),
-      recorder
-    );
     try {
+      const paramsBuffer = createUniformBufferFromData(
+        'linear_attention_params',
+        buildParamsData({
+          numTokens,
+          convDim: layerState.convDim,
+          convKernelSize: layerState.convKernelSize,
+          numVHeads: layerState.numVHeads,
+          numKHeads: layerState.numKHeads,
+          headKDim: layerState.headKDim,
+          headVDim: layerState.headVDim,
+          qSize: layerState.qSize,
+          kSize: layerState.kSize,
+          valueDim: layerState.valueDim,
+          qRep: layerState.qRep,
+          normMode: layerState.normMode === 'per_head' ? 1 : 0,
+          rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
+          qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
+          abPacked: options.abPacked === true,
+          qkvzPacked: options.qkvzPacked === true,
+          bProjOffsetElements: options.bProjOffsetElements,
+        }),
+        recorder
+      );
       const convBindGroup = device.createBindGroup({
         label: 'linear_attention_conv_bind_group',
         layout: convBindGroupLayout,
@@ -504,34 +510,34 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     }
   }
 
-  const paramsBuffer = createUniformBufferFromData(
-    'linear_attention_params',
-    buildParamsData({
-      numTokens,
-      convDim: layerState.convDim,
-      convKernelSize: layerState.convKernelSize,
-      numVHeads: layerState.numVHeads,
-      numKHeads: layerState.numKHeads,
-      headKDim: layerState.headKDim,
-      headVDim: layerState.headVDim,
-      qSize: layerState.qSize,
-      kSize: layerState.kSize,
-      valueDim: layerState.valueDim,
-      qRep: layerState.qRep,
-      normMode: layerState.normMode === 'per_head' ? 1 : 0,
-      rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
-      qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
-      abPacked: options.abPacked === true,
-      qkvzPacked: options.qkvzPacked === true,
-      bProjOffsetElements: options.bProjOffsetElements,
-    }),
-    null,
-    device,
-    { useCache: false }
-  );
+  let paramsBuffer = null;
   let submitted = false;
-
   try {
+    paramsBuffer = createUniformBufferFromData(
+      'linear_attention_params',
+      buildParamsData({
+        numTokens,
+        convDim: layerState.convDim,
+        convKernelSize: layerState.convKernelSize,
+        numVHeads: layerState.numVHeads,
+        numKHeads: layerState.numKHeads,
+        headKDim: layerState.headKDim,
+        headVDim: layerState.headVDim,
+        qSize: layerState.qSize,
+        kSize: layerState.kSize,
+        valueDim: layerState.valueDim,
+        qRep: layerState.qRep,
+        normMode: layerState.normMode === 'per_head' ? 1 : 0,
+        rmsNormEps: Number(layerState.rmsNormEps) || 1e-6,
+        qkL2NormEps: Number(options.qkL2NormEps) || 1e-6,
+        abPacked: options.abPacked === true,
+        qkvzPacked: options.qkvzPacked === true,
+        bProjOffsetElements: options.bProjOffsetElements,
+      }),
+      null,
+      device,
+      { useCache: false }
+    );
     const convBindGroup = device.createBindGroup({
       label: 'linear_attention_conv_bind_group',
       layout: convBindGroupLayout,
@@ -608,13 +614,13 @@ export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTe
     if (submitted) {
       device.queue.onSubmittedWorkDone()
         .then(() => {
-          paramsBuffer.destroy();
+          paramsBuffer?.destroy();
         })
         .catch(() => {
-          paramsBuffer.destroy();
+          paramsBuffer?.destroy();
         });
     } else {
-      paramsBuffer.destroy();
+      paramsBuffer?.destroy();
     }
     releaseBuffer(convOutBuffer);
   }

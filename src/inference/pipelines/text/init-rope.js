@@ -341,7 +341,17 @@ export function isGPURoPEBuffers(buffers) {
 
 export async function _initRoPE() {
     const config = (this.modelConfig);
-    const maxSeqLen = config.maxSeqLen;
+    let maxSeqLen = config.maxSeqLen;
+    if (this.modelPartition) {
+      // Resident attempts reject positions beyond their declared session
+      // capacity. Preparing the model's entire context wastes resident memory
+      // without making any additional position executable by this partition.
+      const sessionMaxSeqLen = this.runtimeConfig.inference.session.kvcache.maxSeqLen;
+      if (!Number.isSafeInteger(sessionMaxSeqLen) || sessionMaxSeqLen < 1) {
+        throw new Error('Resident partition RoPE requires a positive session maxSeqLen.');
+      }
+      maxSeqLen = Math.min(maxSeqLen, sessionMaxSeqLen);
+    }
     const ropeBuffers = await initRoPEFrequencies({
       headDim: config.globalHeadDim ?? config.headDim,
       localHeadDim: config.headDim,
