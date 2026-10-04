@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync, lstatSync, readlinkSync, symlinkSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, readFileSync, existsSync, mkdirSync, lstatSync, readlinkSync, symlinkSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { APP_SHELL } from '../demo/generated-shell-manifest.js';
@@ -20,6 +20,15 @@ for (const file of files) {
 }
 // The root uses the same absolute asset paths and public import map as /demo/.
 copyFileSync(path.join(output, 'demo/index.html'), path.join(output, 'index.html'));
+// The dedicated domain installs and launches at its root; source-local /demo/ stays usable.
+const manifestPath = path.join(output, 'demo/pwa-manifest.json');
+const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+manifest.id = '/';
+manifest.start_url = '/';
+manifest.scope = '/';
+for (const shortcut of manifest.shortcuts) shortcut.url = shortcut.url.replace('/demo/index.html', '/');
+for (const handler of manifest.file_handlers) handler.action = handler.action.replace('/demo/index.html', '/');
+writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
 writeFileSync(path.join(output, 'release.json'), JSON.stringify({ sourceCommit: revision, application: 'doppler-demo', canonicalUrl: 'https://canvascontext.com/' }, null, 2) + '\n');
 execFileSync(process.execPath, ['tools/generate-demo-shell-manifest.js', '--root', output], { cwd: root, stdio: 'inherit' });

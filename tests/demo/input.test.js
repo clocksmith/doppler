@@ -40,7 +40,9 @@ try {
   promptInput.value = 'Hello';
   state.model = null;
   assert.equal(syncSendButton(), false);
-  assert.equal(sendButton.title, 'Load a model to send');
+  assert.equal(sendButton.title, 'Choose a model to run this prompt locally');
+  assert.equal(sendButton.disabled, false);
+  assert.equal(sendButton.textContent, 'Choose a model');
 } finally {
   state.model = originalModel;
   state.generating = originalGenerating;

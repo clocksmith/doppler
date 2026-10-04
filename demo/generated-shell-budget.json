@@ -1,9 +1,9 @@
 {
   "schema": "doppler.demo-shell-budget-receipt/v1",
-  "shellManifestDigest": "sha256:486096d546b481cab9f3d87c90903b535a17c7950a1706fe9423c847b58bccb9",
+  "shellManifestDigest": "sha256:4aa2715a850cb082096a415a93acf47675fbf5f7364e5081c778e13231b82a12",
   "fileCount": 749,
   "moduleCount": 705,
-  "totalBytes": 6509374,
+  "totalBytes": 6509560,
   "budgets": {
     "maximumModules": 705,
     "maximumTotalBytes": 10000000
