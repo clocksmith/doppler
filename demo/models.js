@@ -3,6 +3,8 @@ import { state } from './ui/state.js';
 import { clearConversationHistory, syncSendButton } from './input.js';
 import { setExportEnabled } from './report.js';
 
+export const DEFAULT_DEMO_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32';
+
 const LAST_USED_MODEL_STORAGE_KEY = 'doppler.demo.last-used-model';
 
 let catalog = [];
@@ -135,6 +137,15 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
   }
 }
 
+export async function ensurePromptModel() {
+  if (state.model) return state.model;
+  const entry = selectedEntry();
+  if (!entry) throw new Error('The default model is unavailable. Choose a model in Advanced.');
+  await loadSelectedModel({ entry });
+  if (!state.model) throw new Error('Model loading is already in progress. Try again when ready.');
+  return state.model;
+}
+
 export async function reloadActiveModel(runtimeProfile) {
   if (!state.model) return;
   const entry = catalog.find((item) => item.modelId === state.modelId);
@@ -220,7 +231,7 @@ export function setModelCallbacks(callbacks = {}) {
 export async function loadCatalog() {
   const entries = await dr.listModelDetails();
   catalog = entries.map((entry) => ({ ...entry }));
-  selectedModelId = catalog[0]?.modelId ?? null;
+  selectedModelId = catalog.find((entry) => entry.modelId === DEFAULT_DEMO_MODEL_ID)?.modelId ?? null;
   state.quickModelCatalog = catalog.map((entry) => ({ ...entry }));
   bindModelControls();
   renderModelCards();
@@ -251,8 +262,9 @@ export async function checkStoredModels() {
 
 export async function loadDefaultStoredModel() {
   const registered = await dr.listPersistentModels();
-  const preferred = localStorage.getItem(LAST_USED_MODEL_STORAGE_KEY);
-  const entry = selectDefaultStoredModel(catalog, registered, preferred);
+  const entry = selectDefaultStoredModel(
+    catalog.filter((item) => item.modelId === DEFAULT_DEMO_MODEL_ID), registered, DEFAULT_DEMO_MODEL_ID
+  );
   if (!entry) return null;
   selectedModelId = entry.modelId;
   renderModelCards();

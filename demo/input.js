@@ -5,7 +5,7 @@ import {
   normalizeConversationHistory,
 } from './conversation.js';
 import { clearOutput, renderChatMessages, setPhase } from './output.js';
-import { syncModelControls } from './models.js';
+import { ensurePromptModel, syncModelControls } from './models.js';
 
 let examples = null;
 let shuffleIndex = -1;
@@ -169,11 +169,11 @@ export function syncSendButton(options = {}) {
   });
   if (!btn) return ready;
 
-  const canChooseModel = !state.model && Boolean(prompt) && !state.modelBusy && !state.settingsBusy && !generating && !prefilling;
-  btn.disabled = !ready && !canChooseModel;
-  btn.textContent = state.model ? 'Send' : 'Choose a model';
+  const canLoadModel = !state.model && Boolean(prompt) && !state.modelBusy && !state.settingsBusy && !generating && !prefilling;
+  btn.disabled = !ready && !canLoadModel;
+  btn.textContent = state.modelBusy ? 'Loading…' : 'Send';
   if (state.model == null) {
-    btn.title = 'Choose a model to run this prompt locally';
+    btn.title = 'Load the model and send this prompt locally';
   } else if (!prompt) {
     btn.title = 'Enter a message to send';
   } else if (generating || prefilling) {
@@ -184,14 +184,23 @@ export function syncSendButton(options = {}) {
   return ready;
 }
 
-function submitIfReady() {
-  if (!state.model && getPrompt() && !state.modelBusy && !state.settingsBusy) {
-    $('model-picker').open = true;
-    $('model-select-action')?.focus();
-    return;
-  }
-  if (syncSendButton() && onRun) {
-    onRun();
+async function submitIfReady() {
+  const prompt = getPrompt();
+  if (!prompt || state.modelBusy || state.settingsBusy || state.generating || state.prefilling) return;
+  try {
+    if (!state.model) {
+      setPhase('Loading model…');
+      await ensurePromptModel();
+      // Keep edits made during loading; never send a different prompt implicitly.
+      if (getPrompt() !== prompt) {
+        setPhase('Ready');
+        return;
+      }
+    }
+    if (syncSendButton() && onRun) await onRun();
+  } catch (error) {
+    setPhase(`Could not load model: ${error.message}`);
+    syncSendButton();
   }
 }
 

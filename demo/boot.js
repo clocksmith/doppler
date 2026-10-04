@@ -113,7 +113,7 @@ export async function boot() {
 
     // Step 5: Show the ready chat surface
     state.phase = 'ready';
-    setBootStatus(state.model ? 'Ready' : 'Choose a model');
+    setBootStatus('Ready');
     hideOverlay();
   } catch (err) {
     state.phase = 'error';

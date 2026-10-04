@@ -188,6 +188,8 @@ export function stopGeneration() {
 export function loadSampleInspection(receipt) {
   if (state.generating || state.modelBusy || state.settingsBusy) return;
   beginChatTurn([{ role: 'user', content: receipt.prompt }]);
+  const promptLabel = document.querySelector('#chat-thread .chat-role');
+  if (promptLabel) promptLabel.textContent = 'Prompt';
   const liveMessage = $('live-assistant-message');
   const outputText = $('output-text');
   if (outputText) outputText.textContent = receipt.outputText;

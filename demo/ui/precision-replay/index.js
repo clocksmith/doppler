@@ -6,9 +6,9 @@ import { setPromptValue } from '../../input.js';
 
 const DATA_ROOT = new URL('../../data/f16-precision-collapse/', import.meta.url);
 const DISPLAY_MODES = Object.freeze([
-  { id: 'exact', label: 'Exact' },
-  { id: 'f32_forward', label: 'F32' },
-  { id: 'f16_forward', label: 'F16' },
+  { id: 'exact', label: 'Reference' },
+  { id: 'f32_forward', label: '32-bit' },
+  { id: 'f16_forward', label: '16-bit' },
 ]);
 const MAX_TABLE_ROWS = 12;
 
@@ -168,7 +168,7 @@ function renderPromptSelect() {
   }
   const prompts = replayState.curated.prompts ?? [];
   selectEl.innerHTML = prompts.map((prompt) => `
-    <option value="${escapeHtml(prompt.id)}">${escapeHtml(prompt.id)}</option>
+    <option value="${escapeHtml(prompt.id)}">${escapeHtml(prompt.id.replaceAll('-', ' '))}</option>
   `).join('');
   if (!replayState.selectedPromptId) {
     replayState.selectedPromptId = replayState.manifest?.curated?.defaultPromptId ?? prompts[0]?.id ?? null;
@@ -181,22 +181,29 @@ function createDecodeLookup(slice) {
   return (tokenId) => byId.get(tokenId) ?? `[${tokenId}]`;
 }
 
+function visibleToken(text) {
+  if (text === '') return 'Empty token';
+  if (/^\n+$/.test(text)) return text.length === 1 ? 'Line break' : `${text.length} line breaks`;
+  if (/^ +$/.test(text)) return text.length === 1 ? 'Space' : `${text.length} spaces`;
+  return JSON.stringify(text);
+}
+
 function renderWinnerCards(prompt) {
   const winnersEl = $('precision-replay-winners');
-  if (!winnersEl) {
-    return;
-  }
-  winnersEl.innerHTML = DISPLAY_MODES.map(({ id, label }) => {
-    const summary = prompt.modes[id];
-    return `
-      <article class="precision-replay-card precision-replay-winner-card${replayState.selectedMode === id ? ' is-selected-mode' : ''}">
-        <div class="type-label">${escapeHtml(label)}</div>
-        <div class="precision-replay-winner-token"><code>${escapeHtml(summary.winnerText)}</code></div>
-        <div class="precision-replay-winner-score">score ${escapeHtml(formatFixed(summary.winnerScore))}</div>
-        <div class="precision-replay-winner-gap">gap ${escapeHtml(formatFixed(summary.winnerGap))}</div>
-      </article>
-    `;
-  }).join('');
+  if (!winnersEl) return;
+  const same = prompt.modes.f32_forward.winnerTokenId === prompt.modes.f16_forward.winnerTokenId;
+  const outcome = $('precision-replay-outcome');
+  if (outcome) outcome.textContent = same ? 'Same next token' : 'Different next token';
+  winnersEl.innerHTML = DISPLAY_MODES.filter(({ id }) => id !== 'exact').map(({ id, label }) => `
+    <article class="precision-replay-card precision-replay-winner-card">
+      <div class="type-label">${label}</div>
+      <div class="precision-replay-winner-token">${escapeHtml(visibleToken(prompt.modes[id].winnerText))}</div>
+    </article>
+  `).join('');
+  const scores = $('precision-replay-winner-scores');
+  if (scores) scores.innerHTML = DISPLAY_MODES.map(({ id, label }) => `
+    <p>${label}: ${escapeHtml(visibleToken(prompt.modes[id].winnerText))} · score ${formatFixed(prompt.modes[id].winnerScore)} · gap ${formatFixed(prompt.modes[id].winnerGap)}</p>
+  `).join('');
 }
 
 function renderWatchPairs(prompt) {
@@ -226,12 +233,7 @@ function renderBranch(prompt) {
     return;
   }
   if (!prompt.branchComparison || !prompt.branches) {
-    branchEl.innerHTML = `
-      <article class="precision-replay-card">
-        <div class="type-label">Forced branch</div>
-        <div class="precision-replay-branch-meta">No winner split for this curated prompt, so there is no forced-branch comparison here.</div>
-      </article>
-    `;
+    branchEl.replaceChildren();
     return;
   }
   branchEl.innerHTML = `
@@ -333,7 +335,7 @@ export async function initPrecisionReplay() {
   const ensureLoaded = async () => {
     if (replayState.manifest && replayState.curated) return;
     if (loading) return loading;
-    renderStatus('Loading digest-bound evidence index…');
+    renderStatus('Loading comparison…');
     loading = (async () => {
       replayState.manifest = await fetchJson('manifest.json');
       replayState.curated = await fetchJson('curated/summary.json');
@@ -346,10 +348,7 @@ export async function initPrecisionReplay() {
       renderBroadFlips();
       await renderSelectedPrompt();
       const aggregate = replayState.manifest.broad.aggregate;
-      const digest = replayState.manifest?.curated?.summarySha256
-        ?? replayState.manifest?.curated?.digest
-        ?? 'digest recorded in manifest';
-      renderStatus(`${aggregate.f16VsF32FlipCount}/${aggregate.promptCount} prompts changed top token in F16 · ${digest}`);
+      renderStatus(`${aggregate.f16VsF32FlipCount} of ${aggregate.promptCount} prompts chose a different next token.`);
     })();
     try {
       await loading;
@@ -363,7 +362,7 @@ export async function initPrecisionReplay() {
     }
   };
 
-  renderStatus('Evidence loads only when opened.');
+  renderStatus('');
   toggleEl.addEventListener('click', async () => {
     const open = toggleEl.getAttribute('aria-expanded') !== 'true';
     setPanelOpen(open);

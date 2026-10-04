@@ -42,3 +42,6 @@ export declare function loadDefaultStoredModel(): Promise<unknown | null>;
 export declare function renderModelCards(): void;
 export declare function syncModelControls(): void;
 export declare function reloadActiveModel(runtimeProfile: string): Promise<void>;
+
+export declare const DEFAULT_DEMO_MODEL_ID: string;
+export declare function ensurePromptModel(): Promise<unknown>;
