@@ -21,8 +21,8 @@ export function installDeviceMemoryAccounting(device) {
     if (state.lost) throw new Error('Cannot allocate on a lost GPU device.');
     if (state.maxBytes !== null && size > state.maxBytes - state.liveBytes) {
       state.rejected++;
-      throw new Error(`GPU memory budget exceeded: ${descriptor.label || 'unlabeled'} requires ${size} bytes; `
-        + `${state.liveBytes} live, ${state.maxBytes} allowed.`);
+      throw Object.assign(new Error(`GPU memory budget exceeded: ${descriptor.label || 'unlabeled'} requires ${size} bytes; `
+        + `${state.liveBytes} live, ${state.maxBytes} allowed.`), { code: 'RESOURCE_EXHAUSTED' });
     }
     const buffer = create(descriptor);
     /** @type {Allocation} */
