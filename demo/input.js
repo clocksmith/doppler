@@ -41,6 +41,7 @@ function shuffle() {
   const promptEl = $('prompt-input');
   if (promptEl) {
     promptEl.value = examples.text[shuffleIndex];
+    promptEl.focus();
     syncSendButton();
   }
 }
@@ -168,9 +169,11 @@ export function syncSendButton(options = {}) {
   });
   if (!btn) return ready;
 
-  btn.disabled = !ready;
+  const canChooseModel = !state.model && Boolean(prompt) && !state.modelBusy && !state.settingsBusy && !generating && !prefilling;
+  btn.disabled = !ready && !canChooseModel;
+  btn.textContent = state.model ? 'Send' : 'Choose a model';
   if (state.model == null) {
-    btn.title = 'Load a model to send';
+    btn.title = 'Choose a model to run this prompt locally';
   } else if (!prompt) {
     btn.title = 'Enter a message to send';
   } else if (generating || prefilling) {
@@ -182,6 +185,11 @@ export function syncSendButton(options = {}) {
 }
 
 function submitIfReady() {
+  if (!state.model && getPrompt() && !state.modelBusy && !state.settingsBusy) {
+    $('model-picker').open = true;
+    $('model-select-action')?.focus();
+    return;
+  }
   if (syncSendButton() && onRun) {
     onRun();
   }
@@ -189,6 +197,15 @@ function submitIfReady() {
 
 export async function initInput() {
   await loadExamples();
+  const suggestions = $('prompt-suggestions');
+  for (const entry of examples?.suggestions ?? []) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn btn-ghost btn-small';
+    button.textContent = entry.label;
+    button.addEventListener('click', () => setPromptValue(entry.prompt));
+    suggestions?.appendChild(button);
+  }
 
   $('shuffle-btn')?.addEventListener('click', shuffle);
 
@@ -214,7 +231,7 @@ export function setGenerating(active) {
   if (runBtn) runBtn.hidden = active;
   if (stopBtn) stopBtn.hidden = !active;
   for (const control of document.querySelectorAll(
-'#set-profile, #set-max-tokens, #settings-panel input:not(:disabled), #xray-toggle-all, #set-word-quality, #token-inspector-toggle, #import-btn, #shuffle-btn'
+'#set-profile, #set-max-tokens, #settings-panel input:not(:disabled), #xray-toggle-all, #set-word-quality, #token-inspector-toggle, #import-btn, #shuffle-btn, #prompt-suggestions button'
   )) {
     if (active) control.dataset.runLocked = 'true';
     control.disabled = active;

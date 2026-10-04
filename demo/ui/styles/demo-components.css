@@ -237,3 +237,26 @@
   #app .chat-message--user { max-width: 95%; }
   #app .report-bar { align-items: stretch; }
 }
+
+/* Explore the recorded result beside an always-visible composer. */
+#app .demo-experiences { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#app .demo-experiences .btn { width: 100%; min-height: 44px; box-shadow: none; }
+#app .chat-toolbar { justify-content: flex-start; }
+#app .chat-toolbar-run { margin-left: 0; flex: 1; justify-content: space-between; }
+#app .chat-run-status { font: 400 14px/1.5 var(--font-sans); }
+#app .output-phase { font: inherit; text-transform: none; letter-spacing: normal; }
+#app .chat-toolbar .btn { min-height: 36px; padding: 6px 12px; box-shadow: none; }
+#app .demo-playground { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: var(--demo-space-3); align-items: start; }
+#app .example-pane, #app .try-pane { min-width: 0; }
+#app .try-pane { display: grid; gap: var(--demo-space-2); position: sticky; top: 20px; }
+#app .composer-heading { font: 600 20px/1.4 var(--font-sans); }
+#app .prompt-suggestions { display: flex; flex-wrap: wrap; gap: 8px; }
+#app .prompt-suggestions .btn { min-height: 36px; padding: 6px 12px; box-shadow: none; }
+#app #prompt-input { min-height: 130px; }
+#app .input-actions { justify-content: space-between; }
+@media (max-width: 800px) {
+  #app .demo-playground { grid-template-columns: minmax(0, 1fr); }
+  #app .try-pane { position: static; }
+  #app .demo-experiences { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #app .demo-experiences .btn { padding: 8px; font-size: 13px; }
+}

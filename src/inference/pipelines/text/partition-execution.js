@@ -4,7 +4,7 @@ import { getWeightDtype, getWeightMetadata, isWeightBuffer, isCpuWeightBuffer, i
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { embed } from './embed.js';
 import { processLayer } from './layer.js';
-import { resolveActiveExecutionPlan } from './execution-plan.js';
+import { resolveActiveExecutionPlan, resolvePrefillRecorderChunkLayers } from './execution-plan.js';
 import { buildLayerContext } from './generator/session-context.js';
 import { releaseSharedAttentionState } from './generator/attention-lifecycle.js';
 import { computeLogits } from './logits/index.js';
@@ -70,9 +70,15 @@ export async function executePartitionLayers(state, input, signal) {
   }
   const byteLength = numTokens * config.hiddenSize * bytesPerElement;
   if (!Number.isSafeInteger(byteLength)) throw new Error('Resident activation size exceeds the safe integer range.');
-  const recorder = createCommandRecorder('resident_partition_layers', {
+  const chunkLayers = resolvePrefillRecorderChunkLayers({
+    configuredPrefillChunkLayers: state.runtimeConfig.inference.session.prefillChunkLayers,
+    hasGpuSplitPerLayerInputs: false,
+    numTokens,
+  });
+  const createRecorder = () => createCommandRecorder('resident_partition_layers', {
     profile: state.runtimeConfig.shared.debug.profiler.enabled,
   });
+  let recorder = createRecorder();
   const timing = { inputUploadMs: 0, encodeMs: 0, submitWaitMs: 0, activationReadbackMs: 0,
     logitsMs: 0, gpuKernelsMs: /** @type {number | null} */ (null) };
   const encodeStarted = performance.now();
@@ -80,6 +86,14 @@ export async function executePartitionLayers(state, input, signal) {
   /** @type {GPUBuffer | null} */
   let hidden = null;
   let output = null;
+  const submit = async () => {
+    const started = performance.now();
+    await recorder.submitAndWait();
+    timing.submitWaitMs += performance.now() - started;
+    const kernels = await recorder.resolveProfileTimings();
+    if (kernels) timing.gpuKernelsMs = (timing.gpuKernelsMs ?? 0)
+      + Object.values(kernels).reduce((sum, ms) => sum + ms, 0);
+  };
   try {
     context = buildLayerContext(state, recorder, state.currentSeqLen > 0, null, undefined, executionPlan);
     context.currentTokenIds = input.tokenIds ?? null;
@@ -116,6 +130,21 @@ export async function executePartitionLayers(state, input, signal) {
       if (!isGpuBufferInstance(next)) throw new Error('Resident partition layers must return GPU buffers.');
       hidden = next;
       if (previous !== hidden) recorder.trackTemporaryBuffer(previous);
+      if (state.currentSeqLen === 0 && layer < partition.layerRange[1]
+        && (layer - partition.layerRange[0] + 1) % chunkLayers === 0) {
+        // Preserve only the boundary tensor while the completed chunk releases
+        // its intermediates. This consumes the same prefill policy as whole-model execution.
+        const carry = acquireBuffer(byteLength, undefined, 'resident_partition_carry');
+        try {
+          recorder.getEncoder().copyBufferToBuffer(hidden, 0, carry, 0, byteLength);
+        } catch (error) { releaseBuffer(carry); throw error; }
+        recorder.trackTemporaryBuffer(hidden);
+        hidden = carry;
+        await submit();
+        signal.throwIfAborted();
+        recorder = createRecorder();
+        context.recorder = recorder;
+      }
     }
     signal.throwIfAborted();
     // Layer kernels may register their output as temporary. Carry only the
@@ -125,12 +154,8 @@ export async function executePartitionLayers(state, input, signal) {
     recorder.trackTemporaryBuffer(hidden);
     hidden = null;
     releaseSharedAttentionState(context.sharedAttentionState, recorder);
-    timing.encodeMs = performance.now() - encodeStarted;
-    const submitStarted = performance.now();
-    await recorder.submitAndWait();
-    timing.submitWaitMs = performance.now() - submitStarted;
-    const kernels = await recorder.resolveProfileTimings();
-    if (kernels) timing.gpuKernelsMs = Object.values(kernels).reduce((sum, ms) => sum + ms, 0);
+    timing.encodeMs = performance.now() - encodeStarted - timing.submitWaitMs;
+    await submit();
     signal.throwIfAborted();
     if (!partition.hasLmHead) {
       const readbackStarted = performance.now();
@@ -153,8 +178,11 @@ export async function executePartitionLayers(state, input, signal) {
     }
   } finally {
     if (context) releaseSharedAttentionState(context.sharedAttentionState, recorder);
-    if (hidden) recorder.trackTemporaryBuffer(hidden);
-    recorder.abort();
+    if (hidden) {
+      if (recorder.getStats().submitted) releaseBuffer(hidden);
+      else recorder.trackTemporaryBuffer(hidden);
+    }
+    await recorder.abort();
     if (output) releaseBuffer(output);
   }
 }

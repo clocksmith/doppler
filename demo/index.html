@@ -222,8 +222,8 @@
         </div>
       </div>
       <div class="demo-experiences" aria-label="Try Doppler">
-        <button id="explore-words-btn" class="btn btn-primary" type="button">Word choices</button>
-        <button id="write-local-btn" class="btn btn-ghost" type="button">Write on this device</button>
+        <button id="explore-words-btn" class="btn btn-ghost" type="button">Word choices</button>
+        <button id="write-local-btn" class="btn btn-ghost" type="button">Try your own</button>
         <button id="compare-precision-btn" class="btn btn-ghost" type="button">Compare precision</button>
       </div>
       <div class="chat-toolbar">
@@ -237,11 +237,10 @@
         </div>
       </div>
 
-      <div id="runtime-notice" class="runtime-notice" role="status" hidden></div>
-
 <div id="settings-panel" class="settings-panel demo-panel demo-panel--inset demo-stack">
         <fieldset class="settings-group">
           <legend>Response</legend>
+          <div id="runtime-notice" class="runtime-notice" role="status" hidden></div>
           <label class="output-limit" for="set-max-tokens">
             <span>Output limit</span>
             <select id="set-max-tokens" aria-label="Maximum output tokens">
@@ -343,6 +342,8 @@
         </fieldset>
       </div>
 
+      <div class="demo-playground">
+        <div class="example-pane">
       <!-- Output -->
       <section id="output-area" class="output-area">
         <div id="output-prefill-bar" class="output-prefill-bar" style="width: 0%"></div>
@@ -352,7 +353,7 @@
               <span class="chat-empty-mark" aria-hidden="true">D</span>
               <strong>What could come next?</strong>
               <button id="sample-run-btn" class="btn btn-ghost sample-run-btn" type="button">See word choices</button>
-              <small>Example · no download</small>
+              <small>Precomputed run</small>
             </div>
           </div>
           <article id="live-assistant-message" class="chat-message chat-message--assistant" aria-live="polite" aria-atomic="false" hidden>
@@ -374,7 +375,21 @@
         </div>
       </section>
 
-    <!-- Model picker -->
+        </div>
+        <div class="try-pane">
+      <!-- Chat composer -->
+      <section id="input-area" class="input-area">
+        <label class="composer-heading" for="prompt-input">Try your own</label>
+        <div id="prompt-suggestions" class="prompt-suggestions" aria-label="Suggested prompts"></div>
+        <div class="input-row">
+          <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Type a prompt or choose one above…" rows="4"></textarea>
+        </div>
+        <div class="input-actions">
+          <button id="shuffle-btn" class="btn btn-ghost" type="button" title="Put an example in the message box">Another idea</button>
+          <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Load a model to send">Send</button>
+          <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
+        </div>
+      </section>    <!-- Model picker -->
 <details id="model-picker" class="model-picker flow-card demo-panel demo-stack" >
 <summary>Run on your device</summary>
 <div class="demo-stack">
@@ -406,17 +421,9 @@
     </details>
 
 
-      <!-- Chat composer -->
-      <section id="input-area" class="input-area">
-        <div class="input-row">
-          <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Give it something to write…" rows="2"></textarea>
         </div>
-        <div class="input-actions">
-          <button id="shuffle-btn" class="btn btn-ghost" type="button" title="Put an example in the message box">Try a prompt</button>
-          <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Load a model to send">Send</button>
-          <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
-        </div>
-      </section>
+      </div>
+
     </section>
     </main>
 

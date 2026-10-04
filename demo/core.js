@@ -209,9 +209,9 @@ export function loadSampleInspection(receipt) {
   globalThis.__DOPPLER_DEMO_EVIDENCE__ = receipt;
   const stats = receipt.generationEvidence?.stats ?? {};
   const totalTokens = receipt.generatedTokenIds.length;
-  const decodeMs = stats.decodeTimeMs ?? 168.2;
-  const prefillMs = stats.prefillTimeMs ?? 38.2;
-  const tokPerSec = stats.tokensPerSecond ?? 95.1;
+  const decodeMs = stats.decodeTimeMs ?? null;
+  const prefillMs = stats.prefillTimeMs ?? null;
+  const tokPerSec = stats.tokensPerSecond ?? null;
   state.lastInferenceStats = stats;
   state.lastRun = {
     mode: 'sample-inspection',
@@ -236,7 +236,7 @@ export function loadSampleInspection(receipt) {
   updateXrayPanels(receipt);
   setFinalStats(state.lastRun);
   setExportEnabled(true);
-  setPhase('Example · not a live run');
+  setPhase('Precomputed run');
   clearTokSec();
   setStatus('Ready', false);
   setGenerating(false);

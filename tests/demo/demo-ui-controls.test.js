@@ -33,7 +33,7 @@ assert.match(settingsSource, /doppler\.demo\.word-quality-enabled/);
 
 assert.match(html, /<select id="set-max-tokens"[\s\S]*?<option value="256" selected>/);
 assert.match(settingsSource, /DEMO_DEFAULT_MAX_TOKENS = 256/);
-assert.match(html, /id="shuffle-btn"[^>]*>[\s\S]*Try a prompt<\/button>/);
+assert.match(html, /id="shuffle-btn"[^>]*>[\s\S]*Another idea<\/button>/);
 // Inspection accepts text and returns completed timing; don't offer disconnected controls.
 assert.doesNotMatch(html, /id="image-drop"|id="set-live-toks"/);
 assert.match(html, /id="run-btn"[^>]*>[\s\S]*Send<\/button>/);
