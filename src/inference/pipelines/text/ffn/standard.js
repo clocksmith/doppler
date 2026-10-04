@@ -153,6 +153,7 @@ export async function processFFNStandard(
         usedPostAttnNormStatsPrelude = true;
       } else {
         normedTensor = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
+          kernelPath: context.kernelPath, phase: context.phase, role: 'post_attn_norm', section: 'layer',
           batchSize: numTokens,
           hiddenSize,
           preResidual: fusedResidualInput,
@@ -164,6 +165,7 @@ export async function processFFNStandard(
       }
     } else {
       normedTensor = await doRMSNorm(postAttn, normWeightBuf, rmsNormEps, {
+        kernelPath: context.kernelPath, phase: context.phase, role: 'post_attn_norm', section: 'layer',
         batchSize: numTokens,
         hiddenSize,
         label: `L${layerIdx}.post_attn_norm`,

@@ -117,6 +117,15 @@ export function getKernelPathMatmulPrecision(
   outputDtype?: 'f16' | 'f32';
 } | null;
 
+/** Resolve one exact RMSNorm step without hardware-driven substitution. */
+export function getKernelPathRMSNormSpec(
+  op: string | undefined,
+  section: KernelPathSection | undefined,
+  phase: KernelPathPhase | undefined,
+  layerIndex: number | undefined,
+  path: KernelPathSchema | null | undefined
+): { variant: string; inputDtype: 'f16' | 'f32'; constants: Record<string, number | boolean> | null } | null;
+
 export function getKernelPathActivationSpec(
   op: string,
   phase: KernelPathPhase | undefined,
