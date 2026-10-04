@@ -135,6 +135,7 @@ export declare function resolveMaxBatchDecodeTokens(config: {
 }): number | null;
 
 export declare function resolvePrefillRecorderChunkLayers(config: {
+  configuredPrefillChunkLayers?: number;
   hasGpuSplitPerLayerInputs?: boolean;
   numTokens: number;
 }): number;

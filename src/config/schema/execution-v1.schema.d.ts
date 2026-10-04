@@ -177,6 +177,8 @@ export interface ExecutionV1SessionSchema {
   speculation: ExecutionV1SelfSpeculationSchema | null;
   /** "sync" (default): wait each prefill chunk. "async": queue without waiting. */
   prefillChunkSubmitMode: 'sync' | 'async';
+  /** Optional resolved runtime limit on layers retained by one prefill recorder. */
+  prefillChunkLayers?: number;
   /** Nullable token count for streaming prompt prefill before final logits. */
   prefillTokenChunkSize: number | null;
   /** Skip KV-cache writes for embedding-only hidden-state prefill routes. */
