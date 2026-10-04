@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:eb93c16ed15aa7af6633bc4c4960cd77e93b34ab103eb972ec32e678aa181786';
-const CACHE_NAME = 'doppler-demo-shell-eb93c16ed15aa7af';
+const SHELL_MANIFEST_DIGEST = 'sha256:22ef951365d13e085ab7c82f64c640ba7f3ad5744ca5daa2ec134268d52714c9';
+const CACHE_NAME = 'doppler-demo-shell-22ef951365d13e08';
 const APP_SHELL = Object.freeze([
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
@@ -797,7 +797,8 @@ async function staleWhileRevalidate(request) {
   // A new document must not receive yesterday's JavaScript or runtime policy
   // merely because an older shell cached the same unversioned URL.
   const pathname = new URL(request.url).pathname;
-  if (request.destination === 'script' || /\.(?:js|mjs|json|wgsl)$/.test(pathname)) {
+  if (request.destination === 'script' || request.destination === 'style'
+    || /\.(?:js|mjs|json|wgsl|css)$/.test(pathname)) {
     return (await networkFetch) ?? cached ?? Response.error();
   }
   if (cached) {
