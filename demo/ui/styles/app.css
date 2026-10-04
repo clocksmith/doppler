@@ -5,26 +5,31 @@
 
 /* --- Project color tokens --- */
 :root {
+  --fg: #000;
+  --bg: #fff;
+  --opacity-soft: 1;
+  --opacity-disabled: 1;
+  --doppler-spectrum: linear-gradient(100deg, var(--doppler-blue), var(--doppler-purple) 52%, var(--doppler-red));
   --doppler-blue: #5169e8;
   --doppler-purple: #7958db;
   --doppler-red: #d13b4d;
   --doppler-canvas: #ffffff;
   --doppler-surface: #ffffff;
   --doppler-soft-surface: #ffffff;
-  --doppler-line: #d8d8d8;
+  --doppler-line: #000;
   --doppler-shadow: none;
   --doppler-shadow-sm: none;
   --doppler-inset: none;
-  --doppler-titlebar-bg: rgba(255, 255, 255, 0.95);
-  --doppler-titlebar-border: #dedede;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --doppler-titlebar-bg: #fff;
+  --doppler-titlebar-border: #000;
+  --font-sans: 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
 }
 
 body {
   font-family: var(--font-sans);
   background: var(--doppler-canvas);
-  color: #111111;
+  color: #000;
 }
 
 /* --- Boot overlay --- */
@@ -184,7 +189,7 @@ body.pwa-window-controls .app-shell {
   border-bottom: 1px solid var(--doppler-line);
   border-radius: 0;
   background: transparent;
-  color: #111111;
+  color: #000;
   box-shadow: none;
 }
 
@@ -218,7 +223,7 @@ body.pwa-window-controls .app-shell {
   height: 32px;
   place-items: center;
   border-radius: 8px;
-  background: #222222;
+  background: #000;
   color: #ffffff;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
@@ -243,13 +248,13 @@ body.pwa-window-controls .app-shell {
 
 .app-proof-line span {
   padding: var(--space-xs) var(--space-sm);
-  border: 1px solid #d2d2d2;
+  border: 1px solid #000;
   border-radius: 999px;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--font-tracking-label);
   text-transform: uppercase;
-  color: #444444;
+  color: #000;
 }
 
 .app-links {
@@ -259,7 +264,7 @@ body.pwa-window-controls .app-shell {
 }
 
 .app-links a {
-  color: #555555;
+  color: #000;
   border-color: currentColor;
 }
 
@@ -273,14 +278,15 @@ body.pwa-window-controls .app-shell {
   border-radius: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #222222;
+  color: #000;
 }
 
 .app-header .status-dot {
   width: 8px;
   height: 8px;
+  border: 1px solid #000;
   border-radius: 50%;
-  background: #929292;
+  background: #fff;
   display: inline-block;
 }
 
@@ -289,7 +295,7 @@ body.pwa-window-controls .app-shell {
 }
 
 .app-header .status-dot.is-busy {
-  background: #555555;
+  background: #000;
 }
 
 .demo-flow {
@@ -317,16 +323,16 @@ body.pwa-window-controls .app-shell {
   font-weight: 700;
   line-height: var(--font-leading-tight);
   letter-spacing: -0.02em;
-  color: #222222;
+  color: #000;
 }
 
 .app-shell .btn {
   border-radius: 12px;
   font-family: var(--font-sans);
   font-weight: 600;
-  border: 1px solid #d2d2d2;
+  border: 1px solid #000;
   background: #ffffff;
-  color: #111111;
+  color: #000;
   box-shadow: var(--doppler-shadow-sm);
   cursor: pointer;
 }
@@ -337,9 +343,9 @@ body.pwa-window-controls .app-shell {
 }
 
 .app-shell .btn-primary {
-  background: #111111;
+  background: #000;
   color: #ffffff;
-  border-color: #111111;
+  border-color: #000;
   box-shadow: none;
 }
 
@@ -350,18 +356,18 @@ body.pwa-window-controls .app-shell {
 
 .app-shell .btn-ghost {
   background: #ffffff;
-  color: #111111;
+  color: #000;
   border-color: var(--doppler-line);
 }
 
 .app-shell .btn-ghost:hover:not(:disabled) {
-  background: #eeeeee;
+  background: #fff;
 }
 
 /* Keep control states legible on both the light cards and inverted surfaces. */
 .app-shell :is(button, summary, a, input, select, textarea):focus-visible,
 .confirm-dialog :is(button, input):focus-visible {
-  outline: 2px solid #444444;
+  outline: 2px solid #000;
   outline-offset: 2px;
 }
 
@@ -370,11 +376,11 @@ body.pwa-window-controls .app-shell {
 }
 
 .app-shell input[type="checkbox"]:focus-visible {
-  outline-color: #444444;
+  outline-color: #000;
 }
 
 .app-header :is(button, a):focus-visible {
-  outline-color: #444444;
+  outline-color: #000;
 }
 
 .app-shell :is(button, input, select, textarea):disabled,
@@ -383,22 +389,23 @@ body.pwa-window-controls .app-shell {
 .app-shell .run-btn:disabled,
 .run-btn:disabled {
   opacity: 1;
-  color: #5b5b5b !important;
-  background-color: #eeeeee !important;
-  background: #eeeeee !important;
-  border-color: #d2d2d2 !important;
+  color: #000 !important;
+  background-color: #fff !important;
+  background: #fff !important;
+  border-color: #000 !important;
+  border-style: dashed;
   cursor: not-allowed;
   transition: none !important;
 }
 
 .app-header .btn {
-  border: 1px solid #d2d2d2;
-  color: #222222;
+  border: 1px solid #000;
+  color: #000;
   background: #ffffff;
 }
 
 .app-header .btn:hover {
-  background: #eeeeee;
+  background: #fff;
 }
 
 .app-shell summary::after {
@@ -689,7 +696,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   background:
     repeating-linear-gradient(
       90deg,
-      color-mix(in srgb, currentColor 14%, transparent) 0 var(--model-progress-cell),
+      var(--bg) 0 var(--model-progress-cell),
       transparent var(--model-progress-cell) calc(var(--model-progress-cell) + var(--model-progress-gap))
     );
 }
@@ -761,7 +768,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 }
 
 .confirm-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.32);
+  background: #fff;
   backdrop-filter: blur(2px);
 }
 
@@ -830,7 +837,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   font-family: var(--font-sans);
   font-size: 15px;
   line-height: 1.5;
-  color: #222222;
+  color: #000;
 }
 
 .input-row textarea:focus {
@@ -854,9 +861,9 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   padding-block: 8px;
   font-size: 15px;
   font-weight: 700;
-  background: #222222;
+  background: #000;
   color: #ffffff;
-  border: 1px solid #222222;
+  border: 1px solid #000;
 }
 
 .run-btn:hover:not(:disabled) {
@@ -869,7 +876,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   gap: 5px;
   min-width: 170px;
   margin-right: auto;
-  color: #555555;
+  color: #000;
   font: 600 11px/1.4 var(--font-mono);
   letter-spacing: 0.04em;
 }
@@ -881,14 +888,14 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   border: 1px solid var(--doppler-line);
   border-radius: 11px;
   background: #ffffff;
-  color: #111111;
+  color: #000;
   box-shadow: var(--doppler-shadow-sm);
 }
 
 .sample-run-btn {
   background: #ffffff;
   border: 1px solid var(--doppler-line);
-  color: #111111;
+  color: #000;
   font-weight: 600;
 }
 
@@ -902,22 +909,22 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   align-items: center;
   gap: 5px;
   font-weight: 600;
-  border: 1px solid #d2d2d2;
+  border: 1px solid #000;
   background: #ffffff;
-  color: #222222;
+  color: #000;
   border-radius: 6px;
   padding: 5px 12px;
 }
 
 .app-shell .token-inspector-btn:hover:not(:disabled) {
-  background: #eeeeee;
-  color: #222222;
+  background: #fff;
+  color: #000;
 }
 
 .app-shell .token-inspector-btn.is-active {
-  background: #222222;
+  background: #000;
   color: #ffffff;
-  border-color: #222222;
+  border-color: #000;
 }
 
 .app-shell .token-inspector-btn.is-active:hover:not(:disabled) {
@@ -940,20 +947,20 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #222222;
+  color: #000;
 }
 
 .output-toks {
   font-size: 12px;
   font-family: var(--font-mono);
-  color: #5b5b5b;
+  color: #000;
 }
 
 .chat-surface {
   min-width: 0;
   border: 1px solid var(--doppler-line);
   border-radius: 14px;
-  background: #f4f4f4;
+  background: #fff;
   min-height: 280px;
   max-height: 600px;
   overflow: auto;
@@ -978,7 +985,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   gap: 8px;
   padding: 24px 16px;
   text-align: center;
-  color: #666666;
+  color: #000;
 }
 
 .chat-empty-mark {
@@ -990,20 +997,20 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   border: 1px solid var(--doppler-line);
   border-radius: 12px;
   background: #ffffff;
-  color: #222222;
+  color: #000;
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
 }
 
 .chat-empty strong {
-  color: #222222;
+  color: #000;
   font-family: var(--font-sans);
   font-size: 16px;
 }
 
 .chat-empty > span:last-child {
   font-size: 13px;
-  color: #666666;
+  color: #000;
 }
 
 .chat-message {
@@ -1014,24 +1021,24 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   padding: 14px 18px;
   border-radius: 12px;
   background: #ffffff;
-  border: 1px solid #dedede;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  border: 1px solid #000;
+  box-shadow: none;
 }
 
 .chat-thread .chat-message:first-child {
-  border-top: 1px solid #dedede;
+  border-top: 1px solid #000;
 }
 
 .chat-message--user {
-  background: #eeeeee;
-  border-color: #d2d2d2;
+  background: #fff;
+  border-color: #000;
   align-self: flex-end;
   max-width: 85%;
 }
 
 .chat-message--assistant {
   background: #ffffff;
-  border-color: #dedede;
+  border-color: #000;
   width: 100%;
 }
 
@@ -1040,7 +1047,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #666666;
+  color: #000;
 }
 
 .chat-message-text,
@@ -1049,7 +1056,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   font-family: var(--font-sans);
   font-size: 15px;
   line-height: 1.6;
-  color: #222222;
+  color: #000;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: normal;
@@ -1161,7 +1168,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 
 .settings-panel small {
   display: block;
-  color: #555555;
+  color: #000;
   font: 12px/1.5 var(--font-sans);
 }
 
@@ -1176,15 +1183,15 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 }
 
 .inspection-setting:has(input:checked) {
-  border-color: #999999;
+  border-color: #000;
   box-shadow: var(--doppler-inset);
 }
 
-.inspection-setting input { margin: 3px 0 0; accent-color: #222222; }
+.inspection-setting input { margin: 3px 0 0; accent-color: #000; }
 .inspection-setting strong { display: block; margin-bottom: 4px; font-size: 13px; }
-.profile-values :disabled { opacity: 1; color: #555555; background: #f5f5f5; }
+.profile-values :disabled { opacity: 1; color: #000; background: #fff; }
 #token-inspector-view { grid-column: 1 / -1; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--doppler-line); }
-.chat-empty small { font-size: 12px; color: #555555; }
+.chat-empty small { font-size: 12px; color: #000; }
 
 .settings-grid {
   display: grid;
@@ -1272,7 +1279,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 }
 
 .app-shell .precision-replay-toggle[aria-expanded="true"] {
-  background: #222222;
+  background: #000;
   color: #ffffff;
   opacity: 1;
 }
@@ -1554,7 +1561,7 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 }
 
 .precision-replay-table tbody tr.is-selected-mode {
-  background: color-mix(in srgb, var(--fg) 8%, transparent);
+  background: var(--bg);
 }
 
 .precision-replay-table tbody tr.is-f32-winner td:nth-child(4),
@@ -1711,8 +1718,8 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
 .app-shell .btn[aria-pressed="true"] { box-shadow: var(--doppler-inset); }
 
 .app-shell .precision-replay-toggle[aria-expanded="true"]:not(:disabled) {
-  border-color: #111111;
-  background: #111111;
+  border-color: #000;
+  background: #000;
   color: #ffffff;
 }
 .chat-surface { padding: clamp(16px, 3vw, 28px); box-shadow: var(--doppler-inset); }
@@ -1749,8 +1756,8 @@ body.pwa-window-controls .desktop-titlebar:not([hidden]) {
   font: 13px/1.7 var(--font-mono);
 }
 .chat-markdown code { font-family: var(--font-mono); font-size: 0.9em; }
-.chat-markdown :not(pre) > code { padding: 2px 5px; background: #eeeeee; border-radius: 4px; }
-.chat-markdown blockquote { margin: 1em 0; padding: 4px 16px; border-left: 3px solid #aaa; color: #555; }
+.chat-markdown :not(pre) > code { padding: 2px 5px; background: #fff; border-radius: 4px; }
+.chat-markdown blockquote { margin: 1em 0; padding: 4px 16px; border-left: 3px solid #000; color: #000; }
 .chat-markdown hr { border: 0; border-top: 1px solid var(--doppler-line); margin: 24px 0; }
 .chat-markdown a { text-decoration: underline; text-underline-offset: 3px; }
 .input-actions { flex-wrap: wrap; gap: 10px; }

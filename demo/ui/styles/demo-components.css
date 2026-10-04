@@ -6,7 +6,7 @@
   --demo-space-4: 32px;
   --demo-panel-padding: var(--demo-space-3);
   --demo-panel-radius: 16px;
-  --demo-control-radius: 6px;
+  --demo-control-radius: 14px;
   --demo-control-height: 40px;
   --demo-label-size: 12px;
   --demo-control-size: 14px;
@@ -14,7 +14,7 @@
 
 #app {
   width: 100%;
-  max-width: 980px;
+  max-width: 1080px;
   padding: var(--demo-space-4);
   gap: var(--demo-space-3);
 }
@@ -64,10 +64,10 @@
   border-style: solid;
   border-color: var(--doppler-line);
   background: #fff;
-  color: #222;
+  color: #000;
   box-shadow: none;
   border-radius: var(--demo-control-radius);
-  font: 600 var(--demo-control-size)/1.4 var(--font-sans);
+  font: 500 var(--demo-control-size)/1.4 var(--font-sans);
   letter-spacing: normal;
   text-transform: none;
   white-space: normal;
@@ -85,7 +85,7 @@
 
 #app select {
   padding-right: var(--demo-space-4);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23555' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E");
   background-position: right 12px center;
   background-repeat: no-repeat;
   background-size: 12px 8px;
@@ -131,7 +131,7 @@
 #app .model-select-detail:empty { display: none; }
 #app .model-select-progress-row { max-width: none; }
 #app .app-header { padding: 0 0 var(--demo-space-2); }
-#app .app-header .status-dot.is-ready { background: #333; }
+#app .app-header .status-dot.is-ready { background: #000; }
 #app .app-links { gap: var(--demo-space-2); }
 #app .app-brand-mark { border-radius: var(--demo-control-radius); }
 
@@ -167,7 +167,7 @@
 #app #live-assistant-message:not([hidden]) { margin-top: var(--demo-space-3); }
 #app .chat-empty { gap: var(--demo-space-1); padding: var(--demo-space-3) var(--demo-space-2); }
 #app .input-area { padding: var(--demo-space-2); gap: var(--demo-space-2); border-radius: var(--demo-control-radius); }
-#app .input-area:focus-within { border-color: #555; }
+#app .input-area:focus-within { border-color: #000; }
 #app .input-row textarea { padding: var(--demo-space-1); font-size: 16px; }
 #app .input-actions { gap: var(--demo-space-1); }
 #app .output-limit { flex-basis: 180px; min-width: 140px; }
@@ -180,7 +180,7 @@
 #app .precision-replay-table :is(th, td) { padding: var(--demo-space-1) var(--demo-space-2); }
 
 /* Results lead; setup and evidence unfold in place. */
-#app h2.chat-heading { font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.04em; }
+#app h2.chat-heading { font-size: clamp(32px, 5vw, 52px); font-weight: 500; letter-spacing: -0.055em; line-height: 1.12; }
 #app .chat-workspace { padding: 0; }
 #app .chat-surface {
   background: transparent;
@@ -194,7 +194,7 @@
 #app .chat-message--assistant { background: transparent; border: 0; box-shadow: none; }
 #app .token-stream-container { font-size: 23px; line-height: 1.9; }
 #app .token-inspector-card { padding: 16px 0 0; border: 0; border-top: 1px solid var(--doppler-line); border-radius: 0; background: transparent; box-shadow: none; }
-#app .token-inspector-badge { border: 0; padding: 0; border-radius: 0; background: transparent; color: #222; font: 600 14px/1.5 var(--font-sans); }
+#app .token-inspector-badge { border: 0; padding: 0; border-radius: 0; background: transparent; color: #000; font: 600 14px/1.5 var(--font-sans); }
 #app .token-candidate-text { border: 0; padding: 0; background: transparent; }
 #app .chat-surface:has([data-example="true"]) { max-height: none; min-height: 0; }
 #app .chat-message--user {
@@ -260,11 +260,11 @@
 }
 
 /* One control treatment, with a filled state reserved for running a prompt. */
-#app .btn-primary { background: #222; color: #fff; border-color: #222; }
-#app .btn:hover:not(:disabled) { background: #f3f3f3; border-color: #999; transform: none; }
+#app .btn-primary { background: #000; color: #fff; border-color: #000; }
+#app .btn:hover:not(:disabled) { background: #fff; border-color: #000; transform: none; }
 #app .btn-primary:hover:not(:disabled) { background: #000; color: #fff; border-color: #000; }
 #app .btn:disabled { box-shadow: none; }
-#app .btn:focus-visible { outline: 2px solid #444; outline-offset: 3px; }
+#app .btn:focus-visible { outline: 2px solid #000; outline-offset: 3px; }
 #app .chat-message { border: 0; border-radius: 0; box-shadow: none; padding: 0; }
 #app .chat-thread .chat-message:first-child { border: 0; }
 #app .chat-message--user { max-width: 100%; }
@@ -273,7 +273,65 @@
 #app .model-select-row { grid-template-columns: minmax(0, 1fr) auto; }
 #app #model-select { grid-column: 1 / -1; width: 100%; }
 #app :is(.model-select-status, .model-select-detail) { font: 400 12px/1.5 var(--font-sans); text-transform: none; letter-spacing: normal; overflow-wrap: anywhere; }
-#app .model-card { border: 1px solid var(--doppler-line); border-radius: var(--demo-control-radius); background: #fff; color: #222; box-shadow: none; }
+#app .model-card { border: 1px solid var(--doppler-line); border-radius: var(--demo-control-radius); background: #fff; color: #000; box-shadow: none; }
 #app .precision-replay-panel { padding: 16px 0; border: 0; border-radius: 0; }
 #app :is(.precision-replay-card, .precision-replay-stat-card, .precision-replay-mini-card) { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-#app .run-measurements { margin: 0; font: 400 12px/1.6 var(--font-sans); color: #555; }
+#app .run-measurements { margin: 0; font: 400 12px/1.6 var(--font-sans); color: #000; }
+
+/* Binary chrome; Doppler's spectrum appears in evidence and a contained splash.
+   Only the paint animates: controls never translate, scale, or change geometry. */
+#app .app-header { border-bottom: 1px solid #000; padding-bottom: 24px; }
+#app .app-brand-mark { background: #000; color: #fff; }
+#app .app-brand-name { font-family: var(--font-sans); letter-spacing: -.04em; text-transform: none; }
+#app .chat-heading { padding-top: 16px; }
+#app .chat-heading::after {
+  content: '';
+  display: block;
+  width: 64px;
+  height: 3px;
+  margin-top: 20px;
+  background: var(--doppler-spectrum);
+}
+#app :is(.btn, .precision-replay-mode-btn), .confirm-dialog .btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 999px;
+  transform: none;
+  transition: none;
+}
+#app :is(.btn, .precision-replay-mode-btn)::before, .confirm-dialog .btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--doppler-spectrum);
+  clip-path: circle(0% at 50% 100%);
+  opacity: .22;
+  transition: clip-path 420ms cubic-bezier(.2,.7,.2,1), opacity 180ms ease;
+}
+#app :is(.btn, .precision-replay-mode-btn):is(:hover, :focus-visible):not(:disabled)::before,
+.confirm-dialog .btn:is(:hover, :focus-visible):not(:disabled)::before {
+  clip-path: circle(130% at 50% 100%);
+}
+#app :is(.btn, .precision-replay-mode-btn):active:not(:disabled)::before,
+.confirm-dialog .btn:active:not(:disabled)::before { opacity: .42; }
+#app :is(.btn, .precision-replay-mode-btn):is(:hover, :active),
+.confirm-dialog .btn:is(:hover, :active) { transform: none; box-shadow: none; }
+#app .btn-primary::before { opacity: .65; }
+#app .btn-primary:active:not(:disabled)::before { opacity: 1; }
+#app .btn:disabled { border-style: dashed; font-weight: 400; }
+#app :is(input, select, textarea) { color: #000; accent-color: #000; }
+#app #prompt-input { padding: 16px; line-height: 1.6; }
+#app #prompt-input::placeholder { color: #000; opacity: 1; }
+#app .token-candidate-bar-bg { background: #fff; border: 1px solid #000; height: 6px; }
+#app .token-candidate-bar-fill { background: var(--doppler-spectrum); }
+#app .token-chip.is-selected { text-decoration-thickness: 4px; }
+#app :is(.xray-measure-track, .xray-overview > div) { background: #fff; border: 1px solid #000; box-shadow: none; }
+#app .model-card:hover { transform: none; }
+#app .app-links a { color: #000; border-bottom-color: #000; }
+#app .app-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  #app :is(.btn, .precision-replay-mode-btn)::before, .confirm-dialog .btn::before { transition: none; }
+}
