@@ -1,4 +1,19 @@
-/** Isolated numerical experiment. Candidate WGSL never enters model execution. */
+/** Numerical experiments only. Candidate WGSL is not a shipped runtime implementation. */
+export function buildReciprocalRootDiagnostic(source, entryPoint) {
+  if (!['main', 'main_subgroup'].includes(entryPoint)) throw Error('Unsupported normalization entry point');
+  const boundary = entryPoint === 'main' ? 'let inv_rms = 1.0 / rms;' : 'let inv_rms = 1.0 / sqrt(mean_sq + u.eps);';
+  // Avoid a separately rounded square root. Account for the squared estimate's
+  // rounding with an FMA residual; every operation remains f32.
+  const candidate = source.replaceAll(boundary, `let a = mean_sq + u.eps;
+    let estimate = inverseSqrt(a);
+    let estimate_squared = estimate * estimate;
+    let square_error = fma(estimate, estimate, -estimate_squared);
+    let reciprocal_residual = fma(-a, estimate_squared, 1.0) - a * square_error;
+    let inv_rms = fma(0.5 * estimate, reciprocal_residual, estimate);`);
+  if (candidate === source) throw Error('Canonical normalization boundary not found');
+  return candidate;
+}
+
 export async function diagnoseRMSNorm({ source, input, weights, epsilon, weightOffset,
   entryPoint = 'main', weightDtype = 'f32' }) {
   if (!['main', 'main_subgroup'].includes(entryPoint) || !['f16', 'f32'].includes(weightDtype)) {
@@ -17,8 +32,17 @@ export async function diagnoseRMSNorm({ source, input, weights, epsilon, weightO
     let reciprocal_error = fma(-refined_root, reciprocal, 1.0);
     let inv_rms = fma(reciprocal, reciprocal_error, reciprocal);`);
   if (candidate === source) throw Error('Canonical normalization boundary not found');
+  const reciprocalCandidate = buildReciprocalRootDiagnostic(source, entryPoint);
+  const observed = source.replaceAll(boundary, `${boundary}
+    if (thread_idx == 0u) {
+      normalization_trace[0] = mean_sq;
+      normalization_trace[1] = mean_sq + u.eps;
+      normalization_trace[2] = sqrt(mean_sq + u.eps);
+      normalization_trace[3] = inv_rms;
+    }`) + '\n@group(0) @binding(6) var<storage, read_write> normalization_trace: array<f32>;';
   try {
-    for (const [variant, code] of [['canonical', source], ['refined-f32-diagnostic', candidate]]) {
+    for (const [variant, code] of [['canonical', source], ['refined-f32-diagnostic', candidate],
+      ['canonical-intermediates', observed], ['refined-rsqrt-f32-diagnostic', reciprocalCandidate]]) {
       const owned = [];
       const buffer = (bytes, usage) => { const value = device.createBuffer({ size: bytes, usage }); owned.push(value); return value; };
       try {
@@ -38,15 +62,27 @@ export async function diagnoseRMSNorm({ source, input, weights, epsilon, weightO
         const residual = buffer(size * 4, GPUBufferUsage.STORAGE);
         const prenorm = buffer(size * 4, GPUBufferUsage.STORAGE);
         const readback = buffer(size * 4, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+        const trace = variant === 'canonical-intermediates'
+          ? buffer(16, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC) : null;
+        const traceReadback = trace ? buffer(16, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ) : null;
         device.queue.writeBuffer(x, 0, new Float32Array(input)); device.queue.writeBuffer(w, 0, weightData);
         const group = device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries:
-          [uniform, x, w, y, residual, prenorm].map((buffer, binding) => ({ binding, resource: { buffer } })) });
+          [uniform, x, w, y, residual, prenorm, ...(trace ? [trace] : [])]
+            .map((buffer, binding) => ({ binding, resource: { buffer } })) });
         const encoder = device.createCommandEncoder(), pass = encoder.beginComputePass();
         pass.setPipeline(pipeline); pass.setBindGroup(0, group); pass.dispatchWorkgroups(1); pass.end();
-        encoder.copyBufferToBuffer(y, 0, readback, 0, size * 4); device.queue.submit([encoder.finish()]);
+        encoder.copyBufferToBuffer(y, 0, readback, 0, size * 4);
+        if (trace) encoder.copyBufferToBuffer(trace, 0, traceReadback, 0, 16);
+        device.queue.submit([encoder.finish()]);
         await readback.mapAsync(GPUMapMode.READ);
         const values = Array.from(new Float32Array(readback.getMappedRange().slice(0))); readback.unmap();
-        results.push({ variant, entryPoint, weightDtype, values });
+        let intermediates = null;
+        if (traceReadback) {
+          await traceReadback.mapAsync(GPUMapMode.READ);
+          const [meanSquare, epsilonSum, root, reciprocal] = new Float32Array(traceReadback.getMappedRange().slice(0));
+          intermediates = { meanSquare, epsilonSum, root, reciprocal }; traceReadback.unmap();
+        }
+        results.push({ variant, entryPoint, weightDtype, values, intermediates });
       } finally { for (const value of owned) value.destroy(); }
     }
     return { adapter: { vendor: adapter.info.vendor, architecture: adapter.info.architecture, description: adapter.info.description }, results };
