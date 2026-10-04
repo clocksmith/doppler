@@ -46,7 +46,9 @@ const BUDGET_OUTPUT = path.join(ROOT, 'demo', 'generated-shell-budget.json');
 const WORKER_OUTPUT = path.join(ROOT, 'demo', 'sw.js');
 const WORKER_SHELL_START = '// BEGIN GENERATED DEMO SHELL';
 const WORKER_SHELL_END = '// END GENERATED DEMO SHELL';
-const MAX_MODULES = 700;
+// Includes the five resident-partition modules now reachable through the public
+// host API. Keep the ceiling exact; demo UI changes add no runtime modules.
+const MAX_MODULES = 705;
 const MAX_TOTAL_BYTES = 10_000_000;
 const MODULE_ROOTS = [
   'demo/demo.js',

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import http from 'node:http';
+import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -182,6 +183,18 @@ async function main() {
       return select && !select.disabled && select.options.length > 0;
     });
     journey.catalogRendered = true;
+    await page.waitForFunction(() => document.querySelector('#output-phase').textContent === 'Example · not a live run');
+    assert.deepEqual(await page.evaluate(() => [__demoContract.loads.length, __demoContract.calls.length]), [0, 0], 'Opening the example does not download or execute a model');
+    assert.equal(await page.locator('#model-select').isVisible(), false);
+    assert.equal(await page.locator('#xray-shell').isVisible(), false);
+    await page.locator('.token-chip').nth(3).click();
+    assert.equal(await page.locator('.token-inspector-badge').textContent(), '" fast"');
+    assert.equal(await page.locator('.token-candidates-list').isVisible(), true);
+    await page.locator('.token-chip').nth(3).press('ArrowRight');
+    assert.equal(await page.locator('.token-inspector-badge').textContent(), '" because"');
+    if (!await page.locator('#model-select').isVisible()) {
+      await page.click('#write-local-btn');
+    }
     await page.selectOption('#model-select', 'contract-model');
     journey.modelSelected = await page.$eval(
       '#model-select',

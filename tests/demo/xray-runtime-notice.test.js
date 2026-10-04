@@ -17,7 +17,7 @@ assert.equal(
     profilingEnabled: false,
     traceEnabled: false,
   }),
-  'Token inspection changes execution. Compare quality only with matching comparison fingerprints.'
+  'Token inspection changes execution. Timings are diagnostic.'
 );
 
 assert.equal(
@@ -51,5 +51,5 @@ console.log('xray-runtime-notice.test: ok');
 
 assert.equal(
   getXrayRuntimeNoticeText({ tokenInspectorActive: true, wordQualityEnabled: false, profilingEnabled: false }),
-  'Token inspection changes execution. Compare quality only with matching comparison fingerprints.'
+  'Token inspection changes execution. Timings are diagnostic.'
 );

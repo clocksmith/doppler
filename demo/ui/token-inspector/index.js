@@ -91,22 +91,23 @@ function renderTokenCard() {
   badge.textContent = JSON.stringify(token.text ?? '');
   const id = document.createElement('span');
   id.className = 'token-inspector-id';
-  id.textContent = `Token ${selectedIndex + 1}/${currentTokens.length} · ID ${token.tokenId ?? 'unavailable'}`;
+  id.textContent = `${selectedIndex + 1} / ${currentTokens.length}`;
+  id.title = `Token ID ${token.tokenId ?? 'unavailable'}`;
   identity.append(badge, id);
   const metrics = document.createElement('span');
   metrics.className = 'token-inspector-metrics';
-  metrics.textContent = `Probability ${pct(token.probability)} · Surprisal ${
-    Number.isFinite(token.surprisal) ? `${token.surprisal.toFixed(2)} nats` : 'unavailable'
-  }`;
+  metrics.textContent = `${pct(token.probability)} chance`;
+  metrics.title = `Surprisal: ${Number.isFinite(token.surprisal) ? token.surprisal.toFixed(2) : 'unavailable'} nats`;
   header.append(identity, metrics);
   card.append(header);
 
   const alternatives = Array.isArray(token.topCandidates) ? token.topCandidates : [];
   if (alternatives.length) {
     const details = document.createElement('details');
+    details.open = true;
     details.className = 'token-candidates';
     const summary = document.createElement('summary');
-    summary.textContent = 'Top alternatives';
+    summary.textContent = 'Other possibilities';
     const list = document.createElement('div');
     list.className = 'token-candidates-list';
     for (const [rank, candidate] of alternatives.entries()) {

@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:c0339e9b8201286b971da1e5450d1b3d590728bab62c88631dbafb7b244367bc';
-const CACHE_NAME = 'doppler-demo-shell-c0339e9b8201286b';
+const SHELL_MANIFEST_DIGEST = 'sha256:f2f97bbbebe75203ff4b03d9ba071fe44b705bbbdc922c6d91a0cd3e3876d905';
+const CACHE_NAME = 'doppler-demo-shell-f2f97bbbebe75203';
 const APP_SHELL = Object.freeze([
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
@@ -421,6 +421,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/decode-ring.js",
   "/src/inference/fixtures/embedding-semantic-fixtures.json",
   "/src/inference/fixtures/rerank-semantic-fixtures.json",
+  "/src/inference/generation-step.js",
   "/src/inference/kv-cache/base.js",
   "/src/inference/kv-cache/basis-decomposed-paged.js",
   "/src/inference/kv-cache/index.js",
@@ -569,6 +570,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/operator-events.js",
   "/src/inference/pipelines/text/operator-identity.js",
   "/src/inference/pipelines/text/ops.js",
+  "/src/inference/pipelines/text/partition-attempt.js",
   "/src/inference/pipelines/text/partition-execution.js",
   "/src/inference/pipelines/text/per-layer-inputs.js",
   "/src/inference/pipelines/text/per-layer/materialize.js",
@@ -576,6 +578,8 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/pipeline-load-timing.js",
   "/src/inference/pipelines/text/pipeline.js",
   "/src/inference/pipelines/text/probes.js",
+  "/src/inference/pipelines/text/resident-partition-contract.js",
+  "/src/inference/pipelines/text/resident-partition.js",
   "/src/inference/pipelines/text/resolved-runtime-session.js",
   "/src/inference/pipelines/text/sampling-config.js",
   "/src/inference/pipelines/text/sampling.js",
@@ -652,6 +656,7 @@ const APP_SHELL = Object.freeze([
   "/src/memory/address-table.js",
   "/src/memory/buffer-pool.js",
   "/src/memory/capability.js",
+  "/src/memory/device-budget.js",
   "/src/memory/heap-manager.js",
   "/src/memory/unified-detect.js",
   "/src/rules/execution-contract.js",

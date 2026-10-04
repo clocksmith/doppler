@@ -9,6 +9,9 @@ async function completeRun(page, prompt) {
 }
 
 async function exportedReport(page) {
+  if (!await page.locator('#export-btn').isVisible()) {
+    await page.locator('#run-details > summary').click();
+  }
   const download = page.waitForEvent('download');
   await page.click('#export-btn');
   return JSON.parse(await readFile(await (await download).path(), 'utf8'));
@@ -61,11 +64,13 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#settings-panel').isVisible(), false);
   await page.locator('#settings-toggle').click();
   assert.equal(await page.locator('#settings-panel').isVisible(), true);
-  assert.equal(await page.locator('#xray-toggle-all').isChecked(), true);
-  assert.equal(await page.locator('#set-word-quality').isChecked(), true);
+  assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
+  assert.equal(await page.locator('#set-word-quality').isChecked(), false);
   assert.equal(await page.locator('#token-inspector-toggle').isChecked(), true);
   assert.equal(await page.inputValue('#set-max-tokens'), '256');
-  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/deep-xray');
+  assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality');
+  await page.locator('#xray-toggle-all').check();
+  await page.locator('#set-word-quality').check();
   await page.locator('#xray-toggle-all').uncheck();
   await page.locator('#set-word-quality').uncheck();
   assert.match(await page.locator('#runtime-notice').textContent(), /Token inspection changes execution/);
@@ -216,13 +221,14 @@ export async function checkDemoControls(page) {
     };
   });
   assert.equal(await page.locator('#precision-replay-toggle').isVisible(), true, 'Closed replay keeps its opening control visible');
-  await page.click('#precision-replay-toggle');
+  await page.click('#compare-precision-btn');
   await page.waitForFunction(() => document.querySelector('#precision-replay-status').textContent.includes('Contract evidence failure'));
   assert.equal(await page.locator('#precision-replay-toggle').isEnabled(), true);
   await page.click('#precision-replay-toggle');
   assert.equal(await page.locator('#precision-replay-panel').isVisible(), false);
   assert.equal(await page.locator('#precision-replay-toggle').isVisible(), true, 'Failed evidence loading remains retryable after closing');
   await page.click('#precision-replay-toggle');
+  await page.locator('.precision-evidence-details > summary').click();
   await page.waitForSelector('#precision-replay-table-body tr');
   for (const button of await page.locator('[data-precision-mode]').all()) {
     await button.focus();

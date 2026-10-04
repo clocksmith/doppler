@@ -8,9 +8,9 @@ let onChangeCallback = null;
 function readPreference() {
   try {
     const saved = localStorage.getItem(XRAY_STORAGE_KEY);
-    return saved === null ? true : saved === 'true';
+    return saved === 'true';
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -321,7 +321,7 @@ export function getXrayRuntimeNoticeText(options = {}) {
     return 'X-Ray captures GPU timestamps and changes execution. Timings are diagnostic, not a throughput benchmark.';
   }
   if (options.wordQualityEnabled || options.tokenInspectorActive) {
-    return 'Token inspection changes execution. Compare quality only with matching comparison fingerprints.';
+    return 'Token inspection changes execution. Timings are diagnostic.';
   }
   return 'Always-on evidence records existing wall timing without GPU timestamp queries. This is the performance-representative observation tier.';
 }

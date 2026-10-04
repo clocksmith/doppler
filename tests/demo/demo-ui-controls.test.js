@@ -26,7 +26,7 @@ assert.match(html, /<label class="inspection-setting" for="set-word-quality">/);
 assert.match(html, /id="xray-summary-state"[^>]*>Timing, tokens, execution/);
 assert.doesNotMatch(html, /capture-transcript|export-transcript|set-token-press/);
 assert.match(xraySource, /GPU timestamp queries/);
-assert.match(xraySource, /matching comparison fingerprints/);
+assert.match(xraySource, /Timings are diagnostic/);
 assert.match(wordQualityStyles, /\.word-quality/);
 assert.doesNotMatch(wordQualityStyles, /\.tp-token|\.tp-alternatives/);
 assert.match(settingsSource, /doppler\.demo\.word-quality-enabled/);

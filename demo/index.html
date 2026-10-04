@@ -215,39 +215,16 @@
     </header>
 
 <main class="demo-flow demo-stack">
-    <!-- Model picker -->
-<section id="model-picker" class="model-picker flow-card demo-panel demo-stack" aria-labelledby="model-picker-label">
-<div class="model-picker-heading demo-row">
-        <div>
-          <label id="model-picker-label" class="flow-title" for="model-select">Model</label>
-        </div>
-        <span id="model-select-status" class="model-select-status" aria-live="polite">Loading catalog...</span>
-      </div>
-      <div class="model-select-row">
-        <select id="model-select" disabled>
-          <option value="">Loading models...</option>
-        </select>
-        <button id="model-select-action" class="btn" type="button" disabled>Load model</button>
-        <button id="model-select-remove" class="btn btn-ghost" type="button" hidden>Remove</button>
-      </div>
-      <div id="model-select-detail" class="model-select-detail"></div>
-      <div id="model-select-progress-row" class="model-card-progress-row model-select-progress-row" hidden>
-        <div id="model-select-progress" class="model-card-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-          <div class="model-card-progress-fill"></div>
-        </div>
-        <span id="model-select-progress-label" class="model-card-progress-percent">0%</span>
-      </div>
-      <details id="model-browser" class="model-browser">
-        <summary><span>Browse models</span><span id="model-browser-count" class="model-browser-count"></span></summary>
-        <div id="model-cards" class="model-cards"></div>
-      </details>
-    </section>
-
 <section class="chat-workspace flow-card demo-panel demo-stack" aria-labelledby="chat-heading">
 <div class="chat-heading-row demo-row">
         <div>
-          <h2 id="chat-heading" class="flow-title chat-heading">Chat</h2>
+          <h2 id="chat-heading" class="flow-title chat-heading">See the next word.</h2>
         </div>
+      </div>
+      <div class="demo-experiences" aria-label="Try Doppler">
+        <button id="explore-words-btn" class="btn btn-primary" type="button">Word choices</button>
+        <button id="write-local-btn" class="btn btn-ghost" type="button">Write on this device</button>
+        <button id="compare-precision-btn" class="btn btn-ghost" type="button">Compare precision</button>
       </div>
       <div class="chat-toolbar">
         <button id="settings-toggle" class="btn btn-ghost btn-small" type="button" aria-expanded="false" aria-controls="settings-panel">Advanced</button>
@@ -256,7 +233,7 @@
             <span id="output-phase" class="output-phase"></span>
             <span id="output-toks" class="output-toks"></span>
           </div>
-          <button id="clear-history-btn" class="btn btn-ghost btn-small" type="button" title="Clear conversation, KV cache, and generation state. Keeps the model loaded." disabled>Clear conversation</button>
+          <button id="clear-history-btn" class="btn btn-ghost btn-small" type="button" title="Clear conversation, KV cache, and generation state. Keeps the model loaded." disabled>Clear</button>
         </div>
       </div>
 
@@ -265,6 +242,18 @@
 <div id="settings-panel" class="settings-panel demo-panel demo-panel--inset demo-stack">
         <fieldset class="settings-group">
           <legend>Response</legend>
+          <label class="output-limit" for="set-max-tokens">
+            <span>Output limit</span>
+            <select id="set-max-tokens" aria-label="Maximum output tokens">
+              <option value="128">128 tokens</option>
+              <option value="256" selected>256 tokens</option>
+              <option value="512">512 tokens</option>
+              <option value="1024">1,024 tokens</option>
+              <option value="2048">2,048 tokens</option>
+              <option value="4096">4,096 tokens</option>
+            </select>
+          </label>
+
           <div class="settings-grid">
             <div class="setting-field">
               <label for="set-temperature">Temperature</label>
@@ -292,11 +281,11 @@
               <span><strong>Tokens</strong><small>Inspect token probabilities below the answer.</small></span>
             </label>
             <label class="inspection-setting" for="set-word-quality">
-              <input id="set-word-quality" type="checkbox" checked>
+              <input id="set-word-quality" type="checkbox">
               <span><strong>Perplexity</strong><small>Underline model surprise, not accuracy.</small></span>
             </label>
             <label class="inspection-setting" for="xray-toggle-all">
-              <input id="xray-toggle-all" type="checkbox" checked>
+              <input id="xray-toggle-all" type="checkbox">
               <span><strong>X-Ray</strong><small>Capture execution details and diagnostic timings.</small></span>
             </label>
           </div>
@@ -361,9 +350,9 @@
           <div id="chat-thread" class="chat-thread" aria-live="polite">
             <div id="chat-empty" class="chat-empty">
               <span class="chat-empty-mark" aria-hidden="true">D</span>
-              <strong>Load a model to chat.</strong>
-              <button id="sample-run-btn" class="btn btn-ghost sample-run-btn" type="button">Explore a recorded sample</button>
-              <small>No model download required.</small>
+              <strong>What could come next?</strong>
+              <button id="sample-run-btn" class="btn btn-ghost sample-run-btn" type="button">See word choices</button>
+              <small>Example · no download</small>
             </div>
           </div>
           <article id="live-assistant-message" class="chat-message chat-message--assistant" aria-live="polite" aria-atomic="false" hidden>
@@ -385,23 +374,44 @@
         </div>
       </section>
 
+    <!-- Model picker -->
+<details id="model-picker" class="model-picker flow-card demo-panel demo-stack" >
+<summary>Run on your device</summary>
+<div class="demo-stack">
+<div class="model-picker-heading demo-row">
+        <div>
+          <label id="model-picker-label" class="flow-title" for="model-select">Model</label>
+        </div>
+        <span id="model-select-status" class="model-select-status" aria-live="polite">Loading catalog...</span>
+      </div>
+      <div class="model-select-row">
+        <select id="model-select" disabled>
+          <option value="">Loading models...</option>
+        </select>
+        <button id="model-select-action" class="btn" type="button" disabled>Load model</button>
+        <button id="model-select-remove" class="btn btn-ghost" type="button" hidden>Remove</button>
+      </div>
+      <div id="model-select-detail" class="model-select-detail"></div>
+      <div id="model-select-progress-row" class="model-card-progress-row model-select-progress-row" hidden>
+        <div id="model-select-progress" class="model-card-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="model-card-progress-fill"></div>
+        </div>
+        <span id="model-select-progress-label" class="model-card-progress-percent">0%</span>
+      </div>
+      <details id="model-browser" class="model-browser">
+        <summary><span>Browse models</span><span id="model-browser-count" class="model-browser-count"></span></summary>
+        <div id="model-cards" class="model-cards"></div>
+      </details>
+</div>
+    </details>
+
+
       <!-- Chat composer -->
       <section id="input-area" class="input-area">
         <div class="input-row">
-          <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Message Doppler..." rows="3"></textarea>
+          <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Give it something to write…" rows="2"></textarea>
         </div>
         <div class="input-actions">
-          <label class="output-limit" for="set-max-tokens">
-            <span>Output limit</span>
-            <select id="set-max-tokens" aria-label="Maximum output tokens">
-              <option value="128">128 tokens</option>
-              <option value="256" selected>256 tokens</option>
-              <option value="512">512 tokens</option>
-              <option value="1024">1,024 tokens</option>
-              <option value="2048">2,048 tokens</option>
-              <option value="4096">4,096 tokens</option>
-            </select>
-          </label>
           <button id="shuffle-btn" class="btn btn-ghost" type="button" title="Put an example in the message box">Try a prompt</button>
           <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Load a model to send">Send</button>
           <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
@@ -421,7 +431,9 @@
       </section>
 
     <!-- Report -->
-<div class="report-bar demo-panel demo-row">
+<details id="run-details" class="demo-panel">
+<summary>Run details</summary>
+<div class="report-bar demo-row">
       <div class="report-intro">
         <strong>Run receipt</strong>
       </div>
@@ -433,17 +445,19 @@
       </div>
     </div>
 
+</details>
+
     <section class="precision-replay-area demo-panel demo-stack" aria-label="Stored precision comparison">
       <div class="precision-replay-heading demo-row">
-        <button id="precision-replay-toggle" class="btn btn-ghost precision-replay-toggle" type="button" aria-expanded="false" aria-controls="precision-replay-panel" title="Expand checked-in precision evidence.">Stored precision replay</button>
-        <span id="precision-replay-status" class="precision-replay-status">Loading evidence...</span>
+        <button id="precision-replay-toggle" class="btn btn-ghost precision-replay-toggle" type="button" aria-expanded="false" aria-controls="precision-replay-panel" title="Expand checked-in precision evidence.">Compare precision</button>
+        <span id="precision-replay-status" class="precision-replay-status">Recorded comparison</span>
       </div>
       <div id="precision-replay-panel" class="precision-replay-panel" hidden>
-<p class="precision-replay-note">Stored Gemma 3 270M precision comparisons. Separate from this conversation; no model runs here.</p>
-        <div id="precision-replay-stats" class="precision-replay-stats"></div>
+<p class="precision-replay-note">Recorded Gemma 3 270M results. No live model run.</p>
+
         <div class="precision-replay-controls">
           <div class="setting-field">
-            <label for="precision-replay-prompt-select">Curated prompt</label>
+            <label for="precision-replay-prompt-select">Prompt</label>
             <select id="precision-replay-prompt-select"></select>
           </div>
           <div class="setting-field">
@@ -459,8 +473,11 @@
           </article>
           <div id="precision-replay-winners" class="precision-replay-winners"></div>
         </div>
-        <div id="precision-replay-watch-pairs" class="precision-replay-watch-pairs"></div>
         <div id="precision-replay-branch" class="precision-replay-branch"></div>
+        <details class="precision-evidence-details">
+          <summary>Scores &amp; evidence</summary>
+          <div id="precision-replay-stats" class="precision-replay-stats"></div>
+        <div id="precision-replay-watch-pairs" class="precision-replay-watch-pairs"></div>
         <div class="precision-replay-broad">
           <div class="type-label">Broad flip examples</div>
           <div id="precision-replay-broad-flips" class="precision-replay-broad-flips"></div>
@@ -483,6 +500,7 @@
             </table>
           </div>
         </div>
+        </details>
       </div>
     </section>
       </div>

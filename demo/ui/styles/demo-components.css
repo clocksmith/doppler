@@ -14,7 +14,7 @@
 
 #app {
   width: 100%;
-  max-width: 1180px;
+  max-width: 980px;
   padding: var(--demo-space-4);
   gap: var(--demo-space-3);
 }
@@ -175,6 +175,53 @@
 #app .xray-section { padding-block: var(--demo-space-1); }
 #app .precision-replay-table :is(th, td) { padding: var(--demo-space-1) var(--demo-space-2); }
 
+/* Results lead; setup and evidence unfold in place. */
+#app .demo-experiences {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--demo-space-1);
+}
+#app h2.chat-heading { font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.04em; }
+#app .chat-workspace { box-shadow: none; }
+#app .chat-surface {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  max-height: 660px;
+  box-shadow: none;
+}
+#app .chat-message--assistant { background: transparent; border: 0; box-shadow: none; }
+#app .token-stream-container { font-size: 23px; line-height: 1.9; }
+#app .token-inspector-card { box-shadow: none; }
+#app .token-candidate-text { border: 0; padding: 0; background: transparent; }
+#app .chat-surface:has([data-example="true"]) { max-height: none; min-height: 0; }
+#app .chat-surface:has([data-example="true"]) .chat-message--user {
+  align-self: flex-start;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+#app .chat-surface:has([data-example="true"]) .chat-role { display: none; }
+#app #live-assistant-message[data-example="true"] { margin-top: 16px; padding: 0; }
+#app [data-example="true"] .token-inspector-view { border: 0; padding-top: 0; }
+#app [data-example="true"]:has(#token-inspector-view:not([hidden])) :is(#output-text, #word-quality-output, #word-quality-legend) {
+  display: none;
+}
+#app .model-picker { padding: 0; border: 0; box-shadow: none; }
+#app .model-picker > summary { border-top: 1px solid var(--doppler-line); }
+#app .model-picker > .demo-stack { padding-top: var(--demo-space-2); }
+#app .runtime-notice { font-size: 12px; }
+#app .input-area { box-shadow: none; }
+#app .input-actions { justify-content: flex-end; }
+#app #run-details .report-bar { padding-top: var(--demo-space-2); }
+#app .precision-evidence-details > :not(summary) { margin-top: var(--demo-space-2); }
+#app :is(#run-details, .precision-replay-area) { box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  #app { scroll-behavior: auto; }
+}
+
 @media (max-width: 600px) {
   :root { --demo-panel-padding: var(--demo-space-2); }
   #app { padding: var(--demo-space-2); }
@@ -182,7 +229,11 @@
   #app .model-select-row #model-select { grid-column: 1 / -1; }
   #app .input-actions .output-limit { flex-basis: 100%; }
   #app .input-actions .btn { flex: 1; }
-  #app .chat-toolbar-run { width: 100%; margin-left: 0; justify-content: space-between; }
+  #app .chat-toolbar-run { margin-left: 0; justify-content: space-between; flex: 1; }
+  #app .chat-toolbar-run .chat-run-status { flex-basis: auto; }
+  #app .token-stream-container { font-size: 19px; line-height: 1.7; }
+  #app .token-candidate-row { grid-template-columns: 1ch minmax(50px, 1fr) minmax(30px, 1fr) 6ch; gap: 6px; }
+  #app .token-candidate-bar-bg { display: block; }
   #app .chat-message--user { max-width: 95%; }
   #app .report-bar { align-items: stretch; }
 }
