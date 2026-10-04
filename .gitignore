@@ -224,3 +224,6 @@ playwright-report/
 
 
 .firebaserc
+
+# Packaged Canvas Context demo
+.demo-hosting/

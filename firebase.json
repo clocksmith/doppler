@@ -1,65 +1,72 @@
 {
   "hosting": {
-    "site": "d4da-21169",
-    "public": ".",
+    "site": "canvascontext-9da05",
+    "public": ".demo-hosting",
+    "predeploy": "npm run demo:hosting:build",
+    "ignore": [
+      "**/.*"
+    ],
     "headers": [
       {
-        "source": "/models/catalog.json",
+        "source": "**",
         "headers": [
           {
             "key": "Cache-Control",
-            "value": "no-store, no-cache, must-revalidate, max-age=0"
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/demo/sw.js",
+        "headers": [
+          {
+            "key": "Service-Worker-Allowed",
+            "value": "/"
           }
         ]
       }
     ],
-    "rewrites": [
-      { "source": "/", "destination": "/demo/index.html" }
-    ],
-    "ignore": [
-      "**/.*",
-      "**/.*/**",
-      "**/node_modules/**",
-      "**/*.d.ts",
-      "**/*.md",
-      "**/*.ts",
-      "**/*.py",
-      "**/*.sh",
-      "firebase.json",
-      ".firebaserc",
-      "firebase-debug.log",
-      "package.json",
-      "package-lock.json",
-      "tsconfig.json",
-      "tsconfig.build.json",
-      "artifacts/**",
-      "bench/**",
-      "benchmarks/**",
-      "docs/**",
-      "examples/**",
-      "external/**",
-      "kernel-tests/**",
-      "lean/**",
-      "models/fixtures/**",
-      "models/curated/**",
-      "models/local/**",
-      "models/converted/**",
-      "models/gemma-*/**",
-      "models/google-*/**",
-      "models/qwen-*/**",
-      "**/*.bin",
-      "**/*.safetensors",
-      "**/*.model",
-      "downloads/**",
-      "*.tgz",
-      "demo/fixtures/**",
-      "playwright-report/**",
-      "reports/**",
-      "skills/**",
-      "tests/**",
-      "test-results/**",
-      "tools/**",
-      "tmp/**"
+    "redirects": [
+      {
+        "source": "/mandate-2038",
+        "destination": "https://simulatte.world/mandate-2038/",
+        "type": 301
+      },
+      {
+        "source": "/mandate-2038/:path*",
+        "destination": "https://simulatte.world/mandate-2038/:path*",
+        "type": 301
+      },
+      {
+        "source": "/web/:path*",
+        "destination": "https://simulatte.world/mandate-2038/web/:path*",
+        "type": 301
+      },
+      {
+        "source": "/docs/:path*",
+        "destination": "https://simulatte.world/mandate-2038/docs/:path*",
+        "type": 301
+      },
+      {
+        "source": "/sources/:path*",
+        "destination": "https://simulatte.world/mandate-2038/sources/:path*",
+        "type": 301
+      },
+      {
+        "source": "/dist/runtime/:path*",
+        "destination": "https://simulatte.world/mandate-2038/dist/runtime/:path*",
+        "type": 301
+      },
+      {
+        "source": "/gallery-baseline.html",
+        "destination": "https://simulatte.world/mandate-2038/gallery-baseline.html",
+        "type": 301
+      },
+      {
+        "source": "/first-game-guide.html",
+        "destination": "https://simulatte.world/mandate-2038/first-game-guide.html",
+        "type": 301
+      }
     ]
   }
 }

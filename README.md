@@ -8,13 +8,28 @@
 [![npm version](https://img.shields.io/npm/v/doppler-gpu.svg?label=version)](https://www.npmjs.com/package/doppler-gpu)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/clocksmith/doppler/blob/main/LICENSE)
 
-Doppler is a model compiler, release foundry, and WebGPU runtime for JavaScript.
-Doppler Rig turns supported model sources into signed immutable Capsules with
-ModelIR-derived, qualified TargetPlans. Doppler Run verifies, selects, binds, and
-executes the declared JavaScript/WGSL program. Browser and Node paths are
-qualified separately; Bun remains experimental.
+Run AI models locally in JavaScript: generate text, create embeddings, and rerank
+search results with WebGPU.
 
-Component names and compatible APIs: [Rig → Capsule → Run](docs/rig-run-naming.md).
+**[Try Doppler in your browser](https://canvascontext.com/)** · [Get started](docs/getting-started.md)
+
+Inspect example word choices immediately, or load a model to generate on your
+device. Live inference needs a supported WebGPU browser and a model download.
+
+```mermaid
+flowchart LR
+    Sources[Model sources] --> Rig["Doppler Rig: prepare and qualify"]
+    Rig --> Capsule["Signed model Capsule"]
+    Capsule --> Run["Doppler Run: verify and execute"]
+    App[JavaScript application] --> Run
+    Run --> GPU[WebGPU]
+    GPU --> Result["Text, embeddings, or rankings"]
+    Result --> App
+```
+
+Applications own user experience, trust, and updates. Rig prepares the model;
+Run executes its declared program. Browser and Node support are qualified
+separately; Bun remains experimental. [Architecture](docs/architecture.md).
 
 ## Run local document search
 
@@ -72,7 +87,7 @@ npx doppler-gpu --model qwen3-0.8b --prompt "Write a haiku about GPUs"
 npx doppler-gpu --list-models
 ```
 
-The live browser demo is at [d4da.com/doppler](https://d4da.com/doppler).
+The live browser demo is at [canvascontext.com](https://canvascontext.com/).
 The first documentation path is [getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md),
 followed by the [Doppler Run API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
