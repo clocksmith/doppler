@@ -40,8 +40,28 @@ function refreshRuntimeNotice() {
   el.hidden = !xrayEnabled && !wordQualityEnabled && !tokenInspectorActive;
 }
 
+// Paint travels independently of button geometry, and completes after release.
+function initButtonSplash() {
+  const splashes = new WeakMap();
+  const splash = (event) => {
+    if (event.type === 'click' && event.detail !== 0) return;
+    if (event.type === 'pointerdown' && event.button !== 0) return;
+    const control = event.target.closest('#app .btn, #app .precision-replay-mode-btn, .confirm-dialog .btn');
+    if (!control || control.disabled || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    splashes.get(control)?.cancel();
+    splashes.set(control, control.animate([
+      { clipPath: 'inset(0 100% 0 0)', opacity: .65, offset: 0 },
+      { clipPath: 'inset(0 0 0 0)', opacity: .65, offset: .7 },
+      { clipPath: 'inset(0 0 0 0)', opacity: 0, offset: 1 },
+    ], { pseudoElement: '::after', duration: 460, easing: 'cubic-bezier(.2,.7,.2,1)' }));
+  };
+  document.addEventListener('pointerdown', splash, true);
+  document.addEventListener('click', splash, true);
+}
+
 async function init() {
   installDebugGlobal();
+  initButtonSplash();
   initPwa();
 
   // Wire model callbacks

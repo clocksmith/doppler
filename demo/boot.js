@@ -84,8 +84,7 @@ function hideOverlay() {
   const overlay = $('boot-overlay');
   const app = $('app');
   if (overlay) {
-    overlay.classList.add('fade-out');
-    setTimeout(() => { overlay.hidden = true; }, 350);
+    overlay.hidden = true;
   }
   if (app) app.hidden = false;
 }

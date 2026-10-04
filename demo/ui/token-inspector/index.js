@@ -25,7 +25,7 @@ function tokenButton(token, index) {
   element.type = 'button';
   element.className = 'token-chip';
   element.dataset.tokenIndex = String(index);
-  element.tabIndex = index === selectedIndex ? 0 : -1;
+  element.tabIndex = index === Math.max(0, selectedIndex) ? 0 : -1;
   element.setAttribute('aria-pressed', String(index === selectedIndex));
   element.textContent = String(token?.text ?? '') || '\u200b';
   const surprise = Number.isFinite(token?.surprisal)
@@ -107,7 +107,7 @@ function renderTokenCard() {
     details.open = true;
     details.className = 'token-candidates';
     const summary = document.createElement('summary');
-    summary.textContent = 'Other possibilities';
+    summary.textContent = 'All probabilities';
     const list = document.createElement('div');
     list.className = 'token-candidates-list';
     for (const [rank, candidate] of alternatives.entries()) {

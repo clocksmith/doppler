@@ -18,7 +18,7 @@
       inset: 0;
       z-index: 1000;
       background: var(--bg, #ffffff);
-      color: var(--fg, #111111);
+      color: var(--fg, #000);
       display: grid;
       place-items: center;
       align-content: center;
@@ -79,7 +79,7 @@
       font-size: 12px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      opacity: 0.72;
+      opacity: 1;
       padding-top: 2px;
       line-height: 1.6;
       overflow-wrap: anywhere;
@@ -108,7 +108,7 @@
     }
 
     .boot-timing {
-      opacity: 0.65;
+      opacity: 1;
       font-variant-numeric: tabular-nums;
     }
 
@@ -118,34 +118,34 @@
 
     @keyframes doppler-d4-overlay-a {
       0%, 3% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-      22%, 28% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
-      47%, 53% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
-      72%, 78% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+      22%, 28% { transform: scale(0.45) translate(-31px, -18px); opacity: 1; }
+      47%, 53% { transform: scale(0.45) translate(31px, -18px); opacity: 1; }
+      72%, 78% { transform: scale(0.45) translate(0px, 35px); opacity: 1; }
       97%, 100% { transform: scale(1) translate(0px, 0px); opacity: 1; }
     }
 
     @keyframes doppler-d4-overlay-b {
-      0%, 3% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
-      22%, 28% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
-      47%, 53% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+      0%, 3% { transform: scale(0.45) translate(-31px, -18px); opacity: 1; }
+      22%, 28% { transform: scale(0.45) translate(31px, -18px); opacity: 1; }
+      47%, 53% { transform: scale(0.45) translate(0px, 35px); opacity: 1; }
       72%, 78% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-      97%, 100% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
+      97%, 100% { transform: scale(0.45) translate(-31px, -18px); opacity: 1; }
     }
 
     @keyframes doppler-d4-overlay-c {
-      0%, 3% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
-      22%, 28% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+      0%, 3% { transform: scale(0.45) translate(31px, -18px); opacity: 1; }
+      22%, 28% { transform: scale(0.45) translate(0px, 35px); opacity: 1; }
       47%, 53% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-      72%, 78% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
-      97%, 100% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
+      72%, 78% { transform: scale(0.45) translate(-31px, -18px); opacity: 1; }
+      97%, 100% { transform: scale(0.45) translate(31px, -18px); opacity: 1; }
     }
 
     @keyframes doppler-d4-overlay-d {
-      0%, 3% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+      0%, 3% { transform: scale(0.45) translate(0px, 35px); opacity: 1; }
       22%, 28% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-      47%, 53% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
-      72%, 78% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
-      97%, 100% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+      47%, 53% { transform: scale(0.45) translate(-31px, -18px); opacity: 1; }
+      72%, 78% { transform: scale(0.45) translate(31px, -18px); opacity: 1; }
+      97%, 100% { transform: scale(0.45) translate(0px, 35px); opacity: 1; }
     }
   </style>
   <link rel="stylesheet" href="/demo/styles/rd.css">
@@ -215,12 +215,7 @@
     </header>
 
 <main class="demo-flow demo-stack">
-<section class="chat-workspace flow-card demo-panel demo-stack" aria-labelledby="chat-heading">
-<div class="chat-heading-row demo-row">
-        <div>
-          <h2 id="chat-heading" class="flow-title chat-heading">See the next word.</h2>
-        </div>
-      </div>
+<section class="chat-workspace flow-card demo-panel demo-stack" aria-label="Doppler playground">
       <div class="chat-toolbar">
         <button id="settings-toggle" class="btn btn-ghost btn-small" type="button" aria-expanded="false" aria-controls="settings-panel">Advanced</button>
         <div class="chat-toolbar-run">
