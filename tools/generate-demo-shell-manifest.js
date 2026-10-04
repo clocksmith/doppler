@@ -65,6 +65,7 @@ const DECLARED_ASSETS = [
   'demo/styles/rd-primitives.css',
   'demo/styles/rd-components.css',
   'demo/ui/styles/app.css',
+  'demo/ui/styles/demo-components.css',
   'demo/ui/word-quality/styles.css',
   'demo/ui/xray/styles.css',
   'demo/ui/token-inspector/styles.css',

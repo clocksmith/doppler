@@ -226,7 +226,6 @@
         <div class="chat-toolbar-run">
           <div class="chat-run-status" role="status" aria-live="polite">
             <span id="output-phase" class="output-phase"></span>
-            <span id="output-toks" class="output-toks"></span>
           </div>
           <button id="clear-history-btn" class="btn btn-ghost btn-small" type="button" title="Clear conversation, KV cache, and generation state. Keeps the model loaded." disabled>Clear</button>
         </div>
@@ -436,6 +435,7 @@
     <!-- Report -->
 <details id="run-details" class="demo-panel">
 <summary>Run details</summary>
+<p class="run-measurements">Inspection adds overhead. <span id="output-toks" class="output-toks"></span></p>
 <div class="report-bar demo-row">
       <div class="report-intro">
         <strong>Run receipt</strong>

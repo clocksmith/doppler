@@ -132,7 +132,10 @@ export function clearTokSec() {
 
 export function setPrefillProgress(percent) {
   const bar = $('output-prefill-bar');
-  if (bar) bar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+  if (bar) {
+    bar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+    bar.hidden = percent <= 0 || percent >= 100;
+  }
 }
 
 export function createOutputStream(decodeTokenIds, signal) {
@@ -222,10 +225,11 @@ export function showWordQuality(show) {
   const qualityOutput = $('word-quality-output');
   const liveMessage = $('live-assistant-message');
   if (liveMessage && show) liveMessage.hidden = false;
-  if (plain) plain.hidden = show;
-  if (qualityOutput) qualityOutput.hidden = !show;
+  const inspecting = $('token-inspector-view')?.hidden === false;
+  if (plain) plain.hidden = show || inspecting;
+  if (qualityOutput) qualityOutput.hidden = !show || inspecting;
   const legend = $('word-quality-legend');
-  if (legend) legend.hidden = !show;
+  if (legend) legend.hidden = !show || inspecting;
 }
 
 export function renderWordQuality(quality, text = state.lastInspection?.outputText ?? '') {
@@ -234,19 +238,14 @@ export function renderWordQuality(quality, text = state.lastInspection?.outputTe
 }
 
 export function showTokenInspectorView(show) {
-  const plain = $('output-text');
   const qualityOutput = $('word-quality-output');
-  const legend = $('word-quality-legend');
   const inspectorView = $('token-inspector-view');
   const hasTokens = Boolean($('token-stream-container')?.childElementCount);
   const visible = Boolean(show && hasTokens);
   if (inspectorView) inspectorView.hidden = !visible;
   setTokenInspectorActive(visible);
-  // Token inspection supplements the formatted answer instead of replacing it.
-  const showQuality = state.wordQualityEnabled && Boolean(qualityOutput?.childElementCount);
-  if (plain) plain.hidden = showQuality;
-  if (qualityOutput) qualityOutput.hidden = !showQuality;
-  if (legend) legend.hidden = !showQuality;
+  // Inspection and formatted prose are alternate views of the same answer.
+  showWordQuality(state.wordQualityEnabled && Boolean(qualityOutput?.childElementCount));
 }
 
 export function renderTokenInspection(tokens) {
