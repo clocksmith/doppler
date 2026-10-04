@@ -1,7 +1,7 @@
 /* Inline evidence view: readable text first, details only on selection. */
 .token-inspector-view {
   display: grid;
-  gap: 12px;
+  gap: var(--demo-space-2);
   width: 100%;
   min-width: 0;
 }
@@ -52,10 +52,10 @@
 .token-chip:focus-visible { outline: 2px solid #5966d9; outline-offset: 3px; }
 .token-inspector-card {
   display: grid;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: var(--demo-space-2);
+  padding: var(--demo-space-2);
   border: 1px solid var(--doppler-line);
-  border-radius: 14px;
+  border-radius: var(--demo-control-radius);
   background: #ffffff;
   box-shadow: var(--doppler-inset);
 }
@@ -63,9 +63,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: var(--demo-space-2);
 }
-.token-inspector-primary { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-width: 0; }
+.token-inspector-primary { display: flex; flex-wrap: wrap; align-items: center; gap: var(--demo-space-1); min-width: 0; }
 .token-inspector-badge {
   max-width: 100%;
   padding: 4px 8px;
@@ -88,7 +88,7 @@
   display: grid;
   grid-template-columns: 2ch minmax(60px, 1fr) minmax(40px, 1fr) 7ch;
   align-items: center;
-  gap: 10px;
+  gap: var(--demo-space-1);
   font: 12px/1.5 var(--font-mono);
   color: #000;
 }

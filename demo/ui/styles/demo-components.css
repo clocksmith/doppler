@@ -6,7 +6,7 @@
   --demo-space-4: 32px;
   --demo-panel-padding: var(--demo-space-3);
   --demo-panel-radius: 16px;
-  --demo-control-radius: 14px;
+  --demo-control-radius: 12px;
   --demo-control-height: 40px;
   --demo-label-size: 12px;
   --demo-control-size: 14px;
@@ -14,7 +14,7 @@
 
 #app {
   width: 100%;
-  max-width: 1080px;
+  max-width: 800px;
   padding: var(--demo-space-4);
   gap: var(--demo-space-3);
 }
@@ -180,7 +180,6 @@
 #app .precision-replay-table :is(th, td) { padding: var(--demo-space-1) var(--demo-space-2); }
 
 /* Results lead; setup and evidence unfold in place. */
-#app h2.chat-heading { font-size: clamp(32px, 5vw, 52px); font-weight: 500; letter-spacing: -0.055em; line-height: 1.12; }
 #app .chat-workspace { padding: 0; }
 #app .chat-surface {
   background: transparent;
@@ -226,7 +225,7 @@
 @media (max-width: 600px) {
   :root { --demo-panel-padding: var(--demo-space-2); }
   #app { padding: var(--demo-space-2); }
-  #app .model-select-row { grid-template-columns: minmax(0, 1fr) auto; }
+  #app .model-select-row { grid-template-columns: minmax(0, 1fr); }
   #app .model-select-row #model-select { grid-column: 1 / -1; }
   #app .input-actions .output-limit { flex-basis: 100%; }
   #app .input-actions .btn { flex: 1; }
@@ -245,11 +244,11 @@
 #app .chat-run-status { font: 400 14px/1.5 var(--font-sans); }
 #app .output-phase { font: inherit; text-transform: none; letter-spacing: normal; }
 #app .chat-toolbar .btn { min-width: 9ch; }
-#app .demo-playground { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: var(--demo-space-4); align-items: start; }
+#app .demo-playground { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--demo-space-4); align-items: start; }
 #app .example-pane, #app .try-pane { min-width: 0; }
-#app .try-pane { display: grid; gap: var(--demo-space-2); position: sticky; top: 20px; }
+#app .try-pane { display: grid; gap: var(--demo-space-2); position: static; }
 #app .composer-heading { font: 600 20px/1.4 var(--font-sans); }
-#app .prompt-suggestions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+#app .prompt-suggestions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 #app .prompt-suggestions .btn { width: 100%; min-height: 40px; padding: 8px 1ch; letter-spacing: -.01em; box-shadow: none; }
 #app #prompt-input { min-height: 130px; }
 #app .input-actions { justify-content: flex-end; }
@@ -264,14 +263,14 @@
 #app .btn:hover:not(:disabled) { background: #fff; border-color: #000; transform: none; }
 #app .btn-primary:hover:not(:disabled) { background: #000; color: #fff; border-color: #000; }
 #app .btn:disabled { box-shadow: none; }
-#app .btn:focus-visible { outline: 2px solid #000; outline-offset: 3px; }
+#app :is(.btn, select, input, textarea):focus-visible { outline: 2px solid #000; outline-offset: -3px; }
 #app .chat-message { border: 0; border-radius: 0; box-shadow: none; padding: 0; }
 #app .chat-thread .chat-message:first-child { border: 0; }
 #app .chat-message--user { max-width: 100%; }
 #app details > summary { display: flex; align-items: center; justify-content: space-between; }
 #app details > summary::after { margin-left: 12px; }
-#app .model-select-row { grid-template-columns: minmax(0, 1fr) auto; }
-#app #model-select { grid-column: 1 / -1; width: 100%; }
+#app .model-select-row { grid-template-columns: minmax(0, 1fr); }
+#app .model-select-row > :is(select, .btn) { grid-column: 1; width: 100%; min-width: 0; }
 #app :is(.model-select-status, .model-select-detail) { font: 400 12px/1.5 var(--font-sans); text-transform: none; letter-spacing: normal; overflow-wrap: anywhere; }
 #app .model-card { border: 1px solid var(--doppler-line); border-radius: var(--demo-control-radius); background: #fff; color: #000; box-shadow: none; }
 #app .precision-replay-panel { padding: 16px 0; border: 0; border-radius: 0; }
@@ -283,20 +282,11 @@
 #app .app-header { border-bottom: 1px solid #000; padding-bottom: 24px; }
 #app .app-brand-mark { background: #000; color: #fff; }
 #app .app-brand-name { font-family: var(--font-sans); letter-spacing: -.04em; text-transform: none; }
-#app .chat-heading { padding-top: 16px; }
-#app .chat-heading::after {
-  content: '';
-  display: block;
-  width: 64px;
-  height: 3px;
-  margin-top: 20px;
-  background: var(--doppler-spectrum);
-}
 #app :is(.btn, .precision-replay-mode-btn), .confirm-dialog .btn {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--demo-control-radius);
   transform: none;
   transition: none;
 }
@@ -307,20 +297,27 @@
   z-index: -1;
   pointer-events: none;
   background: var(--doppler-spectrum);
-  clip-path: circle(0% at 50% 100%);
+  clip-path: inset(0 0 0 100%);
   opacity: .22;
   transition: clip-path 420ms cubic-bezier(.2,.7,.2,1), opacity 180ms ease;
 }
 #app :is(.btn, .precision-replay-mode-btn):is(:hover, :focus-visible):not(:disabled)::before,
 .confirm-dialog .btn:is(:hover, :focus-visible):not(:disabled)::before {
-  clip-path: circle(130% at 50% 100%);
+  clip-path: inset(0 0 0 0);
 }
-#app :is(.btn, .precision-replay-mode-btn):active:not(:disabled)::before,
-.confirm-dialog .btn:active:not(:disabled)::before { opacity: .42; }
+#app :is(.btn, .precision-replay-mode-btn)::after, .confirm-dialog .btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--doppler-spectrum);
+  clip-path: inset(0 100% 0 0);
+  opacity: 0;
+}
 #app :is(.btn, .precision-replay-mode-btn):is(:hover, :active),
 .confirm-dialog .btn:is(:hover, :active) { transform: none; box-shadow: none; }
 #app .btn-primary::before { opacity: .65; }
-#app .btn-primary:active:not(:disabled)::before { opacity: 1; }
 #app .btn:disabled { border-style: dashed; font-weight: 400; }
 #app :is(input, select, textarea) { color: #000; accent-color: #000; }
 #app #prompt-input { padding: 16px; line-height: 1.6; }
@@ -334,4 +331,31 @@
 #app .app-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
 @media (prefers-reduced-motion: reduce) {
   #app :is(.btn, .precision-replay-mode-btn)::before, .confirm-dialog .btn::before { transition: none; }
+}
+
+/* Read the result, try a prompt, then open optional evidence. */
+#app .chat-toolbar { align-items: center; }
+#app .chat-toolbar-run { order: -1; }
+#app .demo-playground { gap: var(--demo-space-4); }
+#app .try-pane { padding-top: var(--demo-space-3); border-top: 1px solid #000; }
+#app .chat-run-status { font-weight: 600; }
+#app #live-assistant-message[data-example="true"] { margin-top: var(--demo-space-2); }
+#app .token-stream-container { font-size: 22px; line-height: 1.7; }
+#app .input-area { gap: var(--demo-space-2); }
+#app #prompt-input { min-height: 100px; }
+#app :is(#run-details, .precision-replay-area) { padding: 0; border: 0; }
+#app .inspection-workspace-body { gap: var(--demo-space-2); }
+#app .precision-replay-heading { gap: 8px; }
+#app .precision-replay-status { font-size: 12px; }
+/* Native control ink must not fade when disabled, including WebKit text fill. */
+#app :is(input, select, textarea):disabled { -webkit-text-fill-color: #000; opacity: 1; }
+#app ::placeholder { color: #000; opacity: 1; }
+#app ::selection { color: #fff; background: #000; }
+#app { scrollbar-color: #000 #fff; }
+#app * { scrollbar-color: #000 #fff; }
+@media (max-width: 480px) {
+  #app .prompt-suggestions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #app .chat-toolbar { gap: 8px; }
+  #app .chat-toolbar-run { gap: 8px; }
+  #app .token-stream-container { font-size: 20px; }
 }

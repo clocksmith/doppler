@@ -132,34 +132,34 @@ body {
 
 @keyframes doppler-d4-overlay-a {
   0%, 3% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-  22%, 28% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
-  47%, 53% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
-  72%, 78% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+  22%, 28% { transform: scale(0.45) translate(-31px, -18px); opacity: 1; }
+  47%, 53% { transform: scale(0.45) translate(31px, -18px); opacity: 1; }
+  72%, 78% { transform: scale(0.45) translate(0px, 35px); opacity: 1; }
   97%, 100% { transform: scale(1) translate(0px, 0px); opacity: 1; }
 }
 
 @keyframes doppler-d4-overlay-b {
-  0%, 3% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
-  22%, 28% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
-  47%, 53% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+  0%, 3% { transform: scale(0.45) translate(-31px, -18px); opacity: 1; }
+  22%, 28% { transform: scale(0.45) translate(31px, -18px); opacity: 1; }
+  47%, 53% { transform: scale(0.45) translate(0px, 35px); opacity: 1; }
   72%, 78% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-  97%, 100% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
+  97%, 100% { transform: scale(0.45) translate(-31px, -18px); opacity: 1; }
 }
 
 @keyframes doppler-d4-overlay-c {
-  0%, 3% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
-  22%, 28% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+  0%, 3% { transform: scale(0.45) translate(31px, -18px); opacity: 1; }
+  22%, 28% { transform: scale(0.45) translate(0px, 35px); opacity: 1; }
   47%, 53% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-  72%, 78% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
-  97%, 100% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
+  72%, 78% { transform: scale(0.45) translate(-31px, -18px); opacity: 1; }
+  97%, 100% { transform: scale(0.45) translate(31px, -18px); opacity: 1; }
 }
 
 @keyframes doppler-d4-overlay-d {
-  0%, 3% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+  0%, 3% { transform: scale(0.45) translate(0px, 35px); opacity: 1; }
   22%, 28% { transform: scale(1) translate(0px, 0px); opacity: 1; }
-  47%, 53% { transform: scale(0.45) translate(-31px, -18px); opacity: 0.5; }
-  72%, 78% { transform: scale(0.45) translate(31px, -18px); opacity: 0.5; }
-  97%, 100% { transform: scale(0.45) translate(0px, 35px); opacity: 0.5; }
+  47%, 53% { transform: scale(0.45) translate(-31px, -18px); opacity: 1; }
+  72%, 78% { transform: scale(0.45) translate(31px, -18px); opacity: 1; }
+  97%, 100% { transform: scale(0.45) translate(0px, 35px); opacity: 1; }
 }
 
 /* --- App shell --- */

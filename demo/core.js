@@ -1,5 +1,4 @@
 import { state } from './ui/state.js';
-import { selectToken } from './ui/token-inspector/index.js';
 import { syncModelControls } from './models.js';
 import { getSettings } from './settings.js';
 import {
@@ -202,7 +201,6 @@ export function loadSampleInspection(receipt) {
   if (Array.isArray(receipt.tokens) && receipt.tokens.length > 0) {
     renderTokenInspection(receipt.tokens);
     showTokenInspectorView(state.tokenInspectorActive);
-    selectToken(0);
   }
 
   state.lastInspection = receipt;
