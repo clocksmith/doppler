@@ -56,7 +56,7 @@ function createEmptyState() {
   sample.type = 'button';
   sample.textContent = 'See word choices';
   const note = document.createElement('small');
-  note.textContent = 'Example · no download';
+  note.textContent = 'Precomputed run';
 
   empty.append(mark, heading, sample, note);
   return empty;

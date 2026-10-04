@@ -1,20 +1,11 @@
 {
   "text": [
-    "explain why a toddler is exactly like a neural network",
-    "compare zig to rust in three sentences",
-    "why is WebGPU the ultimate app store bypass",
-    "write a poem about a bear that is bullish on QQQ",
-    "what happens when all inference runs on-device",
-    "describe how speculative decoding uses a draft model to accelerate inference",
-    "prove that zero data egress is a procurement gate, not a feature",
-    "explain the difference between heuristic success and product truth",
-    "draft a compliance memo for moving anti-fraud checks to client-side models",
-    "is deterministic fallback fundamentally better than probabilistic success",
-    "defend fail-closed over graceful degradation in legal tech",
-    "explain why a single attention head can implement both copying and induction patterns",
-    "design a local-first underwriting workflow with verifiable inference receipts",
-    "write a post-mortem for a startup that moved risk scoring to browser inference",
-    "eat your cake and have it too"
+    "Explain why the sky is blue in one sentence.",
+    "Make this sentence clearer: We need to utilize a more efficient process to accomplish the task.",
+    "Write the first two sentences of a story about a lost robot.",
+    "Suggest three names for a neighborhood bookshop.",
+    "Explain how a bicycle stays balanced in two sentences.",
+    "Write a friendly invitation to a picnic."
   ],
   "image": [
     {
@@ -28,6 +19,20 @@
     {
       "prompt": "summarize the key information in this image",
       "note": "Drop or paste an image, then ask about it"
+    }
+  ],
+  "suggestions": [
+    {
+      "label": "Explain",
+      "prompt": "Explain why the sky is blue in one sentence."
+    },
+    {
+      "label": "Rewrite",
+      "prompt": "Make this sentence clearer: We need to utilize a more efficient process to accomplish the task."
+    },
+    {
+      "label": "Imagine",
+      "prompt": "Write the first two sentences of a story about a lost robot."
     }
   ]
 }

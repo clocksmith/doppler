@@ -77,12 +77,8 @@ async function init() {
     refreshRuntimeNotice();
   });
   $('write-local-btn')?.addEventListener('click', () => {
-    if (state.model) {
-      $('prompt-input')?.focus();
-    } else {
-      $('model-picker').open = true;
-      $('model-select')?.focus();
-    }
+    $('prompt-input')?.focus();
+    $('input-area')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   });
   $('compare-precision-btn')?.addEventListener('click', () => {
     const toggle = $('precision-replay-toggle');
