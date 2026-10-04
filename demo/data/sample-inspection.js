@@ -1,5 +1,6 @@
 // Recorded through the public model.inspect.generate API. See recording for provenance.
 export const SAMPLE_INSPECTION_RECEIPT = {
+  "prompt": "Explain why the sky is blue in one sentence.",
   "schema": "doppler.model-inspection-receipt/v1",
   "policy": {
     "id": "demo/guided-quality",

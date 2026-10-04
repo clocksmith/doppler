@@ -29,42 +29,42 @@
     "redirects": [
       {
         "source": "/mandate-2038",
-        "destination": "https://simulatte.world/mandate-2038/",
+        "destination": "https://m3t4.ai/mandate-2038/",
         "type": 301
       },
       {
         "source": "/mandate-2038/:path*",
-        "destination": "https://simulatte.world/mandate-2038/:path*",
+        "destination": "https://m3t4.ai/mandate-2038/:path*",
         "type": 301
       },
       {
         "source": "/web/:path*",
-        "destination": "https://simulatte.world/mandate-2038/web/:path*",
+        "destination": "https://m3t4.ai/mandate-2038/web/:path*",
         "type": 301
       },
       {
         "source": "/docs/:path*",
-        "destination": "https://simulatte.world/mandate-2038/docs/:path*",
+        "destination": "https://m3t4.ai/mandate-2038/docs/:path*",
         "type": 301
       },
       {
         "source": "/sources/:path*",
-        "destination": "https://simulatte.world/mandate-2038/sources/:path*",
+        "destination": "https://m3t4.ai/mandate-2038/sources/:path*",
         "type": 301
       },
       {
         "source": "/dist/runtime/:path*",
-        "destination": "https://simulatte.world/mandate-2038/dist/runtime/:path*",
+        "destination": "https://m3t4.ai/mandate-2038/dist/runtime/:path*",
         "type": 301
       },
       {
         "source": "/gallery-baseline.html",
-        "destination": "https://simulatte.world/mandate-2038/gallery-baseline.html",
+        "destination": "https://m3t4.ai/mandate-2038/gallery-baseline.html",
         "type": 301
       },
       {
         "source": "/first-game-guide.html",
-        "destination": "https://simulatte.world/mandate-2038/first-game-guide.html",
+        "destination": "https://m3t4.ai/mandate-2038/first-game-guide.html",
         "type": 301
       }
     ]

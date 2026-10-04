@@ -113,5 +113,7 @@ npm run demo:hosting:deploy
 
 Verify preview startup and interactions before production. `/release.json`
 identifies the source commit. Legacy Mandate game and document routes redirect
-to https://simulatte.world/mandate-2038/; the root now opens Doppler. Local
+to https://m3t4.ai/mandate-2038/; the root now opens Doppler. Local
 storage and model caches from d4da.com do not transfer between origins.
+
+The opening precomputed run was captured with `model.inspect.generate` in Chrome WebGPU. `data/sample-inspection.js` retains the real token probabilities, artifact fingerprint, timing, capture date, and raw receipt digest. It does not execute or download a model on first load. Prompt suggestions are editable; choosing a model is explicit before a new visitor runs their own prompt.
