@@ -13,7 +13,7 @@ function pct(value) {
 function button(text, action, disabled = false) {
   const element = document.createElement('button');
   element.type = 'button';
-  element.className = 'token-inspector-nav-btn';
+  element.className = 'btn token-inspector-nav-btn';
   element.textContent = text;
   element.disabled = disabled;
   element.addEventListener('click', action);

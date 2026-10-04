@@ -67,6 +67,7 @@ export async function checkDemoControls(page) {
   assert.equal(await page.locator('#xray-toggle-all').isChecked(), false);
   assert.equal(await page.locator('#set-word-quality').isChecked(), false);
   assert.equal(await page.locator('#token-inspector-toggle').isChecked(), true);
+  assert.equal(await page.locator('#output-prefill-bar').isVisible(), false, 'Completed runs have no loading stripe');
   assert.equal(await page.inputValue('#set-max-tokens'), '256');
   assert.equal(await page.evaluate(() => __demoContract.calls.at(-1).policyId), 'demo/guided-quality');
   await page.locator('#xray-toggle-all').check();
@@ -206,6 +207,14 @@ export async function checkDemoControls(page) {
 
   await page.locator('#sample-run-btn').click();
   assert.equal(await page.locator('#token-inspector-toggle').isChecked(), false, 'Sample inspection preserves the selected observers');
+  const sampleSettingsOpen = await page.locator('#settings-panel').isVisible();
+  if (!sampleSettingsOpen) await page.click('#settings-toggle');
+  await page.check('#token-inspector-toggle');
+  assert.equal(await page.locator('#output-text').isVisible(), false, 'Inspection replaces the duplicate formatted answer');
+  assert.equal(await page.locator('#token-inspector-view').isVisible(), true);
+  await page.uncheck('#token-inspector-toggle');
+  assert.equal(await page.locator('#output-text').isVisible(), true);
+  if (!sampleSettingsOpen) await page.click('#settings-toggle');
   assert.equal(await page.locator('#runtime-notice').isVisible(), false);
 
   await checkDemoStreaming(page);

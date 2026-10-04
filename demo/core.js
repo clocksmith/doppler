@@ -162,7 +162,7 @@ export async function runGeneration() {
     updateXrayPanels(receipt);
     setFinalStats(state.lastRun);
     setExportEnabled(true);
-    setPhase(receipt.performanceRepresentative ? 'Complete' : 'Complete · diagnostic timing');
+    setPhase('Complete');
   } catch (error) {
     receiving = false;
     const partialOutput = stream.finish();
