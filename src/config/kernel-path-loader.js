@@ -430,6 +430,31 @@ export function getKernelPathActivationSpec(op, phase, layerIndex, path) {
   return { variant, constants: step.constants ?? null };
 }
 
+export function getKernelPathRMSNormSpec(op, section, phase, layerIndex, path) {
+  if (path == null) return null;
+  if (!op || !['layer', 'preLayer', 'postLayer'].includes(section)
+    || !['prefill', 'decode'].includes(phase)
+    || !Number.isInteger(layerIndex) || layerIndex < 0) {
+    throw new Error('RMSNorm kernel lookup requires an explicit role, section, phase and layer index.');
+  }
+  const steps = getKernelPathStepsForSection(path, section, phase, layerIndex)
+    .filter(step => step.op === op);
+  if (steps.length !== 1) {
+    throw new Error(`RMSNorm ${op} requires exactly one declared step at ${phase}/${layerIndex}; found ${steps.length}.`);
+  }
+  const step = steps[0];
+  const variant = findKernelVariant('rmsnorm', step.kernel, step.entry, phase, step.constants);
+  const config = getKernelConfigs().rmsnorm?.[variant];
+  if (!config || config.entryPoint !== step.entry) {
+    throw new Error(`RMSNorm ${op} has no exact registered kernel for ${step.kernel}#${step.entry}.`);
+  }
+  const inputDtype = step.precision?.inputDtype ?? step.precision?.activationDtype ?? path.activationDtype;
+  if (!['f16', 'f32'].includes(inputDtype)) {
+    throw new Error(`RMSNorm ${op} requires an explicit activation dtype.`);
+  }
+  return { variant, inputDtype, constants: step.constants ?? null };
+}
+
 export function getKernelPathStepPrecision(
   op,
   section,

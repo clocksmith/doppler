@@ -1,10 +1,16 @@
 /** Isolated numerical experiment. Candidate WGSL never enters model execution. */
-export async function diagnoseRMSNorm({ source, input, weights, epsilon, weightOffset }) {
+export async function diagnoseRMSNorm({ source, input, weights, epsilon, weightOffset,
+  entryPoint = 'main', weightDtype = 'f32' }) {
+  if (!['main', 'main_subgroup'].includes(entryPoint) || !['f16', 'f32'].includes(weightDtype)) {
+    throw Error('Explicit supported entry point and weight dtype required');
+  }
   const adapter = await navigator.gpu.requestAdapter();
   if (!adapter) throw Error('WebGPU adapter required');
   const device = await adapter.requestDevice({ requiredFeatures: ['subgroups'] });
   const size = input.length, results = [];
-  const candidate = source.replace('let inv_rms = 1.0 / rms;', `let a = mean_sq + u.eps;
+  const boundary = entryPoint === 'main' ? 'let inv_rms = 1.0 / rms;' : 'let inv_rms = 1.0 / sqrt(mean_sq + u.eps);';
+  const candidate = source.replaceAll(boundary, `${entryPoint === 'main' ? '' : 'let rms = sqrt(mean_sq + u.eps);'}
+    let a = mean_sq + u.eps;
     let root_error = fma(-rms, rms, a);
     let refined_root = rms + root_error / (2.0 * rms);
     let reciprocal = 1.0 / refined_root;
@@ -20,18 +26,19 @@ export async function diagnoseRMSNorm({ source, input, weights, epsilon, weightO
         const errors = (await shader.getCompilationInfo()).messages.filter(message => message.type === 'error');
         if (errors.length) throw Error(errors.map(error => error.message).join('\n'));
         const pipeline = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: shader,
-          entryPoint: 'main', constants: { WORKGROUP_SIZE: 256, RMS_NORM_OFFSET: weightOffset, WEIGHT_IS_F16: false } } });
+          entryPoint, constants: { WORKGROUP_SIZE: 256, RMS_NORM_OFFSET: weightOffset, WEIGHT_IS_F16: weightDtype === 'f16' } } });
         const uniform = buffer(32, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);
         const data = new ArrayBuffer(32), view = new DataView(data);
         view.setUint32(0, size, true); view.setUint32(4, 1, true); view.setFloat32(8, epsilon, true);
         view.setUint32(16, 1, true); view.setFloat32(20, 1, true); device.queue.writeBuffer(uniform, 0, data);
         const x = buffer(size * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST);
-        const w = buffer(size * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST);
+        const weightData = weightDtype === 'f16' ? new Uint16Array(weights) : new Float32Array(weights);
+        const w = buffer(weightData.byteLength, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST);
         const y = buffer(size * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
         const residual = buffer(size * 4, GPUBufferUsage.STORAGE);
         const prenorm = buffer(size * 4, GPUBufferUsage.STORAGE);
         const readback = buffer(size * 4, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
-        device.queue.writeBuffer(x, 0, new Float32Array(input)); device.queue.writeBuffer(w, 0, new Float32Array(weights));
+        device.queue.writeBuffer(x, 0, new Float32Array(input)); device.queue.writeBuffer(w, 0, weightData);
         const group = device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries:
           [uniform, x, w, y, residual, prenorm].map((buffer, binding) => ({ binding, resource: { buffer } })) });
         const encoder = device.createCommandEncoder(), pass = encoder.beginComputePass();
@@ -39,7 +46,7 @@ export async function diagnoseRMSNorm({ source, input, weights, epsilon, weightO
         encoder.copyBufferToBuffer(y, 0, readback, 0, size * 4); device.queue.submit([encoder.finish()]);
         await readback.mapAsync(GPUMapMode.READ);
         const values = Array.from(new Float32Array(readback.getMappedRange().slice(0))); readback.unmap();
-        results.push({ variant, values });
+        results.push({ variant, entryPoint, weightDtype, values });
       } finally { for (const value of owned) value.destroy(); }
     }
     return { adapter: { vendor: adapter.info.vendor, architecture: adapter.info.architecture, description: adapter.info.description }, results };

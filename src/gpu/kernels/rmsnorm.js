@@ -8,6 +8,7 @@ import { selectRuleValue } from './rule-registry.js';
 import { selectRuleValue as selectLoaderRule } from '../../rules/rule-registry.js';
 import { getBuffer, getWeightDtype, getBufferDtype } from '../weight-buffer.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
+import { getKernelPathRMSNormSpec } from '../../config/kernel-path-loader.js';
 
 // Conservative fallback dtype for norm weight inference when metadata is unavailable.
 const DEFAULT_DTYPE = 'f32';
@@ -126,6 +127,16 @@ function resolveRMSNormDispatchLabel(label) {
 }
 
 export function selectRMSNormKernel(options = {}, isF16 = false) {
+  const declared = getKernelPathRMSNormSpec(options.role, options.section, options.phase, options.layerIdx, options.kernelPath);
+  if (declared) {
+    if ((declared.inputDtype === 'f16') !== isF16) {
+      throw new Error(`RMSNorm input dtype disagrees with declared ${declared.inputDtype} execution.`);
+    }
+    if (declared.variant === 'residual' && options.hiddenSize > RMSNORM_CACHE_LIMIT) {
+      throw new Error('Declared RMSNorm cached kernel exceeds its hidden-size limit.');
+    }
+    return declared.variant;
+  }
   const { residual = null, hiddenSize = null } = options;
   const { smallThreshold } = getKernelThresholds().rmsnorm;
   const caps = getKernelCapabilities();
@@ -143,6 +154,22 @@ export function selectRMSNormKernel(options = {}, isF16 = false) {
   );
 }
 
+function resolveRMSNormConstants(options, normWeightDtype) {
+  const declared = getKernelPathRMSNormSpec(options.role, options.section, options.phase, options.layerIdx, options.kernelPath);
+  const actual = {
+    RMS_NORM_OFFSET: Boolean(options.rmsNormWeightOffset),
+    WEIGHT_IS_F16: normWeightDtype === 'f16',
+    PRE_RESIDUAL: !!options.preResidual,
+    OUTPUT_PRENORM: !!options.preResidual && !!options.residualSumOutput,
+  };
+  for (const [key, value] of Object.entries(actual)) {
+    if (declared?.constants?.[key] != null && Number(declared.constants[key]) !== Number(value)) {
+      throw new Error(`RMSNorm ${key} disagrees with the declared execution step.`);
+    }
+  }
+  return { ...actual, ...declared?.constants };
+}
+
 export async function runRMSNorm(
   input,
   weight,
@@ -151,16 +178,17 @@ export async function runRMSNorm(
 ) {
   const {
     batchSize = 1, hiddenSize, residual = null, outputBuffer = null,
-    rmsNormWeightOffset = false, preResidual = null, residualSumOutput = null,
+    preResidual = null, residualSumOutput = null,
     outputScale = null,
   } = options;
   const resolvedOutputScale = resolveRMSNormOutputScale(outputScale);
   const isF16 = input.dtype === 'f16';
-  const variant = selectRMSNormKernel(options, isF16);
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
+  const variant = selectRMSNormKernel({ ...options, hiddenSize: inferredHiddenSize }, isF16);
   const normWeightBuffer = getBuffer(weight);
   assertRMSNormWeightBuffer(weight, normWeightBuffer, inferredHiddenSize);
   const normWeightDtype = resolveNormWeightDtype(weight, inferredHiddenSize);
+  const constants = resolveRMSNormConstants(options, normWeightDtype);
 
   const bytesPerElement = isF16 ? 2 : 4;
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
@@ -176,13 +204,13 @@ export async function runRMSNorm(
   const kernelBindings = [input, normWeightBuffer, outputBuf, residualBuf];
   // Binding 5 (residual_sum_output) must not alias binding 3 (output) — both are read_write.
   // Allocate a small placeholder when the prenorm output path is inactive.
-  const ownedPrenormPlaceholder = hasPrenormOutput ? null : acquireBuffer(4, undefined, 'rmsnorm_prenorm_placeholder');
-  const prenormBuf = hasPrenormOutput
-    ? (residualSumOutput?.buffer || residualSumOutput)
-    : ownedPrenormPlaceholder;
-  const extraBindings = [{ binding: 5, buffer: prenormBuf }];
-
+  let ownedPrenormPlaceholder = null;
   try {
+    ownedPrenormPlaceholder = hasPrenormOutput ? null : acquireBuffer(4, undefined, 'rmsnorm_prenorm_placeholder');
+    const prenormBuf = hasPrenormOutput
+      ? (residualSumOutput?.buffer || residualSumOutput)
+      : ownedPrenormPlaceholder;
+    const extraBindings = [{ binding: 5, buffer: prenormBuf }];
     await unifiedKernelWrapper(
       'rmsnorm',
       null,
@@ -199,12 +227,7 @@ export async function runRMSNorm(
         _pad2: 0,
       },
       dispatchPlan.workgroups,
-      {
-        RMS_NORM_OFFSET: rmsNormWeightOffset,
-        WEIGHT_IS_F16: normWeightDtype === 'f16',
-        PRE_RESIDUAL: !!preResidual,
-        OUTPUT_PRENORM: hasPrenormOutput,
-      },
+      constants,
       extraBindings,
       resolveRMSNormDispatchLabel(options.label)
     );
@@ -230,16 +253,17 @@ export async function recordRMSNorm(
 ) {
   const {
     batchSize = 1, hiddenSize = null, residual = null, outputBuffer = null,
-    rmsNormWeightOffset = false, preResidual = null, residualSumOutput = null,
+    preResidual = null, residualSumOutput = null,
     outputScale = null,
   } = options;
   const resolvedOutputScale = resolveRMSNormOutputScale(outputScale);
   const isF16 = input.dtype === 'f16';
-  const variant = selectRMSNormKernel(options, isF16);
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
+  const variant = selectRMSNormKernel({ ...options, hiddenSize: inferredHiddenSize }, isF16);
   const normWeightBuffer = getBuffer(weight);
   assertRMSNormWeightBuffer(weight, normWeightBuffer, inferredHiddenSize);
   const normWeightDtype = resolveNormWeightDtype(weight, inferredHiddenSize);
+  const constants = resolveRMSNormConstants(options, normWeightDtype);
 
   const bytesPerElement = isF16 ? 2 : 4;
   const paddedHiddenSize = padToQ4KBlock(inferredHiddenSize);
@@ -252,13 +276,13 @@ export async function recordRMSNorm(
   const residualBuf = effectiveResidual?.buffer || effectiveResidual || input?.buffer || input || outputBuf;
   const hasPrenormOutput = !!preResidual && !!residualSumOutput;
   const kernelBindings = [input, normWeightBuffer, outputBuf, residualBuf];
-  const ownedPrenormPlaceholder = hasPrenormOutput ? null : acquireBuffer(4, undefined, 'rmsnorm_prenorm_placeholder');
-  const prenormBuf = hasPrenormOutput
-    ? (residualSumOutput?.buffer || residualSumOutput)
-    : ownedPrenormPlaceholder;
-  const extraBindings = [{ binding: 5, buffer: prenormBuf }];
-
+  let ownedPrenormPlaceholder = null;
   try {
+    ownedPrenormPlaceholder = hasPrenormOutput ? null : acquireBuffer(4, undefined, 'rmsnorm_prenorm_placeholder');
+    const prenormBuf = hasPrenormOutput
+      ? (residualSumOutput?.buffer || residualSumOutput)
+      : ownedPrenormPlaceholder;
+    const extraBindings = [{ binding: 5, buffer: prenormBuf }];
     await unifiedKernelWrapper(
       'rmsnorm',
       recorder,
@@ -275,12 +299,7 @@ export async function recordRMSNorm(
         _pad2: 0,
       },
       dispatchPlan.workgroups,
-      {
-        RMS_NORM_OFFSET: rmsNormWeightOffset,
-        WEIGHT_IS_F16: normWeightDtype === 'f16',
-        PRE_RESIDUAL: !!preResidual,
-        OUTPUT_PRENORM: hasPrenormOutput,
-      },
+      constants,
       extraBindings,
       resolveRMSNormDispatchLabel(options.label)
     );

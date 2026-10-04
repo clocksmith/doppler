@@ -171,6 +171,7 @@ async function recordLogitsTailGPU(
   }
   // Record RMSNorm (no submit)
   const normedTensor = await recordRMSNorm(recorder, normInputTensor, normWeightBuffer, rmsNormEps, {
+    kernelPath: stableKernelPath, phase, layerIdx: 0, role: 'final_norm', section: 'postLayer',
     batchSize: numTokens,
     hiddenSize,
     rmsNormWeightOffset: config.rmsNormWeightOffset,

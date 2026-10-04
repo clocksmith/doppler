@@ -259,7 +259,7 @@ export async function interpretAttentionWithRecorder(
         batchSize: numTokens,
         hiddenSize,
         rmsNormWeightOffset: config.rmsNormWeightOffset,
-        label: 'input_norm',
+        label: 'input_norm', kernelPath, phase, layerIdx, role: 'input_norm', section: 'layer',
       });
     }
     if (normBiasOwned && normBiasTensor) resourceScope.release(normBiasTensor.buffer);

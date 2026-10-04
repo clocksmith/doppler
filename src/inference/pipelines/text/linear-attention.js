@@ -438,12 +438,14 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
           batchSize: numTokens,
           hiddenSize,
           rmsNormWeightOffset: config.rmsNormWeightOffset,
+          kernelPath, phase, layerIdx, role: 'input_norm', section: 'layer',
         });
       } else {
         normedTensor = await runRMSNorm(inputTensor, normWeightBuffer, layerState.rmsNormEps, {
           batchSize: numTokens,
           hiddenSize,
           rmsNormWeightOffset: config.rmsNormWeightOffset,
+          kernelPath, phase, layerIdx, role: 'input_norm', section: 'layer',
         });
       }
       normedCreated = true;
