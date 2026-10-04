@@ -221,7 +221,7 @@ export async function checkDemoControls(page) {
     };
   });
   assert.equal(await page.locator('#precision-replay-toggle').isVisible(), true, 'Closed replay keeps its opening control visible');
-  await page.click('#compare-precision-btn');
+  await page.click('#precision-replay-toggle');
   await page.waitForFunction(() => document.querySelector('#precision-replay-status').textContent.includes('Contract evidence failure'));
   assert.equal(await page.locator('#precision-replay-toggle').isEnabled(), true);
   await page.click('#precision-replay-toggle');
