@@ -1,4 +1,4 @@
-const DEMO_SCOPE = '/demo/';
+const DEMO_SCOPE = new URL('./', window.location.href).pathname;
 const DEMO_SW_URL = '/demo/sw.js';
 const MAX_LAUNCH_FILE_BYTES = 256 * 1024;
 

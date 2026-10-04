@@ -219,7 +219,7 @@ async function main() {
     await checkDemoControls(page);
     testedShellDigest = await page.evaluate(async (url) => (await import(url)).SHELL_MANIFEST_DIGEST,
       `${origin}${modulePath.replace('/src/index-browser.js', '/demo/generated-shell-manifest.js')}`);
-    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.waitForFunction(async () => Boolean((await navigator.serviceWorker.getRegistration())?.active), null, { timeout: 60000 });
   } finally {
     await browser.close();
     await new Promise((resolve) => server.close(resolve));
