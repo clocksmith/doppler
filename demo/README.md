@@ -5,6 +5,14 @@ no second demo implementation. `npm run demo:reachability:check` fails when an
 unreferenced JavaScript implementation appears under `demo/` or live demo code
 imports private `src/` paths.
 
+First-time visitors see an interactive, explicitly labeled example of word
+choices without downloading weights or presenting its timing as a device result.
+Word choices, local writing, and recorded precision comparison are direct actions.
+Model setup opens on demand; sampling, run receipts, and precision score tables
+remain available under their respective details. The example does not become
+conversation history or replace a returning conversation. Live generation and
+recorded examples share the existing inspection view and execution owners.
+
 The composer streams text through inspection token events. Incoming IDs are
 buffered and decoded together at most once per animation frame, preserving split
 Unicode characters and tokenizer spacing. The existing answer text node receives

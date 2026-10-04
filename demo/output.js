@@ -48,15 +48,15 @@ function createEmptyState() {
   mark.textContent = 'D';
 
   const heading = document.createElement('strong');
-  heading.textContent = state.model ? 'Start a conversation.' : 'Load a model to chat.';
+  heading.textContent = state.model ? 'What shall we write?' : 'What could come next?';
 
   const sample = document.createElement('button');
   sample.id = 'sample-run-btn';
   sample.className = 'btn btn-ghost sample-run-btn';
   sample.type = 'button';
-  sample.textContent = 'Explore a recorded sample';
+  sample.textContent = 'See word choices';
   const note = document.createElement('small');
-  note.textContent = 'No model download required.';
+  note.textContent = 'Example · no download';
 
   empty.append(mark, heading, sample, note);
   return empty;
@@ -72,7 +72,10 @@ function resetLiveAssistant() {
   $('word-quality-output')?.replaceChildren();
   $('word-quality-legend')?.setAttribute('hidden', '');
   renderTokenInspection([]);
-  if (liveMessage) liveMessage.hidden = true;
+  if (liveMessage) {
+    liveMessage.hidden = true;
+    delete liveMessage.dataset.example;
+  }
   showWordQuality(false);
   const inspectorView = $('token-inspector-view');
   if (inspectorView) inspectorView.hidden = true;

@@ -68,6 +68,28 @@ async function init() {
     loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
     refreshRuntimeNotice();
   });
+  $('explore-words-btn')?.addEventListener('click', () => {
+    if (state.generating || state.modelBusy || state.settingsBusy) return;
+    const toggle = $('token-inspector-toggle');
+    toggle.checked = true;
+    toggle.dispatchEvent(new Event('change'));
+    if (!state.lastInspection) loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
+    refreshRuntimeNotice();
+  });
+  $('write-local-btn')?.addEventListener('click', () => {
+    if (state.model) {
+      $('prompt-input')?.focus();
+    } else {
+      $('model-picker').open = true;
+      $('model-select')?.focus();
+    }
+  });
+  $('compare-precision-btn')?.addEventListener('click', () => {
+    const toggle = $('precision-replay-toggle');
+    if (toggle?.getAttribute('aria-expanded') !== 'true') toggle?.click();
+    toggle?.focus();
+    toggle?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+  });
 
   // Wire token inspector toggle
   const inspectorToggle = $('token-inspector-toggle');
@@ -110,6 +132,10 @@ async function init() {
 
   // Boot sequence
   await boot();
+  if (state.phase === 'ready' && !state.model && !state.conversationHistory.length) {
+    loadSampleInspection(SAMPLE_INSPECTION_RECEIPT);
+    refreshRuntimeNotice();
+  }
 }
 
 function showInitError(message) {

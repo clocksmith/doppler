@@ -162,6 +162,9 @@ async function waitForLoadedModel(page, modelId, clickIfNeeded) {
     modelId,
     { timeout: 60_000 }
   );
+  if (!await page.locator('#model-select').isVisible()) {
+    await page.locator('#model-picker > summary').click();
+  }
   await page.selectOption('#model-select', modelId);
   if (clickIfNeeded) await page.click('#model-select-action');
   await page.waitForFunction(

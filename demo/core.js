@@ -1,4 +1,5 @@
 import { state } from './ui/state.js';
+import { selectToken } from './ui/token-inspector/index.js';
 import { syncModelControls } from './models.js';
 import { getSettings } from './settings.js';
 import {
@@ -191,13 +192,17 @@ export function loadSampleInspection(receipt) {
   const liveMessage = $('live-assistant-message');
   const outputText = $('output-text');
   if (outputText) outputText.textContent = receipt.outputText;
-  if (liveMessage) liveMessage.hidden = false;
+  if (liveMessage) {
+    liveMessage.hidden = false;
+    liveMessage.dataset.example = 'true';
+  }
   renderWordQuality(receipt.quality, receipt.outputText);
   showWordQuality(state.wordQualityEnabled && receipt.quality != null);
 
   if (Array.isArray(receipt.tokens) && receipt.tokens.length > 0) {
     renderTokenInspection(receipt.tokens);
     showTokenInspectorView(state.tokenInspectorActive);
+    selectToken(0);
   }
 
   state.lastInspection = receipt;
@@ -231,7 +236,8 @@ export function loadSampleInspection(receipt) {
   updateXrayPanels(receipt);
   setFinalStats(state.lastRun);
   setExportEnabled(true);
-  setPhase('Complete · Sample');
+  setPhase('Example · not a live run');
+  clearTokSec();
   setStatus('Ready', false);
   setGenerating(false);
 }

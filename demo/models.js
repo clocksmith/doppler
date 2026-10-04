@@ -59,6 +59,8 @@ export function syncModelControls() {
   const remove = $('model-select-remove');
   const detail = $('model-select-detail');
   const busy = state.modelBusy || state.settingsBusy || state.generating;
+  const explore = $('explore-words-btn');
+  if (explore) explore.disabled = busy;
   if (action) {
     action.disabled = !entry || busy || status === 'loaded';
     action.textContent = status === 'loaded'
