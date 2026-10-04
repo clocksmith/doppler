@@ -204,7 +204,7 @@ export async function initInput() {
     button.className = 'btn btn-ghost btn-small';
     button.textContent = entry.label;
     button.addEventListener('click', () => setPromptValue(entry.prompt));
-    suggestions?.appendChild(button);
+    suggestions?.insertBefore(button, $('shuffle-btn'));
   }
 
   $('shuffle-btn')?.addEventListener('click', shuffle);

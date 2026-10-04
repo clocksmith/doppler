@@ -221,11 +221,6 @@
           <h2 id="chat-heading" class="flow-title chat-heading">See the next word.</h2>
         </div>
       </div>
-      <div class="demo-experiences" aria-label="Try Doppler">
-        <button id="explore-words-btn" class="btn btn-ghost" type="button">Word choices</button>
-        <button id="write-local-btn" class="btn btn-ghost" type="button">Try your own</button>
-        <button id="compare-precision-btn" class="btn btn-ghost" type="button">Compare precision</button>
-      </div>
       <div class="chat-toolbar">
         <button id="settings-toggle" class="btn btn-ghost btn-small" type="button" aria-expanded="false" aria-controls="settings-panel">Advanced</button>
         <div class="chat-toolbar-run">
@@ -380,12 +375,13 @@
       <!-- Chat composer -->
       <section id="input-area" class="input-area">
         <label class="composer-heading" for="prompt-input">Try your own</label>
-        <div id="prompt-suggestions" class="prompt-suggestions" aria-label="Suggested prompts"></div>
+        <div id="prompt-suggestions" class="prompt-suggestions" aria-label="Suggested prompts">
+          <button id="shuffle-btn" class="btn btn-ghost btn-small" type="button" title="Try another prompt idea">Surprise</button>
+        </div>
         <div class="input-row">
           <textarea id="prompt-input" aria-label="Message Doppler" placeholder="Type a prompt or choose one above…" rows="4"></textarea>
         </div>
         <div class="input-actions">
-          <button id="shuffle-btn" class="btn btn-ghost" type="button" title="Put an example in the message box">Another idea</button>
           <button id="run-btn" class="btn btn-primary run-btn" type="button" disabled title="Load a model to send">Send</button>
           <button id="stop-btn" class="btn" type="button" hidden>Stop</button>
         </div>
@@ -460,7 +456,7 @@
         <span id="precision-replay-status" class="precision-replay-status">Recorded comparison</span>
       </div>
       <div id="precision-replay-panel" class="precision-replay-panel" hidden>
-<p class="precision-replay-note">Recorded Gemma 3 270M results. No live model run.</p>
+<p class="precision-replay-note">Precomputed Gemma 3 270M runs.</p>
 
         <div class="precision-replay-controls">
           <div class="setting-field">
