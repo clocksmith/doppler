@@ -11,7 +11,8 @@ setDeviceMemoryBudget(device, 100);
 const weight = device.createBuffer({size: 60, label: 'embedding'});
 markDeviceWeights(device, [weight]);
 const state = device.createBuffer({size: 32, label: 'kv_cache_keys_layer_0'});
-assert.throws(() => device.createBuffer({size: 12}), /GPU memory budget exceeded/);
+assert.throws(() => device.createBuffer({size: 12}), error =>
+  error.code === 'RESOURCE_EXHAUSTED' && /GPU memory budget exceeded/.test(error.message));
 assert.equal(calls, 2, 'Over-budget allocations fail before the native allocator');
 assert.throws(() => setDeviceMemoryBudget(device, 200), /Release existing/);
 assert.throws(() => setDeviceMemoryBudget(device, undefined), /explicit null/);
