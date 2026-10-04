@@ -1,0 +1,2120 @@
+{
+  "date": "2026-10-04",
+  "component": "doppler.tests",
+  "intent": "preserved",
+  "scope": "Installed immutable 0.6.4 partition runtime on two physical browsers; local verified model bytes and Node activation forwarding, not peer acquisition or public-page acceptance.",
+  "sourceCommit": "fe6434d4",
+  "package": {
+    "filename": "doppler-gpu-0.6.4.tgz",
+    "version": "0.6.4",
+    "integrity": "sha512-gw2H1zUyfuJpq8jCubIzcX+GdhQVdaWJm/i275zwAtIelMzGyWjHRaH5OnfI1KTSh4l5TnKfX+w6/lSE+DDPjA==",
+    "sizeBytes": 2193796,
+    "source": "provided-immutable-archive",
+    "sha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9"
+  },
+  "releaseAccepted": false,
+  "published": false,
+  "reploidProductionPin": "0.6.3-dev.split.13",
+  "reploidProductionPinChanged": false,
+  "installedPackageSmoke": {
+    "passed": true,
+    "physicalExecution": false
+  },
+  "numerical": {
+    "forward": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "629017cec2b3a417217c361d07b4f10996f12d9c05d5b04fb0ff2a37a5ee0847",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 20,
+      "maxDifference": 0.0018854141235351562,
+      "tokensMatch": true,
+      "stoppingMatches": true,
+      "comparison": [
+        {
+          "prompt": 0,
+          "step": 0,
+          "maxDifference": 0.0013527870178222656,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 0,
+          "step": 1,
+          "maxDifference": 0.0018339157104492188,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 0,
+          "maxDifference": 0.0006299018859863281,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 1,
+          "maxDifference": 0.0007734298706054688,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 0,
+          "maxDifference": 0.0007848739624023438,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 1,
+          "maxDifference": 0.0008361339569091797,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 2,
+          "maxDifference": 0.001192331314086914,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 3,
+          "maxDifference": 0.0012309551239013672,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 4,
+          "maxDifference": 0.0013275146484375,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 5,
+          "maxDifference": 0.0010395050048828125,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 6,
+          "maxDifference": 0.0010677576065063477,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 7,
+          "maxDifference": 0.0010285377502441406,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 8,
+          "maxDifference": 0.0015454292297363281,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 9,
+          "maxDifference": 0.0008816719055175781,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 10,
+          "maxDifference": 0.000946044921875,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 11,
+          "maxDifference": 0.0007464289665222168,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 12,
+          "maxDifference": 0.0007023811340332031,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 13,
+          "maxDifference": 0.0006198883056640625,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 14,
+          "maxDifference": 0.0006515979766845703,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 15,
+          "maxDifference": 0.0014629364013671875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 16,
+          "maxDifference": 0.0011206865310668945,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 17,
+          "maxDifference": 0.0011682510375976562,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 18,
+          "maxDifference": 0.0009164810180664062,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 19,
+          "maxDifference": 0.0009944438934326172,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 20,
+          "maxDifference": 0.0010714530944824219,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 21,
+          "maxDifference": 0.0010466575622558594,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 22,
+          "maxDifference": 0.0009874701499938965,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 23,
+          "maxDifference": 0.0008914470672607422,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 24,
+          "maxDifference": 0.0008255243301391602,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 25,
+          "maxDifference": 0.0006878972053527832,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 26,
+          "maxDifference": 0.0008869171142578125,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 27,
+          "maxDifference": 0.0008085370063781738,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 28,
+          "maxDifference": 0.0018854141235351562,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 29,
+          "maxDifference": 0.0009913444519042969,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 30,
+          "maxDifference": 0.0010616779327392578,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 31,
+          "maxDifference": 0.0017075538635253906,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 32,
+          "maxDifference": 0.0008990764617919922,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 33,
+          "maxDifference": 0.0007843971252441406,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 34,
+          "maxDifference": 0.0011510848999023438,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 35,
+          "maxDifference": 0.0007448196411132812,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 36,
+          "maxDifference": 0.0010682344436645508,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 37,
+          "maxDifference": 0.0008945465087890625,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 38,
+          "maxDifference": 0.0007843971252441406,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 39,
+          "maxDifference": 0.0008397102355957031,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 40,
+          "maxDifference": 0.000983119010925293,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 41,
+          "maxDifference": 0.0006222724914550781,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 42,
+          "maxDifference": 0.0007613897323608398,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 43,
+          "maxDifference": 0.0008940696716308594,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 44,
+          "maxDifference": 0.000545501708984375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 45,
+          "maxDifference": 0.000826716423034668,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 46,
+          "maxDifference": 0.0006875991821289062,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 47,
+          "maxDifference": 0.0009517669677734375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 48,
+          "maxDifference": 0.0009541511535644531,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 49,
+          "maxDifference": 0.0008057355880737305,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 50,
+          "maxDifference": 0.0011286735534667969,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        }
+      ]
+    },
+    "reverse": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "647ba7a33fbfb6c543014994b114b0bc1819d4a692f8e83bd6240e25d5741eeb",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 19,
+      "maxDifference": 0.0017175674438476562,
+      "tokensMatch": true,
+      "stoppingMatches": true,
+      "comparison": [
+        {
+          "prompt": 0,
+          "step": 0,
+          "maxDifference": 0.0010027885437011719,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 0,
+          "step": 1,
+          "maxDifference": 0.0017175674438476562,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 0,
+          "maxDifference": 0.0005850791931152344,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 1,
+          "maxDifference": 0.0009217262268066406,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 0,
+          "maxDifference": 0.0006699562072753906,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 1,
+          "maxDifference": 0.0007989406585693359,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 2,
+          "maxDifference": 0.000782012939453125,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 3,
+          "maxDifference": 0.0013027191162109375,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 4,
+          "maxDifference": 0.0012979507446289062,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 5,
+          "maxDifference": 0.0007719993591308594,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 6,
+          "maxDifference": 0.0008344650268554688,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 7,
+          "maxDifference": 0.00139617919921875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 8,
+          "maxDifference": 0.0010453462600708008,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 9,
+          "maxDifference": 0.001499176025390625,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 10,
+          "maxDifference": 0.0010614395141601562,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 11,
+          "maxDifference": 0.0008525848388671875,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 12,
+          "maxDifference": 0.0008373260498046875,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 13,
+          "maxDifference": 0.0010504722595214844,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 14,
+          "maxDifference": 0.0008754730224609375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 15,
+          "maxDifference": 0.0015997886657714844,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 16,
+          "maxDifference": 0.0010919570922851562,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 17,
+          "maxDifference": 0.0012760162353515625,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 18,
+          "maxDifference": 0.0011246204376220703,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 19,
+          "maxDifference": 0.0010737180709838867,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 20,
+          "maxDifference": 0.0006765127182006836,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 21,
+          "maxDifference": 0.0007967948913574219,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 22,
+          "maxDifference": 0.0007908344268798828,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 23,
+          "maxDifference": 0.0006262660026550293,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 24,
+          "maxDifference": 0.0006860494613647461,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 25,
+          "maxDifference": 0.0008373260498046875,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 26,
+          "maxDifference": 0.0005550384521484375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 27,
+          "maxDifference": 0.0007202625274658203,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 28,
+          "maxDifference": 0.000736236572265625,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 29,
+          "maxDifference": 0.0004949569702148438,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 30,
+          "maxDifference": 0.00078582763671875,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 31,
+          "maxDifference": 0.0011029243469238281,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 32,
+          "maxDifference": 0.0012192726135253906,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 33,
+          "maxDifference": 0.0007947683334350586,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 34,
+          "maxDifference": 0.0010037422180175781,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 35,
+          "maxDifference": 0.0007975101470947266,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 36,
+          "maxDifference": 0.0009417533874511719,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 37,
+          "maxDifference": 0.0008884668350219727,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 38,
+          "maxDifference": 0.0006587505340576172,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 39,
+          "maxDifference": 0.000888824462890625,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 40,
+          "maxDifference": 0.0007925033569335938,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 41,
+          "maxDifference": 0.0006244182586669922,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 42,
+          "maxDifference": 0.0009517669677734375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 43,
+          "maxDifference": 0.000767827033996582,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 44,
+          "maxDifference": 0.0005848407745361328,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 45,
+          "maxDifference": 0.0007944107055664062,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 46,
+          "maxDifference": 0.0006113052368164062,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 47,
+          "maxDifference": 0.0010085105895996094,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 48,
+          "maxDifference": 0.0009093284606933594,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 49,
+          "maxDifference": 0.0008788108825683594,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 50,
+          "maxDifference": 0.0014085769653320312,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        }
+      ]
+    }
+  },
+  "memory": {
+    "memory": {
+      "passed": true,
+      "budgetBytes": 1420000000,
+      "generation": {
+        "maxTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "stopSequences": [],
+        "useChatTemplate": true,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 0,
+        "maxSeqLen": 4096
+      },
+      "requestFixtureSha256": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+      "descriptors": [
+        {
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 0,
+            "layerRange": [
+              0,
+              11
+            ],
+            "residentWeightBytes": 650989568,
+            "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+          },
+          "packageVersion": "0.6.4",
+          "beforePreparation": {
+            "liveBytes": 0,
+            "peakBytes": 8,
+            "categories": {
+              "weights": 0,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 0
+            },
+            "resources": {
+              "retainedModel": {
+                "bytes": 0,
+                "count": 0
+              },
+              "active": {
+                "bytes": 0,
+                "count": 0
+              },
+              "reusable": {
+                "bytes": 0,
+                "count": 0
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeNonWeightLabels": []
+          },
+          "afterPreparation": {
+            "liveBytes": 656259344,
+            "peakBytes": 756922768,
+            "categories": {
+              "weights": 650989568,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 5269776
+            },
+            "resources": {
+              "retainedModel": {
+                "bytes": 650989568,
+                "count": 172
+              },
+              "active": {
+                "bytes": 5242880,
+                "count": 4
+              },
+              "reusable": {
+                "bytes": 256,
+                "count": 1
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeNonWeightLabels": [
+              {
+                "label": "rope_cos",
+                "bytes": 2621440,
+                "count": 2
+              },
+              {
+                "label": "rope_sin",
+                "bytes": 2621440,
+                "count": 2
+              }
+            ]
+          },
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "platform": "mac",
+          "browser": "145.0.7632.6"
+        },
+        {
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+          },
+          "packageVersion": "0.6.4",
+          "beforePreparation": {
+            "liveBytes": 0,
+            "peakBytes": 8,
+            "categories": {
+              "weights": 0,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 0
+            },
+            "resources": {
+              "retainedModel": {
+                "bytes": 0,
+                "count": 0
+              },
+              "active": {
+                "bytes": 0,
+                "count": 0
+              },
+              "reusable": {
+                "bytes": 0,
+                "count": 0
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeNonWeightLabels": []
+          },
+          "afterPreparation": {
+            "liveBytes": 290767120,
+            "peakBytes": 391430544,
+            "categories": {
+              "weights": 285497344,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 5269776
+            },
+            "resources": {
+              "retainedModel": {
+                "bytes": 285497344,
+                "count": 173
+              },
+              "active": {
+                "bytes": 5242880,
+                "count": 4
+              },
+              "reusable": {
+                "bytes": 256,
+                "count": 1
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeNonWeightLabels": [
+              {
+                "label": "rope_cos",
+                "bytes": 2621440,
+                "count": 2
+              },
+              {
+                "label": "rope_sin",
+                "bytes": 2621440,
+                "count": 2
+              }
+            ]
+          },
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "platform": "linux",
+          "browser": "146.0.7680.177"
+        }
+      ],
+      "runs": [
+        {
+          "attempt": 0,
+          "inputTokens": 494,
+          "steps": 1024,
+          "completed": true,
+          "stopReason": "max-tokens",
+          "outputSha256": "e5b58ce840947e25ab1600d661ab50f6a4efc727acffc6ce91f9c2e5864f4dfa",
+          "afterAttemptSettlement": [
+            {
+              "liveBytes": 752403768,
+              "peakBytes": 865924408,
+              "categories": {
+                "weights": 650989568,
+                "attention": 1280,
+                "recurrent": 0,
+                "other": 101412920
+              },
+              "resources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 96133888,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeNonWeightLabels": [
+                {
+                  "label": "rope_cos",
+                  "bytes": 2621440,
+                  "count": 2
+                },
+                {
+                  "label": "rope_sin",
+                  "bytes": 2621440,
+                  "count": 2
+                }
+              ]
+            },
+            {
+              "liveBytes": 385961000,
+              "peakBytes": 499444904,
+              "categories": {
+                "weights": 285497344,
+                "attention": 1296,
+                "recurrent": 0,
+                "other": 100462360
+              },
+              "resources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 95183360,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeNonWeightLabels": [
+                {
+                  "label": "rope_cos",
+                  "bytes": 2621440,
+                  "count": 2
+                },
+                {
+                  "label": "rope_sin",
+                  "bytes": 2621440,
+                  "count": 2
+                }
+              ]
+            }
+          ],
+          "prefillSubmissions": [
+            {
+              "count": 49,
+              "peakBytes": 864545400
+            },
+            {
+              "count": 53,
+              "peakBytes": 498072184
+            }
+          ]
+        },
+        {
+          "attempt": 1,
+          "inputTokens": 1588,
+          "steps": 1024,
+          "completed": true,
+          "stopReason": "max-tokens",
+          "outputSha256": "441b65bf7c07aa5381cf091558443fe882cff62e3f097f18dc851f4e472030f1",
+          "afterAttemptSettlement": [
+            {
+              "liveBytes": 902556984,
+              "peakBytes": 1269752136,
+              "categories": {
+                "weights": 650989568,
+                "attention": 1280,
+                "recurrent": 0,
+                "other": 251566136
+              },
+              "resources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 246287104,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeNonWeightLabels": [
+                {
+                  "label": "rope_cos",
+                  "bytes": 2621440,
+                  "count": 2
+                },
+                {
+                  "label": "rope_sin",
+                  "bytes": 2621440,
+                  "count": 2
+                }
+              ]
+            },
+            {
+              "liveBytes": 524104744,
+              "peakBytes": 903309672,
+              "categories": {
+                "weights": 285497344,
+                "attention": 1296,
+                "recurrent": 0,
+                "other": 238606104
+              },
+              "resources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 233327104,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeNonWeightLabels": [
+                {
+                  "label": "rope_cos",
+                  "bytes": 2621440,
+                  "count": 2
+                },
+                {
+                  "label": "rope_sin",
+                  "bytes": 2621440,
+                  "count": 2
+                }
+              ]
+            }
+          ],
+          "prefillSubmissions": [
+            {
+              "count": 49,
+              "peakBytes": 1269752136
+            },
+            {
+              "count": 53,
+              "peakBytes": 903309672
+            }
+          ]
+        },
+        {
+          "attempt": 2,
+          "inputTokens": 1588,
+          "steps": 1024,
+          "completed": true,
+          "stopReason": "max-tokens",
+          "outputSha256": "441b65bf7c07aa5381cf091558443fe882cff62e3f097f18dc851f4e472030f1",
+          "afterAttemptSettlement": [
+            {
+              "liveBytes": 1003514680,
+              "peakBytes": 1269752136,
+              "categories": {
+                "weights": 650989568,
+                "attention": 1280,
+                "recurrent": 0,
+                "other": 352523832
+              },
+              "resources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 347244800,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeNonWeightLabels": [
+                {
+                  "label": "rope_cos",
+                  "bytes": 2621440,
+                  "count": 2
+                },
+                {
+                  "label": "rope_sin",
+                  "bytes": 2621440,
+                  "count": 2
+                }
+              ]
+            },
+            {
+              "liveBytes": 615313960,
+              "peakBytes": 903309672,
+              "categories": {
+                "weights": 285497344,
+                "attention": 1296,
+                "recurrent": 0,
+                "other": 329815320
+              },
+              "resources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 324536320,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeNonWeightLabels": [
+                {
+                  "label": "rope_cos",
+                  "bytes": 2621440,
+                  "count": 2
+                },
+                {
+                  "label": "rope_sin",
+                  "bytes": 2621440,
+                  "count": 2
+                }
+              ]
+            }
+          ],
+          "prefillSubmissions": [
+            {
+              "count": 49,
+              "peakBytes": 1269752136
+            },
+            {
+              "count": 53,
+              "peakBytes": 903309672
+            }
+          ]
+        }
+      ],
+      "afterResidentClose": [
+        {
+          "liveBytes": 10792,
+          "peakBytes": 1269752136,
+          "categories": {
+            "weights": 0,
+            "attention": 1280,
+            "recurrent": 0,
+            "other": 9512
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 0,
+              "count": 0
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "activeNonWeightLabels": []
+        },
+        {
+          "liveBytes": 10776,
+          "peakBytes": 903309672,
+          "categories": {
+            "weights": 0,
+            "attention": 1296,
+            "recurrent": 0,
+            "other": 9480
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 0,
+              "count": 0
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "activeNonWeightLabels": []
+        }
+      ]
+    },
+    "cancellation": {
+      "passed": true,
+      "budgetBytes": 1420000000,
+      "generation": {
+        "maxTokens": 1024,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "stopSequences": [],
+        "useChatTemplate": true,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 0,
+        "maxSeqLen": 4096
+      },
+      "requestFixtureSha256": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+      "descriptors": [
+        {
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 0,
+            "layerRange": [
+              0,
+              11
+            ],
+            "residentWeightBytes": 650989568,
+            "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+          },
+          "packageVersion": "0.6.4",
+          "beforePreparation": {
+            "liveBytes": 0,
+            "peakBytes": 8,
+            "categories": {
+              "weights": 0,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 0
+            },
+            "resources": {
+              "retainedModel": {
+                "bytes": 0,
+                "count": 0
+              },
+              "active": {
+                "bytes": 0,
+                "count": 0
+              },
+              "reusable": {
+                "bytes": 0,
+                "count": 0
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeNonWeightLabels": []
+          },
+          "afterPreparation": {
+            "liveBytes": 656259344,
+            "peakBytes": 756922768,
+            "categories": {
+              "weights": 650989568,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 5269776
+            },
+            "resources": {
+              "retainedModel": {
+                "bytes": 650989568,
+                "count": 172
+              },
+              "active": {
+                "bytes": 5242880,
+                "count": 4
+              },
+              "reusable": {
+                "bytes": 256,
+                "count": 1
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeNonWeightLabels": [
+              {
+                "label": "rope_cos",
+                "bytes": 2621440,
+                "count": 2
+              },
+              {
+                "label": "rope_sin",
+                "bytes": 2621440,
+                "count": 2
+              }
+            ]
+          },
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "platform": "mac",
+          "browser": "145.0.7632.6"
+        },
+        {
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+          },
+          "packageVersion": "0.6.4",
+          "beforePreparation": {
+            "liveBytes": 0,
+            "peakBytes": 8,
+            "categories": {
+              "weights": 0,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 0
+            },
+            "resources": {
+              "retainedModel": {
+                "bytes": 0,
+                "count": 0
+              },
+              "active": {
+                "bytes": 0,
+                "count": 0
+              },
+              "reusable": {
+                "bytes": 0,
+                "count": 0
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeNonWeightLabels": []
+          },
+          "afterPreparation": {
+            "liveBytes": 290767120,
+            "peakBytes": 391430544,
+            "categories": {
+              "weights": 285497344,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 5269776
+            },
+            "resources": {
+              "retainedModel": {
+                "bytes": 285497344,
+                "count": 173
+              },
+              "active": {
+                "bytes": 5242880,
+                "count": 4
+              },
+              "reusable": {
+                "bytes": 256,
+                "count": 1
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeNonWeightLabels": [
+              {
+                "label": "rope_cos",
+                "bytes": 2621440,
+                "count": 2
+              },
+              {
+                "label": "rope_sin",
+                "bytes": 2621440,
+                "count": 2
+              }
+            ]
+          },
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "platform": "linux",
+          "browser": "146.0.7680.177"
+        }
+      ],
+      "runs": [
+        {
+          "attempt": 0,
+          "inputTokens": 1588,
+          "steps": 0,
+          "cancelled": true,
+          "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "afterAttemptSettlement": [
+            {
+              "liveBytes": 882958704,
+              "peakBytes": 983622000,
+              "categories": {
+                "weights": 650989568,
+                "attention": 0,
+                "recurrent": 1179648,
+                "other": 230789488
+              },
+              "resources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 226699264,
+                  "count": 28
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeNonWeightLabels": [
+                {
+                  "label": "rope_cos",
+                  "bytes": 2621440,
+                  "count": 2
+                },
+                {
+                  "label": "rope_sin",
+                  "bytes": 2621440,
+                  "count": 2
+                }
+              ]
+            },
+            {
+              "liveBytes": 290767120,
+              "peakBytes": 391430544,
+              "categories": {
+                "weights": 285497344,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 5269776
+              },
+              "resources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeNonWeightLabels": [
+                {
+                  "label": "rope_cos",
+                  "bytes": 2621440,
+                  "count": 2
+                },
+                {
+                  "label": "rope_sin",
+                  "bytes": 2621440,
+                  "count": 2
+                }
+              ]
+            }
+          ],
+          "prefillSubmissions": [
+            {
+              "count": 5,
+              "peakBytes": 983622000
+            },
+            {
+              "count": 0,
+              "peakBytes": null
+            }
+          ],
+          "allocationRejections": [
+            {
+              "code": "RESOURCE_EXHAUSTED",
+              "scope": "Direct allocation-guard rejection, not an injected model-operation failure",
+              "beforeBytes": 882958704,
+              "afterBytes": 882958704
+            },
+            {
+              "code": "RESOURCE_EXHAUSTED",
+              "scope": "Direct allocation-guard rejection, not an injected model-operation failure",
+              "beforeBytes": 290767120,
+              "afterBytes": 290767120
+            }
+          ]
+        },
+        {
+          "attempt": 1,
+          "inputTokens": 1588,
+          "steps": 1024,
+          "completed": true,
+          "stopReason": "max-tokens",
+          "outputSha256": "441b65bf7c07aa5381cf091558443fe882cff62e3f097f18dc851f4e472030f1",
+          "afterAttemptSettlement": [
+            {
+              "liveBytes": 963542328,
+              "peakBytes": 1077081400,
+              "categories": {
+                "weights": 650989568,
+                "attention": 1280,
+                "recurrent": 0,
+                "other": 312551480
+              },
+              "resources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 307272448,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeNonWeightLabels": [
+                {
+                  "label": "rope_cos",
+                  "bytes": 2621440,
+                  "count": 2
+                },
+                {
+                  "label": "rope_sin",
+                  "bytes": 2621440,
+                  "count": 2
+                }
+              ]
+            },
+            {
+              "liveBytes": 594639912,
+              "peakBytes": 708177064,
+              "categories": {
+                "weights": 285497344,
+                "attention": 1296,
+                "recurrent": 0,
+                "other": 309141272
+              },
+              "resources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 303862272,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeNonWeightLabels": [
+                {
+                  "label": "rope_cos",
+                  "bytes": 2621440,
+                  "count": 2
+                },
+                {
+                  "label": "rope_sin",
+                  "bytes": 2621440,
+                  "count": 2
+                }
+              ]
+            }
+          ],
+          "prefillSubmissions": [
+            {
+              "count": 49,
+              "peakBytes": 1075643000
+            },
+            {
+              "count": 53,
+              "peakBytes": 706738808
+            }
+          ]
+        }
+      ],
+      "afterResidentClose": [
+        {
+          "liveBytes": 10792,
+          "peakBytes": 1077081400,
+          "categories": {
+            "weights": 0,
+            "attention": 1280,
+            "recurrent": 0,
+            "other": 9512
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 0,
+              "count": 0
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "activeNonWeightLabels": []
+        },
+        {
+          "liveBytes": 10776,
+          "peakBytes": 708177064,
+          "categories": {
+            "weights": 0,
+            "attention": 1296,
+            "recurrent": 0,
+            "other": 9480
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 0,
+              "count": 0
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "activeNonWeightLabels": []
+        }
+      ]
+    }
+  },
+  "archiveFileAudits": [
+    {
+      "run": "forward",
+      "files": 561,
+      "everyServedByteMatchesArchive": true,
+      "fixture": "tests/fixtures/browser-normalization-contract.js",
+      "fixtureSha256": "c7bb41151d11a8680374cc835c2ea8d80d9bb0dcdf94c79a0ef66ce6f145d87d"
+    },
+    {
+      "run": "reverse",
+      "files": 561,
+      "everyServedByteMatchesArchive": true,
+      "fixture": "tests/fixtures/browser-normalization-contract.js",
+      "fixtureSha256": "c7bb41151d11a8680374cc835c2ea8d80d9bb0dcdf94c79a0ef66ce6f145d87d"
+    },
+    {
+      "run": "memory",
+      "files": 560,
+      "everyServedByteMatchesArchive": true,
+      "fixture": "tests/fixtures/browser-partition-memory-completion.js",
+      "fixtureSha256": "a8203561588132d424fa8cecd8e233f9c309e70ffb65337016c78f8cf01b2ffb"
+    },
+    {
+      "run": "cancellation",
+      "files": 560,
+      "everyServedByteMatchesArchive": true,
+      "fixture": "tests/fixtures/browser-partition-memory-completion.js",
+      "fixtureSha256": "a8203561588132d424fa8cecd8e233f9c309e70ffb65337016c78f8cf01b2ffb"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-forward-comparison.json",
+      "sha256": "3e8a8b62a25bdb760ecb87a085251b341f16838b13a1c0df15825adb04d963e3",
+      "bytes": 10131,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-reverse-comparison.json",
+      "sha256": "5f495c2a1ac7cfecd5b4dc55616022e64837f2587ab5c3503088ebdf5bbd141d",
+      "bytes": 10132,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-forward.json.package.json",
+      "sha256": "22810f906499b82141590e6436fc46c49c9657822ca6160b0d39c8d5e164b228",
+      "bytes": 97895,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-forward.json",
+      "sha256": "629017cec2b3a417217c361d07b4f10996f12d9c05d5b04fb0ff2a37a5ee0847",
+      "bytes": 73079346,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-reverse.json.package.json",
+      "sha256": "22810f906499b82141590e6436fc46c49c9657822ca6160b0d39c8d5e164b228",
+      "bytes": 97895,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-reverse.json",
+      "sha256": "647ba7a33fbfb6c543014994b114b0bc1819d4a692f8e83bd6240e25d5741eeb",
+      "bytes": 73079346,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-memory.json.package.json",
+      "sha256": "03e64cad743681ce9e4c12b39d02ae4a485da27aef0d0b5ec7b86d24f56e70df",
+      "bytes": 97728,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-memory.json",
+      "sha256": "7f08e36ca2574c9b55dc97d527ee461e4cccc09cf0238df24727ffd95c2b6fed",
+      "bytes": 14599212,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-cancellation.json.package.json",
+      "sha256": "03e64cad743681ce9e4c12b39d02ae4a485da27aef0d0b5ec7b86d24f56e70df",
+      "bytes": 97728,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-cancellation.json",
+      "sha256": "21a2f14fc9095d69875259f591d22e6ece2a3c6089eefa4d7dfe54edfcbc5601",
+      "bytes": 5346679,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-cancellation.log",
+      "sha256": "6629c050b9ccbe95ad228afa106f1d34c1045b76e743b811a74751a8aa7ac88d",
+      "bytes": 577,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-memory.log",
+      "sha256": "4796a296c700d7e9b1f61c4ce8eeef9c8b2df8703ec5df397666f96062ea8ad1",
+      "bytes": 1590,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-package-smoke.log",
+      "sha256": "8f638b0cdfa714441f98d5a7703e2949f1251c11cbadce3f9c294f281a14a773",
+      "bytes": 1288,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-split14-unit.log",
+      "sha256": "327b0938e73fc8b7b414f196f7a126e483ac5e8aaeec48a45ad6e42ab5a93012",
+      "bytes": 456701,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-rmsnorm-dispatch-reuse-observer-failure.log",
+      "sha256": "e5287fb0668244f7ebdf96d508ee0c50974de74589aa5c009c9caab66ca35ebe",
+      "bytes": 373,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/doppler-0.6.4-runner-import-failure.log",
+      "sha256": "14a1afe23be913097a4beb44a467caa30ff781d61ddc358e2f4266eb8b4bbd0a",
+      "bytes": 323,
+      "availability": "local, gitignored"
+    },
+    {
+      "path": "dist/0.6.4-candidate/evidence/installed-package-receipt.json",
+      "sha256": "86e175882eb498030eebf1aa64ebc9b970e8d8ad5166405b146393d18bcf2eb1",
+      "bytes": 1843,
+      "availability": "local, gitignored"
+    }
+  ],
+  "repositoryValidation": {
+    "unit": {
+      "passed": 886,
+      "total": 888,
+      "failed": [
+        "tests/demo/input.test.js",
+        "tests/integration/demo-surface-contract.test.js"
+      ]
+    },
+    "sourceArchitecture": true,
+    "sourceStyle": true,
+    "sourceTypes": true,
+    "packageClosure": true,
+    "rmsnormExecutionContract": true,
+    "fullReleaseValidationPassed": false
+  },
+  "limits": [
+    "Numerical acceptance remains failed at unchanged 0.001 in both directions; matching tokens does not pass it. Precision and model bytes were not changed.",
+    "Allocation rejection tests the device guard directly, not an injected model-operation failure.",
+    "After cancellation, 1179648 bytes retain recurrent allocation labels in the reusable pool; no active recurrent/conv-state labels remain. Active pool allocations are four session positional tables totaling 5242880 bytes. Device categories alone do not distinguish reusable buffers from owned attempt state.",
+    "Resident-close observations retain device-owned cached uniforms and fallback buffers; device destruction is not measured.",
+    "The unchanged memory fixture has a stale split.13 prose scope label; actual descriptor versions and checked served archive bytes are 0.6.4.",
+    "Ordinary-page onboarding, concurrent threads, peer acquisition, contributor loss, replacement and relay renewal are not established by these runs."
+  ]
+}
