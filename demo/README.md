@@ -95,3 +95,23 @@ Precision replay loads its digest-bound evidence only after the user opens it.
 The hardware lane also checks shell upgrade cleanup and a noncritical partial
 cache miss. The goal matrix requires both receipts. Kernel verification remains
 a lower-level prerequisite, not proof that the demo works.
+
+## Public hosting
+
+The canonical demo is https://canvascontext.com/. This repository owns its
+Firebase site `canvascontext-9da05`; deployments always name that project
+explicitly. The root page and `/demo/` use the same application and absolute
+asset paths. `tools/package-demo-hosting.js` packages tracked demo, runtime,
+catalog, and vendor-registry files into ignored `.demo-hosting/`; model weights,
+local artifacts, private files, and fixtures are excluded.
+
+```sh
+npm run demo:hosting:build
+npm run demo:hosting:preview
+npm run demo:hosting:deploy
+```
+
+Verify preview startup and interactions before production. `/release.json`
+identifies the source commit. Legacy Mandate game and document routes redirect
+to https://simulatte.world/mandate-2038/; the root now opens Doppler. Local
+storage and model caches from d4da.com do not transfer between origins.
