@@ -45,7 +45,7 @@ for (const recorder of [null, { id: 'recorder' }]) {
 }
 assert.match(source, /try \{\s*if \(options\.debugProbes\?\.some\([\s\S]*?await observeLinearAttentionState\(layerState, options\);/);
 const guardStart = source.indexOf('    if (options.debugProbes?.some(');
-const guardEnd = source.indexOf("    await runProbes('linear_qkv_proj'", guardStart);
+const guardEnd = source.indexOf("    for (const [stage, tensor, width]", guardStart);
 assert(guardStart > 0 && guardEnd > guardStart);
 const dispatchObservation = new Function('options', 'observeLinearAttentionState', 'layerState',
   `return (async () => { ${source.slice(guardStart, guardEnd)} })();`);

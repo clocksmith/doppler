@@ -603,42 +603,19 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     if (options.debugProbes?.some((probe) => probe.stage.startsWith('linear_state_'))) {
       await observeLinearAttentionState(layerState, options);
     }
-    await runProbes('linear_qkv_proj', qkvTensor.buffer, {
-      layerIdx,
-      numTokens,
-      hiddenSize: projectionLayout.convDim,
-      probes: options.debugProbes,
-      recorder,
-      operatorDiagnostics: options.operatorDiagnostics,
-      dtype: qkvTensor.dtype,
-    });
-    await runProbes('linear_z_proj', zTensor.buffer, {
-      layerIdx,
-      numTokens,
-      hiddenSize: projectionLayout.valueDim,
-      probes: options.debugProbes,
-      recorder,
-      operatorDiagnostics: options.operatorDiagnostics,
-      dtype: zTensor.dtype,
-    });
-    await runProbes('linear_a_proj', aTensor.buffer, {
-      layerIdx,
-      numTokens,
-      hiddenSize: projectionLayout.numVHeads,
-      probes: options.debugProbes,
-      recorder,
-      operatorDiagnostics: options.operatorDiagnostics,
-      dtype: aTensor.dtype,
-    });
-    await runProbes('linear_b_proj', bTensor.buffer, {
-      layerIdx,
-      numTokens,
-      hiddenSize: projectionLayout.numVHeads,
-      probes: options.debugProbes,
-      recorder,
-      operatorDiagnostics: options.operatorDiagnostics,
-      dtype: bTensor.dtype,
-    });
+    for (const [stage, tensor, width] of [
+      ['post_input_norm', normedTensor, hiddenSize],
+      ['linear_qkv_proj', qkvTensor, projectionLayout.convDim],
+      ['linear_z_proj', zTensor, projectionLayout.valueDim],
+      ['linear_a_proj', aTensor, projectionLayout.numVHeads],
+      ['linear_b_proj', bTensor, projectionLayout.numVHeads],
+    ]) {
+      await runProbes(stage, tensor.buffer, {
+        layerIdx, numTokens, hiddenSize: width,
+        probes: options.debugProbes, recorder,
+        operatorDiagnostics: options.operatorDiagnostics, dtype: tensor.dtype,
+      });
+    }
     const coreInputDtype = qkvTensor.dtype;
     coreZTensor = await settleLinearAttentionCoreInputDtype(zTensor, coreInputDtype, {
       recorder,
