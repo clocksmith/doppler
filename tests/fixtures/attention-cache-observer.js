@@ -36,13 +36,31 @@ export async function observeAttentionCache(context, packageRoot, captures) {
   });
   await context.addInitScript(() => {
     globalThis.attentionCacheObservation = { records: [], errors: [] };
+    const pendingLinear = new Map();
+    const linearOrdinals = new Map();
     globalThis.captureLinearCore = (boundary, options) => {
       const { recorder, numTokens, layerState: state } = options;
       const params = { numTokens };
       for (const key of ['convDim', 'convKernelSize', 'numVHeads', 'numKHeads', 'headKDim',
         'headVDim', 'qSize', 'kSize', 'valueDim', 'qRep', 'normMode', 'rmsNormEps']) params[key] = state[key];
       for (const key of ['qkL2NormEps', 'abPacked', 'qkvzPacked', 'bProjOffsetElements']) params[key] = options.options[key];
-      const record = { boundary: `linear-${boundary}`, params, tensors: [] };
+      const coordinate = { layerIdx: options.options.layerIdx,
+        step: globalThis.numericalObservation?.step,
+        prompt: globalThis.numericalObservation?.prompt };
+      if (!Number.isInteger(coordinate.layerIdx) || coordinate.step === undefined || coordinate.prompt === undefined) {
+        throw Error('Linear observation requires layer, prompt and step coordinates');
+      }
+      const key = JSON.stringify(coordinate);
+      if (boundary === 'inputs') {
+        if (pendingLinear.has(key)) throw Error('Unpaired linear input observation');
+        const ordinal = linearOrdinals.get(key) ?? 0;
+        linearOrdinals.set(key, ordinal + 1);
+        pendingLinear.set(key, ordinal);
+      }
+      if (!pendingLinear.has(key)) throw Error('Linear output has no matching input');
+      const record = { boundary: `linear-${boundary}`, ...coordinate,
+        dispatch: pendingLinear.get(key), params, tensors: [] };
+      if (boundary === 'outputs') pendingLinear.delete(key);
       attentionCacheObservation.records.push(record);
       const buffers = boundary === 'inputs'
         ? [['qkv', options.qkvTensor.buffer], ['z', options.zTensor.buffer],

@@ -1,0 +1,3178 @@
+{
+  "date": "2026-10-04",
+  "component": "doppler.tests",
+  "intent": "preserved",
+  "scope": "Independent recurrent reference and serial physical browser diagnosis; not release acceptance",
+  "sourceBaseline": "fa9ccd71",
+  "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+  "version": "0.6.4",
+  "published": false,
+  "releaseAccepted": false,
+  "productionArithmeticChanged": false,
+  "reploidPin": "0.6.3-dev.split.13",
+  "reploidPinChanged": false,
+  "tolerance": 0.001,
+  "frozenReferenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "rawEvidence": {
+    "localIgnoredDirectory": "dist/0.6.4-candidate/recurrent-reference",
+    "inventorySha256": "c921d86b797eba96ace43d01171524657a7b77b064a92c044c5bcca76af5b12c",
+    "files": 81,
+    "limitation": "Raw operands and complete per-token arrays retained locally, not published with this receipt"
+  },
+  "baseline": {
+    "file": "doppler-recurrent-reference-baseline.json.gz",
+    "rawSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+    "coordinate": {
+      "captureIndex": 0,
+      "layerIdx": 0,
+      "prompt": 0,
+      "step": 0,
+      "dispatch": 0
+    },
+    "crossPlatform": {
+      "elements": 38912,
+      "differentElements": 30986,
+      "maxDifference": 7.152557373046875e-07,
+      "rmsError": 1.3039264869068173e-08
+    },
+    "stateComparison": {
+      "elements": 262144,
+      "differentElements": 203287,
+      "maxDifference": 4.76837158203125e-07,
+      "rmsError": 3.9434139344034365e-09
+    },
+    "macCaptureAgreement": {
+      "elements": 38912,
+      "differentElements": 0,
+      "maxDifference": 0,
+      "rmsError": 0
+    },
+    "macStateCaptureAgreement": {
+      "elements": 262144,
+      "differentElements": 0,
+      "maxDifference": 0,
+      "rmsError": 0
+    },
+    "reference": {
+      "model": "Qwen/Qwen3.5-0.8B",
+      "modelRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "equations": "https://github.com/huggingface/transformers/blob/0a896aa41bba78f92338db21cc468fe043888657/src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+      "sourceSha256": "f3fecce29dee6cea1ac951c947a538fdcf01abfc21f8f0e33a78b535fe6837c3",
+      "functions": [
+        "l2norm",
+        "torch_recurrent_gated_delta_rule",
+        "Qwen3_5RMSNormGated"
+      ],
+      "scope": "Independent Float64 equations on identical F32 operands; no substitution",
+      "traceSha256": "8c1ddaad0550d9700af4415edce16a2e3c1a8d938b9c82fefaa26c65cff62ce5",
+      "comparisons": [
+        {
+          "platform": "mac",
+          "output": {
+            "elements": 38912,
+            "differentElements": 38912,
+            "maxDifference": 4.320492463794068e-07,
+            "rmsError": 1.6123798499967663e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 261248,
+            "maxDifference": 6.102624567905224e-07,
+            "rmsError": 4.678964556916734e-09
+          }
+        },
+        {
+          "platform": "linux",
+          "output": {
+            "elements": 38912,
+            "differentElements": 38912,
+            "maxDifference": 6.274729602573359e-07,
+            "rmsError": 1.585465966472042e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 261248,
+            "maxDifference": 6.007294177656775e-07,
+            "rmsError": 4.049322516664468e-09
+          }
+        }
+      ]
+    }
+  },
+  "unchangedShaderPrefixes": {
+    "file": "doppler-recurrent-reference-prefixes.json.gz",
+    "rawSha256": "15b9b260625aa9980e1d20ff8f132a7ca2b093a9fc5b19aad2ad652f582601b5",
+    "prefixResetVerified": true,
+    "tokens": [
+      {
+        "token": 0,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1449,
+            "maxDifference": 1.4901161193847656e-07,
+            "rmsError": 8.445979946239992e-09
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 133827,
+            "maxDifference": 5.960464477539063e-08,
+            "rmsError": 3.314470307606748e-10
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.203903438109279e-07,
+              "rmsError": 1.356719527273044e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 6.311955114135515e-08,
+              "rmsError": 3.375958806871184e-10
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.7999498858631853e-07,
+              "rmsError": 1.317055049687355e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 5.009362935570749e-08,
+              "rmsError": 3.037997600482386e-10
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 1,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1519,
+            "maxDifference": 3.5762786865234375e-07,
+            "rmsError": 1.1610749438165652e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 147610,
+            "maxDifference": 5.960464477539063e-08,
+            "rmsError": 4.362792285580793e-10
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.983398308982089e-07,
+              "rmsError": 1.7290344895450993e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 8.819499330847691e-08,
+              "rmsError": 6.030496065744244e-10
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.4347635474430973e-07,
+              "rmsError": 1.4636416254177934e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 8.819499330847691e-08,
+              "rmsError": 5.361431751270329e-10
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 2,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1618,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 8.497969362513779e-09
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 165833,
+            "maxDifference": 1.7881393432617188e-07,
+            "rmsError": 7.739540331706975e-10
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.501401514809487e-07,
+              "rmsError": 1.085192607053304e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 2.0420504454055077e-07,
+              "rmsError": 9.855853845797576e-10
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.501401514809487e-07,
+              "rmsError": 1.2190371873601047e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 1.597021703769741e-07,
+              "rmsError": 8.241156677221769e-10
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 3,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1606,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 1.6778913210234795e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 174560,
+            "maxDifference": 1.341104507446289e-07,
+            "rmsError": 1.0233312750746448e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.697154959958482e-07,
+              "rmsError": 1.9375077558813445e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 1.8667170154085255e-07,
+              "rmsError": 1.168156349631334e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.525324911406557e-07,
+              "rmsError": 1.5978920876083214e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 1.3534159082340125e-07,
+              "rmsError": 9.769280014581282e-10
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 4,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1624,
+            "maxDifference": 7.152557373046875e-07,
+            "rmsError": 2.1445993731494642e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 185912,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 1.5743421252421896e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.0682862628129683e-07,
+              "rmsError": 1.308856101666183e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 1.8098457910814547e-07,
+              "rmsError": 1.3016307109405307e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 5.749471585492216e-07,
+              "rmsError": 1.867140674773476e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 2.4281124955116695e-07,
+              "rmsError": 1.3009980823664482e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 5,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1586,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 1.1769364089361185e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 187180,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 1.6616788104785176e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.890543811557734e-07,
+              "rmsError": 1.6303264409351375e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 1.7964267043368842e-07,
+              "rmsError": 1.4772212846145014e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 6.274729602573359e-07,
+              "rmsError": 1.8389351343664424e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 2.689126208377246e-07,
+              "rmsError": 1.2588355732260276e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 6,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1659,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 1.2600435390095568e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 192414,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 2.5892941644575917e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 1.6120624013460372e-07,
+              "rmsError": 1.1608849111939472e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 3.3306222357865067e-07,
+              "rmsError": 2.2158883743073717e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.5530153258124244e-07,
+              "rmsError": 1.3731342890616747e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 3.25099430931175e-07,
+              "rmsError": 1.484531346428536e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 7,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1622,
+            "maxDifference": 2.980232238769531e-07,
+            "rmsError": 1.3235891711671757e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 198095,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 2.6593236115946293e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.6884838561235256e-07,
+              "rmsError": 1.6540283324710268e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 3.509553316849434e-07,
+              "rmsError": 2.3576988300367353e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 4.5201857012955315e-07,
+              "rmsError": 1.67918787475085e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 3.4518523928106504e-07,
+              "rmsError": 1.6377070872845331e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 8,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1642,
+            "maxDifference": 3.5762786865234375e-07,
+            "rmsError": 1.3742262300304072e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 201181,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 2.6691494207755736e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 4.320492463794068e-07,
+              "rmsError": 1.8006422788873122e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 3.9043838206964665e-07,
+              "rmsError": 2.529414893614826e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 1.3544945304255762e-07,
+              "rmsError": 1.2148365059085514e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 2.9453825978187353e-07,
+              "rmsError": 1.6860378007661428e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 9,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1688,
+            "maxDifference": 7.152557373046875e-07,
+            "rmsError": 1.7723551367331597e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 200165,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 2.371330001783641e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.629960727558057e-07,
+              "rmsError": 1.435465118881564e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 1.9220915703499486e-07,
+              "rmsError": 2.138836131803722e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.522596645488818e-07,
+              "rmsError": 1.292440980107411e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 2.7790915591019427e-07,
+              "rmsError": 1.85429371913204e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 10,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1632,
+            "maxDifference": 1.7881393432617188e-07,
+            "rmsError": 1.0121872978771603e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 201316,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 2.3621726030891675e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.590163757365538e-07,
+              "rmsError": 1.504898141839655e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 2.540348060797726e-07,
+              "rmsError": 2.319778752477093e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.2921405334885847e-07,
+              "rmsError": 1.3578745860742533e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 2.540348060797726e-07,
+              "rmsError": 2.182948800531994e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 11,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1678,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 8.309236604901556e-09
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 199272,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 2.4986696701485484e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.1147912471496397e-07,
+              "rmsError": 1.5528474471018618e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 4.1945579276614353e-07,
+              "rmsError": 3.4125132034553973e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.1147912471496397e-07,
+              "rmsError": 1.4306990265746774e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 2.9988352800991436e-07,
+              "rmsError": 2.8308054586390295e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 12,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1711,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 1.4486360171369971e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 200224,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 2.682220731485407e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.0240651510405883e-07,
+              "rmsError": 1.4278147936970162e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 4.5333978793138385e-07,
+              "rmsError": 3.2900039041661837e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.972279886659379e-07,
+              "rmsError": 1.5026445950332077e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 3.6266139419316445e-07,
+              "rmsError": 2.894998083498338e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 13,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1611,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 1.0096858896609953e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 196532,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 2.826489174587148e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.735196938414731e-07,
+              "rmsError": 1.851188363418398e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 6.899990203645956e-07,
+              "rmsError": 3.7167092959699958e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 4.615784399142342e-07,
+              "rmsError": 1.8973926170411523e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 4.188556707029889e-07,
+              "rmsError": 3.4045822626211877e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 14,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1726,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 9.663636798282536e-09
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 205991,
+            "maxDifference": 4.172325134277344e-07,
+            "rmsError": 2.8306541847067466e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.109114156130133e-07,
+              "rmsError": 1.4835584431152604e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 6.561074076816276e-07,
+              "rmsError": 4.4057305653479475e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.629882254190363e-07,
+              "rmsError": 1.2630752036347996e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 5.219969569369987e-07,
+              "rmsError": 3.899737665378757e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 15,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1649,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 1.5276320044556173e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 199606,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 3.1527134596120424e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.8652058015055104e-07,
+              "rmsError": 2.0686423035917836e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 5.654129480170411e-07,
+              "rmsError": 4.274133115606123e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.034642011012778e-07,
+              "rmsError": 2.1737082027752007e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 6.191053837922844e-07,
+              "rmsError": 3.997722047067742e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 16,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1662,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 9.338705029837454e-09
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 199941,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 3.4261461037534803e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.0420208130266246e-07,
+              "rmsError": 1.483760955503569e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 5.386109198646238e-07,
+              "rmsError": 4.051469315442339e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.500253204473779e-07,
+              "rmsError": 1.2957135778932115e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 5.509425388128264e-07,
+              "rmsError": 3.81417998173812e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 17,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1583,
+            "maxDifference": 3.5762786865234375e-07,
+            "rmsError": 1.525635030022847e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 198720,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 3.3947455401187832e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 3.4507210389111975e-07,
+              "rmsError": 2.2208046811229385e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 5.641358764574278e-07,
+              "rmsError": 4.120741136112878e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 4.046767486665104e-07,
+              "rmsError": 2.329961476988049e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 5.556353988023233e-07,
+              "rmsError": 3.941180444491049e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      },
+      {
+        "token": 18,
+        "crossPlatform": {
+          "output": {
+            "elements": 2048,
+            "differentElements": 1721,
+            "maxDifference": 2.384185791015625e-07,
+            "rmsError": 1.0253576851847879e-08
+          },
+          "state": {
+            "elements": 262144,
+            "differentElements": 203287,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 3.9434139344034365e-09
+          }
+        },
+        "reference": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.74152947898898e-07,
+              "rmsError": 1.4563725058077055e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 6.102624567905224e-07,
+              "rmsError": 4.678964556916734e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 2048,
+              "differentElements": 2048,
+              "maxDifference": 2.4623278349622524e-07,
+              "rmsError": 1.3957549003266255e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 6.007294177656775e-07,
+              "rmsError": 4.049322516664468e-09
+            },
+            "unchangedOutput": {
+              "elements": 2048,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ]
+      }
+    ],
+    "scope": "Each prefix resets identical captured initial state; all outputs and final state reproduce original execution per platform"
+  },
+  "probes": [
+    {
+      "file": "doppler-recurrent-isolated-beta.json.gz",
+      "rawSha256": "f91361b709da9757b46a59197764c15089db1d3665ae17539fcc441af1781634",
+      "stages": [
+        "beta"
+      ],
+      "shaderSha256": "31433a653a8e41a8cb7a15bf1ff5062b704e532a176481d00256ed6e822ffa16",
+      "preservesUninstrumentedExecution": false,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 23411,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 7.260715595202646e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 161078,
+              "maxDifference": 4.76837158203125e-07,
+              "rmsError": 2.681807565386137e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": false
+      },
+      "stageComparisons": [
+        {
+          "stage": "beta",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 61,
+            "maxDifference": 5.960464477539063e-08,
+            "rmsError": 2.1391629033703022e-08
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 7.115143008107339e-08,
+              "rmsError": 2.6600053060611124e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 8.452839561634562e-08,
+              "rmsError": 2.5787596270286757e-08
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-isolated-correction.json.gz",
+      "rawSha256": "15d0ce2a3069721b26c3a207b5bee40ef6d72e4f8b3cffb2238b365aedc0bffc",
+      "stages": [
+        "correction"
+      ],
+      "shaderSha256": "6484187b183564bd23016c025c77bb91e54cc0e82dfa82bc65a584b68d87f1cf",
+      "preservesUninstrumentedExecution": false,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 23840,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 7.3710705109829936e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 162467,
+              "maxDifference": 4.76837158203125e-07,
+              "rmsError": 2.7397012335198523e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": false
+      },
+      "stageComparisons": [
+        {
+          "stage": "correction",
+          "crossPlatform": {
+            "elements": 38912,
+            "differentElements": 18115,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 7.079059652529719e-09
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 1.028904404787312e-06,
+              "rmsError": 1.3037468161581758e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 1.3865322734396557e-06,
+              "rmsError": 1.248388329459101e-08
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-isolated-decay.json.gz",
+      "rawSha256": "574136eaeef89f8dc87e3d7627ccbb97692bb47916d8cab39a3209a3a2f31a6b",
+      "stages": [
+        "decay"
+      ],
+      "shaderSha256": "d979c6f798cdc9b7e46d6f9b74bd14ac797a05f5f99231da37789c967d0e4e8d",
+      "preservesUninstrumentedExecution": true,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": true
+      },
+      "stageComparisons": [
+        {
+          "stage": "decay",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 147,
+            "maxDifference": 5.960464477539063e-08,
+            "rmsError": 3.3796874283683114e-08
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 8.76265398019882e-08,
+              "rmsError": 3.263537836130343e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 5.357376076098319e-08,
+              "rmsError": 1.8803409123273748e-08
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-isolated-logDecay.json.gz",
+      "rawSha256": "29d65c169af60cd3d04544fa875887b9c48c805c58b9aab830befd85a986ea5f",
+      "stages": [
+        "logDecay"
+      ],
+      "shaderSha256": "d3ec5c6676c2086e3c9fcfb329f7823bb5ee6bf109c880710c2ba707802e876c",
+      "preservesUninstrumentedExecution": false,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 3850,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 2.59860114241921e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 56632,
+              "maxDifference": 8.940696716308594e-08,
+              "rmsError": 5.350382800010816e-10
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": false
+      },
+      "stageComparisons": [
+        {
+          "stage": "logDecay",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 189,
+            "maxDifference": 9.5367431640625e-07,
+            "rmsError": 1.2464863975119364e-07
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 6.720576042340554e-07,
+              "rmsError": 1.0458771217659414e-07
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 9.646497618476246e-07,
+              "rmsError": 1.34938685111628e-07
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-isolated-memory.json.gz",
+      "rawSha256": "c878877dd915035afac2e594f633ec7181c87263af4e8ee27cadaad1871b70a7",
+      "stages": [
+        "memory"
+      ],
+      "shaderSha256": "56ce0a8c44baff16daa21f0cac68688726e4124d86a3ad407c5540b9c0644764",
+      "preservesUninstrumentedExecution": true,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": true
+      },
+      "stageComparisons": [
+        {
+          "stage": "memory",
+          "crossPlatform": {
+            "elements": 38912,
+            "differentElements": 29424,
+            "maxDifference": 9.5367431640625e-07,
+            "rmsError": 1.0410951074321929e-08
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 38912,
+              "differentElements": 36864,
+              "maxDifference": 1.7293306786569929e-06,
+              "rmsError": 1.7679872227936995e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 38912,
+              "differentElements": 36864,
+              "maxDifference": 1.9677492577585554e-06,
+              "rmsError": 1.6479682492010182e-08
+            }
+          ],
+          "firstDivergentToken": 1
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-observe-correction.json.gz",
+      "rawSha256": "5a17473a356d9431558b889cd6e8ad7afb340f9da3c98ac133e753ed11fb24be",
+      "stages": [
+        "memory",
+        "correction"
+      ],
+      "shaderSha256": "2c4fdf261d874f75054434fe4d032ad2e1d4f15446007c3119eb57ba3aee2af0",
+      "preservesUninstrumentedExecution": false,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 23840,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 7.3710705109829936e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 162467,
+              "maxDifference": 4.76837158203125e-07,
+              "rmsError": 2.7397012335198523e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": false
+      },
+      "stageComparisons": [
+        {
+          "stage": "memory",
+          "crossPlatform": {
+            "elements": 38912,
+            "differentElements": 29149,
+            "maxDifference": 5.960464477539062e-07,
+            "rmsError": 9.454980225665717e-09
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 38912,
+              "differentElements": 36864,
+              "maxDifference": 1.4909120995554304e-06,
+              "rmsError": 1.6569990278450682e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 38912,
+              "differentElements": 36864,
+              "maxDifference": 1.9677492577585554e-06,
+              "rmsError": 1.6479682492010182e-08
+            }
+          ],
+          "firstDivergentToken": 1
+        },
+        {
+          "stage": "correction",
+          "crossPlatform": {
+            "elements": 38912,
+            "differentElements": 18115,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 7.079059652529719e-09
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 1.028904404787312e-06,
+              "rmsError": 1.3037468161581758e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 1.3865322734396557e-06,
+              "rmsError": 1.248388329459101e-08
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-observe-gates.json.gz",
+      "rawSha256": "55b0805e268887efc59c01457bb03c818d4e413dc622234367d3f42e44830d25",
+      "stages": [
+        "beta",
+        "logDecay",
+        "decay",
+        "gate"
+      ],
+      "shaderSha256": "3df2f67662ba7d838f8d48e2d9b577f43bcfbbe7f9acede7a905f2146788228c",
+      "preservesUninstrumentedExecution": false,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 23411,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 7.260715595202646e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 161078,
+              "maxDifference": 4.76837158203125e-07,
+              "rmsError": 2.681807565386137e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 3850,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 2.59860114241921e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 56632,
+              "maxDifference": 8.940696716308594e-08,
+              "rmsError": 5.350382800010816e-10
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": false
+      },
+      "stageComparisons": [
+        {
+          "stage": "beta",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 61,
+            "maxDifference": 5.960464477539063e-08,
+            "rmsError": 2.1391629033703022e-08
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 7.115143008107339e-08,
+              "rmsError": 2.6600053060611124e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 8.452839561634562e-08,
+              "rmsError": 2.5787596270286757e-08
+            }
+          ],
+          "firstDivergentToken": 0
+        },
+        {
+          "stage": "logDecay",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 189,
+            "maxDifference": 9.5367431640625e-07,
+            "rmsError": 1.2464863975119364e-07
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 6.720576042340554e-07,
+              "rmsError": 1.0458771217659414e-07
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 9.646497618476246e-07,
+              "rmsError": 1.34938685111628e-07
+            }
+          ],
+          "firstDivergentToken": 0
+        },
+        {
+          "stage": "decay",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 141,
+            "maxDifference": 5.960464477539063e-08,
+            "rmsError": 3.387511052490065e-08
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 8.76265398019882e-08,
+              "rmsError": 3.263537836130343e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 6.461925572409655e-08,
+              "rmsError": 1.9591790001792534e-08
+            }
+          ],
+          "firstDivergentToken": 0
+        },
+        {
+          "stage": "gate",
+          "crossPlatform": {
+            "elements": 38912,
+            "differentElements": 11475,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 2.1085374500592395e-08
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 2.950785553679225e-07,
+              "rmsError": 2.323134595490315e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 3.9587257383288943e-07,
+              "rmsError": 2.2932381413610088e-08
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-observe-normalized.json.gz",
+      "rawSha256": "c6b64a916ba78631ffc791f873a7da60711f11b4506e18d8c331d9f4c3c324ce",
+      "stages": [
+        "normalizedQ",
+        "normalizedK"
+      ],
+      "shaderSha256": "abce5c7437037acc6273246935829a1503a89d0375760ac8b6a8e80d8d5c4d70",
+      "preservesUninstrumentedExecution": true,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": true
+      },
+      "stageComparisons": [
+        {
+          "stage": "normalizedQ",
+          "crossPlatform": {
+            "elements": 38912,
+            "differentElements": 3344,
+            "maxDifference": 1.1175870895385742e-08,
+            "rmsError": 2.5313636062721444e-10
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 38912,
+              "differentElements": 38779,
+              "maxDifference": 1.097995680487962e-08,
+              "rmsError": 4.211281069361182e-10
+            },
+            {
+              "platform": "linux",
+              "elements": 38912,
+              "differentElements": 38779,
+              "maxDifference": 1.097995680487962e-08,
+              "rmsError": 4.31939953250698e-10
+            }
+          ],
+          "firstDivergentToken": 0
+        },
+        {
+          "stage": "normalizedK",
+          "crossPlatform": {
+            "elements": 38912,
+            "differentElements": 4735,
+            "maxDifference": 1.1920928955078125e-07,
+            "rmsError": 2.925099276293733e-09
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 38912,
+              "differentElements": 38779,
+              "maxDifference": 1.1129075661031607e-07,
+              "rmsError": 3.974616219083153e-09
+            },
+            {
+              "platform": "linux",
+              "elements": 38912,
+              "differentElements": 38779,
+              "maxDifference": 8.279553098677894e-08,
+              "rmsError": 4.0870054200022146e-09
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-observe-output.json.gz",
+      "rawSha256": "e91090e0d1d70b945a7b7ddf00136ebacd6cd6d4889f799e93a86b2a6e7b15d4",
+      "stages": [
+        "rawOutput",
+        "invRms"
+      ],
+      "shaderSha256": "c243ad0172cc3bd72c131da35983b7c166449afe877e9a843e06e631f07a3f72",
+      "preservesUninstrumentedExecution": true,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": true
+      },
+      "stageComparisons": [
+        {
+          "stage": "rawOutput",
+          "crossPlatform": {
+            "elements": 38912,
+            "differentElements": 27819,
+            "maxDifference": 4.470348358154297e-08,
+            "rmsError": 5.072808314735678e-10
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 4.4239253801925393e-08,
+              "rmsError": 6.963703949963939e-10
+            },
+            {
+              "platform": "linux",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 5.914041499577305e-08,
+              "rmsError": 6.725221155439625e-10
+            }
+          ],
+          "firstDivergentToken": 0
+        },
+        {
+          "stage": "invRms",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 117,
+            "maxDifference": 0.0001220703125,
+            "rmsError": 3.3390788671267e-05
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 0.00018229496072308393,
+              "rmsError": 4.7286155302697834e-05
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 0.00018229496072308393,
+              "rmsError": 4.317677258705094e-05
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-observe-scales.json.gz",
+      "rawSha256": "6eb641ef5bae2b9381ac49b6436e7b60c82a3824ffd3b0e2b176898c76e8d579",
+      "stages": [
+        "qScale",
+        "kScale"
+      ],
+      "shaderSha256": "2597c8c2326da973ea51caa7cf7ce2fe52d193971b4867f42eb4c689586255b9",
+      "preservesUninstrumentedExecution": true,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": true
+      },
+      "stageComparisons": [
+        {
+          "stage": "qScale",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 29,
+            "maxDifference": 2.9802322387695312e-08,
+            "rmsError": 3.4352124677261485e-09
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 8.07106044220518e-08,
+              "rmsError": 8.02191960374117e-09
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 8.07106044220518e-08,
+              "rmsError": 8.506220724830001e-09
+            }
+          ],
+          "firstDivergentToken": 0
+        },
+        {
+          "stage": "kScale",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 42,
+            "maxDifference": 1.9073486328125e-06,
+            "rmsError": 1.8571471334237907e-07
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 1.3898871085160636e-06,
+              "rmsError": 1.9354219159052088e-07
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 9.909290952236915e-07,
+              "rmsError": 1.8696497069767103e-07
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-observe-states.json.gz",
+      "rawSha256": "22545ed0809c52f8b614eea8237d0cea24f35afd8e352dcb1eb7105870916f48",
+      "stages": [
+        "decayedState",
+        "updatedState"
+      ],
+      "shaderSha256": "29e2ff0c2eb1080afc2db0f652b0c01a615e2346096d4c5dd2565532de6eb4d0",
+      "preservesUninstrumentedExecution": true,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": true
+      },
+      "stageComparisons": [
+        {
+          "stage": "decayedState",
+          "crossPlatform": {
+            "elements": 4980736,
+            "differentElements": 3713492,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 2.429719330116642e-09
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 4980736,
+              "differentElements": 4702464,
+              "maxDifference": 7.418093870281695e-07,
+              "rmsError": 2.7859994223571773e-09
+            },
+            {
+              "platform": "linux",
+              "elements": 4980736,
+              "differentElements": 4702464,
+              "maxDifference": 6.231549340429687e-07,
+              "rmsError": 2.417905728068385e-09
+            }
+          ],
+          "firstDivergentToken": 1
+        },
+        {
+          "stage": "updatedState",
+          "crossPlatform": {
+            "elements": 4980736,
+            "differentElements": 3591666,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 2.486618934248521e-09
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 4980736,
+              "differentElements": 4963712,
+              "maxDifference": 6.899990203645956e-07,
+              "rmsError": 2.926849098543452e-09
+            },
+            {
+              "platform": "linux",
+              "elements": 4980736,
+              "differentElements": 4963712,
+              "maxDifference": 6.191053837922844e-07,
+              "rmsError": 2.5841230625126123e-09
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-single-beta.json.gz",
+      "rawSha256": "d1de80f8170c382bd429b3ba9462d823f26f10843e75ea3cd6cae1839f70a86a",
+      "stages": [
+        "beta"
+      ],
+      "shaderSha256": "051a518262b2dcaffd3dd0e00a03ea634347943ccb06e7c93ef33fd17a12460e",
+      "preservesUninstrumentedExecution": false,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 23411,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 7.260715595202646e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 161078,
+              "maxDifference": 4.76837158203125e-07,
+              "rmsError": 2.681807565386137e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 3850,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 2.59860114241921e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 56632,
+              "maxDifference": 8.940696716308594e-08,
+              "rmsError": 5.350382800010816e-10
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": false
+      },
+      "stageComparisons": [
+        {
+          "stage": "beta",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 61,
+            "maxDifference": 5.960464477539063e-08,
+            "rmsError": 2.1391629033703022e-08
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 7.115143008107339e-08,
+              "rmsError": 2.6600053060611124e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 8.452839561634562e-08,
+              "rmsError": 2.5787596270286757e-08
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-single-correction.json.gz",
+      "rawSha256": "fee56a82553d9929ab1b13fa1481118f33481bf8d3402e2ca27fa82e359814c9",
+      "stages": [
+        "correction"
+      ],
+      "shaderSha256": "2c4fdf261d874f75054434fe4d032ad2e1d4f15446007c3119eb57ba3aee2af0",
+      "preservesUninstrumentedExecution": false,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 23840,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 7.3710705109829936e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 162467,
+              "maxDifference": 4.76837158203125e-07,
+              "rmsError": 2.7397012335198523e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": false
+      },
+      "stageComparisons": [
+        {
+          "stage": "correction",
+          "crossPlatform": {
+            "elements": 38912,
+            "differentElements": 18115,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 7.079059652529719e-09
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 1.028904404787312e-06,
+              "rmsError": 1.3037468161581758e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 1.3865322734396557e-06,
+              "rmsError": 1.248388329459101e-08
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-single-decay.json.gz",
+      "rawSha256": "74e1a2f57dad99cbf6bd03bacf4ad2b399e31112b7a2d6d84b2dab5f69ed8460",
+      "stages": [
+        "decay"
+      ],
+      "shaderSha256": "051a518262b2dcaffd3dd0e00a03ea634347943ccb06e7c93ef33fd17a12460e",
+      "preservesUninstrumentedExecution": false,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 23411,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 7.260715595202646e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 161078,
+              "maxDifference": 4.76837158203125e-07,
+              "rmsError": 2.681807565386137e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 3850,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 2.59860114241921e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 56632,
+              "maxDifference": 8.940696716308594e-08,
+              "rmsError": 5.350382800010816e-10
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": false
+      },
+      "stageComparisons": [
+        {
+          "stage": "decay",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 141,
+            "maxDifference": 5.960464477539063e-08,
+            "rmsError": 3.387511052490065e-08
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 8.76265398019882e-08,
+              "rmsError": 3.263537836130343e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 6.461925572409655e-08,
+              "rmsError": 1.9591790001792534e-08
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-single-gate.json.gz",
+      "rawSha256": "2fc984f8131a0d4a0627fcc0aa7f62c2c555c12d27470333929e5ff236dcefd1",
+      "stages": [
+        "gate"
+      ],
+      "shaderSha256": "6590f2c54f061d9e742b0ab973f7042f64feb9425ca98c9830928bac09290ff7",
+      "preservesUninstrumentedExecution": true,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": true
+      },
+      "stageComparisons": [
+        {
+          "stage": "gate",
+          "crossPlatform": {
+            "elements": 38912,
+            "differentElements": 11475,
+            "maxDifference": 4.76837158203125e-07,
+            "rmsError": 2.1085374500592395e-08
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 2.950785553679225e-07,
+              "rmsError": 2.323134595490315e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 3.9587257383288943e-07,
+              "rmsError": 2.2932381413610088e-08
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-single-logDecay.json.gz",
+      "rawSha256": "f2556406b60e34c57dd183ec9cbe7fdb0eb2f443ab31f21d9aebae8208d0ffd1",
+      "stages": [
+        "logDecay"
+      ],
+      "shaderSha256": "051a518262b2dcaffd3dd0e00a03ea634347943ccb06e7c93ef33fd17a12460e",
+      "preservesUninstrumentedExecution": false,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 23411,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 7.260715595202646e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 161078,
+              "maxDifference": 4.76837158203125e-07,
+              "rmsError": 2.681807565386137e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 3850,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 2.59860114241921e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 56632,
+              "maxDifference": 8.940696716308594e-08,
+              "rmsError": 5.350382800010816e-10
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": false
+      },
+      "stageComparisons": [
+        {
+          "stage": "logDecay",
+          "crossPlatform": {
+            "elements": 304,
+            "differentElements": 189,
+            "maxDifference": 9.5367431640625e-07,
+            "rmsError": 1.2464863975119364e-07
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 6.720576042340554e-07,
+              "rmsError": 1.0458771217659414e-07
+            },
+            {
+              "platform": "linux",
+              "elements": 304,
+              "differentElements": 304,
+              "maxDifference": 9.646497618476246e-07,
+              "rmsError": 1.34938685111628e-07
+            }
+          ],
+          "firstDivergentToken": 0
+        }
+      ]
+    },
+    {
+      "file": "doppler-recurrent-single-memory.json.gz",
+      "rawSha256": "224369d5da390bd804df030775e3d249770c424c550778c0c3309fb8461cf584",
+      "stages": [
+        "memory"
+      ],
+      "shaderSha256": "2c4fdf261d874f75054434fe4d032ad2e1d4f15446007c3119eb57ba3aee2af0",
+      "preservesUninstrumentedExecution": false,
+      "observationValidation": {
+        "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 23840,
+              "maxDifference": 2.384185791015625e-07,
+              "rmsError": 7.3710705109829936e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 162467,
+              "maxDifference": 4.76837158203125e-07,
+              "rmsError": 2.7397012335198523e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 0,
+              "maxDifference": 0,
+              "rmsError": 0
+            }
+          }
+        ],
+        "preservesUninstrumentedExecution": false
+      },
+      "stageComparisons": [
+        {
+          "stage": "memory",
+          "crossPlatform": {
+            "elements": 38912,
+            "differentElements": 29149,
+            "maxDifference": 5.960464477539062e-07,
+            "rmsError": 9.454980225665717e-09
+          },
+          "reference": [
+            {
+              "platform": "mac",
+              "elements": 38912,
+              "differentElements": 36864,
+              "maxDifference": 1.4909120995554304e-06,
+              "rmsError": 1.6569990278450682e-08
+            },
+            {
+              "platform": "linux",
+              "elements": 38912,
+              "differentElements": 36864,
+              "maxDifference": 1.9677492577585554e-06,
+              "rmsError": 1.6479682492010182e-08
+            }
+          ],
+          "firstDivergentToken": 1
+        }
+      ]
+    }
+  ],
+  "experiments": [
+    {
+      "file": "doppler-recurrent-intervention-normalization-compact.json.gz",
+      "rawSha256": "83985379e15d68bef1a1485ad34de3dffce2f321f454ecbc0d6f9b402206cad7",
+      "intervention": "normalization",
+      "compensated": false,
+      "shaderSha256": "b5abcaeca3dfca5697b73c399a746f2572bb318656d5805802855e40477a6cb3",
+      "crossPlatform": {
+        "elements": 38912,
+        "differentElements": 30366,
+        "maxDifference": 7.152557373046875e-07,
+        "rmsError": 1.3748513020220744e-08
+      },
+      "stateComparison": {
+        "elements": 262144,
+        "differentElements": 201225,
+        "maxDifference": 5.364418029785156e-07,
+        "rmsError": 4.374058683773026e-09
+      },
+      "reference": {
+        "model": "Qwen/Qwen3.5-0.8B",
+        "modelRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "equations": "https://github.com/huggingface/transformers/blob/0a896aa41bba78f92338db21cc468fe043888657/src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+        "sourceSha256": "f3fecce29dee6cea1ac951c947a538fdcf01abfc21f8f0e33a78b535fe6837c3",
+        "functions": [
+          "l2norm",
+          "torch_recurrent_gated_delta_rule",
+          "Qwen3_5RMSNormGated"
+        ],
+        "scope": "Independent Float64 equations on identical captured F32 operands",
+        "traceSha256": "8c1ddaad0550d9700af4415edce16a2e3c1a8d938b9c82fefaa26c65cff62ce5",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 1.1124512995230873e-06,
+              "rmsError": 2.170370863695255e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 7.367093499688337e-07,
+              "rmsError": 4.680073187293006e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 9.288557283326782e-07,
+              "rmsError": 1.9825751230113396e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 7.795433520918493e-07,
+              "rmsError": 4.486304121462812e-09
+            }
+          }
+        ]
+      },
+      "acceptedForProduction": false
+    },
+    {
+      "file": "doppler-recurrent-intervention-gates.json.gz",
+      "rawSha256": "5a44b27c6ef39d12de7faa0396a83bb50bcb635d74ebc0a067b6dcd7dc23c4df",
+      "intervention": "gates",
+      "compensated": false,
+      "shaderSha256": "d127d83ef5ec6af88a07f6f9c573eb89cf9ae180b81b7b8b50464c23ffadb163",
+      "crossPlatform": {
+        "elements": 38912,
+        "differentElements": 28820,
+        "maxDifference": 4.76837158203125e-07,
+        "rmsError": 1.0373099316641492e-08
+      },
+      "stateComparison": {
+        "elements": 262144,
+        "differentElements": 165726,
+        "maxDifference": 2.384185791015625e-07,
+        "rmsError": 2.213859327448782e-09
+      },
+      "reference": {
+        "model": "Qwen/Qwen3.5-0.8B",
+        "modelRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "equations": "https://github.com/huggingface/transformers/blob/0a896aa41bba78f92338db21cc468fe043888657/src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+        "sourceSha256": "f3fecce29dee6cea1ac951c947a538fdcf01abfc21f8f0e33a78b535fe6837c3",
+        "functions": [
+          "l2norm",
+          "torch_recurrent_gated_delta_rule",
+          "Qwen3_5RMSNormGated"
+        ],
+        "scope": "Independent Float64 equations on identical captured F32 operands",
+        "traceSha256": "8c1ddaad0550d9700af4415edce16a2e3c1a8d938b9c82fefaa26c65cff62ce5",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 4.5201857012955315e-07,
+              "rmsError": 1.4366560477161185e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 7.020529650958451e-07,
+              "rmsError": 4.297582397549307e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 4.64281393441901e-07,
+              "rmsError": 1.5233407333529965e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 7.199387073164587e-07,
+              "rmsError": 4.245785089137734e-09
+            }
+          }
+        ]
+      },
+      "acceptedForProduction": false
+    },
+    {
+      "file": "doppler-recurrent-intervention-state-chunked.json.gz",
+      "rawSha256": "8fa9c9cb90883682db324f19361e5b90216cff4983075a138bacf89da4b1b51b",
+      "intervention": "state",
+      "compensated": false,
+      "shaderSha256": "2f8dd723ee3778d2e1020001876abfd237eae673c9c745c75847272b87bff421",
+      "crossPlatform": {
+        "elements": 38912,
+        "differentElements": 23703,
+        "maxDifference": 7.152557373046875e-07,
+        "rmsError": 1.08227568909801e-08
+      },
+      "stateComparison": {
+        "elements": 262144,
+        "differentElements": 0,
+        "maxDifference": 0,
+        "rmsError": 0
+      },
+      "reference": {
+        "model": "Qwen/Qwen3.5-0.8B",
+        "modelRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "equations": "https://github.com/huggingface/transformers/blob/0a896aa41bba78f92338db21cc468fe043888657/src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+        "sourceSha256": "f3fecce29dee6cea1ac951c947a538fdcf01abfc21f8f0e33a78b535fe6837c3",
+        "functions": [
+          "l2norm",
+          "torch_recurrent_gated_delta_rule",
+          "Qwen3_5RMSNormGated"
+        ],
+        "scope": "Independent Float64 equations on identical captured F32 operands",
+        "traceSha256": "8c1ddaad0550d9700af4415edce16a2e3c1a8d938b9c82fefaa26c65cff62ce5",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 5.014068045205988e-07,
+              "rmsError": 1.5496750829469937e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 1.1779806863287945e-07,
+              "rmsError": 6.472652581864436e-10
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 6.274729602573359e-07,
+              "rmsError": 1.543411702868541e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 1.1779806863287945e-07,
+              "rmsError": 6.472652581864436e-10
+            }
+          }
+        ]
+      },
+      "acceptedForProduction": false
+    },
+    {
+      "file": "doppler-recurrent-intervention-all.json.gz",
+      "rawSha256": "def7f28b987cb62a5f0e063447d53f69ca5204e97408d3698febe88eb4112f67",
+      "intervention": "all",
+      "compensated": false,
+      "shaderSha256": "3cd5f9669ba909acfcb36106d588284fb75d0a073cb17b642624f5a40267f102",
+      "crossPlatform": {
+        "elements": 38912,
+        "differentElements": 17855,
+        "maxDifference": 2.384185791015625e-07,
+        "rmsError": 6.655287657265626e-09
+      },
+      "stateComparison": {
+        "elements": 262144,
+        "differentElements": 0,
+        "maxDifference": 0,
+        "rmsError": 0
+      },
+      "reference": {
+        "model": "Qwen/Qwen3.5-0.8B",
+        "modelRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "equations": "https://github.com/huggingface/transformers/blob/0a896aa41bba78f92338db21cc468fe043888657/src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+        "sourceSha256": "f3fecce29dee6cea1ac951c947a538fdcf01abfc21f8f0e33a78b535fe6837c3",
+        "functions": [
+          "l2norm",
+          "torch_recurrent_gated_delta_rule",
+          "Qwen3_5RMSNormGated"
+        ],
+        "scope": "Independent Float64 equations on identical captured F32 operands",
+        "traceSha256": "8c1ddaad0550d9700af4415edce16a2e3c1a8d938b9c82fefaa26c65cff62ce5",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 1.1672743074342407e-06,
+              "rmsError": 1.7524524078228694e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 1.1779806863287945e-07,
+              "rmsError": 6.472652581864436e-10
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 1.2378067313356667e-06,
+              "rmsError": 1.7479781804526245e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 1.1779806863287945e-07,
+              "rmsError": 6.472652581864436e-10
+            }
+          }
+        ]
+      },
+      "acceptedForProduction": false
+    },
+    {
+      "file": "doppler-recurrent-compensated.json.gz",
+      "rawSha256": "801c29fab7409d393353883c08167c63cc845be879237b3b7ca1f8c00288fdc0",
+      "intervention": null,
+      "compensated": true,
+      "shaderSha256": "7d251f9ae6728d56c4b8d47a401c68343e5ea1d886d642e8037d9858729591a5",
+      "crossPlatform": {
+        "elements": 38912,
+        "differentElements": 33559,
+        "maxDifference": 7.152557373046875e-07,
+        "rmsError": 1.6872583390024236e-08
+      },
+      "stateComparison": {
+        "elements": 262144,
+        "differentElements": 207236,
+        "maxDifference": 7.152557373046875e-07,
+        "rmsError": 5.143217552186579e-09
+      },
+      "reference": {
+        "model": "Qwen/Qwen3.5-0.8B",
+        "modelRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "equations": "https://github.com/huggingface/transformers/blob/0a896aa41bba78f92338db21cc468fe043888657/src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+        "sourceSha256": "f3fecce29dee6cea1ac951c947a538fdcf01abfc21f8f0e33a78b535fe6837c3",
+        "functions": [
+          "l2norm",
+          "torch_recurrent_gated_delta_rule",
+          "Qwen3_5RMSNormGated"
+        ],
+        "scope": "Independent Float64 equations on identical captured F32 operands",
+        "traceSha256": "8c1ddaad0550d9700af4415edce16a2e3c1a8d938b9c82fefaa26c65cff62ce5",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "output": {
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 4.046767486665104e-07,
+              "rmsError": 1.611718001540335e-08
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 6.875085383217794e-07,
+              "rmsError": 4.613738844551098e-09
+            }
+          },
+          {
+            "platform": "linux",
+            "output": {
+              "elements": 38912,
+              "differentElements": 38912,
+              "maxDifference": 3.890543811557734e-07,
+              "rmsError": 9.83355932367379e-09
+            },
+            "state": {
+              "elements": 262144,
+              "differentElements": 261248,
+              "maxDifference": 4.312913932658091e-07,
+              "rmsError": 2.7227952992933077e-09
+            }
+          }
+        ]
+      },
+      "acceptedForProduction": false
+    }
+  ],
+  "conditionalReadoutReference": {
+    "scope": "Float64 conditional references on validated GPU operands; no model acceptance or arithmetic substitution",
+    "captureSha256": "557116404c3b96e86a645495fdc5a7ca536b6c3677dfa79a0a591bfbb4c96264",
+    "coordinate": {
+      "captureIndex": 0,
+      "layerIdx": 0,
+      "prompt": 0,
+      "step": 0,
+      "dispatch": 0
+    },
+    "baselineSha256": "22ad1e62bd183102579af7159165c84001864669e9ef20707652c9d2222bc808",
+    "sources": [
+      {
+        "stages": [
+          "normalizedQ"
+        ],
+        "sha256": "c6b64a916ba78631ffc791f873a7da60711f11b4506e18d8c331d9f4c3c324ce",
+        "shaderSha256": "abce5c7437037acc6273246935829a1503a89d0375760ac8b6a8e80d8d5c4d70"
+      },
+      {
+        "stages": [
+          "updatedState"
+        ],
+        "sha256": "22545ed0809c52f8b614eea8237d0cea24f35afd8e352dcb1eb7105870916f48",
+        "shaderSha256": "29e2ff0c2eb1080afc2db0f652b0c01a615e2346096d4c5dd2565532de6eb4d0"
+      },
+      {
+        "stages": [
+          "rawOutput",
+          "invRms"
+        ],
+        "sha256": "e91090e0d1d70b945a7b7ddf00136ebacd6cd6d4889f799e93a86b2a6e7b15d4",
+        "shaderSha256": "c243ad0172cc3bd72c131da35983b7c166449afe877e9a843e06e631f07a3f72"
+      },
+      {
+        "stages": [
+          "gate"
+        ],
+        "sha256": "2fc984f8131a0d4a0627fcc0aa7f62c2c555c12d27470333929e5ff236dcefd1",
+        "shaderSha256": "6590f2c54f061d9e742b0ab973f7042f64feb9425ca98c9830928bac09290ff7"
+      }
+    ],
+    "results": [
+      {
+        "platform": "mac",
+        "comparisons": {
+          "rawDotGivenObservedStateAndQ": {
+            "elements": 38912,
+            "maxDifference": 5.280460307899304e-08,
+            "rmsError": 6.163991026478208e-10
+          },
+          "rmsGivenObservedRawOutput": {
+            "elements": 304,
+            "maxDifference": 5.8201475212626974e-05,
+            "rmsError": 1.8591204104651304e-05
+          },
+          "gatedProductGivenObservedOperands": {
+            "elements": 38912,
+            "maxDifference": 1.91077766054093e-07,
+            "rmsError": 4.346108049469331e-09
+          }
+        }
+      },
+      {
+        "platform": "linux",
+        "comparisons": {
+          "rawDotGivenObservedStateAndQ": {
+            "elements": 38912,
+            "maxDifference": 5.456832496975039e-08,
+            "rmsError": 6.258206634648556e-10
+          },
+          "rmsGivenObservedRawOutput": {
+            "elements": 304,
+            "maxDifference": 6.101290375681856e-05,
+            "rmsError": 2.0030879535012028e-05
+          },
+          "gatedProductGivenObservedOperands": {
+            "elements": 38912,
+            "maxDifference": 2.044307403359369e-07,
+            "rmsError": 5.014364812199007e-09
+          }
+        }
+      }
+    ]
+  },
+  "findings": [
+    "Capture pairing requires layer, prompt, step and dispatch identity; duplicates, missing coordinates and unmatched boundaries fail closed.",
+    "Independent Float64 reference follows pinned Qwen equations and never feeds production inference.",
+    "Per-token state drift appears on token zero with identical operands; prefix replay does not change shader source or inherited state.",
+    "Validated separate probes preserve output and final state on both GPUs. Perturbing gate/beta/log-decay/correction probes are rejected, not credited as production observations.",
+    "Reference-rounded normalization, gates and updated-state interventions are causal diagnostics only. Improved cross-platform agreement alone does not establish reference improvement.",
+    "Compensated F32 dots improve Linux independent-reference errors, but cross-platform RMS worsens and Mac maximum state-reference error worsens. The candidate is rejected for promotion.",
+    "No model-level numerical gate was rerun or passed by these isolated experiments. Prior 20/55 forward and 19/55 reverse failures remain unresolved."
+  ],
+  "validation": [
+    "node tests/kernels/recurrent-reference.test.js",
+    "node tests/gpu/rmsnorm-execution-contract.test.js",
+    "node tests/inference/rmsnorm-cache-bypass.test.js",
+    "node tests/inference/rmsnorm-fusion-gate.test.js",
+    "npm run source:architecture:check",
+    "npm run source:style:check",
+    "git diff --check"
+  ],
+  "remaining": [
+    "Preserve nonperturbing per-operation observations while separating nonlinear and accumulation contributions.",
+    "Demonstrate a correction improving independent references and both unchanged full-model directions.",
+    "Qualify the exact immutable package and repeat memory/lifecycle acceptance before upgrading Reploid."
+  ],
+  "diagnosticLimits": {
+    "referenceTraceBytes": 134217728,
+    "browserEvaluationTimeoutMs": 60000,
+    "injectionMessageCharacters": 262144
+  },
+  "failedInfrastructureRuns": [
+    {
+      "file": "doppler-recurrent-intervention-state.log.gz",
+      "reason": "Single-message reference injection exceeded the diagnostic timeout; not evidence of a runtime numerical defect."
+    },
+    {
+      "file": "doppler-recurrent-intervention-state-chunked.json.gz",
+      "reason": "Bounded-message retry completed on both physical devices."
+    }
+  ]
+}
