@@ -283,6 +283,11 @@ export async function recordRMSNorm(
       ? (residualSumOutput?.buffer || residualSumOutput)
       : ownedPrenormPlaceholder;
     const extraBindings = [{ binding: 5, buffer: prenormBuf }];
+    if (ownedPrenormPlaceholder) {
+      // Recorded bindings must survive idle-pool eviction before submission.
+      recorder.trackTemporaryBuffer(ownedPrenormPlaceholder);
+      ownedPrenormPlaceholder = null;
+    }
     await unifiedKernelWrapper(
       'rmsnorm',
       recorder,
@@ -304,12 +309,11 @@ export async function recordRMSNorm(
       resolveRMSNormDispatchLabel(options.label)
     );
 
-    if (ownedPrenormPlaceholder) releaseBuffer(ownedPrenormPlaceholder);
     return createTensor(outputBuf, input.dtype, [batchSize, inferredHiddenSize], 'rmsnorm_output');
   } catch (error) {
     if (ownedPrenormPlaceholder) releaseBuffer(ownedPrenormPlaceholder);
     if (ownedOutput) {
-      releaseBuffer(ownedOutput);
+      recorder.trackTemporaryBuffer(ownedOutput);
     }
     throw error;
   }
