@@ -146,7 +146,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Final measured candidate; no new package entries.
   // Exact resident candidate: 11,435,846 unpacked bytes; no model weights ship.
   // Scoring contract/qualification and public declarations: 11,504,740 bytes.
-  maxUnpackedSize: 11_504_740,
+  // Baseline drift and this existing-file safety delta are separately audited.
+  // Evidence: artifacts/buffer-retirement-2026-10-05/package-audit.json.
+  maxUnpackedSize: 11_511_240,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

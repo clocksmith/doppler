@@ -950,7 +950,6 @@
         "tools/onboarding-tooling.js",
         "tools/p2p-delivery-observability.js",
         "tools/p2p-resilience-drill.js",
-        "tools/package-demo-hosting.js",
         "tools/package-source-closure.js",
         "tools/patch-execution-graph.js",
         "tools/pin-safetensors-headers.js",
@@ -4260,6 +4259,7 @@
         "tests/gpu/readback-utils.test.js",
         "tests/gpu/rep-penalty-rules.test.js",
         "tests/gpu/rmsnorm-execution-contract.test.js",
+        "tests/gpu/rmsnorm-recorded-binding-lifetime.test.js",
         "tests/gpu/rmsnorm-stats-ownership.test.js",
         "tests/gpu/rope-precompute-dispatch-contract.test.js",
         "tests/gpu/rule-matcher.test.js",
@@ -4416,6 +4416,7 @@
         "tests/inference/node-file-shard-storage-context.test.js",
         "tests/inference/operator-diagnostics-forwarding-contract.test.js",
         "tests/inference/operator-diffing.test.js",
+        "tests/inference/partition-attempt-allocation.test.js",
         "tests/inference/partition-kv-cache.test.js",
         "tests/inference/partition-prefill-lifetime.test.js",
         "tests/inference/partition-recurrent-continuation.test.js",
@@ -4713,6 +4714,7 @@
         "tests/loader/manifest-config.test.js",
         "tests/loader/memory-monitor.test.js",
         "tests/loader/multi-model-loader-lifecycle.test.js",
+        "tests/loader/parallel-weight-load-cleanup.test.js",
         "tests/loader/per-layer-input-loader.test.js",
         "tests/loader/rdrr-tensor-map-reader.test.js",
         "tests/loader/runtime-cleanup.test.js",
@@ -6297,9 +6299,15 @@
       "expression": "new URL(`../../${relativePath}`, import.meta.url)"
     },
     {
+      "file": "tests/inference/partition-attempt-allocation.test.js",
+      "kind": "dynamic",
+      "line": 22,
+      "expression": "import(target)"
+    },
+    {
       "file": "tests/inference/partition-prefill-lifetime.test.js",
       "kind": "dynamic",
-      "line": 55,
+      "line": 75,
       "expression": "import(target)"
     },
     {

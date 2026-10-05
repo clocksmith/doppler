@@ -4,6 +4,15 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## Buffer retirement safety
+
+- Retire only the buffers covered by a queue completion. Buffers retired later
+  receive their own completion boundary.
+- Confirmed device loss closes the pool without waiting on a destroyed queue.
+  Unconfirmed completion or destruction failures retain ownership; calling
+  `destroy()` again retries cleanup. Deferred-cleanup statistics retain those
+  allocations until destruction succeeds.
+
 ## [0.6.2 candidate]
 
 - Add explicitly selected operation stream v2 with stable Unicode text additions,

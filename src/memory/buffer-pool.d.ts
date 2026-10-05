@@ -144,7 +144,9 @@ export declare class BufferPool {
   clearPool(): void;
 
   /**
-   * Destroy all buffers (active and pooled)
+   * Close the pool and retire its buffers after their completion boundary.
+   * Confirmed device loss retires buffers without requesting another queue wait.
+   * Unconfirmed completion/destroy failures stay owned; another call retries.
    */
   destroy(): void;
 

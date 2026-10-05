@@ -1,5 +1,3 @@
-
-
 import { getDevice } from '../gpu/device.js';
 import { getSharedDeviceState, isDeviceLost, registerBufferDevice, observeDeviceLoss } from '../gpu/device-state.js';
 import { allowReadback, trackAllocation } from '../gpu/perf-guards.js';
@@ -103,57 +101,41 @@ function getSizeBucket(
 
 export class BufferPool {
   // Pools organized by usage and size bucket
-  
   #pools;
-
   #totalPooledBuffers;
 
   // Active buffers (currently in use)
-  
   #activeBuffers;
 
   // Buffer metadata for leak detection (debug mode)
-  
   #bufferMetadata;
 
   // Requested sizes per buffer (unbucketed intent)
-
   #requestedSizes;
 
   // Buffer ID tracking (for trace)
-
   #bufferIds;
-
   #bufferLabels;
-
   #nextBufferId;
 
   // Deferred destruction queue (buffers destroyed after GPU work completes)
-  
   #pendingDestruction;
-  
   #destructionScheduled;
 
   // Statistics
-  
   #stats;
 
   // Configuration
-  
   #config;
 
   // Schema-based configuration
-  
   #schemaConfig;
 
   // Debug mode flag
-  
   #debugMode;
 
   // Device-scoped ownership for pooled buffers
-
   #device;
-
   #destroyed = false;
 
   constructor(debugMode = false, schemaConfig, device = getDevice()) {
@@ -182,6 +164,7 @@ export class BufferPool {
     this.#pendingDestruction = new Set();
     this.#destructionScheduled = false;
     this.#device = device;
+    observeDeviceLoss(device);
     device?.lost?.then(() => this.destroy(), () => this.destroy());
 
     this.#stats = {
@@ -203,13 +186,11 @@ export class BufferPool {
       alignmentBytes: this.#schemaConfig.alignment.alignmentBytes,
     };
   }
-
   #isEmpty() {
     return this.#activeBuffers.size === 0
       && this.#getTotalPooledCount() === 0
       && this.#pendingDestruction.size === 0;
   }
-
   #getBoundDevice() {
     if (this.#destroyed || isDeviceLost(this.#device)) throw new Error('BufferPool owner is closed or its GPU device is lost.');
     return this.#device;
@@ -333,19 +314,17 @@ export class BufferPool {
   getRequestedSize(buffer) {
     return this.#requestedSizes.get(buffer) ?? buffer.size;
   }
-
-  #destroyPendingBuffers() {
-    const pending = Array.from(this.#pendingDestruction);
-    this.#pendingDestruction.clear();
-    for (const buffer of pending) {
+  #destroyPendingBuffers(buffers = Array.from(this.#pendingDestruction)) {
+    for (const buffer of buffers) {
+      if (!this.#pendingDestruction.has(buffer)) continue;
       try {
         buffer.destroy();
+        this.#pendingDestruction.delete(buffer);
       } catch (error) {
         log.warn('BufferPool', `Pending buffer destroy failed: ${error?.message ?? error}`);
       }
     }
   }
-
   #releaseTrackedBuffer(buffer, allowPooling) {
     this.#activeBuffers.delete(buffer);
     const requestedSize = this.#requestedSizes.get(buffer) ?? 0;
@@ -389,33 +368,48 @@ export class BufferPool {
 
     this.#traceRelease(buffer, requestedSize, pooled);
   }
-
   #deferDestroy(buffer) {
     this.#pendingDestruction.add(buffer);
-    if (this.#destructionScheduled) {
-      return;
-    }
+    this.#scheduleDestruction();
+  }
+  #scheduleDestruction() {
     const device = this.#device;
-    if (!device) {
-      // No device context; destroy immediately as a fallback.
-      this.#destructionScheduled = false;
+    if (!device || isDeviceLost(device)) {
       this.#destroyPendingBuffers();
       return;
     }
+    if (this.#destructionScheduled) {
+      return;
+    }
+    if (this.#pendingDestruction.size === 0) return;
 
+    // This completion covers only buffers retired before it was requested.
+    const pending = Array.from(this.#pendingDestruction);
     this.#destructionScheduled = true;
-    device.queue.onSubmittedWorkDone()
+    let completion;
+    try {
+      completion = device.queue.onSubmittedWorkDone();
+    } catch (error) {
+      completion = Promise.reject(error);
+    }
+    Promise.resolve(completion)
       .then(() => {
         this.#destructionScheduled = false;
-        this.#destroyPendingBuffers();
+        this.#destroyPendingBuffers(pending);
+        // A failed destroy stays owned for explicit retry, without a retry loop.
+        if (pending.every(buffer => !this.#pendingDestruction.has(buffer))) {
+          this.#scheduleDestruction();
+        }
       })
       .catch((err) => {
-        log.warn('BufferPool', `Deferred destruction failed: ${ (err).message}`);
         this.#destructionScheduled = false;
-        this.#destroyPendingBuffers();
+        if (isDeviceLost(device)) {
+          this.#destroyPendingBuffers();
+        } else {
+          log.warn('BufferPool', `Deferred destruction failed; retaining buffers: ${err.message}`);
+        }
       });
   }
-
   #getFromPool(bucket, usage) {
     const usagePool = this.#pools.get(usage);
     if (!usagePool) return null;
@@ -429,11 +423,9 @@ export class BufferPool {
     }
     return buffer;
   }
-
   #getTotalPooledCount() {
     return this.#totalPooledBuffers;
   }
-
   #getBudgetConfig() {
     return this.#schemaConfig?.budget ?? {
       maxTotalBytes: 0,
@@ -442,7 +434,6 @@ export class BufferPool {
       hardFailOnBudgetExceeded: true,
     };
   }
-
   #enforceBudgetBeforeAllocate(bucketBytes, label) {
     const budget = this.#getBudgetConfig();
     if (!Number.isFinite(budget.maxTotalBytes) || budget.maxTotalBytes <= 0) {
@@ -464,7 +455,6 @@ export class BufferPool {
       );
     }
   }
-
   #trimPooledBuffersTo(targetBytes) {
     while (this.#stats.currentBytesAllocated > targetBytes) {
       const evicted = this.#evictOnePooledBuffer();
@@ -473,7 +463,6 @@ export class BufferPool {
       }
     }
   }
-
   #evictOnePooledBuffer() {
     for (const usagePool of this.#pools.values()) {
       for (const bucketPool of usagePool.values()) {
@@ -491,9 +480,8 @@ export class BufferPool {
     }
     return false;
   }
-
   #trackBuffer(buffer, size, usage, label) {
-    
+
     const metadata = {
       size,
       usage,
@@ -510,7 +498,6 @@ export class BufferPool {
 
     this.#bufferMetadata.set(buffer, metadata);
   }
-
   #getBufferId(buffer) {
     let id = this.#bufferIds.get(buffer);
     if (!id) {
@@ -519,7 +506,6 @@ export class BufferPool {
     }
     return id;
   }
-
   #traceAcquire(buffer, bucket, requestedSize, usage, label, reused) {
     if (!isTraceEnabled('buffers')) {
       return;
@@ -530,7 +516,6 @@ export class BufferPool {
       `Acquire ${mode} id=${id} size=${bucket} req=${requestedSize} usage=${usage} label=${label}`
     );
   }
-
   #traceRelease(buffer, requestedSize, pooled) {
     if (!isTraceEnabled('buffers')) {
       return;
@@ -550,7 +535,7 @@ export class BufferPool {
     }
 
     const now = Date.now();
-    
+
     const leaks = [];
 
     for (const [buffer, metadata] of this.#bufferMetadata.entries()) {
@@ -670,7 +655,10 @@ export class BufferPool {
   }
 
   destroy() {
-    if (this.#destroyed) return;
+    if (this.#destroyed) {
+      this.#scheduleDestruction();
+      return;
+    }
     this.#destroyed = true;
     // Destroy active buffers
     for (const buffer of this.#activeBuffers) {
@@ -685,6 +673,7 @@ export class BufferPool {
     this.#stats.currentBytesAllocated = 0;
     this.#stats.currentBytesRequested = 0;
     this.#requestedSizes.clear();
+    this.#scheduleDestruction();
   }
 
   getStats() {
