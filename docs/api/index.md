@@ -12,6 +12,7 @@ The generated export inventory lives under [reference/exports.md](reference/expo
 - [Doppler Run API](root.md) - start with `doppler-gpu/host`; use `doppler-gpu`
   or `doppler-gpu/run` when supplying explicit execution ports
 - [Compatibility API](compat.md) - `doppler-gpu/compat`
+- [Choice scoring](choice-scoring.md) - typed, contextual answer scores and operation qualification
 
 ### Exported advanced surfaces
 

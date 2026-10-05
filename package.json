@@ -259,6 +259,10 @@
       "types": "./src/config/generation-contract.d.ts",
       "import": "./src/config/generation-contract.js"
     },
+    "./choice-scoring-contract": {
+      "types": "./src/config/choice-scoring.d.ts",
+      "import": "./src/config/choice-scoring.js"
+    },
     "./host": {
       "types": "./src/client/capsule-host.d.ts",
       "browser": "./src/client/capsule-host.browser.js",

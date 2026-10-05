@@ -71,6 +71,9 @@
     "referenceTranscript": {
       "oneOf": [
         {
+          "$ref": "#/$defs/choiceScoringReferenceTranscript"
+        },
+        {
           "$ref": "#/$defs/referenceTranscript"
         },
         {
@@ -83,6 +86,59 @@
     }
   },
   "$defs": {
+    "choiceScoringReferenceTranscript": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "operation",
+        "modelId",
+        "surface",
+        "executionGraphHash",
+        "manifestHash",
+        "source",
+        "reference",
+        "referenceDigest",
+        "observation"
+      ],
+      "properties": {
+        "schema": {
+          "const": "doppler.choice-scoring-reference-transcript/v1"
+        },
+        "operation": {
+          "const": "scoreChoices"
+        },
+        "modelId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "surface": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executionGraphHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "manifestHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "referenceDigest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "source": {
+          "type": "object"
+        },
+        "reference": {
+          "type": "object"
+        },
+        "observation": {
+          "type": "object"
+        }
+      }
+    },
     "rerankReferenceTranscript": {
       "type": "object",
       "additionalProperties": false,

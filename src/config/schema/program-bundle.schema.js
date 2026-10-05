@@ -4,6 +4,7 @@ import { stableSortObject } from '../../formats/stable-sort-object.js';
 import { SEQUENCE_REFERENCE_TRANSCRIPT_SCHEMA_ID, assertSequenceReferenceTranscript } from '../sequence-reference.js';
 import { RERANK_REFERENCE_TRANSCRIPT_SCHEMA_ID, assertRerankReferenceTranscript } from '../rerank-reference.js';
 import { EMBEDDING_REFERENCE_TRANSCRIPT_SCHEMA_ID, assertEmbeddingReferenceTranscript } from '../embedding-reference.js';
+import { CHOICE_SCORING_REFERENCE_SCHEMA_ID, assertChoiceScoringReferenceTranscript } from '../choice-scoring-reference.js';
 
 export const PROGRAM_BUNDLE_SCHEMA_VERSION = 1;
 export const PROGRAM_BUNDLE_SCHEMA_ID = 'doppler.program-bundle/v1';
@@ -337,6 +338,11 @@ function validateCaptureProfile(captureProfile) {
 
 function validateReferenceTranscript(referenceTranscript, expectedGraphHash) {
   assertPlainObject(referenceTranscript, 'referenceTranscript');
+  if (referenceTranscript.schema === CHOICE_SCORING_REFERENCE_SCHEMA_ID) {
+    assertChoiceScoringReferenceTranscript(referenceTranscript);
+    if (referenceTranscript.executionGraphHash !== expectedGraphHash) throw new Error('program bundle: choice scoring transcript executionGraphHash does not match.');
+    return;
+  }
   if (referenceTranscript.schema === EMBEDDING_REFERENCE_TRANSCRIPT_SCHEMA_ID) {
     assertEmbeddingReferenceTranscript(referenceTranscript);
     if (referenceTranscript.executionGraphHash !== expectedGraphHash) throw new Error('program bundle: embedding transcript executionGraphHash does not match.');

@@ -4,6 +4,7 @@ import { assertSequenceReferenceTranscript } from '../config/sequence-reference.
 import { assertRerankReferenceTranscript, assertRerankSourceIdentity } from '../config/rerank-reference.js';
 import { assertEmbeddingReferenceTranscript, assertEmbeddingSourceIdentity } from '../config/embedding-reference.js';
 import { resolveCapsuleEmbeddingContract } from '../config/embedding-contract.js';
+import { assertChoiceScoringReferenceTranscript } from '../config/choice-scoring-reference.js';
 
 function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -65,6 +66,23 @@ export function buildQualificationRecords(lowered) {
   const referenceArtifact = normalized.artifacts.find((artifact) => artifact.role === 'reference-report');
   if (!referenceArtifact) throw new Error('Rig requires a packaged reference-report artifact.');
   const transcript = normalized.programBundle.referenceTranscript;
+  if (transcript?.operation === 'scoreChoices') {
+    assertChoiceScoringReferenceTranscript(transcript);
+    if (lowered.modelIR.outputTopology?.headType !== 'causal-lm'
+      || transcript.manifestHash !== normalized.manifestHash || transcript.modelId !== lowered.modelIR.modelId
+      || transcript.executionGraphHash !== normalized.programBundle.execution.graphHash) {
+      throw new Error('Rig choice scoring qualification must bind a causal LM and its exact model and program.');
+    }
+    const surfaces = normalized.programBundle.captureProfile?.surfaces;
+    if (!Array.isArray(surfaces) || surfaces.length !== 1 || surfaces[0] !== transcript.surface) {
+      throw new Error('Rig choice scoring capture surface must match the actual qualification report.');
+    }
+    return [{ surface: transcript.surface, status: 'passed', operation: 'scoreChoices',
+      scoredChoices: transcript.reference.cases.reduce((count, row) => count + row.input.choices.length, 0),
+      evidenceArtifactId: referenceArtifact.artifactId, evidenceHash: referenceArtifact.hash,
+      transcriptHash: hashStable(transcript),
+    }, ...normalized.qualificationEvidence.map(({ artifact, ...record }) => record)];
+  }
   if (transcript?.operation === 'embed') {
     assertEmbeddingReferenceTranscript(transcript);
     assertEmbeddingSourceIdentity(normalized.manifest?.artifactIdentity, transcript.reference);

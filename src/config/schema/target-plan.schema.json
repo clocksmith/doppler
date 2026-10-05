@@ -93,15 +93,21 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["surface", "status", "evidenceArtifactId", "evidenceHash", "generatedTokens"],
+        "required": ["surface", "status", "evidenceArtifactId", "evidenceHash"],
         "properties": {
           "surface": { "type": "string", "minLength": 1 },
           "status": { "const": "passed" },
           "evidenceArtifactId": { "type": "string", "minLength": 1 },
           "evidenceHash": { "$ref": "#/$defs/digest" },
           "transcriptHash": { "$ref": "#/$defs/digest" },
-          "generatedTokens": { "type": "integer", "minimum": 1 }
-        }
+          "generatedTokens": { "type": "integer", "minimum": 1 },
+          "scoredChoices": { "type": "integer", "minimum": 2 }
+        },
+        "allOf": [{
+          "if": { "properties": { "operation": { "const": "scoreChoices" } }, "required": ["operation"] },
+          "then": { "required": ["scoredChoices", "transcriptHash"], "properties": { "generatedTokens": false } },
+          "else": { "required": ["generatedTokens"], "properties": { "scoredChoices": false } }
+        }]
       }
     }
   },

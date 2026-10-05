@@ -1,0 +1,164 @@
+{
+  "schema": "doppler.choice-scoring-checkpoint/v1",
+  "sourceBase": "f0bd469b59db08dcc2bf6f71c7d2fc90f038b527",
+  "published": false,
+  "scope": "Typed next-token choices; query/document relevance on twelve reviewed cases.",
+  "archive": {
+    "schema": "doppler.installed-archive-identity/v1",
+    "passed": true,
+    "archiveSha256": "9d87c021969d20695a0b8ee6c2c0b9e1cbbd5ae39d98a2bd3e39c816072b355d",
+    "verifiedFiles": 1893,
+    "expandedTreeSha256": "e941f5a69ded62363002d16155e171790b32138056069058ebcc443e9fb50a7c"
+  },
+  "sourceFingerprintSha256": "f3f9d014015090de1a90f3d2d3cc3bfc6bb62d923981b2ecc161dc9293ffd84a",
+  "modelManifestSha256": "9714458853bf59a48e891e37155439f1a40abfc517714d6bf41a8874735bf562",
+  "contractSha256": "1b8db7add7113b470206d056a84e585adad6ab7e59a23741fefb8b0c4059f182",
+  "referenceSha256": "ae74e26c02c1042ba829b7a3863e0d17b63ffbea744b765179d0987dc0a22879",
+  "tolerance": {
+    "maximumAbsoluteLogitError": 0.05,
+    "minimumCorrectChoices": 12,
+    "calibrated": false
+  },
+  "node": {
+    "passed": true,
+    "correctChoices": 12,
+    "maximumAbsoluteLogitError": 0.01611161231994629,
+    "device": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    },
+    "checks": [
+      {
+        "id": "cancel-before-submission",
+        "passed": true
+      },
+      {
+        "id": "cancel-after-submission-settled",
+        "passed": true
+      },
+      {
+        "id": "resident-reuse-after-cancellation",
+        "passed": true
+      },
+      {
+        "id": "weights-unloaded-and-owned-devices-destroyed",
+        "passed": true
+      }
+    ]
+  },
+  "browser": {
+    "passed": true,
+    "correctChoices": 12,
+    "maximumAbsoluteLogitError": 0.01611161231994629,
+    "browserVersion": "146.0.7680.177",
+    "device": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "unknown",
+      "description": ""
+    },
+    "checks": [
+      {
+        "id": "cancel-after-submission-settled",
+        "passed": true
+      },
+      {
+        "id": "resident-reuse-after-cancellation",
+        "passed": true
+      },
+      {
+        "id": "weights-unloaded-and-devices-destroyed",
+        "passed": true
+      }
+    ]
+  },
+  "checks": [
+    {
+      "command": "npm run check:green",
+      "exitCode": 0,
+      "logSha256": "dc45745a9f258e76a98b2aa3bcc2c6c3fbcbeba0899e9bd488b271e25eb261a5"
+    },
+    {
+      "command": "node tests/runtime/capsule-choice-scoring.test.js",
+      "exitCode": 0,
+      "scope": "Includes post-gate close-during-scoring regression."
+    },
+    {
+      "command": "node tools/report-source-dependencies.js",
+      "exitCode": 0,
+      "scope": "Refreshed after the model-preparation fixture was added."
+    }
+  ],
+  "rawArtifacts": [
+    {
+      "path": "dist/decision-acceptance/qwen-qualified-physical.json.qualification.json",
+      "sha256": "496d3c8769a9f1afecd2fb9df3204d6a90f36a61b0104f8569d774f5b3d18b6f",
+      "sizeBytes": 69444
+    },
+    {
+      "path": "dist/decision-acceptance/final-consumer/identity.json",
+      "sha256": "4590a1bc51525a2a70e8b2429bc0d477b8757d38e0f16a41cf02bbf99ef1cf31",
+      "sizeBytes": 338900
+    },
+    {
+      "path": "dist/decision-acceptance/capsule-qualified/capsule.json",
+      "sha256": "dc16b181af7ba43045db54b1eeedd3f466acae1ede9268ef54d1330a5ec2eebf",
+      "sizeBytes": 266555
+    },
+    {
+      "path": "dist/decision-acceptance/capsule-qualified/build.json",
+      "sha256": "459eedd99251a6050ba7512470e3981b6b334b66527d1418fb8cffb2285a1416",
+      "sizeBytes": 2042
+    },
+    {
+      "path": "dist/decision-acceptance/capsule-qualified/signing-public.json",
+      "sha256": "ec06ffb2bfe0d4615691d1064e68277381f50885d6d9dfe7d79763f57f1b007d",
+      "sizeBytes": 127
+    },
+    {
+      "path": "/tmp/doppler-choice-check-green-fixed.log",
+      "sha256": "dc45745a9f258e76a98b2aa3bcc2c6c3fbcbeba0899e9bd488b271e25eb261a5",
+      "sizeBytes": 461026
+    },
+    {
+      "path": "dist/decision-acceptance/gemma-reference.json",
+      "sha256": "889d2104021cdf89f34a6f9ccf7ee920032e5cde936386b63faf700c94477b30",
+      "sizeBytes": 7309
+    },
+    {
+      "path": "dist/decision-acceptance/gemma-1b-reference.json",
+      "sha256": "8c20b175f0ef673874f97e38858ac1d0d34dc14eb9cac83c75dd9b01948e8852",
+      "sizeBytes": 7301
+    },
+    {
+      "path": "dist/decision-acceptance/gemma-1b-routing-reference.json",
+      "sha256": "8cbf86add5d66ba27236b6f108fe05f8ced17d837870b2ebde5ef6fe50d69b3b",
+      "sizeBytes": 27696
+    },
+    {
+      "path": "dist/decision-acceptance/capsule-final/capsule.json",
+      "sha256": "4616afeedb68373ea7bbf25e2d3eb45579a568db7e8268db81dd9ce28588616e",
+      "sizeBytes": 266535
+    },
+    {
+      "path": "dist/decision-acceptance/capsule-final/build.json",
+      "sha256": "d5254f4ad44a09a27c0cc280918794848e417a557d8b3d15266e2e7a3c487882",
+      "sizeBytes": 2030
+    },
+    {
+      "path": "dist/decision-acceptance/capsule-final/signing-public.json",
+      "sha256": "7736092771b1ebe86964a7ed12578bc04129a025bca2876528dbc153549358de",
+      "sizeBytes": 93
+    }
+  ],
+  "limitations": [
+    "Not a public model release; local signed Capsule uses test release metadata.",
+    "ModelIR v1 causal-transformer scoring only.",
+    "Browser and Node qualify separately on one AMD machine.",
+    "No cross-device partition, capacity-pooling, calibration, general truth or performance-superiority claim.",
+    "Reploid split.13 pin and frozen 0.001 generation gate unchanged."
+  ],
+  "finalSignedCapsuleSha256": "4616afeedb68373ea7bbf25e2d3eb45579a568db7e8268db81dd9ce28588616e"
+}

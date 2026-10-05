@@ -156,6 +156,8 @@ export interface DopplerChatResponse {
 }
 
 export interface DopplerModelHandle {
+  scoreChoices(request: import('../../config/choice-scoring.js').ChoiceScoringRequest,
+    control?: { signal?: AbortSignal }): Promise<import('../../config/choice-scoring.js').ChoiceScoringResult>;
   generate(prompt: string, options?: DopplerGenerateOptions): AsyncGenerator<string, void, void>;
   generateText(prompt: string, options?: DopplerGenerateOptions): Promise<string>;
   generateWithEvidence(

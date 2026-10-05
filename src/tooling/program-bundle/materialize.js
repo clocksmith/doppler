@@ -7,6 +7,7 @@ import { normalizeDigest, requirePlainObject } from './validation.js';
 import { buildSequenceReferenceTranscript } from './sequence-reference.js';
 import { buildRerankReferenceTranscript } from './rerank-reference.js';
 import { buildEmbeddingReferenceTranscript } from './embedding-reference.js';
+import { buildChoiceScoringReferenceTranscript } from './choice-scoring-reference.js';
 
 function stableJson(value) {
   return JSON.stringify(stableSortObject(value)) ?? 'null';
@@ -185,6 +186,9 @@ export async function buildReferenceTranscript(referenceReportPath, repoRoot, ex
   });
   const { json: report } = await readJsonFile(resolvedReportPath, 'reference report');
   requirePlainObject(report, 'reference report');
+  if (report.schema === 'doppler.choiceScoringModelQualification.v1') {
+    return buildChoiceScoringReferenceTranscript(report, reportArtifact, executionGraphHash);
+  }
   if (report.schema === 'doppler.rerankModelQualification.v1') {
     return buildRerankReferenceTranscript(report, reportArtifact, executionGraphHash);
   }

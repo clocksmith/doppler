@@ -56,7 +56,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The minimal Capsule root retains its independent closure check.
   // Resident sessions add ten required JS/declaration files. The installed
   // package smoke measured 1881 entries on Node 22.22.1/npm 9.2.0.
-  maxEntryCount: 1881,
+  // Choice scoring and regenerated reachability admit 1,893 package entries.
+  // Exact npm 9 inventory: reports/choice-scoring/package-inventory.json.
+  maxEntryCount: 1893,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -115,7 +117,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // 2,158-byte cross-npm compression allowance.
   // Resident candidate with a shared plan digest measures 2,178,189 packed bytes on npm 9; retain the
   // previously measured 2,158-byte cross-npm compression allowance.
-  maxPackedSize: 2_180_347,
+  // Scoring inventory: 2,194,974 packed bytes; preserve the existing measured
+  // 2,158-byte cross-npm allowance. No model weights or test operands ship.
+  maxPackedSize: 2_197_132,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -141,7 +145,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: artifacts/document-search-minilm-embedding-2026-09-26/package-audit.json.
   // Final measured candidate; no new package entries.
   // Exact resident candidate: 11,435,846 unpacked bytes; no model weights ship.
-  maxUnpackedSize: 11_435_934,
+  // Scoring contract/qualification and public declarations: 11,504,740 bytes.
+  maxUnpackedSize: 11_504_740,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -165,6 +170,7 @@ const FILE_RULES = [
     allowed: new Set([
       './version.js',
       './config/generation-contract.js',
+      './config/choice-scoring.js',
       './client/runtime/composition-root.js',
       './client/runtime/fetch-capsule-artifact-store.js',
       './client/runtime/capsule-forecast-program.js',
@@ -189,6 +195,7 @@ const FILE_RULES = [
     allowed: new Set([
       './version.js',
       './config/generation-contract.js',
+      './config/choice-scoring.js',
       './config/capsule.js',
       './config/capsule-operation.js',
       './client/runtime/composition-root.js',

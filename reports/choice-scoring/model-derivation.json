@@ -1,0 +1,116 @@
+{
+  "schema": "doppler.test-manifest-derivation/v1",
+  "originalManifestSha256": "03298342c5f91680864526c1ead2ecaf16ba59307843c84e09842bcb4b9cc7c5",
+  "candidateManifestSha256": "9714458853bf59a48e891e37155439f1a40abfc517714d6bf41a8874735bf562",
+  "conversionContractSha256": "337f38aebbd77b32de248a554227974224b7b1115285122505069ec65a018ab8",
+  "changes": [
+    {
+      "id": "q4_decode_gemv",
+      "previous": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+      "current": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
+    },
+    {
+      "id": "lm_head_q4",
+      "previous": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+      "current": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
+    },
+    {
+      "id": "silu",
+      "previous": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
+      "current": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca"
+    },
+    {
+      "id": "sample",
+      "previous": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
+      "current": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef"
+    }
+  ],
+  "mechanismKernels": [
+    "dequant_q4_f16",
+    "rope_precompute",
+    "gather_vec4",
+    "rmsnorm_qk",
+    "rope_qk",
+    "kv_write_f32_f16",
+    "residual_vec4",
+    "lm_head_select_logits"
+  ],
+  "artifacts": [
+    {
+      "name": "shard_00000.bin",
+      "sha256": "e43dc1fe474193bad57b19b1daf032a070c99f87ce79bc8995c4c1f37b120b53",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00001.bin",
+      "sha256": "b1a9ca6f91fbe89d2ca0e027014521447629f7a50e5afdb9ee94c8716328ee55",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00002.bin",
+      "sha256": "53bb6a526b121103cb13b0af70699af64485b62d98e1420d8bd43faf5ef960a7",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00003.bin",
+      "sha256": "74b1668c351029b2222e0145af3da91592c1e8a9a8aa40a5441c28cc88d9855c",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00004.bin",
+      "sha256": "1f70260c157513d652f75c1f506b0f6b078222adbaaa90afa6561fb01a8d5371",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00005.bin",
+      "sha256": "be400366f25743b99b267579b436b7773fd44cc0e0074698fb9291cf5f4bf402",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00006.bin",
+      "sha256": "6eddb4885ed8a4b95543bf1d58f6ff6d999e5540efaaad5c13f7fdcebab379d7",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00007.bin",
+      "sha256": "b423fe39fd37a28c00f58224655bd8893c7197d957f3d8c1bb27f04c9f76631c",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00008.bin",
+      "sha256": "c4cd27f13f532d26c97af072e9dff14df884e0962c779b8a3244f54cc61fcb26",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00009.bin",
+      "sha256": "ddee29d1cc48a42381e252c5adbd34676905a93cd65501497cfbb7421f6514f6",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00010.bin",
+      "sha256": "7106ff539dee527b0bec28848f66f69d7915401d59f82a4aa4890229a4b3a134",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00011.bin",
+      "sha256": "8bf8ba9479280948f6384d5e6a2a7eee386019337e7e177d2a6236a21e7afb3d",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00012.bin",
+      "sha256": "2af87d6ca8ec3989386987db9f63ece226c6c3b6a0d879399ad5c45ed2a73a24",
+      "sizeBytes": 67108864
+    },
+    {
+      "name": "shard_00013.bin",
+      "sha256": "4a59f30b1fd66b77e75fe4e8b566b73b97b0ce15cfdd81736b57b8c3c6b05e8c",
+      "sizeBytes": 65906688
+    },
+    {
+      "name": "tokenizer.json",
+      "sha256": "4dae0c382163323e93f51d37f4c27d96c74f6be94b231289c24da71dfa3f7dc6",
+      "sizeBytes": 5363085
+    }
+  ],
+  "weightHandling": "Unmodified hard links; source manifest unchanged."
+}

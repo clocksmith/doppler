@@ -65,12 +65,24 @@ export const PROGRAM_BUNDLE_JSON_SCHEMA = Object.freeze({
       items: { $ref: '#/$defs/artifact' },
     },
     referenceTranscript: { oneOf: [
+      { $ref: '#/$defs/choiceScoringReferenceTranscript' },
       { $ref: '#/$defs/referenceTranscript' },
       { $ref: '#/$defs/sequenceReferenceTranscript' },
       { $ref: '#/$defs/rerankReferenceTranscript' },
     ] },
   },
   $defs: {
+    choiceScoringReferenceTranscript: {
+      type: 'object', additionalProperties: false,
+      required: ['schema', 'operation', 'modelId', 'surface', 'executionGraphHash',
+        'manifestHash', 'source', 'reference', 'referenceDigest', 'observation'],
+      properties: {
+        schema: { const: 'doppler.choice-scoring-reference-transcript/v1' }, operation: { const: 'scoreChoices' },
+        modelId: { type: 'string', minLength: 1 }, surface: { type: 'string', minLength: 1 },
+        executionGraphHash: digest, manifestHash: digest, referenceDigest: digest,
+        source: { type: 'object' }, reference: { type: 'object' }, observation: { type: 'object' },
+      },
+    },
     rerankReferenceTranscript: {
       type: 'object', additionalProperties: false,
       required: ['schema', 'operation', 'modelId', 'surface', 'executionGraphHash',

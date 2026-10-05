@@ -3,6 +3,7 @@ export { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validat
 export { createDopplerRun, createDopplerRuntime, createForecastProgramFactory, RUN_CORE_VERSION, RUNTIME_CORE_VERSION } from './client/runtime/composition-root.js';
 export { createFetchCapsuleArtifactStore } from './client/runtime/fetch-capsule-artifact-store.js';
 export { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from './client/runtime/capsule-operation-stream.js';
+export { CHOICE_SCORING_CONTRACT, snapshotChoiceScoringRequest, validateChoiceScoringResult } from './config/choice-scoring.js';
 
 
 import { createDopplerRun } from './client/runtime/composition-root.js';

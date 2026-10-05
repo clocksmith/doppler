@@ -6,6 +6,8 @@ export { createFetchCapsuleArtifactStore } from './client/runtime/fetch-capsule-
 export { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from './client/runtime/capsule-operation-stream.js';
 export type { CapsuleOperationRequest } from './config/capsule-operation.js';
 export type { CapsuleOperationEvent } from './client/runtime/capsule-operation-executor.js';
+export type { ChoiceScoringRequest, ChoiceScoringResult } from './config/choice-scoring.js';
+export { CHOICE_SCORING_CONTRACT, snapshotChoiceScoringRequest, validateChoiceScoringResult } from './config/choice-scoring.js';
 
 import type { DopplerCapsule } from './config/capsule.js';
 import type {

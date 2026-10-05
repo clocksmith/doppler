@@ -368,8 +368,14 @@ async function buildProgramBundle(options = {}) {
   const expandedStepHash = hashStableJson(expandedSteps);
   const closure = await buildWgslClosure(execution, expandedSteps, resolvedOptions);
   const executionMetadata = buildExecutionStepMetadata(execution, expandedSteps, closure.modules);
+  const reference = await buildReferenceTranscript(
+    resolvedOptions.referenceReportPath, resolvedOptions.repoRoot, executionGraphHash
+  );
   const hostResult = await buildHostContract(resolvedOptions.host ?? (
-    manifest.inference?.supportsSequence === true ? { entrypoints: [{
+    reference.transcript.operation === 'scoreChoices' ? { entrypoints: [{
+      id: 'choice-scoring', module: 'src/tooling/program-bundle-host.js',
+      export: 'createTextGenerationProgram', role: 'model-orchestration',
+    }] } : manifest.inference?.supportsSequence === true ? { entrypoints: [{
       id: 'sequence-encoding', module: 'src/tooling/program-bundle-host.js',
       export: 'createSequenceProgram', role: 'model-orchestration',
     }] } : manifest.inference?.supportsRerank === true ? { entrypoints: [{
@@ -386,11 +392,10 @@ async function buildProgramBundle(options = {}) {
     hash: `sha256:${sha256Hex(manifestRaw)}`,
     sizeBytes: Buffer.byteLength(manifestRaw),
   };
-  const reference = await buildReferenceTranscript(
-    resolvedOptions.referenceReportPath,
-    resolvedOptions.repoRoot,
-    executionGraphHash
-  );
+  if (reference.transcript.operation === 'scoreChoices'
+    && (reference.transcript.modelId !== modelId || reference.transcript.manifestHash !== manifestArtifact.hash)) {
+    throw new Error('program bundle export: choice scoring qualification does not bind this exact manifest.');
+  }
   if (reference.transcript.operation === 'encodeSequence') {
     if (manifest.inference?.supportsSequence !== true
       || reference.transcript.modelId !== modelId

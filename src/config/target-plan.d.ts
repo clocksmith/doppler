@@ -54,7 +54,8 @@ export interface TargetPlanV1 {
     evidenceArtifactId: string;
     evidenceHash: `sha256:${string}`;
     transcriptHash?: `sha256:${string}`;
-    operation?: 'generate' | 'encodeSequence' | 'rerank' | 'forecast' | 'embed';
+    operation?: 'generate' | 'scoreChoices' | 'encodeSequence' | 'rerank' | 'forecast' | 'embed';
+    scoredChoices?: number;
     embeddedTexts?: number;
     rerankedDocuments?: number;
     forecastCases?: number;

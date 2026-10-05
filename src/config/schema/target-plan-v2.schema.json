@@ -36,6 +36,10 @@
           "if": { "properties": { "operation": { "const": "residentPartition" } }, "required": ["operation"] },
           "then": { "required": ["surface", "status", "evidenceArtifactId", "evidenceHash",
             "transcriptHash", "partitionPlanHash", "partitionIndex", "comparedSteps"] }
+        }, {
+          "if": { "properties": { "operation": { "const": "scoreChoices" } }, "required": ["operation"] },
+          "then": { "required": ["surface", "status", "evidenceArtifactId", "evidenceHash", "transcriptHash", "scoredChoices"],
+            "properties": { "scoredChoices": { "type": "integer", "minimum": 2 } } }
         }]
       }
     },

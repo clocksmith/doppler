@@ -1,0 +1,33 @@
+{
+  "schema": "doppler.choice-scoring-evaluation/v1",
+  "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+  "manifestSha256": "afecba81640288d0849838c8d4d8c763af80edc1fc22051853ce6700dda4b315",
+  "maxSeqLen": 512,
+  "maximumAbsoluteLogitError": 0.05,
+  "requireReferenceSelection": true,
+  "minimumCorrectChoices": 8,
+  "prefix": "<bos><start_of_turn>user\n",
+  "suffix": " Answer Yes or No.<end_of_turn>\n<start_of_turn>model\n",
+  "choices": [{ "id": "yes", "label": "Yes" }, { "id": "no", "label": "No" }],
+  "cases": [
+    { "id": "capital-true", "question": "Is Paris the capital of France?", "expectedId": "yes" },
+    { "id": "capital-false", "question": "Is Berlin the capital of France?", "expectedId": "no" },
+    { "id": "animal-true", "question": "Is a cat an animal?", "expectedId": "yes" },
+    { "id": "animal-false", "question": "Is a chair an animal?", "expectedId": "no" },
+    { "id": "obligation", "question": "Original: The supplier may deliver by Friday. Rewrite: The supplier will deliver by Friday. Does the rewrite preserve the same commitment?", "expectedId": "no" },
+    { "id": "negation", "question": "Original: Do not share the password. Rewrite: Share the password. Does the rewrite preserve the meaning?", "expectedId": "no" },
+    { "id": "amount", "question": "Original: The fee is $25. Rewrite: The fee is $250. Does the rewrite preserve the fee?", "expectedId": "no" },
+    { "id": "unchanged", "question": "Original: Please close the door. Rewrite: Please close the door. Does the rewrite preserve the meaning?", "expectedId": "yes" }
+  ],
+  "reference": {
+    "cpuThreads": 4,
+    "modelConfig": {
+      "vocab_size": 262144, "hidden_size": 640, "intermediate_size": 2048,
+      "num_hidden_layers": 18, "num_attention_heads": 4, "num_key_value_heads": 1,
+      "head_dim": 256, "max_position_embeddings": 32768, "sliding_window": 512,
+      "query_pre_attn_scalar": 256, "rms_norm_eps": 0.000001,
+      "hidden_activation": "gelu_pytorch_tanh", "tie_word_embeddings": true,
+      "bos_token_id": 2, "eos_token_id": 1
+    }
+  }
+}

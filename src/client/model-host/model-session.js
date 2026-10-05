@@ -9,6 +9,8 @@ import { applyChatTemplate } from '../../inference/pipelines/text/init-chat-temp
 import { resolveTextGenerationRequest, generationRequestEvidence } from '../../inference/pipelines/text/generation-request.js';
 import { scopePipelineShaders, runPipelineOperation } from '../../inference/pipelines/shader-scoped-pipeline.js';
 import { collectModelRerankScores } from '../runtime/model-rerank.js';
+import { scoreModelChoices } from '../../inference/choice-scoring.js';
+import { snapshotChoiceScoringRequest } from '../../config/choice-scoring.js';
 import {
   MODEL_INSPECTION_RECEIPT_SCHEMA,
   aggregateWordPerplexity,
@@ -338,6 +340,16 @@ export function createModelHandle(pipeline, resolved) {
       return pipeline.embedBatch(prompts, options);
     },
     rerankWithEvidence,
+    scoreChoices(request, control = {}) {
+      assertRaw('scoreChoices');
+      const snapshot = snapshotChoiceScoringRequest(request);
+      return runPipelineOperation(pipeline, async current => {
+        const activeAdapter = getActiveLoRAIdentityForPipeline(current);
+        const result = await scoreModelChoices(current, snapshot, control);
+        assertActiveAdapterUnchanged(current, activeAdapter);
+        return result;
+      });
+    },
     async encodeSequence(sequence, options = {}) {
       assertRaw('encodeSequence');
       return pipeline.encodeSequence(sequence, options);
