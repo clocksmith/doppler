@@ -16,6 +16,10 @@
   },
   "include": [],
   "files": [
+    "src/config/choice-scoring.js",
+    "src/config/choice-scoring-reference.js",
+    "src/tooling/program-bundle/choice-scoring-reference.js",
+    "src/inference/choice-scoring.js",
     "src/inference/kv-cache/layer-range.js",
     "src/inference/pipelines/text/partition-execution.js",
     "src/config/execution-registry-contract.js",

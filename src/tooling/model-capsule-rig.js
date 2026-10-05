@@ -142,6 +142,24 @@ function hashCanonical(value) {
 }
 
 async function loadQualificationEvidence(reportPaths, bundle) {
+  if (bundle.referenceTranscript?.operation === 'scoreChoices') {
+    const evidence = [];
+    for (const reportPath of reportPaths || []) {
+      const result = await buildReferenceTranscript(reportPath, process.cwd(), bundle.execution.graphHash);
+      const transcript = result.transcript;
+      if (transcript.operation !== 'scoreChoices' || transcript.modelId !== bundle.modelId
+        || transcript.manifestHash !== bundle.referenceTranscript.manifestHash
+        || transcript.referenceDigest !== bundle.referenceTranscript.referenceDigest) {
+        throw new Error('Rig choice scoring qualification must use the same model and frozen decision reference.');
+      }
+      const observed = await hashFile(reportPath);
+      evidence.push({ surface: transcript.surface, status: 'passed', operation: 'scoreChoices',
+        scoredChoices: transcript.reference.cases.reduce((count, row) => count + row.input.choices.length, 0),
+        evidenceHash: observed.hash, sizeBytes: observed.sizeBytes, sourcePath: path.resolve(reportPath),
+        transcriptHash: hashCanonical(transcript) });
+    }
+    return evidence;
+  }
   if (bundle.referenceTranscript?.operation === 'embed') {
     const evidence = [];
     for (const reportPath of reportPaths || []) {

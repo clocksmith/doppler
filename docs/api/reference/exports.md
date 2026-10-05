@@ -20,6 +20,9 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `CapsuleRerankApplicationBinding`
   - `CapsuleRerankReceipt`
   - `CapsuleRerankRequest`
+  - `CHOICE_SCORING_CONTRACT`
+  - `ChoiceScoringRequest`
+  - `ChoiceScoringResult`
   - `createCapsuleStreamAccumulator`
   - `createDopplerRun`
   - `createDopplerRuntime`
@@ -43,6 +46,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `RunPorts`
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
+  - `snapshotChoiceScoringRequest`
+  - `validateChoiceScoringResult`
   - `validateGenerationInput`
 
 ## `doppler-gpu`
@@ -63,6 +68,9 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `CapsuleRerankApplicationBinding`
   - `CapsuleRerankReceipt`
   - `CapsuleRerankRequest`
+  - `CHOICE_SCORING_CONTRACT`
+  - `ChoiceScoringRequest`
+  - `ChoiceScoringResult`
   - `createCapsuleStreamAccumulator`
   - `createDopplerRun`
   - `createDopplerRuntime`
@@ -86,6 +94,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `RunPorts`
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
+  - `snapshotChoiceScoringRequest`
+  - `validateChoiceScoringResult`
   - `validateGenerationInput`
 
 ## `doppler-gpu/runtime`
@@ -105,6 +115,9 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `CapsuleRerankApplicationBinding`
   - `CapsuleRerankReceipt`
   - `CapsuleRerankRequest`
+  - `CHOICE_SCORING_CONTRACT`
+  - `ChoiceScoringRequest`
+  - `ChoiceScoringResult`
   - `createCapsuleStreamAccumulator`
   - `createDopplerRun`
   - `createDopplerRuntime`
@@ -128,6 +141,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `RunPorts`
   - `RUNTIME_CORE_VERSION`
   - `RuntimePorts`
+  - `snapshotChoiceScoringRequest`
+  - `validateChoiceScoringResult`
   - `validateGenerationInput`
 
 ## `doppler-gpu/generation-contract`
@@ -146,6 +161,17 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `ResolvedGenerationOptions`
   - `RuntimeSamplingOptions`
 
+## `doppler-gpu/choice-scoring-contract`
+
+- Audience: unspecified
+- Stability: unspecified
+- Types: [src/config/choice-scoring.d.ts](../../../src/config/choice-scoring.d.ts)
+- Implementation: [src/config/choice-scoring.js](../../../src/config/choice-scoring.js)
+- Notes: No manual classification recorded for this export path.
+- Exported symbols:
+  - `ChoiceScoringRequest`
+  - `ChoiceScoringResult`
+
 ## `doppler-gpu/host`
 
 - Audience: unspecified
@@ -155,6 +181,9 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
   - `capsuleOperationSnapshots`
+  - `CHOICE_SCORING_CONTRACT`
+  - `ChoiceScoringRequest`
+  - `ChoiceScoringResult`
   - `createCapsuleStreamAccumulator`
   - `DopplerCapsuleOpenOptions`
   - `DopplerRuntimeSession`
@@ -167,6 +196,8 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `openCapsule`
   - `ResolvedGenerationOptions`
   - `resolveGenerationOptions`
+  - `snapshotChoiceScoringRequest`
+  - `validateChoiceScoringResult`
   - `validateGenerationInput`
 
 ## `doppler-gpu/serve`
@@ -785,7 +816,11 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
 - Notes: No manual classification recorded for this export path.
 - Exported symbols:
   - `*`
+  - `configureDeviceMemoryBudget`
+  - `createManifestResidentPartitionFactory`
   - `createResidentPartitionFactory`
+  - `createVerifiedPieceStorage`
+  - `inspectDeviceMemory`
   - `ResidentPartitionAllocation`
   - `ResidentPartitionDescriptor`
   - `ResidentPartitionFactory`
@@ -794,3 +829,4 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `ResidentPartitionOpenOptions`
   - `ResidentPartitionSession`
   - `ResidentPartitionStep`
+  - `VerifiedPiece`

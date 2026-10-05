@@ -43,6 +43,7 @@ config/capsule-adapter-policy.d.ts
 config/capsule-sequence-receipt.d.ts
 config/capsule-v0-trusted-signers.d.ts
 config/capsule-v0-trusted-signers.js
+config/choice-scoring-reference.d.ts
 config/dtype-transition-contract.d.ts
 config/embedding-contract.d.ts
 config/embedding-reference.d.ts
@@ -495,6 +496,7 @@ inference/browser-harness/text-evidence.d.ts
 inference/browser-harness/text-execution.d.ts
 inference/browser-harness/text-input.d.ts
 inference/browser-harness/timing-diagnostics.d.ts
+inference/choice-scoring.d.ts
 inference/kv-cache/layer-range.d.ts
 inference/kv-cache/update.d.ts
 inference/network-evolution.js
@@ -860,6 +862,7 @@ tooling/node-file-fetch.d.ts
 tooling/node-source-runtime.d.ts
 tooling/node-webgpu.d.ts
 tooling/program-bundle-host.d.ts
+tooling/program-bundle/choice-scoring-reference.d.ts
 tooling/program-bundle/embedding-reference.d.ts
 tooling/program-bundle/materialize.d.ts
 tooling/program-bundle/rerank-reference.d.ts

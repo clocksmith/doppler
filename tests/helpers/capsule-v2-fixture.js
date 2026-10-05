@@ -166,7 +166,9 @@ export async function createSignedCapsuleFixture(options = {}) {
     qualification: [{
       surface: 'test-webgpu', status: 'passed', evidenceArtifactId: 'evidence',
       evidenceHash: artifacts.find((artifact) => artifact.artifactId === 'evidence').hash,
-      ...(options.operation === 'rerank'
+      ...(options.operation === 'scoreChoices'
+        ? { operation: 'scoreChoices', scoredChoices: 2, transcriptHash: wgslHash }
+        : options.operation === 'rerank'
         ? { operation: 'rerank', rerankedDocuments: 2, transcriptHash: wgslHash }
         : options.operation === 'encodeSequence'
           ? { operation: 'encodeSequence', encodedSequences: 1, transcriptHash: wgslHash }

@@ -1,0 +1,311 @@
+[
+  {
+    "path": "dist/decision-acceptance/gemma-reference.json",
+    "sha256": "889d2104021cdf89f34a6f9ccf7ee920032e5cde936386b63faf700c94477b30",
+    "modelManifestSha256": "afecba81640288d0849838c8d4d8c763af80edc1fc22051853ce6700dda4b315",
+    "contractSha256": "ad8d90a73708b43d62836f9ea522150d1002f163e88d7b9fa1631260ffa00db3",
+    "correctChoices": 3,
+    "caseCount": 8,
+    "cases": [
+      {
+        "id": "capital-true",
+        "expectedId": "yes",
+        "selectedId": "yes",
+        "logits": [
+          11.308405876159668,
+          6.680503845214844
+        ]
+      },
+      {
+        "id": "capital-false",
+        "expectedId": "no",
+        "selectedId": "yes",
+        "logits": [
+          11.567601203918457,
+          7.359748840332031
+        ]
+      },
+      {
+        "id": "animal-true",
+        "expectedId": "yes",
+        "selectedId": "yes",
+        "logits": [
+          6.956101417541504,
+          1.871556282043457
+        ]
+      },
+      {
+        "id": "animal-false",
+        "expectedId": "no",
+        "selectedId": "yes",
+        "logits": [
+          5.635869979858398,
+          0.683929443359375
+        ]
+      },
+      {
+        "id": "obligation",
+        "expectedId": "no",
+        "selectedId": "yes",
+        "logits": [
+          7.588123321533203,
+          0.05926704406738281
+        ]
+      },
+      {
+        "id": "negation",
+        "expectedId": "no",
+        "selectedId": "yes",
+        "logits": [
+          9.717011451721191,
+          2.500093460083008
+        ]
+      },
+      {
+        "id": "amount",
+        "expectedId": "no",
+        "selectedId": "yes",
+        "logits": [
+          13.946430206298828,
+          6.154123306274414
+        ]
+      },
+      {
+        "id": "unchanged",
+        "expectedId": "yes",
+        "selectedId": "yes",
+        "logits": [
+          1.6393203735351562,
+          -2.8531837463378906
+        ]
+      }
+    ],
+    "disposition": "Not qualified for this frozen task; no threshold reduction."
+  },
+  {
+    "path": "dist/decision-acceptance/gemma-1b-reference.json",
+    "sha256": "8c20b175f0ef673874f97e38858ac1d0d34dc14eb9cac83c75dd9b01948e8852",
+    "modelManifestSha256": "734f8d68925581ef8ed9a8363dc887c8ad13ffb9d4ba146746d74fcca6549c65",
+    "contractSha256": "dfedd2fb9c01b0916eb290b1fac2923a46d3f1cfdf3f9bebdfc44af4508726e8",
+    "correctChoices": 6,
+    "caseCount": 8,
+    "cases": [
+      {
+        "id": "capital-true",
+        "expectedId": "yes",
+        "selectedId": "yes",
+        "logits": [
+          42.2095947265625,
+          27.6793270111084
+        ]
+      },
+      {
+        "id": "capital-false",
+        "expectedId": "no",
+        "selectedId": "no",
+        "logits": [
+          25.483190536499023,
+          38.76268768310547
+        ]
+      },
+      {
+        "id": "animal-true",
+        "expectedId": "yes",
+        "selectedId": "yes",
+        "logits": [
+          39.251853942871094,
+          29.886327743530273
+        ]
+      },
+      {
+        "id": "animal-false",
+        "expectedId": "no",
+        "selectedId": "no",
+        "logits": [
+          22.636672973632812,
+          38.02500915527344
+        ]
+      },
+      {
+        "id": "obligation",
+        "expectedId": "no",
+        "selectedId": "yes",
+        "logits": [
+          35.7030143737793,
+          27.303974151611328
+        ]
+      },
+      {
+        "id": "negation",
+        "expectedId": "no",
+        "selectedId": "no",
+        "logits": [
+          38.134613037109375,
+          38.8226318359375
+        ]
+      },
+      {
+        "id": "amount",
+        "expectedId": "no",
+        "selectedId": "yes",
+        "logits": [
+          34.72669982910156,
+          30.301979064941406
+        ]
+      },
+      {
+        "id": "unchanged",
+        "expectedId": "yes",
+        "selectedId": "yes",
+        "logits": [
+          43.07274627685547,
+          35.85441207885742
+        ]
+      }
+    ],
+    "disposition": "Not qualified for this frozen task; no threshold reduction."
+  },
+  {
+    "path": "dist/decision-acceptance/gemma-1b-routing-reference.json",
+    "sha256": "8cbf86add5d66ba27236b6f108fe05f8ced17d837870b2ebde5ef6fe50d69b3b",
+    "modelManifestSha256": "734f8d68925581ef8ed9a8363dc887c8ad13ffb9d4ba146746d74fcca6549c65",
+    "contractSha256": "dc0c7a6be6d64d39a32ce1478c09bab991706522f0a197ebfaf59b0962738045",
+    "correctChoices": 3,
+    "caseCount": 12,
+    "cases": [
+      {
+        "id": "billing-1",
+        "expectedId": "billing",
+        "selectedId": "billing",
+        "logits": [
+          49.56553649902344,
+          36.62550354003906,
+          25.129493713378906,
+          21.520679473876953
+        ]
+      },
+      {
+        "id": "billing-2",
+        "expectedId": "billing",
+        "selectedId": "billing",
+        "logits": [
+          46.94184494018555,
+          42.58124542236328,
+          25.615615844726562,
+          22.25691032409668
+        ]
+      },
+      {
+        "id": "billing-3",
+        "expectedId": "billing",
+        "selectedId": "billing",
+        "logits": [
+          45.27534484863281,
+          41.33802795410156,
+          33.43512725830078,
+          26.609947204589844
+        ]
+      },
+      {
+        "id": "technical-1",
+        "expectedId": "technical",
+        "selectedId": "billing",
+        "logits": [
+          42.547393798828125,
+          35.05500030517578,
+          27.772903442382812,
+          24.805843353271484
+        ]
+      },
+      {
+        "id": "technical-2",
+        "expectedId": "technical",
+        "selectedId": "billing",
+        "logits": [
+          41.44514846801758,
+          32.620811462402344,
+          24.93817138671875,
+          21.5489444732666
+        ]
+      },
+      {
+        "id": "technical-3",
+        "expectedId": "technical",
+        "selectedId": "billing",
+        "logits": [
+          39.64500427246094,
+          36.479278564453125,
+          27.13804054260254,
+          26.599109649658203
+        ]
+      },
+      {
+        "id": "sales-1",
+        "expectedId": "sales",
+        "selectedId": "billing",
+        "logits": [
+          38.46532440185547,
+          38.4110107421875,
+          27.316715240478516,
+          23.129791259765625
+        ]
+      },
+      {
+        "id": "sales-2",
+        "expectedId": "sales",
+        "selectedId": "technical",
+        "logits": [
+          28.21638298034668,
+          31.28008270263672,
+          26.4461727142334,
+          21.366485595703125
+        ]
+      },
+      {
+        "id": "sales-3",
+        "expectedId": "sales",
+        "selectedId": "technical",
+        "logits": [
+          33.182456970214844,
+          38.187808990478516,
+          30.546064376831055,
+          24.655710220336914
+        ]
+      },
+      {
+        "id": "other-1",
+        "expectedId": "other",
+        "selectedId": "technical",
+        "logits": [
+          29.77440071105957,
+          34.6343879699707,
+          24.080150604248047,
+          20.35498809814453
+        ]
+      },
+      {
+        "id": "other-2",
+        "expectedId": "other",
+        "selectedId": "technical",
+        "logits": [
+          33.473106384277344,
+          33.4893684387207,
+          22.528873443603516,
+          21.250782012939453
+        ]
+      },
+      {
+        "id": "other-3",
+        "expectedId": "other",
+        "selectedId": "technical",
+        "logits": [
+          22.197673797607422,
+          28.162464141845703,
+          20.218542098999023,
+          21.360082626342773
+        ]
+      }
+    ],
+    "disposition": "Not qualified for this frozen task; no threshold reduction."
+  }
+]

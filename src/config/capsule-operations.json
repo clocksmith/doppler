@@ -18,6 +18,7 @@
       "version": 1,
       "contract": "doppler.generation-contract/v1"
     },
+    "scoreChoices": { "version": 1, "inputFields": ["prompt", "choices"], "optionFields": ["maxSeqLen"] },
     "embed": { "version": 1, "inputFields": ["texts", "application"], "optionFields": [] },
     "rerank": { "version": 1, "inputFields": ["query", "documents", "application"], "optionFields": [] },
     "encodeSequence": {

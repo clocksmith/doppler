@@ -104,6 +104,14 @@ export function createCapsuleProgramAdapter(modelHandle, capsule, targetPlan, re
       }
     },
 
+    async scoreChoices(request, control) {
+      if (typeof modelHandle.scoreChoices !== 'function') {
+        throw new Error('Loaded Doppler model handle does not implement choice scoring.');
+      }
+      try { return await modelHandle.scoreChoices(request, control); }
+      finally { assertNoPlanMutation(); }
+    },
+
     async embed(text, options) {
       if (modelHandle.supportsEmbedding !== true || typeof modelHandle.embedWithEvidence !== 'function') {
         throw new Error('Loaded Doppler Capsule does not declare text embedding execution.');

@@ -62,6 +62,7 @@ Primary documentation index.
 
 - [API Docs Index](api/index.md) - canonical public API navigation.
 - [Doppler Run API](api/root.md) - signed-Capsule application facade.
+- [Choice scoring](api/choice-scoring.md) - typed judgments, contextual labels and independent qualification.
 - [Incremental Capsule Streams](capsule-streaming.md) - explicit v2 migration, decoding, reconstruction, transport and measurement.
 - [Compatibility API](api/compat.md) - explicit legacy manifest-loading facade.
 - [Advanced Root Exports](api/advanced-root-exports.md) - root-level loaders, adapters, and advanced exports.

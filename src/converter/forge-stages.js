@@ -140,7 +140,7 @@ function normalizeCapsuleArtifact(artifact, input) {
 
 function normalizeQualificationEvidence(evidence) {
   requireObject(evidence, 'qualification evidence');
-  if (![undefined, 'generate', 'rerank', 'encodeSequence', 'embed'].includes(evidence.operation)) {
+  if (![undefined, 'generate', 'rerank', 'encodeSequence', 'embed', 'scoreChoices'].includes(evidence.operation)) {
     throw new Error(`Rig does not support qualification operation "${evidence.operation}".`);
   }
   const surface = requireString(evidence.surface, 'qualificationEvidence.surface');
@@ -153,6 +153,8 @@ function normalizeQualificationEvidence(evidence) {
     ? { operation: 'encodeSequence', encodedSequences: requirePositiveInteger(evidence.encodedSequences, 'qualificationEvidence.encodedSequences') }
     : evidence.operation === 'embed'
     ? { operation: 'embed', embeddedTexts: requirePositiveInteger(evidence.embeddedTexts, 'qualificationEvidence.embeddedTexts') }
+    : evidence.operation === 'scoreChoices'
+    ? { operation: 'scoreChoices', scoredChoices: requirePositiveInteger(evidence.scoredChoices, 'qualificationEvidence.scoredChoices') }
     : { generatedTokens: requirePositiveInteger(evidence.generatedTokens, 'qualificationEvidence.generatedTokens') };
   const transcriptHash = requireString(evidence.transcriptHash, 'qualificationEvidence.transcriptHash');
   if (evidence.status !== 'passed') throw new Error('Rig only packages passed qualification evidence.');

@@ -17,6 +17,8 @@ export interface CapsuleProgramAdapter {
   decodeTokens(tokenIds: number[]): string;
   getTokenContract(): import('../../inference/generation-step.js').GenerationTokenContract;
   reset(): void;
+  scoreChoices(request: import('../../config/choice-scoring.js').ChoiceScoringRequest,
+    control?: { signal?: AbortSignal }): ReturnType<DopplerModelHandle['scoreChoices']>;
   rerank(request: Omit<CapsuleRerankRequest, 'application'>): ReturnType<DopplerModelHandle['rerankWithEvidence']>;
   embed(text: string, options?: { signal?: AbortSignal }): ReturnType<DopplerModelHandle['embedWithEvidence']>;
   encodeSequence(sequence: string, options?: Record<string, unknown>): ReturnType<DopplerModelHandle['encodeSequence']>;

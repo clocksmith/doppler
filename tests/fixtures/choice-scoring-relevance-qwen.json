@@ -1,0 +1,105 @@
+{
+  "schema": "doppler.choice-scoring-evaluation/v1",
+  "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+  "task": "Query/document relevance; no truth-probability or general reasoning claim.",
+  "manifestSha256": "03298342c5f91680864526c1ead2ecaf16ba59307843c84e09842bcb4b9cc7c5",
+  "maxSeqLen": 512,
+  "maximumAbsoluteLogitError": 0.05,
+  "requireReferenceSelection": true,
+  "minimumCorrectChoices": 12,
+  "prefix": "<|im_start|>system\nJudge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the answer can only be \"yes\" or \"no\".<|im_end|>\n<|im_start|>user\n",
+  "suffix": "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+  "choices": [
+    {
+      "id": "relevant",
+      "label": "yes"
+    },
+    {
+      "id": "irrelevant",
+      "label": "no"
+    }
+  ],
+  "cases": [
+    {
+      "id": "capital",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: What is the capital of France?\n<Document>: Paris is the capital of France.",
+      "expectedId": "relevant"
+    },
+    {
+      "id": "capital-other",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: What is the capital of France?\n<Document>: Berlin is the capital of Germany.",
+      "expectedId": "irrelevant"
+    },
+    {
+      "id": "plant",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: Why are plant leaves green?\n<Document>: Chlorophyll in leaves absorbs light and gives them a green color.",
+      "expectedId": "relevant"
+    },
+    {
+      "id": "plant-other",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: Why are plant leaves green?\n<Document>: The company offers flexible payment plans.",
+      "expectedId": "irrelevant"
+    },
+    {
+      "id": "reset",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: How can I reset my password?\n<Document>: Open account settings, choose Reset Password, and follow the email link.",
+      "expectedId": "relevant"
+    },
+    {
+      "id": "reset-other",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: How can I reset my password?\n<Document>: Fresh tomatoes work well in a summer salad.",
+      "expectedId": "irrelevant"
+    },
+    {
+      "id": "invoice",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: Where can I download an invoice?\n<Document>: Open Billing, select a payment, then click Download Invoice.",
+      "expectedId": "relevant"
+    },
+    {
+      "id": "invoice-other",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: Where can I download an invoice?\n<Document>: The moon orbits the Earth.",
+      "expectedId": "irrelevant"
+    },
+    {
+      "id": "refund",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: How long do refunds take?\n<Document>: Refunds normally reach your account in five business days.",
+      "expectedId": "relevant"
+    },
+    {
+      "id": "refund-other",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: How long do refunds take?\n<Document>: Press the power button to restart your computer.",
+      "expectedId": "irrelevant"
+    },
+    {
+      "id": "python",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: How do I sort a list in Python?\n<Document>: Use sorted(items) to create a sorted copy of a Python list.",
+      "expectedId": "relevant"
+    },
+    {
+      "id": "python-other",
+      "question": "<Instruct>: Given a web search query, retrieve relevant passages that answer the query\n<Query>: How do I sort a list in Python?\n<Document>: The train departs at noon.",
+      "expectedId": "irrelevant"
+    }
+  ],
+  "reference": {
+    "implementation": "Qwen3ForCausalLM",
+    "cpuThreads": 4,
+    "modelConfig": {
+      "vocab_size": 151669,
+      "hidden_size": 1024,
+      "intermediate_size": 3072,
+      "num_hidden_layers": 28,
+      "num_attention_heads": 16,
+      "num_key_value_heads": 8,
+      "head_dim": 128,
+      "max_position_embeddings": 40960,
+      "rope_theta": 1000000,
+      "rms_norm_eps": 1e-06,
+      "hidden_act": "silu",
+      "tie_word_embeddings": true,
+      "attention_bias": false,
+      "bos_token_id": null,
+      "eos_token_id": 151645
+    }
+  }
+}

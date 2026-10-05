@@ -6,6 +6,7 @@ export interface CapsuleOperationAdapter {
 export function createCapsuleOperationAdapters(ports: {
   program: Record<string, any>;
   generate(options: Record<string, unknown>, control?: { incremental: boolean }): AsyncIterable<number>;
+  scoreChoices?(request: Record<string, unknown>, control: { signal: AbortSignal }): Promise<unknown>;
   rerank(request: Record<string, unknown>): Promise<unknown>;
   embed(request: Record<string, unknown>): Promise<unknown>;
   encodeSequence(sequence: string, options: Record<string, unknown>): Promise<unknown>;

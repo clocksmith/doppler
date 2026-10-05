@@ -1,11 +1,12 @@
 import { resolveGenerationOptions, validateGenerationInput } from '../../config/generation-contract.js';
 import { resolveCapsuleStreamFormat } from '../../config/capsule-operation.js';
+import { snapshotChoiceScoringRequest } from '../../config/choice-scoring.js';
 
 const text = (value) => typeof value === 'string' && value.trim().length > 0;
 const texts = (value) => Array.isArray(value) && value.length > 0 && value.every(text);
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
-export function createCapsuleOperationAdapters({ program, generate, rerank, embed, encodeSequence }) {
+export function createCapsuleOperationAdapters({ program, generate, scoreChoices, rerank, embed, encodeSequence }) {
   return {
     generate: {
       validate({ input, options }) {
@@ -44,6 +45,14 @@ export function createCapsuleOperationAdapters({ program, generate, rerank, embe
             }
           }
         } finally { await iterator.return?.(); }
+      },
+    },
+    scoreChoices: {
+      validate({ input, options }) {
+        snapshotChoiceScoringRequest({ ...input, ...options });
+      },
+      async *execute({ input, options }, signal) {
+        return await scoreChoices({ ...input, ...options }, { signal });
       },
     },
     embed: {

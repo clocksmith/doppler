@@ -13,6 +13,7 @@ import { createCommandExecutor } from './command-executor.js';
 import { createSessionController } from './session-controller.js';
 import { selectQualifiedTargetPlan as selectTargetPlan } from '../../config/target-plan.js';
 import { executeCapsuleRerank } from './capsule-rerank.js';
+import { snapshotChoiceScoringRequest, validateChoiceScoringResult } from '../../config/choice-scoring.js';
 import { createCapsuleOperationAdapters } from './capsule-operation-adapters.js';
 import { createCapsuleAdapterExecution } from './capsule-adapter-execution.js';
 import { createCapsuleOperationExecutor } from './capsule-operation-executor.js';
@@ -292,6 +293,16 @@ export function createDopplerRun(ports) {
             } finally { await iterator.return?.(); }
           },
 
+          async scoreChoices(request, control = {}) {
+            const snapshot = snapshotChoiceScoringRequest(request);
+            if (closed) throw new Error('Capsule runtime session is closed.');
+            await assertExecutionCurrent();
+            assertQualifiedTargetOperation(selectedPlan, deviceProfile.surface, 'scoreChoices');
+            if (typeof program.scoreChoices !== 'function') throw new Error('Capsule program has no choice-scoring implementation.');
+            try { return validateChoiceScoringResult(snapshot, await program.scoreChoices(snapshot, control)); }
+            finally { await assertExecutionCurrent(); }
+          },
+
           async rerank(request) {
             if (closed) throw new Error('Capsule runtime session is closed.');
             await assertExecutionCurrent();
@@ -369,6 +380,7 @@ export function createDopplerRun(ports) {
         }, signal);
         const adapters = createCapsuleOperationAdapters({ program,
           generate: (request, control) => local.generate(request, control), rerank: (request) => local.rerank(request),
+          scoreChoices: (request, control) => local.scoreChoices(request, control),
           embed: (request) => local.embed(request),
           encodeSequence: (sequence, options) => local.encodeSequence(sequence, options) });
         assertCapsuleLoadActive(options.signal);
@@ -391,6 +403,10 @@ export function createDopplerRun(ports) {
             return yield* local.generate({ ...options, signal });
           }, options.signal),
           generateText: async (options = {}) => runLocal(signal => local.generateText({ ...options, signal }), options.signal),
+          scoreChoices: (request, control = {}) => {
+            const snapshot = snapshotChoiceScoringRequest(request);
+            return runLocal(signal => local.scoreChoices(snapshot, { signal }), control.signal);
+          },
           forecast: async request => runLocal(signal => local.forecast({ ...request, signal }), request?.signal),
           embed: async request => runLocal(signal => local.embed(withRequestSignal(request, signal)), request?.options?.signal),
           rerank: async request => runLocal(signal => local.rerank(withRequestSignal(request, signal)), request?.options?.signal),

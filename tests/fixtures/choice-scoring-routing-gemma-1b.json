@@ -1,0 +1,112 @@
+{
+  "schema": "doppler.choice-scoring-evaluation/v1",
+  "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+  "manifestSha256": "734f8d68925581ef8ed9a8363dc887c8ad13ffb9d4ba146746d74fcca6549c65",
+  "maxSeqLen": 512,
+  "maximumAbsoluteLogitError": 0.05,
+  "requireReferenceSelection": true,
+  "minimumCorrectChoices": 12,
+  "prefix": "<start_of_turn>user\nClassify the incoming customer message. Choose exactly one category:\nA = Billing: charges, payments, invoices, refunds.\nB = Technical: errors, crashes, access problems, broken features.\nC = Sales: buying, pricing quotes, product plans, purchase enquiries.\nD = Other: greetings and unrelated topics.\nReturn only the category letter.\nMessage: ",
+  "suffix": "\nCategory:<end_of_turn>\n<start_of_turn>model\n",
+  "choices": [
+    {
+      "id": "billing",
+      "label": "A"
+    },
+    {
+      "id": "technical",
+      "label": "B"
+    },
+    {
+      "id": "sales",
+      "label": "C"
+    },
+    {
+      "id": "other",
+      "label": "D"
+    }
+  ],
+  "cases": [
+    {
+      "id": "billing-1",
+      "question": "I was charged twice for my subscription this month.",
+      "expectedId": "billing"
+    },
+    {
+      "id": "billing-2",
+      "question": "Please send me the invoice for my last payment.",
+      "expectedId": "billing"
+    },
+    {
+      "id": "billing-3",
+      "question": "I cancelled yesterday. How can I get a refund?",
+      "expectedId": "billing"
+    },
+    {
+      "id": "technical-1",
+      "question": "The app crashes every time I open a document.",
+      "expectedId": "technical"
+    },
+    {
+      "id": "technical-2",
+      "question": "I cannot sign in: the login page displays an error.",
+      "expectedId": "technical"
+    },
+    {
+      "id": "technical-3",
+      "question": "Export is broken and only produces an empty file.",
+      "expectedId": "technical"
+    },
+    {
+      "id": "sales-1",
+      "question": "Can your team send a quote for fifty seats?",
+      "expectedId": "sales"
+    },
+    {
+      "id": "sales-2",
+      "question": "We want to purchase an enterprise plan. Who can help?",
+      "expectedId": "sales"
+    },
+    {
+      "id": "sales-3",
+      "question": "Do you sell a plan suitable for a small design agency?",
+      "expectedId": "sales"
+    },
+    {
+      "id": "other-1",
+      "question": "Hello, hope you are having a nice day!",
+      "expectedId": "other"
+    },
+    {
+      "id": "other-2",
+      "question": "What is the capital of Canada?",
+      "expectedId": "other"
+    },
+    {
+      "id": "other-3",
+      "question": "My cat just stole my sandwich.",
+      "expectedId": "other"
+    }
+  ],
+  "reference": {
+    "cpuThreads": 4,
+    "modelConfig": {
+      "vocab_size": 262144,
+      "hidden_size": 1152,
+      "intermediate_size": 6912,
+      "num_hidden_layers": 26,
+      "num_attention_heads": 4,
+      "num_key_value_heads": 1,
+      "head_dim": 256,
+      "max_position_embeddings": 32768,
+      "sliding_window": 512,
+      "query_pre_attn_scalar": 256,
+      "rms_norm_eps": 1e-06,
+      "hidden_activation": "gelu_pytorch_tanh",
+      "tie_word_embeddings": true,
+      "bos_token_id": 2,
+      "eos_token_id": 1
+    }
+  },
+  "task": "Incoming-message routing; classification only, no permission or action authority."
+}

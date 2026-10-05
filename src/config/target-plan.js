@@ -212,6 +212,9 @@ export function validateTargetPlan(plan) {
       requireString(record.evidenceArtifactId, `qualification[${index}].evidenceArtifactId`, errors);
       requireDigest(record.evidenceHash, `qualification[${index}].evidenceHash`, errors);
       if (record.transcriptHash !== undefined) requireDigest(record.transcriptHash, `qualification[${index}].transcriptHash`, errors);
+      if (record.operation !== 'scoreChoices' && record.scoredChoices !== undefined) {
+        errors.push(`qualification[${index}].scoredChoices requires the scoreChoices operation.`);
+      }
       if (record.operation === 'forecast') {
         if (!Object.hasOwn(plan.phases ?? {}, 'forecast')
           || !Number.isInteger(record.forecastCases) || record.forecastCases < 1
@@ -222,6 +225,13 @@ export function validateTargetPlan(plan) {
         }
       } else if (Object.hasOwn(plan.phases ?? {}, 'forecast')) {
         errors.push(`qualification[${index}] must qualify the forecast operation.`);
+      } else if (record.operation === 'scoreChoices') {
+        if (!Number.isSafeInteger(record.scoredChoices) || record.scoredChoices < 2
+          || ['generatedTokens', 'encodedSequences', 'rerankedDocuments', 'embeddedTexts', 'forecastCases', 'comparedSteps']
+            .some(field => record[field] !== undefined)
+          || !SHA256_PATTERN.test(record.transcriptHash ?? '')) {
+          errors.push(`qualification[${index}] requires scoredChoices and transcriptHash without other operation counts.`);
+        }
       } else if (record.operation === 'rerank') {
         if (!Number.isInteger(record.rerankedDocuments) || record.rerankedDocuments < 1
           || record.generatedTokens !== undefined || record.encodedSequences !== undefined

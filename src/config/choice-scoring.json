@@ -1,0 +1,8 @@
+{
+  "schema": "doppler.choice-scoring-contract/v1",
+  "resultSchema": "doppler.choice-scores/v1",
+  "minChoices": 2,
+  "maxChoices": 128,
+  "interpretation": "next-token-logits",
+  "calibration": null
+}

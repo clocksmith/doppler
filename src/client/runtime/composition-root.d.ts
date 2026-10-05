@@ -75,6 +75,8 @@ export interface DopplerRunSession {
   generate(options: GenerationRunOptions): AsyncGenerator<number, GenerationResult, void>;
   generateText(options: GenerationRunOptions): Promise<GenerationOutput & { modelId: string }>;
   rerank(request: CapsuleRerankRequest): Promise<CapsuleRerankReceipt>;
+  scoreChoices(request: import('../../config/choice-scoring.js').ChoiceScoringRequest,
+    control?: { signal?: AbortSignal }): Promise<import('../../config/choice-scoring.js').ChoiceScoringResult>;
   forecast(request: CapsuleForecastRequest): Promise<CapsuleForecastResult>;
   embed(request: CapsuleEmbeddingRequest): Promise<CapsuleEmbeddingResult>;
   encodeSequence(sequence: string, options?: Record<string, unknown> & { signal?: AbortSignal }): Promise<Record<string, unknown>>;
