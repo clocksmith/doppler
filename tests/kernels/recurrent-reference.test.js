@@ -4,6 +4,7 @@ import { recurrentInterventionOperands, interveneRecurrentShader } from './recur
 import { observeRecurrentShader } from './recurrent-observation.js';
 import { readFile } from 'node:fs/promises';
 import { buildRecurrentAccumulationDiagnostic } from './recurrent-accumulation-diagnostic.js';
+import { recurrentReferenceStep } from './recurrent-reference-step.js';
 
 const tensor = (role, values) => {
   const bytes = Buffer.from(Float32Array.from(values).buffer);
@@ -36,6 +37,10 @@ assert.deepEqual([...result.finalState], [3]);
 assert(Math.abs(result.output[0] - 2 / Math.sqrt(5) / (1 + Math.exp(-1))) < 1e-15);
 assert(Math.abs(result.output[1] - 3 / Math.sqrt(10) / (1 + Math.exp(-1))) < 1e-15);
 assert.equal(JSON.stringify({ input, expected }), original, 'Reference must not mutate capture inputs');
+assert.deepEqual([...recurrentReferenceStep(input, expected, 1, [10]).finalState], [5],
+  'Single-step reference must use the supplied state, not the earlier trajectory');
+assert.deepEqual([...recurrentReferenceStep(input, expected, 1, [2]).finalState], [3]);
+assert.throws(() => recurrentReferenceStep(input, expected, 2, [2]), /assert/i);
 
 const laterInput = { ...input, step: 1 }, laterOutput = { ...expected, step: 1 };
 const group = records => ({ captures: [{ records, errors: [] }] });
@@ -65,7 +70,7 @@ assert(sustained.trace.every(Number.isFinite));
 assert.equal(sustained.finalState[0], sustained.finalState[1]);
 for (let t = 0; t < count; t++) assert.equal(sustained.output[t * 2 + 1], sustained.output[t * 2] * 2);
 const shader = await readFile(new URL('../../src/gpu/kernels/gated_delta_recurrent.wgsl', import.meta.url), 'utf8');
-for (const intervention of ['normalization', 'gates', 'state', 'normalization-gates', 'all']) {
+for (const intervention of ['normalization', 'gates', 'decay', 'state', 'normalization-gates', 'all']) {
   const packed = recurrentInterventionOperands(result, intervention);
   for (const [name, f] of Object.entries(packed.layout.fields)) {
     assert.deepEqual([...packed.values.subarray(f.offset, f.offset + f.length)], stage(name).map(Math.fround));
@@ -77,6 +82,15 @@ assert.throws(() => recurrentInterventionOperands(result, 'unknown'), /Unknown/)
 assert.throws(() => observeRecurrentShader(shader, result.layout, ['unknown']), /Unknown/);
 assert.throws(() => buildRecurrentAccumulationDiagnostic('wrong shader'), /Missing/);
 assert(buildRecurrentAccumulationDiagnostic(shader).includes('memory_error'));
+const fusedShader = await readFile(new URL('../../src/gpu/kernels/gated_delta_fused_decode.wgsl', import.meta.url), 'utf8');
+for (const [source, fused] of [[shader, false], [fusedShader, true]]) {
+  const readout = buildRecurrentAccumulationDiagnostic(source, 'readout', fused);
+  assert(!readout.includes('memory_error'), 'Readout candidate must preserve the state update');
+  assert(readout.includes('output_error'));
+  const memory = buildRecurrentAccumulationDiagnostic(source, 'memory', fused);
+  assert(!memory.includes('output_error'), 'Memory candidate must preserve readout');
+  assert(memory.includes('memory_error'));
+}
 // Zero Q/K and saturated sigmoid inputs must remain finite with positive eps.
 const zeroInput = { ...input, params: { ...params, qkL2NormEps: 1e-6 },
   tensors: input.tensors.filter(t => t.role !== 'b').concat(tensor('b', [-100, 100])) };

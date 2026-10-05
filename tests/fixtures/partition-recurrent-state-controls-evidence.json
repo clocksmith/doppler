@@ -1,0 +1,4827 @@
+{
+  "date": "2026-10-04",
+  "component": "doppler.tests",
+  "intent": "preserved",
+  "sourceBaseline": "0ae50334",
+  "scope": "Single-step reference-state resets and continuous GPU state, isolated arithmetic candidates and unchanged-package controls; not release acceptance",
+  "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+  "version": "0.6.4",
+  "releaseAccepted": false,
+  "productionArithmeticChanged": false,
+  "reploidPinChanged": false,
+  "tolerance": 0.001,
+  "frozenReferenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "rawEvidence": {
+    "localIgnoredDirectory": "dist/0.6.4-candidate/recurrent-state-controls",
+    "inventorySha256": "441f0ef021618bb5a67ff524ae9be00f3ef5f24331b13b2936998d5bcc70294b",
+    "files": 28,
+    "limitation": "Raw captured tensors retained locally, not included in the published receipt"
+  },
+  "controls": {
+    "baseline": {
+      "captureSha256": "557116404c3b96e86a645495fdc5a7ca536b6c3677dfa79a0a591bfbb4c96264",
+      "shaderSha256": "28808b5e10d798058d4af5b17b645bb633b9d6f0f7d2283a0b8d7cd09edf78ff",
+      "originalShaderSha256": "28808b5e10d798058d4af5b17b645bb633b9d6f0f7d2283a0b8d7cd09edf78ff",
+      "coordinate": {
+        "captureIndex": 0,
+        "layerIdx": 0,
+        "prompt": 0,
+        "step": 0,
+        "dispatch": 0
+      },
+      "sourceSubstitution": false,
+      "results": [
+        {
+          "platform": "mac",
+          "mode": "reference-reset",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "stateWrites": 19,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 1.6464834532820483e-8,
+                "maxDifference": 5.049440554572016e-7
+              },
+              "state": {
+                "rmsError": 1.2630569610077923e-9,
+                "maxDifference": 3.648189830229853e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 1.6484423743031085e-8,
+                "maxDifference": 5.014068045205988e-7
+              },
+              "state": {
+                "rmsError": 1.3603700189145531e-9,
+                "maxDifference": 3.7321341173068845e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 1.356719527273044e-8,
+              "localStateRms": 3.375958806871184e-10,
+              "trajectoryOutputRms": 1.356719527273044e-8,
+              "trajectoryStateRms": 3.375958806871184e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 1.7295180020098108e-8,
+              "localStateRms": 5.344661308511581e-10,
+              "trajectoryOutputRms": 1.7160662736128398e-8,
+              "trajectoryStateRms": 5.532879031024552e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 1.1125601309591919e-8,
+              "localStateRms": 7.925333090655218e-10,
+              "trajectoryOutputRms": 1.1305275013000817e-8,
+              "trajectoryStateRms": 8.593634171959938e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 1.9054510459468645e-8,
+              "localStateRms": 7.915977036126476e-10,
+              "trajectoryOutputRms": 1.9066897034031396e-8,
+              "trajectoryStateRms": 8.225033061468418e-10
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.3028158118625034e-8,
+              "localStateRms": 8.419492592371073e-10,
+              "trajectoryOutputRms": 1.3125068815299775e-8,
+              "trajectoryStateRms": 8.585205054977614e-10
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.674182417090933e-8,
+              "localStateRms": 5.972103088228874e-10,
+              "trajectoryOutputRms": 1.660664195728817e-8,
+              "trajectoryStateRms": 6.272465221829783e-10
+            },
+            {
+              "token": 6,
+              "localOutputRms": 1.2885945126979261e-8,
+              "localStateRms": 1.1512102201947898e-9,
+              "trajectoryOutputRms": 1.2702002624227514e-8,
+              "trajectoryStateRms": 1.2245500895707961e-9
+            },
+            {
+              "token": 7,
+              "localOutputRms": 1.7133288978640544e-8,
+              "localStateRms": 6.719527838311969e-10,
+              "trajectoryOutputRms": 1.728653177288345e-8,
+              "trajectoryStateRms": 7.688254679723939e-10
+            },
+            {
+              "token": 8,
+              "localOutputRms": 2.030028898983768e-8,
+              "localStateRms": 8.126236099423271e-10,
+              "trajectoryOutputRms": 2.023034905805866e-8,
+              "trajectoryStateRms": 9.884128401415456e-10
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.3517141096844946e-8,
+              "localStateRms": 1.5960195667817146e-9,
+              "trajectoryOutputRms": 1.3684296677742412e-8,
+              "trajectoryStateRms": 1.710567490688738e-9
+            },
+            {
+              "token": 10,
+              "localOutputRms": 1.468508048966527e-8,
+              "localStateRms": 1.307913451994129e-9,
+              "trajectoryOutputRms": 1.4651394467493951e-8,
+              "trajectoryStateRms": 1.417427614351664e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.3584564379788056e-8,
+              "localStateRms": 1.8621973212713556e-9,
+              "trajectoryOutputRms": 1.366863225041379e-8,
+              "trajectoryStateRms": 1.9453321777941386e-9
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.7870391305884918e-8,
+              "localStateRms": 1.2746114671320425e-9,
+              "trajectoryOutputRms": 1.794418206199959e-8,
+              "trajectoryStateRms": 1.3732360400950243e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 1.5716695640165055e-8,
+              "localStateRms": 1.6086012678340055e-9,
+              "trajectoryOutputRms": 1.5712666495001163e-8,
+              "trajectoryStateRms": 1.7032268324390316e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 1.716962788356434e-8,
+              "localStateRms": 2.0178168950497924e-9,
+              "trajectoryOutputRms": 1.693125147884236e-8,
+              "trajectoryStateRms": 2.1269045929241965e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 2.3316054221387177e-8,
+              "localStateRms": 1.1946992437226752e-9,
+              "trajectoryOutputRms": 2.3327867992830988e-8,
+              "trajectoryStateRms": 1.3726583704694908e-9
+            },
+            {
+              "token": 16,
+              "localOutputRms": 1.629387155923691e-8,
+              "localStateRms": 1.949314204668281e-9,
+              "trajectoryOutputRms": 1.6517168017091056e-8,
+              "trajectoryStateRms": 1.9997723154606193e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 2.1292275055108067e-8,
+              "localStateRms": 1.0801107422391261e-9,
+              "trajectoryOutputRms": 2.1470923273293724e-8,
+              "trajectoryStateRms": 1.3119127816450222e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 1.2345145830357584e-8,
+              "localStateRms": 1.6584929186364098e-9,
+              "trajectoryOutputRms": 1.2380824144581699e-8,
+              "trajectoryStateRms": 1.869224829731441e-9
+            }
+          ]
+        },
+        {
+          "platform": "mac",
+          "mode": "continuous",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "stateWrites": 1,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 1.5929731956467077e-8,
+                "maxDifference": 4.5233445700176844e-7
+              },
+              "state": {
+                "rmsError": 1.3763634112830898e-9,
+                "maxDifference": 3.733090712110254e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 1.6123798499967604e-8,
+                "maxDifference": 4.320492463794068e-7
+              },
+              "state": {
+                "rmsError": 2.926849098543517e-9,
+                "maxDifference": 6.899990203645956e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 1.356719527273044e-8,
+              "localStateRms": 3.375958806871184e-10,
+              "trajectoryOutputRms": 1.356719527273044e-8,
+              "trajectoryStateRms": 3.375958806871184e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 1.718873465589588e-8,
+              "localStateRms": 5.552408447517352e-10,
+              "trajectoryOutputRms": 1.7290344895450993e-8,
+              "trajectoryStateRms": 6.030496065744244e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 1.0709306491768698e-8,
+              "localStateRms": 7.919879818096102e-10,
+              "trajectoryOutputRms": 1.085192607053304e-8,
+              "trajectoryStateRms": 9.855853845797576e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 1.9040440254269667e-8,
+              "localStateRms": 7.939189362813032e-10,
+              "trajectoryOutputRms": 1.9375077558813445e-8,
+              "trajectoryStateRms": 1.168156349631334e-9
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.3348599119392542e-8,
+              "localStateRms": 8.667982517200295e-10,
+              "trajectoryOutputRms": 1.308856101666183e-8,
+              "trajectoryStateRms": 1.3016307109405307e-9
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.6123103467722142e-8,
+              "localStateRms": 5.889588622738442e-10,
+              "trajectoryOutputRms": 1.6303264409351375e-8,
+              "trajectoryStateRms": 1.4772212846145014e-9
+            },
+            {
+              "token": 6,
+              "localOutputRms": 1.1273773381030533e-8,
+              "localStateRms": 1.143228960382637e-9,
+              "trajectoryOutputRms": 1.1608849111939472e-8,
+              "trajectoryStateRms": 2.2158883743073717e-9
+            },
+            {
+              "token": 7,
+              "localOutputRms": 1.668213499469841e-8,
+              "localStateRms": 6.738276701042781e-10,
+              "trajectoryOutputRms": 1.6540283324710268e-8,
+              "trajectoryStateRms": 2.3576988300367353e-9
+            },
+            {
+              "token": 8,
+              "localOutputRms": 1.798975764814411e-8,
+              "localStateRms": 8.247775216796017e-10,
+              "trajectoryOutputRms": 1.8006422788873122e-8,
+              "trajectoryStateRms": 2.529414893614826e-9
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.4033936691898527e-8,
+              "localStateRms": 1.5402334662759205e-9,
+              "trajectoryOutputRms": 1.435465118881564e-8,
+              "trajectoryStateRms": 2.138836131803722e-9
+            },
+            {
+              "token": 10,
+              "localOutputRms": 1.4739687906238e-8,
+              "localStateRms": 1.3104163765868263e-9,
+              "trajectoryOutputRms": 1.504898141839655e-8,
+              "trajectoryStateRms": 2.319778752477093e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.523052551879004e-8,
+              "localStateRms": 2.5421073476781293e-9,
+              "trajectoryOutputRms": 1.5528474471018618e-8,
+              "trajectoryStateRms": 3.4125132034553973e-9
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.4604479351047012e-8,
+              "localStateRms": 1.6209803038716257e-9,
+              "trajectoryOutputRms": 1.4278147936970162e-8,
+              "trajectoryStateRms": 3.2900039041661837e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 1.837243214577424e-8,
+              "localStateRms": 1.7775457007658539e-9,
+              "trajectoryOutputRms": 1.851188363418398e-8,
+              "trajectoryStateRms": 3.7167092959699958e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 1.5466316890032577e-8,
+              "localStateRms": 2.3177972924729418e-9,
+              "trajectoryOutputRms": 1.4835584431152604e-8,
+              "trajectoryStateRms": 4.4057305653479475e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 2.055284389445021e-8,
+              "localStateRms": 1.1411469642704887e-9,
+              "trajectoryOutputRms": 2.0686423035917836e-8,
+              "trajectoryStateRms": 4.274133115606123e-9
+            },
+            {
+              "token": 16,
+              "localOutputRms": 1.4137279365345072e-8,
+              "localStateRms": 1.658191130728424e-9,
+              "trajectoryOutputRms": 1.483760955503569e-8,
+              "trajectoryStateRms": 4.051469315442339e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 2.150923419155585e-8,
+              "localStateRms": 1.4035169565093748e-9,
+              "trajectoryOutputRms": 2.2208046811229385e-8,
+              "trajectoryStateRms": 4.120741136112878e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 1.3278078488642833e-8,
+              "localStateRms": 1.7438242026408578e-9,
+              "trajectoryOutputRms": 1.4563725058077055e-8,
+              "trajectoryStateRms": 4.678964556916734e-9
+            }
+          ]
+        },
+        {
+          "platform": "linux",
+          "mode": "reference-reset",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "stateWrites": 19,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 1.601145446190091e-8,
+                "maxDifference": 6.356561228493263e-7
+              },
+              "state": {
+                "rmsError": 1.1032833929849536e-9,
+                "maxDifference": 2.9656841160630165e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 1.6016044505943152e-8,
+                "maxDifference": 6.274729602573359e-7
+              },
+              "state": {
+                "rmsError": 1.203854376998553e-9,
+                "maxDifference": 3.089622655494395e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 1.317055049687355e-8,
+              "localStateRms": 3.037997600482386e-10,
+              "trajectoryOutputRms": 1.317055049687355e-8,
+              "trajectoryStateRms": 3.037997600482386e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 1.4997102003038256e-8,
+              "localStateRms": 4.772632505631949e-10,
+              "trajectoryOutputRms": 1.4802928892439654e-8,
+              "trajectoryStateRms": 4.974539479673179e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 1.1051117772165093e-8,
+              "localStateRms": 5.968092803363017e-10,
+              "trajectoryOutputRms": 1.1269576180891304e-8,
+              "trajectoryStateRms": 6.918695315894389e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 1.4881390763642623e-8,
+              "localStateRms": 6.221486612842409e-10,
+              "trajectoryOutputRms": 1.4857806654025652e-8,
+              "trajectoryStateRms": 6.997064131501206e-10
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.759617341062892e-8,
+              "localStateRms": 6.584599453613583e-10,
+              "trajectoryOutputRms": 1.752226855732824e-8,
+              "trajectoryStateRms": 6.846991022750382e-10
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.8957059062197832e-8,
+              "localStateRms": 5.280193413564642e-10,
+              "trajectoryOutputRms": 1.878328714767202e-8,
+              "trajectoryStateRms": 5.540087621193034e-10
+            },
+            {
+              "token": 6,
+              "localOutputRms": 1.3009746698575286e-8,
+              "localStateRms": 6.587974257777314e-10,
+              "trajectoryOutputRms": 1.3131766633733127e-8,
+              "trajectoryStateRms": 7.485555112765418e-10
+            },
+            {
+              "token": 7,
+              "localOutputRms": 1.6639543472295733e-8,
+              "localStateRms": 7.006668629183707e-10,
+              "trajectoryOutputRms": 1.6736073152256093e-8,
+              "trajectoryStateRms": 7.742021295406467e-10
+            },
+            {
+              "token": 8,
+              "localOutputRms": 1.4014323031375536e-8,
+              "localStateRms": 7.683899675607658e-10,
+              "trajectoryOutputRms": 1.3973859012514617e-8,
+              "trajectoryStateRms": 9.403707239557121e-10
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.5743670020338405e-8,
+              "localStateRms": 9.017703383119904e-10,
+              "trajectoryOutputRms": 1.5908198098772515e-8,
+              "trajectoryStateRms": 1.0403312471893793e-9
+            },
+            {
+              "token": 10,
+              "localOutputRms": 1.4028846133217322e-8,
+              "localStateRms": 1.2413179150730726e-9,
+              "trajectoryOutputRms": 1.392261731267923e-8,
+              "trajectoryStateRms": 1.3451327605836644e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.3640352984143669e-8,
+              "localStateRms": 2.051664999324804e-9,
+              "trajectoryOutputRms": 1.3719336066463651e-8,
+              "trajectoryStateRms": 2.1440994650628943e-9
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.4091131601040649e-8,
+              "localStateRms": 1.155375489106935e-9,
+              "trajectoryOutputRms": 1.4035681012732586e-8,
+              "trajectoryStateRms": 1.2456342797326186e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 2.0680103169952545e-8,
+              "localStateRms": 1.5817398866247715e-9,
+              "trajectoryOutputRms": 2.0686757797577817e-8,
+              "trajectoryStateRms": 1.6901708008820004e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 1.402459870970526e-8,
+              "localStateRms": 2.016745437742498e-9,
+              "trajectoryOutputRms": 1.3778448964019798e-8,
+              "trajectoryStateRms": 2.1298215927981037e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 2.1893227440407494e-8,
+              "localStateRms": 1.2142650363135046e-9,
+              "trajectoryOutputRms": 2.186829036177371e-8,
+              "trajectoryStateRms": 1.3853149327774892e-9
+            },
+            {
+              "token": 16,
+              "localOutputRms": 1.544954954883844e-8,
+              "localStateRms": 1.2129163330112358e-9,
+              "trajectoryOutputRms": 1.5690875246276184e-8,
+              "trajectoryStateRms": 1.2823502912353465e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 2.1206671373656005e-8,
+              "localStateRms": 1.1013810199966242e-9,
+              "trajectoryOutputRms": 2.137176550766597e-8,
+              "trajectoryStateRms": 1.334315409950176e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 1.4003961721740113e-8,
+              "localStateRms": 1.1001318210308894e-9,
+              "trajectoryOutputRms": 1.395227280927976e-8,
+              "trajectoryStateRms": 1.2771379884839208e-9
+            }
+          ]
+        },
+        {
+          "platform": "linux",
+          "mode": "continuous",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "stateWrites": 1,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 1.573952288776934e-8,
+                "maxDifference": 6.501164868666365e-7
+              },
+              "state": {
+                "rmsError": 1.1779050842934308e-9,
+                "maxDifference": 3.2710169906025044e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 1.5854659664720344e-8,
+                "maxDifference": 6.274729602573359e-7
+              },
+              "state": {
+                "rmsError": 2.5841230625127492e-9,
+                "maxDifference": 6.191053837922844e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 1.317055049687355e-8,
+              "localStateRms": 3.037997600482386e-10,
+              "trajectoryOutputRms": 1.317055049687355e-8,
+              "trajectoryStateRms": 3.037997600482386e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 1.4699573860317147e-8,
+              "localStateRms": 4.6103960230037416e-10,
+              "trajectoryOutputRms": 1.4636416254177934e-8,
+              "trajectoryStateRms": 5.361431751270329e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 1.1896539352609474e-8,
+              "localStateRms": 6.04155646661678e-10,
+              "trajectoryOutputRms": 1.2190371873601047e-8,
+              "trajectoryStateRms": 8.241156677221769e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 1.5405250072543103e-8,
+              "localStateRms": 6.056494262190058e-10,
+              "trajectoryOutputRms": 1.5978920876083214e-8,
+              "trajectoryStateRms": 9.769280014581282e-10
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.8414689452783477e-8,
+              "localStateRms": 6.702121825500894e-10,
+              "trajectoryOutputRms": 1.867140674773476e-8,
+              "trajectoryStateRms": 1.3009980823664482e-9
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.888869481195165e-8,
+              "localStateRms": 5.325214046063777e-10,
+              "trajectoryOutputRms": 1.8389351343664424e-8,
+              "trajectoryStateRms": 1.2588355732260276e-9
+            },
+            {
+              "token": 6,
+              "localOutputRms": 1.3135418891727667e-8,
+              "localStateRms": 6.868450602574893e-10,
+              "trajectoryOutputRms": 1.3731342890616747e-8,
+              "trajectoryStateRms": 1.484531346428536e-9
+            },
+            {
+              "token": 7,
+              "localOutputRms": 1.672257942058371e-8,
+              "localStateRms": 7.200595366705932e-10,
+              "trajectoryOutputRms": 1.67918787475085e-8,
+              "trajectoryStateRms": 1.6377070872845331e-9
+            },
+            {
+              "token": 8,
+              "localOutputRms": 1.205836623453566e-8,
+              "localStateRms": 7.339891639496447e-10,
+              "trajectoryOutputRms": 1.2148365059085514e-8,
+              "trajectoryStateRms": 1.6860378007661428e-9
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.3161789412637118e-8,
+              "localStateRms": 8.492577722817337e-10,
+              "trajectoryOutputRms": 1.292440980107411e-8,
+              "trajectoryStateRms": 1.85429371913204e-9
+            },
+            {
+              "token": 10,
+              "localOutputRms": 1.3642519843099443e-8,
+              "localStateRms": 1.4351168674022097e-9,
+              "trajectoryOutputRms": 1.3578745860742533e-8,
+              "trajectoryStateRms": 2.182948800531994e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.380468094939835e-8,
+              "localStateRms": 2.204458168534802e-9,
+              "trajectoryOutputRms": 1.4306990265746774e-8,
+              "trajectoryStateRms": 2.8308054586390295e-9
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.4809709953962307e-8,
+              "localStateRms": 1.1056999632017798e-9,
+              "trajectoryOutputRms": 1.5026445950332077e-8,
+              "trajectoryStateRms": 2.894998083498338e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 1.867936025994722e-8,
+              "localStateRms": 1.8863311777253777e-9,
+              "trajectoryOutputRms": 1.8973926170411523e-8,
+              "trajectoryStateRms": 3.4045822626211877e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 1.4528516098364861e-8,
+              "localStateRms": 1.9203821957876537e-9,
+              "trajectoryOutputRms": 1.2630752036347996e-8,
+              "trajectoryStateRms": 3.899737665378757e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 2.1178255721739686e-8,
+              "localStateRms": 1.5018932643807524e-9,
+              "trajectoryOutputRms": 2.1737082027752007e-8,
+              "trajectoryStateRms": 3.997722047067742e-9
+            },
+            {
+              "token": 16,
+              "localOutputRms": 1.2973519771855588e-8,
+              "localStateRms": 1.1268382080051682e-9,
+              "trajectoryOutputRms": 1.2957135778932115e-8,
+              "trajectoryStateRms": 3.81417998173812e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 2.249661059481389e-8,
+              "localStateRms": 1.404743637335225e-9,
+              "trajectoryOutputRms": 2.329961476988049e-8,
+              "trajectoryStateRms": 3.941180444491049e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 1.3888298818444569e-8,
+              "localStateRms": 1.206425292770112e-9,
+              "trajectoryOutputRms": 1.3957549003266255e-8,
+              "trajectoryStateRms": 4.049322516664468e-9
+            }
+          ]
+        }
+      ]
+    },
+    "readout": {
+      "captureSha256": "557116404c3b96e86a645495fdc5a7ca536b6c3677dfa79a0a591bfbb4c96264",
+      "shaderSha256": "c5bffa6448efbe634a64f3b2aa832516ce6b1f855425e98d807dbb9a3eb97d8b",
+      "originalShaderSha256": "28808b5e10d798058d4af5b17b645bb633b9d6f0f7d2283a0b8d7cd09edf78ff",
+      "coordinate": {
+        "captureIndex": 0,
+        "layerIdx": 0,
+        "prompt": 0,
+        "step": 0,
+        "dispatch": 0
+      },
+      "sourceSubstitution": true,
+      "results": [
+        {
+          "platform": "mac",
+          "mode": "reference-reset",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "stateWrites": 19,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 1.6173480698336002e-8,
+                "maxDifference": 5.049440554572016e-7
+              },
+              "state": {
+                "rmsError": 1.2630569610077923e-9,
+                "maxDifference": 3.648189830229853e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 1.6188297882670817e-8,
+                "maxDifference": 5.014068045205988e-7
+              },
+              "state": {
+                "rmsError": 1.3603700189145531e-9,
+                "maxDifference": 3.7321341173068845e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 1.35353486454738e-8,
+              "localStateRms": 3.375958806871184e-10,
+              "trajectoryOutputRms": 1.35353486454738e-8,
+              "trajectoryStateRms": 3.375958806871184e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 1.6819124351108266e-8,
+              "localStateRms": 5.344661308511581e-10,
+              "trajectoryOutputRms": 1.6680320507379294e-8,
+              "trajectoryStateRms": 5.532879031024552e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 1.0433863966994998e-8,
+              "localStateRms": 7.925333090655218e-10,
+              "trajectoryOutputRms": 1.0598571765502684e-8,
+              "trajectoryStateRms": 8.593634171959938e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 1.8411969095829287e-8,
+              "localStateRms": 7.915977036126476e-10,
+              "trajectoryOutputRms": 1.8395995510022036e-8,
+              "trajectoryStateRms": 8.225033061468418e-10
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.1668208901654652e-8,
+              "localStateRms": 8.419492592371073e-10,
+              "trajectoryOutputRms": 1.182302643730149e-8,
+              "trajectoryStateRms": 8.585205054977614e-10
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.5112234483197735e-8,
+              "localStateRms": 5.972103088228874e-10,
+              "trajectoryOutputRms": 1.4889163434223287e-8,
+              "trajectoryStateRms": 6.272465221829783e-10
+            },
+            {
+              "token": 6,
+              "localOutputRms": 1.276168919720745e-8,
+              "localStateRms": 1.1512102201947898e-9,
+              "trajectoryOutputRms": 1.2641553788296647e-8,
+              "trajectoryStateRms": 1.2245500895707961e-9
+            },
+            {
+              "token": 7,
+              "localOutputRms": 1.5386384252533493e-8,
+              "localStateRms": 6.719527838311969e-10,
+              "trajectoryOutputRms": 1.546983037511392e-8,
+              "trajectoryStateRms": 7.688254679723939e-10
+            },
+            {
+              "token": 8,
+              "localOutputRms": 2.0265487024371374e-8,
+              "localStateRms": 8.126236099423271e-10,
+              "trajectoryOutputRms": 2.0187227760142994e-8,
+              "trajectoryStateRms": 9.884128401415456e-10
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.551113864041874e-8,
+              "localStateRms": 1.5960195667817146e-9,
+              "trajectoryOutputRms": 1.5796099765898867e-8,
+              "trajectoryStateRms": 1.710567490688738e-9
+            },
+            {
+              "token": 10,
+              "localOutputRms": 1.5446433050144675e-8,
+              "localStateRms": 1.307913451994129e-9,
+              "trajectoryOutputRms": 1.5440166427100334e-8,
+              "trajectoryStateRms": 1.417427614351664e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.398870272601121e-8,
+              "localStateRms": 1.8621973212713556e-9,
+              "trajectoryOutputRms": 1.4069817301376299e-8,
+              "trajectoryStateRms": 1.9453321777941386e-9
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.510572454015021e-8,
+              "localStateRms": 1.2746114671320425e-9,
+              "trajectoryOutputRms": 1.5170033092176875e-8,
+              "trajectoryStateRms": 1.3732360400950243e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 1.7716144830229985e-8,
+              "localStateRms": 1.6086012678340055e-9,
+              "trajectoryOutputRms": 1.7723806717599452e-8,
+              "trajectoryStateRms": 1.7032268324390316e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 1.7892420150782675e-8,
+              "localStateRms": 2.0178168950497924e-9,
+              "trajectoryOutputRms": 1.762018433179911e-8,
+              "trajectoryStateRms": 2.1269045929241965e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 2.0938217341040103e-8,
+              "localStateRms": 1.1946992437226752e-9,
+              "trajectoryOutputRms": 2.0904714884260938e-8,
+              "trajectoryStateRms": 1.3726583704694908e-9
+            },
+            {
+              "token": 16,
+              "localOutputRms": 1.6455483566110274e-8,
+              "localStateRms": 1.949314204668281e-9,
+              "trajectoryOutputRms": 1.6665609302264617e-8,
+              "trajectoryStateRms": 1.9997723154606193e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 2.1705407120978674e-8,
+              "localStateRms": 1.0801107422391261e-9,
+              "trajectoryOutputRms": 2.1850550310557434e-8,
+              "trajectoryStateRms": 1.3119127816450222e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 1.2802484941564468e-8,
+              "localStateRms": 1.6584929186364098e-9,
+              "trajectoryOutputRms": 1.2886125532815511e-8,
+              "trajectoryStateRms": 1.869224829731441e-9
+            }
+          ]
+        },
+        {
+          "platform": "mac",
+          "mode": "continuous",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "stateWrites": 1,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 1.5613734196490264e-8,
+                "maxDifference": 4.0041052074002437e-7
+              },
+              "state": {
+                "rmsError": 1.3763634112830898e-9,
+                "maxDifference": 3.733090712110254e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 1.5803418267626522e-8,
+                "maxDifference": 3.983398308982089e-7
+              },
+              "state": {
+                "rmsError": 2.926849098543517e-9,
+                "maxDifference": 6.899990203645956e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 1.35353486454738e-8,
+              "localStateRms": 3.375958806871184e-10,
+              "trajectoryOutputRms": 1.35353486454738e-8,
+              "trajectoryStateRms": 3.375958806871184e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 1.6599640449173665e-8,
+              "localStateRms": 5.552408447517352e-10,
+              "trajectoryOutputRms": 1.6677514870111263e-8,
+              "trajectoryStateRms": 6.030496065744244e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 9.846683459543249e-9,
+              "localStateRms": 7.919879818096102e-10,
+              "trajectoryOutputRms": 1.0075097446864188e-8,
+              "trajectoryStateRms": 9.855853845797576e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 1.611112900667738e-8,
+              "localStateRms": 7.939189362813032e-10,
+              "trajectoryOutputRms": 1.64113473442543e-8,
+              "trajectoryStateRms": 1.168156349631334e-9
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.2171951279959545e-8,
+              "localStateRms": 8.667982517200295e-10,
+              "trajectoryOutputRms": 1.2003661452227673e-8,
+              "trajectoryStateRms": 1.3016307109405307e-9
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.515781851515791e-8,
+              "localStateRms": 5.889588622738442e-10,
+              "trajectoryOutputRms": 1.5242296811558797e-8,
+              "trajectoryStateRms": 1.4772212846145014e-9
+            },
+            {
+              "token": 6,
+              "localOutputRms": 1.2462796238741947e-8,
+              "localStateRms": 1.143228960382637e-9,
+              "trajectoryOutputRms": 1.268703422945358e-8,
+              "trajectoryStateRms": 2.2158883743073717e-9
+            },
+            {
+              "token": 7,
+              "localOutputRms": 1.640064137116748e-8,
+              "localStateRms": 6.738276701042781e-10,
+              "trajectoryOutputRms": 1.6302696890377436e-8,
+              "trajectoryStateRms": 2.3576988300367353e-9
+            },
+            {
+              "token": 8,
+              "localOutputRms": 1.6955072851538443e-8,
+              "localStateRms": 8.247775216796017e-10,
+              "trajectoryOutputRms": 1.7048831349622648e-8,
+              "trajectoryStateRms": 2.529414893614826e-9
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.3916543812820679e-8,
+              "localStateRms": 1.5402334662759205e-9,
+              "trajectoryOutputRms": 1.4154356720536967e-8,
+              "trajectoryStateRms": 2.138836131803722e-9
+            },
+            {
+              "token": 10,
+              "localOutputRms": 1.5412377685495926e-8,
+              "localStateRms": 1.3104163765868263e-9,
+              "trajectoryOutputRms": 1.577054887992723e-8,
+              "trajectoryStateRms": 2.319778752477093e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.595531248673497e-8,
+              "localStateRms": 2.5421073476781293e-9,
+              "trajectoryOutputRms": 1.6207228221355713e-8,
+              "trajectoryStateRms": 3.4125132034553973e-9
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.4694901029695205e-8,
+              "localStateRms": 1.6209803038716257e-9,
+              "trajectoryOutputRms": 1.4446781943162654e-8,
+              "trajectoryStateRms": 3.2900039041661837e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 1.7739788520700852e-8,
+              "localStateRms": 1.7775457007658539e-9,
+              "trajectoryOutputRms": 1.8024194456146934e-8,
+              "trajectoryStateRms": 3.7167092959699958e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 1.498883813295709e-8,
+              "localStateRms": 2.3177972924729418e-9,
+              "trajectoryOutputRms": 1.3957881847249444e-8,
+              "trajectoryStateRms": 4.4057305653479475e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 1.9646715841802885e-8,
+              "localStateRms": 1.1411469642704887e-9,
+              "trajectoryOutputRms": 1.992929996582004e-8,
+              "trajectoryStateRms": 4.274133115606123e-9
+            },
+            {
+              "token": 16,
+              "localOutputRms": 1.4589206031558124e-8,
+              "localStateRms": 1.658191130728424e-9,
+              "trajectoryOutputRms": 1.5458648603056366e-8,
+              "trajectoryStateRms": 4.051469315442339e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 2.2447608120864045e-8,
+              "localStateRms": 1.4035169565093748e-9,
+              "trajectoryOutputRms": 2.2994162824860142e-8,
+              "trajectoryStateRms": 4.120741136112878e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 1.3534792628675017e-8,
+              "localStateRms": 1.7438242026408578e-9,
+              "trajectoryOutputRms": 1.463551809080813e-8,
+              "trajectoryStateRms": 4.678964556916734e-9
+            }
+          ]
+        },
+        {
+          "platform": "linux",
+          "mode": "reference-reset",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "stateWrites": 19,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 9.994448507095382e-9,
+                "maxDifference": 3.9723754374776377e-7
+              },
+              "state": {
+                "rmsError": 1.1032833929849536e-9,
+                "maxDifference": 2.9656841160630165e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 9.980211360962766e-9,
+                "maxDifference": 3.890543811557734e-7
+              },
+              "state": {
+                "rmsError": 1.203854376998553e-9,
+                "maxDifference": 3.089622655494395e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 5.5711634483220615e-9,
+              "localStateRms": 3.037997600482386e-10,
+              "trajectoryOutputRms": 5.5711634483220615e-9,
+              "trajectoryStateRms": 3.037997600482386e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 7.743495792040977e-9,
+              "localStateRms": 4.772632505631949e-10,
+              "trajectoryOutputRms": 7.624160706594632e-9,
+              "trajectoryStateRms": 4.974539479673179e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 8.084886684678565e-9,
+              "localStateRms": 5.968092803363017e-10,
+              "trajectoryOutputRms": 8.155552082731693e-9,
+              "trajectoryStateRms": 6.918695315894389e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 9.125410633677599e-9,
+              "localStateRms": 6.221486612842409e-10,
+              "trajectoryOutputRms": 9.117344923011002e-9,
+              "trajectoryStateRms": 6.997064131501206e-10
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.165433722269372e-8,
+              "localStateRms": 6.584599453613583e-10,
+              "trajectoryOutputRms": 1.1551674860331801e-8,
+              "trajectoryStateRms": 6.846991022750382e-10
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.1183034746474153e-8,
+              "localStateRms": 5.280193413564642e-10,
+              "trajectoryOutputRms": 1.1080490627697086e-8,
+              "trajectoryStateRms": 5.540087621193034e-10
+            },
+            {
+              "token": 6,
+              "localOutputRms": 9.13669274610518e-9,
+              "localStateRms": 6.587974257777314e-10,
+              "trajectoryOutputRms": 8.967457826342953e-9,
+              "trajectoryStateRms": 7.485555112765418e-10
+            },
+            {
+              "token": 7,
+              "localOutputRms": 6.679436137185777e-9,
+              "localStateRms": 7.006668629183707e-10,
+              "trajectoryOutputRms": 6.851281080292009e-9,
+              "trajectoryStateRms": 7.742021295406467e-10
+            },
+            {
+              "token": 8,
+              "localOutputRms": 1.1446464964178905e-8,
+              "localStateRms": 7.683899675607658e-10,
+              "trajectoryOutputRms": 1.1312581880990277e-8,
+              "trajectoryStateRms": 9.403707239557121e-10
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.1845449682092649e-8,
+              "localStateRms": 9.017703383119904e-10,
+              "trajectoryOutputRms": 1.1929453433862729e-8,
+              "trajectoryStateRms": 1.0403312471893793e-9
+            },
+            {
+              "token": 10,
+              "localOutputRms": 8.01735386944681e-9,
+              "localStateRms": 1.2413179150730726e-9,
+              "trajectoryOutputRms": 7.945850023026469e-9,
+              "trajectoryStateRms": 1.3451327605836644e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.0026758223399899e-8,
+              "localStateRms": 2.051664999324804e-9,
+              "trajectoryOutputRms": 1.0056069956332204e-8,
+              "trajectoryStateRms": 2.1440994650628943e-9
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.1136500519935616e-8,
+              "localStateRms": 1.155375489106935e-9,
+              "trajectoryOutputRms": 1.1079082597220694e-8,
+              "trajectoryStateRms": 1.2456342797326186e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 1.126970019525736e-8,
+              "localStateRms": 1.5817398866247715e-9,
+              "trajectoryOutputRms": 1.1242771056846009e-8,
+              "trajectoryStateRms": 1.6901708008820004e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 8.642246561857878e-9,
+              "localStateRms": 2.016745437742498e-9,
+              "trajectoryOutputRms": 8.725470402414224e-9,
+              "trajectoryStateRms": 2.1298215927981037e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 1.223049926785907e-8,
+              "localStateRms": 1.2142650363135046e-9,
+              "trajectoryOutputRms": 1.228858346075621e-8,
+              "trajectoryStateRms": 1.3853149327774892e-9
+            },
+            {
+              "token": 16,
+              "localOutputRms": 8.354140842653333e-9,
+              "localStateRms": 1.2129163330112358e-9,
+              "trajectoryOutputRms": 8.286246440861764e-9,
+              "trajectoryStateRms": 1.2823502912353465e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 1.5446302490505482e-8,
+              "localStateRms": 1.1013810199966242e-9,
+              "trajectoryOutputRms": 1.55795350498329e-8,
+              "trajectoryStateRms": 1.334315409950176e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 7.031622668502179e-9,
+              "localStateRms": 1.1001318210308894e-9,
+              "trajectoryOutputRms": 6.920181939788598e-9,
+              "trajectoryStateRms": 1.2771379884839208e-9
+            }
+          ]
+        },
+        {
+          "platform": "linux",
+          "mode": "continuous",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "stateWrites": 1,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 9.886466485815852e-9,
+                "maxDifference": 4.11697907765074e-7
+              },
+              "state": {
+                "rmsError": 1.1779050842934308e-9,
+                "maxDifference": 3.2710169906025044e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 1.0093547347610961e-8,
+                "maxDifference": 3.890543811557734e-7
+              },
+              "state": {
+                "rmsError": 2.5841230625127492e-9,
+                "maxDifference": 6.191053837922844e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 5.5711634483220615e-9,
+              "localStateRms": 3.037997600482386e-10,
+              "trajectoryOutputRms": 5.5711634483220615e-9,
+              "trajectoryStateRms": 3.037997600482386e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 8.005912001639714e-9,
+              "localStateRms": 4.6103960230037416e-10,
+              "trajectoryOutputRms": 7.990411597833855e-9,
+              "trajectoryStateRms": 5.361431751270329e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 8.290887006256913e-9,
+              "localStateRms": 6.04155646661678e-10,
+              "trajectoryOutputRms": 8.143733470466389e-9,
+              "trajectoryStateRms": 8.241156677221769e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 8.860010253685836e-9,
+              "localStateRms": 6.056494262190058e-10,
+              "trajectoryOutputRms": 9.511922295941214e-9,
+              "trajectoryStateRms": 9.769280014581282e-10
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.0161148338692928e-8,
+              "localStateRms": 6.702121825500894e-10,
+              "trajectoryOutputRms": 1.0374494531323503e-8,
+              "trajectoryStateRms": 1.3009980823664482e-9
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.1795473525650553e-8,
+              "localStateRms": 5.325214046063777e-10,
+              "trajectoryOutputRms": 1.1537280046903845e-8,
+              "trajectoryStateRms": 1.2588355732260276e-9
+            },
+            {
+              "token": 6,
+              "localOutputRms": 9.195128048755256e-9,
+              "localStateRms": 6.868450602574893e-10,
+              "trajectoryOutputRms": 9.649528690763646e-9,
+              "trajectoryStateRms": 1.484531346428536e-9
+            },
+            {
+              "token": 7,
+              "localOutputRms": 6.759984632354829e-9,
+              "localStateRms": 7.200595366705932e-10,
+              "trajectoryOutputRms": 7.038618094515131e-9,
+              "trajectoryStateRms": 1.6377070872845331e-9
+            },
+            {
+              "token": 8,
+              "localOutputRms": 1.164582328903805e-8,
+              "localStateRms": 7.339891639496447e-10,
+              "trajectoryOutputRms": 1.1246484830726437e-8,
+              "trajectoryStateRms": 1.6860378007661428e-9
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.159960667992716e-8,
+              "localStateRms": 8.492577722817337e-10,
+              "trajectoryOutputRms": 1.1282843421432785e-8,
+              "trajectoryStateRms": 1.85429371913204e-9
+            },
+            {
+              "token": 10,
+              "localOutputRms": 7.79114203927612e-9,
+              "localStateRms": 1.4351168674022097e-9,
+              "trajectoryOutputRms": 7.889931954732923e-9,
+              "trajectoryStateRms": 2.182948800531994e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.007454683162094e-8,
+              "localStateRms": 2.204458168534802e-9,
+              "trajectoryOutputRms": 1.0604034932091244e-8,
+              "trajectoryStateRms": 2.8308054586390295e-9
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.1234529459597753e-8,
+              "localStateRms": 1.1056999632017798e-9,
+              "trajectoryOutputRms": 1.1516569612653102e-8,
+              "trajectoryStateRms": 2.894998083498338e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 7.677551402968996e-9,
+              "localStateRms": 1.8863311777253777e-9,
+              "trajectoryOutputRms": 7.860690804221504e-9,
+              "trajectoryStateRms": 3.4045822626211877e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 9.269368479188895e-9,
+              "localStateRms": 1.9203821957876537e-9,
+              "trajectoryOutputRms": 9.6150823146602e-9,
+              "trajectoryStateRms": 3.899737665378757e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 1.2689131617372819e-8,
+              "localStateRms": 1.5018932643807524e-9,
+              "trajectoryOutputRms": 1.3702967591797722e-8,
+              "trajectoryStateRms": 3.997722047067742e-9
+            },
+            {
+              "token": 16,
+              "localOutputRms": 9.57109173253189e-9,
+              "localStateRms": 1.1268382080051682e-9,
+              "trajectoryOutputRms": 9.057317183980203e-9,
+              "trajectoryStateRms": 3.81417998173812e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 1.4588562985790465e-8,
+              "localStateRms": 1.404743637335225e-9,
+              "trajectoryOutputRms": 1.5229127776740715e-8,
+              "trajectoryStateRms": 3.941180444491049e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 8.55570331406727e-9,
+              "localStateRms": 1.206425292770112e-9,
+              "trajectoryOutputRms": 9.14063974879493e-9,
+              "trajectoryStateRms": 4.049322516664468e-9
+            }
+          ]
+        }
+      ]
+    },
+    "memory": {
+      "captureSha256": "557116404c3b96e86a645495fdc5a7ca536b6c3677dfa79a0a591bfbb4c96264",
+      "shaderSha256": "21aa8dbc658a42a4e9233a1eb7dcc675a223e4fe6f1912151a20cbfc6caae877",
+      "originalShaderSha256": "28808b5e10d798058d4af5b17b645bb633b9d6f0f7d2283a0b8d7cd09edf78ff",
+      "coordinate": {
+        "captureIndex": 0,
+        "layerIdx": 0,
+        "prompt": 0,
+        "step": 0,
+        "dispatch": 0
+      },
+      "sourceSubstitution": true,
+      "results": [
+        {
+          "platform": "mac",
+          "mode": "reference-reset",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "stateWrites": 19,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 1.623601799241529e-8,
+                "maxDifference": 5.049440554572016e-7
+              },
+              "state": {
+                "rmsError": 1.2607433637392549e-9,
+                "maxDifference": 3.648189830229853e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 1.6250015941446417e-8,
+                "maxDifference": 5.014068045205988e-7
+              },
+              "state": {
+                "rmsError": 1.358161656091598e-9,
+                "maxDifference": 3.7321341173068845e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 1.356719527273044e-8,
+              "localStateRms": 3.375958806871184e-10,
+              "trajectoryOutputRms": 1.356719527273044e-8,
+              "trajectoryStateRms": 3.375958806871184e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 1.7206773384247662e-8,
+              "localStateRms": 5.327365414981909e-10,
+              "trajectoryOutputRms": 1.706113809432518e-8,
+              "trajectoryStateRms": 5.528457993702943e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 1.1123256541150826e-8,
+              "localStateRms": 7.894674910064773e-10,
+              "trajectoryOutputRms": 1.1302910323208175e-8,
+              "trajectoryStateRms": 8.567344664852153e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 1.8889627594973848e-8,
+              "localStateRms": 7.765934285756689e-10,
+              "trajectoryOutputRms": 1.8937635342910873e-8,
+              "trajectoryStateRms": 8.055021737808293e-10
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.31772426814532e-8,
+              "localStateRms": 8.466541189033159e-10,
+              "trajectoryOutputRms": 1.3269699101183613e-8,
+              "trajectoryStateRms": 8.626419183300521e-10
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.654937777103511e-8,
+              "localStateRms": 5.863451403254434e-10,
+              "trajectoryOutputRms": 1.6414555524200807e-8,
+              "trajectoryStateRms": 6.231383924906989e-10
+            },
+            {
+              "token": 6,
+              "localOutputRms": 1.2807149664164153e-8,
+              "localStateRms": 1.1480013519040856e-9,
+              "trajectoryOutputRms": 1.261319038317099e-8,
+              "trajectoryStateRms": 1.221479769203142e-9
+            },
+            {
+              "token": 7,
+              "localOutputRms": 1.4151078868590793e-8,
+              "localStateRms": 6.702559632654217e-10,
+              "trajectoryOutputRms": 1.4325429041720191e-8,
+              "trajectoryStateRms": 7.66322888875479e-10
+            },
+            {
+              "token": 8,
+              "localOutputRms": 2.0313120346930385e-8,
+              "localStateRms": 8.00768617938497e-10,
+              "trajectoryOutputRms": 2.0240037715137083e-8,
+              "trajectoryStateRms": 9.82575443710591e-10
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.3600721706748566e-8,
+              "localStateRms": 1.5921176721704264e-9,
+              "trajectoryOutputRms": 1.3773375928120373e-8,
+              "trajectoryStateRms": 1.7110362507471267e-9
+            },
+            {
+              "token": 10,
+              "localOutputRms": 1.4780673682582283e-8,
+              "localStateRms": 1.1678784348101627e-9,
+              "trajectoryOutputRms": 1.4713897674495184e-8,
+              "trajectoryStateRms": 1.280930971198324e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.3582159582681697e-8,
+              "localStateRms": 1.8411633462061422e-9,
+              "trajectoryOutputRms": 1.3662656454892309e-8,
+              "trajectoryStateRms": 1.9234023859137165e-9
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.771772957792343e-8,
+              "localStateRms": 1.3686268348061464e-9,
+              "trajectoryOutputRms": 1.7779731910245727e-8,
+              "trajectoryStateRms": 1.4620186376230889e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 1.5833545539512443e-8,
+              "localStateRms": 1.619159639165041e-9,
+              "trajectoryOutputRms": 1.582357766117763e-8,
+              "trajectoryStateRms": 1.7143940380771805e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 1.7489654061253262e-8,
+              "localStateRms": 2.0288975469689823e-9,
+              "trajectoryOutputRms": 1.7257342461133673e-8,
+              "trajectoryStateRms": 2.1395518573497408e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 2.177378811343891e-8,
+              "localStateRms": 1.1907435950193063e-9,
+              "trajectoryOutputRms": 2.1760185594998794e-8,
+              "trajectoryStateRms": 1.3651658958584375e-9
+            },
+            {
+              "token": 16,
+              "localOutputRms": 1.6356684476566724e-8,
+              "localStateRms": 1.9405816151276437e-9,
+              "trajectoryOutputRms": 1.6548798823883143e-8,
+              "trajectoryStateRms": 1.9917868981868747e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 2.1137762170020626e-8,
+              "localStateRms": 1.115001884647835e-9,
+              "trajectoryOutputRms": 2.1314782244821807e-8,
+              "trajectoryStateRms": 1.3413668244151402e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 1.3288188070353807e-8,
+              "localStateRms": 1.6673339826733082e-9,
+              "trajectoryOutputRms": 1.3314750772424694e-8,
+              "trajectoryStateRms": 1.874955832095191e-9
+            }
+          ]
+        },
+        {
+          "platform": "mac",
+          "mode": "continuous",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "stateWrites": 1,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 1.6044492071809457e-8,
+                "maxDifference": 4.022029305161823e-7
+              },
+              "state": {
+                "rmsError": 1.3578118711925702e-9,
+                "maxDifference": 3.810408628623918e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 1.6272818435754906e-8,
+                "maxDifference": 4.046767486665104e-7
+              },
+              "state": {
+                "rmsError": 2.8765254906831827e-9,
+                "maxDifference": 6.899990203645956e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 1.356719527273044e-8,
+              "localStateRms": 3.375958806871184e-10,
+              "trajectoryOutputRms": 1.356719527273044e-8,
+              "trajectoryStateRms": 3.375958806871184e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 1.7126666552247758e-8,
+              "localStateRms": 5.608298803882233e-10,
+              "trajectoryOutputRms": 1.7224131377830883e-8,
+              "trajectoryStateRms": 6.079695296575502e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 1.0862501100562196e-8,
+              "localStateRms": 7.902066665003212e-10,
+              "trajectoryOutputRms": 1.097450349260301e-8,
+              "trajectoryStateRms": 9.867122357480725e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 1.8996411737578945e-8,
+              "localStateRms": 7.886470414706338e-10,
+              "trajectoryOutputRms": 1.9359023878026606e-8,
+              "trajectoryStateRms": 1.1653870423592516e-9
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.3499967183311995e-8,
+              "localStateRms": 8.666169529136017e-10,
+              "trajectoryOutputRms": 1.3404870914345292e-8,
+              "trajectoryStateRms": 1.3019885302236678e-9
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.4886642280342982e-8,
+              "localStateRms": 5.928544188196562e-10,
+              "trajectoryOutputRms": 1.504327182720956e-8,
+              "trajectoryStateRms": 1.4843772284704172e-9
+            },
+            {
+              "token": 6,
+              "localOutputRms": 1.1171283262761709e-8,
+              "localStateRms": 1.0701229127422375e-9,
+              "trajectoryOutputRms": 1.1682258433717446e-8,
+              "trajectoryStateRms": 2.127955404242581e-9
+            },
+            {
+              "token": 7,
+              "localOutputRms": 1.7651360998027862e-8,
+              "localStateRms": 6.68845821996797e-10,
+              "trajectoryOutputRms": 1.7704246645261163e-8,
+              "trajectoryStateRms": 2.2690048072848024e-9
+            },
+            {
+              "token": 8,
+              "localOutputRms": 1.6801398342753395e-8,
+              "localStateRms": 8.178453813635345e-10,
+              "trajectoryOutputRms": 1.7070262565126298e-8,
+              "trajectoryStateRms": 2.3848601709634596e-9
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.4609889950719654e-8,
+              "localStateRms": 1.5858600701191515e-9,
+              "trajectoryOutputRms": 1.4316852771090568e-8,
+              "trajectoryStateRms": 2.0477056461506154e-9
+            },
+            {
+              "token": 10,
+              "localOutputRms": 1.4566859373072115e-8,
+              "localStateRms": 1.2006885542096155e-9,
+              "trajectoryOutputRms": 1.4967720698711333e-8,
+              "trajectoryStateRms": 2.1895969379271123e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.5181666384816825e-8,
+              "localStateRms": 2.631156954914754e-9,
+              "trajectoryOutputRms": 1.5325906369768882e-8,
+              "trajectoryStateRms": 3.380112931151499e-9
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.4626363358330932e-8,
+              "localStateRms": 1.59135219784449e-9,
+              "trajectoryOutputRms": 1.4414991599619859e-8,
+              "trajectoryStateRms": 3.242094341397284e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 1.878154296168693e-8,
+              "localStateRms": 1.8082473563474507e-9,
+              "trajectoryOutputRms": 1.894866903802196e-8,
+              "trajectoryStateRms": 3.727067792830785e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 1.4258264501504573e-8,
+              "localStateRms": 2.1378364294549775e-9,
+              "trajectoryOutputRms": 1.3965625112946457e-8,
+              "trajectoryStateRms": 4.305619381318262e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 2.2451669201532506e-8,
+              "localStateRms": 1.2109196586972376e-9,
+              "trajectoryOutputRms": 2.279229134702576e-8,
+              "trajectoryStateRms": 4.139408531754186e-9
+            },
+            {
+              "token": 16,
+              "localOutputRms": 1.3221218673994861e-8,
+              "localStateRms": 1.7570989391116557e-9,
+              "trajectoryOutputRms": 1.4547573646368546e-8,
+              "trajectoryStateRms": 4.129243055000729e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 2.256540552906054e-8,
+              "localStateRms": 1.218931901960748e-9,
+              "trajectoryOutputRms": 2.3286417955459466e-8,
+              "trajectoryStateRms": 4.038621792556708e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 1.4076488752930258e-8,
+              "localStateRms": 1.6428668126782458e-9,
+              "trajectoryOutputRms": 1.4452958699761526e-8,
+              "trajectoryStateRms": 4.613738844551098e-9
+            }
+          ]
+        },
+        {
+          "platform": "linux",
+          "mode": "reference-reset",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "stateWrites": 19,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 1.5439347056404806e-8,
+                "maxDifference": 6.356561228493263e-7
+              },
+              "state": {
+                "rmsError": 7.851512574401576e-10,
+                "maxDifference": 2.8966642151573296e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 1.5440947784910805e-8,
+                "maxDifference": 6.274729602573359e-7
+              },
+              "state": {
+                "rmsError": 9.277351431252619e-10,
+                "maxDifference": 3.7298109845096405e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 1.317055049687355e-8,
+              "localStateRms": 3.037997600482386e-10,
+              "trajectoryOutputRms": 1.317055049687355e-8,
+              "trajectoryStateRms": 3.037997600482386e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 1.393727658602579e-8,
+              "localStateRms": 3.5635910035794186e-10,
+              "trajectoryOutputRms": 1.3769361430149784e-8,
+              "trajectoryStateRms": 4.00755043648039e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 1.1062734506548027e-8,
+              "localStateRms": 5.992580540752255e-10,
+              "trajectoryOutputRms": 1.128171310100599e-8,
+              "trajectoryStateRms": 6.941204471197028e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 1.4435655375625597e-8,
+              "localStateRms": 6.157298701372889e-10,
+              "trajectoryOutputRms": 1.4411010314326403e-8,
+              "trajectoryStateRms": 6.934386181931576e-10
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.7323803212310688e-8,
+              "localStateRms": 6.565895741981425e-10,
+              "trajectoryOutputRms": 1.7220089941358185e-8,
+              "trajectoryStateRms": 6.834122536016317e-10
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.8883378526227288e-8,
+              "localStateRms": 5.317098965326386e-10,
+              "trajectoryOutputRms": 1.870949055751438e-8,
+              "trajectoryStateRms": 5.578356516455064e-10
+            },
+            {
+              "token": 6,
+              "localOutputRms": 1.3240453779217706e-8,
+              "localStateRms": 6.592727389616586e-10,
+              "trajectoryOutputRms": 1.3360582837702135e-8,
+              "trajectoryStateRms": 7.532056998882142e-10
+            },
+            {
+              "token": 7,
+              "localOutputRms": 1.6947819029928426e-8,
+              "localStateRms": 6.50886410252196e-10,
+              "trajectoryOutputRms": 1.697088646813972e-8,
+              "trajectoryStateRms": 7.460695251221929e-10
+            },
+            {
+              "token": 8,
+              "localOutputRms": 1.4163234385364307e-8,
+              "localStateRms": 6.335994626784118e-10,
+              "trajectoryOutputRms": 1.4108548531967152e-8,
+              "trajectoryStateRms": 8.474214990160655e-10
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.5724128845988642e-8,
+              "localStateRms": 7.965571099373578e-10,
+              "trajectoryOutputRms": 1.589230961120009e-8,
+              "trajectoryStateRms": 9.475214656889398e-10
+            },
+            {
+              "token": 10,
+              "localOutputRms": 1.3758837539004612e-8,
+              "localStateRms": 1.0335357577586564e-9,
+              "trajectoryOutputRms": 1.365771788501374e-8,
+              "trajectoryStateRms": 1.1597393314920774e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.2978223611439986e-8,
+              "localStateRms": 8.713146611276896e-10,
+              "trajectoryOutputRms": 1.3047529058768378e-8,
+              "trajectoryStateRms": 9.95939670598073e-10
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.4097607937900695e-8,
+              "localStateRms": 9.651926100314505e-10,
+              "trajectoryOutputRms": 1.4180727781339987e-8,
+              "trajectoryStateRms": 1.0753303112703174e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 2.024779400723615e-8,
+              "localStateRms": 8.645970688691493e-10,
+              "trajectoryOutputRms": 2.0262869966149618e-8,
+              "trajectoryStateRms": 1.2169500616579184e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 1.10943898926966e-8,
+              "localStateRms": 1.2541540903116553e-9,
+              "trajectoryOutputRms": 1.0862696073245937e-8,
+              "trajectoryStateRms": 1.490876254077687e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 2.1718839683181047e-8,
+              "localStateRms": 8.825150529009616e-10,
+              "trajectoryOutputRms": 2.1653966479576313e-8,
+              "trajectoryStateRms": 9.977057605765035e-10
+            },
+            {
+              "token": 16,
+              "localOutputRms": 1.3786635195281648e-8,
+              "localStateRms": 9.884030777932268e-10,
+              "trajectoryOutputRms": 1.4016972849444257e-8,
+              "trajectoryStateRms": 1.0677777790246631e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 1.824854357780662e-8,
+              "localStateRms": 7.726246527410967e-10,
+              "trajectoryOutputRms": 1.8344395230560025e-8,
+              "trajectoryStateRms": 1.077497685905874e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 1.3386653098896288e-8,
+              "localStateRms": 8.45613583140816e-10,
+              "trajectoryOutputRms": 1.3378309656784775e-8,
+              "trajectoryStateRms": 1.0611471550654003e-9
+            }
+          ]
+        },
+        {
+          "platform": "linux",
+          "mode": "continuous",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "stateWrites": 1,
+          "diagnosticAllocatedBytes": 2147520,
+          "aggregate": {
+            "localArithmetic": {
+              "output": {
+                "rmsError": 1.534013841068143e-8,
+                "maxDifference": 6.297654877585046e-7
+              },
+              "state": {
+                "rmsError": 8.019847620532375e-10,
+                "maxDifference": 3.006800941562915e-7
+              }
+            },
+            "totalTrajectory": {
+              "output": {
+                "rmsError": 1.5478728681412613e-8,
+                "maxDifference": 6.274729602573359e-7
+              },
+              "state": {
+                "rmsError": 1.875978045409208e-9,
+                "maxDifference": 4.795013586189611e-7
+              }
+            }
+          },
+          "perToken": [
+            {
+              "token": 0,
+              "localOutputRms": 1.317055049687355e-8,
+              "localStateRms": 3.037997600482386e-10,
+              "trajectoryOutputRms": 1.317055049687355e-8,
+              "trajectoryStateRms": 3.037997600482386e-10
+            },
+            {
+              "token": 1,
+              "localOutputRms": 1.4307115082848985e-8,
+              "localStateRms": 3.694294753151391e-10,
+              "trajectoryOutputRms": 1.4212487645704154e-8,
+              "trajectoryStateRms": 4.648256065261209e-10
+            },
+            {
+              "token": 2,
+              "localOutputRms": 1.2688041442832133e-8,
+              "localStateRms": 5.91804727035745e-10,
+              "trajectoryOutputRms": 1.2446218560632289e-8,
+              "trajectoryStateRms": 7.130057300754772e-10
+            },
+            {
+              "token": 3,
+              "localOutputRms": 1.5309338368158113e-8,
+              "localStateRms": 6.046666844916123e-10,
+              "trajectoryOutputRms": 1.591912815290768e-8,
+              "trajectoryStateRms": 8.861147755601105e-10
+            },
+            {
+              "token": 4,
+              "localOutputRms": 1.3759059841382878e-8,
+              "localStateRms": 6.712708296312064e-10,
+              "trajectoryOutputRms": 1.3703267542392422e-8,
+              "trajectoryStateRms": 1.19635698447689e-9
+            },
+            {
+              "token": 5,
+              "localOutputRms": 1.876572093793449e-8,
+              "localStateRms": 5.476295945567662e-10,
+              "trajectoryOutputRms": 1.8932007993893785e-8,
+              "trajectoryStateRms": 1.2199975170938664e-9
+            },
+            {
+              "token": 6,
+              "localOutputRms": 1.353145967438866e-8,
+              "localStateRms": 8.147449679237461e-10,
+              "trajectoryOutputRms": 1.3879805792993102e-8,
+              "trajectoryStateRms": 1.4780442434798953e-9
+            },
+            {
+              "token": 7,
+              "localOutputRms": 1.637710794004208e-8,
+              "localStateRms": 6.023630713539867e-10,
+              "trajectoryOutputRms": 1.648693089629355e-8,
+              "trajectoryStateRms": 1.6110890907766895e-9
+            },
+            {
+              "token": 8,
+              "localOutputRms": 1.5635188110861738e-8,
+              "localStateRms": 6.384319226081923e-10,
+              "trajectoryOutputRms": 1.5557959359091385e-8,
+              "trajectoryStateRms": 1.6248607367051844e-9
+            },
+            {
+              "token": 9,
+              "localOutputRms": 1.3355827369036097e-8,
+              "localStateRms": 8.072334514773799e-10,
+              "trajectoryOutputRms": 1.3395422163970576e-8,
+              "trajectoryStateRms": 1.78605891582432e-9
+            },
+            {
+              "token": 10,
+              "localOutputRms": 1.3484367457343371e-8,
+              "localStateRms": 8.788935654013523e-10,
+              "trajectoryOutputRms": 1.3521861446721789e-8,
+              "trajectoryStateRms": 1.743509384136833e-9
+            },
+            {
+              "token": 11,
+              "localOutputRms": 1.3317546704163693e-8,
+              "localStateRms": 9.34391560343676e-10,
+              "trajectoryOutputRms": 1.3252742876456882e-8,
+              "trajectoryStateRms": 1.8044705830104773e-9
+            },
+            {
+              "token": 12,
+              "localOutputRms": 1.4373194879965747e-8,
+              "localStateRms": 9.607399987495992e-10,
+              "trajectoryOutputRms": 1.4643193974288098e-8,
+              "trajectoryStateRms": 1.964138068305055e-9
+            },
+            {
+              "token": 13,
+              "localOutputRms": 1.8993915771495628e-8,
+              "localStateRms": 8.678241784550062e-10,
+              "trajectoryOutputRms": 1.9067640104064847e-8,
+              "trajectoryStateRms": 2.214469543541841e-9
+            },
+            {
+              "token": 14,
+              "localOutputRms": 1.5090664519092526e-8,
+              "localStateRms": 1.3293965858456617e-9,
+              "trajectoryOutputRms": 1.4548587821091454e-8,
+              "trajectoryStateRms": 2.6420293980534104e-9
+            },
+            {
+              "token": 15,
+              "localOutputRms": 2.1148259361281762e-8,
+              "localStateRms": 8.416173179372923e-10,
+              "trajectoryOutputRms": 2.180676939144587e-8,
+              "trajectoryStateRms": 2.5762978380916387e-9
+            },
+            {
+              "token": 16,
+              "localOutputRms": 1.2779160310157725e-8,
+              "localStateRms": 1.027911730141931e-9,
+              "trajectoryOutputRms": 1.2808221519716268e-8,
+              "trajectoryStateRms": 2.8141000736285867e-9
+            },
+            {
+              "token": 17,
+              "localOutputRms": 1.8793391024940578e-8,
+              "localStateRms": 8.130952841700935e-10,
+              "trajectoryOutputRms": 1.9268154169051746e-8,
+              "trajectoryStateRms": 2.7796624606705694e-9
+            },
+            {
+              "token": 18,
+              "localOutputRms": 1.2803448698404797e-8,
+              "localStateRms": 9.614504429978511e-10,
+              "trajectoryOutputRms": 1.33156270398618e-8,
+              "trajectoryStateRms": 2.7227952992933077e-9
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "readoutPreservesBaselineState": true,
+  "fullModelComparisons": {
+    "readout-forward": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "52d1040bd751bdf8ba2d46c3eb8586824bb82c997293717811eeb5b86c45a4e3",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 20,
+      "maxDifference": 0.0023870468139648438,
+      "tokensMatch": true,
+      "stoppingMatches": true,
+      "comparison": [
+        {
+          "prompt": 0,
+          "step": 0,
+          "maxDifference": 0.0010929107666015625,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 0,
+          "step": 1,
+          "maxDifference": 0.0010324716567993164,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 0,
+          "maxDifference": 0.0007464885711669922,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 1,
+          "maxDifference": 0.00115203857421875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 0,
+          "maxDifference": 0.0007066726684570312,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 1,
+          "maxDifference": 0.0008349418640136719,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 2,
+          "maxDifference": 0.0008234977722167969,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 3,
+          "maxDifference": 0.0010943412780761719,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 4,
+          "maxDifference": 0.0009322166442871094,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 5,
+          "maxDifference": 0.0011811256408691406,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 6,
+          "maxDifference": 0.0012729167938232422,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 7,
+          "maxDifference": 0.0011788904666900635,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 8,
+          "maxDifference": 0.0009670257568359375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 9,
+          "maxDifference": 0.0012683868408203125,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 10,
+          "maxDifference": 0.0009580850601196289,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 11,
+          "maxDifference": 0.0009701848030090332,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 12,
+          "maxDifference": 0.0009317398071289062,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 13,
+          "maxDifference": 0.0007956027984619141,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 14,
+          "maxDifference": 0.000728607177734375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 15,
+          "maxDifference": 0.0015668869018554688,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 16,
+          "maxDifference": 0.0012659430503845215,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 17,
+          "maxDifference": 0.0011464357376098633,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 18,
+          "maxDifference": 0.0009682178497314453,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 19,
+          "maxDifference": 0.0005726814270019531,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 20,
+          "maxDifference": 0.0008754730224609375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 21,
+          "maxDifference": 0.0011973381042480469,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 22,
+          "maxDifference": 0.0007586479187011719,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 23,
+          "maxDifference": 0.0008219480514526367,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 24,
+          "maxDifference": 0.0008319616317749023,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 25,
+          "maxDifference": 0.0006302595138549805,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 26,
+          "maxDifference": 0.0008497238159179688,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 27,
+          "maxDifference": 0.0007213354110717773,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 28,
+          "maxDifference": 0.0007963180541992188,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 29,
+          "maxDifference": 0.0009021759033203125,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 30,
+          "maxDifference": 0.0006761550903320312,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 31,
+          "maxDifference": 0.0008890628814697266,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 32,
+          "maxDifference": 0.00115966796875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 33,
+          "maxDifference": 0.0007531642913818359,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 34,
+          "maxDifference": 0.0008111000061035156,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 35,
+          "maxDifference": 0.000682830810546875,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 36,
+          "maxDifference": 0.0007712841033935547,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 37,
+          "maxDifference": 0.0007505416870117188,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 38,
+          "maxDifference": 0.0007421970367431641,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 39,
+          "maxDifference": 0.0008857846260070801,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 40,
+          "maxDifference": 0.0008349418640136719,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 41,
+          "maxDifference": 0.0010509490966796875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 42,
+          "maxDifference": 0.0014033317565917969,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 43,
+          "maxDifference": 0.0023870468139648438,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 44,
+          "maxDifference": 0.0012080669403076172,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 45,
+          "maxDifference": 0.0011283159255981445,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 46,
+          "maxDifference": 0.0013051033020019531,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 47,
+          "maxDifference": 0.0007925033569335938,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 48,
+          "maxDifference": 0.0009450912475585938,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 49,
+          "maxDifference": 0.0009653270244598389,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 50,
+          "maxDifference": 0.0010709762573242188,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        }
+      ]
+    },
+    "readout-reverse": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "550e7ee4bc54f2f8b37fb3cc990c601557883596fcdaae05a51f619a3fecee46",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 17,
+      "maxDifference": 0.0018138885498046875,
+      "tokensMatch": true,
+      "stoppingMatches": true,
+      "comparison": [
+        {
+          "prompt": 0,
+          "step": 0,
+          "maxDifference": 0.0007343292236328125,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 0,
+          "step": 1,
+          "maxDifference": 0.0018138885498046875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 0,
+          "maxDifference": 0.0006330013275146484,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 1,
+          "maxDifference": 0.0007562637329101562,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 0,
+          "maxDifference": 0.0005521774291992188,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 1,
+          "maxDifference": 0.000698089599609375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 2,
+          "maxDifference": 0.0007433891296386719,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 3,
+          "maxDifference": 0.0013189315795898438,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 4,
+          "maxDifference": 0.0012388229370117188,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 5,
+          "maxDifference": 0.001140594482421875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 6,
+          "maxDifference": 0.0010144710540771484,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 7,
+          "maxDifference": 0.001728057861328125,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 8,
+          "maxDifference": 0.0008852481842041016,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 9,
+          "maxDifference": 0.001491546630859375,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 10,
+          "maxDifference": 0.00101470947265625,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 11,
+          "maxDifference": 0.001016378402709961,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 12,
+          "maxDifference": 0.000949859619140625,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 13,
+          "maxDifference": 0.0008798837661743164,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 14,
+          "maxDifference": 0.001094818115234375,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 15,
+          "maxDifference": 0.0017451047897338867,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 16,
+          "maxDifference": 0.001308143138885498,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 17,
+          "maxDifference": 0.0010786056518554688,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 18,
+          "maxDifference": 0.0008495450019836426,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 19,
+          "maxDifference": 0.0012140274047851562,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 20,
+          "maxDifference": 0.0006175637245178223,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 21,
+          "maxDifference": 0.0007793903350830078,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 22,
+          "maxDifference": 0.0005407333374023438,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 23,
+          "maxDifference": 0.0006623268127441406,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 24,
+          "maxDifference": 0.0007281303405761719,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 25,
+          "maxDifference": 0.0007314682006835938,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 26,
+          "maxDifference": 0.0010595321655273438,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 27,
+          "maxDifference": 0.000762939453125,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 28,
+          "maxDifference": 0.0005941390991210938,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 29,
+          "maxDifference": 0.0005059242248535156,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 30,
+          "maxDifference": 0.0007295608520507812,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 31,
+          "maxDifference": 0.0006895065307617188,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 32,
+          "maxDifference": 0.0007572174072265625,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 33,
+          "maxDifference": 0.0006074905395507812,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 34,
+          "maxDifference": 0.0005095005035400391,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 35,
+          "maxDifference": 0.000461578369140625,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 36,
+          "maxDifference": 0.0006952285766601562,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 37,
+          "maxDifference": 0.000659942626953125,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 38,
+          "maxDifference": 0.0005888938903808594,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 39,
+          "maxDifference": 0.0005998611450195312,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 40,
+          "maxDifference": 0.0007414817810058594,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 41,
+          "maxDifference": 0.0007128715515136719,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 42,
+          "maxDifference": 0.0006067752838134766,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 43,
+          "maxDifference": 0.0006085038185119629,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 44,
+          "maxDifference": 0.0007941722869873047,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 45,
+          "maxDifference": 0.0008153915405273438,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 46,
+          "maxDifference": 0.0008559226989746094,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 47,
+          "maxDifference": 0.0009737014770507812,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 48,
+          "maxDifference": 0.0010246038436889648,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 49,
+          "maxDifference": 0.0008131861686706543,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 50,
+          "maxDifference": 0.0011787712574005127,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        }
+      ]
+    },
+    "memory-forward": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "4a48e7e31c6bcca4cfb8febc976586bbdca3cb3beeea146a1a6c9df447cb59ac",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 23,
+      "maxDifference": 0.0039014816284179688,
+      "tokensMatch": true,
+      "stoppingMatches": true,
+      "comparison": [
+        {
+          "prompt": 0,
+          "step": 0,
+          "maxDifference": 0.0006728172302246094,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 0,
+          "step": 1,
+          "maxDifference": 0.0016775131225585938,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 0,
+          "maxDifference": 0.0007271766662597656,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 1,
+          "maxDifference": 0.0008091926574707031,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 0,
+          "maxDifference": 0.0007090568542480469,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 1,
+          "maxDifference": 0.0009604692459106445,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 2,
+          "maxDifference": 0.0010528564453125,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 3,
+          "maxDifference": 0.0011639595031738281,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 4,
+          "maxDifference": 0.0008965730667114258,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 5,
+          "maxDifference": 0.0008836984634399414,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 6,
+          "maxDifference": 0.0009173154830932617,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 7,
+          "maxDifference": 0.001049041748046875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 8,
+          "maxDifference": 0.0012235641479492188,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 9,
+          "maxDifference": 0.0007835626602172852,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 10,
+          "maxDifference": 0.0008950233459472656,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 11,
+          "maxDifference": 0.0008497238159179688,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 12,
+          "maxDifference": 0.0009238719940185547,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 13,
+          "maxDifference": 0.0007390975952148438,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 14,
+          "maxDifference": 0.0007761716842651367,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 15,
+          "maxDifference": 0.0019173622131347656,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 16,
+          "maxDifference": 0.0017244815826416016,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 17,
+          "maxDifference": 0.001223444938659668,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 18,
+          "maxDifference": 0.0010395050048828125,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 19,
+          "maxDifference": 0.0007333755493164062,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 20,
+          "maxDifference": 0.0007302761077880859,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 21,
+          "maxDifference": 0.0009970664978027344,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 22,
+          "maxDifference": 0.0005743503570556641,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 23,
+          "maxDifference": 0.000743865966796875,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 24,
+          "maxDifference": 0.0009174346923828125,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 25,
+          "maxDifference": 0.000680878758430481,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 26,
+          "maxDifference": 0.001387864351272583,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 27,
+          "maxDifference": 0.0020499229431152344,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 28,
+          "maxDifference": 0.0039014816284179688,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 29,
+          "maxDifference": 0.0013244152069091797,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 30,
+          "maxDifference": 0.0011557340621948242,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 31,
+          "maxDifference": 0.0028820037841796875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 32,
+          "maxDifference": 0.0011620521545410156,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 33,
+          "maxDifference": 0.0007996559143066406,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 34,
+          "maxDifference": 0.0017819404602050781,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 35,
+          "maxDifference": 0.0009410381317138672,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 36,
+          "maxDifference": 0.0011000633239746094,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 37,
+          "maxDifference": 0.001361846923828125,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 38,
+          "maxDifference": 0.00077056884765625,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 39,
+          "maxDifference": 0.0009043216705322266,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 40,
+          "maxDifference": 0.001461029052734375,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 41,
+          "maxDifference": 0.0010179877281188965,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 42,
+          "maxDifference": 0.0010513067245483398,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 43,
+          "maxDifference": 0.001323699951171875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 44,
+          "maxDifference": 0.0006310939788818359,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 45,
+          "maxDifference": 0.0009050369262695312,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 46,
+          "maxDifference": 0.0008401870727539062,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 47,
+          "maxDifference": 0.0007603168487548828,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 48,
+          "maxDifference": 0.0008899569511413574,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 49,
+          "maxDifference": 0.0007534027099609375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 50,
+          "maxDifference": 0.000997304916381836,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        }
+      ]
+    },
+    "memory-reverse": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "f33b3fe1a05223af11c77f3af24d504a82a696f5eee7e247e092dcb375b5e313",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 15,
+      "maxDifference": 0.002094268798828125,
+      "tokensMatch": true,
+      "stoppingMatches": true,
+      "comparison": [
+        {
+          "prompt": 0,
+          "step": 0,
+          "maxDifference": 0.0009374618530273438,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 0,
+          "step": 1,
+          "maxDifference": 0.00179290771484375,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 0,
+          "maxDifference": 0.0010585784912109375,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 1,
+          "maxDifference": 0.0010776519775390625,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 0,
+          "maxDifference": 0.0005898475646972656,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 1,
+          "maxDifference": 0.0005357265472412109,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 2,
+          "maxDifference": 0.000637054443359375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 3,
+          "maxDifference": 0.0012568235397338867,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 4,
+          "maxDifference": 0.0011258125305175781,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 5,
+          "maxDifference": 0.0008463859558105469,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 6,
+          "maxDifference": 0.0010805130004882812,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 7,
+          "maxDifference": 0.0006585121154785156,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 8,
+          "maxDifference": 0.0006864070892333984,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 9,
+          "maxDifference": 0.0014514923095703125,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 10,
+          "maxDifference": 0.0007410049438476562,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 11,
+          "maxDifference": 0.0006360411643981934,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 12,
+          "maxDifference": 0.0006089210510253906,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 13,
+          "maxDifference": 0.0006887912750244141,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 14,
+          "maxDifference": 0.0007842779159545898,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 15,
+          "maxDifference": 0.0006494522094726562,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 16,
+          "maxDifference": 0.0007739067077636719,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 17,
+          "maxDifference": 0.000751495361328125,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 18,
+          "maxDifference": 0.000668644905090332,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 19,
+          "maxDifference": 0.0010209083557128906,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 20,
+          "maxDifference": 0.0009484291076660156,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 21,
+          "maxDifference": 0.0008330345153808594,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 22,
+          "maxDifference": 0.0013551712036132812,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 23,
+          "maxDifference": 0.0006623268127441406,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 24,
+          "maxDifference": 0.0007326602935791016,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 25,
+          "maxDifference": 0.002094268798828125,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 26,
+          "maxDifference": 0.0005526542663574219,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 27,
+          "maxDifference": 0.0006239414215087891,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 28,
+          "maxDifference": 0.0013012886047363281,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 29,
+          "maxDifference": 0.0007627010345458984,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 30,
+          "maxDifference": 0.0006482601165771484,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 31,
+          "maxDifference": 0.0010995864868164062,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 32,
+          "maxDifference": 0.0007615089416503906,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 33,
+          "maxDifference": 0.001057952642440796,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 34,
+          "maxDifference": 0.0013768672943115234,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 35,
+          "maxDifference": 0.0006697177886962891,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 36,
+          "maxDifference": 0.0008907318115234375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 37,
+          "maxDifference": 0.0009737014770507812,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 38,
+          "maxDifference": 0.0007367134094238281,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 39,
+          "maxDifference": 0.0006678104400634766,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 40,
+          "maxDifference": 0.0007865428924560547,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 41,
+          "maxDifference": 0.0006947517395019531,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 42,
+          "maxDifference": 0.0007009506225585938,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 43,
+          "maxDifference": 0.0006856918334960938,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 44,
+          "maxDifference": 0.0007276535034179688,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 45,
+          "maxDifference": 0.000762939453125,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 46,
+          "maxDifference": 0.000605463981628418,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 47,
+          "maxDifference": 0.0007226467132568359,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 48,
+          "maxDifference": 0.0008096694946289062,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 49,
+          "maxDifference": 0.0006685256958007812,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 50,
+          "maxDifference": 0.0012102127075195312,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        }
+      ]
+    }
+  },
+  "decayOnlyReferenceInjection": [
+    {
+      "platform": "mac",
+      "output": {
+        "elements": 38912,
+        "differentElements": 38912,
+        "maxDifference": 5.014068045205988e-7,
+        "rmsError": 1.6411687854120583e-8
+      },
+      "state": {
+        "elements": 262144,
+        "differentElements": 261248,
+        "maxDifference": 7.020529650958451e-7,
+        "rmsError": 4.031580287414928e-9
+      }
+    },
+    {
+      "platform": "linux",
+      "output": {
+        "elements": 38912,
+        "differentElements": 38912,
+        "maxDifference": 6.274729602573359e-7,
+        "rmsError": 1.6002580982567986e-8
+      },
+      "state": {
+        "elements": 262144,
+        "differentElements": 261248,
+        "maxDifference": 7.020529650958451e-7,
+        "rmsError": 3.990008193552151e-9
+      }
+    }
+  ],
+  "sameDeviceControls": {
+    "installedCandidate": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "ffb35f5f7fd125ba82fac04da18e60577016a1e51072c308ea710865ee131213",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 16,
+      "maxDifference": 0.0017681121826171875,
+      "tokensMatch": true,
+      "stoppingMatches": true,
+      "comparison": [
+        {
+          "prompt": 0,
+          "step": 0,
+          "maxDifference": 0.0011844635009765625,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 0,
+          "step": 1,
+          "maxDifference": 0.0017681121826171875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 0,
+          "maxDifference": 0.0006222724914550781,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 1,
+          "maxDifference": 0.0008611679077148438,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 0,
+          "maxDifference": 0.0006694793701171875,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 1,
+          "maxDifference": 0.0007326602935791016,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 2,
+          "maxDifference": 0.0008355975151062012,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 3,
+          "maxDifference": 0.0012102127075195312,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 4,
+          "maxDifference": 0.0012273788452148438,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 5,
+          "maxDifference": 0.0008761882781982422,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 6,
+          "maxDifference": 0.0007653236389160156,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 7,
+          "maxDifference": 0.0013427734375,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 8,
+          "maxDifference": 0.001136183738708496,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 9,
+          "maxDifference": 0.001483917236328125,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 10,
+          "maxDifference": 0.0008854866027832031,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 11,
+          "maxDifference": 0.0008225440979003906,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 12,
+          "maxDifference": 0.0008063316345214844,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 13,
+          "maxDifference": 0.0007655620574951172,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 14,
+          "maxDifference": 0.0006227493286132812,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 15,
+          "maxDifference": 0.0010404586791992188,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 16,
+          "maxDifference": 0.0008831024169921875,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 17,
+          "maxDifference": 0.0012001991271972656,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 18,
+          "maxDifference": 0.0011429786682128906,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 19,
+          "maxDifference": 0.0012772083282470703,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 20,
+          "maxDifference": 0.0006462335586547852,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 21,
+          "maxDifference": 0.0008425712585449219,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 22,
+          "maxDifference": 0.0007390975952148438,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 23,
+          "maxDifference": 0.0006303787231445312,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 24,
+          "maxDifference": 0.0007311105728149414,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 25,
+          "maxDifference": 0.001003265380859375,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 26,
+          "maxDifference": 0.0007271766662597656,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 27,
+          "maxDifference": 0.00075531005859375,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 28,
+          "maxDifference": 0.0008153915405273438,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 29,
+          "maxDifference": 0.0005645751953125,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 30,
+          "maxDifference": 0.0008186101913452148,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 31,
+          "maxDifference": 0.001049041748046875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 32,
+          "maxDifference": 0.001190185546875,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 33,
+          "maxDifference": 0.0009057521820068359,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 34,
+          "maxDifference": 0.0010012388229370117,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 35,
+          "maxDifference": 0.0006794929504394531,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 36,
+          "maxDifference": 0.0008993148803710938,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 37,
+          "maxDifference": 0.0009289979934692383,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 38,
+          "maxDifference": 0.0006564855575561523,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 39,
+          "maxDifference": 0.0007615089416503906,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 40,
+          "maxDifference": 0.0008090734481811523,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 41,
+          "maxDifference": 0.0006874799728393555,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 42,
+          "maxDifference": 0.0007426738739013672,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 43,
+          "maxDifference": 0.0007658004760742188,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 44,
+          "maxDifference": 0.0007698535919189453,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 45,
+          "maxDifference": 0.0008023977279663086,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 46,
+          "maxDifference": 0.0006663799285888672,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 47,
+          "maxDifference": 0.0009396076202392578,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 48,
+          "maxDifference": 0.0009210109710693359,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 49,
+          "maxDifference": 0.0009671449661254883,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 50,
+          "maxDifference": 0.0014731884002685547,
+          "matches": false,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        }
+      ]
+    },
+    "originalSplit13": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "ca99a4fb3a2a3bc37da5615d5ba218053d67bfe795941b920019c2792ff742fc",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 0,
+      "maxDifference": 0,
+      "tokensMatch": true,
+      "stoppingMatches": true,
+      "comparison": [
+        {
+          "prompt": 0,
+          "step": 0,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 0,
+          "step": 1,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 0,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 1,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 0,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 1,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 2,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 3,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 4,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 5,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 6,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 7,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 8,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 9,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 10,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 11,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 12,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 13,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 14,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 15,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 16,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 17,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 18,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 19,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 20,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 21,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 22,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 23,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 24,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 25,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 26,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 27,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 28,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 29,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 30,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 31,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 32,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 33,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 34,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 35,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 36,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 37,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 38,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 39,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 40,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 41,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 42,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 43,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 44,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 45,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 46,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 47,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 48,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 49,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 50,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        }
+      ]
+    }
+  },
+  "findings": [
+    "Reference-state resets reduce accumulated state error; output error is not solely inherited through recurrence.",
+    "Readout-only compensation improves aggregate independent output accuracy on both physical GPUs without modifying state, but fails the unchanged full-model gate in both directions.",
+    "Memory-only compensation reduces aggregate state RMS error but fails both full-model directions; it is not an accepted correction.",
+    "Reference-rounded decay alone does not improve aggregate output accuracy; no decay helper was promoted.",
+    "Original split.13 matches the frozen reference exactly in the same-Mac control; the unchanged installed 0.6.4 candidate fails 16/55. Trace the package-dependent first divergence before another arithmetic substitution."
+  ],
+  "limitations": [
+    "Captured independent recurrent controls cover 19 prefill tokens at layer zero, not arbitrary model continuations.",
+    "Full-model controls execute real browser partitions with diagnostic tensor forwarding and local verified bytes; they are not ordinary-page peer-acquisition acceptance.",
+    "Memory acceptance remains retained evidence for the earlier candidate and must be rerun after a numerical correction earns promotion.",
+    "Lower isolated operation error does not establish a passing or independently more accurate complete model."
+  ]
+}
