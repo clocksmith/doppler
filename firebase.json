@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "canvascontext-9da05",
+    "site": "doppler-d4da",
     "public": ".demo-hosting",
     "predeploy": "npm run demo:hosting:build",
     "ignore": [

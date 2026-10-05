@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:66a90fded4e245896e1ac96ac074d056f3baca32069606f971181c2848585696';
-const CACHE_NAME = 'doppler-demo-shell-66a90fded4e24589';
+const SHELL_MANIFEST_DIGEST = 'sha256:a0ac5a268b7ae029eb831473defb857e299e0798247ec53088621886ce194265';
+const CACHE_NAME = 'doppler-demo-shell-a0ac5a268b7ae029';
 const APP_SHELL = Object.freeze([
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
@@ -91,6 +91,9 @@ const APP_SHELL = Object.freeze([
   "/src/config/capsule-v2.js",
   "/src/config/capsule-v3.js",
   "/src/config/capsule.js",
+  "/src/config/choice-scoring-reference.js",
+  "/src/config/choice-scoring.js",
+  "/src/config/choice-scoring.json",
   "/src/config/diagnostics/drift-policies.json",
   "/src/config/dtype-transition-contract.js",
   "/src/config/embedding-contract.js",
@@ -418,6 +421,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/browser-harness/text-execution.js",
   "/src/inference/browser-harness/text-input.js",
   "/src/inference/browser-harness/timing-diagnostics.js",
+  "/src/inference/choice-scoring.js",
   "/src/inference/decode-buffers.js",
   "/src/inference/decode-ring.js",
   "/src/inference/fixtures/embedding-semantic-fixtures.json",

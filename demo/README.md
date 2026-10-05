@@ -98,8 +98,8 @@ a lower-level prerequisite, not proof that the demo works.
 
 ## Public hosting
 
-The canonical demo is https://canvascontext.com/. This repository owns its
-Firebase site `canvascontext-9da05`; deployments always name that project
+The canonical demo is https://doppler.d4da.com/. This repository owns its
+Firebase site `doppler-d4da` in project `d4da-21169`; deployments always name that project
 explicitly. The root page and `/demo/` use the same application and absolute
 asset paths. `tools/package-demo-hosting.js` packages tracked demo, runtime,
 catalog, and vendor-registry files into ignored `.demo-hosting/`; model weights,
@@ -112,8 +112,12 @@ npm run demo:hosting:deploy
 ```
 
 Verify preview startup and interactions before production. `/release.json`
-identifies the source commit. Legacy Mandate game and document routes redirect
-to https://m3t4.ai/mandate-2038/; the root now opens Doppler. Local
-storage and model caches from d4da.com do not transfer between origins.
+identifies the source commit. D4DA's `/doppler` routes redirect here.
+After the DNS cutover, CanvasContext hosts Fawn through D4DA's `firebase.fawn.json`; its legacy
+`/demo/`, runtime, and catalog paths redirect here. Legacy Mandate game and
+document routes still redirect to https://m3t4.ai/mandate-2038/.
+Local storage and model caches from d4da.com and canvascontext.com do not
+transfer between origins. CanvasContext retires Doppler's old service worker
+and shell caches without deleting model bytes or other user storage.
 
 The opening precomputed run was captured with `model.inspect.generate` in Chrome WebGPU. `data/sample-inspection.js` retains the real token probabilities, artifact fingerprint, timing, capture date, and raw receipt digest. It does not execute or download a model on first load. Prompt suggestions are editable; choosing a model is explicit before a new visitor runs their own prompt.

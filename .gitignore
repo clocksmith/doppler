@@ -225,5 +225,5 @@ playwright-report/
 
 .firebaserc
 
-# Packaged Canvas Context demo
+# Packaged Doppler demo
 .demo-hosting/

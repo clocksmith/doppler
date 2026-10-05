@@ -11,7 +11,7 @@
 Run AI models locally in JavaScript: generate text, create embeddings, and rerank
 search results with WebGPU.
 
-**[Try Doppler in your browser](https://canvascontext.com/)** · [Get started](docs/getting-started.md)
+**[Try Doppler in your browser](https://doppler.d4da.com/)** · [Get started](docs/getting-started.md)
 
 Inspect example word choices immediately, or load a model to generate on your
 device. Live inference needs a supported WebGPU browser and a model download.
@@ -87,7 +87,9 @@ npx doppler-gpu --model qwen3-0.8b --prompt "Write a haiku about GPUs"
 npx doppler-gpu --list-models
 ```
 
-The live browser demo is at [canvascontext.com](https://canvascontext.com/).
+The browser demo's configured address is [doppler.d4da.com](https://doppler.d4da.com/).
+The domain switch awaits its DNS record; the existing demo at
+[canvascontext.com](https://canvascontext.com/) remains live until cutover.
 The first documentation path is [getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md),
 followed by the [Doppler Run API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
