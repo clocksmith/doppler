@@ -30,6 +30,6 @@ for (const shortcut of manifest.shortcuts) shortcut.url = shortcut.url.replace('
 for (const handler of manifest.file_handlers) handler.action = handler.action.replace('/demo/index.html', '/');
 writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-writeFileSync(path.join(output, 'release.json'), JSON.stringify({ sourceCommit: revision, application: 'doppler-demo', canonicalUrl: 'https://canvascontext.com/' }, null, 2) + '\n');
+writeFileSync(path.join(output, 'release.json'), JSON.stringify({ sourceCommit: revision, application: 'doppler-demo', canonicalUrl: 'https://doppler.d4da.com/' }, null, 2) + '\n');
 execFileSync(process.execPath, ['tools/generate-demo-shell-manifest.js', '--root', output], { cwd: root, stdio: 'inherit' });
 console.log(`Packaged Doppler demo from ${revision}: ${output}`);

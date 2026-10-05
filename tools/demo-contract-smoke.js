@@ -193,9 +193,8 @@ async function main() {
     await page.locator('.token-chip').nth(3).press('ArrowRight');
     assert.equal(await page.locator('.token-inspector-badge').textContent(), '" because"');
     if (!await page.locator('#model-select').isVisible()) {
-      await page.locator('#prompt-suggestions button').first().click();
-      await page.fill('#prompt-input', 'Run the demo contract.');
-      await page.click('#run-btn');
+      await page.locator('#settings-toggle').click();
+      await page.locator('#model-picker > summary').click();
     }
     await page.selectOption('#model-select', 'contract-model');
     journey.modelSelected = await page.$eval(
@@ -208,6 +207,7 @@ async function main() {
       '#model-select-action',
       (element) => element.textContent === 'Loaded'
     );
+    await page.locator('#settings-toggle').click();
     await page.fill('#prompt-input', 'Run the demo contract.');
     await page.click('#run-btn');
     await page.waitForFunction(

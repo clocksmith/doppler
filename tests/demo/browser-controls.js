@@ -276,6 +276,10 @@ export async function checkDemoControls(page) {
   await page.click('#precision-replay-toggle');
   assert.equal(await page.locator('#precision-replay-panel').isVisible(), false);
 
+  await page.locator('#settings-toggle').click();
+  if (!await page.locator('#model-select').isVisible()) {
+    await page.locator('#model-picker > summary').click();
+  }
   await page.locator('#model-browser > summary').click();
   await page.locator('[data-model-id="second-model"]').click();
   assert.equal(await page.inputValue('#model-select'), 'second-model');
@@ -297,7 +301,7 @@ export async function checkDemoControls(page) {
   await page.click('#model-select-remove');
   await page.click('#remove-model-confirm-btn');
   await page.waitForFunction(() => __demoContract.removals === 1);
-  assert.equal(await page.locator('#run-btn').textContent(), 'Choose a model');
+  assert.equal(await page.locator('#run-btn').textContent(), 'Send');
   assert.equal(await page.locator('#run-btn').isEnabled(), true);
   assert.equal(await page.locator('#model-select-remove').isVisible(), false);
   assert.equal(await page.locator('#status-text').textContent(), 'Select model');
