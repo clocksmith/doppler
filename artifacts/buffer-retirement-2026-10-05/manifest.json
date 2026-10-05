@@ -1,0 +1,29 @@
+{
+  "classification": "buffer-retirement-safety-evidence",
+  "commands": [
+    "npm run check:green",
+    "node tests/inference/buffer-pool-cleanup.test.js",
+    "node tests/inference/rope-frequency-cache-contract.test.js",
+    "npm run public:boundaries:check"
+  ],
+  "files": {
+    "README.md": "4b811d30c398844716b30272b25ee6d96579da95691d62e14d301dba4ea8fd4d",
+    "corrected-generation-reopen.log": "3a791df15ab03e300753b89072e3d6c58c666a03ba3b05317a29d2f59823643d",
+    "corrected-generation-reopen.log.gz": "7b94505b9405f0c138b281e4a335bc7b36112ff6fd17e08a6171437297f9ea52",
+    "corrected-generation.log": "ebccd9c7af219e8e04272125d5feb31ee07e5bbb541c3e35d7799947f3e308b9",
+    "corrected-generation.log.gz": "991062fb33c0b451068c103f892af6426ecfb2008d778badafa4592c098719dd",
+    "green-check.log.gz": "d088ceea97b30778defd7bf1fa5c92c94d794ddd4a289f48621c9538cdd9505d",
+    "installed-audit.json": "4dd7d4ae2d0ba405653bb48ce7cacdaf47a56e17f8d7172e7063246a40a4459f",
+    "installed-reopen-audit.json": "75a9731cd521ef66f1c047d099c770ce8ad581dcc13b8d55faf5a3af91fe6801",
+    "original-generation.log": "533d4a67eaa9df6166abf5dc4401e78cd5205ca861008c09d02a1f50d8d7335b",
+    "original-generation.log.gz": "1f8e2a40efe4da3e1fda9fc4b68e613bc7c6ceceb1d8caeebf5789e8302b2bfd",
+    "package-audit.json": "8d7a9463782819ddbae1917ff0032241bc778fce3a4e9b42bdb2d303a1406de7",
+    "physical-retirement.json": "6c56cc16a6b1bd3e58e522f6809c7efe3fe96bb7265b42ef3519d30a4138dd79",
+    "physical-retirement.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "physical-retirement.log.gz": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "safety.json": "32a4cc835bac1c06b0cf0531104e48864162e679f1f6ad7b763d847a597580e2"
+  },
+  "schemaVersion": 1,
+  "scope": "Doppler lifecycle plus exact installed package and corrected Doe library on the tested AMD Vulkan host",
+  "sourceSha256": "6dd5d04cd8f6d16c15753fa6c6152a5b4a9f48bb4dcdb670f536f889ae351b80"
+}

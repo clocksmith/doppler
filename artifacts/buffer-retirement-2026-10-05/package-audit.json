@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "ff1d4c13c",
+  "nodeVersion": "v22.22.1",
+  "packageEntryCount": 1893,
+  "before": {
+    "size": 2196217,
+    "unpackedSize": 11509896
+  },
+  "after": {
+    "size": 2196657,
+    "unpackedSize": 11511240
+  },
+  "changedEntries": [
+    {
+      "path": "CHANGELOG.md",
+      "beforeBytes": 1672,
+      "afterBytes": 2095
+    },
+    {
+      "path": "src/memory/buffer-pool.d.ts",
+      "beforeBytes": 5411,
+      "afterBytes": 5603
+    },
+    {
+      "path": "src/memory/buffer-pool.js",
+      "beforeBytes": 25237,
+      "afterBytes": 25966
+    }
+  ],
+  "baselineBudgetDriftBytes": 5156
+}

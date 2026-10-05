@@ -212,6 +212,7 @@ const ropeConfig = {
   setDevice(otherDevice, { platformConfig: null });
   releaseRoPEFrequencies(second);
   await device.queue.onSubmittedWorkDone();
+  await new Promise(resolve => setImmediate(resolve));
   assert.equal(second.cos.destroyed, true);
   assert.equal(second.sin.destroyed, true);
   setDevice(device, { platformConfig: null });

@@ -34,6 +34,7 @@ class FakeBuffer {
     this.mapPromise = mapPromise;
     this.unmapReject = unmapReject;
     this.destroyed = false;
+    this.destroyCalls = 0;
     this.unmapped = false;
   }
 
@@ -59,6 +60,7 @@ class FakeBuffer {
   }
 
   destroy() {
+    this.destroyCalls++;
     this.destroyed = true;
   }
 }
@@ -163,7 +165,12 @@ async function flushMicrotasks() {
   pool.release(buffer);
   await flushMicrotasks();
 
-  assert.equal(buffer.destroyed, true);
+  assert.equal(buffer.destroyed, false, 'Rejected completion does not establish retirement safety.');
+  assert.equal(pool.getStats().resources.deferredCleanup.count, 1);
+  device.queue.onSubmittedWorkDone = () => Promise.resolve();
+  pool.destroy();
+  await flushMicrotasks();
+  assert.equal(buffer.destroyCalls, 1);
   assert.equal(pool.getStats().activeBuffers, 0);
   assert.equal(pool.getStats().currentBytesAllocated, 0);
 }
@@ -247,6 +254,74 @@ async function flushMicrotasks() {
   assert.equal(buffer.destroyed, true);
   assert.equal(pool.getStats().activeBuffers, 0);
   assert.equal(pool.getStats().currentBytesAllocated, 0);
+}
+
+{
+  const device = createFakeDevice();
+  let lose;
+  device.lost = new Promise(resolve => { lose = resolve; });
+  const completions = [];
+  device.queue.onSubmittedWorkDone = () => new Promise((resolve, reject) => {
+    completions.push({ resolve, reject });
+  });
+  const pool = new BufferPool(false, createSchemaConfig(), device);
+  pool.configure({ enablePooling: false });
+  const first = pool.acquire(64, BufferUsage.STORAGE, 'first_completion');
+  const second = pool.acquire(64, BufferUsage.STORAGE, 'later_completion');
+  pool.release(first);
+  pool.release(second);
+  assert.equal(completions.length, 1);
+  completions[0].resolve();
+  await flushMicrotasks();
+  assert.equal(first.destroyCalls, 1);
+  assert.equal(second.destroyCalls, 0, 'Later retirement needs its own completion boundary.');
+  assert.equal(completions.length, 2);
+  lose({ reason: 'destroyed' });
+  await flushMicrotasks();
+  assert.equal(second.destroyCalls, 1);
+  completions[1].reject(new Error('queue destroyed'));
+  pool.destroy();
+  await flushMicrotasks();
+  assert.equal(first.destroyCalls, 1);
+  assert.equal(second.destroyCalls, 1);
+  assert.equal(pool.getStats().resources.deferredCleanup.count, 0);
+  assert.equal(completions.length, 2, 'Terminal loss must not request work from a destroyed queue.');
+}
+
+{
+  const device = createFakeDevice();
+  let lose;
+  device.lost = new Promise(resolve => { lose = resolve; });
+  let waits = 0;
+  device.queue.onSubmittedWorkDone = () => {
+    waits++;
+    throw new Error('destroyed queue');
+  };
+  const pool = new BufferPool(false, createSchemaConfig(), device);
+  const buffer = pool.acquire(64, BufferUsage.STORAGE, 'active_at_loss');
+  lose({ reason: 'destroyed' });
+  await flushMicrotasks();
+  pool.destroy();
+  assert.equal(waits, 0);
+  assert.equal(buffer.destroyCalls, 1);
+}
+
+{
+  const device = createFakeDevice();
+  const pool = new BufferPool(false, createSchemaConfig(), device);
+  const buffer = pool.acquire(64, BufferUsage.STORAGE, 'failed_destroy');
+  const destroy = buffer.destroy.bind(buffer);
+  let attempts = 0;
+  buffer.destroy = () => { attempts++; throw new Error('destroy unavailable'); };
+  pool.destroy();
+  await flushMicrotasks();
+  assert.equal(attempts, 1, 'A failed destroy must not spin on resolved completions.');
+  assert.equal(pool.getStats().resources.deferredCleanup.count, 1);
+  buffer.destroy = destroy;
+  pool.destroy();
+  await flushMicrotasks();
+  assert.equal(buffer.destroyCalls, 1);
+  assert.equal(pool.getStats().resources.deferredCleanup.count, 0);
 }
 
 setDevice(null);
