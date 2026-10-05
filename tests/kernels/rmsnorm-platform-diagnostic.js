@@ -1,4 +1,40 @@
 /** Numerical experiments only. Candidate WGSL is not a shipped runtime implementation. */
+export function buildCompensatedRMSNormDiagnostic(source) {
+  const start = source.indexOf('fn main(');
+  const end = source.indexOf('// Small Hidden Size Entry Point', start);
+  if (start < 0 || end < 0) throw Error('Canonical normalization main boundary not found');
+  let main = source.slice(start, end);
+  const replace = (from, to) => {
+    if (!main.includes(from)) throw Error('Canonical normalization reduction boundary not found');
+    main = main.replace(from, to);
+  };
+  replace('var local_sum_sq: f32 = 0.0;', 'var local_sum_sq: f32 = 0.0;\n    var local_correction: f32 = 0.0;');
+  replace('local_sum_sq = local_sum_sq + x * x;', `let square = x * x;
+            let next_sum = local_sum_sq + square;
+            local_correction += rmsnorm_sum_error(local_sum_sq, square, next_sum);
+            local_sum_sq = next_sum;`);
+  replace('shared_sum[thread_idx] = local_sum_sq;', `shared_sum[thread_idx] = local_sum_sq;
+    rmsnorm_correction[thread_idx] = local_correction;`);
+  replace('shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];',
+    `let a = shared_sum[thread_idx];
+            let b = shared_sum[thread_idx + stride];
+            let next_sum = a + b;
+            rmsnorm_correction[thread_idx] += rmsnorm_correction[thread_idx + stride]
+                + rmsnorm_sum_error(a, b, next_sum);
+            shared_sum[thread_idx] = next_sum;`);
+  replace('let mean_sq = shared_sum[0] / f32(size);',
+    'let mean_sq = (shared_sum[0] + rmsnorm_correction[0]) / f32(size);');
+  return source.slice(0, start) + main + source.slice(end) + `
+// Test-only compensated reduction; all operations and storage remain f32.
+var<workgroup> rmsnorm_correction: array<f32, MAX_WORKGROUP_SIZE>;
+fn rmsnorm_sum_error(a: f32, b: f32, sum: f32) -> f32 {
+    let high = max(a, b);
+    let low = min(a, b);
+    return low - (sum - high);
+}
+`;
+}
+
 export function buildReciprocalRootDiagnostic(source, entryPoint) {
   if (!['main', 'main_subgroup'].includes(entryPoint)) throw Error('Unsupported normalization entry point');
   const boundary = entryPoint === 'main' ? 'let inv_rms = 1.0 / rms;' : 'let inv_rms = 1.0 / sqrt(mean_sq + u.eps);';
@@ -15,7 +51,10 @@ export function buildReciprocalRootDiagnostic(source, entryPoint) {
 }
 
 export async function diagnoseRMSNorm({ source, input, weights, epsilon, weightOffset,
-  entryPoint = 'main', weightDtype = 'f32' }) {
+  entryPoint = 'main', weightDtype = 'f32', experiment = null }) {
+  if (experiment !== null && (experiment !== 'compensated-sum' || entryPoint !== 'main')) {
+    throw Error('Compensated reduction diagnostic requires the declared main entry');
+  }
   if (!['main', 'main_subgroup'].includes(entryPoint) || !['f16', 'f32'].includes(weightDtype)) {
     throw Error('Explicit supported entry point and weight dtype required');
   }
@@ -41,8 +80,11 @@ export async function diagnoseRMSNorm({ source, input, weights, epsilon, weightO
       normalization_trace[3] = inv_rms;
     }`) + '\n@group(0) @binding(6) var<storage, read_write> normalization_trace: array<f32>;';
   try {
-    for (const [variant, code] of [['canonical', source], ['refined-f32-diagnostic', candidate],
-      ['canonical-intermediates', observed], ['refined-rsqrt-f32-diagnostic', reciprocalCandidate]]) {
+    const variants = experiment === 'compensated-sum'
+      ? [['canonical', source], ['compensated-sum', buildCompensatedRMSNormDiagnostic(source)]]
+      : [['canonical', source], ['refined-f32-diagnostic', candidate],
+        ['canonical-intermediates', observed], ['refined-rsqrt-f32-diagnostic', reciprocalCandidate]];
+    for (const [variant, code] of variants) {
       const owned = [];
       const buffer = (bytes, usage) => { const value = device.createBuffer({ size: bytes, usage }); owned.push(value); return value; };
       try {
