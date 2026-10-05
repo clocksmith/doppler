@@ -10,6 +10,7 @@ import { releaseSharedAttentionState } from './generator/attention-lifecycle.js'
 import { computeLogits } from './logits/index.js';
 import { getLogitsWeights, getLogitsConfig } from './generator/logits-config.js';
 import { resolveLayerPartition } from './layer-partition-contract.js';
+import { resolvePrefillTokenChunkSize } from './generator/prefill-policy.js';
 
 /** @type {import('./partition-execution.js').assertPartitionExecutionSupported} */
 export function assertPartitionExecutionSupported(state, plan) {
@@ -34,9 +35,12 @@ export function assertPartitionExecutionSupported(state, plan) {
   }
 }
 
-/** @type {import('./partition-execution.js').executePartitionLayers} */
-export async function executePartitionLayers(state, input, signal) {
-  signal.throwIfAborted();
+/**
+ * @param {import('./partition-execution.js').PartitionExecutionState} state
+ * @param {Parameters<import('./partition-execution.js').ExecutePartitionChunk>[1]} input
+ * @param {boolean} prefill
+ */
+function resolvePartitionInput(state, input, prefill) {
   const config = state.modelConfig;
   if (!config || !state.executionPlanState || !state.manifest || !state.modelPartition) {
     throw new Error('Resident partition requires a resolved model and bound partition plan.');
@@ -61,7 +65,7 @@ export async function executePartitionLayers(state, input, signal) {
   if (!Number.isSafeInteger(numTokens) || numTokens < 1 || !state.kvCache
     || !Number.isSafeInteger(state.currentSeqLen) || state.currentSeqLen < 0
     || state.currentSeqLen + numTokens > state.kvCache.maxSeqLen
-    || (state.currentSeqLen > 0 && numTokens !== 1)) {
+    || (state.currentSeqLen > 0 && numTokens !== 1 && !prefill)) {
     throw new Error('Resident partition input exceeds its sequence allocation or incremental decode shape.');
   }
   if (partition.hasEmbedding && (!input.tokenIds || input.tokenIds.length !== numTokens
@@ -70,6 +74,70 @@ export async function executePartitionLayers(state, input, signal) {
   }
   const byteLength = numTokens * config.hiddenSize * bytesPerElement;
   if (!Number.isSafeInteger(byteLength)) throw new Error('Resident activation size exceeds the safe integer range.');
+  if (!partition.hasEmbedding && input.activationBytes?.byteLength !== byteLength) {
+    throw new Error('Partition activation byte length mismatch.');
+  }
+  return { config, partition, executionPlan, dtype, numTokens, byteLength };
+}
+
+function createPartitionTiming() {
+  return { inputUploadMs: 0, encodeMs: 0, submitWaitMs: 0, activationReadbackMs: 0,
+    logitsMs: 0, gpuKernelsMs: /** @type {number | null} */ (null) };
+}
+
+/** @type {import('./partition-execution.js').executePartitionLayers} */
+export async function executePartitionLayers(state, input, signal) {
+  signal.throwIfAborted();
+  const prefill = state.currentSeqLen === 0;
+  const setup = resolvePartitionInput(state, input, prefill);
+  const chunkSize = resolvePrefillTokenChunkSize(state, input.numTokens);
+  if (!prefill || chunkSize === null) {
+    const result = await executePartitionChunk(state, input, signal, prefill, true);
+    if (result.logits) return { logits: result.logits, timing: result.timing };
+    if (result.activationBytes) return { activationBytes: result.activationBytes, timing: result.timing };
+    throw new Error('Resident partition produced no boundary result.');
+  }
+  const originalSeqLen = state.currentSeqLen;
+  const rowBytes = setup.config.hiddenSize * selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: setup.dtype });
+  const source = input.activationBytes;
+  const bytes = source ? ArrayBuffer.isView(source)
+    ? new Uint8Array(source.buffer, source.byteOffset, source.byteLength) : new Uint8Array(source) : null;
+  // Assemble the public byte payload in its existing contiguous row order.
+  // Model arithmetic remains in the same declared GPU layer programs.
+  const activation = setup.partition.hasLmHead ? null : new Uint8Array(new ArrayBuffer(setup.byteLength));
+  const timing = createPartitionTiming();
+  try {
+    for (let offset = 0; offset < input.numTokens; offset += chunkSize) {
+      signal.throwIfAborted();
+      const end = Math.min(offset + chunkSize, input.numTokens);
+      state.currentSeqLen = originalSeqLen + offset;
+      const result = await executePartitionChunk(state, { numTokens: end - offset,
+        ...(input.tokenIds ? { tokenIds: input.tokenIds.slice(offset, end) } : {}),
+        ...(bytes ? { activationBytes: bytes.subarray(offset * rowBytes, end * rowBytes) } : {}),
+      }, signal, true, end === input.numTokens);
+      timing.inputUploadMs += result.timing.inputUploadMs;
+      timing.encodeMs += result.timing.encodeMs;
+      timing.submitWaitMs += result.timing.submitWaitMs;
+      timing.activationReadbackMs += result.timing.activationReadbackMs;
+      timing.logitsMs += result.timing.logitsMs;
+      if (result.timing.gpuKernelsMs !== null) timing.gpuKernelsMs = (timing.gpuKernelsMs ?? 0) + result.timing.gpuKernelsMs;
+      if (result.logits) return { logits: result.logits, timing };
+      if (activation) {
+        if (!result.activationBytes) throw new Error('Resident partition produced no chunk activation.');
+        activation.set(new Uint8Array(result.activationBytes), offset * rowBytes);
+      }
+    }
+    if (!activation) throw new Error('Resident partition produced no final logits.');
+    return { activationBytes: activation.buffer, timing };
+  } finally {
+    // The enclosing resident operation advances the complete prompt once.
+    state.currentSeqLen = originalSeqLen;
+  }
+}
+
+/** @type {import('./partition-execution.js').ExecutePartitionChunk} */
+async function executePartitionChunk(state, input, signal, prefill, finalChunk) {
+  const { config, partition, executionPlan, dtype, numTokens, byteLength } = resolvePartitionInput(state, input, prefill);
   const chunkLayers = resolvePrefillRecorderChunkLayers({
     configuredPrefillChunkLayers: state.runtimeConfig.inference.session.prefillChunkLayers,
     hasGpuSplitPerLayerInputs: false,
@@ -79,8 +147,7 @@ export async function executePartitionLayers(state, input, signal) {
     profile: state.runtimeConfig.shared.debug.profiler.enabled,
   });
   let recorder = createRecorder();
-  const timing = { inputUploadMs: 0, encodeMs: 0, submitWaitMs: 0, activationReadbackMs: 0,
-    logitsMs: 0, gpuKernelsMs: /** @type {number | null} */ (null) };
+  const timing = createPartitionTiming();
   const encodeStarted = performance.now();
   let context = null;
   /** @type {GPUBuffer | null} */
@@ -95,7 +162,7 @@ export async function executePartitionLayers(state, input, signal) {
       + Object.values(kernels).reduce((sum, ms) => sum + ms, 0);
   };
   try {
-    context = buildLayerContext(state, recorder, state.currentSeqLen > 0, null, undefined, executionPlan);
+    context = buildLayerContext(state, recorder, !prefill, null, undefined, executionPlan);
     context.currentTokenIds = input.tokenIds ?? null;
     if (partition.hasEmbedding) {
       const weight = state.weights.get('embed');
@@ -126,11 +193,11 @@ export async function executePartitionLayers(state, input, signal) {
       signal.throwIfAborted();
       /** @type {GPUBuffer} */
       const previous = hidden;
-      const next = await processLayer(layer, previous, numTokens, state.currentSeqLen === 0, context);
+      const next = await processLayer(layer, previous, numTokens, prefill, context);
       if (!isGpuBufferInstance(next)) throw new Error('Resident partition layers must return GPU buffers.');
       hidden = next;
       if (previous !== hidden) recorder.trackTemporaryBuffer(previous);
-      if (state.currentSeqLen === 0 && layer < partition.layerRange[1]
+      if (prefill && layer < partition.layerRange[1]
         && (layer - partition.layerRange[0] + 1) % chunkLayers === 0) {
         // Preserve only the boundary tensor while the completed chunk releases
         // its intermediates. This consumes the same prefill policy as whole-model execution.
@@ -164,6 +231,7 @@ export async function executePartitionLayers(state, input, signal) {
       signal.throwIfAborted();
       return { activationBytes, timing };
     }
+    if (!finalChunk) return { timing };
     const logitsStarted = performance.now();
     const logits = await computeLogits(output, numTokens, getLogitsWeights(state), getLogitsConfig(state),
       true, state.debugFlags, undefined, undefined, state.runtimeConfig.shared.debug.probes,

@@ -118,7 +118,7 @@ import {
 import {
   releasePerLayerInputBuffer,
   shouldDisablePrefillCommandBatching,
-  resolveEffectivePrefillTokenChunkSize,
+  resolvePrefillTokenChunkSize,
 } from './generator/prefill-policy.js';
 import {
   normalizePrefixEmbeddingOverride,
@@ -403,17 +403,7 @@ export class PipelineGenerator {
   }
 
   _resolvePrefillTokenChunkSize(inputIds) {
-    const chunkSize = resolveEffectivePrefillTokenChunkSize(this._state);
-    if (chunkSize === undefined) {
-      throw new Error('inference.session.prefillTokenChunkSize is required; use null to disable token-chunked prefill.');
-    }
-    if (chunkSize === null) {
-      return null;
-    }
-    if (!Number.isInteger(chunkSize) || chunkSize <= 0) {
-      throw new Error('inference.session.prefillTokenChunkSize must be null or a positive integer.');
-    }
-    return chunkSize < inputIds.length ? chunkSize : null;
+    return resolvePrefillTokenChunkSize(this._state, inputIds.length);
   }
 
   async _commitPrefillHiddenChunk(prefillResult) {
