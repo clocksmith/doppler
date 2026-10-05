@@ -7,9 +7,11 @@ Doppler is a JavaScript library for running AI models locally through WebGPU.
 **Portable local inference is ordinary software, not an opaque cloud service.**
 
 Make AI an ordinary application dependency, without a separate Python environment
-or mandatory cloud inference service. Generation, embeddings, and reranking are
+or mandatory cloud inference service. Generation, embeddings, reranking, and typed choice scoring are
 independently usable, composable capabilities; Doppler handles loading, GPU execution, streaming, cancellation,
-and cleanup. Browser and Node support are qualified separately; Bun remains
+and cleanup. Choice scores have an explicit model/operation identity and defined
+interpretation; calibration requires separate evidence. Applications own decisions,
+permissions and side effects. Browser and Node support are qualified separately; Bun remains
 experimental. Host prerequisites still apply: Node may require installation of
 a WebGPU provider. JavaScript/WGSL does not mean no native dependencies anywhere.
 
