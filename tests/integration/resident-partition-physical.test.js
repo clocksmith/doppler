@@ -84,7 +84,8 @@ if (!modelDirectory) {
         text += decoder.finish(); return { steps, text, input };
       } finally { snapshot?.destroy(); }
     }
-    const probes = [createPartitionAttempt(pipelines[1]), createPartitionAttempt(pipelines[1])];
+    const cacheLength = pipelines[1].runtimeConfig.inference.session.kvcache.maxSeqLen;
+    const probes = [createPartitionAttempt(pipelines[1], cacheLength), createPartitionAttempt(pipelines[1], cacheLength)];
     const buffers = probes.map(() => acquireBuffer(64, undefined, 'partition_recurrent_cleanup'));
     probes.forEach((probe, index) => probe.state.linearAttentionRuntime.layers.set(0, { recurrentStateGPU: buffers[index] }));
     probes[0].close(); probes[0].close();
