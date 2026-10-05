@@ -5,13 +5,20 @@ import { resolveLayerPartition } from './layer-partition-contract.js';
 import { createLinearAttentionRuntime, resetLinearAttentionRuntime } from './linear-attention.js';
 
 /** @type {import('./partition-attempt.js').createPartitionAttempt} */
-export function createPartitionAttempt(owner) {
+export function createPartitionAttempt(owner, maxSeqLen) {
   if (!owner.modelPartition || !owner.manifest || !owner.modelConfig) {
     throw new Error('Partition attempt requires a loaded, assigned model.');
   }
   assertPartitionExecutionSupported(owner, owner.modelPartition.plan);
   const partition = resolveLayerPartition(owner.manifest, owner.modelPartition);
   if (!partition) throw new Error('Partition attempt allocation is missing.');
+  const inference = owner.runtimeConfig.inference;
+  const preparedMaxSeqLen = inference.session.kvcache?.maxSeqLen;
+  if (!Number.isSafeInteger(maxSeqLen) || maxSeqLen < 1 || maxSeqLen > owner.modelConfig.maxSeqLen
+    || preparedMaxSeqLen !== null && (typeof preparedMaxSeqLen !== 'number'
+      || !Number.isSafeInteger(preparedMaxSeqLen) || maxSeqLen > preparedMaxSeqLen)) {
+    throw new Error('Resident attempt sequence allocation exceeds the prepared session.');
+  }
   // Share only prepared model resources. Fresh PipelineState owns all mutable
   // execution counters, attention state and buffers; it never unloads the owner.
   const state = Object.assign(new PipelineState(), {
@@ -30,8 +37,12 @@ export function createPartitionAttempt(owner) {
     revocationIdentity: owner.revocationIdentity, debug: owner.debug, debugFlags: { ...owner.debugFlags },
     isLoaded: true,
   });
-  state.kvCache = createKVCache(owner.modelConfig, owner.useGPU, owner.debug,
-    owner.runtimeConfig.inference, [partition.layerRange[0], partition.layerRange[1]]);
+  // Each attempt reserves its complete prompt/output allowance without reserving
+  // unused capacity from the prepared session's larger context ceiling.
+  state.kvCache = createKVCache(owner.modelConfig, owner.useGPU, owner.debug, {
+    ...inference, session: { ...inference.session,
+      kvcache: { ...inference.session.kvcache, maxSeqLen } },
+  }, [partition.layerRange[0], partition.layerRange[1]]);
   let closed = false;
   return { state, close() {
     if (closed) return;

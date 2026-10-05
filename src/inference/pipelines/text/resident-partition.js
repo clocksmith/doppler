@@ -99,7 +99,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
     const operation = runPipelineOperation(pipeline, async owner => {
       try {
         assertOpen(); combined.throwIfAborted();
-        attempt.execution ??= createPartitionAttempt(owner);
+        attempt.execution ??= createPartitionAttempt(owner, request.inputTokenCount + request.maxTokens);
         const state = attempt.execution.state;
         const ids = 'tokenIds' in request ? request.tokenIds : request.inputTokenIds;
         if ('activation' in request) {
