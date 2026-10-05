@@ -27,7 +27,6 @@ import {
 } from './layer-tensor-aliases.js';
 import { getWeightShape, toPositiveInt } from './layer-weight-shape.js';
 
-
 function inferLinearQKVSizes(ctx, linearQkvProj, linearOutProj) {
   const qkvShape = getWeightShape(linearQkvProj);
   if (!qkvShape) return null;
@@ -228,7 +227,6 @@ async function stabilizePerLayerInputGateWeight(ctx, weights, layerIdx) {
 // Main Function
 // ============================================================================
 
-
 export async function loadLayer(ctx, layerIdx) {
   const prefixes = LAYER_PREFIXES(layerIdx);
 
@@ -314,7 +312,6 @@ export async function loadLayer(ctx, layerIdx) {
 // Helper Factories
 // ============================================================================
 
-
 function createTryLoad(ctx, prefixes) {
   return async (suffixes) => {
     for (const prefix of prefixes) {
@@ -329,7 +326,6 @@ function createTryLoad(ctx, prefixes) {
     return null;
   };
 }
-
 
 function createTryLoadNorm(ctx, prefixes, tryLoad) {
   return async (suffixes) => {
@@ -392,6 +388,17 @@ function createTryLoadQKNorm(ctx, prefixes) {
 // Weight Loading Functions
 // ============================================================================
 
+async function settleWeightLoads(loads) {
+  // The owner's cleanup must see every allocation, including siblings that
+  // finish after a rejection. Preserve the first error without escaping early.
+  let failure;
+  const settled = await Promise.allSettled(loads.map(load => load.catch(error => {
+    failure ??= { error };
+    throw error;
+  })));
+  if (failure) throw failure.error;
+  return settled.map(result => result.value);
+}
 
 async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm) {
   const tryLoadQKNorm = createTryLoadQKNorm(ctx, LAYER_PREFIXES(layerIdx));
@@ -444,7 +451,7 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
     linearDtBias,
     linearALog,
     linearNorm,
-  ] = await Promise.all([
+  ] = await settleWeightLoads([
     tryLoadNorm(ATTN_SUFFIXES.inputNorm),
     tryLoadNorm(ATTN_SUFFIXES.inputNormBias),
     tryLoad(ATTN_SUFFIXES.qProj),
@@ -552,7 +559,6 @@ async function loadAttentionWeights(ctx, weights, layerIdx, tryLoad, tryLoadNorm
   }
 }
 
-
 async function loadFfnWeights(ctx, weights, layerIdx, tryLoad, prefixes) {
   const perLayerProjection = await loadStablePerLayerProjection(ctx, layerIdx, prefixes, tryLoad);
   const stablePerLayerInputGate = await loadStablePerLayerInputGate(ctx, layerIdx, prefixes, tryLoad);
@@ -564,7 +570,7 @@ async function loadFfnWeights(ctx, weights, layerIdx, tryLoad, prefixes) {
     ffnUpBias,
     ffnDown,
     ffnDownBias,
-  ] = await Promise.all([
+  ] = await settleWeightLoads([
     tryLoad(FFN_SUFFIXES.ffnGateUp),
     tryLoad(FFN_SUFFIXES.ffnGate),
     tryLoad(FFN_SUFFIXES.ffnGateBias),
@@ -628,7 +634,6 @@ async function loadStablePerLayerInputGate(ctx, layerIdx, prefixes, tryLoad) {
   return tryLoad(FFN_SUFFIXES.perLayerInputGate);
 }
 
-
 function getVectorElementCount(shape, label) {
   if (!Array.isArray(shape) || shape.length === 0) {
     throw new Error(`[LayerLoader] ${label} requires a non-empty shape.`);
@@ -675,7 +680,7 @@ async function materializeRouterPerExpertScale(ctx, weight, layerIdx) {
 }
 
 async function loadRouterWeights(ctx, weights, layerIdx, tryLoad) {
-  const [routerWeight, routerBias, routerScale, routerPerExpertScale] = await Promise.all([
+  const [routerWeight, routerBias, routerScale, routerPerExpertScale] = await settleWeightLoads([
     tryLoad(ROUTER_SUFFIXES.routerWeight),
     tryLoad(ROUTER_SUFFIXES.routerBias),
     tryLoad(ROUTER_SUFFIXES.routerScale),
@@ -691,7 +696,6 @@ async function loadRouterWeights(ctx, weights, layerIdx, tryLoad) {
 // ============================================================================
 // Weight Downcast
 // ============================================================================
-
 
 async function downcastLayerWeights(ctx, weights, layerIdx) {
   const caps = getKernelCapabilities();
@@ -711,7 +715,6 @@ async function downcastLayerWeights(ctx, weights, layerIdx) {
   await stabilizePerLayerInputGateWeight(ctx, weights, layerIdx);
   await stabilizePerLayerProjectionWeight(ctx, weights, layerIdx);
 }
-
 
 const CONV_Q4K_DEQUANT_KEYS = ['convInProj', 'convOutProj', 'convKernel'];
 
