@@ -13,8 +13,8 @@
   "tolerance": 0.001,
   "rawEvidence": {
     "localIgnoredDirectory": "dist/0.6.4-candidate/numerical-investigation",
-    "inventorySha256": "ee23143c8578d4de9c64c6b2e294c5abe6eda943ff682c89554c25f24c3602ea",
-    "files": 106,
+    "inventorySha256": "e49b3e90c421bc1f8c4d13e7b776f79967ad7ea57de3a8916bdbf9454da436f4",
+    "files": 109,
     "limitation": "Raw captures are retained locally, including model operands; not published with this compact receipt."
   },
   "findings": [
@@ -24,7 +24,8 @@
     "The captured decode Q4K GEMV is bit-identical across platforms without arithmetic substitution.",
     "With ordered projection and refined normalization experiments, all 19 layer-zero input-normalization and QKV projection rows match. All captured linear-attention inputs and initial state match. Convolution sum matches; exp, denominator and reciprocal differ.",
     "Recurrent execution differs with identical captured inputs, independently of convolution differences.",
-    "The test-only SiLU polynomial reduces differing convolution elements but increases the largest cross-platform difference. It remains unaccepted and covers only the captured finite operand range."
+    "The test-only SiLU polynomial reduces differing convolution elements but increases the largest cross-platform difference. It remains unaccepted and covers only the captured finite operand range.",
+    "Developer-only strictMath was consumed by the Mac browser descriptor, but did not change this captured activation result. It is not a production solution or proof of driver nonconformance."
   ],
   "frozenReferenceComparisons": {
     "fourLaneForward": {
@@ -619,6 +620,94 @@
           "architecture": "rdna-3"
         }
       ]
+    },
+    "linearDeveloperStrictMath": {
+      "scope": "Identical captured operands through one linear-attention operation",
+      "operation": "conv",
+      "captureSha256": "eaa36d0dc08ab0be14eabfa2a165d0a4bb518853c527fe66e88fefd6a76e2151",
+      "shaderSha256": "1d55bcebb84b4069497af978ba3d5e888f89c28d35ca7eab5fbde5eb785cc76b",
+      "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+      "sourceSubstitution": true,
+      "observeActivation": true,
+      "activationCandidate": true,
+      "macStrictMath": true,
+      "strictMathScope": "Chrome developer-only Metal diagnostic; not a production solution",
+      "originalShaderSha256": "2347834915527612b62e6d98a9cd7af635ce39fc5c0d91b00345b27203f723d0",
+      "upstreamSourceSubstitution": true,
+      "crossPlatform": {
+        "elements": 116736,
+        "differentElements": 196,
+        "maxDifference": 4.76837158203125e-7
+      },
+      "activationComparison": [
+        {
+          "stage": "mixed",
+          "elements": 116736,
+          "differentElements": 0,
+          "maxDifference": 0
+        },
+        {
+          "stage": "exponential",
+          "elements": 116736,
+          "differentElements": 275,
+          "maxDifference": 5.960464477539063e-8
+        },
+        {
+          "stage": "denominator",
+          "elements": 116736,
+          "differentElements": 28,
+          "maxDifference": 1.1920928955078125e-7
+        },
+        {
+          "stage": "reciprocal",
+          "elements": 116736,
+          "differentElements": 25,
+          "maxDifference": 1.1920928955078125e-7
+        }
+      ],
+      "macCaptureAgreement": {
+        "elements": 116736,
+        "differentElements": 30972,
+        "maxDifference": 4.76837158203125e-7
+      },
+      "reference": {
+        "scope": "Independent Float64 convolution and SiLU; never fed into inference",
+        "sha256": "aa6ca58fcb503d2b9c0678399d1b78d66f455323467c8cac223955efd75e27b3",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "elements": 116736,
+            "differentElements": 116470,
+            "maxDifference": 7.301716813401526e-7,
+            "rmsError": 8.327798873768643e-9
+          },
+          {
+            "platform": "linux",
+            "elements": 116736,
+            "differentElements": 116470,
+            "maxDifference": 7.301716813401526e-7,
+            "rmsError": 8.326153535238222e-9
+          }
+        ]
+      },
+      "results": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "strictMathRequested": true,
+          "strictMathRead": true,
+          "vendor": "apple",
+          "architecture": "metal-3"
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "strictMathRequested": false,
+          "strictMathRead": false,
+          "vendor": "amd",
+          "architecture": "rdna-3"
+        }
+      ]
     }
   },
   "cacheReference": [
@@ -924,7 +1013,13 @@
   ],
   "checks": [
     "Three existing RMSNorm contract/cache/fusion test files passed.",
-    "Source architecture and source style checks passed."
+    "Source architecture and source style checks passed.",
+    "Arithmetic source substitution is rejected before browser launch unless the explicit test-only flag is set.",
+    "Frozen reference and immutable package SHA256 identities remain unchanged."
   ],
-  "nextBoundary": "Isolate recurrent normalization and nonlinear intermediates using identical captured operands; the release gate remains unsatisfied."
+  "nextBoundary": "Isolate recurrent normalization and nonlinear intermediates using identical captured operands; the release gate remains unsatisfied.",
+  "specificationReferences": [
+    "https://www.w3.org/TR/WGSL/#floating-point-evaluation",
+    "https://developer.chrome.com/docs/web-platform/webgpu/developer-features"
+  ]
 }

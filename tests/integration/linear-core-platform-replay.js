@@ -17,6 +17,7 @@ assert(input && expected);
 const originalShader = await readFile(resolve(installedPackage, `src/gpu/kernels/gated_delta_${operation}.wgsl`), 'utf8');
 const observeActivation = process.env.DOPPLER_LINEAR_OBSERVE_ACTIVATION === '1';
 const activationCandidate = process.env.DOPPLER_LINEAR_ACTIVATION_DIAGNOSTIC === '1';
+const macStrictMath = process.env.DOPPLER_MAC_STRICT_MATH_DIAGNOSTIC === '1';
 assert(!observeActivation || operation === 'conv');
 let shader = observeActivation ? originalShader.replace(
   '    conv_out[token_idx * params.conv_dim + channel] = silu(mixed);',
@@ -31,23 +32,29 @@ const { chromium } = createRequire(resolve(reploidRoot, 'package.json'))('playwr
 const receipt = { scope: 'Identical captured operands through one linear-attention operation', operation,
   captureSha256: hash(bytes), shaderSha256: hash(shader), archiveSha256: capture.archiveSha256,
   sourceSubstitution: observeActivation || activationCandidate, observeActivation, activationCandidate,
+  macStrictMath, strictMathScope: macStrictMath ? 'Chrome developer-only Metal diagnostic; not a production solution' : null,
   originalShaderSha256: hash(originalShader),
   upstreamSourceSubstitution: capture.sourceSubstitution, results: [] };
 for (const platform of ['mac', 'linux']) {
   const browser = platform === 'mac'
-    ? await chromium.launch({ headless: true, args: ['--enable-unsafe-webgpu', '--use-angle=metal'] })
+    ? await chromium.launch({ headless: true, args: ['--enable-unsafe-webgpu', '--use-angle=metal',
+      ...(macStrictMath ? ['--enable-webgpu-developer-features'] : [])] })
     : await chromium.connect(process.env.REPLOID_EXECUTOR_WS);
   const context = await browser.newContext();
   try {
     const page = await context.newPage(); await page.goto('http://localhost:8000/config/chat-files.json');
-    const result = await page.evaluate(async ({ input, expected, shader, operation, observeActivation }) => {
+    const result = await page.evaluate(async ({ input, expected, shader, operation, observeActivation, strictMath }) => {
       const adapter = await navigator.gpu.requestAdapter();
       const device = await adapter.requestDevice({ requiredLimits:
         operation === 'recurrent' ? { maxStorageBuffersPerShaderStage: 9 } : {} });
       const owned = [], p = input.params;
       const buffer = (size, usage) => { const b = device.createBuffer({ size, usage }); owned.push(b); return b; };
       try {
-        const module = device.createShaderModule({ code: shader });
+        let strictMathRead = false;
+        const descriptor = { code: shader };
+        if (strictMath) Object.defineProperty(descriptor, 'strictMath', { get() { strictMathRead = true; return true; } });
+        const module = device.createShaderModule(descriptor);
+        if (strictMath && !strictMathRead) throw Error('Browser did not consume the requested developer-only strictMath option');
         const errors = (await module.getCompilationInfo()).messages.filter(m => m.type === 'error');
         if (errors.length) throw Error(errors.map(m => m.message).join('\n'));
         const pipeline = await device.createComputePipelineAsync({ layout: 'auto', compute: {
@@ -96,9 +103,10 @@ for (const platform of ['mac', 'linux']) {
           for (let i = 0; i < data.length; i += 16384) text += String.fromCharCode(...data.subarray(i, i + 16384));
           activationData = btoa(text);
         }
-        return { data: btoa(text), activationData, vendor: adapter.info.vendor, architecture: adapter.info.architecture };
+        return { data: btoa(text), activationData, strictMathRequested: strictMath, strictMathRead,
+          vendor: adapter.info.vendor, architecture: adapter.info.architecture };
       } finally { for (const b of owned) b.destroy(); device.destroy(); }
-    }, { input, expected, shader, operation, observeActivation });
+    }, { input, expected, shader, operation, observeActivation, strictMath: macStrictMath && platform === 'mac' });
     receipt.results.push({ platform, browser: browser.version(), ...result });
     console.log(JSON.stringify({ platform, operation, completed: true }));
   } finally { await context.close(); await browser.close(); }
