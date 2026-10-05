@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 
 export function recurrentInterventionOperands(reference, intervention) {
   const groups = { normalization: ['qScale', 'kScale', 'invRms'],
-    gates: ['beta', 'decay', 'gate'], state: ['updatedState'] };
+    gates: ['beta', 'decay', 'gate'], decay: ['decay'], state: ['updatedState'] };
   const selections = { normalization: ['normalization'], gates: ['gates'], state: ['state'],
-    'normalization-gates': ['normalization', 'gates'], all: ['normalization', 'gates', 'state'] };
+    decay: ['decay'], 'normalization-gates': ['normalization', 'gates'], all: ['normalization', 'gates', 'state'] };
   assert(selections[intervention], 'Unknown recurrent intervention');
   const names = selections[intervention].flatMap(name => groups[name]);
   const fields = {}; let length = 0;
@@ -23,7 +23,7 @@ export function recurrentInterventionOperands(reference, intervention) {
 /** Causal experiment only: inject Float64-reference results rounded to F32.
  * This is deliberately not a production implementation or a CPU fallback. */
 export function interveneRecurrentShader(source, layout, intervention) {
-  assert(['normalization', 'gates', 'state', 'normalization-gates', 'all'].includes(intervention));
+  assert(['normalization', 'gates', 'decay', 'state', 'normalization-gates', 'all'].includes(intervention));
   const at = (name, index) => `reference_values[${layout.fields[name].offset}u + ${index}]`;
   const replace = (original, replacement) => {
     assert.equal(source.split(original).length, 2, `Ambiguous intervention boundary: ${original}`);
@@ -38,8 +38,10 @@ export function interveneRecurrentShader(source, layout, intervention) {
   }
   if (['gates', 'normalization-gates', 'all'].includes(intervention)) {
     replace('let beta = 1.0 / (1.0 + exp(-f32(b_proj[b_index])));', `let beta = ${at('beta', 'ab_row_base')};`);
-    replace('let g_exp = exp(g);', `let g_exp = ${at('decay', 'ab_row_base')};`);
     replace('let gate = silu(f32(z_proj[z_index]));', `let gate = ${at('gate', 'out_row_base + vd')};`);
+  }
+  if (['gates', 'decay', 'normalization-gates', 'all'].includes(intervention)) {
+    replace('let g_exp = exp(g);', `let g_exp = ${at('decay', 'ab_row_base')};`);
   }
   if (['state', 'all'].includes(intervention)) {
     const index = 'ab_row_base * head_k_dim * head_v_dim + kd * head_v_dim + vd';

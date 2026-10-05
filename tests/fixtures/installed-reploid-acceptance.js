@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url';
 import { observeAttentionCache } from './attention-cache-observer.js';
 import { buildQ4KAccumulationDiagnostic } from '../kernels/q4k-accumulation-diagnostic.js';
 import { buildReciprocalRootDiagnostic } from '../kernels/rmsnorm-platform-diagnostic.js';
+import { buildRecurrentAccumulationDiagnostic } from '../kernels/recurrent-accumulation-diagnostic.js';
 
 const [reploidRoot, consumerRoot, archive, fixture] = process.argv.slice(2).map(value => resolve(value));
 assert(reploidRoot && consumerRoot && archive && fixture, 'Reploid root, installed consumer, archive and fixture are required');
@@ -32,9 +33,14 @@ const served = new Map(), errors = [], restore = [];
 const attentionCaptures = [];
 const arithmeticCandidate = process.env.DOPPLER_Q4K_DIAGNOSTIC ?? null;
 const normalizationCandidate = process.env.DOPPLER_RMS_DIAGNOSTIC ?? null;
+const recurrentCandidate = process.env.DOPPLER_RECURRENT_DOT_CANDIDATE ?? null;
+assert(!recurrentCandidate || ['memory', 'readout'].includes(recurrentCandidate));
+assert(!recurrentCandidate || !(arithmeticCandidate || normalizationCandidate),
+  'Recurrent candidates freeze upstream projection and normalization');
+const recurrentPaths = ['src/gpu/kernels/gated_delta_recurrent.wgsl', 'src/gpu/kernels/gated_delta_fused_decode.wgsl'];
 const substitutions = [];
 assert(normalizationCandidate === null || normalizationCandidate === 'refined-rsqrt');
-assert(!(arithmeticCandidate || normalizationCandidate) || process.env.DOPPLER_TEST_ONLY_ARITHMETIC === '1',
+assert(!(arithmeticCandidate || normalizationCandidate || recurrentCandidate) || process.env.DOPPLER_TEST_ONLY_ARITHMETIC === '1',
   'Arithmetic substitutions require an explicitly identified diagnostic, never archive acceptance');
 for (const method of ['launch', 'connect']) {
   const original = chromium[method];
@@ -70,6 +76,14 @@ for (const method of ['launch', 'connect']) {
               path: relative, candidate: normalizationCandidate, originalSha256, diagnosticSha256: digest(bytes),
             });
           }
+          if (recurrentCandidate && recurrentPaths.includes(relative)) {
+            const originalSha256 = digest(bytes);
+            bytes = Buffer.from(buildRecurrentAccumulationDiagnostic(bytes.toString('utf8'),
+              recurrentCandidate, relative === recurrentPaths[1]));
+            if (!substitutions.some(s => s.path === relative)) substitutions.push({
+              path: relative, candidate: recurrentCandidate, originalSha256, diagnosticSha256: digest(bytes),
+            });
+          }
           served.set(relative, { path: relative, sha256: digest(bytes), bytes: bytes.length });
           const contentType = file.endsWith('.js') ? 'text/javascript' : file.endsWith('.json') ? 'application/json'
             : file.endsWith('.wasm') ? 'application/wasm' : 'text/plain';
@@ -89,11 +103,12 @@ const receipt = { scope: 'Existing Reploid fixture with candidate served solely 
   archiveSha256: digest(archiveBytes), archiveIntegrity: config.integrity, version: packageInfo.version,
   fixture: fixture.slice(reploidRoot.length + 1), fixtureSha256: digest(await readFile(fixture)),
   productionPinChanged: false, sourceSubstitution: false, passed: false };
-if (arithmeticCandidate || normalizationCandidate) {
+if (arithmeticCandidate || normalizationCandidate || recurrentCandidate) {
   receipt.scope = 'Test-only arithmetic substitution over the installed archive; not installed-package acceptance';
   receipt.sourceSubstitution = true;
   receipt.arithmeticCandidate = arithmeticCandidate;
   receipt.normalizationCandidate = normalizationCandidate;
+  receipt.recurrentCandidate = recurrentCandidate;
 }
 try {
   process.chdir(consumerRoot); // Fixture file reads inspect this installed package, never production node_modules.
@@ -106,6 +121,9 @@ try {
   if (arithmeticCandidate || normalizationCandidate) {
     assert.equal(substitutions.length, Number(!!arithmeticCandidate) + Number(!!normalizationCandidate),
       'Every requested diagnostic shader must be fetched');
+  }
+  if (recurrentCandidate) {
+    assert(substitutions.some(s => s.path === recurrentPaths[0]), 'Recurrent diagnostic must actually load');
   }
   const version = await readFile(resolve(packageRoot, 'src/version.js'), 'utf8');
   assert(version.includes(`'${packageInfo.version}'`), 'Package and runtime versions agree');
