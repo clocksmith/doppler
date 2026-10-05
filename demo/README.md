@@ -98,12 +98,12 @@ a lower-level prerequisite, not proof that the demo works.
 
 ## Public hosting
 
-The canonical demo is https://doppler.d4da.com/. This repository owns its
-Firebase site `doppler-d4da` in project `d4da-21169`; deployments always name that project
-explicitly. The root page and `/demo/` use the same application and absolute
-asset paths. `tools/package-demo-hosting.js` packages tracked demo, runtime,
-catalog, and vendor-registry files into ignored `.demo-hosting/`; model weights,
-local artifacts, private files, and fixtures are excluded.
+The canonical demo is https://d4da.com/doppler/. D4DA owns its world-site
+Firebase configuration and deployment. The source stays in this repository;
+`../d4da/scripts/sync-world-doppler.mjs` copies tracked demo/runtime/catalog
+assets, rewrites their URLs to `/doppler/`, and regenerates the shell inventory.
+Model weights and local artifacts are excluded. This repository's hosting
+commands delegate to D4DA and cannot overwrite CanvasContext's Fawn deployment.
 
 ```sh
 npm run demo:hosting:build
@@ -111,13 +111,12 @@ npm run demo:hosting:preview
 npm run demo:hosting:deploy
 ```
 
-Verify preview startup and interactions before production. `/release.json`
-identifies the source commit. D4DA's `/doppler` routes redirect here.
-After the DNS cutover, CanvasContext hosts Fawn through D4DA's `firebase.fawn.json`; its legacy
-`/demo/`, runtime, and catalog paths redirect here. Legacy Mandate game and
-document routes still redirect to https://m3t4.ai/mandate-2038/.
-Local storage and model caches from d4da.com and canvascontext.com do not
-transfer between origins. CanvasContext retires Doppler's old service worker
-and shell caches without deleting model bytes or other user storage.
+Verify preview startup and interactions before production. D4DA's
+`/doppler/release.json` identifies the source commits. CanvasContext hosts
+Fawn through D4DA's `firebase.fawn.json`; old Doppler demo, runtime, and catalog
+URLs redirect to their matching `/doppler/` paths. Legacy Mandate routes retain
+their m3t4.ai redirects. CanvasContext retires Doppler's old worker and shell
+caches without deleting model bytes or other user storage. Local storage and
+model caches remain on their original origin.
 
 The opening precomputed run was captured with `model.inspect.generate` in Chrome WebGPU. `data/sample-inspection.js` retains the real token probabilities, artifact fingerprint, timing, capture date, and raw receipt digest. It does not execute or download a model on first load. Prompt suggestions are editable; choosing a model is explicit before a new visitor runs their own prompt.
