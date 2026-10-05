@@ -13,6 +13,18 @@ export function resolveEffectivePrefillTokenChunkSize(state) {
   return runtimeChunkSize;
 }
 
+export function resolvePrefillTokenChunkSize(state, numTokens) {
+  const chunkSize = resolveEffectivePrefillTokenChunkSize(state);
+  if (chunkSize === undefined) {
+    throw new Error('inference.session.prefillTokenChunkSize is required; use null to disable token-chunked prefill.');
+  }
+  if (chunkSize === null) return null;
+  if (!Number.isInteger(chunkSize) || chunkSize <= 0) {
+    throw new Error('inference.session.prefillTokenChunkSize must be null or a positive integer.');
+  }
+  return chunkSize < numTokens ? chunkSize : null;
+}
+
 export function releasePerLayerInputBuffer(buffer, recorder, decodeBuffers, pleCache = null) {
   if (!buffer) {
     return;

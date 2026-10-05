@@ -1,8 +1,15 @@
 import type { InputSpan } from './prefix-embedding.js';
 
+export interface PrefillPolicyState {
+  runtimeConfig?: { inference?: { session?: { prefillTokenChunkSize?: number | null } } };
+  modelConfig?: { sessionSettings?: { prefillTokenChunkSize?: number | null } } | null;
+}
+
 export declare function resolveEffectivePrefillTokenChunkSize(
-  state: Record<string, unknown>
+  state: PrefillPolicyState
 ): number | null | undefined;
+
+export declare function resolvePrefillTokenChunkSize(state: PrefillPolicyState, numTokens: number): number | null;
 
 export declare function releasePerLayerInputBuffer(
   buffer: GPUBuffer | null | undefined,

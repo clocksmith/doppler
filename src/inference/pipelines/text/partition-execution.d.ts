@@ -7,6 +7,11 @@ export type PartitionExecutionState = PipelineState & {
   modelPartition?: { plan: LayerPartitionPlan; index: 0 | 1 } | null;
 };
 export function assertPartitionExecutionSupported(state: PartitionExecutionState, plan: LayerPartitionPlan): void;
+export type ExecutePartitionChunk = (state: PartitionExecutionState,
+  input: { numTokens: number; tokenIds?: number[]; activationBytes?: ArrayBuffer | ArrayBufferView },
+  signal: AbortSignal, prefill: boolean, finalChunk: boolean) => Promise<{
+    activationBytes?: ArrayBuffer; logits?: GpuLogitsResult; timing: PartitionTiming;
+  }>;
 export function executePartitionLayers(state: PartitionExecutionState,
   input: { numTokens: number; tokenIds?: number[]; activationBytes?: ArrayBuffer | ArrayBufferView },
   signal: AbortSignal): Promise<({ activationBytes: ArrayBuffer; logits?: never } | { logits: GpuLogitsResult; activationBytes?: never }) & {timing: PartitionTiming}>;

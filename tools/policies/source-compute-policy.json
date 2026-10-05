@@ -55,6 +55,11 @@
   ],
   "reviews": [
     {
+      "id": "src/inference/pipelines/text/partition-execution.js#executePartitionLayers",
+      "category": "gpu-orchestration",
+      "reason": "Slices and assembles unchanged contiguous activation bytes at declared hidden-size and dtype row boundaries for configured prefill chunks. It performs no tensor arithmetic, layout transformation, or kernel substitution."
+    },
+    {
       "id": "src/experimental/training/qwen-adapter-training-state.js#fromBase64",
       "category": "non-tensor-data",
       "reason": "Processes base64 checkpoint bytes or adapter topology metadata, not tensor arithmetic."
