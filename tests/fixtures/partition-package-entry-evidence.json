@@ -1,0 +1,273 @@
+{
+  "schema": "doppler.partition-package-entry-evidence/v1",
+  "component": "doppler.tests",
+  "intent": "preserved",
+  "productionArithmeticChanged": false,
+  "reploidPinChanged": false,
+  "replacementQualified": false,
+  "scope": "Same-device Node/Vulkan full first-prompt generation; first package-dependent boundary and test-only causal isolation, not cross-device acceptance",
+  "archives": {
+    "baseline": {
+      "version": "0.6.3-dev.split.13",
+      "sha256": "162be004c1d07bbf15e2b2f8cd57f906b459f6ac7b24a1c514a47d9e806fabdb"
+    },
+    "candidate": {
+      "version": "0.6.4",
+      "sha256": "9d87c021969d20695a0b8ee6c2c0b9e1cbbd5ae39d98a2bd3e39c816072b355d"
+    }
+  },
+  "reference": {
+    "usedSha256": "27fb73c4e335bfb584ee9b957359e01874ae612079b78ce10a001fe3e40aa70c",
+    "latestFrozenSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+    "same": false
+  },
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "generation": {
+    "maxTokens": 1024,
+    "maxSeqLen": 4096,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "prompt": [
+    {
+      "role": "user",
+      "content": "Reply with only the word Hello."
+    }
+  ],
+  "device": {
+    "subgroupMatrixConfigs": []
+  },
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": false
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "hypothesis": "Package-dependent execution selection differs before recurrent arithmetic.",
+  "firstBoundary": {
+    "stage": "layer.0.attn.post_input_norm",
+    "embeddingIdentical": true,
+    "maximumAbsoluteTensorDifference": 4.76837158203125e-7,
+    "declaredEntryPoint": "main",
+    "baselineEntryPoint": "main_subgroup",
+    "candidateEntryPoint": "main",
+    "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+    "constantTuplesIdentical": true,
+    "ownerChangeCommit": "742b90a7a0857175042067c874a9c6b9899c5250"
+  },
+  "controls": {
+    "sameBuild": {
+      "maximumAbsoluteLogitDifference": 0,
+      "differingCaptureDigests": 0,
+      "comparedCaptureRecords": 11070
+    },
+    "observationVersusOriginalBaseline": {
+      "maximumAbsoluteLogitDifference": 0,
+      "differingCaptureDigests": 0,
+      "comparedCaptureRecords": 11070
+    },
+    "observationVersusOriginalCandidate": {
+      "maximumAbsoluteLogitDifference": 0,
+      "differingCaptureDigests": 0,
+      "comparedCaptureRecords": 11070
+    },
+    "identitySubstitution": {
+      "maximumAbsoluteLogitDifference": 0,
+      "differingCaptureDigests": 0,
+      "comparedCaptureRecords": 11070
+    },
+    "entryOnlyVersusCandidate": {
+      "maximumAbsoluteLogitDifference": 0,
+      "differingCaptureDigests": 0,
+      "comparedCaptureRecords": 11070
+    },
+    "baselineVersusCandidate": {
+      "maximumAbsoluteLogitDifference": 0.0015213489532470703,
+      "differingCaptureDigests": 10902,
+      "comparedCaptureRecords": 11070
+    }
+  },
+  "substitutions": [
+    {
+      "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+      "shader": {
+        "label": "rmsnorm_subgroup",
+        "sha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+      },
+      "entryPoint": "main_subgroup",
+      "constants": {
+        "RMS_NORM_OFFSET": 1,
+        "WEIGHT_IS_F16": 1,
+        "PRE_RESIDUAL": 0,
+        "OUTPUT_PRENORM": 0
+      },
+      "replacementEntryPoint": "main"
+    },
+    {
+      "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+      "shader": {
+        "label": "rmsnorm_subgroup",
+        "sha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+      },
+      "entryPoint": "main_subgroup",
+      "constants": {
+        "RMS_NORM_OFFSET": 1,
+        "WEIGHT_IS_F16": 1,
+        "PRE_RESIDUAL": 1,
+        "OUTPUT_PRENORM": 1
+      },
+      "replacementEntryPoint": "main"
+    }
+  ],
+  "independentNormalization": {
+    "schema": "doppler.input-normalization-package-reference/v1",
+    "scope": "Float64 normalization on identical captured embeddings and exact stored norm weights; not full-model qualification",
+    "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+    "hiddenSize": 1024,
+    "tokens": 19,
+    "normalization": {
+      "rmsNormEps": 0.000001,
+      "rmsNormWeightOffset": true,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": false,
+      "postFeedforwardNorm": false
+    },
+    "weightSha256": "ef788e502a4813797b82059518a964afaa6fa87563a2b305479655ea5eb92a56",
+    "referenceSha256": "c778836f9c7daddcbc59a03765ece0228cbce59e061cdb7abbbd4741d892f1ff",
+    "baseline": {
+      "packageVersion": "0.6.3-dev.split.13",
+      "captureSha256": "b4ee44984089ed202bbb4060562028269fddf247e5a132118eb7d4ff19690305",
+      "maximumAbsoluteError": 5.14367726189846e-7,
+      "rmsError": 5.895231372155937e-8
+    },
+    "candidate": {
+      "packageVersion": "0.6.4",
+      "captureSha256": "920f8c70a82dfccf05c3a5394826a7ab595056d12183a8f2ec6a627f188105b9",
+      "maximumAbsoluteError": 5.14367726189846e-7,
+      "rmsError": 5.983755695051696e-8
+    }
+  },
+  "rawArtifacts": [
+    {
+      "path": "reploid/artifacts/doppler-choice/package-difference/split-13-a.json",
+      "sha256": "30f16339f6b2e1bebf0a516dae0867b17ae699541b3f137b3c16af48ac1d6923",
+      "sizeBytes": 44263484
+    },
+    {
+      "path": "reploid/artifacts/doppler-choice/package-difference/split-13-b.json",
+      "sha256": "30f16339f6b2e1bebf0a516dae0867b17ae699541b3f137b3c16af48ac1d6923",
+      "sizeBytes": 44263484
+    },
+    {
+      "path": "reploid/artifacts/doppler-choice/package-difference/candidate-a.json",
+      "sha256": "441a68b4be8d4abba4b43a4b6a4af93cd74c0578205d505f444c41f9395378b0",
+      "sizeBytes": 44264300
+    },
+    {
+      "path": "reploid/artifacts/doppler-choice/package-difference/split-13-contract.json",
+      "sha256": "b4ee44984089ed202bbb4060562028269fddf247e5a132118eb7d4ff19690305",
+      "sizeBytes": 44271617
+    },
+    {
+      "path": "reploid/artifacts/doppler-choice/package-difference/candidate-contract.json",
+      "sha256": "920f8c70a82dfccf05c3a5394826a7ab595056d12183a8f2ec6a627f188105b9",
+      "sizeBytes": 44272410
+    },
+    {
+      "path": "reploid/artifacts/doppler-choice/package-difference/split-13-identity.json",
+      "sha256": "8ecb5b844e9564af965452c7385d36d403a0f7148b18ddaccd3263d7c2c966b6",
+      "sizeBytes": 44272548
+    },
+    {
+      "path": "reploid/artifacts/doppler-choice/package-difference/split-13-declared.json",
+      "sha256": "99bf97ebd49ae7e17d7232e7144963c91aa5dae042708da638eee448742e4678",
+      "sizeBytes": 44273332
+    }
+  ],
+  "reproduction": {
+    "captureFixture": "reploid/tests/fixtures/partition-platform-capture.js",
+    "sourceRoots": "Exact split.13 archive src and exact installed candidate src, selected with DOPPLER_CAPTURE_SOURCE_DIR",
+    "input": "DOPPLER_CHAT_MODEL_DIR, DOPPLER_PARTITION_REFERENCE_OUT, REPLOID_CAPTURE_OUT",
+    "substitution": "DOPPLER_TEST_ONLY_ARITHMETIC=1 plus DOPPLER_CAPTURE_PIPELINE_INTERVENTION JSON containing exact shaderSha256/fromEntryPoint/toEntryPoint",
+    "referenceCommand": "node tests/integration/rmsnorm-package-reference.js MODEL_DIRECTORY BASELINE_CAPTURE CANDIDATE_CAPTURE OUTPUT"
+  },
+  "limitations": [
+    "One physical AMD device; no Mac execution or cross-device result.",
+    "Older available frozen reference is explicitly distinguished from latest 55-step reference.",
+    "Full first prompt only; not arbitrary continuations or all frozen steps.",
+    "Entry-point diagnostic preserves shader bytes and pipeline constants but is not unchanged-archive acceptance.",
+    "Neither normalization path is selected for promotion by this evidence.",
+    "No performance, acquisition, total-memory or capacity-pooling claim."
+  ],
+  "boundaryEffects": "Test diagnostics only; production runtime and signed model manifest unchanged"
+}

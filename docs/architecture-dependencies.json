@@ -4606,6 +4606,7 @@
         "tests/integration/resident-partition-physical.test.js",
         "tests/integration/rig-choice-scoring-capsule.js",
         "tests/integration/rmsnorm-dispatch-physical.test.js",
+        "tests/integration/rmsnorm-package-reference.js",
         "tests/integration/root-opfs-cache-contract.test.js",
         "tests/integration/runtime-embedding-limit-preflight.test.js",
         "tests/integration/runtime-input-composition.test.js",
