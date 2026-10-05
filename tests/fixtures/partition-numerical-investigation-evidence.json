@@ -1,0 +1,930 @@
+{
+  "date": "2026-10-04",
+  "component": "doppler.tests",
+  "intent": "preserved",
+  "scope": "Serial physical browser arithmetic diagnosis. Test-only shader substitutions are not a release or installed-package acceptance.",
+  "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+  "version": "0.6.4",
+  "published": false,
+  "releaseAccepted": false,
+  "productionArithmeticChanged": false,
+  "reploidPin": "0.6.3-dev.split.13",
+  "reploidPinChanged": false,
+  "tolerance": 0.001,
+  "rawEvidence": {
+    "localIgnoredDirectory": "dist/0.6.4-candidate/numerical-investigation",
+    "inventorySha256": "ee23143c8578d4de9c64c6b2e294c5abe6eda943ff682c89554c25f24c3602ea",
+    "files": 106,
+    "limitation": "Raw captures are retained locally, including model operands; not published with this compact receipt."
+  },
+  "findings": [
+    "Canonical F32-to-F16 cache conversion matches independent nearest-even conversion on both GPUs. Earlier input differences become larger after cache quantization; this is not evidence of a conversion defect.",
+    "Identical Q4K prefill operands differ across platforms. A test-only four-lane FMA accumulation improves agreement and Float64-reference error. Its accumulators match exactly; its final reduction differs.",
+    "An ordered final reduction makes the captured projection bit-identical. Whole-model qualification still fails, and forward results worsen. Isolated-operation success is not sufficient.",
+    "The captured decode Q4K GEMV is bit-identical across platforms without arithmetic substitution.",
+    "With ordered projection and refined normalization experiments, all 19 layer-zero input-normalization and QKV projection rows match. All captured linear-attention inputs and initial state match. Convolution sum matches; exp, denominator and reciprocal differ.",
+    "Recurrent execution differs with identical captured inputs, independently of convolution differences.",
+    "The test-only SiLU polynomial reduces differing convolution elements but increases the largest cross-platform difference. It remains unaccepted and covers only the captured finite operand range."
+  ],
+  "frozenReferenceComparisons": {
+    "fourLaneForward": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "a3fbef9b1e60b0b1237d21f3aff827f28046ed55d9edd581876fc201a7dba560",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 20,
+      "maxDifference": 0.0018157958984375,
+      "tokensMatch": true,
+      "stoppingMatches": true
+    },
+    "fourLaneAndRmsForward": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "7680bdbf0e3b7d15117c19c0caaa8776dcedb128ee8c5b7ffb5123b88332efd8",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 15,
+      "maxDifference": 0.00177001953125,
+      "tokensMatch": true,
+      "stoppingMatches": true
+    },
+    "fourLaneAndRmsReverse": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "b413694ca4faea3bc4794e31dfcd7feaaa58ef14c6723bf7179f18a11cef5886",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 16,
+      "maxDifference": 0.0017333030700683594,
+      "tokensMatch": true,
+      "stoppingMatches": true
+    },
+    "fourLaneAndRmsMacControl": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "eed21d66c27995b3d09e0474776313d45d74e4ee82171ce7f427e1f588f42a22",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 19,
+      "maxDifference": 0.0017571449279785156,
+      "tokensMatch": true,
+      "stoppingMatches": true
+    },
+    "orderedAndRmsForward": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "e14aea56a3deafd696ee27303cc5a5a7b3d41ae5cb515e921818a99d5cbf0c0d",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 32,
+      "maxDifference": 0.004166126251220703,
+      "tokensMatch": true,
+      "stoppingMatches": true
+    },
+    "orderedAndRmsReverse": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "5d5cec63b9c5c4a1bb8d2c6f3e696c81e6896e338f1c8e039f66ee1513bab1d5",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 12,
+      "maxDifference": 0.001705169677734375,
+      "tokensMatch": true,
+      "stoppingMatches": true
+    },
+    "orderedAndRmsMacControl": {
+      "scope": "Frozen-reference comparison",
+      "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+      "captureSha256": "eed21d66c27995b3d09e0474776313d45d74e4ee82171ce7f427e1f588f42a22",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 19,
+      "maxDifference": 0.0017571449279785156,
+      "tokensMatch": true,
+      "stoppingMatches": true
+    }
+  },
+  "sameImplementationDiagnostics": {
+    "fourLaneForward": {
+      "scope": "Same-implementation diagnostic comparison; does not replace acceptance reference",
+      "referenceSha256": "eed21d66c27995b3d09e0474776313d45d74e4ee82171ce7f427e1f588f42a22",
+      "captureSha256": "7680bdbf0e3b7d15117c19c0caaa8776dcedb128ee8c5b7ffb5123b88332efd8",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 18,
+      "maxDifference": 0.001438140869140625,
+      "tokensMatch": true,
+      "stoppingMatches": true
+    },
+    "fourLaneReverse": {
+      "scope": "Same-implementation diagnostic comparison; does not replace acceptance reference",
+      "referenceSha256": "eed21d66c27995b3d09e0474776313d45d74e4ee82171ce7f427e1f588f42a22",
+      "captureSha256": "b413694ca4faea3bc4794e31dfcd7feaaa58ef14c6723bf7179f18a11cef5886",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 2,
+      "maxDifference": 0.001367330551147461,
+      "tokensMatch": true,
+      "stoppingMatches": true
+    },
+    "orderedForward": {
+      "scope": "Same-implementation diagnostic comparison; does not replace acceptance reference",
+      "referenceSha256": "eed21d66c27995b3d09e0474776313d45d74e4ee82171ce7f427e1f588f42a22",
+      "captureSha256": "e14aea56a3deafd696ee27303cc5a5a7b3d41ae5cb515e921818a99d5cbf0c0d",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 31,
+      "maxDifference": 0.003067493438720703,
+      "tokensMatch": true,
+      "stoppingMatches": true
+    },
+    "orderedReverse": {
+      "scope": "Same-implementation diagnostic comparison; does not replace acceptance reference",
+      "referenceSha256": "eed21d66c27995b3d09e0474776313d45d74e4ee82171ce7f427e1f588f42a22",
+      "captureSha256": "5d5cec63b9c5c4a1bb8d2c6f3e696c81e6896e338f1c8e039f66ee1513bab1d5",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 1,
+      "maxDifference": 0.0013551712036132812,
+      "tokensMatch": true,
+      "stoppingMatches": true
+    }
+  },
+  "isolatedReplays": {
+    "q4kPrefill": {
+      "scope": "Identical captured operands and installed shader; isolated operation, not model acceptance",
+      "captureSha256": "4b7b90061bed976170494591c0ba90c314c24075e3134d812f87100d8c28d798",
+      "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+      "shaderSha256": "d3fc7b8145d9acf8d5dc56c063557074a361844d25b00b76c6a9fa961b4d8735",
+      "contract": {
+        "M": 19,
+        "N": 6144,
+        "K": 1024,
+        "variant": "q4_fused_widetile",
+        "entryPoint": "main",
+        "constants": null
+      },
+      "crossPlatform": {
+        "elements": 116736,
+        "differentElements": 111229,
+        "maxDifference": 0.000019073486328125
+      },
+      "macCaptureAgreement": {
+        "elements": 116736,
+        "differentElements": 0,
+        "maxDifference": 0
+      },
+      "results": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3"
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3"
+        }
+      ]
+    },
+    "q4kSerialFma": {
+      "scope": "Identical captured operands; isolated operation, not model acceptance",
+      "candidate": "fma-serial",
+      "originalShaderSha256": "d3fc7b8145d9acf8d5dc56c063557074a361844d25b00b76c6a9fa961b4d8735",
+      "sourceSubstitution": true,
+      "captureSha256": "4b7b90061bed976170494591c0ba90c314c24075e3134d812f87100d8c28d798",
+      "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+      "shaderSha256": "25b5c1a6bd98e73d21d71bcf95fc040d9b0413cb150ca2179f498c4e83c6906b",
+      "contract": {
+        "M": 19,
+        "N": 6144,
+        "K": 1024,
+        "variant": "q4_fused_widetile",
+        "entryPoint": "main",
+        "constants": null
+      },
+      "crossPlatform": {
+        "elements": 116736,
+        "differentElements": 0,
+        "maxDifference": 0
+      },
+      "macCaptureAgreement": {
+        "elements": 116736,
+        "differentElements": 111196,
+        "maxDifference": 0.00002002716064453125
+      },
+      "results": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3"
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3"
+        }
+      ]
+    },
+    "q4kFourLanes": {
+      "scope": "Identical captured operands; isolated operation, not model acceptance",
+      "candidate": "fma-four-lanes",
+      "observeLanes": true,
+      "originalShaderSha256": "d3fc7b8145d9acf8d5dc56c063557074a361844d25b00b76c6a9fa961b4d8735",
+      "sourceSubstitution": true,
+      "captureSha256": "4b7b90061bed976170494591c0ba90c314c24075e3134d812f87100d8c28d798",
+      "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+      "shaderSha256": "8823d1fa5a06f1bfa7e84da654182c237ef02c88084014866ae1bd58fa268ddf",
+      "contract": {
+        "M": 19,
+        "N": 6144,
+        "K": 1024,
+        "variant": "q4_fused_widetile",
+        "entryPoint": "main",
+        "constants": null
+      },
+      "crossPlatform": {
+        "elements": 116736,
+        "differentElements": 33824,
+        "maxDifference": 0.0000019073486328125
+      },
+      "crossPlatformLanes": {
+        "elements": 466944,
+        "differentElements": 0,
+        "maxDifference": 0
+      },
+      "macCaptureAgreement": {
+        "elements": 116736,
+        "differentElements": 108439,
+        "maxDifference": 0.0000133514404296875
+      },
+      "reference": {
+        "scope": "Independent Q4K unpack to F32; Float64 dot-product accumulation",
+        "sha256": "4c6177561bd6692b7548f6abf0002c7bd3d58d77e7c136b477e70135ac3e5770",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "elements": 116736,
+            "differentElements": 116470,
+            "maxDifference": 0.0000070723724050481,
+            "rmsError": 2.8214843944383385e-7
+          },
+          {
+            "platform": "linux",
+            "elements": 116736,
+            "differentElements": 116470,
+            "maxDifference": 0.0000070723724050481,
+            "rmsError": 2.8230931283579804e-7
+          }
+        ]
+      },
+      "results": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3"
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3"
+        }
+      ]
+    },
+    "q4kOrderedReduction": {
+      "scope": "Identical captured operands; isolated operation, not model acceptance",
+      "candidate": "fma-four-lanes-loop",
+      "observeLanes": false,
+      "originalShaderSha256": "d3fc7b8145d9acf8d5dc56c063557074a361844d25b00b76c6a9fa961b4d8735",
+      "sourceSubstitution": true,
+      "captureSha256": "4b7b90061bed976170494591c0ba90c314c24075e3134d812f87100d8c28d798",
+      "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+      "shaderSha256": "d838553918824138b1135108a51a15d86fb143a6a7cc3b3ff923de43f9e5a7c6",
+      "contract": {
+        "M": 19,
+        "N": 6144,
+        "K": 1024,
+        "variant": "q4_fused_widetile",
+        "entryPoint": "main",
+        "constants": null
+      },
+      "crossPlatform": {
+        "elements": 116736,
+        "differentElements": 0,
+        "maxDifference": 0
+      },
+      "macCaptureAgreement": {
+        "elements": 116736,
+        "differentElements": 108439,
+        "maxDifference": 0.0000133514404296875
+      },
+      "reference": {
+        "scope": "Independent Q4K unpack to F32; Float64 dot-product accumulation",
+        "sha256": "4c6177561bd6692b7548f6abf0002c7bd3d58d77e7c136b477e70135ac3e5770",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "elements": 116736,
+            "differentElements": 116470,
+            "maxDifference": 0.0000070723724050481,
+            "rmsError": 2.8214843944383385e-7
+          },
+          {
+            "platform": "linux",
+            "elements": 116736,
+            "differentElements": 116470,
+            "maxDifference": 0.0000070723724050481,
+            "rmsError": 2.8214843944383385e-7
+          }
+        ]
+      },
+      "results": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3"
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3"
+        }
+      ]
+    },
+    "q4kDecode": {
+      "scope": "Identical captured operands; isolated operation, not model acceptance",
+      "candidate": null,
+      "originalShaderSha256": "9c4d919d5ad5eadd225f34938c47b9c604e8a1fa05ec73c5eccfb882395bd935",
+      "sourceSubstitution": false,
+      "captureSha256": "819c5e7339f6a4856ab6c907d220e3ba06dd5aade80005ca8460a419a2e065de",
+      "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+      "shaderSha256": "9c4d919d5ad5eadd225f34938c47b9c604e8a1fa05ec73c5eccfb882395bd935",
+      "contract": {
+        "M": 1,
+        "N": 6144,
+        "K": 1024,
+        "variant": "q4_fused_gemv",
+        "entryPoint": "main_gemv",
+        "constants": {
+          "COLS_PER_WG": 64,
+          "THREADS_PER_COL_GEMV": 4
+        }
+      },
+      "crossPlatform": {
+        "elements": 6144,
+        "differentElements": 0,
+        "maxDifference": 0
+      },
+      "macCaptureAgreement": {
+        "elements": 6144,
+        "differentElements": 0,
+        "maxDifference": 0
+      },
+      "reference": {
+        "scope": "Independent Q4K unpack to F32; Float64 dot-product accumulation",
+        "sha256": "91ac842031b6cbfa75d3db7eecb79407bdc4b5796b1e5d8200ebaa7461b050dd",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "elements": 6144,
+            "differentElements": 6130,
+            "maxDifference": 0.000004141604497576168,
+            "rmsError": 2.4893724813306107e-7
+          },
+          {
+            "platform": "linux",
+            "elements": 6144,
+            "differentElements": 6130,
+            "maxDifference": 0.000004141604497576168,
+            "rmsError": 2.4893724813306107e-7
+          }
+        ]
+      },
+      "results": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3"
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3"
+        }
+      ]
+    },
+    "linearConvolution": {
+      "scope": "Identical captured operands through one linear-attention operation",
+      "operation": "conv",
+      "captureSha256": "eaa36d0dc08ab0be14eabfa2a165d0a4bb518853c527fe66e88fefd6a76e2151",
+      "shaderSha256": "d794c1c28fd299dc6140727fe8dd956e7f9ba3edefed51857b0619ef295559ad",
+      "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+      "sourceSubstitution": true,
+      "observeActivation": true,
+      "originalShaderSha256": "2347834915527612b62e6d98a9cd7af635ce39fc5c0d91b00345b27203f723d0",
+      "upstreamSourceSubstitution": true,
+      "crossPlatform": {
+        "elements": 116736,
+        "differentElements": 31180,
+        "maxDifference": 2.384185791015625e-7
+      },
+      "activationComparison": [
+        {
+          "stage": "mixed",
+          "elements": 116736,
+          "differentElements": 0,
+          "maxDifference": 0
+        },
+        {
+          "stage": "exponential",
+          "elements": 116736,
+          "differentElements": 43262,
+          "maxDifference": 5.960464477539063e-8
+        },
+        {
+          "stage": "denominator",
+          "elements": 116736,
+          "differentElements": 20866,
+          "maxDifference": 1.1920928955078125e-7
+        },
+        {
+          "stage": "reciprocal",
+          "elements": 116736,
+          "differentElements": 23504,
+          "maxDifference": 1.1920928955078125e-7
+        }
+      ],
+      "macCaptureAgreement": {
+        "elements": 116736,
+        "differentElements": 0,
+        "maxDifference": 0
+      },
+      "reference": {
+        "scope": "Independent Float64 convolution and SiLU; never fed into inference",
+        "sha256": "aa6ca58fcb503d2b9c0678399d1b78d66f455323467c8cac223955efd75e27b3",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "elements": 116736,
+            "differentElements": 116470,
+            "maxDifference": 7.301716813401526e-7,
+            "rmsError": 9.196866831851402e-9
+          },
+          {
+            "platform": "linux",
+            "elements": 116736,
+            "differentElements": 116470,
+            "maxDifference": 7.301716813401526e-7,
+            "rmsError": 8.739788273569053e-9
+          }
+        ]
+      },
+      "results": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3"
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3"
+        }
+      ]
+    },
+    "linearRecurrent": {
+      "scope": "Identical captured operands through one linear-attention operation",
+      "operation": "recurrent",
+      "captureSha256": "eaa36d0dc08ab0be14eabfa2a165d0a4bb518853c527fe66e88fefd6a76e2151",
+      "shaderSha256": "28808b5e10d798058d4af5b17b645bb633b9d6f0f7d2283a0b8d7cd09edf78ff",
+      "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+      "sourceSubstitution": false,
+      "upstreamSourceSubstitution": true,
+      "crossPlatform": {
+        "elements": 38912,
+        "differentElements": 30940,
+        "maxDifference": 7.152557373046875e-7
+      },
+      "macCaptureAgreement": {
+        "elements": 38912,
+        "differentElements": 0,
+        "maxDifference": 0
+      },
+      "results": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3"
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3"
+        }
+      ]
+    },
+    "linearActivationCandidate": {
+      "scope": "Identical captured operands through one linear-attention operation",
+      "operation": "conv",
+      "captureSha256": "eaa36d0dc08ab0be14eabfa2a165d0a4bb518853c527fe66e88fefd6a76e2151",
+      "shaderSha256": "1d55bcebb84b4069497af978ba3d5e888f89c28d35ca7eab5fbde5eb785cc76b",
+      "archiveSha256": "aa5921184a9e6b4227ac26029a87a8bc835347837b7936c2d10c9eb77f43baa9",
+      "sourceSubstitution": true,
+      "observeActivation": true,
+      "activationCandidate": true,
+      "originalShaderSha256": "2347834915527612b62e6d98a9cd7af635ce39fc5c0d91b00345b27203f723d0",
+      "upstreamSourceSubstitution": true,
+      "crossPlatform": {
+        "elements": 116736,
+        "differentElements": 196,
+        "maxDifference": 4.76837158203125e-7
+      },
+      "activationComparison": [
+        {
+          "stage": "mixed",
+          "elements": 116736,
+          "differentElements": 0,
+          "maxDifference": 0
+        },
+        {
+          "stage": "exponential",
+          "elements": 116736,
+          "differentElements": 275,
+          "maxDifference": 5.960464477539063e-8
+        },
+        {
+          "stage": "denominator",
+          "elements": 116736,
+          "differentElements": 28,
+          "maxDifference": 1.1920928955078125e-7
+        },
+        {
+          "stage": "reciprocal",
+          "elements": 116736,
+          "differentElements": 25,
+          "maxDifference": 1.1920928955078125e-7
+        }
+      ],
+      "macCaptureAgreement": {
+        "elements": 116736,
+        "differentElements": 30972,
+        "maxDifference": 4.76837158203125e-7
+      },
+      "reference": {
+        "scope": "Independent Float64 convolution and SiLU; never fed into inference",
+        "sha256": "aa6ca58fcb503d2b9c0678399d1b78d66f455323467c8cac223955efd75e27b3",
+        "comparisons": [
+          {
+            "platform": "mac",
+            "elements": 116736,
+            "differentElements": 116470,
+            "maxDifference": 7.301716813401526e-7,
+            "rmsError": 8.327798873768643e-9
+          },
+          {
+            "platform": "linux",
+            "elements": 116736,
+            "differentElements": 116470,
+            "maxDifference": 7.301716813401526e-7,
+            "rmsError": 8.326153535238222e-9
+          }
+        ]
+      },
+      "results": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "vendor": "apple",
+          "architecture": "metal-3"
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "vendor": "amd",
+          "architecture": "rdna-3"
+        }
+      ]
+    }
+  },
+  "cacheReference": [
+    {
+      "layer": 3,
+      "tensorDifferences": {
+        "q": {
+          "differentElements": 38309,
+          "elements": 38912,
+          "maxDifference": 0.000021457672119140625
+        },
+        "k": {
+          "differentElements": 9528,
+          "elements": 9728,
+          "maxDifference": 0.0000209808349609375
+        },
+        "v": {
+          "differentElements": 9582,
+          "elements": 9728,
+          "maxDifference": 0.000006973743438720703
+        },
+        "cachedK": {
+          "differentElements": 88,
+          "elements": 9728,
+          "maxDifference": 0.00390625
+        },
+        "cachedV": {
+          "differentElements": 116,
+          "elements": 9728,
+          "maxDifference": 0.0009765625
+        },
+        "gate": {
+          "differentElements": 37679,
+          "elements": 38912,
+          "maxDifference": 0.00002002716064453125
+        }
+      },
+      "maxCoreDifference": 0.00007342174649238586,
+      "macGpuVsFloat64": 0.0000013594338876821155,
+      "linuxGpuVsFloat64": 0.0000024697840301790563,
+      "float64WithCapturedF16CacheDifference": 0.00007358872958923568,
+      "float64WithPreCastF32KVDifference": 0.000003655290470971906,
+      "conversionChecks": [
+        {
+          "platform": "mac",
+          "role": "k",
+          "mismatchesToNearestEven": 0
+        },
+        {
+          "platform": "mac",
+          "role": "v",
+          "mismatchesToNearestEven": 0
+        },
+        {
+          "platform": "linux",
+          "role": "k",
+          "mismatchesToNearestEven": 0
+        },
+        {
+          "platform": "linux",
+          "role": "v",
+          "mismatchesToNearestEven": 0
+        }
+      ]
+    },
+    {
+      "layer": 7,
+      "tensorDifferences": {
+        "q": {
+          "differentElements": 38647,
+          "elements": 38912,
+          "maxDifference": 0.0000833272933959961
+        },
+        "k": {
+          "differentElements": 9671,
+          "elements": 9728,
+          "maxDifference": 0.00008291006088256836
+        },
+        "v": {
+          "differentElements": 9687,
+          "elements": 9728,
+          "maxDifference": 0.00003266334533691406
+        },
+        "cachedK": {
+          "differentElements": 415,
+          "elements": 9728,
+          "maxDifference": 0.00390625
+        },
+        "cachedV": {
+          "differentElements": 467,
+          "elements": 9728,
+          "maxDifference": 0.001953125
+        },
+        "gate": {
+          "differentElements": 38489,
+          "elements": 38912,
+          "maxDifference": 0.00006818771362304688
+        }
+      },
+      "maxCoreDifference": 0.00037533044815063477,
+      "macGpuVsFloat64": 0.000005381357290445976,
+      "linuxGpuVsFloat64": 0.000004627006863766603,
+      "float64WithCapturedF16CacheDifference": 0.0003754834921773642,
+      "float64WithPreCastF32KVDifference": 0.000012769628880970885,
+      "conversionChecks": [
+        {
+          "platform": "mac",
+          "role": "k",
+          "mismatchesToNearestEven": 0
+        },
+        {
+          "platform": "mac",
+          "role": "v",
+          "mismatchesToNearestEven": 0
+        },
+        {
+          "platform": "linux",
+          "role": "k",
+          "mismatchesToNearestEven": 0
+        },
+        {
+          "platform": "linux",
+          "role": "v",
+          "mismatchesToNearestEven": 0
+        }
+      ]
+    },
+    {
+      "layer": 11,
+      "tensorDifferences": {
+        "q": {
+          "differentElements": 38812,
+          "elements": 38912,
+          "maxDifference": 0.00017452239990234375
+        },
+        "k": {
+          "differentElements": 9713,
+          "elements": 9728,
+          "maxDifference": 0.00020575523376464844
+        },
+        "v": {
+          "differentElements": 9717,
+          "elements": 9728,
+          "maxDifference": 0.0002225637435913086
+        },
+        "cachedK": {
+          "differentElements": 872,
+          "elements": 9728,
+          "maxDifference": 0.00390625
+        },
+        "cachedV": {
+          "differentElements": 1058,
+          "elements": 9728,
+          "maxDifference": 0.0009765625
+        },
+        "gate": {
+          "differentElements": 38703,
+          "elements": 38912,
+          "maxDifference": 0.00011813640594482422
+        }
+      },
+      "maxCoreDifference": 0.0004514455795288086,
+      "macGpuVsFloat64": 0.00000603927047748698,
+      "linuxGpuVsFloat64": 0.000004361336047864484,
+      "float64WithCapturedF16CacheDifference": 0.00045107559148971355,
+      "float64WithPreCastF32KVDifference": 0.00028174464035402025,
+      "conversionChecks": [
+        {
+          "platform": "mac",
+          "role": "k",
+          "mismatchesToNearestEven": 0
+        },
+        {
+          "platform": "mac",
+          "role": "v",
+          "mismatchesToNearestEven": 0
+        },
+        {
+          "platform": "linux",
+          "role": "k",
+          "mismatchesToNearestEven": 0
+        },
+        {
+          "platform": "linux",
+          "role": "v",
+          "mismatchesToNearestEven": 0
+        }
+      ]
+    }
+  ],
+  "linearBoundaryComparison": [
+    {
+      "boundary": "linear-inputs",
+      "role": "qkv",
+      "elements": 131072,
+      "maxDifference": 0,
+      "differentElements": 0
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "z",
+      "elements": 49152,
+      "maxDifference": 0,
+      "differentElements": 0
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "a",
+      "elements": 512,
+      "maxDifference": 0,
+      "differentElements": 0
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "b",
+      "elements": 512,
+      "maxDifference": 0,
+      "differentElements": 0
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "convWeight",
+      "elements": 32768,
+      "maxDifference": 0,
+      "differentElements": 0
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "convState",
+      "elements": 32768,
+      "maxDifference": 0,
+      "differentElements": 0
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "dtBias",
+      "elements": 64,
+      "maxDifference": 0,
+      "differentElements": 0
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "aLog",
+      "elements": 64,
+      "maxDifference": 0,
+      "differentElements": 0
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "normWeight",
+      "elements": 128,
+      "maxDifference": 0,
+      "differentElements": 0
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "recurrentState",
+      "elements": 262144,
+      "maxDifference": 0,
+      "differentElements": 0
+    },
+    {
+      "boundary": "linear-outputs",
+      "role": "convOutput",
+      "elements": 131072,
+      "maxDifference": 2.384185791015625e-7,
+      "differentElements": 31180
+    },
+    {
+      "boundary": "linear-outputs",
+      "role": "coreOutput",
+      "elements": 49152,
+      "maxDifference": 7.152557373046875e-7,
+      "differentElements": 32079
+    },
+    {
+      "boundary": "linear-outputs",
+      "role": "convState",
+      "elements": 32768,
+      "maxDifference": 0,
+      "differentElements": 0
+    },
+    {
+      "boundary": "linear-outputs",
+      "role": "recurrentState",
+      "elements": 262144,
+      "maxDifference": 7.152557373046875e-7,
+      "differentElements": 215055
+    }
+  ],
+  "firstRemainingObservedDifference": {
+    "candidate": "ordered Q4K + refined RMSNorm",
+    "stage": "layer-zero linear attention",
+    "upstreamRows": 19,
+    "upstreamProjectionInputAndOutputMaxDifference": 0,
+    "convolutionMixedMaxDifference": 0,
+    "caveat": "Cross-platform rounding differences are observed; this does not establish that every difference violates the shader language specification."
+  },
+  "failedInstrumentation": [
+    "Early attention observers used the wrong device for staging buffers; that instrumentation failure was repaired by using recorder.device. It is not a runtime defect.",
+    "Initial recurrent isolated replay requested the default eight-storage-buffer device limit; the shader needs nine. The replay now requests nine. No model memory budget changed.",
+    "Initial polynomial diagnostic used a creation-time NaN guard rejected by WGSL; only the corrected diagnostic was executed."
+  ],
+  "checks": [
+    "Three existing RMSNorm contract/cache/fusion test files passed.",
+    "Source architecture and source style checks passed."
+  ],
+  "nextBoundary": "Isolate recurrent normalization and nonlinear intermediates using identical captured operands; the release gate remains unsatisfied."
+}
