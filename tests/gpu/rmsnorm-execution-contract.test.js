@@ -45,7 +45,10 @@ try {
   assert.throws(() => selectRMSNormKernel({ ...options, phase: undefined }, false), /explicit/);
   assert.throws(() => selectRMSNormKernel(options, true), /dtype/);
   for (const recorded of [false, true]) {
-    const recorder = { device: { limits: { maxComputeWorkgroupsPerDimension: 65535 } } };
+    const temporaries = new Set();
+    const recorder = { device: { limits: { maxComputeWorkgroupsPerDimension: 65535 } },
+      trackTemporaryBuffer: buffer => temporaries.add(buffer),
+      abort() { for (const buffer of temporaries) rmsnormContract.release(buffer); temporaries.clear(); } };
     const input = { dtype: 'f32', shape: [1, 1024], buffer: { size: 4096 } };
     const weight = { size: 4096 };
     const run = config => recorded ? recordRMSNorm(recorder, input, weight, 1e-6, config)
@@ -55,7 +58,12 @@ try {
     assert.equal(dispatch[1], recorded ? recorder : null);
     assert.equal(dispatch[2], 'default');
     assert.equal(dispatch[6].WORKGROUP_SIZE, 128);
-    assert.equal(live.size, 1, 'Only the returned output remains owned');
+    assert.equal(live.size, recorded ? 2 : 1, 'Recorded placeholder remains owned until recorder settlement');
+    if (recorded) {
+      assert(temporaries.has(dispatch[7][0].buffer), 'The recorder owns the extra binding');
+      recorder.abort();
+    }
+    assert.equal(live.size, 1, 'Only the returned output remains after recorder settlement');
     globalThis.rmsnormContract.release(result.buffer);
     const count = dispatches.length;
     await assert.rejects(run({ ...options, kernelPath: path([{ ...step, constants: { RMS_NORM_OFFSET: true } }]) }), /RMS_NORM_OFFSET/);
@@ -64,6 +72,7 @@ try {
     for (const failure of ['placeholder', 'dispatch']) {
       globalThis.rmsnormContract.fail = failure;
       await assert.rejects(run(options), /rejected/);
+      recorder.abort();
       assert.equal(live.size, 0, `${failure} rejection releases every acquired buffer`);
       globalThis.rmsnormContract.fail = null;
     }

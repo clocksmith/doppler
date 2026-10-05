@@ -400,7 +400,7 @@
     {
       "path": "src/version.js",
       "sizeBytes": 97,
-      "hash": "sha256:bac6b8cb422c5273b63c1fb71fb29f15167d37777f781127eabaa16a1eace6b8"
+      "hash": "sha256:eb8be52e9017380aace4be3f2ba458f6e4a203ce2390236090fd66fca35c1f8a"
     }
   ],
   "passed": true
