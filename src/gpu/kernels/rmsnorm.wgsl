@@ -157,10 +157,16 @@ fn main(
         workgroupBarrier();
     }
 
-    // Compute RMS
+    // Refine the inverse root without a separately rounded square root.
+    // The FMA residual includes the rounding error in estimate * estimate.
     let mean_sq = shared_sum[0] / f32(size);
-    let rms = sqrt(mean_sq + u.eps);
-    let inv_rms = 1.0 / rms;
+    let epsilon_sum = mean_sq + u.eps;
+    let estimate = inverseSqrt(epsilon_sum);
+    let estimate_squared = estimate * estimate;
+    let square_error = fma(estimate, estimate, -estimate_squared);
+    let reciprocal_residual = fma(-epsilon_sum, estimate_squared, 1.0)
+        - epsilon_sum * square_error;
+    let inv_rms = fma(0.5 * estimate, reciprocal_residual, estimate);
 
     workgroupBarrier();
 

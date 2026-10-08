@@ -11,6 +11,11 @@ import {
   normalizePrefixEmbeddingOverride,
 } from '../../../src/inference/pipelines/text/generator/prefix-embedding.js';
 import { runGather } from '../../../src/gpu/kernels/gather.js';
+import { runRMSNorm, recordRMSNorm } from '../../../src/gpu/kernels/rmsnorm.js';
+import { createWeightBuffer } from '../../../src/gpu/weight-buffer.js';
+import { getDevice } from '../../../src/gpu/device.js';
+import { CommandRecorder } from '../../../src/gpu/command-recorder.js';
+import rmsNormAccuracy from '../../fixtures/rmsnorm-inverse-root.json' with { type: 'json' };
 import {
   layerNormRef,
   groupNormRef,
@@ -525,6 +530,60 @@ export async function runKernelSuite(harness) {
       const actual = await h.runRMSNorm(null, input, weight, numTokens, hiddenSize, 1e-6);
       const result = h.compareArrays(expected, actual, h.KERNEL_TOLERANCES.rmsnorm);
       return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'rmsnorm_declared_main_accuracy',
+    async () => {
+      await h.getGPU();
+      const decode = async (operand, Type) => {
+        const bytes = Uint8Array.from(atob(operand.data), value => value.charCodeAt(0));
+        const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
+          value => value.toString(16).padStart(2, '0')).join('');
+        if (hash !== operand.sha256) throw new Error('RMSNorm accuracy operand identity changed');
+        return new Type(bytes.buffer);
+      };
+      const input = await decode(rmsNormAccuracy.input, Float32Array);
+      const packedWeights = await decode(rmsNormAccuracy.weight, Uint16Array);
+      const weights = Float32Array.from(packedWeights,
+        value => f16ToF32(value) + Number(rmsNormAccuracy.weightOffset));
+      const { hiddenSize, epsilon, maxAbsoluteError } = rmsNormAccuracy;
+      const expected = h.references.rmsNormRef(input, weights, 1, hiddenSize, epsilon);
+      const step = { op: 'input_norm', kernel: 'rmsnorm.wgsl', entry: 'main' };
+      const options = { batchSize: 1, hiddenSize, rmsNormWeightOffset: rmsNormAccuracy.weightOffset,
+        role: 'input_norm', section: 'layer', phase: 'prefill', layerIdx: 0,
+        kernelPath: { activationDtype: 'f32', prefill: { steps: [step] }, decode: { steps: [step] } } };
+      let inputBuffer, weightBuffer;
+      try {
+        inputBuffer = acquireBuffer(input.byteLength);
+        weightBuffer = acquireBuffer(packedWeights.byteLength);
+        uploadData(inputBuffer, input); uploadData(weightBuffer, packedWeights);
+        const tensor = createTensor(inputBuffer, 'f32', [1, hiddenSize]);
+        const weight = createWeightBuffer(weightBuffer, 'f16', 'row', [hiddenSize]);
+        for (const recorded of [false, true]) {
+          const recorder = recorded ? new CommandRecorder(getDevice()) : null;
+          let output;
+          try {
+            output = recorded ? await recordRMSNorm(recorder, tensor, weight, epsilon, options)
+              : await runRMSNorm(tensor, weight, epsilon, options);
+            if (recorder) await recorder.submitAndWait();
+            const actual = new Float32Array(await readBufferSlice(output.buffer, 0, input.byteLength));
+            for (let index = 0; index < expected.length; index++) {
+              if (!Number.isFinite(actual[index]) || Math.abs(actual[index] - expected[index]) > maxAbsoluteError) {
+                throw new Error(`Declared RMSNorm main accuracy failed at ${index}: ${actual[index]} != ${expected[index]}`);
+              }
+            }
+          } finally {
+            if (output) releaseBuffer(output.buffer);
+            recorder?.abort();
+          }
+        }
+        return true;
+      } finally {
+        if (weightBuffer) releaseBuffer(weightBuffer);
+        if (inputBuffer) releaseBuffer(inputBuffer);
+      }
     },
   ]);
 
