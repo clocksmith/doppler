@@ -35,8 +35,6 @@
   "inference": {
     "schema": "doppler.execution/v1",
     "attention": {
-      "queryKeyNormType": "rmsnorm",
-      "queryKeyNormAxis": "head",
       "queryPreAttnScalar": 256,
       "attnLogitSoftcapping": null,
       "slidingWindow": null,
@@ -135,12 +133,10 @@
       "enabled": true
     },
     "supportsEmbedding": false,
-    "supportsSequence": false,
     "supportsRerank": false,
     "supportsTranscription": false,
     "supportsVision": false,
     "rerank": null,
-    "sequence": null,
     "diffusionGemma": null,
     "pipeline": null,
     "session": {
@@ -236,17 +232,17 @@
         "rmsnorm": {
           "kernel": "rmsnorm.wgsl",
           "entry": "main",
-          "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
+          "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
         },
         "q4_decode": {
           "kernel": "fused_matmul_q4.wgsl",
           "entry": "main_multicol",
-          "digest": "sha256:53d5573ae047f553dac3c226507c6e1d80a2a2a2939acb65acd8092dd229677b"
+          "digest": "sha256:c97827b7ca42c0215756d91c7166106e189174c1a64fe473f0c017b3eb27188e"
         },
         "q4_decode_gemv": {
           "kernel": "fused_matmul_q4.wgsl",
           "entry": "main_gemv",
-          "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
+          "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d"
         },
         "rope": {
           "kernel": "rope.wgsl",
@@ -269,7 +265,7 @@
         "silu": {
           "kernel": "silu.wgsl",
           "entry": "main",
-          "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+          "digest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
           "constants": {
             "HAS_GATE": true
           }
@@ -282,7 +278,7 @@
         "q4_widetile": {
           "kernel": "fused_matmul_q4_widetile.wgsl",
           "entry": "main",
-          "digest": "sha256:26e00e5a829ac064b85ed9b1c2565ec8d957ee468666903f1d47e07d93dfb3bc"
+          "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62"
         },
         "tiled": {
           "kernel": "matmul_f16w_f32a.wgsl",
@@ -317,7 +313,7 @@
         "lm_head_q4": {
           "kernel": "fused_matmul_q4.wgsl",
           "entry": "main_gemv",
-          "digest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7",
+          "digest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
           "constants": {
             "COLS_PER_WG": 64,
             "THREADS_PER_COL_GEMV": 4
@@ -326,7 +322,7 @@
         "sample": {
           "kernel": "sample.wgsl",
           "entry": "sample_single_pass",
-          "digest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef"
+          "digest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b"
         }
       },
       "preLayer": [
@@ -6105,7 +6101,7 @@
     "convertedAt": "2026-04-05T01:30:03.550Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-10-08T17:05:32.603Z",
+      "at": "2026-07-04T14:34:40.216Z",
       "config": "qwen-3-5-2b-q4k-ehaf16.json"
     }
   },
@@ -6117,11 +6113,10 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:76bb8729cd138886f1a411657aa155c3f98d33e65f245232135724e37e996df9",
+    "conversionConfigDigest": "sha256:2f46bcfb867fd8caedfd31420aa3d05b29b83f0d5d8fe7140e5f767aa3e89132",
     "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
     "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
     "sourceCheckpointId": "Qwen/Qwen3.5-2B",
-    "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
     "weightPackId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1"
   },
   "integrityExtensions": {

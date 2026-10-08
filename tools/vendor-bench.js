@@ -1870,10 +1870,9 @@ function assertClaimMatrixCompareEvidence(compareReport, lane, matrix, workloads
     lane.artifact.manifestSha256,
     `${compareEvidenceLabel} manifestSha256`
   );
-  const manifestSource = asNonEmptyStringValue(compareReport?.dopplerModelSource?.manifestSource);
-  if (manifestSource && manifestSource !== lane.artifact.manifestPath) {
-    throw new Error(`${compareEvidenceLabel} manifestSource must match artifact.manifestPath`);
-  }
+  // A retained manifest may move outside a mutable development model directory.
+  // The verified content identity above binds it to the unchanged run receipt;
+  // the original locator remains provenance rather than a second byte identity.
 
   assertClaimCompareNumber(
     compareReport.maxTokens,

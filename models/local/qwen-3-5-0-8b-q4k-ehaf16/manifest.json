@@ -14,7 +14,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:f454e13fec5bf3335d046263250c17eb48b74b5555c589c95cb92373c5b4bb81",
+    "conversionConfigDigest": "sha256:ca931d6b0a4b50793c669e499ed60ef543d0c7d837619125931f164585459eec",
     "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
     "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
     "materializationProfile": "auto",
@@ -297,7 +297,7 @@
         "q4_widetile": {
           "kernel": "fused_matmul_q4_widetile.wgsl",
           "entry": "main",
-          "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62"
+          "digest": "sha256:26e00e5a829ac064b85ed9b1c2565ec8d957ee468666903f1d47e07d93dfb3bc"
         },
         "tiled": {
           "kernel": "matmul_f16w_f32a.wgsl",
@@ -6679,7 +6679,7 @@
     "convertedAt": "2026-04-24T17:34:03.192Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-10-08T15:25:23.093Z",
+      "at": "2026-10-08T17:05:31.562Z",
       "config": "qwen-3-5-0-8b-q4k-ehaf16.json"
     }
   },

@@ -12,10 +12,12 @@ import {
 } from '../../../src/inference/pipelines/text/generator/prefix-embedding.js';
 import { runGather } from '../../../src/gpu/kernels/gather.js';
 import { runRMSNorm, recordRMSNorm } from '../../../src/gpu/kernels/rmsnorm.js';
+import { runMatmul, recordMatmul } from '../../../src/gpu/kernels/matmul.js';
 import { createWeightBuffer } from '../../../src/gpu/weight-buffer.js';
 import { getDevice } from '../../../src/gpu/device.js';
 import { CommandRecorder } from '../../../src/gpu/command-recorder.js';
 import rmsNormAccuracy from '../../fixtures/rmsnorm-inverse-root.json' with { type: 'json' };
+import q4Accuracy from '../../fixtures/q4k-ordered-accumulation.json' with { type: 'json' };
 import {
   layerNormRef,
   groupNormRef,
@@ -245,6 +247,51 @@ export async function runKernelSuite(harness) {
       const actual = await h.runMatmulQ4K(null, A, B_q4k, M, N, K, 1.0);
       const result = h.compareArrays(expected, actual, { rtol: 1e-2, atol: 1e-2 });
       return result.passed;
+    },
+  ]);
+
+  tests.push([
+    'matmul_q4k_declared_widetile_accuracy',
+    async () => {
+      await h.getGPU();
+      const decode = async (operand, Type) => {
+        const bytes = Uint8Array.from(atob(operand.data), value => value.charCodeAt(0));
+        const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
+          value => value.toString(16).padStart(2, '0')).join('');
+        if (hash !== operand.sha256) throw new Error('Q4 accuracy operand identity changed');
+        return new Type(bytes.buffer);
+      };
+      const input = await decode(q4Accuracy.input, Float32Array);
+      const weights = await decode(q4Accuracy.weights, Uint8Array);
+      const expected = await decode(q4Accuracy.reference, Float64Array);
+      const { M, N, K, maxAbsoluteError } = q4Accuracy;
+      const step = { op: 'qkv_proj', kernel: 'fused_matmul_q4_widetile.wgsl', entry: 'main',
+        constants: { TILE_M: 4, TILE_N: 256 } };
+      const options = { role: 'qkv_proj', phaseOverride: 'prefill', layerIdx: 0, outputDtype: 'f32',
+        kernelPath: { activationDtype: 'f32', prefill: { steps: [step] }, decode: { steps: [step] } } };
+      let inputBuffer, weightBuffer;
+      try {
+        inputBuffer = acquireBuffer(input.byteLength); weightBuffer = acquireBuffer(weights.byteLength);
+        uploadData(inputBuffer, input); uploadData(weightBuffer, weights);
+        const tensor = createTensor(inputBuffer, 'f32', [M, K]);
+        const weight = createWeightBuffer(weightBuffer, 'q4k', 'row', [N, K]);
+        for (const recorded of [false, true]) {
+          const recorder = recorded ? new CommandRecorder(getDevice()) : null;
+          let output;
+          try {
+            output = recorded ? await recordMatmul(recorder, tensor, weight, M, N, K, options)
+              : await runMatmul(tensor, weight, M, N, K, options);
+            if (recorder) await recorder.submitAndWait();
+            const actual = new Float32Array(await readBufferSlice(output.buffer, 0, M * N * 4));
+            for (let index = 0; index < expected.length; index++) {
+              if (!Number.isFinite(actual[index]) || Math.abs(actual[index] - expected[index]) > maxAbsoluteError) {
+                throw new Error(`Declared Q4 WideTile accuracy failed at ${index}: ${actual[index]} != ${expected[index]}`);
+              }
+            }
+          } finally { if (output) releaseBuffer(output.buffer); recorder?.abort(); }
+        }
+        return true;
+      } finally { if (weightBuffer) releaseBuffer(weightBuffer); if (inputBuffer) releaseBuffer(inputBuffer); }
     },
   ]);
 
