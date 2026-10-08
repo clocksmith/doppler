@@ -6105,7 +6105,7 @@
     "convertedAt": "2026-04-05T01:30:03.550Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-10-08T18:15:59.674Z",
+      "at": "2026-10-08T18:59:27.186Z",
       "config": "qwen-3-5-2b-q4k-ehaf16.json"
     }
   },

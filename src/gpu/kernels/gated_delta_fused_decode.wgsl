@@ -42,7 +42,7 @@ fn softplus(x: f32) -> f32 {
   if (x < -20.0) {
     return exp_refined(x);
   }
-  return log(1.0 + exp_refined(x));
+  return log_refined(1.0 + exp_refined(x));
 }
 
 // Refine exp with a short F32 polynomial. Q32 range reduction prevents
@@ -138,6 +138,43 @@ fn reduce_sum(value: f32, lid: u32) -> f32 {
   return result;
 }
 
+// Softplus supplies positive normal log arguments. Mantissa reduction and
+// the atanh series keep the F32 result close to the independent logarithm.
+fn log_refined(x: f32) -> f32 {
+  if (x <= 0.0 || x > 3.4028234663852886e38) {
+    return log(x);
+  }
+  let bits = bitcast<u32>(x);
+  var exponent = i32((bits >> 23u) & 255u) - 127;
+  var mantissa = bitcast<f32>((bits & 0x007fffffu) | 0x3f800000u);
+  if (mantissa > 1.4142135623730951) {
+    mantissa = mantissa * 0.5;
+    exponent = exponent + 1;
+  }
+  let s = (mantissa - 1.0) * reciprocal_refined(mantissa + 1.0);
+  let squared = s * s;
+  var p = 0.09090909090909091;
+  p = fma(p, squared, 0.1111111111111111);
+  p = fma(p, squared, 0.14285714285714285);
+  p = fma(p, squared, 0.2);
+  p = fma(p, squared, 0.3333333333333333);
+  p = fma(p, squared, 1.0);
+  let reduced = 2.0 * s * p;
+  let low = fma(f32(exponent), 0.0000014286068203094172, reduced);
+  return fma(f32(exponent), 0.693145751953125, low);
+}
+
+// Keep each scale product rounded before it enters a fused state update.
+// The loop prevents cross-expression reassociation by the shader compiler.
+fn multiply_ordered(a: f32, b: f32) -> f32 {
+  var product = 1.0;
+  let factors = array<f32, 2>(a, b);
+  for (var i = 0u; i < 2u; i = i + 1u) {
+    product = fma(product, factors[i], 0.0);
+  }
+  return product;
+}
+
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(@builtin(workgroup_id) wid: vec3<u32>,
         @builtin(local_invocation_id) lid: vec3<u32>) {
@@ -193,24 +230,24 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
   var kv_mem = 0.0;
   if (is_v_active) {
     for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
-      let k_normed = shared_k[kd] * k_norm_scale;
+      let k_normed = multiply_ordered(shared_k[kd], k_norm_scale);
       let state_idx = recurrent_head_base + kd * head_v_dim + lane;
-      kv_mem = kv_mem + recurrent_state[state_idx] * k_normed;
+      kv_mem = fma(recurrent_state[state_idx], k_normed, kv_mem);
     }
-    let delta = (v_val - kv_mem) * beta;
+    let delta = multiply_ordered(v_val - kv_mem, beta);
     for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
-      let k_normed = shared_k[kd] * k_norm_scale;
+      let k_normed = multiply_ordered(shared_k[kd], k_norm_scale);
       let state_idx = recurrent_head_base + kd * head_v_dim + lane;
-      recurrent_state[state_idx] = recurrent_state[state_idx] + k_normed * delta;
+      recurrent_state[state_idx] = fma(k_normed, delta, recurrent_state[state_idx]);
     }
   }
 
   var out_value = 0.0;
   if (is_v_active) {
     for (var kd: u32 = 0u; kd < head_k_dim; kd = kd + 1u) {
-      let q_normed = shared_q[kd] * q_norm_scale;
+      let q_normed = fma(shared_q[kd], q_norm_scale, 0.0);
       let state_idx = recurrent_head_base + kd * head_v_dim + lane;
-      out_value = out_value + recurrent_state[state_idx] * q_normed;
+      out_value = fma(recurrent_state[state_idx], q_normed, out_value);
     }
   }
 
@@ -223,6 +260,11 @@ fn main(@builtin(workgroup_id) wid: vec3<u32>,
     let z_index = select(z_row_base + lane, z_packed_base + lane, (params.packed_flags & 2u) != 0u);
     let gate = silu(f32(z_proj[z_index]));
     let norm_index = select(lane, head * head_v_dim + lane, params.norm_mode == 1u);
-    output[out_row_base + lane] = (out_value * inv_rms) * norm_weight[norm_index] * gate;
+    var value = out_value;
+    let factors = array<f32, 3>(inv_rms, norm_weight[norm_index], gate);
+    for (var i = 0u; i < 3u; i = i + 1u) {
+      value = fma(value, factors[i], 0.0);
+    }
+    output[out_row_base + lane] = value;
   }
 }
