@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { attachCompareFairnessAudit } from '../../tools/compare-engines.js';
 
@@ -64,6 +65,13 @@ async function readExpectedReleaseClaimableModelIds() {
   const capabilities = JSON.parse(await fs.readFile(capabilitiesPath, 'utf8'));
   const claimMatrix = JSON.parse(await fs.readFile(claimMatrixPath, 'utf8'));
   const compareConfig = JSON.parse(await fs.readFile(compareConfigPath, 'utf8'));
+  const qwenLane = claimMatrix.lanes.find(lane => lane.id === 'qwen-3-5-2b-q4k-rdrr');
+  const qwenManifest = await fs.readFile(qwenLane.artifact.manifestPath);
+  const qwenReceipt = JSON.parse(await fs.readFile(qwenLane.evidence.compareResult, 'utf8'));
+  assert.notEqual(qwenReceipt.dopplerModelSource.manifestSource, qwenLane.artifact.manifestPath,
+    'Retained Qwen evidence exercises a relocated immutable manifest');
+  assert.equal(createHash('sha256').update(qwenManifest).digest('hex'), qwenLane.artifact.manifestSha256);
+  assert.equal(qwenReceipt.dopplerModelSource.manifestSha256, qwenLane.artifact.manifestSha256);
   assert.deepEqual(
     claimMatrix.promotionGates.throughputCadence,
     benchmarkPolicy.promotionGates.throughputCadence

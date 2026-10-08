@@ -282,7 +282,7 @@
         "q4_widetile": {
           "kernel": "fused_matmul_q4_widetile.wgsl",
           "entry": "main",
-          "digest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62"
+          "digest": "sha256:26e00e5a829ac064b85ed9b1c2565ec8d957ee468666903f1d47e07d93dfb3bc"
         },
         "tiled": {
           "kernel": "matmul_f16w_f32a.wgsl",
@@ -6105,7 +6105,7 @@
     "convertedAt": "2026-04-05T01:30:03.550Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-10-08T15:40:07.852Z",
+      "at": "2026-10-08T17:05:32.603Z",
       "config": "qwen-3-5-2b-q4k-ehaf16.json"
     }
   },
@@ -6117,7 +6117,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:9cdcd63481e7531ffd10ab801fff4970a6328bd3cb8eb47d46ac5acfd0317f14",
+    "conversionConfigDigest": "sha256:76bb8729cd138886f1a411657aa155c3f98d33e65f245232135724e37e996df9",
     "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
     "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
     "sourceCheckpointId": "Qwen/Qwen3.5-2B",

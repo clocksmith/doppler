@@ -1,6 +1,6 @@
 {
   "name": "doppler-gpu",
-  "version": "0.6.12",
+  "version": "0.6.13",
   "description": "Doppler Rig prepares signed model Capsules; Doppler Run executes them locally through WebGPU for JavaScript",
   "main": "src/capsule-runtime.js",
   "types": "src/capsule-runtime.d.ts",
@@ -419,6 +419,7 @@
     "tests/kernels/browser/kernel-suite.js",
     "tests/kernels/browser/test-page.js",
     "tests/fixtures/rmsnorm-inverse-root.json",
+    "tests/fixtures/q4k-ordered-accumulation.json",
     "tests/kernels/harness/benchmark.js",
     "tests/kernels/harness/buffer-utils.js",
     "tests/kernels/harness/tolerance.js",
