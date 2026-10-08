@@ -276,25 +276,27 @@ await assert.rejects(
   /reference report must include metrics/
 );
 
+const staleGeluManifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+staleGeluManifest.inference.execution.kernels.rmsnorm = {
+  kernel: 'rmsnorm.wgsl',
+  entry: 'main',
+  digest: `sha256:${KERNEL_REF_CONTENT_DIGESTS['rmsnorm.wgsl#main']}`,
+};
+staleGeluManifest.inference.execution.kernels.gelu = {
+  kernel: 'gelu.wgsl',
+  entry: 'main',
+  digest: `sha256:${'0'.repeat(64)}`,
+};
+staleGeluManifest.inference.execution.mechanismKernels.push('rmsnorm', 'gelu');
+const staleGeluManifestPath = path.join(modelDir, 'stale-gelu-manifest.json');
+await fs.writeFile(staleGeluManifestPath, JSON.stringify(staleGeluManifest));
 await assert.rejects(
   () => exportProgramBundle({
     repoRoot,
-    manifestPath: path.join(
-      repoRoot,
-      'models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json'
-    ),
-    modelDir: path.join(
-      repoRoot,
-      'models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple'
-    ),
-    referenceReportPath: path.join(
-      repoRoot,
-      'tests/fixtures/reports/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-16T00-00-00.000Z.json'
-    ),
-    conversionConfigPath: path.join(
-      repoRoot,
-      'src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json'
-    ),
+    manifestPath: staleGeluManifestPath,
+    modelDir,
+    referenceReportPath: reportPath,
+    conversionConfigPath,
   }),
   /kernel digest mismatch for gelu\.wgsl#main/
 );

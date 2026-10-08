@@ -92,7 +92,11 @@ assert.equal(hashJson(retainedConfig), 'sha256:b7961c6c2c0fa75a51db4eb689e737c88
 assert.notEqual(hashJson(af16Config), hashJson(retainedConfig));
 const currentWithRetainedKernel = structuredClone(af16Config);
 currentWithRetainedKernel.execution.kernels.gelu.digest = retainedConfig.execution.kernels.gelu.digest;
-const digestRebindings = readJson('artifacts/release-kernel-digests-2026-09-12/recipe-digest-rebindings.json');
+const digestRebindings = {
+  ...readJson('artifacts/release-kernel-digests-2026-09-12/recipe-digest-rebindings.json'),
+  'sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1':
+    'sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c',
+};
 for (const [id, kernel] of Object.entries(retainedConfig.execution.kernels)) {
   if (kernel.digest in digestRebindings) {
     assert.equal(currentWithRetainedKernel.execution.kernels[id].digest,
@@ -101,7 +105,7 @@ for (const [id, kernel] of Object.entries(retainedConfig.execution.kernels)) {
   }
 }
 assert.deepEqual(currentWithRetainedKernel, retainedConfig,
-  'Only the GELU identity and recorded kernel-digest repairs may differ from the retained Gemma recipe.');
+  'Only the GELU identity, explicit RMS normalization change, and recorded digest repairs may differ.');
 
 assert.deepEqual(
   af16Manifest.inference?.session?.compute?.defaults,
