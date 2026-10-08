@@ -5,8 +5,8 @@ import { resolve } from 'node:path';
 /** Read-only copies before full attention and after its output projection input.
  * Shares the fixture's debugger session so independent pause handlers cannot race.
  * Captures full prefill tensors; never changes arithmetic, precision or cache data. */
-export async function observeAttentionCache(context, packageRoot, captures) {
-  const locations = [
+export async function observeAttentionCache(context, packageRoot, captures, options = {}) {
+  let locations = [
     { file: 'inference/pipelines/text/attention/interpreter/recorded.js',
       marker: '  let attnOutput = null;', condition: 'options.numTokens > 1 && [3, 7, 11].includes(options.layerIdx)',
       expression: 'captureAttentionCache("inputs", options)' },
@@ -23,6 +23,11 @@ export async function observeAttentionCache(context, packageRoot, captures) {
       condition: 'options.layerIdx === 0 && numTokens > 1',
       expression: 'captureLinearCore("outputs", {recorder, numTokens, layerState, options, convOutBuffer, outputBuffer})' },
   ];
+  if (options.linearOnly === true) locations = locations.filter(location => location.expression.startsWith('captureLinearCore('));
+  if (options.captureCondition) {
+    locations = locations.map(location => ({ ...location,
+      condition: `(${location.condition}) && (${options.captureCondition})` }));
+  }
   for (const location of locations) {
     const lines = (await readFile(resolve(packageRoot, 'src', location.file), 'utf8')).split('\n');
     location.line = lines.indexOf(location.marker);
