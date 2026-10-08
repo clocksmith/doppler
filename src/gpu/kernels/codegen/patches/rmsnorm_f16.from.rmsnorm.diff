@@ -147,7 +147,7 @@
  // Main RMSNorm kernel - one workgroup per token
  @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
  fn main(
-@@ -132,151 +91,44 @@
+@@ -132,157 +91,44 @@
  
      let base_offset = token_idx * size;
  
@@ -180,10 +180,16 @@
          workgroupBarrier();
      }
  
--    // Compute RMS
+-    // Refine the inverse root without a separately rounded square root.
+-    // The FMA residual includes the rounding error in estimate * estimate.
 -    let mean_sq = shared_sum[0] / f32(size);
--    let rms = sqrt(mean_sq + u.eps);
--    let inv_rms = 1.0 / rms;
+-    let epsilon_sum = mean_sq + u.eps;
+-    let estimate = inverseSqrt(epsilon_sum);
+-    let estimate_squared = estimate * estimate;
+-    let square_error = fma(estimate, estimate, -estimate_squared);
+-    let reciprocal_residual = fma(-epsilon_sum, estimate_squared, 1.0)
+-        - epsilon_sum * square_error;
+-    let inv_rms = fma(0.5 * estimate, reciprocal_residual, estimate);
 -
 +    let row_scale = select(f16(1.0), shared_sum[0], shared_sum[0] > f16(0.0));
      workgroupBarrier();
@@ -310,7 +316,7 @@
      for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
          if (thread_idx < stride) {
              shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
-@@ -284,117 +136,38 @@
+@@ -290,117 +136,38 @@
          workgroupBarrier();
      }
  
@@ -440,7 +446,7 @@
  ) {
      let token_idx = token_index(wg_id);
      let thread_idx = local_id.x;
-@@ -405,48 +178,49 @@
+@@ -411,48 +178,49 @@
      }
  
      let base_offset = token_idx * size;

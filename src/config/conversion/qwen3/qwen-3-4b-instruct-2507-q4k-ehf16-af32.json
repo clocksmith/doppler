@@ -38,7 +38,7 @@
       "attentionOutputGate": false
     },
     "normalization": {
-      "rmsNormEps": 1e-06,
+      "rmsNormEps": 0.000001,
       "rmsNormWeightOffset": false,
       "postAttentionNorm": true,
       "preFeedforwardNorm": false,
@@ -191,7 +191,7 @@
       "rmsnorm": {
         "kernel": "rmsnorm.wgsl",
         "entry": "main",
-        "digest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1"
+        "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
       },
       "q4_decode_gemv": {
         "kernel": "fused_matmul_q4.wgsl",
