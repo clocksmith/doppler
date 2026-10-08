@@ -26,13 +26,15 @@ for (const entry of manifest.files) {
   const expected = renameIdentityFields(JSON.parse(bytes));
   // Later shader changes and the recorded stale-digest repair have exact
   // identity mappings. Every other field still matches the frozen archive.
-  const geluDigests = {
+  const shaderChanges = {
     ...digestRebindings,
     'sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34':
       'sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0',
+    'sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1':
+      'sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c',
   };
   for (const [id, kernel] of Object.entries(expected.execution.kernels)) {
-    if (kernel.digest in geluDigests) {
+    if (kernel.digest in shaderChanges) {
       const currentDigest = `sha256:${KERNEL_REF_CONTENT_DIGESTS[`${kernel.kernel}#${kernel.entry}`]}`;
       assert.equal(current.execution.kernels[id].digest, currentDigest);
       kernel.digest = currentDigest;

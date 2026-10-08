@@ -93,7 +93,7 @@ assert.deepEqual(
   Object.fromEntries(Object.entries(config.execution.kernels).map(([id, kernel]) => [id, kernel.digest])),
   {
     embed: 'sha256:8995b4a790a1f3b89fbb801f89d595985eee46c9bfca4133f74396259083eda9',
-    rmsnorm: 'sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1',
+    rmsnorm: 'sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c',
     tiled: 'sha256:027a8f1cd9713cbe0b0ada160bd175e0542bb90896ad85441b023522d9a1befc',
     rope: 'sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b',
     attn_small: 'sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668',
