@@ -418,6 +418,7 @@
     "models/catalog.json",
     "tests/kernels/browser/kernel-suite.js",
     "tests/kernels/browser/test-page.js",
+    "tests/fixtures/rmsnorm-inverse-root.json",
     "tests/kernels/harness/benchmark.js",
     "tests/kernels/harness/buffer-utils.js",
     "tests/kernels/harness/tolerance.js",
