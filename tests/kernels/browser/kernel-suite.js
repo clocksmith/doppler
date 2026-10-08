@@ -16,8 +16,13 @@ import { runMatmul, recordMatmul } from '../../../src/gpu/kernels/matmul.js';
 import { createWeightBuffer } from '../../../src/gpu/weight-buffer.js';
 import { getDevice } from '../../../src/gpu/device.js';
 import { CommandRecorder } from '../../../src/gpu/command-recorder.js';
+import { getRuntimeConfig, setRuntimeConfig } from '../../../src/config/runtime.js';
+import { runLinearAttentionCoreGPU } from '../../../src/gpu/kernels/linear-attention-core.js';
+import { getShaderModule } from '../../../src/gpu/kernels/shader-cache.js';
 import rmsNormAccuracy from '../../fixtures/rmsnorm-inverse-root.json' with { type: 'json' };
 import q4Accuracy from '../../fixtures/q4k-ordered-accumulation.json' with { type: 'json' };
+import linearAccuracy from '../../fixtures/linear-core-refined-accuracy.json' with { type: 'json' };
+import linearActivation from '../../fixtures/linear-core-activation-accuracy.json' with { type: 'json' };
 import {
   layerNormRef,
   groupNormRef,
@@ -77,6 +82,14 @@ function compareExact(expected, actual) {
     if (expected[i] !== actual[i]) return false;
   }
   return true;
+}
+
+async function decodeLinearReference(operand) {
+  const bytes = Uint8Array.from(atob(operand.data), value => value.charCodeAt(0));
+  const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
+    value => value.toString(16).padStart(2, '0')).join('');
+  if (digest !== operand.sha256) throw new Error('Linear reference operand identity changed');
+  return operand.dtype === 'f64' ? new Float64Array(bytes.buffer) : new Float32Array(bytes.buffer);
 }
 
 function f16ToF32(bits) {
@@ -292,6 +305,115 @@ export async function runKernelSuite(harness) {
         }
         return true;
       } finally { if (weightBuffer) releaseBuffer(weightBuffer); if (inputBuffer) releaseBuffer(inputBuffer); }
+    },
+  ]);
+
+  tests.push([
+    'linear_attention_declared_activation_accuracy',
+    async () => {
+      await h.getGPU();
+      const device = getDevice(), values = await decodeLinearReference(linearActivation.input);
+      const owned = [], uniforms = [], allocate = data => {
+        const buffer = acquireBuffer(data.byteLength); owned.push(buffer); uploadData(buffer, data); return buffer;
+      };
+      try {
+        for (const dtype of ['f32', 'f16']) {
+          const input = dtype === 'f16' ? f32ArrayToF16(values) : values;
+          const rounded = dtype === 'f16' ? Float32Array.from(input, f16ToF32) : values;
+          const inputBuffer = allocate(input), weight = allocate(new Float32Array(values.length).fill(1));
+          const state = allocate(new Float32Array(values.length)), output = allocate(new Float32Array(values.length));
+          const data = new ArrayBuffer(64), view = new DataView(data);
+          [1, values.length, 1, 1, 1, 1, values.length - 2, 1, 1, values.length - 2, 1, 0]
+            .forEach((value, index) => view.setUint32(index * 4, value, true));
+          view.setFloat32(48, 1e-6, true); view.setFloat32(52, 1e-6, true);
+          const params = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+          uniforms.push(params); device.queue.writeBuffer(params, 0, data);
+          const module = await getShaderModule(device, `gated_delta_conv${dtype === 'f16' ? '_f16' : ''}.wgsl`);
+          const pipeline = await device.createComputePipelineAsync({ layout: 'auto',
+            compute: { module, entryPoint: 'main', constants: { WORKGROUP_SIZE: 256 } } });
+          const group = device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries:
+            [params, inputBuffer, weight, state, output].map((buffer, binding) => ({ binding, resource: { buffer } })) });
+          for (const recorded of [false, true]) {
+            const recorder = recorded ? new CommandRecorder(device) : null;
+            try {
+              uploadData(state, new Float32Array(values.length));
+              const encoder = recorder?.getEncoder() ?? device.createCommandEncoder();
+              const pass = encoder.beginComputePass(); pass.setPipeline(pipeline); pass.setBindGroup(0, group);
+              pass.dispatchWorkgroups(Math.ceil(values.length / 256)); pass.end();
+              if (recorder) await recorder.submitAndWait(); else device.queue.submit([encoder.finish()]);
+              const actual = new Float32Array(await readBufferSlice(output, 0, values.length * 4));
+              for (let i = 0; i < actual.length; i++) {
+                const expected = rounded[i] / (1 + Math.exp(-rounded[i]));
+                const ulp = expected === 0 ? 2 ** -149 : 2 ** (Math.floor(Math.log2(Math.abs(expected))) - 23);
+                if (!Number.isFinite(actual[i]) || Math.abs(actual[i] - expected) > linearActivation.maxUlp * ulp) {
+                  throw new Error(`Declared ${dtype} linear activation failed at ${i}: ${actual[i]} != ${expected}`);
+                }
+              }
+            } finally { recorder?.abort(); }
+          }
+        }
+        return true;
+      } finally {
+        for (const buffer of owned) releaseBuffer(buffer);
+        for (const buffer of uniforms) buffer.destroy();
+      }
+    },
+  ]);
+
+  tests.push([
+    'linear_attention_captured_prefill_and_continuation_accuracy',
+    async () => {
+      await h.getGPU();
+      const p = linearAccuracy.params, priorConfig = getRuntimeConfig();
+      const inputs = Object.fromEntries(await Promise.all(linearAccuracy.input.map(async operand =>
+        [operand.role, await decodeLinearReference(operand)])));
+      const references = Object.fromEntries(await Promise.all(['prefill', 'decode'].map(async phase =>
+        [phase, Object.fromEntries(await Promise.all(linearAccuracy[phase].map(async operand =>
+          [operand.role, await decodeLinearReference(operand)])))])));
+      try {
+        setRuntimeConfig(linearAccuracy.decodeRuntimeConfig);
+        for (const recorded of [false, true]) {
+          const owned = [], allocate = data => {
+            const buffer = acquireBuffer(data.byteLength); owned.push(buffer); uploadData(buffer, data); return buffer;
+          };
+          try {
+            const layerState = { ...p, vSize: p.valueDim,
+              convStateGPU: allocate(new Float32Array(p.convDim * p.convKernelSize)),
+              recurrentStateGPU: allocate(new Float32Array(p.numVHeads * p.headKDim * p.headVDim)) };
+            for (const role of ['convWeight', 'dtBias', 'aLog', 'normWeight']) layerState[`${role}GPU`] = allocate(inputs[role]);
+            const buffers = Object.fromEntries(['qkv', 'z', 'a', 'b'].map(role => [role, allocate(inputs[role])]));
+            const packed = new Float32Array(p.numVHeads * 2);
+            packed.set(inputs.a.subarray(0, p.numVHeads)); packed.set(inputs.b.subarray(0, p.numVHeads), p.numVHeads);
+            const packedBuffer = allocate(packed);
+            for (const phase of ['prefill', 'decode']) {
+              const count = phase === 'prefill' ? p.numTokens : 1;
+              const recorder = recorded ? new CommandRecorder(getDevice()) : null;
+              let output;
+              try {
+                const tensor = (role, width) => createTensor(buffers[role], 'f32', [count, width]);
+                const ab = createTensor(packedBuffer, 'f32', [1, p.numVHeads * 2]);
+                output = await runLinearAttentionCoreGPU(tensor('qkv', p.convDim), tensor('z', p.valueDim),
+                  phase === 'prefill' ? tensor('a', p.numVHeads) : ab,
+                  phase === 'prefill' ? tensor('b', p.numVHeads) : ab, layerState,
+                  { recorder, numTokens: count, layerIdx: 0, qkL2NormEps: p.qkL2NormEps, outputDtype: 'f32',
+                    abPacked: phase === 'decode', qkvzPacked: false,
+                    bProjOffsetElements: phase === 'decode' ? p.numVHeads : 0 });
+                if (recorder) await recorder.submitAndWait();
+                for (const [role, buffer] of [['output', output.buffer], ['state', layerState.recurrentStateGPU]]) {
+                  const expected = references[phase][role];
+                  const actual = new Float32Array(await readBufferSlice(buffer, 0, expected.length * 4));
+                  for (let i = 0; i < expected.length; i++) {
+                    if (!Number.isFinite(actual[i]) || Math.abs(actual[i] - expected[i]) > linearAccuracy.maxAbsoluteError) {
+                      throw new Error(`Captured linear ${phase} ${role} failed at ${i}: ${actual[i]} != ${expected[i]}`);
+                    }
+                  }
+                }
+              } finally { if (output) releaseBuffer(output.buffer); recorder?.abort(); }
+            }
+          } finally { for (const buffer of owned) releaseBuffer(buffer); }
+        }
+        return true;
+      } finally { setRuntimeConfig(priorConfig); }
     },
   ]);
 

@@ -6679,7 +6679,7 @@
     "convertedAt": "2026-04-24T17:34:03.192Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-10-08T17:05:31.562Z",
+      "at": "2026-10-08T18:15:58.517Z",
       "config": "qwen-3-5-0-8b-q4k-ehaf16.json"
     }
   },

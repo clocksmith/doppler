@@ -439,7 +439,8 @@ async function renderMutatedSourceExcerpts(workspace, task, promptPolicy) {
 }
 
 export async function renderStudentTaskPrompt(contracts, task, options = {}) {
-  const workspaceState = await createHostTeacherWorkspace(contracts.host, task);
+  const workspaceState = await createHostTeacherWorkspace(contracts.host, task,
+    options.keepWorkspace === true ? {} : { paths: [...new Set(task.mutations.map(mutation => mutation.path))] });
   try {
     const excerpts = await renderMutatedSourceExcerpts(
       workspaceState.workspace,

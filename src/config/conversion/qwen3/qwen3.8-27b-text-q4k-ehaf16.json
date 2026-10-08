@@ -366,17 +366,17 @@
       "gated_delta_conv": {
         "kernel": "gated_delta_conv.wgsl",
         "entry": "main",
-        "digest": "sha256:2b7230e68f4fd54eb4991c998d7e54ca94b82a100cea3d9672816dd36b5bacd9"
+        "digest": "sha256:001fb6cbb3529bf2210406a522405d1b80acd6e0ecc09a67114cdb770103c92a"
       },
       "gated_delta_recurrent": {
         "kernel": "gated_delta_recurrent.wgsl",
         "entry": "main",
-        "digest": "sha256:acabe934d1b44eec170e68272e780b850295f3bba55d13f1a36535eb5e488421"
+        "digest": "sha256:0546ffb3e98113e0ed90caa956f540264e2dfd4b27e21167cf5dc057369fbc56"
       },
       "gated_delta_fused_decode": {
         "kernel": "gated_delta_fused_decode.wgsl",
         "entry": "main",
-        "digest": "sha256:480c08bf88df1c00e60062c39b9a893a6234ab13b3742f442db98941c026dc77"
+        "digest": "sha256:9d1978c3e0656930a4277e97c2b8e9870b2229f06633d49357bd20cc7baffc58"
       }
     },
     "preLayer": [
