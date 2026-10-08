@@ -93,11 +93,11 @@ export async function createHostTeacherWorkspace(contracts, task, options = {}) 
   const parent = await mkdtemp(join(tmpdir(), 'doppler-host-teacher-'));
   try {
     const workspace = join(parent, 'workspace');
-    const archivePath = join(parent, 'source.tar');
+    const archivePath = join(parent, 'source.tar.gz');
     await mkdir(workspace);
     await requireSuccessfulProcess('git', [
       'archive',
-      '--format=tar',
+      '--format=tar.gz',
       '--output',
       archivePath,
       contracts.taskBank.baseRevision,

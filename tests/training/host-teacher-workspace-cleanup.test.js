@@ -28,7 +28,7 @@ try {
     assert.equal(await readFile(join(state.workspace, 'source.js'), 'utf8'), 'export const valid = false;\n');
     await absent(join(state.workspace, 'history (old)'));
     await absent(join(state.workspace, 'nested/excluded'));
-    await absent(join(state.parent, 'source.tar'));
+    assert.deepEqual(await readdir(state.parent), ['workspace']);
   } finally { await state.cleanup(); }
   await absent(state.parent);
   const excerpt = await createHostTeacherWorkspace(contracts, task, { paths: ['source.js'] });
