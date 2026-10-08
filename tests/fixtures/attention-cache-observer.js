@@ -22,6 +22,12 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
     { file: 'gpu/kernels/linear-attention-core.js', marker: '      recorder.trackTemporaryBuffer(convOutBuffer);',
       condition: 'options.layerIdx === 0 && numTokens > 1',
       expression: 'captureLinearCore("outputs", {recorder, numTokens, layerState, options, convOutBuffer, outputBuffer})' },
+    { file: 'gpu/kernels/linear-attention-core.js', marker: "    const encoder = device.createCommandEncoder({ label: 'linear_attention_core' });",
+      condition: 'options.layerIdx === 0 && numTokens > 1',
+      expression: 'captureLinearCore("inputs", {device, numTokens, layerState, options, qkvTensor, zTensor, aTensor, bTensor})' },
+    { file: 'gpu/kernels/linear-attention-core.js', marker: '    submitted = true;',
+      condition: 'options.layerIdx === 0 && numTokens > 1',
+      expression: 'captureLinearCore("outputs", {device, numTokens, layerState, options, convOutBuffer, outputBuffer})' },
   ];
   if (options.linearOnly === true) locations = locations.filter(location => location.expression.startsWith('captureLinearCore('));
   if (options.captureCondition) {
@@ -41,10 +47,14 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
   });
   await context.addInitScript(() => {
     globalThis.attentionCacheObservation = { records: [], errors: [] };
+    globalThis.attentionCacheObservationPending = [];
     const pendingLinear = new Map();
     const linearOrdinals = new Map();
     globalThis.captureLinearCore = (boundary, options) => {
       const { recorder, numTokens, layerState: state } = options;
+      const device = recorder?.device ?? options.device;
+      const encoder = recorder?.getEncoder() ?? device.createCommandEncoder({ label: 'linear_observation_copy' });
+      const readbacks = [];
       const params = { numTokens };
       for (const key of ['convDim', 'convKernelSize', 'numVHeads', 'numKHeads', 'headKDim',
         'headVDim', 'qSize', 'kSize', 'valueDim', 'qRep', 'normMode', 'rmsNormEps']) params[key] = state[key];
@@ -77,10 +87,10 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
       for (const [role, buffer] of buffers) {
         const bytes = buffer.size;
         const item = { role, bytes, data: null }; record.tensors.push(item);
-        const staging = recorder.device.createBuffer({ size: bytes,
+        const staging = device.createBuffer({ size: bytes,
           label: 'linear_core_observation', usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
-        recorder.getEncoder().copyBufferToBuffer(buffer, 0, staging, 0, bytes);
-        recorder.enqueueCompletionTask(async () => {
+        encoder.copyBufferToBuffer(buffer, 0, staging, 0, bytes);
+        const readback = async () => {
           let mapped = false;
           try {
             await staging.mapAsync(GPUMapMode.READ); mapped = true;
@@ -90,7 +100,13 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
             item.data = btoa(text);
           } catch (error) { attentionCacheObservation.errors.push(error.message); }
           finally { if (mapped) staging.unmap(); staging.destroy(); }
-        });
+        };
+        if (recorder) recorder.enqueueCompletionTask(readback);
+        else readbacks.push(readback);
+      }
+      if (!recorder) {
+        device.queue.submit([encoder.finish()]);
+        attentionCacheObservationPending.push(Promise.all(readbacks.map(readback => readback())));
       }
     };
     globalThis.captureProjection = options => {
@@ -202,7 +218,10 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
   context.close = async (...args) => {
     try {
       for (const page of context.pages()) {
-        const capture = await page.evaluate(() => attentionCacheObservation);
+        const capture = await page.evaluate(async () => {
+          await Promise.all(attentionCacheObservationPending);
+          return attentionCacheObservation;
+        });
         captures.push(capture);
         assert.deepEqual(capture.errors, []);
         assert(capture.records.every(r => r.tensors.every(t => t.data)), 'Every observed tensor must settle');
