@@ -89,48 +89,62 @@ async function initializeBaselineRepository(workspace, task) {
   return revision.stdout.trim();
 }
 
-export async function createHostTeacherWorkspace(contracts, task) {
+export async function createHostTeacherWorkspace(contracts, task, options = {}) {
   const parent = await mkdtemp(join(tmpdir(), 'doppler-host-teacher-'));
-  const workspace = join(parent, 'workspace');
-  const archivePath = join(parent, 'source.tar');
-  await mkdir(workspace);
-  await requireSuccessfulProcess('git', [
-    'archive',
-    '--format=tar',
-    '--output',
-    archivePath,
-    contracts.taskBank.baseRevision,
-  ], { cwd: contracts.root });
-  await requireSuccessfulProcess('tar', ['-xf', archivePath, '-C', workspace]);
-  await rm(archivePath, { force: true });
+  try {
+    const workspace = join(parent, 'workspace');
+    const archivePath = join(parent, 'source.tar');
+    await mkdir(workspace);
+    await requireSuccessfulProcess('git', [
+      'archive',
+      '--format=tar',
+      '--output',
+      archivePath,
+      contracts.taskBank.baseRevision,
+      '--',
+      ...(options.paths ? options.paths.map(path => {
+        resolveRepoPath(workspace, path);
+        return `:(literal)${path}`;
+      }) : ['.']),
+      ...contracts.policy.snapshot.excludedPaths.map((path) => {
+        resolveRepoPath(workspace, path);
+        return `:(exclude,literal)${path}`;
+      }),
+    ], { cwd: contracts.root });
+    await requireSuccessfulProcess('tar', ['-xf', archivePath, '-C', workspace]);
+    await rm(archivePath, { force: true });
 
-  for (const excludedPath of contracts.policy.snapshot.excludedPaths) {
-    await rm(resolveRepoPath(workspace, excludedPath), { recursive: true, force: true });
-  }
-
-  const originals = await applyTaskMutations(workspace, task);
-  const baselineRevision = await initializeBaselineRepository(workspace, task);
-
-  if (contracts.policy.snapshot.linkNodeModules) {
-    const sourceNodeModules = join(contracts.root, 'node_modules');
-    if (!(await pathExists(sourceNodeModules))) {
-      throw new Error('Host teacher policy requires the repository node_modules directory.');
+    for (const excludedPath of contracts.policy.snapshot.excludedPaths) {
+      await rm(resolveRepoPath(workspace, excludedPath), { recursive: true, force: true });
     }
-    const stats = await lstat(sourceNodeModules);
-    if (!stats.isDirectory()) {
-      throw new Error('Host teacher node_modules source must be a directory.');
-    }
-    await symlink(sourceNodeModules, join(workspace, 'node_modules'), 'dir');
-    await appendFile(join(workspace, '.git', 'info', 'exclude'), '\nnode_modules\n', 'utf8');
-  }
 
-  return {
-    parent,
-    workspace,
-    baselineRevision,
-    originals,
-    cleanup: () => rm(parent, { recursive: true, force: true }),
-  };
+    const originals = await applyTaskMutations(workspace, task);
+    const baselineRevision = await initializeBaselineRepository(workspace, task);
+
+    if (contracts.policy.snapshot.linkNodeModules) {
+      const sourceNodeModules = join(contracts.root, 'node_modules');
+      if (!(await pathExists(sourceNodeModules))) {
+        throw new Error('Host teacher policy requires the repository node_modules directory.');
+      }
+      const stats = await lstat(sourceNodeModules);
+      if (!stats.isDirectory()) {
+        throw new Error('Host teacher node_modules source must be a directory.');
+      }
+      await symlink(sourceNodeModules, join(workspace, 'node_modules'), 'dir');
+      await appendFile(join(workspace, '.git', 'info', 'exclude'), '\nnode_modules\n', 'utf8');
+    }
+
+    return {
+      parent,
+      workspace,
+      baselineRevision,
+      originals,
+      cleanup: () => rm(parent, { recursive: true, force: true }),
+    };
+  } catch (error) {
+    await rm(parent, { recursive: true, force: true });
+    throw error;
+  }
 }
 
 export async function readWorkspaceStatus(workspace) {
