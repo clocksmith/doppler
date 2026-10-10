@@ -50,3 +50,15 @@ The complete standard 0.6.19 physical comparison also fails: 46/110 steps exceed
 `artifacts/recovery-20261009/numerical-019-physical-result.json`. The first
 three layer outputs match; detailed layer-three operation capture is the next
 diagnostic. The identical isolated Q/K results do not close this remaining gap.
+
+## Investigation checkpoint: 0.6.21 candidate
+
+The first remaining operation in the layer-three physical trace is RoPE.
+Identical captured projection and Q/K normalization values rotate differently
+on AMD/Vulkan and Apple/Metal. Refined frequency/trig calculation and explicit
+rotation arithmetic produce identical prototype values and smaller captured
+Float64 error. See rope-prototype-summary.json and rope-captured-inputs.json.
+These operator results do not qualify the installed package. Its physical
+110-comparison gate is running, unchanged at 0.001. CPU qualification remains
+incomplete; generated closure, package budgets and digest-pinning tests require
+updates. No npm publication or application deployment was performed.
