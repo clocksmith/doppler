@@ -153,17 +153,28 @@ fn main(
                 let k_idx = get_kv_pos(k_pos);
                 let k_offset = k_idx * u.num_kv_heads * head_dim + kv_head_idx * head_dim;
                 var dot: f32 = 0.0;
+                var correction: f32 = 0.0;
                 for (var d: u32 = 0u; d < head_dim; d = d + 2u) {
                     let q0 = shared_q[d];
                     let k0 = f32(K[k_offset + d]);
-                    dot = dot + q0 * k0;
+                    let product0 = fma(q0, k0, 0.0);
+                    let total0 = fma(1.0, dot, product0);
+                    let error0 = select(fma(1.0, dot, fma(-1.0, total0, product0)),
+                        fma(1.0, product0, fma(-1.0, total0, dot)), abs(dot) >= abs(product0));
+                    correction = fma(1.0, correction, error0);
+                    dot = total0;
                     if (d + 1u < head_dim) {
                         let q1 = shared_q[d + 1u];
                         let k1 = f32(K[k_offset + d + 1u]);
-                        dot = dot + q1 * k1;
+                        let product1 = fma(q1, k1, 0.0);
+                    let total1 = fma(1.0, dot, product1);
+                    let error1 = select(fma(1.0, dot, fma(-1.0, total1, product1)),
+                        fma(1.0, product1, fma(-1.0, total1, dot)), abs(dot) >= abs(product1));
+                    correction = fma(1.0, correction, error1);
+                    dot = total1;
                     }
                 }
-                score = dot * u.scale;
+                score = fma(1.0, dot, correction) * u.scale;
                 if (u.attn_softcap > 0.0) {
                     score = tanh(score / u.attn_softcap) * u.attn_softcap;
                 }

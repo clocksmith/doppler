@@ -799,6 +799,30 @@ override WORKGROUP_SIZE: u32 = 256u;
         from: '    let inv_sum = select(f16(0.0), f16(1.0) / running_sum, running_sum > f16(0.0));',
         to: '    let inv_sum = select(0.0, 1.0 / running_sum, running_sum > 0.0);',
       },
+      {
+        type: 'literal',
+        count: 1,
+        from: '                var dot: f32 = 0.0;',
+        to: '                var dot: f32 = 0.0;\n                var correction: f32 = 0.0;',
+      },
+      ...['0', '1'].map((suffix) => ({
+        type: 'literal',
+        count: 1,
+        from: `dot = dot + q${suffix} * k${suffix};`,
+        // Explicit fused operations retain the rounding needed by compensation.
+        to: `let product${suffix} = fma(q${suffix}, k${suffix}, 0.0);
+                    let total${suffix} = fma(1.0, dot, product${suffix});
+                    let error${suffix} = select(fma(1.0, dot, fma(-1.0, total${suffix}, product${suffix})),
+                        fma(1.0, product${suffix}, fma(-1.0, total${suffix}, dot)), abs(dot) >= abs(product${suffix}));
+                    correction = fma(1.0, correction, error${suffix});
+                    dot = total${suffix};`,
+      })),
+      {
+        type: 'literal',
+        count: 1,
+        from: 'score = dot * u.scale;',
+        to: 'score = fma(1.0, dot, correction) * u.scale;',
+      },
     ],
   },
   {
