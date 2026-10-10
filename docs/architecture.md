@@ -4,8 +4,8 @@
 
 These implementation views were checked against `edefc11b`. They explain the
 standalone runtime and its partition boundary; they are not new model or hardware
-qualification claims. The README contains the diagrams; this guide explains
-their components, calls, and resource lifetimes.
+qualification claims. The README contains component and lifetime diagrams;
+this guide includes call sequences, source owners and execution contracts.
 
 ### Preparation, host, and execution ownership
 
@@ -28,7 +28,43 @@ peer placement, and application decisions remain outside Doppler.
 
 ### Capsule opening and repeated requests
 
-[View this diagram in the README.](../README.md#capsule-opening-and-repeated-requests)
+```mermaid
+sequenceDiagram
+    participant H as Application / host
+    participant R as Doppler Run
+    participant S as Verified artifact store
+    participant P as Declared program
+    participant G as WebGPU device
+    H->>R: openCapsule(capsule, acceptance policy)
+    R->>R: Freeze metadata, verify signatures and release authority
+    opt Capsule v3 release history
+        R->>H: Persist verified release checkpoint
+        H-->>R: Checkpoint persisted
+    end
+    R->>G: Inspect capabilities and device availability
+    R->>R: Select an accepted TargetPlan, validate registries
+    R->>S: Verify artifacts, read declared modules and manifest
+    S-->>R: Authenticated bytes and artifact observations
+    R->>P: programFactory with selected plan and verified storage
+    P->>G: Prepare weights and required GPU resources
+    P-->>R: Initial execution identity
+    R->>R: Compare identity where required by the plan
+    R-->>H: Loaded session with supported operations
+    loop Reuse loaded session for successive operations
+        H->>R: Operation request + AbortSignal
+        R->>R: Acquire operation lease, recheck authority and device
+        R->>P: Execute with resolved settings
+        P->>G: Bind and submit declared computation
+        G-->>P: Results / observed completion
+        P-->>R: Deltas or structured result
+        R-->>H: Yield output, release lease when settled
+    end
+    H->>R: close()
+    R->>R: Reject new operations, abort and drain active work
+    R->>P: Dispose owned session resources
+    R->>S: Close verified store
+    R-->>H: Cleanup completion or error
+```
 
 One ordinary Capsule session rejects overlapping operations; an application must
 schedule them or use separately supported sessions. Reusing weights does not mean
