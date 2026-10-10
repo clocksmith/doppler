@@ -48,6 +48,58 @@ def compare(actual, encoded):
             'withinTolerance': bool(error.max() <= 0.001)}
 
 
+def compare_boundaries(model, capture, input_ids, cache):
+    """Observe the first prefill only; hooks never replace model values."""
+    retained = {}
+    for row in capture['observation']['timeline']:
+        if (row.get('capture') or {}).get('data') is not None:
+            retained.setdefault(row['opId'], row['capture'])
+    modules = {'embed.out': model.model.embed_tokens, 'final_norm.out': model.model.norm}
+    for index, layer in enumerate(model.model.layers):
+        modules[f'layer.{index}.attn.post_input_norm'] = layer.input_layernorm
+        modules[f'layer.{index}.layer.out'] = layer
+    layer = model.model.layers[0]
+    for name, module in {
+        'attn.qkv_proj': layer.linear_attn.in_proj_qkv,
+        'attn.linear_z_proj': layer.linear_attn.in_proj_z,
+        'attn.linear_a_proj': layer.linear_attn.in_proj_a,
+        'attn.linear_b_proj': layer.linear_attn.in_proj_b,
+        'attn.out': layer.linear_attn.out_proj,
+        'ffn.in': layer.post_attention_layernorm,
+        'ffn.gate': layer.mlp.gate_proj,
+        'ffn.up': layer.mlp.up_proj,
+        'ffn.out': layer.mlp.down_proj,
+    }.items():
+        modules['layer.0.' + name] = module
+    comparisons, handles = [], []
+
+    def observe(name):
+        def hook(_module, _inputs, value):
+            if isinstance(value, tuple):
+                value = value[0]
+            actual = value.detach().float().cpu().numpy().reshape(-1)
+            expected = np.asarray(retained[name]['data'], dtype=np.float32)
+            assert actual.shape == expected.shape, name
+            error = np.abs(actual - expected)
+            assert np.isfinite(error).all(), name
+            comparisons.append({'boundary': name, 'values': int(actual.size),
+                                'maxAbsError': float(error.max()),
+                                'rmsError': float(np.sqrt(np.mean(error.astype(np.float64) ** 2))),
+                                'actualSha256': hashlib.sha256(actual.tobytes()).hexdigest()})
+        return hook
+
+    try:
+        for name, module in modules.items():
+            assert name in retained, name
+            handles.append(module.register_forward_hook(observe(name)))
+        output = model(input_ids=input_ids, past_key_values=cache, use_cache=True, logits_to_keep=1)
+        assert len(comparisons) == len(modules)
+        return output, comparisons
+    finally:
+        for handle in handles:
+            handle.remove()
+
+
 def run(args):
     torch.set_num_threads(args.threads)
     root = Path(args.model)
@@ -132,6 +184,13 @@ def run(args):
     report['referenceSha256'] = observed['referenceSha256']
     targets = observed['results'][:args.prefixes]
     assert len(targets) == args.prefixes
+    boundary_capture = read_json(args.boundary_capture) if args.boundary_capture else None
+    if boundary_capture:
+        assert args.prefixes == 1 and targets[0]['step'] == 0
+        assert boundary_capture['results'][0]['inputIds'] == targets[0]['inputIds']
+        assert boundary_capture['results'][0]['logits'] == targets[0]['logits']
+        report['boundaryCaptureSha256'] = sha256(args.boundary_capture)
+        report['boundaryCaptureManifestIdentity'] = boundary_capture['manifestIdentity']
     cache, active_request, next_step = None, None, 0
     for target in targets:
         if target['step'] == 0:
@@ -143,8 +202,13 @@ def run(args):
         assert active_request == target['index'] and next_step == target['step']
         next_step += 1
         with torch.inference_mode():
-            output = model(input_ids=torch.tensor([input_ids]), past_key_values=cache,
-                           use_cache=True, logits_to_keep=1).logits[0, -1].float().numpy().copy()
+            if boundary_capture:
+                result, report['boundaryComparisons'] = compare_boundaries(
+                    model, boundary_capture, torch.tensor([input_ids]), cache)
+            else:
+                result = model(input_ids=torch.tensor([input_ids]), past_key_values=cache,
+                               use_cache=True, logits_to_keep=1)
+            output = result.logits[0, -1].float().numpy().copy()
         row = {'index': target['index'], 'step': target['step'], 'ordinal': target['ordinal'],
                'inputIds': input_ids, 'comparison': compare(output, target['logits']),
                'logitsSha256': hashlib.sha256(output.tobytes()).hexdigest(),
@@ -161,6 +225,7 @@ if __name__ == '__main__':
         parser.add_argument('--' + field, required=True)
     parser.add_argument('--prefixes', type=int, required=True)
     parser.add_argument('--threads', type=int, required=True)
+    parser.add_argument('--boundary-capture', help='Retained first-prefill GPU observations; requires --prefixes 1')
     options = parser.parse_args()
     assert options.prefixes > 0 and options.threads > 0
     run(options)

@@ -57,3 +57,26 @@ Acceptance evidence: the command above (55 completed diagnostic steps),
 `python3 -m py_compile tools/qwen35-deployed-reference.py`, and
 `npm run catscan:check`. Further numerical work must isolate operation boundaries;
 this control alone neither identifies a shader defect nor qualifies a reference.
+
+
+## Retained prefill boundaries
+
+`prefill-boundaries.json` compares independently computed source-model module
+outputs with retained GPU tensors. Embeddings agree exactly. The first difference
+is input normalization (maximum 7.152557373046875e-7); the first projection differs
+by 1.1444091796875e-5. Differences accumulate through the layers. Final-normalized
+activations differ by 0.0014710426330566406, and first-prefix logits differ by
+0.0009584426879882812. These observations do not isolate a new defective kernel
+or qualify the remaining decode prefixes.
+
+The GPU capture uses an earlier manifest binding but has identical first-prefix
+input IDs and output logits to the current capture; the tool asserts both before
+comparison and records both identities. Hooks observe outputs and never replace
+them. This CPU-only check does not rerun or interfere with a GPU campaign.
+
+To reproduce, use the command above with `--prefixes 1`, the current piece index
+from Reploid `b44f99a2` (SHA-256
+`18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7`),
+`--boundary-capture reports/local/frozen-reference-producer/doppler-current026-normalization-linux.json.gz`,
+and a separate output path. The original 55-prefix tool version is retained in
+Doppler `6faaee44`; its recorded tool hash and receipt remain unchanged.
