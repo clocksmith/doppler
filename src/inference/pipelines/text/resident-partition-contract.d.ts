@@ -29,6 +29,10 @@ export interface ResidentPartitionDescriptor {
 export interface ResidentPartitionTokenizationRequest {
   messages: unknown; identity: ResidentPartitionIdentity; signal: AbortSignal;
 }
+export interface ResidentPartitionTokenizationResult {
+  modelIdentity: string; tokenIds: number[];
+  generation: Readonly<ResolvedGenerationOptions>;
+}
 export interface ResidentPartitionStep {
   identity: ResidentPartitionIdentity; step: number; tokenPosition: number; inputTokenCount: number;
   maxTokens: number; generation: GenerationOptions; continuation: unknown; signal: AbortSignal;
@@ -56,8 +60,7 @@ export interface ResidentPartitionBResult {
 }
 export interface ResidentPartitionSession {
   getDescriptor(): ResidentPartitionDescriptor;
-  tokenize(request: ResidentPartitionTokenizationRequest): Promise<{ modelIdentity: string; tokenIds: number[];
-    generation: Readonly<ResolvedGenerationOptions> }>;
+  tokenize(request: ResidentPartitionTokenizationRequest): Promise<ResidentPartitionTokenizationResult>;
   executeGroup0(request: ResidentPartitionARequest): Promise<ResidentPartitionAResult>;
   executeGroup1(request: ResidentPartitionBRequest): Promise<ResidentPartitionBResult>;
   closeAttempt(request: { identity: ResidentPartitionIdentity }): Promise<void>;

@@ -24,6 +24,15 @@ generation settings, allocation limits, and an abort signal. The returned
 session exposes `getDescriptor()`, `tokenize()`, `executeGroup0()`,
 `executeGroup1()`, `closeAttempt()`, and `close()`.
 
+Consumers import resident descriptors, identities, limits, step requests/results,
+tokenization requests/results and metrics as types from `doppler-gpu/partitions`.
+These are the computation contract; applications retain their own grant,
+reservation and transport-envelope types. `getDescriptor()` includes the accepted
+`generationDigest` and a live `ready: boolean`. Narrowing readiness to `true`
+requires validating the descriptor against the accepted model, plan, index,
+layer range and generation configuration. Package version, exported API,
+resident readiness and signed model qualification are separate checks.
+
 Each full attempt identity owns independent KV and recurrent state, continuation,
 sequence position, generation context, and decoder. Calls validate identity,
 step ordering, context bounds, activation shape/dtype, and generation settings.
