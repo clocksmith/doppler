@@ -13,12 +13,12 @@
 +// Intermediate computations use F32 for precision.
 +
 +enable f16;
- 
+
  override WORKGROUP_SIZE: u32 = 256u;
  override HAS_GATE: bool = false;
-@@ -23,9 +20,9 @@
+@@ -23,27 +20,18 @@
  }
- 
+
  @group(0) @binding(0) var<uniform> u: Uniforms;
 -@group(0) @binding(1) var<storage, read> input: array<f32>;
 -@group(0) @binding(2) var<storage, read_write> output: array<f32>;
@@ -26,11 +26,30 @@
 +@group(0) @binding(1) var<storage, read> input: array<f16>;
 +@group(0) @binding(2) var<storage, read_write> output: array<f16>;
 +@group(0) @binding(3) var<storage, read> gate: array<f16>;
- 
+
  fn sigmoid(x: f32) -> f32 {
      let clamped = clamp(x, -15.0, 15.0);
-@@ -60,15 +57,15 @@
- 
+     return 1.0 / (1.0 + exp(-clamped));
+ }
+
+-// Compensate the rounded numerator and quotient; retain the established gate clamp.
+ fn silu(x: f32) -> f32 {
+-    let z = exp_refined(-abs(clamp(x, -15.0, 15.0)));
+- let numerator = select(x * z, x, x >= 0.0);
+- let error = select(fma(x, z, -numerator), 0.0, x >= 0.0);
+- let den = 1.0 + z;
+- let inverse = reciprocal_refined(den);
+- let q = numerator * inverse;
+- return fma(fma(-q, den, numerator) + error, inverse, q);
++    return x * sigmoid(x);
+ }
+-
+-// GELU activation (approximate)
+
+ fn apply_input_activation(x: f32) -> f32 {
+     return select(silu(x), x, INPUT_USE_IDENTITY);
+@@ -69,13 +57,13 @@
+
          let remaining = min(4u, u.size - base_idx);
          for (var i: u32 = 0u; i < remaining; i = i + 1u) {
 -            let x = input[base_idx + i];
@@ -47,8 +66,7 @@
              }
          }
          return;
-     }
-@@ -83,27 +80,27 @@
+@@ -98,64 +86,27 @@
              return;
          }
          let row_base = token_idx * dim * 2u;
@@ -60,7 +78,7 @@
 +        output[token_idx * dim + dim_idx] = f16(clamp_swiglu(silu(g) * up));
          return;
      }
- 
+
      if (HAS_GATE) {
 -        let up = input[idx];
 -        let g = gate[idx];
@@ -71,7 +89,7 @@
 +        output[idx] = f16(clamp_swiglu(gateAct * apply_input_activation(up)));
          return;
      }
- 
+
      if (USE_SPLIT) {
 -        let g = input[idx];
 -        let up = input[idx + u.size];
@@ -81,9 +99,46 @@
 +        output[idx] = f16(clamp_swiglu(silu(g) * up));
          return;
      }
- 
+
 -    let x = input[idx];
 -    output[idx] = apply_input_activation(x);
 +    let x = f32(input[idx]);
 +    output[idx] = f16(apply_input_activation(x));
  }
+-
+-fn exp_refined(x: f32) -> f32 {
+-  if (abs(x) > 80.0) {
+-    return exp(x);
+-  }
+-  let n = round(x * 1.4426950408889634);
+-  var r = x;
+-  if (abs(x) >= 0.000000059604644775390625) {
+-    let bits = bitcast<u32>(abs(x));
+-    let mantissa = (bits & 0x007fffffu) | 0x00800000u;
+-    let shift = i32((bits >> 23u) & 255u) - 118;
+-    var input_fixed = 0u;
+-    if (shift >= 0) {
+-      input_fixed = mantissa << u32(shift);
+-    } else {
+-      let right = u32(-shift);
+-      input_fixed = (mantissa + (1u << (right - 1u))) >> right;
+-    }
+-    let power_fixed = u32(abs(n)) * 2977044472u;
+-    let residual = select(power_fixed - input_fixed, input_fixed - power_fixed, x >= 0.0);
+-    r = f32(bitcast<i32>(residual)) * 0.00000000023283064365386962890625;
+-  }
+-  var p = 0.0001984126984126984;
+-  p = fma(p, r, 0.001388888888888889);
+-  p = fma(p, r, 0.008333333333333333);
+-  p = fma(p, r, 0.041666666666666664);
+-  p = fma(p, r, 0.16666666666666666);
+-  p = fma(p, r, 0.5);
+-  p = fma(p, r, 1.0);
+-  p = fma(p, r, 1.0);
+-  return p * bitcast<f32>(u32(i32(n) + 127) << 23u);
+-}
+-
+-fn reciprocal_refined(x: f32) -> f32 {
+-  let estimate = 1.0 / x;
+-  return fma(estimate, fma(-x, estimate, 1.0), estimate);
+-}
