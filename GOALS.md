@@ -42,69 +42,51 @@ not the primary reason developers install Doppler.
    understandable through honest progress and observations. Preserve token-level
    inspection and kernel timing where supported, without changing computation.
 
-## Active Product Priorities: Generation and Search
+## Current priorities
 
-Advance a bounded standalone text-generation application alongside local search.
-Completing the compact embedding/reranking release is not a prerequisite for
-generation. First evaluate selected-text rewriting for clarity with one resident
-model: preserve names, numbers, negation and meaning; stream output; cancel;
-accept or discard the revision; and reopen offline. This is a proposed use case
-to qualify, not existing product acceptance. Compare a feasible alternative on
-the same inputs, output quality, opening cost and supported machines.
+This section is the authoritative active work sequence. Other goals and campaign
+pages retain contracts and evidence; they do not maintain competing work queues.
 
-Preserve the accepted search starter and its remaining quality and portability
-work. Both paths use Rig → Capsule → Run and the same public host contracts.
-Generated answers over retrieved passages remain a separate application choice.
+Doppler is one independently useful JavaScript model-execution library. Prioritize
+useful outputs, straightforward installation, fast opening, bounded memory,
+reusable sessions, cancellation, and recovery. Generation, embeddings, reranking,
+[typed choice scoring](docs/api/choice-scoring.md), and supported partition execution
+use the same maintained implementation. Scoring uses contextual single-token
+labels and raw logits; calibration and task quality require separate evidence.
 
-### Copy-and-run Local Search
+1. **Finish dependable execution in the current integration.** Resolve the first
+   divergent numerical operation under the frozen model, inputs, precision, and
+   tolerance, then qualify the exact installed package. Exercise memory denial,
+   retained weights, concurrent conversations, isolated cancellation, contributor
+   loss, restart, and recovery. Reploid supplies the demanding two-computer
+   workload through public interfaces; Doppler owns loading, computation, and
+   execution-state lifecycle. Reploid owns discovery, placement, grants, transport,
+   readiness advertisement, and conversation policy. A requester downloading no
+   weights is this integration's requirement, not a restriction on standalone use.
+   Numerical parity, useful answers, and ordinary application operation are
+   separate acceptance claims. Preserve failures and unchanged references.
+2. **Make ordinary installation and one complete integration dependable.** Ship
+   accessible, pinned runtime/model bytes, a small public API, a runnable example,
+   and understandable failures. Verify fresh installation, acquisition, opening,
+   memory, repeated requests, cancellation, and offline reopening on each claimed
+   host. The retained search starter's fresh-install eligibility has expired;
+   renew its signed metadata and delivery before promoting it as current onboarding.
+   Retain existing search and generation evidence without extending its scope.
+3. **Earn independent application value.** Work with document-software teams that
+   have concrete local-operation or deployment constraints. Compare real tasks
+   against their strongest feasible alternative; measure output quality, first
+   useful result, memory, acquisition, and integration effort. Freeze acceptance
+   before changing code and retain unfavorable results. Independent adoption is
+   a product outcome; it does not gate technical investigation or scoped release.
 
-Deliver a complete local-search application developers can copy, run, and modify.
-Prioritize it over nonzero-adapter qualification and further structural cleanup,
-except for a concrete defect blocking the application. Preserve the completed
-loading and resource-ownership repairs.
-
-The [current bounded search priorities](docs/goals.md#bounded-portability-after-browser-delivery)
-are maintaining the faster released starter, qualifying MiniLM embeddings with
-the incumbent reranker, and one rigorous comparison of the unchanged application
-on Doe and the supported provider. Keep Qwen quantization and abstention research
-independent. Recruit a developer using real documents through a second application
-revision; neither payment nor completed adoption gates technical release. Doe
-remains optional and earns adoption through measured useful advantages. These
-search priorities do not cancel the standalone generation work above.
-
-Build around the existing `createDocumentSearch()` in
-`examples/document-search/search.js`, not a second search engine in the generic
-capability example. Open embedding and reranking sessions once, index unchanged
-documents once, then reuse both sessions and the index across queries. Application
-code owns parsing, retrieval/index policy, presentation, and the controller lifetime;
-the runtime remains an inference library. Initial completion requires embeddings
-and reranking only. Generation and retrieval-augmented generation (RAG) are optional
-later work; applications would own passage selection, citations, and answer evaluation.
-
-Deliver pinned installable runtime bytes, complete model descriptors, explicit
-publisher trust, accessible immutable artifacts, sample documents, and a start
-command. Add honest loading/verification progress through the existing observer.
-Prove repeat search, cancellation/reuse, failure cleanup, index compatibility,
-and local-only document/query processing from a clean installed consumer with
-both real models resident. Prove offline reopening after all required assets,
-release metadata, and the index are retained. This is a required increment, not a claim of completion
-or independent adoption. The detailed acceptance contract is in
-[docs/goals.md](docs/goals.md#next-product-increment-copy-and-run-local-search).
-
-Ship a narrowly supported product when its declared configuration passes technical
-acceptance and a maintainer commits to that scope. Independent adoption is an
-outcome to earn, not permission to ship. Report exact-package execution,
-declared support, and adoption separately; customer fleets, paid releases, and
-design partners cannot create or invalidate physical qualification.
-
-Preserve the scoped browser and Node search deliveries. Keep their shared computation
-independent of browser storage and UI events; packaged Electron remains a later
-extension using current candidate bytes and unchanged correctness references.
-Qualify each host separately. Electron acceptance includes isolated,
-sandboxed renderers, installed assets, cancellation, window closure/reopening,
-and recovery. Bun stays experimental while individual capabilities acquire scoped
-execution and lifecycle evidence; incomplete portfolio support must not hide a
-qualified individual capability. Publication remains an explicit release decision.
+Expand models and optimizations around demonstrated application needs. Rewriting
+requires new task-quality evidence and customer pull; it is not an automatic next
+campaign. Doe is optional and does not replace a browser backend by download alone.
+Do not begin a Doe comparison, new modality, distributed architecture, training
+campaign, or model-catalog expansion merely because an older plan lists it.
+Verification supports dependable execution; retained independent use establishes
+product value. Keep Rig → Capsule → Run, public compatibility contracts, explicit
+ownership, and application-controlled trust and upgrades intact.
 
 ## Operating Loops
 

@@ -62,3 +62,41 @@ These operator results do not qualify the installed package. Its physical
 110-comparison gate is running, unchanged at 0.001. CPU qualification remains
 incomplete; generated closure, package budgets and digest-pinning tests require
 updates. No npm publication or application deployment was performed.
+
+## Retained 0.6.22 and 0.6.23 results
+
+The 0.6.21 run subsequently failed 60/110 frozen comparisons. The combined
+Q/K rotation kernel used by the application also required explicit FMA and
+product rounding. Canonical physical rotation now matches on both GPUs;
+`rope-022-{linux,mac}.json.gz` retain independent accuracy and fixed-table controls.
+The complete 0.6.22 CPU/check chain passes, while its physical model comparison
+fails 62/110 steps with maximum difference 0.0037908554077148438.
+See `qualification-022.json`.
+
+The next first divergent operation was head-256 prefill attention with F16 KV.
+Compensated score accumulation, refined exponentiation/reciprocal and explicit
+value FMA improve independent Float64 accuracy on captured operands. The
+canonical 0.6.23 shader passes `tests/integration/attention-platform.js` on both
+physical GPUs for 19, 33 and 65 tokens. Output bits match across GPUs; maximum
+independent error is 8.577047956315198e-7. References include F16 KV storage
+rounding. Repeated operands exercise block boundaries, not unrelated model
+workloads. See `attention-023-platform-comparison.json` and its compressed receipts.
+
+The identical standard 0.6.23 archive still fails 54/110 frozen comparisons,
+maximum difference 0.002967357635498047. The frozen reference remains unchanged
+at tolerance 0.001. The first remaining captured prefill difference occurs at
+`layer.3.attn.out` (output projection), maximum 3.725290298461914e-8. That
+operator difference alone does not establish a wrong answer. Installed-package
+numerical qualification remains failed; conversation and recovery checks are
+separate evidence. No package publication or application deployment occurred.
+See `qualification-023.json`.
+
+All 110 selected tokens at the frozen prefixes agree with the reference, and
+all six runs terminate with EOS. This is bounded behavior evidence for three
+retained prompts; it neither changes the failed logit bound nor establishes
+general answer quality.
+
+The initial 0.6.23 CPU run passed 894/895 files. The sole failure was a source
+check recognizing only builtin `exp`; refined exponentiation retains explicit
+max subtraction. The check now recognizes both spellings and rejects unstabilized
+calls with either spelling. Its focused run passes; the full recheck is pending.

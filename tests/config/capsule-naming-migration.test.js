@@ -28,6 +28,9 @@ for (const entry of manifest.files) {
   // identity mappings. Every other field still matches the frozen archive.
   const shaderChanges = {
     ...digestRebindings,
+    ...JSON.parse(await fs.readFile(
+      'artifacts/recovery-20261009/numerical-digest-rebindings.json', 'utf8'
+    )),
     'sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34':
       'sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0',
     'sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1':
