@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "fixtureSha256": "7b51b47e233b1f2574e247767afb5d342521149c235df31ba0edc60d74126512",
+  "shaderSha256": "44629a6d94587955df8eac41776a6cefe78fc3ee8a3346c9c9c368f0858ca70c",
+  "inputsSha256": "6c0ad8c7cd2208bb33be4dec07a4254f9d1ee24fbab2249e3ccb96431df869cd",
+  "hosts": [
+    {
+      "platform": "linux",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "",
+        "description": ""
+      },
+      "browser": "146.0.7680.177"
+    },
+    {
+      "platform": "darwin",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "browser": "155.0.8059.39"
+    }
+  ],
+  "cases": [
+    {
+      "name": "captured-layer-three",
+      "equalBits": true,
+      "maxAbsoluteError": 6.44760784318521e-7
+    },
+    {
+      "name": "head-64",
+      "equalBits": true,
+      "maxAbsoluteError": 2.926629458777086e-7
+    },
+    {
+      "name": "head-128",
+      "equalBits": true,
+      "maxAbsoluteError": 2.717737270785392e-7
+    },
+    {
+      "name": "head-256",
+      "equalBits": true,
+      "maxAbsoluteError": 2.549931235051872e-7
+    },
+    {
+      "name": "head-512",
+      "equalBits": true,
+      "maxAbsoluteError": 2.254687765379515e-7
+    },
+    {
+      "name": "head-1024",
+      "equalBits": true,
+      "maxAbsoluteError": 3.556868568566074e-7
+    }
+  ]
+}
