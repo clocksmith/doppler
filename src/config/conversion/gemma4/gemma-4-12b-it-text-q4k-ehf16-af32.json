@@ -348,7 +348,7 @@
       "attn_decode": {
         "kernel": "attention_decode_online_f16kv.wgsl",
         "entry": "main",
-        "digest": "sha256:cb47a297183367fa8f0c92493a2d843e9bef77de5a21a1558410caf2547000be",
+        "digest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912",
         "precision": {
           "kvDtype": "f16"
         }

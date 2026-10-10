@@ -1,0 +1,292 @@
+{
+  "version": "0.6.26",
+  "archiveSha256": "e0f558cfd0980eabc6db42496d8fe250e66f3d125e67c9635333e80077f8f7b7",
+  "compressedBytes": 3343758,
+  "unpackedBytes": 13112892,
+  "fileInventoryUnchanged": true,
+  "files": 1897,
+  "unchangedFiles": 1857,
+  "changed": [
+    {
+      "file": "package/src/version.js",
+      "oldBytes": 98,
+      "newBytes": 98,
+      "delta": 0,
+      "sha256": "0f6f212fbb17fcb795436d80820c57da93b12d9bc3395f5b3dc372b142bef099"
+    },
+    {
+      "file": "package/src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json",
+      "oldBytes": 16183,
+      "newBytes": 16183,
+      "delta": 0,
+      "sha256": "fa49607b06aa62e3ad60f43518917341dea15fb3db398de934fd1878f851742d"
+    },
+    {
+      "file": "package/src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+      "oldBytes": 9274,
+      "newBytes": 9274,
+      "delta": 0,
+      "sha256": "3be33af4602f8d9c60270fe7fdf0f133199e5602510501071fd7d136a0cc0745"
+    },
+    {
+      "file": "package/src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+      "oldBytes": 9816,
+      "newBytes": 9816,
+      "delta": 0,
+      "sha256": "fd22f1d57ed18f298562cb1a13aff226a811f4e872ae9b38ade5be2d9704a27a"
+    },
+    {
+      "file": "package/src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json",
+      "oldBytes": 10685,
+      "newBytes": 10685,
+      "delta": 0,
+      "sha256": "f904b4f773caa231caf7ce1c531c0108f1e9a4c8af255d36f54554e8f3dc0192"
+    },
+    {
+      "file": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json",
+      "oldBytes": 19000,
+      "newBytes": 19000,
+      "delta": 0,
+      "sha256": "5cb1711b3e188cc08aab57752bcca41bc8edf979f6939f0de9ed3974702fb7c6"
+    },
+    {
+      "file": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json",
+      "oldBytes": 18531,
+      "newBytes": 18531,
+      "delta": 0,
+      "sha256": "c9810706b8ca16ec903903c9ae79e51339610a032941c8fa1a210a654174461f"
+    },
+    {
+      "file": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json",
+      "oldBytes": 20546,
+      "newBytes": 20546,
+      "delta": 0,
+      "sha256": "9ff2d5e1d795903732b77d4fb5920f64b572c0304e9e149cbcf6cac886e06507"
+    },
+    {
+      "file": "package/src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af16.json",
+      "oldBytes": 18358,
+      "newBytes": 18358,
+      "delta": 0,
+      "sha256": "67338d3e3f39f3b80e7f356ea8a1d21629b8509e2a2c1e5cd3a61987bdcdc7ed"
+    },
+    {
+      "file": "package/src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json",
+      "oldBytes": 18040,
+      "newBytes": 18040,
+      "delta": 0,
+      "sha256": "5ebd02eb2d06ea075ba4055f0b3c3fe9f0fbda7639a7c0f1e6582a2ac1693ed7"
+    },
+    {
+      "file": "package/src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
+      "oldBytes": 15399,
+      "newBytes": 15399,
+      "delta": 0,
+      "sha256": "91435f7dbd1e8d42a1a1a06077d8c2bc955f31affba5f5282166668c05226354"
+    },
+    {
+      "file": "package/src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json",
+      "oldBytes": 14242,
+      "newBytes": 14242,
+      "delta": 0,
+      "sha256": "16669956e634f3d40ee5e1907b85dc0d247d1f79640ea2f5dbeb4b6fad841084"
+    },
+    {
+      "file": "package/src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json",
+      "oldBytes": 14086,
+      "newBytes": 14086,
+      "delta": 0,
+      "sha256": "152b75cd608ff48468a746302024ea03bdd1c2a5772b3509aa40ecc731b9fdbf"
+    },
+    {
+      "file": "package/src/config/source-packages/litert/gemma-4-e2b-it.json",
+      "oldBytes": 17691,
+      "newBytes": 17691,
+      "delta": 0,
+      "sha256": "a13b1a2ab771866c437a43baa36f7b0d4dcddbde08e634134af7506645592e62"
+    },
+    {
+      "file": "package/src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json",
+      "oldBytes": 8661,
+      "newBytes": 8661,
+      "delta": 0,
+      "sha256": "b29b891634efdf4e4c6c23a8bac89b061498c517fbfd902f0e97c05957533964"
+    },
+    {
+      "file": "package/src/config/conversion/glmocr/glm-ocr-f16-af32.json",
+      "oldBytes": 10298,
+      "newBytes": 10298,
+      "delta": 0,
+      "sha256": "e63088d82c760797a91c6c44d4057a478a20cb035327b676373f4249c933e7ba"
+    },
+    {
+      "file": "package/src/config/conversion/gpt-oss-20b-f16-xmxfp4.json",
+      "oldBytes": 8958,
+      "newBytes": 8958,
+      "delta": 0,
+      "sha256": "df7ac3a435da16450af4e4c974d3d9ad79846fd8556cee13a4380f83ea9bfb58"
+    },
+    {
+      "file": "package/src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json",
+      "oldBytes": 8794,
+      "newBytes": 8794,
+      "delta": 0,
+      "sha256": "314757f8a6bb4a11a276b773aa8e4f59d4e60e77925e58626edd5bf10bdda3f8"
+    },
+    {
+      "file": "package/src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+      "oldBytes": 9381,
+      "newBytes": 9381,
+      "delta": 0,
+      "sha256": "4bceb2825bad1e1644d364b8e0566b00b576a63e6e191e4c5c1ef3a4ce901e2f"
+    },
+    {
+      "file": "package/src/config/conversion/minicpm/minicpm4-0-5b-f16-af32.json",
+      "oldBytes": 11265,
+      "newBytes": 11265,
+      "delta": 0,
+      "sha256": "25a13995f96ee21265e8ba4be02bac87d7730816376d69d61847c6462f7b9d5d"
+    },
+    {
+      "file": "package/src/config/conversion/muse-glimmer/muse-glimmer-30b-text-bf16-af32.json",
+      "oldBytes": 12500,
+      "newBytes": 12500,
+      "delta": 0,
+      "sha256": "833e9afd33c225637b59c03041b33d0f74b1a84508e0d88323bdbd408cbd39de"
+    },
+    {
+      "file": "package/src/config/conversion/muse-glimmer/muse-glimmer-30b-text-f16-af32.json",
+      "oldBytes": 12482,
+      "newBytes": 12482,
+      "delta": 0,
+      "sha256": "9e48beff8ef1b63bda7c7df4d6231ece9686884f7297c6e19f15148fc38298f7"
+    },
+    {
+      "file": "package/package.json",
+      "oldBytes": 33007,
+      "newBytes": 33007,
+      "delta": 0,
+      "sha256": "19d1686c58d7ff9d8fa707bf90c0b77c14cc7dcb11dd4d6377db20cb86968948"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32.json",
+      "oldBytes": 12776,
+      "newBytes": 12776,
+      "delta": 0,
+      "sha256": "0efe4c8629f8122407bbf012d565ed0b0a2eaaa4b6f9de0a01485b03991958b5"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+      "oldBytes": 12853,
+      "newBytes": 12853,
+      "delta": 0,
+      "sha256": "460b2c5ffe2249856c49a776b7a09613eea992ee671328540296216e6e741aa5"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
+      "oldBytes": 11903,
+      "newBytes": 11903,
+      "delta": 0,
+      "sha256": "1ab345c7ae0e48c936e3589bcda1406e83bf38d3ac7af29c120aacb537de5e1c"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+      "oldBytes": 10983,
+      "newBytes": 10983,
+      "delta": 0,
+      "sha256": "16e6f9ea487f4c6a80e62d885f121def8508b7b56985fcc83ec7a795362efa8e"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-5-9b-q4k-ehaf16.json",
+      "oldBytes": 12346,
+      "newBytes": 12346,
+      "delta": 0,
+      "sha256": "13b77909ce2d519fbab5b333bb9778b0e5692d90eaefb5d4c839d5a9d4ed482e"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json",
+      "oldBytes": 13549,
+      "newBytes": 13549,
+      "delta": 0,
+      "sha256": "b834bae708638667a52e1293d8c6120d5f400c9ca750cf041a26615d7dedc9e6"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
+      "oldBytes": 13210,
+      "newBytes": 13210,
+      "delta": 0,
+      "sha256": "c26755f4abc0962ecd71372cf2c9703684be27e437394509ebe46d713a7adc3b"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json",
+      "oldBytes": 11667,
+      "newBytes": 11667,
+      "delta": 0,
+      "sha256": "6838db36f32da72742e4eb1a58c0a1bf27d85388bafe68740ed05a17d03988a7"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
+      "oldBytes": 9124,
+      "newBytes": 9124,
+      "delta": 0,
+      "sha256": "25261e798c4e5f0ef806556dd734d3eb3dd484dc474109cf29b7e3825c0ee5b2"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+      "oldBytes": 10261,
+      "newBytes": 10261,
+      "delta": 0,
+      "sha256": "d7b20859d7db1c0f8a0a458b6b2a4531bf2c6e6c3a3ead2c94e4886b9525c877"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json",
+      "oldBytes": 12153,
+      "newBytes": 12153,
+      "delta": 0,
+      "sha256": "e70ac41df35b621063f5ecb15d294c0ba5bff2296b01b4e841e055322ee57d66"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+      "oldBytes": 17274,
+      "newBytes": 17274,
+      "delta": 0,
+      "sha256": "6cd4d31f7408eebb1b0f8f39a7ddd812d632158247df348fdf9a2ef9f0f58dc4"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
+      "oldBytes": 13869,
+      "newBytes": 13869,
+      "delta": 0,
+      "sha256": "9b3c30a2308ca789e3e727e9c6fc47de56689f17d7ee718e0446673df53e9fde"
+    },
+    {
+      "file": "package/src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json",
+      "oldBytes": 13844,
+      "newBytes": 13844,
+      "delta": 0,
+      "sha256": "b0fdda45e14f44052646c0734db88eccb5bab1836ea4f6fe80be1be93e7eca23"
+    },
+    {
+      "file": "package/src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json",
+      "oldBytes": 9568,
+      "newBytes": 9568,
+      "delta": 0,
+      "sha256": "09c7a0036e0cf56f46c709110abe9854238313fda81a63f5e4811be06eca9877"
+    },
+    {
+      "file": "package/src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json",
+      "oldBytes": 9572,
+      "newBytes": 9572,
+      "delta": 0,
+      "sha256": "49197dd557843dd0600cc515730db1385415916f21e3e5d20814f7e840bc505e"
+    },
+    {
+      "file": "package/src/gpu/kernels/attention_decode_online_f16kv.wgsl",
+      "oldBytes": 8538,
+      "newBytes": 13341,
+      "delta": 4803,
+      "sha256": "e433b9865c2734178a0f588612d5b2f88c1377c1f360140e2292177385d87c24"
+    }
+  ],
+  "scope": "Standard local candidate archive; no publication, deployment, or model qualification"
+}

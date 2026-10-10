@@ -4486,6 +4486,7 @@
         "tests/integration/adapter-artifact-contract.test.js",
         "tests/integration/adapter-evaluation-fixture.test.js",
         "tests/integration/adapter-registry-browser-contract.test.js",
+        "tests/integration/attention-decode-continuation-replay.js",
         "tests/integration/attention-decode-platform-replay.js",
         "tests/integration/attention-gate-platform-replay.js",
         "tests/integration/attention-platform.js",

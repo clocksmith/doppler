@@ -1,0 +1,193 @@
+{
+  "scope": "Physical captured-operand correction, not model qualification",
+  "observedBoundary": "Dot residual is present; scale-residual expression loses score low term on Linux. Guarding the zero scale residual preserves that term.",
+  "capturedPasses": "22-key and 191-key independent Float64 checks pass on each platform; corresponding outputs are byte-identical.",
+  "continuationCases": 24,
+  "continuationMaximumError": {
+    "linux": 1.8579948912744726e-07,
+    "mac": 1.5938505937285186e-07
+  },
+  "continuationCrossPlatformMaximumDifference": 2.384185791015625e-07,
+  "unchangedModelTolerance": 0.001,
+  "receipts": [
+    {
+      "file": "doppler-025-continuation-linux.json.gz",
+      "sha256": "1e9e56403815e2b27a3da9f70d2fcb316c45dbc452aeea70b0f421a5d0630f7b",
+      "passed": true,
+      "comparison": null,
+      "shaderSha256": "726db46c8e1caef0480b72b3b8af30499b2aa9f8d1ffe3e458a5c8a138590d12",
+      "failure": null
+    },
+    {
+      "file": "doppler-025-continuation-mac.json.gz",
+      "sha256": "adad77fc6dbf6b53be08f80e3441d321ca204d8efe0d7f987d21a7c452a47dd7",
+      "passed": true,
+      "comparison": null,
+      "shaderSha256": "726db46c8e1caef0480b72b3b8af30499b2aa9f8d1ffe3e458a5c8a138590d12",
+      "failure": null
+    },
+    {
+      "file": "doppler-025-rounded-dotparts191-linux.json.gz",
+      "sha256": "745b0bd49f346b94918090be524c86a44486b60ef4d948aa361b3b4da291f46e",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "47f3f2824b02ea08bfcf0f0c8eb1aa7277588ae1783defc8a5d6add760348591",
+      "failure": "Correction must materially improve independent accuracy"
+    },
+    {
+      "file": "doppler-025-rounded-fma-observed191-linux.json.gz",
+      "sha256": "35490c3c9f83584e030e1b6edbc23d4767f9c88a54c301f0ac4a7991adf8888e",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "6b529668bd23cbc17afb03125e83246249d0b210075c039ad0801ce06181db11",
+      "failure": "Correction must materially improve independent accuracy"
+    },
+    {
+      "file": "doppler-025-rounded-fma-scoreparts191-linux.json.gz",
+      "sha256": "449dd14ba639e45f6caa01b9b90fabc4321581b9868ff4362d832995bdfb8d30",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "3c7f7d8ab0af715939d7db42d599fb962eb0feefdd2dbb79737aacd9213e0084",
+      "failure": "Correction must materially improve independent accuracy"
+    },
+    {
+      "file": "doppler-025-rounded-guard-observed191-linux.json.gz",
+      "sha256": "41d771224972ead28ad6d66619038a353d7b37eb69d8ae89f73d353ff59e6702",
+      "passed": true,
+      "comparison": {
+        "maxError": 9.098912778782164e-08,
+        "rmsError": 1.2615255385386875e-08
+      },
+      "shaderSha256": "81d6d74f4b72b7b134bac451f443b6eba36523af01d31d14c0a4f5fdd8db3e3a",
+      "failure": null
+    },
+    {
+      "file": "doppler-025-rounded-guard-observed191-mac.json.gz",
+      "sha256": "169feb4e9bd04c1ab892aac67226401b49715342b25783545530a2bc2a045b10",
+      "passed": true,
+      "comparison": {
+        "maxError": 9.098912778782164e-08,
+        "rmsError": 1.2615255385386875e-08
+      },
+      "shaderSha256": "81d6d74f4b72b7b134bac451f443b6eba36523af01d31d14c0a4f5fdd8db3e3a",
+      "failure": null
+    },
+    {
+      "file": "doppler-025-rounded-guard-prototype191-linux.json.gz",
+      "sha256": "41142aab3e146b099b94df8ef52582a806108d71decd32d964765793185ef60a",
+      "passed": true,
+      "comparison": {
+        "maxError": 9.098912778782164e-08,
+        "rmsError": 1.2615255385386875e-08
+      },
+      "shaderSha256": "726db46c8e1caef0480b72b3b8af30499b2aa9f8d1ffe3e458a5c8a138590d12",
+      "failure": null
+    },
+    {
+      "file": "doppler-025-rounded-guard-prototype22-linux.json.gz",
+      "sha256": "f036a8ac0c39eb529aeb27eba7c49b74d15c3790587a6357bfccc187830b9dbe",
+      "passed": true,
+      "comparison": {
+        "maxError": 6.288871734483337e-08,
+        "rmsError": 1.2583517460056974e-08
+      },
+      "shaderSha256": "726db46c8e1caef0480b72b3b8af30499b2aa9f8d1ffe3e458a5c8a138590d12",
+      "failure": null
+    },
+    {
+      "file": "doppler-025-rounded-guard-prototype22-mac.json.gz",
+      "sha256": "a008f1bcb575719b7d536b4c441a196b64a39984b0b25dcbb291d68e5df00755",
+      "passed": true,
+      "comparison": {
+        "maxError": 6.288871734483337e-08,
+        "rmsError": 1.2583517460056974e-08
+      },
+      "shaderSha256": "726db46c8e1caef0480b72b3b8af30499b2aa9f8d1ffe3e458a5c8a138590d12",
+      "failure": null
+    },
+    {
+      "file": "doppler-025-rounded-observed191-linux.json.gz",
+      "sha256": "0d510eeeb29a3a43d2e7144e409ab6a54bc5feccd1afd34435f231bf2ce4968d",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "90db7593dac409cd7b6c27a85134b11d34bcd22abf365c6596c1e4c10311b398",
+      "failure": "Correction must materially improve independent accuracy"
+    },
+    {
+      "file": "doppler-025-rounded-scoreparts191-linux.json.gz",
+      "sha256": "94d43ea7d5172fc441c5ae12fbf92f656abaf544e4761131bd1789c7d1f5eccc",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "96b46c42b0e6b083c510fb357f4a371504fdf53dec03939bdb8ef6bbda0d5a96",
+      "failure": "Correction must materially improve independent accuracy"
+    },
+    {
+      "file": "doppler-025-shared-dotlow191-linux.json.gz",
+      "sha256": "91a0c4ddc164528272054bffbbef76f45a35f8d5e322849c99eaf60ebcdf386c",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "6dc2571892b8ec2a89bc9333753e3b1a948243f06fe95f79e7598fea6ef910c2",
+      "failure": "Correction must materially improve independent accuracy"
+    },
+    {
+      "file": "doppler-025-shared-observed191-linux.json.gz",
+      "sha256": "84a5386035d60577c12cd394392d6f57ddbe76a2e21b6d95568c1fbc9ecf41ab",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "f7bf1177fdfa42302276cf671c253281dcf5aa526285115770c76d07dd8b1f6d",
+      "failure": "Correction must materially improve independent accuracy"
+    },
+    {
+      "file": "doppler-025-transferred-observed191-linux.json.gz",
+      "sha256": "02f4833a873f5122d84166ea56c3a27cb1242f02faa9b331adab6e6637a041f2",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "937520c0ca017b76f1b34d1c019348f4cdbe470d5e0bd2c64b305d762192964b",
+      "failure": "Correction must materially improve independent accuracy"
+    }
+  ],
+  "runtimeCandidate": "0.6.26",
+  "archiveSha256": "e0f558cfd0980eabc6db42496d8fe250e66f3d125e67c9635333e80077f8f7b7",
+  "frozenModelQualification": {
+    "failedSteps": 56,
+    "steps": 110,
+    "tolerance": 0.001,
+    "maximumDifference": 0.0018568038940429688,
+    "directions": "28/55 in each physical placement"
+  },
+  "nativeAndMixedControls": {
+    "stepsPerControl": 55,
+    "controls": 4,
+    "maximumDifference": 0
+  },
+  "checks": {
+    "cpuFilesPassed": 895,
+    "aggregate": "Failed its public package-size check before the audited size repair; focused public check passes afterward. All other aggregate scripts passed.",
+    "reploid": "2931 tests passed initially; manifest delivery mismatch repaired and its focused test passed."
+  },
+  "deployment": "No publication or deployment"
+}
