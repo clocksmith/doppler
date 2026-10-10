@@ -12,7 +12,7 @@ Primary documentation index.
 
 ## Core Runtime Docs
 
-- [Architecture](architecture.md) - system model and boundaries.
+- [Architecture](architecture.md#technical-diagrams) - component diagrams, Capsule execution sequence, partition resource lifetimes, and system boundaries.
 - [Model Release Platform](model-release-platform.md) - standalone product,
   Capsule-first convergence, qualification offer, explicit gaps, and GTM gate.
 - [Executable-model Adoption Plan](executable-model-adoption-plan.md) -

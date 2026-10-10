@@ -16,7 +16,8 @@ search results with WebGPU.
 Available operations depend on the model and its qualified execution plan.
 Applications own user experience, trust, and updates. Rig prepares the model;
 Run executes its declared program. Browser and Node support are qualified
-separately; Bun remains experimental. [Architecture](docs/architecture.md).
+separately; Bun remains experimental.
+[Technical diagrams: components, execution, resource lifetime](docs/architecture.md#technical-diagrams).
 
 **[Try Doppler in your browser](https://d4da.com/doppler/)** · [Get started](docs/getting-started.md)
 

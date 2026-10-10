@@ -1,5 +1,162 @@
 # Doppler Architecture
 
+## Technical diagrams
+
+These implementation views were checked against `edefc11b`. They explain the
+standalone runtime and its partition boundary; they are not new model or hardware
+qualification claims. The README hero shows the product relationship. These
+diagrams show the components, calls, and resource lifetimes behind it.
+
+### Preparation, host, and execution ownership
+
+```mermaid
+flowchart TB
+    SOURCE["Pinned source model<br/>weights, configuration, tokenizer"]
+    RIG["Rig / converter<br/>interpret, lower, evaluate, construct"]
+    CAP["Signed Capsule<br/>artifacts, programs, accepted TargetPlans"]
+    APP["Application<br/>input, trust, release policy, lifetime"]
+    HOST["Model host<br/>acquisition, caching, device setup, handles"]
+    PORTS["Explicit ports<br/>device, artifactStore, trustedSigners, programFactory"]
+    RUN["Run composition root<br/>verify metadata and artifacts; select declared plan"]
+    PROGRAM["Program factory<br/>construct the declared numerical program"]
+    SESSION["Session controller and operation adapters<br/>generation, embeddings, reranking, scoring"]
+    BIND["Resource binder + command executor<br/>buffers, layouts, pipelines, submission"]
+    GPU["WebGPU device<br/>declared WGSL computation"]
+    OBS["Results returned to application<br/>deltas, scores, identity, progress, errors"]
+    SOURCE --> RIG --> CAP
+    APP --> HOST --> PORTS
+    APP -->|advanced direct integration| PORTS
+    PORTS --> RUN
+    CAP --> RUN
+    RUN --> PROGRAM --> SESSION --> BIND --> GPU
+    GPU --> OBS
+    classDef app fill:#ffffff,stroke:#111827,color:#111827
+    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
+    classDef runtime fill:#edf3ff,stroke:#2563eb,color:#111827
+    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
+    class SOURCE,APP,HOST,PORTS app
+    class RIG,CAP contract
+    class RUN,SESSION,OBS runtime
+    class PROGRAM,BIND,GPU compute
+```
+
+Arrows show construction, calls, or data movement, not permission to import across
+every boundary. The injected Run core does not import the model host. Applications
+can use it directly with explicit ports. Operation availability comes from the
+selected program; the diagram does not promise every operation for every model.
+JSON owns declared policy, JavaScript owns orchestration and I/O, and WGSL owns
+runtime tensor computation. Doe is an optional provider integration; discovery,
+peer placement, and application decisions remain outside Doppler.
+
+| Boundary | Implementation |
+| --- | --- |
+| Source preparation | [converter](../src/converter/), [model-capsule-forge.js](../src/tooling/model-capsule-forge.js) |
+| Public host and injected core | [model-host/index.js](../src/client/model-host/index.js), [capsule-runtime.js](../src/capsule-runtime.js), [composition-root.js](../src/client/runtime/composition-root.js) |
+| Artifact verification and plan selection | [verified-capsule-artifact-store.js](../src/client/runtime/verified-capsule-artifact-store.js), [target-plan.js](../src/config/target-plan.js) |
+| Operations and execution | [capsule-operation-adapters.js](../src/client/runtime/capsule-operation-adapters.js), [session-controller.js](../src/client/runtime/session-controller.js), [resource-binder.js](../src/client/runtime/resource-binder.js), [command-executor.js](../src/client/runtime/command-executor.js) |
+
+### Capsule opening and repeated requests
+
+```mermaid
+sequenceDiagram
+    participant H as Application / host
+    participant R as Doppler Run
+    participant S as Verified artifact store
+    participant P as Declared program
+    participant G as WebGPU device
+    H->>R: openCapsule(capsule, acceptance policy)
+    R->>R: Freeze metadata, verify signatures and release authority
+    opt Capsule v3 release history
+        R->>H: Persist verified release checkpoint
+        H-->>R: Checkpoint persisted
+    end
+    R->>G: Inspect capabilities and device availability
+    R->>R: Select an accepted TargetPlan, validate registries
+    R->>S: Verify artifacts, read declared modules and manifest
+    S-->>R: Authenticated bytes and artifact observations
+    R->>P: programFactory with selected plan and verified storage
+    P->>G: Prepare weights and required GPU resources
+    P-->>R: Initial execution identity
+    R->>R: Compare identity where required by the plan
+    R-->>H: Loaded session with supported operations
+    loop Reuse loaded session for successive operations
+        H->>R: Operation request + AbortSignal
+        R->>R: Acquire operation lease, recheck authority and device
+        R->>P: Execute with resolved settings
+        P->>G: Bind and submit declared computation
+        G-->>P: Results / observed completion
+        P-->>R: Deltas or structured result
+        R-->>H: Yield output, release lease when settled
+    end
+    H->>R: close()
+    R->>R: Reject new operations, abort and drain active work
+    R->>P: Dispose owned session resources
+    R->>S: Close verified store
+    R-->>H: Cleanup completion or error
+```
+
+One ordinary Capsule session rejects overlapping operations; an application must
+schedule them or use separately supported sessions. Reusing weights does not mean
+sharing a conversation's mutable generation state. Cancellation after submission
+cannot interrupt already submitted GPU commands. See
+[capsule-session-execution.js](../src/client/runtime/capsule-session-execution.js).
+
+The dispatch identity includes shader content, entry point, specialization
+constants, device, and layout. A reused pipeline must preserve that identity;
+cache lookup is not authority to substitute a different implementation. The
+[command executor](../src/client/runtime/command-executor.js) owns submission,
+while the [resource binder](../src/client/runtime/resource-binder.js) owns its
+bound resources. Submitted work and observed completion are distinct states.
+
+### Resident partitions and resource lifetime
+
+```mermaid
+flowchart TB
+    CAPS["createResidentPartitionFactory<br/>normal Capsule opener + trust options"]
+    MAN["createManifestResidentPartitionFactory<br/>exact manifest + verified storage + explicit config"]
+    ALLOC["Partition allocation contract<br/>layer range, dependencies, shared weights, dtype"]
+    RES["Resident partition session<br/>loaded weights and reusable GPU resources"]
+    A["Attempt A<br/>identity, attention/recurrent state, token context"]
+    B["Attempt B<br/>separate identity and generation state"]
+    STEP["Serialized execution lease<br/>executeGroup0 or executeGroup1"]
+    CLOSE["closeAttempt(identity)<br/>retire, abort, await pending work, release state"]
+    REUSE["Resident stays open<br/>another admitted attempt can reuse weights"]
+    DISPOSE["resident.close()<br/>settle attempts, unload owned resources"]
+    CAPS --> ALLOC
+    MAN --> ALLOC
+    ALLOC --> RES
+    RES --> A
+    RES --> B
+    A --> STEP
+    B --> STEP
+    STEP --> CLOSE --> REUSE
+    RES --> DISPOSE
+    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
+    classDef resident fill:#edf3ff,stroke:#2563eb,color:#111827
+    classDef attempt fill:#ffffff,stroke:#111827,color:#111827
+    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
+    class CAPS,MAN,ALLOC contract
+    class RES,REUSE resident
+    class A,B,CLOSE,DISPOSE attempt
+    class STEP compute
+```
+
+The two factory entries belong to the same package. The manifest entry is an
+explicit development/integration path, not a signed Capsule acceptance claim.
+Both resolve partition allocation before opening the resident. Each attempt
+owns its continuation state; shared weights survive attempt closure. Closing an
+attempt awaits its pending work, and closing the resident prevents later work
+from reopening it. Pool retention and owned live state are different memory
+categories; a device allocation budget is not a physical RAM measurement.
+
+[resident-partitions.js](../src/client/resident-partitions.js) owns public factory
+composition; [resident-partition-contract.js](../src/inference/pipelines/text/resident-partition-contract.js)
+owns allocation validation; [resident-partition.js](../src/inference/pipelines/text/resident-partition.js)
+owns attempt state; [partition-execution.js](../src/inference/pipelines/text/partition-execution.js)
+owns numerical layer execution. Reploid supplies peer selection, reservations,
+transport, and transfer permissions; Doppler defines valid tensors, computation,
+sampling, and continuation semantics.
+
 ## Architecture Overview
 
 **Doppler** (Deterministic On-device Processing for Prefill, Learning, and
