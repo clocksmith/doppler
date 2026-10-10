@@ -1,0 +1,27 @@
+{
+  "component": "doppler.tests",
+  "intent": "preserved",
+  "checkGreenExitCode": 0,
+  "cpuTestFilesPassed": 895,
+  "syntaxCheckPassed": true,
+  "diffCheckPassed": true,
+  "productionRuntimeModified": false,
+  "logs": {
+    "checkGreen": {
+      "file": "checkGreen.log.gz",
+      "rawSha256": "8bfb208c31bb4894c47f854d3a538e5080a5cbe9a72f5ad39a340e9609a7dad6"
+    },
+    "architecture": {
+      "file": "architecture.log.gz",
+      "rawSha256": "c2e716207c5a33f361b74202f02c9479dedb54a410c888334cae3d2245e8e81e"
+    },
+    "dependencies": {
+      "file": "dependencies.log.gz",
+      "rawSha256": "adb7db8dc3411942f6258ed4ab40a076ddd6813f02b9cec97ded065ecb3b0726"
+    },
+    "routing": {
+      "file": "routing.log.gz",
+      "rawSha256": "6d460fa0e4b565bc47cf3fc2068b82695dcc660995b52b0bfd04ed8cf9a41131"
+    }
+  }
+}

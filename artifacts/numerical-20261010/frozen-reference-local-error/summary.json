@@ -1,0 +1,434 @@
+{
+  "component": "doppler.runtime-source.gpu.kernels",
+  "intent": "preserved",
+  "productionSourceChanged": false,
+  "publication": false,
+  "deployment": false,
+  "frozenTolerance": 0.001,
+  "frozenReferenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "archiveOwnership": "The retained packages have not been proven to be the original producing package. Shader-pin differences are recorded, not ignored in support claims. Diagnostic modified archives are not ordinary installed packages.",
+  "findings": [
+    "Current standard 0.6.26 remains unqualified: Mac/Linux unsplit and both split placements agree exactly on all 55 prefixes but fail 56 of 110 frozen comparisons.",
+    "Retained 0.6.12 passes three first-prefix comparisons but fails 15 of 55 complete Mac fixed-prefix comparisons, peak 0.003875255584716797.",
+    "First old/current difference occurs at layer.0.attn.qkv_proj after identical embedding and input normalization outputs.",
+    "Independent Float64 projection shows current ordered-FMA Q4 accumulation improves accuracy relative to retained 0.6.12; reverting it would sacrifice independent accuracy.",
+    "Experimental compensated Q4 accumulation improves the captured full projection. A branch protecting the final reduction residual produces nearest-F32 Float64-reference outputs identically on both GPUs for this capture.",
+    "Experimental modified-archive Mac full replay still fails 26 of 55 comparisons, peak 0.002151966094970703. This is not a qualified correction.",
+    "Observing compensated internal sums perturbs Mac outputs by at most 1.9073486328125e-6; those traces diagnose a reduction boundary, not unchanged model behavior.",
+    "The earlier 0.6.12 trace completed GPU execution but failed receipt postprocessing with a stack overflow from Math.max spread; the later runner uses bounded scalar reduction and retains each result before validation.",
+    "The baseline isolated Q4 shader exactly reproduces current full-model capture but intentionally fails the correction-only tighter accuracy assertion.",
+    "Earlier split.10 archive reproduces the frozen reference exactly after the initial request: all 53 subsequent first-pass prefixes plus both repeated first-request prefixes match bit-for-bit. The initial two cold prefixes fail substantially.",
+    "Both experimental full native model controls fail 26/55 unchanged-reference comparisons, peak 0.002151966094970703; their complete logits are being checked for cross-platform equality.",
+    "Both experimental complete controls agree bit-for-bit on all 55 frozen prefixes and the repeated two-step request, despite the unchanged-reference failure.",
+    "Warm split.10 public generation observation has no numerical effect, and frozen-prefill logits match exactly. Captured input normalization is the first old/current divergence, peak 4.76837158203125e-7 on identical embedding operands.",
+    "Native pipeline observation identifies 245 main_subgroup selections in split.10 and 245 declared main selections in current 0.6.26. The independent normalization oracle improves peak error from 5.143836663279444e-7 to 4.354780891446808e-7.",
+    "Changing only the retained split.10 subgroup registry entry from main_subgroup to the manifest-declared main, with unchanged shader source, causes 16/55 warm fixed-prefix comparisons to exceed 0.001; peak 0.0017681121826171875. All 2793 observed normalization selections use main. This is a test-only historical control, not a production policy change."
+  ],
+  "pending": [
+    "Complete standard-archive current-manifest proposed reference captures; user acceptance decision remains pending"
+  ],
+  "operatorOracle": {
+    "scope": "Independent Float64 projection over exact captured F32 input and stored Q4_K operands; diagnostic only",
+    "M": 19,
+    "N": 6144,
+    "K": 1024,
+    "weightsSha256": "a8331806a48e347746f541b58b43b3a184fd8d1605781373ba044da1157e1fbb",
+    "inputSha256": "71f771ee29aa7ec808baf1ae8ead623b355c19bf8b2c6b3c8d0c1b72513ca5be",
+    "modelsManifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+    "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+    "retained012": {
+      "maxAbsoluteError": 1.1680182396389682e-05,
+      "rmsError": 3.952673949038323e-07,
+      "worstCoordinate": [
+        16,
+        1863
+      ],
+      "output": -19.365009307861328,
+      "reference": -19.36499762767893,
+      "exceeding5e6": 42
+    },
+    "current026": {
+      "maxAbsoluteError": 7.0723724068244564e-06,
+      "rmsError": 2.8214843944068056e-07,
+      "worstCoordinate": [
+        9,
+        232
+      ],
+      "output": -8.71583366394043,
+      "reference": -8.715840736312837,
+      "exceeding5e6": 3
+    }
+  },
+  "oracleCrosscheck": {
+    "scope": "Independent NumPy Float64 Q4_K decoding and BLAS dot validated against existing scalar JavaScript Q4_K reference on all 116736 outputs",
+    "maximumFloat64Difference": 1.0658141036401503e-14,
+    "float32OutputMismatches": 0,
+    "passed": true
+  },
+  "records": [
+    {
+      "rawPath": "/tmp/doppler-q4-compensated-branch-linux.json",
+      "retainedFile": "doppler-q4-compensated-branch-linux.json",
+      "rawSha256": "e4b5eb3bf5b958976b4fc55f5e8d0bfebf68809bb206c83b2a9c5d4df074a00d",
+      "rawBytes": 2302558,
+      "publishedBytes": 1033,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-compensated-branch-linux.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-compensated-branch-mac.json",
+      "retainedFile": "doppler-q4-compensated-branch-mac.json",
+      "rawSha256": "5b8e237f7bc24f86fb4263bfafa7299e734c25f65ee0d17ac1fee6090a9a2a93",
+      "rawBytes": 2302561,
+      "publishedBytes": 1036,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-compensated-branch-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-compensated-final-branch-linux.json",
+      "retainedFile": "doppler-q4-compensated-final-branch-linux.json",
+      "rawSha256": "198a265f6c32a8d494e22649e18db0d7715b7041897b5898ff6e5178a5174303",
+      "rawBytes": 2302558,
+      "publishedBytes": 1033,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-compensated-final-branch-linux.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-compensated-final-branch-mac.json",
+      "retainedFile": "doppler-q4-compensated-final-branch-mac.json",
+      "rawSha256": "3d5f1e3c4f892060e14c75c6e17f1a69a115aac1a0c5c0c83f5119346f1a2dc8",
+      "rawBytes": 2302561,
+      "publishedBytes": 1036,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-compensated-final-branch-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-compensated-linux.json",
+      "retainedFile": "doppler-q4-compensated-linux.json",
+      "rawSha256": "2794183f3dbc8fc991a7277b02d7b4d3079f5c1d49f7d9620c31a39d88a2c944",
+      "rawBytes": 2302538,
+      "publishedBytes": 1009,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-compensated-linux.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-compensated-mac.json",
+      "retainedFile": "doppler-q4-compensated-mac.json",
+      "rawSha256": "3c04d701be91fd45c73d4cad8e9018d6be225ba9ff07ac5119d837bc5fd901e1",
+      "rawBytes": 2302481,
+      "publishedBytes": 1012,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-compensated-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-compensated-scalar-mac.json",
+      "retainedFile": "doppler-q4-compensated-scalar-mac.json",
+      "rawSha256": "a6b89a9f3d426337aa20458d086157b3343e570fa86a9c09f9d277fc5d6206b8",
+      "rawBytes": 2302481,
+      "publishedBytes": 1012,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-compensated-scalar-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-compensated-split-linux.json",
+      "retainedFile": "doppler-q4-compensated-split-linux.json",
+      "rawSha256": "87e8ffec28f3bc20d379b16fd549119ee8c9c5f396d5fc82af93751c74b7279f",
+      "rawBytes": 2302538,
+      "publishedBytes": 1009,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-compensated-split-linux.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-compensated-split-mac.json",
+      "retainedFile": "doppler-q4-compensated-split-mac.json",
+      "rawSha256": "0d0da382d7ffc3b6171a370304b58ef568dd48d985b90d6056f46ec9e1b6d59e",
+      "rawBytes": 2302481,
+      "publishedBytes": 1012,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-compensated-split-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-current-replay-linux.json",
+      "retainedFile": "doppler-q4-current-replay-linux.json",
+      "rawSha256": "53a385c8257bc75230925d83d2a93ed9728e225b981989b99ef280a99dbed147",
+      "rawBytes": 2302443,
+      "publishedBytes": 1151,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-current-replay-linux.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-model-full-linux.json",
+      "retainedFile": "doppler-q4-model-full-linux.json",
+      "rawSha256": "04801f876a47dc63b10eb5415cec3f348568ea4c17aaf977a0d5773fdf017464",
+      "rawBytes": 78570127,
+      "publishedBytes": 121323,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-model-full-linux.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-model-full-mac.json",
+      "retainedFile": "doppler-q4-model-full-mac.json",
+      "rawSha256": "155a3979758a71e78a1a534f4712e4eb3643421bb2f797b6045bf57f988b0113",
+      "rawBytes": 78569548,
+      "publishedBytes": 121314,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-model-full-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-model-prefill-linux.json",
+      "retainedFile": "doppler-q4-model-prefill-linux.json",
+      "rawSha256": "e53f1f30b619ccf5e3b7115d56c3d29feac40b565dceb250ab3169eae9bd9266",
+      "rawBytes": 49978758,
+      "publishedBytes": 585061,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-model-prefill-linux.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-model-prefill-mac.json",
+      "retainedFile": "doppler-q4-model-prefill-mac.json",
+      "rawSha256": "b6c6dcdd017059deffbbc299db6b8434cef471c837d52ab07249556164ed2e76",
+      "rawBytes": 49978208,
+      "publishedBytes": 585018,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-model-prefill-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-observed-linux.json",
+      "retainedFile": "doppler-q4-observed-linux.json",
+      "rawSha256": "24b59304774d2fb428574d19309b6d60f780f81cb59e08a4bb6ec52d8c2f1fb9",
+      "rawBytes": 26721285,
+      "publishedBytes": 1154,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-observed-linux.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-observed-mac.json",
+      "retainedFile": "doppler-q4-observed-mac.json",
+      "rawSha256": "5f9d2475258045c84125eaccb84516a2b295c099a335cfc1ad49011ac12271db",
+      "rawBytes": 26703573,
+      "publishedBytes": 1157,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-observed-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-q4-oracle-crosscheck.json",
+      "retainedFile": "doppler-q4-oracle-crosscheck.json",
+      "rawSha256": "4130fdbc7b8429c788da77b8814d4c9c266b71be10a40904987448d505d14529",
+      "rawBytes": 238,
+      "publishedBytes": 281,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-q4-oracle-crosscheck.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-qkv-012-026-oracle.json",
+      "retainedFile": "doppler-qkv-012-026-oracle.json",
+      "rawSha256": "cb55e4e5350daf5e2c75a166f8e9f51e2e6cecba6b7798dc8cc4410931a08ef9",
+      "rawBytes": 919,
+      "publishedBytes": 1059,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-qkv-012-026-oracle.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-qkv-full-replay.json",
+      "retainedFile": "doppler-qkv-full-replay.json.gz",
+      "rawSha256": "8af4f341e3df834b3851ccbb804e5e5a29a97c63df15ec06969522332a0e77c2",
+      "rawBytes": 7313734,
+      "publishedBytes": 5501824,
+      "projection": false,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-qkv-full-replay.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-reference-012-full-mac.json",
+      "retainedFile": "doppler-reference-012-full-mac.json",
+      "rawSha256": "c3ec39c2f9c9ae2d5706ad16bd8a8a9067ee6954bee6919fae869d63352e92a6",
+      "rawBytes": 78569053,
+      "publishedBytes": 120112,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-reference-012-full-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-reference-012-layer0-mac.json",
+      "retainedFile": "doppler-reference-012-layer0-mac.json",
+      "rawSha256": "6fc61e7cda7c4da092be62e090da42767c6eae0907e2cf9a0aab18c3f99d7e92",
+      "rawBytes": 49980118,
+      "publishedBytes": 583871,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-reference-012-layer0-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-reference-012-trace-mac.json",
+      "retainedFile": "doppler-reference-012-trace-mac.json",
+      "rawSha256": "bf36cdb700437836505ca53d1258bf34cecd82237ddf9101e81c54ec1ea62959",
+      "rawBytes": 40200926,
+      "publishedBytes": 566813,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-reference-012-trace-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-reference-064-mac.json",
+      "retainedFile": "doppler-reference-064-mac.json",
+      "rawSha256": "2921b008949fde66a799524a85eeb76e4d822cf4dfad2ca19dfbe87a55bfd1d0",
+      "rawBytes": 3978877,
+      "publishedBytes": 9110,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-reference-064-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-reference-064-reuse-mac.json",
+      "retainedFile": "doppler-reference-064-reuse-mac.json",
+      "rawSha256": "c4978eb775c4a5bc5ac2b4efe2f6f0791df82f3fef7121fd4202517583f06223",
+      "rawBytes": 5504332,
+      "publishedBytes": 89783,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-reference-064-reuse-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-reference-split10-full-mac.json",
+      "retainedFile": "doppler-reference-split10-full-mac.json",
+      "rawSha256": "597c368e40e07242105410d6c6c8e28c4390e40671b8ee6f3f6d16b3ad101da7",
+      "rawBytes": 78567764,
+      "publishedBytes": 117934,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-reference-split10-full-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-reference-split10-layer0-mac.json",
+      "retainedFile": "doppler-reference-split10-layer0-mac.json",
+      "rawSha256": "179eac2d136d20db14b980ad901e5537c66e56b752bf3d77956dd5d9c1c9fa42",
+      "rawBytes": 43105614,
+      "publishedBytes": 1113783,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-reference-split10-layer0-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-split10-normalization-mac.json",
+      "retainedFile": "doppler-split10-normalization-mac.json",
+      "rawSha256": "9c9ed20be03b95acd1ade4975f3e7ba10cbc1e6f409715944dd543e1fbf03802",
+      "rawBytes": 49979331,
+      "publishedBytes": 1790915,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-split10-normalization-mac.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-current026-normalization-linux.json",
+      "retainedFile": "doppler-current026-normalization-linux.json",
+      "rawSha256": "5509580c5837b5b865ecb4565c6392e73398139de4df0ccbd643c27495d5d22b",
+      "rawBytes": 49979981,
+      "publishedBytes": 1792496,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-current026-normalization-linux.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-frozen-norm-oracle.json",
+      "retainedFile": "doppler-frozen-norm-oracle.json",
+      "rawSha256": "cfea4d67e05071026796cd642dd4ecac452c5fbe52cd07e7ffb3bc16ee7ccc25",
+      "rawBytes": 1221,
+      "publishedBytes": 1493,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-frozen-norm-oracle.json.gz"
+    },
+    {
+      "rawPath": "/tmp/doppler-split10-declared-main-control-mac.json",
+      "retainedFile": "doppler-split10-declared-main-control-mac.json",
+      "rawSha256": "8bfce6ad46a82a60e4a56d1d4b9082c2dad3ab499eb7d4124bcca9598a628a82",
+      "rawBytes": 78568858,
+      "publishedBytes": 120377,
+      "projection": true,
+      "localExactReceipt": "reports/local/frozen-reference-producer/doppler-split10-declared-main-control-mac.json.gz"
+    }
+  ],
+  "normalizationOracle": {
+    "scope": "First frozen-producing-archive/current operation with identical operands; independent Float64 RMSNorm using stored F16 weights, declared offset and F32 epsilon",
+    "inputSha256": "ebc91e604ca241fe45267c409801ed5b0cb0ae467b27135c30090a4c4869740e",
+    "weightSha256": "ef788e502a4813797b82059518a964afaa6fa87563a2b305479655ea5eb92a56",
+    "epsilon": 9.999999974752427e-07,
+    "M": 19,
+    "N": 1024,
+    "frozenDeclaredEntry": "main",
+    "oldActualEntries": [
+      {
+        "entry": "main_subgroup",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 0,
+          "OUTPUT_PRENORM": 0
+        },
+        "selections": 125,
+        "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+      },
+      {
+        "entry": "main_subgroup",
+        "constants": {
+          "RMS_NORM_OFFSET": 1,
+          "WEIGHT_IS_F16": 1,
+          "PRE_RESIDUAL": 1,
+          "OUTPUT_PRENORM": 1
+        },
+        "selections": 120,
+        "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+      }
+    ],
+    "oldObservationEffect": 0,
+    "retainedSplit10": {
+      "maxAbsoluteError": 5.143836663279444e-07,
+      "rmsError": 5.936573846447936e-08,
+      "worstCoordinate": [
+        7,
+        419
+      ]
+    },
+    "current026": {
+      "maxAbsoluteError": 4.354780891446808e-07,
+      "rmsError": 5.4199608807652205e-08,
+      "worstCoordinate": [
+        8,
+        52
+      ]
+    },
+    "crossDifference": 4.76837158203125e-07
+  },
+  "singleEntryIntervention": {
+    "baseArchiveSha256": "2ca115ac0ce243f4ee3fcc1d8c335af8e88836603f864e64e88ff37842a150ea",
+    "diagnosticArchiveSha256": "1b1450eeb3e3c4d2d9d52dec02748b8b872e1c59f5197f1cce49fb56347b94c7",
+    "change": {
+      "file": "src/config/kernels/registry.json",
+      "path": "operations.rmsnorm.variants.subgroup.entryPoint",
+      "from": "main_subgroup",
+      "to": "main"
+    },
+    "warmCoverage": "53 noninitial fixed prefixes plus the repeated first request (2 prefixes); cold first request separately retained, not erased",
+    "frozenTolerance": 0.001,
+    "failed": 16,
+    "steps": 55,
+    "maximumDifference": 0.0017681121826171875
+  },
+  "nextDecision": "The frozen reference retains a demonstrated native dispatch-contract bug. Current application qualification remains failing until a separately authorized acceptance change or a valid correction satisfies the unchanged reference. Do not silently refresh the fixture, restore the wrong entry, deploy, or publish.",
+  "acceptanceEvidence": {
+    "component": "doppler.tests",
+    "intent": "preserved",
+    "checkGreenExitCode": 0,
+    "cpuTestFilesPassed": 895,
+    "syntaxCheckPassed": true,
+    "diffCheckPassed": true,
+    "productionRuntimeModified": false,
+    "logs": {
+      "checkGreen": {
+        "file": "checkGreen.log.gz",
+        "rawSha256": "8bfb208c31bb4894c47f854d3a538e5080a5cbe9a72f5ad39a340e9609a7dad6"
+      },
+      "architecture": {
+        "file": "architecture.log.gz",
+        "rawSha256": "c2e716207c5a33f361b74202f02c9479dedb54a410c888334cae3d2245e8e81e"
+      },
+      "dependencies": {
+        "file": "dependencies.log.gz",
+        "rawSha256": "adb7db8dc3411942f6258ed4ab40a076ddd6813f02b9cec97ded065ecb3b0726"
+      },
+      "routing": {
+        "file": "routing.log.gz",
+        "rawSha256": "6d460fa0e4b565bc47cf3fc2068b82695dcc660995b52b0bfd04ed8cf9a41131"
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "scope": "Independent Float64 projection over exact captured F32 input and stored Q4_K operands; diagnostic only",
+  "M": 19,
+  "N": 6144,
+  "K": 1024,
+  "weightsSha256": "a8331806a48e347746f541b58b43b3a184fd8d1605781373ba044da1157e1fbb",
+  "inputSha256": "71f771ee29aa7ec808baf1ae8ead623b355c19bf8b2c6b3c8d0c1b72513ca5be",
+  "modelsManifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "retained012": {
+    "maxAbsoluteError": 1.1680182396389682e-05,
+    "rmsError": 3.952673949038323e-07,
+    "worstCoordinate": [
+      16,
+      1863
+    ],
+    "output": -19.365009307861328,
+    "reference": -19.36499762767893,
+    "exceeding5e6": 42
+  },
+  "current026": {
+    "maxAbsoluteError": 7.0723724068244564e-06,
+    "rmsError": 2.8214843944068056e-07,
+    "worstCoordinate": [
+      9,
+      232
+    ],
+    "output": -8.71583366394043,
+    "reference": -8.715840736312837,
+    "exceeding5e6": 3
+  },
+  "projectionNotes": []
+}
