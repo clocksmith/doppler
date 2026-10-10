@@ -58,7 +58,10 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // package smoke measured 1881 entries on Node 22.22.1/npm 9.2.0.
   // Choice scoring and regenerated reachability admit 1,893 package entries.
   // Exact npm 9 inventory: reports/choice-scoring/package-inventory.json.
-  maxEntryCount: 1893,
+  // The installed kernel suite requires four captured-operand fixtures already
+  // present in 0.6.15 and 0.6.18. No model weights or new runtime modules.
+  // Exact 0.6.19 inventory: artifacts/recovery-20261009/package-inventory.json.
+  maxEntryCount: 1897,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -119,7 +122,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // previously measured 2,158-byte cross-npm compression allowance.
   // Scoring inventory: 2,194,974 packed bytes; preserve the existing measured
   // 2,158-byte cross-npm allowance. No model weights or test operands ship.
-  maxPackedSize: 2_197_132,
+  // Those four fixtures and the retained numerical corrections measure
+  // 3,339,005 bytes on npm 9; preserve the existing 2,158-byte npm allowance.
+  maxPackedSize: 3_341_163,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -148,7 +153,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Scoring contract/qualification and public declarations: 11,504,740 bytes.
   // Baseline drift and this existing-file safety delta are separately audited.
   // Evidence: artifacts/buffer-retirement-2026-10-05/package-audit.json.
-  maxUnpackedSize: 11_511_240,
+  // Exact 0.6.19 payload, including the installed kernel suite's operands.
+  maxUnpackedSize: 13_097_430,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

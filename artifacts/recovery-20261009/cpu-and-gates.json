@@ -1,0 +1,28 @@
+{
+  "scope": "Full CPU suites and repository/package checks; not GPU/application acceptance",
+  "sourceCommit": "d8a17066",
+  "packageVersion": "0.6.19",
+  "cpuFiles": 895,
+  "cpuSuitePassed": true,
+  "initialIndependentFailures": [
+    {
+      "check": "public:boundaries:check",
+      "exitCode": 1
+    },
+    {
+      "check": "routing:audit:check",
+      "exitCode": 1
+    },
+    {
+      "check": "source:dependencies:check",
+      "exitCode": 1
+    }
+  ],
+  "correctedChecks": [
+    "public:boundaries:check",
+    "routing:audit:check",
+    "source:dependencies:check"
+  ],
+  "correctedChecksPassed": true,
+  "passed": true
+}
