@@ -15,7 +15,7 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
       expression: 'captureAttentionCache("outputs", {recorder, layerIdx, numTokens, numHeads, numKVHeads, headDim, attnOutput, attnForProjection})' },
     { file: 'gpu/kernels/matmul.js', marker: "    const tensor = createTensor(C, actualOutputDtype, [M, N], 'matmul_output');",
       condition: 'options.layerIdx === 0 && ["linear_qkv_proj", "linear_qkvz_proj"].includes(options.role)',
-      expression: 'captureProjection({recorder, M, N, K, alpha, variant, pathVariant, constants, config, input:matmulInput, weight:bBuffer, output:C, aOffset, bOffset, cOffset, bindingSizes, cBindingSize, dtype:actualOutputDtype})' },
+      expression: 'captureProjection({recorder, M, N, K, alpha, variant, pathVariant, constants, config, layerIdx:options.layerIdx, role:options.role, input:matmulInput, weight:bBuffer, output:C, residual:options.residualTensor, aOffset, bOffset, cOffset, bindingSizes, cBindingSize, dtype:actualOutputDtype})' },
     { file: 'gpu/kernels/linear-attention-core.js', marker: '      const recurrentBindGroup = device.createBindGroup({',
       condition: 'options.layerIdx === 0 && numTokens > 1',
       expression: 'captureLinearCore("inputs", {recorder, numTokens, layerState, options, qkvTensor, zTensor, aTensor, bTensor})' },
@@ -29,6 +29,7 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
       condition: 'options.layerIdx === 0 && numTokens > 1',
       expression: 'captureLinearCore("outputs", {device, numTokens, layerState, options, convOutBuffer, outputBuffer})' },
   ];
+  const projectionLocation = locations.find(location => location.expression.startsWith('captureProjection('));
   if (options.attentionLayer !== undefined) {
     assert(options.linearLayer === undefined, 'Select one attention observer');
     assert(Number.isInteger(options.attentionLayer) && options.attentionLayer >= 0);
@@ -53,6 +54,12 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
     ];
   }
   if (options.linearOnly === true) locations = locations.filter(location => location.expression.startsWith('captureLinearCore('));
+  if (options.projectionLayer !== undefined) {
+    assert.equal(options.projectionLayer, options.attentionLayer,
+      'Projection observation requires its selected attention boundary');
+    locations.push({ ...projectionLocation,
+      condition: `options.layerIdx === ${options.projectionLayer} && options.role === "o_proj"` });
+  }
   if (options.captureCondition) {
     locations = locations.map(location => ({ ...location,
       condition: `(${location.condition}) && (${options.captureCondition})` }));
@@ -136,12 +143,15 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
     globalThis.captureProjection = options => {
       const { recorder, M, N, K, alpha, variant, pathVariant, constants, config } = options;
       const record = { boundary: 'projection', phase: M === 1 ? 'decode' : 'prefill',
+        layerIdx: options.layerIdx, role: options.role,
+        step: globalThis.numericalObservation?.step, prompt: globalThis.numericalObservation?.prompt,
         M, N, K, alpha, variant, pathVariant, constants, config, tensors: [] };
       attentionCacheObservation.records.push(record);
       for (const [role, buffer, offset, bytes] of [
         ['input', options.input.buffer, options.aOffset, options.bindingSizes.aBindingSize],
         ['weight', options.weight, options.bOffset, options.bindingSizes.bBindingSize],
         ['output', options.output, options.cOffset, options.cBindingSize],
+        ...(options.residual ? [['residual', options.residual.buffer, 0, options.residual.buffer.size]] : []),
       ]) {
         const item = { role, bytes, offset, data: null }; record.tensors.push(item);
         const staging = recorder.device.createBuffer({ size: bytes, label: 'projection_observation',
