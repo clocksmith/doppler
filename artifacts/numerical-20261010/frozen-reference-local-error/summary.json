@@ -22,10 +22,11 @@
     "Both experimental complete controls agree bit-for-bit on all 55 frozen prefixes and the repeated two-step request, despite the unchanged-reference failure.",
     "Warm split.10 public generation observation has no numerical effect, and frozen-prefill logits match exactly. Captured input normalization is the first old/current divergence, peak 4.76837158203125e-7 on identical embedding operands.",
     "Native pipeline observation identifies 245 main_subgroup selections in split.10 and 245 declared main selections in current 0.6.26. The independent normalization oracle improves peak error from 5.143836663279444e-7 to 4.354780891446808e-7.",
-    "Changing only the retained split.10 subgroup registry entry from main_subgroup to the manifest-declared main, with unchanged shader source, causes 16/55 warm fixed-prefix comparisons to exceed 0.001; peak 0.0017681121826171875. All 2793 observed normalization selections use main. This is a test-only historical control, not a production policy change."
+    "Changing only the retained split.10 subgroup registry entry from main_subgroup to the manifest-declared main, with unchanged shader source, causes 16/55 warm fixed-prefix comparisons to exceed 0.001; peak 0.0017681121826171875. All 2793 observed normalization selections use main. This is a test-only historical control, not a production policy change.",
+    "Fresh complete standard 0.6.26 controls on both hosts verify exact archive identity, current manifest 18fe30e2..., zero shader-pin mismatches, declared main selection, and identical logits for all 55 shared prefixes plus the repeated two-prefix request. A separately retained proposed reference is inactive."
   ],
   "pending": [
-    "Complete standard-archive current-manifest proposed reference captures; user acceptance decision remains pending"
+    "User acceptance decision: no active reference or release gate has changed"
   ],
   "operatorOracle": {
     "scope": "Independent Float64 projection over exact captured F32 input and stored Q4_K operands; diagnostic only",
@@ -430,5 +431,6 @@
         "rawSha256": "6d460fa0e4b565bc47cf3fc2068b82695dcc660995b52b0bfd04ed8cf9a41131"
       }
     }
-  }
+  },
+  "proposedReference": "proposed-reference.json"
 }

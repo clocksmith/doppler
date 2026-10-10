@@ -48,3 +48,14 @@ An acceptance change needs explicit authorization: preserve the historical
 reference and failure evidence, retain 0.001, and establish a separately named
 reference for the corrected declared execution. Do not restore the dispatch bug
 or silently regenerate the current fixture.
+
+`proposed-reference.json` describes an inactive candidate prepared from fresh
+standard-archive controls using the current manifest on both physical hosts.
+All 55 prefixes and the repeated two-prefix request agree bit-for-bit; every
+current shader pin matches the archive. The proposed complete reference is
+retained locally, with decompressed SHA-256
+`a056956131e6944de2ba1d7f13b48327bc9e2c7fc55b55c57f1fc95fcca00046`.
+It changes only expected logits. Model binding, prompt tokens, generation,
+token labels, stopping labels, precision, and 0.001 remain unchanged. It is
+not installed into an executable or acceptance gate, and its agreement does
+not establish task quality, lifecycle acceptance, or deployment qualification.
