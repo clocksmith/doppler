@@ -1,0 +1,1943 @@
+{
+  "schema": "doppler.source-model-reference-diagnostic/v1",
+  "qualified": false,
+  "scope": "Independent model-equation diagnostic, not reference activation or runtime fallback",
+  "tolerance": 0.001,
+  "tokenization": "Exact captured prompt IDs, followed by frozen reference tokens",
+  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "sourceConfigSha256": "b90b86f35c8e6925ef74ee04d0e758f0a845c83a42089ad82bbaa948de9b4204",
+  "captureSha256": "28e10ce2535f2d05ecd31d4fdd5a05dc7527a47f6e054e34eccf6f62993a37de",
+  "pieceIndexIdentity": "sha256:3358a1d398da150df99b1988481a2691e7ee4573c8019bfcfa8b2c5011075cd6",
+  "pieceIndexManifestIdentity": "sha256:43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0",
+  "integrityScope": "Pinned SHA-256 pieces, separate from the retained legacy shard hash implementation",
+  "toolSha256": "4afe95250074b689afe42218aaa1d4d203f7b1c4b8064fcd7967302d78850aa9",
+  "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+  "shards": [
+    {
+      "filename": "shard_00000.bin",
+      "bytes": 67108864,
+      "sha256": "96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f",
+      "legacyManifestHash": "4dd461bea0d6cc891f78a7fe4dc744c0d269ea685b5a5a5de74c07d5422e4a3e",
+      "standardBlake3": "11af394f88f5597e6a735b579cc9e5269e27e8fa73e1de298968f64b40806836"
+    },
+    {
+      "filename": "shard_00001.bin",
+      "bytes": 67108864,
+      "sha256": "c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e",
+      "legacyManifestHash": "627234b5f84ede2314d044d0eb479068766b0cd5f936a29bd6373d9397ac7614",
+      "standardBlake3": "5509aa5c5cd14c3893c5e0301db53023a1c62881d1b8392bff94c50e350b93f4"
+    },
+    {
+      "filename": "shard_00002.bin",
+      "bytes": 67108864,
+      "sha256": "8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec",
+      "legacyManifestHash": "772a45a3111f9f0b826600a7950cc77991b65d6c3650df5ad6e882015522c600",
+      "standardBlake3": "636412f5015364b3b2d28256fb7535e013bdf21850278bb9cc6e5e3759d5a2d8"
+    },
+    {
+      "filename": "shard_00003.bin",
+      "bytes": 67108864,
+      "sha256": "735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29",
+      "legacyManifestHash": "a201dbf89e6ff7d6898e452bed94de20b02c9080aaa8efb6c52581069b6b80f9",
+      "standardBlake3": "7ccd341660ca2c66e5eb297e4531f65819c835900956e51de5e44f62b799ad9b"
+    },
+    {
+      "filename": "shard_00004.bin",
+      "bytes": 67108864,
+      "sha256": "3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69",
+      "legacyManifestHash": "1b7a6b6cb47286a640ac67692a160f3292e46bd496c7fe467ab932851bce054b",
+      "standardBlake3": "b3a9ef58111935428e0a7c2042b789bce55ca0c28abeb29d653294ca1497c462"
+    },
+    {
+      "filename": "shard_00005.bin",
+      "bytes": 67108864,
+      "sha256": "e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4",
+      "legacyManifestHash": "de1383a9cb1bf810079f0aefe923846d8e827257416b41b0740343d497ad4c36",
+      "standardBlake3": "4778f97ac8b229f8c10377eac5d35ba8dbffbfa01dd822df01838d3432a7faac"
+    },
+    {
+      "filename": "shard_00006.bin",
+      "bytes": 67108864,
+      "sha256": "70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313",
+      "legacyManifestHash": "d5143b6dea2e1d072041d933b174c6e3974ea5d434fa00149cc0ef9883bc8194",
+      "standardBlake3": "ad79eca2d7099d155fd8c3a6a4a7f37485bb11c869a21e2894a5fff1bc436b00"
+    },
+    {
+      "filename": "shard_00007.bin",
+      "bytes": 67108864,
+      "sha256": "e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4",
+      "legacyManifestHash": "9c059d5f25fbf63dc3d43809b18864d23db3d737988783a1cc905568076e96ca",
+      "standardBlake3": "1b26198d712b7263aed57dd2cb0d7fbd267e40fadae0c6f7fcb77e1671f6dbf3"
+    },
+    {
+      "filename": "shard_00008.bin",
+      "bytes": 67108864,
+      "sha256": "82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55",
+      "legacyManifestHash": "a58d96d7b4dd46f527c8cab0d3f88a8400f977ced510e047a246b64d0ea30d7e",
+      "standardBlake3": "875494e8dd5343d2f20c4d8646adea14bbc938f11b60ddab1cba44646561b949"
+    },
+    {
+      "filename": "shard_00009.bin",
+      "bytes": 67108864,
+      "sha256": "294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b",
+      "legacyManifestHash": "9e3dfd8dafd142a7075d5596a3c14ce5fe450b7559915c4dfafcef5979ce7e7d",
+      "standardBlake3": "9546b196c94ac360210676924e8304903b137a0c61e7449176070d8d4b116f30"
+    },
+    {
+      "filename": "shard_00010.bin",
+      "bytes": 67108864,
+      "sha256": "1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e",
+      "legacyManifestHash": "c53a446230d5fa3ea6f4291770484befb92ac3b8cf866c299a2375902f0141eb",
+      "standardBlake3": "965e4224b73dbfa558d22de3ac13ee08f0f54388abe1f47c0f2d7fca484166e0"
+    },
+    {
+      "filename": "shard_00011.bin",
+      "bytes": 67108864,
+      "sha256": "4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387",
+      "legacyManifestHash": "21bd0db18c8da3b98ee7bc48427b6b7d0a4dedf314fb36f59b5d2979703d6070",
+      "standardBlake3": "716c66ad7892bb58c338ebad004fc346a6c2f822a40ca7f6e18e9dd81f39fe12"
+    },
+    {
+      "filename": "shard_00012.bin",
+      "bytes": 67108864,
+      "sha256": "93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668",
+      "legacyManifestHash": "b84051c7d492efe08a444e1bec385dd5ec181f74c94a415b8a62e4fa923143a4",
+      "standardBlake3": "d535c65460b6cbda98018403cbeb62c172e07292fa3635c5260a94f956c3ff7c"
+    },
+    {
+      "filename": "shard_00013.bin",
+      "bytes": 67108864,
+      "sha256": "a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690",
+      "legacyManifestHash": "e01ff5a0e6a93892a07ca34b4e5ee66c8cda8c39b21f5160d2170c3871acb0be",
+      "standardBlake3": "67de62ab5ff1fcf0d1133ea90946217533c8cec5d626894ce5c7cc788eb90954"
+    },
+    {
+      "filename": "shard_00014.bin",
+      "bytes": 67108864,
+      "sha256": "b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8",
+      "legacyManifestHash": "393c6068148c6225bc44a6271b9542e3992d8d6e7c59fe91adc28ff985650025",
+      "standardBlake3": "de3507509c4b2bed4ccbb54f5c5693871bc03c3c83da4d82c5c946becd90bc4d"
+    },
+    {
+      "filename": "shard_00015.bin",
+      "bytes": 67108864,
+      "sha256": "8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455",
+      "legacyManifestHash": "174b4177b49dbb8ac2bef25034d1c4ee8afa501e0b84f4e0b520485463864648",
+      "standardBlake3": "c302d3a044f7a5312663e4df85b402535626d3141396b8d60dd5d83f4832f904"
+    },
+    {
+      "filename": "shard_00016.bin",
+      "bytes": 67108864,
+      "sha256": "914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266",
+      "legacyManifestHash": "3e6de75e7637d3b238a7b82ef563eaf08a1a2a0d1f48b2525e2471df61fd0d71",
+      "standardBlake3": "b46534042a07d647ae37d21500efaa5b8fcc1b3bb581dcb8788d1b27d6a8a751"
+    },
+    {
+      "filename": "shard_00017.bin",
+      "bytes": 5198016,
+      "sha256": "d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78",
+      "legacyManifestHash": "327c92a0a817f9936880c6051f3f33d0f1fb7096ead14bcb06d5dc777550ca3f",
+      "standardBlake3": "89bdf54ff02bc610e60f83606a06dfce8c5fcca62f2881380063aa6b192e3950"
+    }
+  ],
+  "versions": {
+    "torch": "2.11.0",
+    "transformers": "5.6.2",
+    "gguf": "0.19.0",
+    "numpy": "2.4.4"
+  },
+  "precision": {
+    "arithmetic": "float32",
+    "kvStorage": "float16",
+    "weights": "exact deployed bytes decoded to float32"
+  },
+  "results": [
+    {
+      "index": 0,
+      "step": 0,
+      "ordinal": 0,
+      "inputIds": [
+        248045,
+        846,
+        198,
+        20206,
+        440,
+        1132,
+        279,
+        3299,
+        21251,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ],
+      "comparison": {
+        "maxAbsError": 0.0009584426879882812,
+        "rmsError": 0.00019497442347463618,
+        "sampledToken": 9419,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "2ecb2859be6e4c16dede16befb13310a90e68967f49bfd1de0e5574417d6c062",
+      "expectedToken": 9419,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0011119842529296875,
+        "rmsError": 0.00017307979805510453,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0006837844848632812,
+        "rmsError": 0.0001131158543771366,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 0,
+      "step": 1,
+      "ordinal": 1,
+      "inputIds": [
+        9419
+      ],
+      "comparison": {
+        "maxAbsError": 0.0009313821792602539,
+        "rmsError": 0.00018914531441999126,
+        "sampledToken": 248046,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "127c83f56fd33b6f21f40dd18bfbd4d91439cf85bc2f0c1d0a60057f95823210",
+      "expectedToken": 248046,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0018062591552734375,
+        "rmsError": 0.0002344216134492042,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0006842613220214844,
+        "rmsError": 0.00013338736211912633,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 1,
+      "step": 0,
+      "ordinal": 2,
+      "inputIds": [
+        248045,
+        846,
+        198,
+        3710,
+        369,
+        1330,
+        5346,
+        1330,
+        30,
+        21134,
+        25899,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ],
+      "comparison": {
+        "maxAbsError": 0.0009441375732421875,
+        "rmsError": 0.0001621342116736788,
+        "sampledToken": 19,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "a4834a2cabe54fb1aedf8dd54ed85a0e611486bf14d3501b10c2333eb47ac983",
+      "expectedToken": 19,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0006985664367675781,
+        "rmsError": 0.00012810625519525505,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0006780624389648438,
+        "rmsError": 0.00010423099587007633,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 1,
+      "step": 1,
+      "ordinal": 3,
+      "inputIds": [
+        19
+      ],
+      "comparison": {
+        "maxAbsError": 0.0009927749633789062,
+        "rmsError": 0.00016458082069629258,
+        "sampledToken": 248046,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "26500d68b3727042bf3c52b8324a7ca33f6ba5f99dd849669c26d0e327f9a9d7",
+      "expectedToken": 248046,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0009107589721679688,
+        "rmsError": 0.00014362049016242864,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0007977485656738281,
+        "rmsError": 0.00012631802984334822,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 0,
+      "ordinal": 4,
+      "inputIds": [
+        248045,
+        846,
+        198,
+        1919,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        1061,
+        369,
+        3870,
+        2193,
+        13,
+        4543,
+        1698,
+        494,
+        799,
+        310,
+        16570,
+        11,
+        799,
+        1324,
+        791,
+        1500,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ],
+      "comparison": {
+        "maxAbsError": 0.0008358359336853027,
+        "rmsError": 0.00017616359272668247,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "a99a6b1b027f86ffe578d2ada1a4eb692e8ca4e8d78a2fddea53ed478e8927eb",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0008783340454101562,
+        "rmsError": 0.00018294725793594404,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0006639957427978516,
+        "rmsError": 0.00013604693098854121,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 1,
+      "ordinal": 5,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0006730556488037109,
+        "rmsError": 0.000145552015015466,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "dc082cc6cd83b0787d38165418bb7b2930a17e0712bb65fa64cedbf7947cdc43",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0007076263427734375,
+        "rmsError": 0.0001469757834654363,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0007064342498779297,
+        "rmsError": 0.00012035371313187418,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 2,
+      "ordinal": 6,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0008697509765625,
+        "rmsError": 0.0001843865033147905,
+        "sampledToken": 17,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "90968bd91c1999169092f7fa4fdb8fd98c78b27dd8bad346607496697c1b818b",
+      "expectedToken": 17,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.00124359130859375,
+        "rmsError": 0.00026695489287898637,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0012836456298828125,
+        "rmsError": 0.0002471097683549996,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 3,
+      "ordinal": 7,
+      "inputIds": [
+        17
+      ],
+      "comparison": {
+        "maxAbsError": 0.0014121532440185547,
+        "rmsError": 0.00034572385366760447,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "8d4b91d72055406ee5bf2470cd7bad2347022cb4a02d595a73c47f5bf901e7e3",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0013623237609863281,
+        "rmsError": 0.0002964613181513064,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0012745857238769531,
+        "rmsError": 0.0002547940728222515,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 4,
+      "ordinal": 8,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.001276642084121704,
+        "rmsError": 0.00022367274510751544,
+        "sampledToken": 18,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "76845416552f6e6342ac6ad570915e6940701feb8f08af9c1aaeca0daf144cf8",
+      "expectedToken": 18,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0013775825500488281,
+        "rmsError": 0.0002492976961522957,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0011167526245117188,
+        "rmsError": 0.0002011340892145502,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 5,
+      "ordinal": 9,
+      "inputIds": [
+        18
+      ],
+      "comparison": {
+        "maxAbsError": 0.0008525848388671875,
+        "rmsError": 0.00018504337893404245,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "feb21db39bf64b2f3bbbc12d1c775d4fb7df8f192eca621825d23f0f876d74d0",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0010457038879394531,
+        "rmsError": 0.00020570857669421975,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0008014440536499023,
+        "rmsError": 0.00016662257230996158,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 6,
+      "ordinal": 10,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0012557506561279297,
+        "rmsError": 0.00021951383247023664,
+        "sampledToken": 19,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "9cb8507cb2f9dc7b70a247cb6be801e0f73d122fbbc44009ae34357a46c52fa5",
+      "expectedToken": 19,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0013565421104431152,
+        "rmsError": 0.00030135005228808725,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.00106048583984375,
+        "rmsError": 0.0001820191503439087,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 7,
+      "ordinal": 11,
+      "inputIds": [
+        19
+      ],
+      "comparison": {
+        "maxAbsError": 0.0012125968933105469,
+        "rmsError": 0.0001900298238902333,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "3e0fc87f2ed8771abf55f0837f9c0001c464781013c9d08a4024ef796dc0ae2e",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0012469291687011719,
+        "rmsError": 0.00026261228022347286,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0011801719665527344,
+        "rmsError": 0.00018135971307909097,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 8,
+      "ordinal": 12,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0011754035949707031,
+        "rmsError": 0.00020843516983988297,
+        "sampledToken": 20,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "bf27acc8ded3b39d6c508d11afbf1b3ff9d5c5d792c98957067a86f16b427585",
+      "expectedToken": 20,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0009317398071289062,
+        "rmsError": 0.00020567815673731618,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0011692047119140625,
+        "rmsError": 0.0001828363330599549,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 9,
+      "ordinal": 13,
+      "inputIds": [
+        20
+      ],
+      "comparison": {
+        "maxAbsError": 0.0008325576782226562,
+        "rmsError": 0.0001647156769132144,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "bd2a2969b5c31a0f432a44946cde52be9cfecff0cd2c8a8449e80bd696a1ff56",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0014920979738235474,
+        "rmsError": 0.00023995289691000022,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0015813857316970825,
+        "rmsError": 0.00024187151593295836,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 10,
+      "ordinal": 14,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0014929771423339844,
+        "rmsError": 0.00027493535150072737,
+        "sampledToken": 21,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "a9321c7704d98b82b06bbfa0040925bf0a55f7106834690f60cfdae15f5ee4f5",
+      "expectedToken": 21,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0015187263488769531,
+        "rmsError": 0.0003080555202804265,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0017676353454589844,
+        "rmsError": 0.0003042598891505376,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 11,
+      "ordinal": 15,
+      "inputIds": [
+        21
+      ],
+      "comparison": {
+        "maxAbsError": 0.0010328292846679688,
+        "rmsError": 0.00020891899843598834,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "dc7572072019132a9ce4f632083abbe059cdbbce3264bf524a6f4d1af42cbe0a",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.001140594482421875,
+        "rmsError": 0.00022045590550523318,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0012705326080322266,
+        "rmsError": 0.00025182272885480725,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 12,
+      "ordinal": 16,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.001375436782836914,
+        "rmsError": 0.0003050981117399589,
+        "sampledToken": 22,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "85a35eb3317141d22ccdacc310a5efd6c5b410d8213f1715544a2535cccf2827",
+      "expectedToken": 22,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0015635490417480469,
+        "rmsError": 0.00031013765452935334,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.001583099365234375,
+        "rmsError": 0.0003343726257675093,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 13,
+      "ordinal": 17,
+      "inputIds": [
+        22
+      ],
+      "comparison": {
+        "maxAbsError": 0.0009784698486328125,
+        "rmsError": 0.00017378501166206062,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "27f00135fac2a8aac0407005c4843012f8d33eb86e9b72c4abf37e547e535c13",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.000998854637145996,
+        "rmsError": 0.00017113032154198016,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.000914454460144043,
+        "rmsError": 0.00018587143328576032,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 14,
+      "ordinal": 18,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0013689994812011719,
+        "rmsError": 0.0003018969672101667,
+        "sampledToken": 23,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "90b7a9509c8454fc310e3b6c051e51348ee55c972c49778de7b18658b832b6fc",
+      "expectedToken": 23,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0013647079467773438,
+        "rmsError": 0.000300449584912538,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0014591217041015625,
+        "rmsError": 0.0003145816815041588,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 15,
+      "ordinal": 19,
+      "inputIds": [
+        23
+      ],
+      "comparison": {
+        "maxAbsError": 0.001262664794921875,
+        "rmsError": 0.00016181289715417178,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "0c05260a61877eff8932ef2bec2deaf1591eb6a60f273fb87908e94bdf33f479",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0011091232299804688,
+        "rmsError": 0.00016233721564267833,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.000705718994140625,
+        "rmsError": 0.000139883814113493,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 16,
+      "ordinal": 20,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0010769367218017578,
+        "rmsError": 0.00023899349250841153,
+        "sampledToken": 24,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "d44afc418e95e7a7a44345f3d5f94cc633a27465edd9df7f6333349810d217b4",
+      "expectedToken": 24,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0012793540954589844,
+        "rmsError": 0.00027455536934015156,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0013017654418945312,
+        "rmsError": 0.00028791763194328904,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 17,
+      "ordinal": 21,
+      "inputIds": [
+        24
+      ],
+      "comparison": {
+        "maxAbsError": 0.0013475418090820312,
+        "rmsError": 0.000258366110656074,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "0846e8b4603a98539e63e1b2a3e382b3134f9c88a59ff981359fe5b9907162e1",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0014829635620117188,
+        "rmsError": 0.00024365795967366382,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0017273426055908203,
+        "rmsError": 0.0003432267850469027,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 18,
+      "ordinal": 22,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.001199483871459961,
+        "rmsError": 0.00027908542827135733,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "11109e37a131f5de33d67b1ccd2288b70179538f588118ada8671ba7a4e0e6cc",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.001068115234375,
+        "rmsError": 0.000273837915023553,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0013532638549804688,
+        "rmsError": 0.00030314409739975486,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 19,
+      "ordinal": 23,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0016733407974243164,
+        "rmsError": 0.0003639403361434222,
+        "sampledToken": 15,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "46cfaf8cfbed0cb2bcd81fb95a0473e4a11b00083db2195e2a172adc2a047b02",
+      "expectedToken": 15,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0008714199066162109,
+        "rmsError": 0.00017379531350115792,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0012536048889160156,
+        "rmsError": 0.00026614204264889546,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 20,
+      "ordinal": 24,
+      "inputIds": [
+        15
+      ],
+      "comparison": {
+        "maxAbsError": 0.0012650489807128906,
+        "rmsError": 0.00022734338564329128,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "f01094ed5ed511f3c902889e1accdd4ef1c37a8c059d80872ef947f54b351f45",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0007382035255432129,
+        "rmsError": 0.0001637480951462773,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0015317052602767944,
+        "rmsError": 0.0002762571574497566,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 21,
+      "ordinal": 25,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0012409687042236328,
+        "rmsError": 0.0002706346680031936,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "78a7ed64b978dd582eb5ea20dc23da0b4430491328634b13a3ac117f9052416f",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0010273456573486328,
+        "rmsError": 0.00020070445680456955,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0015459060668945312,
+        "rmsError": 0.0002849286225546083,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 22,
+      "ordinal": 26,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0009512901306152344,
+        "rmsError": 0.0001917140430237632,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "e5df3dab19a62a32f16580a760ba4f37a696a1c25a6e4a440020855550c3fbc7",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.000997781753540039,
+        "rmsError": 0.00020591944798670399,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.001251220703125,
+        "rmsError": 0.00023191174309304902,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 23,
+      "ordinal": 27,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0009126663208007812,
+        "rmsError": 0.0001750279333290741,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "3b02ffd7798db354c8698d9694b3c7d56ff3c8cec38f0fb8566a4a6d159a4c3e",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.000858306884765625,
+        "rmsError": 0.00017423393290672963,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0012044906616210938,
+        "rmsError": 0.00024087747975634982,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 24,
+      "ordinal": 28,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0008805990219116211,
+        "rmsError": 0.00018947672441466085,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "5ce5dd0aa7d8f073041c267cb8377d1ef1234c73a9c56266d8667a6675fa9c9e",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0007773935794830322,
+        "rmsError": 0.00017180877598635625,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0011873841285705566,
+        "rmsError": 0.00025644711144805806,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 25,
+      "ordinal": 29,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0010315179824829102,
+        "rmsError": 0.0001854139358361,
+        "sampledToken": 17,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "8bd229ca5d2580d3f4452fcd7ffbc8521c7105414425288582d92d078b576226",
+      "expectedToken": 17,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0007762908935546875,
+        "rmsError": 0.0001349048220152209,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0006875991821289062,
+        "rmsError": 0.0001466364204268937,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 26,
+      "ordinal": 30,
+      "inputIds": [
+        17
+      ],
+      "comparison": {
+        "maxAbsError": 0.0007534027099609375,
+        "rmsError": 0.00014949188089798771,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "a2504a14fdd4143ab681abf89efb38e928cba09030abb507b44e229e5fdb0747",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0006219148635864258,
+        "rmsError": 0.0001293329504058978,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.000820159912109375,
+        "rmsError": 0.00016856391292832345,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 27,
+      "ordinal": 31,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.000874638557434082,
+        "rmsError": 0.0001901883880963745,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "cbc050fd77861748680477b4cd1317424db7cb1f479fb635499f429573bf28a3",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0007822513580322266,
+        "rmsError": 0.00015071530466392562,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0011324882507324219,
+        "rmsError": 0.00022160312846083744,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 28,
+      "ordinal": 32,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0007731914520263672,
+        "rmsError": 0.000173244279963675,
+        "sampledToken": 18,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "419d3f78bf4d95cc07a48595a6f17e4aec1fc898898a68402851f2fd90041fb6",
+      "expectedToken": 18,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0007023811340332031,
+        "rmsError": 0.00011816351175307099,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0006933212280273438,
+        "rmsError": 0.00014905284587162111,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 29,
+      "ordinal": 33,
+      "inputIds": [
+        18
+      ],
+      "comparison": {
+        "maxAbsError": 0.0007520914077758789,
+        "rmsError": 0.00015066932326531076,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "f79e444df16aa1cecbc41d615942cf43a2134763fd5719b3a67ef2bee028207e",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0006589889526367188,
+        "rmsError": 0.0001444830424965117,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.001085042953491211,
+        "rmsError": 0.00018275812321606042,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 30,
+      "ordinal": 34,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0010256767272949219,
+        "rmsError": 0.00022755244112152666,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "5e7c79430859305485ecc5f3bb00d03571c0ef944987e0fc910ef05f2b08a251",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0006651878356933594,
+        "rmsError": 0.00015932780837258628,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0011191368103027344,
+        "rmsError": 0.00023261573340176175,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 31,
+      "ordinal": 35,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0013399124145507812,
+        "rmsError": 0.0002589071445334963,
+        "sampledToken": 19,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "415bf65ece0d64a4e76bf3c5fdda51dfe86bc5d59662d5dc5682b946cba17a47",
+      "expectedToken": 19,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0009250640869140625,
+        "rmsError": 0.00014428518967085966,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.001163482666015625,
+        "rmsError": 0.0002512676725682143,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 32,
+      "ordinal": 36,
+      "inputIds": [
+        19
+      ],
+      "comparison": {
+        "maxAbsError": 0.0007279515266418457,
+        "rmsError": 0.00014285833051686018,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "a17884f963c7480d7ca3ff4581deaf60ba6c340e40219340273d248233c4f61b",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0005946159362792969,
+        "rmsError": 0.00011540207699099476,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0007443428039550781,
+        "rmsError": 0.00014155348913634728,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 33,
+      "ordinal": 37,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0010533332824707031,
+        "rmsError": 0.0002467848343267142,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "0eb91abf59b446151d294e23e41d4677b28f01d8cd375fa777e29d287b0bcfb9",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0006570816040039062,
+        "rmsError": 0.00015622586255586293,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0008633136749267578,
+        "rmsError": 0.00020772758376660366,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 34,
+      "ordinal": 38,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0010221004486083984,
+        "rmsError": 0.00021086161013327145,
+        "sampledToken": 20,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "f97c477ff72bef8085818bd2429c3bcf88b3155474eb2077002f95ac86f00dc5",
+      "expectedToken": 20,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0006058216094970703,
+        "rmsError": 0.0001263961783157456,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0011107921600341797,
+        "rmsError": 0.00020915365159155847,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 35,
+      "ordinal": 39,
+      "inputIds": [
+        20
+      ],
+      "comparison": {
+        "maxAbsError": 0.0008454322814941406,
+        "rmsError": 0.00016708112839827074,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "d0e7de2b75e64f4b348450092d0b2bab563e6b16b5083d031991beddf20ab5db",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0005341768264770508,
+        "rmsError": 0.00011349528771211772,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0006870031356811523,
+        "rmsError": 0.0001449532488983721,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 36,
+      "ordinal": 40,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0011857151985168457,
+        "rmsError": 0.00027580784856830296,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "608a1c31ce9f02dea08d359e33ec2168dec7b9db3ecf9d496cee0d341bf38f27",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0009673237800598145,
+        "rmsError": 0.0002484602591628948,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0012249946594238281,
+        "rmsError": 0.0002950807790788797,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 37,
+      "ordinal": 41,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0009982585906982422,
+        "rmsError": 0.00018857682581216177,
+        "sampledToken": 21,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "0b1af67a2439bf04902d74717634b61454a3f7b0bf7e46fe777c86ac3903c3d3",
+      "expectedToken": 21,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0006346702575683594,
+        "rmsError": 0.00012229863561617573,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.00130462646484375,
+        "rmsError": 0.00017833408592052072,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 38,
+      "ordinal": 42,
+      "inputIds": [
+        21
+      ],
+      "comparison": {
+        "maxAbsError": 0.0009756684303283691,
+        "rmsError": 0.00019834444523071935,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": true
+      },
+      "logitsSha256": "f9277b016834c9c7a65a2ec88ea529fce5393f34f4cb358fa18f7ce4129e8004",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.00089263916015625,
+        "rmsError": 0.00013747766678186746,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.00115203857421875,
+        "rmsError": 0.0001673922532355724,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 39,
+      "ordinal": 43,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.001209259033203125,
+        "rmsError": 0.00023849031565059946,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "e7a1eaa07bac2dcdee5080f9cd6d0c6bb8dd0ecd164bd922d643ee0dff5c9320",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0010025501251220703,
+        "rmsError": 0.00021409941423524735,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0011930465698242188,
+        "rmsError": 0.00022636790843070267,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 40,
+      "ordinal": 44,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0013151168823242188,
+        "rmsError": 0.0002341393025433343,
+        "sampledToken": 22,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "2841fd6da5718a67d5405b7b19eab94ca6b03f0803745a67c40a5259d6415a16",
+      "expectedToken": 22,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0006909370422363281,
+        "rmsError": 0.00014207834201851373,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0012122392654418945,
+        "rmsError": 0.00020922205713656423,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 41,
+      "ordinal": 45,
+      "inputIds": [
+        22
+      ],
+      "comparison": {
+        "maxAbsError": 0.0014529228210449219,
+        "rmsError": 0.00027239866280533853,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "17434ced1f858b23457a0dc5bacc8450cebeb030ef6ffad4c21cdff5d4062067",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0011650323867797852,
+        "rmsError": 0.00023193440862863307,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0015064477920532227,
+        "rmsError": 0.00030907279128912187,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 42,
+      "ordinal": 46,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.001979827880859375,
+        "rmsError": 0.00022870036225846403,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "de19993d6f0acbbc7f1c86c012baf21d91365c640541e0e648f88ccf815fb214",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0014410018920898438,
+        "rmsError": 0.00026618251715814406,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0018377304077148438,
+        "rmsError": 0.00023642563649270117,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 43,
+      "ordinal": 47,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0015316009521484375,
+        "rmsError": 0.0003385271341596069,
+        "sampledToken": 23,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "cfdfc88c725577202b1c404647a77c65508e20687c9648ba1d0a13c5954f2645",
+      "expectedToken": 23,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0016999244689941406,
+        "rmsError": 0.00038982121258424626,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.00146484375,
+        "rmsError": 0.00028740283698750786,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 44,
+      "ordinal": 48,
+      "inputIds": [
+        23
+      ],
+      "comparison": {
+        "maxAbsError": 0.0015497207641601562,
+        "rmsError": 0.000276532597012753,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "103d5fd122540e1f3efc9f478c64413b91b5b1389337f6ce2c17064b0de189f4",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0013346672058105469,
+        "rmsError": 0.0002465698815964709,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0014247894287109375,
+        "rmsError": 0.0002630194766358361,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 45,
+      "ordinal": 49,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.001461029052734375,
+        "rmsError": 0.00021187717865782916,
+        "sampledToken": 16,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "ec1c522df772b4f7f3e629ed97ed07514f2dcf07e5d97c55588fa56f0142e355",
+      "expectedToken": 16,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0010944604873657227,
+        "rmsError": 0.0002109250097476714,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.001430511474609375,
+        "rmsError": 0.00022547852610338613,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 46,
+      "ordinal": 50,
+      "inputIds": [
+        16
+      ],
+      "comparison": {
+        "maxAbsError": 0.0012712478637695312,
+        "rmsError": 0.0002693594636042054,
+        "sampledToken": 24,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "5e3c0d4febe36fe18e28a00eefc8c4c286a5a2fcf02f7d4a8d7f17eef96cd41c",
+      "expectedToken": 24,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0014761686325073242,
+        "rmsError": 0.0002666584836760035,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0012865066528320312,
+        "rmsError": 0.00023192418769347263,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 47,
+      "ordinal": 51,
+      "inputIds": [
+        24
+      ],
+      "comparison": {
+        "maxAbsError": 0.0011286735534667969,
+        "rmsError": 0.00023402792923295495,
+        "sampledToken": 198,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "655403e01dd9d2177e1a38a7b1b8c26dc68a23a64b6da527e36b4d5bfe712c20",
+      "expectedToken": 198,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0008299350738525391,
+        "rmsError": 0.0001414192683295013,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0010663270950317383,
+        "rmsError": 0.0002058696070936322,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 48,
+      "ordinal": 52,
+      "inputIds": [
+        198
+      ],
+      "comparison": {
+        "maxAbsError": 0.0010852813720703125,
+        "rmsError": 0.00021325627962222833,
+        "sampledToken": 17,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "b3e6d0fcc47317663e80545b709aaf7fdd7a4cb72ebf262c5e5a138155b6ef19",
+      "expectedToken": 17,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0009894371032714844,
+        "rmsError": 0.00019957388066270537,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0015424489974975586,
+        "rmsError": 0.00030693224010316114,
+        "withinTolerance": false
+      }
+    },
+    {
+      "index": 2,
+      "step": 49,
+      "ordinal": 53,
+      "inputIds": [
+        17
+      ],
+      "comparison": {
+        "maxAbsError": 0.0010693073272705078,
+        "rmsError": 0.00020779586872199458,
+        "sampledToken": 15,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "3667b5f57252185d66298ac2d4e9f8da6acb6ee12655ceb68768d04a41da12d0",
+      "expectedToken": 15,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.0008952617645263672,
+        "rmsError": 0.0001561505576216603,
+        "withinTolerance": true
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0009698867797851562,
+        "rmsError": 0.00015672004294846112,
+        "withinTolerance": true
+      }
+    },
+    {
+      "index": 2,
+      "step": 50,
+      "ordinal": 54,
+      "inputIds": [
+        15
+      ],
+      "comparison": {
+        "maxAbsError": 0.0020241737365722656,
+        "rmsError": 0.0004960633057857368,
+        "sampledToken": 248046,
+        "comparedValues": 248320,
+        "withinTolerance": false
+      },
+      "logitsSha256": "ac0ea12f6d4d3b6ed3a85224f7df5a0fcb78b9aff95a7169cb96a314a03fc107",
+      "expectedToken": 248046,
+      "tokenMatches": true,
+      "historical": {
+        "maxAbsError": 0.001786947250366211,
+        "rmsError": 0.000348145252529162,
+        "withinTolerance": false
+      },
+      "retainedQ4Prototype": {
+        "maxAbsError": 0.0011682510375976562,
+        "rmsError": 0.00021514629081431747,
+        "withinTolerance": false
+      }
+    }
+  ],
+  "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "rawResultSha256": "09ee581406e735cb327d8b25c6c7830a6cc4d691c77e484903f41cc2ccd7f164",
+  "rawResultPath": "reports/local/source-model-reference-20261010/verified-prefixes.json",
+  "summary": {
+    "steps": 55,
+    "selectedTokensMatch": 55,
+    "failed": 34,
+    "maxAbsError": 0.0020241737365722656,
+    "historicalFailed": 26,
+    "historicalMaxAbsError": 0.0018062591552734375,
+    "referenceActivationJustified": false
+  },
+  "failedSetup": [
+    {
+      "file": "first-prefix.log",
+      "cause": "Missing independent blake3 dependency"
+    },
+    {
+      "file": "first-prefix-attempt2.log",
+      "cause": "Standard BLAKE3 differs from the explicitly retained legacy hash implementation; pinned SHA-256 pieces used in subsequent runs"
+    },
+    {
+      "file": "all-prefixes.json",
+      "cause": "Invalid diagnostic: did not advance token history on decode; superseded by continuous-prefixes and verified-prefixes"
+    }
+  ]
+}
