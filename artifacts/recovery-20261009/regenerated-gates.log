@@ -1,0 +1,6 @@
+[node-tests] script: public:boundaries:check
+public boundary check passed (npm package: 1897 files, 3339005 bytes packed, 13097430 bytes unpacked)
+[node-tests] script: routing:audit:check
+execution routing audit: current (30 manifests, 136 calibration opportunities, 119 surfaced integrity failures)
+[node-tests] script: source:dependencies:check
+[source-dependencies] 2571 files; 55 test-only; 101 computed/unresolved diagnostics
