@@ -60,7 +60,20 @@
   "qualified": false,
   "publication": false,
   "deployment": false,
-  "cpuCheck": "Initial full check passed 894/895 files; max-subtracted-softmax source check updated for refined exp with negative controls. Full recheck pending.",
+  "cpuCheck": {
+    "command": "npm run check:green",
+    "exitCode": 0,
+    "unitFilesPassed": 895,
+    "log": "cpu-check-green-023-final.log.gz",
+    "sourceRevisionAtReceipt": "ff3379d4abab7be2ceca6d94be8ecf080cb04ed8",
+    "changesDuringRun": "Documentation and generated SiLU F16 patch metadata; executed shader bytes preserved",
+    "kernelCodegenCheck": {
+      "command": "npm run kernels:codegen:check",
+      "variants": 42,
+      "changed": 0
+    },
+    "executionGraphTransformAssertions": 373
+  },
   "firstRemainingOperation": "layer.3.attn.out (output projection), captured prefill; maximum cross-GPU difference 3.725290298461914e-8",
   "boundaryEffects": "Canonical F32 Q/K rotation and head-256 F16-KV prefill arithmetic; precision, resources, frozen inputs and 0.001 bound preserved.",
   "tokenAgreement": {
@@ -68,5 +81,6 @@
     "steps": 110,
     "mismatches": 0,
     "allSixRunsCompletedWithEos": true
-  }
+  },
+  "sourceArchiveComparison": "source-archive-comparison-023.json"
 }

@@ -99,4 +99,10 @@ general answer quality.
 The initial 0.6.23 CPU run passed 894/895 files. The sole failure was a source
 check recognizing only builtin `exp`; refined exponentiation retains explicit
 max subtraction. The check now recognizes both spellings and rejects unstabilized
-calls with either spelling. Its focused run passes; the full recheck is pending.
+calls with either spelling. Its focused run passes. The full recheck subsequently
+passed all 895 unit files and the required gates; the compressed log is retained
+as `cpu-check-green-023-final.log.gz`. Generated SiLU F16 patch metadata was also
+reconciled without changing the F16 shader bytes; all 42 generation targets pass.
+`source-archive-comparison-023.json` distinguishes current source documentation
+and metadata from the immutable archive used on both physical machines. These
+source checks do not change the failed installed-package numerical result.
