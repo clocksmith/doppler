@@ -4554,6 +4554,7 @@
         "tests/integration/failure-taxonomy.test.js",
         "tests/integration/fault-injection.test.js",
         "tests/integration/ffn-silu-platform.js",
+        "tests/integration/frozen-reference-producer-replay.js",
         "tests/integration/functional-tensor.test.js",
         "tests/integration/gemma4-12b-f16-activations.test.js",
         "tests/integration/gemma4-31b-f16-activations.test.js",
@@ -4600,6 +4601,7 @@
         "tests/integration/partition-layers-physical.test.js",
         "tests/integration/prepare-choice-scoring-model.js",
         "tests/integration/provider-receipt-v1.test.js",
+        "tests/integration/q4-projection-captured-replay.js",
         "tests/integration/qk-normalization-platform.js",
         "tests/integration/qwen-chat-template.test.js",
         "tests/integration/qwen-execution-v1-gemv-diagnostic-transforms.test.js",
@@ -6379,6 +6381,18 @@
       "kind": "dynamic",
       "line": 59,
       "expression": "import(pathToFileURL(resolve(packageRoot, metadata.exports['./choice-scoring-contract'].import)))"
+    },
+    {
+      "file": "tests/integration/frozen-reference-producer-replay.js",
+      "kind": "dynamic",
+      "line": 131,
+      "expression": "import('/runtime/' + compatEntry.replace(/^\\.\\//, ''))"
+    },
+    {
+      "file": "tests/integration/frozen-reference-producer-replay.js",
+      "kind": "dynamic",
+      "line": 132,
+      "expression": "import('/runtime/' + partitionsEntry.replace(/^\\.\\//, ''))"
     },
     {
       "file": "tests/integration/gemma4-12b-f16-activations.test.js",

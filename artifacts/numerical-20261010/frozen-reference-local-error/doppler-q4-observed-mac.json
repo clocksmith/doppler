@@ -1,0 +1,36 @@
+{
+  "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+  "host": "darwin",
+  "fixtureSha256": "8af4f341e3df834b3851ccbb804e5e5a29a97c63df15ec06969522332a0e77c2",
+  "shaderSha256": "1c43c32c2c1e53dceb1cd3bb0221e461f95739e0532f3e8557555b1d1c733179",
+  "geometry": {
+    "M": 19,
+    "N": 6144,
+    "K": 1024
+  },
+  "maximumAllowedError": 2e-06,
+  "requiredPeakErrorReduction": 2,
+  "browser": "155.0.8059.39",
+  "errors": [],
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "comparison": {
+    "maxAbsoluteError": 1.2078286033556651e-06,
+    "rmsError": 4.026736520970975e-08,
+    "worstIndex": 98213
+  },
+  "baseline": {
+    "maxAbsoluteError": 7.0723724068244564e-06,
+    "rmsError": 2.821484394406822e-07,
+    "worstIndex": 55528
+  },
+  "valuesSha256": "d95a6d73a5b4762d1b03cd713121d374c9d92b05283a8278b250086f412796c2",
+  "passed": true,
+  "accumulationSha256": "ff9bd20b98ed412bd9d3431ab6bb94aea5d523344f897c9dcd40135e1da5e487",
+  "projectionNotes": [
+    "Operator output array omitted; recorded hash and comparison retained.",
+    "Observed partial sums omitted, hash retained."
+  ]
+}

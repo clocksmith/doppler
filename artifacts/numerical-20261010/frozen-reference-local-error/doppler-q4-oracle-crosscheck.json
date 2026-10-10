@@ -1,0 +1,7 @@
+{
+  "scope": "Independent NumPy Float64 Q4_K decoding and BLAS dot validated against existing scalar JavaScript Q4_K reference on all 116736 outputs",
+  "maximumFloat64Difference": 1.0658141036401503e-14,
+  "float32OutputMismatches": 0,
+  "passed": true,
+  "projectionNotes": []
+}

@@ -1,0 +1,35 @@
+{
+  "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+  "host": "darwin",
+  "fixtureSha256": "8af4f341e3df834b3851ccbb804e5e5a29a97c63df15ec06969522332a0e77c2",
+  "shaderSha256": "90496bdaed05d8467ef56331c684ace41d999539d1e73d77cb87dee58a123957",
+  "geometry": {
+    "M": 19,
+    "N": 6144,
+    "K": 1024
+  },
+  "maximumAllowedError": 2e-06,
+  "requiredPeakErrorReduction": 2,
+  "browser": "155.0.8059.39",
+  "accumulation": null,
+  "errors": [],
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "comparison": {
+    "maxAbsoluteError": 9.433781151813037e-07,
+    "rmsError": 3.6103018776132665e-08,
+    "worstIndex": 99070
+  },
+  "baseline": {
+    "maxAbsoluteError": 7.0723724068244564e-06,
+    "rmsError": 2.821484394406822e-07,
+    "worstIndex": 55528
+  },
+  "valuesSha256": "e2097acb5764b15d2a5b9389d8c66a7c5dafd6e5cf45ae0c05b5e17972006767",
+  "passed": true,
+  "projectionNotes": [
+    "Operator output array omitted; recorded hash and comparison retained."
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "scope": "First frozen-producing-archive/current operation with identical operands; independent Float64 RMSNorm using stored F16 weights, declared offset and F32 epsilon",
+  "inputSha256": "ebc91e604ca241fe45267c409801ed5b0cb0ae467b27135c30090a4c4869740e",
+  "weightSha256": "ef788e502a4813797b82059518a964afaa6fa87563a2b305479655ea5eb92a56",
+  "epsilon": 9.999999974752427e-07,
+  "M": 19,
+  "N": 1024,
+  "frozenDeclaredEntry": "main",
+  "oldActualEntries": [
+    {
+      "entry": "main_subgroup",
+      "constants": {
+        "RMS_NORM_OFFSET": 1,
+        "WEIGHT_IS_F16": 1,
+        "PRE_RESIDUAL": 0,
+        "OUTPUT_PRENORM": 0
+      },
+      "selections": 125,
+      "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+    },
+    {
+      "entry": "main_subgroup",
+      "constants": {
+        "RMS_NORM_OFFSET": 1,
+        "WEIGHT_IS_F16": 1,
+        "PRE_RESIDUAL": 1,
+        "OUTPUT_PRENORM": 1
+      },
+      "selections": 120,
+      "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+    }
+  ],
+  "oldObservationEffect": 0,
+  "retainedSplit10": {
+    "maxAbsoluteError": 5.143836663279444e-07,
+    "rmsError": 5.936573846447936e-08,
+    "worstCoordinate": [
+      7,
+      419
+    ]
+  },
+  "current026": {
+    "maxAbsoluteError": 4.354780891446808e-07,
+    "rmsError": 5.4199608807652205e-08,
+    "worstCoordinate": [
+      8,
+      52
+    ]
+  },
+  "crossDifference": 4.76837158203125e-07,
+  "projectionNotes": []
+}

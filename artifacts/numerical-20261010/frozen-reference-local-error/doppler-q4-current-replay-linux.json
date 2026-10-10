@@ -1,0 +1,35 @@
+{
+  "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+  "host": "linux",
+  "fixtureSha256": "8af4f341e3df834b3851ccbb804e5e5a29a97c63df15ec06969522332a0e77c2",
+  "shaderSha256": "a38c97f826a93929e40ce246ec5abf465bbd5d96863a2556d261dbaa6b325555",
+  "geometry": {
+    "M": 19,
+    "N": 6144,
+    "K": 1024
+  },
+  "maximumAllowedError": 2e-06,
+  "requiredPeakErrorReduction": 2,
+  "browser": "146.0.7680.177",
+  "errors": [],
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3"
+  },
+  "comparison": {
+    "maxAbsoluteError": 7.0723724068244564e-06,
+    "rmsError": 2.821484394406822e-07,
+    "worstIndex": 55528
+  },
+  "baseline": {
+    "maxAbsoluteError": 7.0723724068244564e-06,
+    "rmsError": 2.821484394406822e-07,
+    "worstIndex": 55528
+  },
+  "valuesSha256": "afaba511bdea42a32704ba1e2e356d2d92c4c0ecb823bb2cf39dfc29e6c95d4b",
+  "passed": false,
+  "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n",
+  "projectionNotes": [
+    "Operator output array omitted; recorded hash and comparison retained."
+  ]
+}

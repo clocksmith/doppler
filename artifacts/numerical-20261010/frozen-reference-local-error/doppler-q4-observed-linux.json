@@ -1,0 +1,36 @@
+{
+  "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+  "host": "linux",
+  "fixtureSha256": "8af4f341e3df834b3851ccbb804e5e5a29a97c63df15ec06969522332a0e77c2",
+  "shaderSha256": "1c43c32c2c1e53dceb1cd3bb0221e461f95739e0532f3e8557555b1d1c733179",
+  "geometry": {
+    "M": 19,
+    "N": 6144,
+    "K": 1024
+  },
+  "maximumAllowedError": 2e-06,
+  "requiredPeakErrorReduction": 2,
+  "browser": "146.0.7680.177",
+  "errors": [],
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3"
+  },
+  "comparison": {
+    "maxAbsoluteError": 9.433781151813037e-07,
+    "rmsError": 3.6103018776132665e-08,
+    "worstIndex": 99070
+  },
+  "baseline": {
+    "maxAbsoluteError": 7.0723724068244564e-06,
+    "rmsError": 2.821484394406822e-07,
+    "worstIndex": 55528
+  },
+  "valuesSha256": "e2097acb5764b15d2a5b9389d8c66a7c5dafd6e5cf45ae0c05b5e17972006767",
+  "passed": true,
+  "accumulationSha256": "d6c2cd2cee1970bcc7840c9e72ea4faf03f3c67e8032d18d460b2f36eaf7df44",
+  "projectionNotes": [
+    "Operator output array omitted; recorded hash and comparison retained.",
+    "Observed partial sums omitted, hash retained."
+  ]
+}
