@@ -58,6 +58,8 @@ for (let head = 0; head < geometry.numHeads; head++) {
   }
 }
 const candidate = process.env.DOPPLER_ATTENTION_DIAGNOSTIC ?? null;
+const observeSoftmax = process.env.DOPPLER_ATTENTION_OBSERVE_SOFTMAX === '1';
+assert(!observeSoftmax || candidate === null, 'Observe the unchanged arithmetic separately');
 assert(candidate === null || (candidate === 'compensated-qk'
   && process.env.DOPPLER_TEST_ONLY_ARITHMETIC === '1'), 'Arithmetic intervention requires test-only authorization');
 let source = original;
@@ -77,13 +79,34 @@ if (candidate) {
   }
   source = source.replace('score = dot * u.scale;', 'score = fma(1.0, dot, correction) * u.scale;');
 }
+if (observeSoftmax) {
+  assert(kvLen <= 256, 'This observation covers one online softmax chunk');
+  source += '\n@group(0) @binding(7) var<storage, read_write> observed_softmax: array<f32>;\n';
+  source = source.replace('        shared_scores[tid] = exp_score;', `        shared_scores[tid] = exp_score;
+        let observed_base = head_idx * (2u * kv_len + 4u + head_dim);
+        if (tid < kv_len) {
+            observed_softmax[observed_base + tid] = score;
+            observed_softmax[observed_base + kv_len + tid] = exp_score;
+        }`);
+  source = source.replace('    let inv_sum = select(0.0, 1.0 / running_sum, running_sum > 0.0);',
+    `    let inv_sum = select(0.0, 1.0 / running_sum, running_sum > 0.0);
+    let observed_base = head_idx * (2u * kv_len + 4u + head_dim);
+    if (tid == 0u) {
+        observed_softmax[observed_base + 2u * kv_len] = running_sum;
+        observed_softmax[observed_base + 2u * kv_len + 1u] = inv_sum;
+        observed_softmax[observed_base + 2u * kv_len + 2u] = running_max;
+        observed_softmax[observed_base + 2u * kv_len + 3u] = f32(subgroup_size);
+    }
+    if (has_out_dim0) { observed_softmax[observed_base + 2u * kv_len + 4u + out_dim0] = out_accum0; }
+    if (has_out_dim1) { observed_softmax[observed_base + 2u * kv_len + 4u + out_dim1] = out_accum1; }`);
+}
 const backends = { darwin: ['--use-angle=metal'],
   linux: ['--enable-features=Vulkan', '--use-angle=vulkan', '--disable-gpu-sandbox'] };
 assert(Object.hasOwn(backends, process.platform));
 const host = process.platform === 'darwin' ? 'mac' : 'linux';
 const captured = values(tensor(outputs[fixture.data.findIndex(row => row.host === host)], 'core'));
 const receipt = { scope: 'Identical captured operands; isolated decode attention, not model acceptance',
-  host, candidate, sourceSubstitution: candidate !== null, fixtureSha256: hash(fixtureBytes),
+  host, candidate, observeSoftmax, sourceSubstitution: candidate !== null || observeSoftmax, fixtureSha256: hash(fixtureBytes),
   originalShaderSha256: hash(original), shaderSha256: hash(source), contract: fixture.contract };
 const compare = (actual, reference) => {
   assert.equal(actual.length, reference.length);
@@ -100,7 +123,7 @@ try {
   receipt.browser = browser.version();
   const page = await browser.newPage();
   await page.goto(`http://127.0.0.1:${server.address().port}`);
-  const result = await page.evaluate(async ({ source, fixture, geometry }) => {
+  const result = await page.evaluate(async ({ source, fixture, geometry, observeSoftmax }) => {
     const adapter = await navigator.gpu.requestAdapter();
     if (!adapter || adapter.info.isFallbackAdapter) throw Error('Physical GPU required');
     const device = await adapter.requestDevice({ requiredFeatures: ['shader-f16', 'subgroups'] });
@@ -111,7 +134,7 @@ try {
       if (data) device.queue.writeBuffer(resource, 0, data);
       return resource;
     };
-    let staging;
+    let staging, softmaxStaging;
     try {
       const module = device.createShaderModule({ code: source });
       const diagnostics = (await module.getCompilationInfo()).messages.filter(row => row.type === 'error');
@@ -135,6 +158,9 @@ try {
         input('q'), input('cachedK'), input('cachedV'), output,
         buffer(4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, new Uint32Array([u[3]])),
         buffer(4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, new Uint32Array(1))];
+      const softmax = observeSoftmax ? buffer(geometry.numHeads * (2 * u[3] + 4 + geometry.headDim) * 4,
+        GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC) : null;
+      if (softmax) resources.push(softmax);
       const group = device.createBindGroup({ layout: pipeline.getBindGroupLayout(0),
         entries: resources.map((resource, binding) => ({ binding, resource: { buffer: resource } })) });
       staging = buffer(output.size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
@@ -142,15 +168,25 @@ try {
       pass.setPipeline(pipeline); pass.setBindGroup(0, group);
       pass.dispatchWorkgroups(geometry.numHeads); pass.end();
       encoder.copyBufferToBuffer(output, 0, staging, 0, output.size);
+      if (softmax) {
+        softmaxStaging = buffer(softmax.size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+        encoder.copyBufferToBuffer(softmax, 0, softmaxStaging, 0, softmax.size);
+      }
       device.queue.submit([encoder.finish()]); await staging.mapAsync(GPUMapMode.READ);
       const values = Array.from(new Float32Array(staging.getMappedRange().slice(0)));
-      return { values, errors, adapter: { vendor: adapter.info.vendor, architecture: adapter.info.architecture } };
+      let softmaxValues = null;
+      if (softmaxStaging) {
+        await softmaxStaging.mapAsync(GPUMapMode.READ);
+        softmaxValues = Array.from(new Float32Array(softmaxStaging.getMappedRange().slice(0)));
+      }
+      return { values, softmaxValues, errors, adapter: { vendor: adapter.info.vendor, architecture: adapter.info.architecture } };
     } finally {
       if (staging?.mapState === 'mapped') staging.unmap();
+      if (softmaxStaging?.mapState === 'mapped') softmaxStaging.unmap();
       await device.queue.onSubmittedWorkDone().catch(() => {});
       for (const resource of owned) resource.destroy(); device.destroy();
     }
-  }, { source, fixture, geometry });
+  }, { source, fixture, geometry, observeSoftmax });
   Object.assign(receipt, result);
   receipt.comparison = compare(result.values, expected);
   receipt.capturedReference = compare(captured, expected);
