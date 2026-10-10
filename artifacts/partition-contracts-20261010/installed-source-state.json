@@ -1,0 +1,5 @@
+{
+  "commit": "39b10b181eff3acb6a874d9f605d0df9c4fdc325",
+  "status": " M CHANGELOG.md\n M docs/distribution/resident-partition-execution.md\n M package-lock.json\n M package.json\n M reports/capsule-runtime/runtime-closure.json\n M src/client/resident-partitions.d.ts\n M src/client/runtime/composition-root.js\n M src/inference/pipelines/text/resident-partition-contract.d.ts\n M src/inference/pipelines/text/resident-partition.js\n M src/partitions.d.ts\n M src/version.js\n M tests/inference/resident-partition-lifecycle.test.js\n M tests/runtime/resident-partition-opening.test.js\n M tools/check-packed-package.js\n?? artifacts/partition-contracts-20261010/\n",
+  "runnerSha256": "471963863814a129a34c1b43120f80be599780c211f566a5a74c9b435ab93e27"
+}

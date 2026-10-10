@@ -1,0 +1,26 @@
+[kernels:conversion-digests:check] registered kernel digests match in 48 configuration files
+package import smoke passed (32 exports + browser condition)
+package program bundle smoke passed (synthetic export, host closure, corruption rejection)
+Package evidence retained: /home/x/deco/doppler/artifacts/partition-contracts-20261010/d1-installed
+Error: /usr/bin/node node-provider-smoke.js failed:
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Missing expected exception.
+    at file:///home/x/deco/doppler/artifacts/partition-contracts-20261010/d1-installed/consumer/node-provider-smoke.js:6:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: /Cannot find/,
+  operator: 'throws',
+  diff: 'simple'
+}
+
+Node.js v22.22.1
+
+    at run (file:///home/x/deco/doppler/tools/check-packed-package.js:27:11)
+    at main (file:///home/x/deco/doppler/tools/check-packed-package.js:477:26)

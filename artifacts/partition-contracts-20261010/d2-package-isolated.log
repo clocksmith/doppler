@@ -1,0 +1,19 @@
+[kernels:conversion-digests:check] registered kernel digests match in 48 configuration files
+package import smoke passed (32 exports + browser condition)
+package program bundle smoke passed (synthetic export, host closure, corruption rejection)
+Installed standalone Node provider smoke passed (synthetic; Doe absent).
+package training API smoke passed
+installed public imports preserve minimal runtime authority
+installed minimal runtime closure and explicit partition entry checks passed
+package CLI smoke passed (doppler)
+package CLI smoke passed (doppler-gpu)
+package CLI smoke passed (doppler-serve)
+installed Electron Capsule contract passed (synthetic device/program, no repository imports)
+Installed Capsule HTTP/direct parity passed (synthetic).
+Installed Capsule embedding smoke passed (synthetic; no physical qualification).
+Installed Capsule generation passed (injected logits; no physical qualification).
+Installed browser-conditioned host stream exports passed.
+{"passed":true,"consumer":"standalone","runtimeVersion":"0.6.27","phases":6,"releases":6,"physicalExecution":false}
+package type smoke passed (32 public export declarations)
+packed package smoke passed (1897 files, 3344432 bytes packed, 13115542 bytes unpacked)
+Package evidence retained: /tmp/doppler-partition-contracts-d2
