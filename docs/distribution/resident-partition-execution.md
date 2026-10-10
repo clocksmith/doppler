@@ -22,7 +22,7 @@ normal verified Capsule opener with explicit host trust. Opening supplies model
 and executable identity, partition plan/hash/index, participant identity,
 generation settings, allocation limits, and an abort signal. The returned
 session exposes `getDescriptor()`, `tokenize()`, `executeGroup0()`,
-`executeGroup1()`, `closeAttempt()`, and `close()`.
+`executeGroup1()`, `getRecoveryCapabilities()`, `closeAttempt()`, and `close()`.
 
 Consumers import resident descriptors, identities, limits, step requests/results,
 tokenization requests/results and metrics as types from `doppler-gpu/partitions`.
@@ -64,6 +64,48 @@ to the signed plan. Whole-model `generate` evidence cannot authorize either
 group. The Capsule root checks this record before constructing a program; the
 model host supplies the pure manifest-bound allocation validator through a
 port, keeping the root independent of the inference executor.
+
+## Recovery capability contract
+
+`getRecoveryCapabilities()` returns an immutable `ResidentRecoveryCapabilities`
+through `doppler-gpu/partitions`:
+
+```js
+{
+  schema: 'doppler.resident-recovery/v1',
+  inputReplay: false,
+  checkpointExport: false,
+  checkpointImport: false,
+}
+```
+
+These are capability facts, not configurable switches or grants. This initial
+implementation supports none of the declared recovery operations. Capsule
+opening rejects missing resident methods, unsupported descriptor/recovery
+versions, missing capability fields and enabled recovery claims. Upgrading the
+consumer requires the matching archive; an older resident without this method
+does not satisfy the new interface. The resident descriptor retains its existing
+schema, generation digest and live boolean readiness.
+
+A continuation's nonce, step and position bind in-memory state in its original
+attempt. Process loss cannot export that state; a lost device or closed session
+rejects execution. A replacement resident rejects a foreign continuation even
+when its position is rewritten to the initial step. Restart means a new attempt
+from approved inputs, not appending to the prior partial output invisibly.
+
+| Operation | Owner and current boundary |
+| --- | --- |
+| Artifact resume | Existing acquisition/storage path resumes verified model bytes. |
+| Outcome replay | Reploid may redeliver committed job outputs under current authorization. |
+| Restart | Reploid creates a new assignment/attempt; Doppler executes fresh state. |
+| Input replay | Unsupported reconstruction from committed inputs/tokens. |
+| Checkpoint restore | Unsupported import of serialized inference state. |
+
+Reploid owns attempt history, recovery authorization and placement changes.
+Transport interruption never establishes computation completion or resource
+settlement. Portable checkpoints and expansion beyond the existing partitions
+remain separate capabilities. Contract tests use synthetic execution and cannot
+replace physical numerical or lifecycle qualification.
 
 ## Current numerical boundary
 

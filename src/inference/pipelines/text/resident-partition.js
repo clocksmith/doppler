@@ -186,6 +186,8 @@ export async function createResidentPartitionSession(pipeline, allocation, token
   }
   return {
     getDescriptor: () => ({ ...structuredClone(descriptor), ready: !closed && !isDeviceLost(pipeline.gpuContext?.device) }),
+    getRecoveryCapabilities: () => Object.freeze({ schema: /** @type {const} */ ('doppler.resident-recovery/v1'),
+      inputReplay: false, checkpointExport: false, checkpointImport: false }),
     async tokenize(request) {
       assertOpen(); request.signal.throwIfAborted();
       if (allocation.index !== 0) throw new Error('Only partition A tokenizes input.');

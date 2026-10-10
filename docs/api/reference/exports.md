@@ -821,12 +821,21 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `createResidentPartitionFactory`
   - `createVerifiedPieceStorage`
   - `inspectDeviceMemory`
+  - `PartitionTiming`
   - `ResidentPartitionAllocation`
+  - `ResidentPartitionARequest`
+  - `ResidentPartitionAResult`
+  - `ResidentPartitionBRequest`
+  - `ResidentPartitionBResult`
   - `ResidentPartitionDescriptor`
   - `ResidentPartitionFactory`
   - `ResidentPartitionIdentity`
   - `ResidentPartitionLimits`
+  - `ResidentPartitionMetrics`
   - `ResidentPartitionOpenOptions`
   - `ResidentPartitionSession`
   - `ResidentPartitionStep`
+  - `ResidentPartitionTokenizationRequest`
+  - `ResidentPartitionTokenizationResult`
+  - `ResidentRecoveryCapabilities`
   - `VerifiedPiece`

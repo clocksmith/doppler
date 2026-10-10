@@ -124,13 +124,16 @@ import type { RunPorts, DopplerRun, DopplerRunSession } from '${packageJson.name
 import type { ResidentPartitionSession, ResidentPartitionDescriptor, ResidentPartitionARequest,
   ResidentPartitionAResult, ResidentPartitionBRequest, ResidentPartitionBResult,
   ResidentPartitionTokenizationRequest, ResidentPartitionTokenizationResult,
-  ResidentPartitionMetrics, PartitionTiming } from '${packageJson.name}/partitions';
+  ResidentPartitionMetrics, PartitionTiming, ResidentRecoveryCapabilities } from '${packageJson.name}/partitions';
 declare const resident: ResidentPartitionSession;
 declare const aRequest: ResidentPartitionARequest;
 declare const bRequest: ResidentPartitionBRequest;
 declare const tokenizationRequest: ResidentPartitionTokenizationRequest;
 const descriptor: ResidentPartitionDescriptor = resident.getDescriptor();
 const generationDigest: string = descriptor.generationDigest;
+const recovery: ResidentRecoveryCapabilities = resident.getRecoveryCapabilities();
+// @ts-expect-error Capability reports cannot be changed to enable recovery.
+recovery.checkpointImport = true;
 // @ts-expect-error Readiness requires runtime admission, not a type assertion.
 const assumedReady: true = descriptor.ready;
 const aResult: Promise<ResidentPartitionAResult> = resident.executeGroup0(aRequest);

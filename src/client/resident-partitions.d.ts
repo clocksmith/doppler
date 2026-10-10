@@ -10,6 +10,7 @@ export interface ResidentPartitionOpenOptions extends Omit<ResidentPartitionAllo
   signal: AbortSignal;
 }
 export interface ResidentPartitionFactory {
+  /** The returned session declares recovery separately from readiness and signed model qualification. */
   openResidentPartition(options: ResidentPartitionOpenOptions): Promise<ResidentPartitionSession>;
 }
 export function createResidentPartitionFactory(options: {

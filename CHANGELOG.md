@@ -4,6 +4,17 @@ Historical package notes are preserved outside the runtime archive in
 `docs/status/archive/package-changelog-through-0.6.1.md` and the earlier
 `package-changelog-through-0.4.15.md` snapshot in that directory.
 
+## [0.6.27 candidate]
+
+- Export resident request/result, tokenization and observation types through
+  `doppler-gpu/partitions`; descriptor readiness remains a runtime boolean.
+- Add `getRecoveryCapabilities()` with versioned, disabled input replay and
+  checkpoint export/import. Live continuation remains bound to resident state.
+- Validate required resident methods, descriptor version and recovery claims
+  during signed opening. Preserve model qualification and numerical references.
+- Installed-package and synthetic contract tests do not qualify physical
+  distributed inference or change historical acceptance failures.
+
 ## Buffer retirement safety
 
 - Retire only the buffers covered by a queue completion. Buffers retired later
