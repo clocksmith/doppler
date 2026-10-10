@@ -1,0 +1,15 @@
+{
+  "scope": "Compared every shipped archive file with the current source; added unshipped paths are outside this inventory",
+  "archiveSha256": "14f95c3492b4db049c3083059f1340d02918f835caf4237aad5994227a006ab9",
+  "archiveVersion": "0.6.23",
+  "sourceRevision": "ff3379d4abab7be2ceca6d94be8ecf080cb04ed8",
+  "filesCompared": 1897,
+  "changed": [
+    {
+      "path": "README.md",
+      "archiveSha256": "f68fb11b4f007a80701f331c1cabce98a483776a4bf097a214f7ccd7e824c638",
+      "sourceSha256": "c2bde34abb9360fa6ce50d60fb5ee1095868b93ce66587c873c569063fff45f8"
+    }
+  ],
+  "archiveOverwritten": false
+}
