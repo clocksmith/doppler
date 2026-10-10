@@ -20,7 +20,6 @@
 <rect x="224" y="109" width="65" height="49" rx="10" fill="#f5f0ff" stroke="#cbb5ff"/>
 <rect x="235" y="122" width="35" height="5" rx="2" fill="#8b5cf6"/>
 <rect x="235" y="134" width="35" height="5" rx="2" fill="#bda0f2"/>
-<path d="M289 132 H325 Q334 132 334 141 V367 Q334 379 322 379 H166 V390" fill="none" stroke="#747780" stroke-width="1.4" stroke-dasharray="2 7" marker-end="url(#gray)"/>
 
 <rect x="20" y="190" width="320" height="456" rx="12" fill="#ffffff" stroke="#08090c" stroke-width="1.5"/>
 <path d="M20 223 H340" stroke="#dedfe5"/>
@@ -28,6 +27,7 @@
 <circle cx="301" cy="207" r="3" fill="#ff1f3d"/>
 <circle cx="313" cy="207" r="3" fill="#8b5cf6"/>
 <circle cx="325" cy="207" r="3" fill="#2f6bff"/>
+<path d="M289 132 H325 Q334 132 334 141 V367 Q334 379 322 379 H166 V390" fill="none" stroke="#747780" stroke-width="1.4" stroke-dasharray="2 7" marker-end="url(#gray)"/>
 <text x="44" y="245" font-size="17" fill="#08090c" font-weight="550">Request</text>
 <rect x="44" y="253" width="212" height="35" rx="7" fill="#fafafa" stroke="#dedfe5"/>
 <text x="56" y="276" font-size="16" fill="#08090c">Explain this passage.</text>
