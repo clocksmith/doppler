@@ -11,25 +11,17 @@
 Run AI models locally in JavaScript: generate text, create embeddings, and rerank
 search results with WebGPU.
 
+![A prepared model stays loaded inside an application while Doppler handles successive inference requests.](assets/readme/application.svg)
+
+Available operations depend on the model and its qualified execution plan.
+Applications own user experience, trust, and updates. Rig prepares the model;
+Run executes its declared program. Browser and Node support are qualified
+separately; Bun remains experimental. [Architecture](docs/architecture.md).
+
 **[Try Doppler in your browser](https://d4da.com/doppler/)** · [Get started](docs/getting-started.md)
 
 Inspect example word choices immediately, or load a model to generate on your
 device. Live inference needs a supported WebGPU browser and a model download.
-
-```mermaid
-flowchart LR
-    Sources[Model sources] --> Rig["Doppler Rig: prepare and qualify"]
-    Rig --> Capsule["Signed model Capsule"]
-    Capsule --> Run["Doppler Run: verify and execute"]
-    App[JavaScript application] --> Run
-    Run --> GPU[WebGPU]
-    GPU --> Result["Text, embeddings, or rankings"]
-    Result --> App
-```
-
-Applications own user experience, trust, and updates. Rig prepares the model;
-Run executes its declared program. Browser and Node support are qualified
-separately; Bun remains experimental. [Architecture](docs/architecture.md).
 
 ## Run local document search
 
