@@ -121,6 +121,23 @@ import { serializeActivationFrame } from '${packageJson.name}/runtime';
 import { serializeActivationFrame as leakedRunHelper } from '${packageJson.name}/run';
 import { createDopplerRun, RUN_CORE_VERSION } from '${packageJson.name}/run';
 import type { RunPorts, DopplerRun, DopplerRunSession } from '${packageJson.name}/run';
+import type { ResidentPartitionSession, ResidentPartitionDescriptor, ResidentPartitionARequest,
+  ResidentPartitionAResult, ResidentPartitionBRequest, ResidentPartitionBResult,
+  ResidentPartitionTokenizationRequest, ResidentPartitionTokenizationResult,
+  ResidentPartitionMetrics, PartitionTiming } from '${packageJson.name}/partitions';
+declare const resident: ResidentPartitionSession;
+declare const aRequest: ResidentPartitionARequest;
+declare const bRequest: ResidentPartitionBRequest;
+declare const tokenizationRequest: ResidentPartitionTokenizationRequest;
+const descriptor: ResidentPartitionDescriptor = resident.getDescriptor();
+const generationDigest: string = descriptor.generationDigest;
+// @ts-expect-error Readiness requires runtime admission, not a type assertion.
+const assumedReady: true = descriptor.ready;
+const aResult: Promise<ResidentPartitionAResult> = resident.executeGroup0(aRequest);
+const bResult: Promise<ResidentPartitionBResult> = resident.executeGroup1(bRequest);
+const tokenization: Promise<ResidentPartitionTokenizationResult> = resident.tokenize(tokenizationRequest);
+bResult.then(result => { const metrics: ResidentPartitionMetrics = result.metrics;
+  const timing: PartitionTiming = metrics; return timing; });
 import { createKernelRegistry, createRuleRegistry } from '${packageJson.name}/tooling/runtime';
 const mutableRequires: Array<'shader-f16' | 'subgroups'> = [];
 const mutableWorkgroup: [number, number, number] = [256, 1, 1];
