@@ -289,7 +289,7 @@
       "silu": {
         "kernel": "silu.wgsl",
         "entry": "main",
-        "digest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+        "digest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
         "constants": {
           "HAS_GATE": true
         }

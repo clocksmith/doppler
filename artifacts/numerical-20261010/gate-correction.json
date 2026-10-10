@@ -1,0 +1,111 @@
+{
+  "scope": "First local prefill difference: sigmoid gating; whole-model qualification pending",
+  "archiveVersion": "0.6.24",
+  "placements": [
+    "linux-mac",
+    "mac-linux"
+  ],
+  "capturedOperands": {
+    "q": "byte-exact",
+    "k": "byte-exact",
+    "v": "byte-exact",
+    "cachedK": "byte-exact",
+    "cachedV": "byte-exact",
+    "gate": "byte-exact",
+    "attentionCore": "byte-exact",
+    "projectionInputMaximumDifference": 2.384185791015625e-07,
+    "projectionWeights": "byte-exact",
+    "projectionOutputMaximumDifference": 3.725290298461914e-08
+  },
+  "nonperturbing": {
+    "unmaskedLogitsMaximumDifference": 0,
+    "resetPrefixReplayByteExact": true
+  },
+  "baselineCrossPlatform": {
+    "maxDifference": 4.76837158203125e-07,
+    "differentElements": 16971
+  },
+  "candidateCrossPlatform": {
+    "maxDifference": 0.0,
+    "differentElements": 0
+  },
+  "independentOracle": "Float64 x / (1 + exp(-clamp(gate,-15,15)))",
+  "metrics": [
+    {
+      "host": "mac",
+      "candidate": null,
+      "captured": {
+        "maxError": 1.638304922835232e-07,
+        "rmsError": 3.7196655524057837e-09,
+        "different": 38912
+      },
+      "sweep": {
+        "maxError": 3.165420312534195e-07,
+        "rmsError": 8.886236859722159e-08,
+        "different": 8191
+      },
+      "shaderSha256": "7a40826f311d3744604672ee3886597d7e4fae6e5832cc28b393bc5060235005",
+      "receipt": "artifacts/numerical-20261010/doppler-gate-baseline-mac.json.gz",
+      "receiptSha256": "0231e2e95384dd9e6115cbbcb34283db225658ab87a5010b3603fcc70cc95031"
+    },
+    {
+      "host": "linux",
+      "candidate": null,
+      "captured": {
+        "maxError": 1.537951628272083e-07,
+        "rmsError": 3.773055024734648e-09,
+        "different": 38912
+      },
+      "sweep": {
+        "maxError": 3.288254863953455e-07,
+        "rmsError": 8.897877727870726e-08,
+        "different": 8191
+      },
+      "shaderSha256": "7a40826f311d3744604672ee3886597d7e4fae6e5832cc28b393bc5060235005",
+      "receipt": "artifacts/numerical-20261010/doppler-gate-baseline-linux.json.gz",
+      "receiptSha256": "7a4dfb20fd4138661b57e3947985125c2b6c8ba9db6cb53fa2ad82786b55a164"
+    },
+    {
+      "host": "mac",
+      "candidate": "refined-sigmoid",
+      "captured": {
+        "maxError": 1.030385148315105e-07,
+        "rmsError": 3.188641771756542e-09,
+        "different": 38912
+      },
+      "sweep": {
+        "maxError": 3.165420312534195e-07,
+        "rmsError": 8.869480943259605e-08,
+        "different": 8191
+      },
+      "shaderSha256": "38f7209006ccacb8654f82fc5cf5b17a9c2f9647c9a2b07f933c2c2420d8ebe5",
+      "receipt": "artifacts/numerical-20261010/doppler-gate-candidate-mac.json.gz",
+      "receiptSha256": "29c8b3d059fbacda20d39965e2ac90ab7d4835838031d1dd753221ebcb10bd03"
+    },
+    {
+      "host": "linux",
+      "candidate": "refined-sigmoid",
+      "captured": {
+        "maxError": 1.030385148315105e-07,
+        "rmsError": 3.188641771755772e-09,
+        "different": 38912
+      },
+      "sweep": {
+        "maxError": 3.165420312534195e-07,
+        "rmsError": 8.869480943259605e-08,
+        "different": 8191
+      },
+      "shaderSha256": "38f7209006ccacb8654f82fc5cf5b17a9c2f9647c9a2b07f933c2c2420d8ebe5",
+      "receipt": "artifacts/numerical-20261010/doppler-gate-candidate-linux.json.gz",
+      "receiptSha256": "1d41799d8b1a38f9d399a53a729fb9e988603b5a570552535ffbbabb0241bba2"
+    }
+  ],
+  "candidate": {
+    "version": "0.6.25",
+    "shaderSha256": "38f7209006ccacb8654f82fc5cf5b17a9c2f9647c9a2b07f933c2c2420d8ebe5",
+    "archiveSha256": "cbec67e09fc7c443115558788d65a661e7e63d5907c7e7de3c07f3ecbba269c4",
+    "modelManifestSha256": "9d6d621650134275f017ae268c519e90c8b184b01a53d1495d0d43dfc410b206",
+    "numericalAcceptance": "pending",
+    "deployed": false
+  }
+}

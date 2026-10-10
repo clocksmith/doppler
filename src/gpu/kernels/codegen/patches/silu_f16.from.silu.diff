@@ -16,7 +16,7 @@
 
  override WORKGROUP_SIZE: u32 = 256u;
  override HAS_GATE: bool = false;
-@@ -23,27 +20,18 @@
+@@ -23,32 +20,18 @@
  }
 
  @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -29,7 +29,13 @@
 
  fn sigmoid(x: f32) -> f32 {
      let clamped = clamp(x, -15.0, 15.0);
-     return 1.0 / (1.0 + exp(-clamped));
+-    let z = exp_refined(-abs(clamped));
+-    let numerator = select(z, 1.0, clamped >= 0.0);
+-    let denominator = 1.0 + z;
+-    let inverse = reciprocal_refined(denominator);
+-    let quotient = numerator * inverse;
+-    return fma(fma(-quotient, denominator, numerator), inverse, quotient);
++    return 1.0 / (1.0 + exp(-clamped));
  }
 
 -// Compensate the rounded numerator and quotient; retain the established gate clamp.
@@ -48,7 +54,7 @@
 
  fn apply_input_activation(x: f32) -> f32 {
      return select(silu(x), x, INPUT_USE_IDENTITY);
-@@ -69,13 +57,13 @@
+@@ -74,13 +57,13 @@
 
          let remaining = min(4u, u.size - base_idx);
          for (var i: u32 = 0u; i < remaining; i = i + 1u) {
@@ -66,7 +72,7 @@
              }
          }
          return;
-@@ -98,64 +86,27 @@
+@@ -103,64 +86,27 @@
              return;
          }
          let row_base = token_idx * dim * 2u;

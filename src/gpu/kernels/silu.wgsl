@@ -29,7 +29,12 @@ struct Uniforms {
 
 fn sigmoid(x: f32) -> f32 {
     let clamped = clamp(x, -15.0, 15.0);
-    return 1.0 / (1.0 + exp(-clamped));
+    let z = exp_refined(-abs(clamped));
+    let numerator = select(z, 1.0, clamped >= 0.0);
+    let denominator = 1.0 + z;
+    let inverse = reciprocal_refined(denominator);
+    let quotient = numerator * inverse;
+    return fma(fma(-quotient, denominator, numerator), inverse, quotient);
 }
 
 // Compensate the rounded numerator and quotient; retain the established gate clamp.
