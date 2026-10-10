@@ -13,7 +13,10 @@ search results, and score bounded choices with WebGPU.
 [Choice scoring](docs/api/choice-scoring.md) uses contextual single-token labels
 and raw logits; it does not establish general judgment quality or calibration.
 
-![A prepared model stays loaded inside an application while Doppler handles successive inference requests.](assets/readme/application.svg)
+<picture>
+  <source media="(max-width: 640px)" srcset="assets/readme/application-mobile.svg" />
+  <img src="assets/readme/application.svg" alt="A prepared model stays loaded inside an application while Doppler handles successive inference requests." />
+</picture>
 
 Available operations depend on the model and its qualified execution plan.
 Applications own user experience, trust, and updates. Rig prepares the model;
