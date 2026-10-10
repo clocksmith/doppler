@@ -50,18 +50,54 @@ const qualifiedPlan = createTargetPlanV2({ ...base.targetPlan, qualification: [.
 const signed = await createSignedCapsuleFixture({ targetPlans: [qualifiedPlan] });
 const assigned = { ...expected, model: { id: signed.capsule.modelId,
   identity: signed.capsule.artifacts.find(row => row.artifactId === 'manifest').hash }, generation: { maxTokens: 1 } };
-const resident = { getDescriptor: () => ({ ready: true, modelId: assigned.model.id,
+const resident = { getDescriptor: () => ({ schema: 'doppler.resident-partition/v1', ready: true, modelId: assigned.model.id,
   modelIdentity: assigned.model.identity, planId: assigned.planId, index: assigned.index,
   layerRange: assigned.plan.partitions[0].layerRange, generationDigest: computeCanonicalSha256(assigned.generation) }),
+  getRecoveryCapabilities: () => ({ schema: 'doppler.resident-recovery/v1', inputReplay: false,
+    checkpointExport: false, checkpointImport: false }),
+  tokenize: async () => {}, executeGroup0: async () => {}, executeGroup1: async () => {},
   closeAttempt: async () => {}, close: async () => {} };
+let closedPrograms = 0;
 const authorized = createDopplerRun({
   device: { getProfile: () => ({ surface: 'test-webgpu', maxBufferSize: 1024 }),
     getDevice: () => ({ createBuffer() {}, createCommandEncoder() {} }) },
   trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY }, artifactStore: signed.artifactStore,
   resolveResidentPartitionAllocation: () => assigned,
   async programFactory() { return { getInitialExecutionIdentity: () => executionIdentity,
-    residentPartition: resident, close: async () => {} }; },
+    residentPartition: resident, close: async () => { closedPrograms++; } }; },
 });
 const session = await authorized.openCapsule(signed.capsule, { residentPartition: assigned });
 assert.equal(session.residentPartition.getDescriptor().planId, assigned.planId);
+assert.deepEqual(session.residentPartition.getRecoveryCapabilities(), resident.getRecoveryCapabilities());
+assert(Object.isFrozen(session.residentPartition.getRecoveryCapabilities()));
 await session.close();
+assert.equal(closedPrograms, 1);
+assert.equal(session.residentPartition.getDescriptor().ready, false);
+await assert.rejects(session.residentPartition.tokenize({ signal: new AbortController().signal }), /closed/);
+
+async function rejectOpening(pattern) {
+  const before = closedPrograms;
+  await assert.rejects(authorized.openCapsule(signed.capsule, { residentPartition: assigned }), pattern);
+  assert.equal(closedPrograms, before + 1, 'failed resident admission must close its loaded program');
+}
+const descriptor = resident.getDescriptor;
+for (const change of [{ schema: 'doppler.resident-partition/v2' }, { ready: 'true' }, { ready: false },
+  { modelId: 'other' }, { modelIdentity: digest('e') }, { planId: digest('f') }, { index: 1 },
+  { layerRange: [0, 2] }, { generationDigest: digest('a') }]) {
+  resident.getDescriptor = () => ({ ...descriptor(), ...change });
+  await rejectOpening(/descriptor differs/);
+}
+resident.getDescriptor = descriptor;
+for (const method of Object.keys(resident)) {
+  const saved = resident[method];
+  resident[method] = undefined;
+  await rejectOpening(/missing required partition methods/);
+  resident[method] = saved;
+}
+const capabilities = resident.getRecoveryCapabilities;
+for (const change of [{ schema: 'doppler.resident-recovery/v2' }, { inputReplay: true },
+  { checkpointExport: true }, { checkpointImport: true }, { inputReplay: undefined }]) {
+  resident.getRecoveryCapabilities = () => ({ ...capabilities(), ...change });
+  await rejectOpening(/recovery capabilities are unsupported/);
+}
+resident.getRecoveryCapabilities = capabilities;

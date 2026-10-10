@@ -26,6 +26,12 @@ export interface ResidentPartitionDescriptor {
   layerRange: readonly number[]; residentWeightBytes: number;
   generationDigest: string;
 }
+export interface ResidentRecoveryCapabilities {
+  readonly schema: 'doppler.resident-recovery/v1';
+  readonly inputReplay: boolean;
+  readonly checkpointExport: boolean;
+  readonly checkpointImport: boolean;
+}
 export interface ResidentPartitionTokenizationRequest {
   messages: unknown; identity: ResidentPartitionIdentity; signal: AbortSignal;
 }
@@ -60,6 +66,8 @@ export interface ResidentPartitionBResult {
 }
 export interface ResidentPartitionSession {
   getDescriptor(): ResidentPartitionDescriptor;
+  /** Live continuation is not portable recovery. This implementation reports all flags false. */
+  getRecoveryCapabilities(): ResidentRecoveryCapabilities;
   tokenize(request: ResidentPartitionTokenizationRequest): Promise<ResidentPartitionTokenizationResult>;
   executeGroup0(request: ResidentPartitionARequest): Promise<ResidentPartitionAResult>;
   executeGroup1(request: ResidentPartitionBRequest): Promise<ResidentPartitionBResult>;

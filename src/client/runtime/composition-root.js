@@ -343,8 +343,21 @@ export function createDopplerRun(ports) {
         };
         if (residentAllocation) {
           const resident = program.residentPartition;
-          const descriptor = resident?.getDescriptor?.();
-          if (!descriptor?.ready || descriptor.modelId !== capsule.modelId || descriptor.modelIdentity !== manifestArtifact.hash
+          const requiredMethods = ['getDescriptor', 'getRecoveryCapabilities', 'tokenize',
+            'executeGroup0', 'executeGroup1', 'closeAttempt', 'close'];
+          if (!resident || requiredMethods.some(method => typeof resident[method] !== 'function')) {
+            throw new Error('Loaded resident is missing required partition methods.');
+          }
+          const recovery = resident.getRecoveryCapabilities();
+          if (recovery?.schema !== 'doppler.resident-recovery/v1'
+            || ['inputReplay', 'checkpointExport', 'checkpointImport'].some(key => recovery[key] !== false)) {
+            throw new Error('Loaded resident recovery capabilities are unsupported.');
+          }
+          const recoveryCapabilities = Object.freeze({ schema: recovery.schema, inputReplay: false,
+            checkpointExport: false, checkpointImport: false });
+          const descriptor = resident.getDescriptor();
+          if (descriptor?.schema !== 'doppler.resident-partition/v1' || descriptor.ready !== true
+            || descriptor.modelId !== capsule.modelId || descriptor.modelIdentity !== manifestArtifact.hash
             || descriptor.planId !== residentAllocation.planId || descriptor.index !== residentAllocation.index
             || JSON.stringify(descriptor.layerRange) !== JSON.stringify(residentAllocation.plan.partitions[residentAllocation.index].layerRange)
             || descriptor.generationDigest !== computeCanonicalSha256(residentAllocation.generation)) {
@@ -361,6 +374,7 @@ export function createDopplerRun(ports) {
           };
           session.residentPartition = Object.freeze({
             getDescriptor: () => ({ ...resident.getDescriptor(), ready: !closed && resident.getDescriptor().ready }),
+            getRecoveryCapabilities: () => recoveryCapabilities,
             tokenize: request => invokeResident('tokenize', request),
             executeGroup0: request => invokeResident('executeGroup0', request),
             executeGroup1: request => invokeResident('executeGroup1', request),
