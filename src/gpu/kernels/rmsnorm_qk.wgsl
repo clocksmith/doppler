@@ -25,6 +25,7 @@ struct Uniforms {
 @group(0) @binding(6) var<storage, read_write> k_output: array<f32>;
 
 var<workgroup> shared_sum: array<f32, MAX_WORKGROUP_SIZE>;
+var<workgroup> shared_correction: array<f32, MAX_WORKGROUP_SIZE>;
 
 fn apply_weight(w: f32) -> f32 {
     if (RMS_NORM_OFFSET) {
@@ -86,26 +87,49 @@ fn main(
     let size = u.head_dim;
     let elements_per_thread = (size + WORKGROUP_SIZE - 1u) / WORKGROUP_SIZE;
 
-    var local_sum_sq: f32 = 0.0;
-    for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {
+    // Keep rounded sums observable before recovering their low parts. Without
+    // the shared-memory boundary, compiler reassociation can erase compensation.
+    var local_sum_sq = 0.0;
+    var correction = 0.0;
+    for (var i = 0u; i < elements_per_thread; i++) {
         let idx = thread_idx * elements_per_thread + i;
-        if (idx < size) {
-            let x = load_value(row, idx);
-            local_sum_sq = local_sum_sq + x * x;
-        }
+        var x = 0.0;
+        if (idx < size) { x = load_value(row, idx); }
+        let square = x * x;
+        shared_sum[thread_idx] = local_sum_sq + square;
+        workgroupBarrier();
+        let rounded = shared_sum[thread_idx];
+        let error = fma(-1.0, rounded, max(local_sum_sq, square)) + min(local_sum_sq, square);
+        correction += fma(x, x, -square) + error;
+        local_sum_sq = rounded;
     }
 
     shared_sum[thread_idx] = local_sum_sq;
+    shared_correction[thread_idx] = correction;
     workgroupBarrier();
 
     for (var stride: u32 = WORKGROUP_SIZE / 2u; stride > 0u; stride = stride >> 1u) {
+        let a = shared_sum[thread_idx];
+        let b = shared_sum[min(thread_idx + stride, WORKGROUP_SIZE - 1u)];
+        if (thread_idx < stride) { shared_sum[thread_idx] = a + b; }
+        workgroupBarrier();
         if (thread_idx < stride) {
-            shared_sum[thread_idx] = shared_sum[thread_idx] + shared_sum[thread_idx + stride];
+            let rounded = shared_sum[thread_idx];
+            let error = fma(-1.0, rounded, max(a, b)) + min(a, b);
+            shared_correction[thread_idx] += shared_correction[thread_idx + stride] + error;
         }
         workgroupBarrier();
     }
 
-    let inv_rms = 1.0 / sqrt(shared_sum[0] / f32(size) + u.eps);
+    let mean_sq = (shared_sum[0] + shared_correction[0]) / f32(size);
+    let epsilon_sum = mean_sq + u.eps;
+    let estimate = inverseSqrt(epsilon_sum);
+    let estimate_squared = estimate * estimate;
+    let square_error = fma(estimate, estimate, -estimate_squared);
+    let reciprocal_residual = fma(-epsilon_sum, estimate_squared, 1.0)
+        - epsilon_sum * square_error;
+    let inv_rms = fma(0.5 * estimate, reciprocal_residual, estimate);
+
     workgroupBarrier();
 
     for (var i: u32 = 0u; i < elements_per_thread; i = i + 1u) {

@@ -15,30 +15,30 @@ export function observeRecurrentShader(source, layout, selectedStages = Object.k
     assert.equal(source.split(anchor).length, 2, `Ambiguous recurrent observation anchor: ${anchor}`);
     source = source.replace(anchor, `${anchor}\n${observation}`);
   };
-  after('let q_norm_scale = head_scale / sqrt(shared_sq[0] + params.qk_l2norm_eps);',
+  after('let q_norm_scale = head_scale * inverse_root_refined(shared_sq[0] + params.qk_l2norm_eps);',
     `    if (vd == 0u) { ${scalar('qScale')} = q_norm_scale; }`);
-  after('let k_norm_scale = inverseSqrt(shared_sq[0] + params.qk_l2norm_eps);',
+  after('let k_norm_scale = inverse_root_refined(shared_sq[0] + params.qk_l2norm_eps);',
     `    if (vd == 0u) { ${scalar('kScale')} = k_norm_scale; }`);
-  after('kv_mem = kv_mem + recurrent_state[state_idx] * k_normed;',
+  after('kv_mem = fma(recurrent_state[state_idx], k_normed, kv_mem);',
     `        if (vd == 0u) { ${at('normalizedK', 'ab_row_base * head_k_dim + kd')} = k_normed; }`);
-  after('out_value = out_value + recurrent_state[state_idx] * q_normed;',
+  after('out_value = fma(recurrent_state[state_idx], q_normed, out_value);',
     `        if (vd == 0u) { ${at('normalizedQ', 'ab_row_base * head_k_dim + kd')} = q_normed; }`);
   for (const [name, value] of [['beta', 'beta'], ['logDecay', 'g'], ['decay', 'g_exp']]) {
-    after('let g_exp = exp(g);', `    if (vd == 0u) { ${scalar(name)} = ${value}; }`);
+    after('let g_exp = exp_refined(g);', `    if (vd == 0u) { ${scalar(name)} = ${value}; }`);
   }
   after('recurrent_state[state_idx] = recurrent_state[state_idx] * g_exp;',
     `        ${matrix('decayedState')} = recurrent_state[state_idx];`);
-  after('let delta = (conv_out[conv_row_base + v_base + vd] - kv_mem) * beta;',
+  after('let delta = multiply_ordered(conv_out[conv_row_base + v_base + vd] - kv_mem, beta);',
     `      ${vector('memory')} = kv_mem;`);
-  after('let delta = (conv_out[conv_row_base + v_base + vd] - kv_mem) * beta;',
+  after('let delta = multiply_ordered(conv_out[conv_row_base + v_base + vd] - kv_mem, beta);',
     `      ${vector('correction')} = delta;`);
-  after('recurrent_state[state_idx] = recurrent_state[state_idx] + k_normed * delta;',
+  after('recurrent_state[state_idx] = fma(k_normed, delta, recurrent_state[state_idx]);',
     `        ${matrix('updatedState')} = recurrent_state[state_idx];`);
   after('output[out_row_base + vd] = out_value;', `      ${vector('rawOutput')} = out_value;`);
-  after('let inv_rms = inverseSqrt(shared_sq[0] / f32(head_v_dim) + params.rms_norm_eps);',
+  after('let inv_rms = inverse_root_refined(shared_sq[0] / f32(head_v_dim) + params.rms_norm_eps);',
     `    if (vd == 0u) { ${scalar('invRms')} = inv_rms; }`);
   after('let gate = silu(f32(z_proj[z_index]));', `      ${vector('gate')} = gate;`);
-  after('output[out_row_base + vd] = (output[out_row_base + vd] * inv_rms) * norm_weight[norm_index] * gate;',
+  after('output[out_row_base + vd] = value;',
     `      ${vector('gatedOutput')} = output[out_row_base + vd];`);
   return source + '\n@group(0) @binding(10) var<storage, read_write> recurrent_trace: array<f32>;\n';
 }

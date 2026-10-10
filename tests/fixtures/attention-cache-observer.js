@@ -29,6 +29,29 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
       condition: 'options.layerIdx === 0 && numTokens > 1',
       expression: 'captureLinearCore("outputs", {device, numTokens, layerState, options, convOutBuffer, outputBuffer})' },
   ];
+  if (options.attentionLayer !== undefined) {
+    assert(options.linearLayer === undefined, 'Select one attention observer');
+    assert(Number.isInteger(options.attentionLayer) && options.attentionLayer >= 0);
+    locations = locations.filter(location => location.expression.startsWith('captureAttentionCache('))
+      .map(location => ({ ...location, condition: location.expression.includes('"inputs"')
+        ? `options.layerIdx === ${options.attentionLayer}` : `layerIdx === ${options.attentionLayer}` }));
+  }
+  if (options.linearLayer !== undefined) {
+    assert(Number.isInteger(options.linearLayer) && options.linearLayer >= 0);
+    const condition = `options.layerIdx === ${options.linearLayer}`;
+    const common = { file: 'gpu/kernels/linear-attention-core.js', condition };
+    locations = [
+      { ...common, marker: '  if (useFusedDecodeCore) {',
+        expression: 'captureLinearCore("inputs", {recorder, device, numTokens, layerState, options, qkvTensor, zTensor, aTensor, bTensor})' },
+      ...[
+        ['        const output = createTensor(', 0],
+        ['      const output = createTensor(', 0],
+        ['      const output = createTensor(', 1],
+        ['    const output = createTensor(', 0],
+      ].map(([marker, occurrence]) => ({ ...common, marker, occurrence,
+        expression: 'captureLinearCore("outputs", {recorder, device, numTokens, layerState, options, convOutBuffer, outputBuffer})' })),
+    ];
+  }
   if (options.linearOnly === true) locations = locations.filter(location => location.expression.startsWith('captureLinearCore('));
   if (options.captureCondition) {
     locations = locations.map(location => ({ ...location,
@@ -36,7 +59,7 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
   }
   for (const location of locations) {
     const lines = (await readFile(resolve(packageRoot, 'src', location.file), 'utf8')).split('\n');
-    location.line = lines.indexOf(location.marker);
+    location.line = lines.flatMap((line, index) => line === location.marker ? [index] : [])[location.occurrence ?? 0] ?? -1;
     assert(location.line >= 0, `Missing observation boundary: ${location.file}`);
   }
   context.on('page', page => {
@@ -85,6 +108,7 @@ export async function observeAttentionCache(context, packageRoot, captures, opti
         : [['convOutput', options.convOutBuffer], ['coreOutput', options.outputBuffer],
           ['convState', state.convStateGPU], ['recurrentState', state.recurrentStateGPU]];
       for (const [role, buffer] of buffers) {
+        if (role === 'convOutput' && !buffer) continue; // Fused decode has no intermediate convolution buffer.
         const bytes = buffer.size;
         const item = { role, bytes, data: null }; record.tensors.push(item);
         const staging = device.createBuffer({ size: bytes,

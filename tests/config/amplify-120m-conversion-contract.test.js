@@ -98,7 +98,7 @@ assert.deepEqual(
     rope: 'sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b',
     attn_small: 'sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668',
     residual: 'sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117',
-    silu: 'sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca',
+    silu: 'sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24',
   }
 );
 

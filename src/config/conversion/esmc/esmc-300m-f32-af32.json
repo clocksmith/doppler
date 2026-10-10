@@ -61,9 +61,18 @@
         "axis": 0,
         "expectedMatches": 30,
         "parts": [
-          { "replace": "model.layers.$1.self_attn.q_proj.weight", "size": 960 },
-          { "replace": "model.layers.$1.self_attn.k_proj.weight", "size": 960 },
-          { "replace": "model.layers.$1.self_attn.v_proj.weight", "size": 960 }
+          {
+            "replace": "model.layers.$1.self_attn.q_proj.weight",
+            "size": 960
+          },
+          {
+            "replace": "model.layers.$1.self_attn.k_proj.weight",
+            "size": 960
+          },
+          {
+            "replace": "model.layers.$1.self_attn.v_proj.weight",
+            "size": 960
+          }
         ]
       },
       {
@@ -102,8 +111,14 @@
         "axis": 0,
         "expectedMatches": 30,
         "parts": [
-          { "replace": "model.layers.$1.mlp.gate_proj.weight", "size": 2560 },
-          { "replace": "model.layers.$1.mlp.up_proj.weight", "size": 2560 }
+          {
+            "replace": "model.layers.$1.mlp.gate_proj.weight",
+            "size": 2560
+          },
+          {
+            "replace": "model.layers.$1.mlp.up_proj.weight",
+            "size": 2560
+          }
         ]
       },
       {
@@ -136,7 +151,9 @@
       "conversionConfigPath": "src/config/conversion/esmc/esmc-300m-f32-af32.json",
       "weightCapsuleId": "esmc-300m-f32-af32-wp-v1",
       "manifestVariantId": "esmc-300m-f32-af32-mv-exec-v1",
-      "modalitySet": ["protein_sequence"],
+      "modalitySet": [
+        "protein_sequence"
+      ],
       "materializationProfile": "f32-weights-f32-activations",
       "artifactCompleteness": "complete"
     },
@@ -150,7 +167,14 @@
       "tokenEmbeddings": true,
       "pooledEmbedding": {
         "mode": "mean",
-        "excludeTokenIds": [0, 1, 2, 3, 31, 32]
+        "excludeTokenIds": [
+          0,
+          1,
+          2,
+          3,
+          31,
+          32
+        ]
       },
       "logits": false
     },
@@ -228,7 +252,10 @@
       "layerTypes": null,
       "residualBranchScale": 1.0954451150103321
     },
-    "chatTemplate": { "type": null, "enabled": false }
+    "chatTemplate": {
+      "type": null,
+      "enabled": false
+    }
   },
   "session": {
     "compute": {
@@ -255,9 +282,16 @@
           "bitWidth": 4,
           "prodMode": false
         },
-        "gating": { "mode": "auto", "minAluBwRatio": 0 }
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
       },
-      "quantization": { "mode": "none", "bitWidth": 4, "prodMode": false }
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
+      }
     },
     "decodeLoop": {
       "batchSize": 1,
@@ -272,10 +306,26 @@
     },
     "perLayerInputs": {
       "materialization": "auto",
-      "rowCache": { "mode": "lru", "maxRows": 256, "maxBytes": 134217728, "decodedDtype": "f32" },
-      "prefetch": { "mode": "next_token", "rowsAhead": 1 },
-      "gpuUpload": { "mode": "per_step_slices", "stagingRows": 2 },
-      "hotCache": { "mode": "prepared_tokens", "maxTokens": 1024, "maxBytes": 134217728, "outputDtype": "f32" }
+      "rowCache": {
+        "mode": "lru",
+        "maxRows": 256,
+        "maxBytes": 134217728,
+        "decodedDtype": "f32"
+      },
+      "prefetch": {
+        "mode": "next_token",
+        "rowsAhead": 1
+      },
+      "gpuUpload": {
+        "mode": "per_step_slices",
+        "stagingRows": 2
+      },
+      "hotCache": {
+        "mode": "prepared_tokens",
+        "maxTokens": 1024,
+        "maxBytes": 134217728,
+        "outputDtype": "f32"
+      }
     },
     "skipEmbeddingKVCacheWrites": true,
     "prefillChunkSubmitMode": "sync",
@@ -291,52 +341,207 @@
       "unresolvedKernel": "error"
     },
     "kernels": {
-      "embed": { "kernel": "gather.wgsl", "entry": "main", "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6" },
-      "layernorm": { "kernel": "layernorm.wgsl", "entry": "main", "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c" },
-      "tiled": { "kernel": "matmul_f32.wgsl", "entry": "main", "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8" },
-      "bias_add": { "kernel": "bias_add.wgsl", "entry": "main", "digest": "sha256:e7d3b4a5f9efc8b0569c56bcdeb63e921fa6d1d006901deabc734cab40346715" },
-      "rope": { "kernel": "rope.wgsl", "entry": "main", "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b" },
-      "attn_small": { "kernel": "attention_small.wgsl", "entry": "main", "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4", "precision": { "kvDtype": "f32" } },
-      "residual": { "kernel": "residual.wgsl", "entry": "main", "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117" },
-      "silu": { "kernel": "silu.wgsl", "entry": "main", "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca", "constants": { "HAS_GATE": true } }
+      "embed": {
+        "kernel": "gather.wgsl",
+        "entry": "main",
+        "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+      },
+      "layernorm": {
+        "kernel": "layernorm.wgsl",
+        "entry": "main",
+        "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c"
+      },
+      "tiled": {
+        "kernel": "matmul_f32.wgsl",
+        "entry": "main",
+        "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8"
+      },
+      "bias_add": {
+        "kernel": "bias_add.wgsl",
+        "entry": "main",
+        "digest": "sha256:e7d3b4a5f9efc8b0569c56bcdeb63e921fa6d1d006901deabc734cab40346715"
+      },
+      "rope": {
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+      },
+      "attn_small": {
+        "kernel": "attention_small.wgsl",
+        "entry": "main",
+        "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+        "precision": {
+          "kvDtype": "f32"
+        }
+      },
+      "residual": {
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+      },
+      "silu": {
+        "kernel": "silu.wgsl",
+        "entry": "main",
+        "digest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+        "constants": {
+          "HAS_GATE": true
+        }
+      }
     },
-    "preLayer": [["embed", "embed", "embed_tokens"]],
+    "preLayer": [
+      [
+        "embed",
+        "embed",
+        "embed_tokens"
+      ]
+    ],
     "decode": [
-      ["input_norm", "layernorm"],
-      ["q_proj", "tiled", "layer.{L}.self_attn.q_proj"],
-      ["k_proj", "tiled", "layer.{L}.self_attn.k_proj"],
-      ["v_proj", "tiled", "layer.{L}.self_attn.v_proj"],
-      ["rope_q", "rope"],
-      ["rope_k", "rope"],
-      ["attention", "attn_small"],
-      ["o_proj", "tiled", "layer.{L}.self_attn.o_proj"],
-      ["attn_residual", "residual"],
-      ["post_attn_norm", "layernorm"],
-      ["gate_proj", "tiled", "layer.{L}.mlp.gate_proj"],
-      ["up_proj", "tiled", "layer.{L}.mlp.up_proj"],
-      ["activation", "silu"],
-      ["down_proj", "tiled", "layer.{L}.mlp.down_proj"],
-      ["ffn_residual", "residual"]
+      [
+        "input_norm",
+        "layernorm"
+      ],
+      [
+        "q_proj",
+        "tiled",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "tiled",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "tiled",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_small"
+      ],
+      [
+        "o_proj",
+        "tiled",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "layernorm"
+      ],
+      [
+        "gate_proj",
+        "tiled",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "tiled",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "silu"
+      ],
+      [
+        "down_proj",
+        "tiled",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
     ],
     "prefill": [
-      ["input_norm", "layernorm"],
-      ["q_proj", "tiled", "layer.{L}.self_attn.q_proj"],
-      ["k_proj", "tiled", "layer.{L}.self_attn.k_proj"],
-      ["v_proj", "tiled", "layer.{L}.self_attn.v_proj"],
-      ["rope_q", "rope"],
-      ["rope_k", "rope"],
-      ["attention", "attn_small"],
-      ["o_proj", "tiled", "layer.{L}.self_attn.o_proj"],
-      ["attn_residual", "residual"],
-      ["post_attn_norm", "layernorm"],
-      ["gate_proj", "tiled", "layer.{L}.mlp.gate_proj"],
-      ["up_proj", "tiled", "layer.{L}.mlp.up_proj"],
-      ["activation", "silu"],
-      ["down_proj", "tiled", "layer.{L}.mlp.down_proj"],
-      ["ffn_residual", "residual"]
+      [
+        "input_norm",
+        "layernorm"
+      ],
+      [
+        "q_proj",
+        "tiled",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "tiled",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "tiled",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_small"
+      ],
+      [
+        "o_proj",
+        "tiled",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "layernorm"
+      ],
+      [
+        "gate_proj",
+        "tiled",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "tiled",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "silu"
+      ],
+      [
+        "down_proj",
+        "tiled",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
     ],
-    "postLayer": [["final_norm", "layernorm"]],
+    "postLayer": [
+      [
+        "final_norm",
+        "layernorm"
+      ]
+    ],
     "sampling": null
   },
-  "largeWeights": { "gpuResidentOverrides": null }
+  "largeWeights": {
+    "gpuResidentOverrides": null
+  }
 }

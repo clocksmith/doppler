@@ -221,7 +221,7 @@
       "silu": {
         "kernel": "silu.wgsl",
         "entry": "main",
-        "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+        "digest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
         "constants": {
           "HAS_GATE": true
         }
@@ -244,7 +244,7 @@
       "rmsnorm_qk": {
         "kernel": "rmsnorm_qk.wgsl",
         "entry": "main",
-        "digest": "sha256:6347c59ffd5c2a766c68a482d3019677676c14c6462de42f79d4d8d9846bf105"
+        "digest": "sha256:a9b02d353836934e2c560852fd16730d76231495d22b4219680d5f4048fc02d8"
       },
       "rope_qk": {
         "kernel": "rope_qk.wgsl",

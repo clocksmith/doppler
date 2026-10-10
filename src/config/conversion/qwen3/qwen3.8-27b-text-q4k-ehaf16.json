@@ -304,7 +304,7 @@
       "silu": {
         "kernel": "silu.wgsl",
         "entry": "main",
-        "digest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
+        "digest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
         "constants": {
           "HAS_GATE": true
         }
@@ -371,12 +371,12 @@
       "gated_delta_recurrent": {
         "kernel": "gated_delta_recurrent.wgsl",
         "entry": "main",
-        "digest": "sha256:d41f52c4995d946e2d25f9cc8ebcbc2beb947945b9def59f653e4ccc116a112d"
+        "digest": "sha256:fb5629b3baca5d1209d600e9e5a07a7e22f8eb5ed393e33f931cf95f6443a05e"
       },
       "gated_delta_fused_decode": {
         "kernel": "gated_delta_fused_decode.wgsl",
         "entry": "main",
-        "digest": "sha256:9d1985cf94f749d1d4d51d4e6687fc9746964146ba2812c4223e679a71109fb2"
+        "digest": "sha256:8b22a71709f9f0518180fa80762b8f071e9fc8dea47de0f2b5884d297dbe56b8"
       }
     },
     "preLayer": [
