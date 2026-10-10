@@ -72,7 +72,7 @@ or qualify the remaining decode prefixes.
 The GPU capture uses an earlier manifest binding but has identical first-prefix
 input IDs and output logits to the current capture; the tool asserts both before
 comparison and records both identities. Hooks observe outputs and never replace
-them. This CPU-only check does not rerun or interfere with a GPU campaign.
+them. This CPU-only check uses retained GPU evidence; it does not launch another GPU workload.
 
 To reproduce, use the command above with `--prefixes 1`, the current piece index
 from Reploid `b44f99a2` (SHA-256
