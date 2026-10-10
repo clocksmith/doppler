@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 736" width="360" height="736" role="img" aria-labelledby="title desc">
+<title id="title">Doppler keeps a model inside your application</title>
+<desc id="desc">Rig prepares a Capsule outside the application. Inside the application, successive requests use the same retained model weights and prepared programs. Doppler returns an answer. Generation, embeddings, reranking and scoring depend on the supported model.</desc>
+<style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}</style>
+<defs>
+  <marker id="red" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#ff1f3d" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  <marker id="blue" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#2f6bff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  <marker id="gray" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#747780" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<rect x="1" y="1" width="358" height="734" rx="18" fill="#ffffff" stroke="#dedfe5"/>
+<text x="26" y="39" font-size="21" fill="#08090c" font-weight="650" letter-spacing="-.6">doppler</text>
+<path d="M26 58 H334" stroke="#dedfe5"/>
+<text x="89" y="97" font-size="16" fill="#747780" text-anchor="middle" font-weight="550">Rig</text>
+<rect x="55" y="118" width="60" height="44" rx="6" fill="#fafafa" stroke="#dedfe5"/>
+<rect x="60" y="113" width="60" height="44" rx="6" fill="#fafafa" stroke="#dedfe5"/>
+<rect x="65" y="108" width="60" height="44" rx="6" fill="#fafafa" stroke="#dedfe5"/>
+<path d="M77 122 h30 M77 132 h22 M77 142 h26" stroke="#747780" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M125 130 H216" stroke="#747780" stroke-width="1.5" marker-end="url(#gray)"/>
+<text x="258" y="97" font-size="16" fill="#747780" text-anchor="middle" font-weight="550">Capsule</text>
+<rect x="224" y="109" width="65" height="49" rx="10" fill="#f5f0ff" stroke="#cbb5ff"/>
+<rect x="235" y="122" width="35" height="5" rx="2" fill="#8b5cf6"/>
+<rect x="235" y="134" width="35" height="5" rx="2" fill="#bda0f2"/>
+<path d="M289 132 H325 Q334 132 334 141 V367 Q334 379 322 379 H166 V390" fill="none" stroke="#747780" stroke-width="1.4" stroke-dasharray="2 7" marker-end="url(#gray)"/>
+
+<rect x="20" y="190" width="320" height="456" rx="12" fill="#ffffff" stroke="#08090c" stroke-width="1.5"/>
+<path d="M20 223 H340" stroke="#dedfe5"/>
+<text x="38" y="212" font-size="17" fill="#08090c" font-weight="550">Your application</text>
+<circle cx="301" cy="207" r="3" fill="#ff1f3d"/>
+<circle cx="313" cy="207" r="3" fill="#8b5cf6"/>
+<circle cx="325" cy="207" r="3" fill="#2f6bff"/>
+<text x="44" y="245" font-size="17" fill="#08090c" font-weight="550">Request</text>
+<rect x="44" y="253" width="212" height="35" rx="7" fill="#fafafa" stroke="#dedfe5"/>
+<text x="56" y="276" font-size="16" fill="#08090c">Explain this passage.</text>
+<rect x="44" y="305" width="212" height="32" rx="7" fill="#ffffff" stroke="#dedfe5"/>
+<text x="56" y="327" font-size="16" fill="#747780">Next request</text>
+<path d="M256 270 H306 Q316 270 316 280 V424 Q316 434 306 434 H298" fill="none" stroke="#ff1f3d" stroke-width="2.6" marker-end="url(#red)"/>
+<path d="M256 321 H295 Q304 321 304 330 V454 Q304 464 298 464" fill="none" stroke="#747780" stroke-width="1.4" stroke-dasharray="2 7" marker-end="url(#gray)"/>
+<rect x="44" y="396" width="248" height="145" rx="13" fill="#08090c"/>
+<text x="62" y="426" font-size="22" fill="#ffffff" font-weight="600">Doppler</text>
+<rect x="62" y="442" width="137" height="8" rx="2" fill="#8b5cf6"/>
+<rect x="62" y="454" width="137" height="8" rx="2" fill="#b98cff"/>
+<rect x="62" y="466" width="137" height="8" rx="2" fill="#8b5cf6"/>
+<rect x="62" y="478" width="137" height="8" rx="2" fill="#b98cff"/>
+<path d="M212 446 H274 M212 458 H274 M212 470 H274 M212 482 H274" stroke="#565060" stroke-width="2" stroke-linecap="round"/>
+<text x="62" y="519" font-size="14" fill="#d1c2e6">weights + programs stay loaded</text>
+<path d="M168 541 V578" stroke="#2f6bff" stroke-width="2.6" marker-end="url(#blue)"/>
+<rect x="44" y="586" width="248" height="35" rx="6" fill="#f5f7ff"/>
+<text x="56" y="609" font-size="16" fill="#08090c">The passage describes how…</text>
+<text x="180" y="687" font-size="14" fill="#747780" text-anchor="middle">Operations with supported models:</text>
+<text x="180" y="711" font-size="14" fill="#747780" text-anchor="middle">generation · embeddings · reranking · scoring</text>
+</svg>
