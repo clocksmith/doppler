@@ -55,5 +55,5 @@
 <text x="426" y="390" font-size="17" fill="#08090c" font-weight="450" >The passage describes how…</text>
 <rect x="686" y="375" width="2" height="19" rx="0" fill="#2f6bff" stroke="none" />
 <path d="M1036 270 H1091 Q1105 270 1105 284 V374 Q1105 384 1095 384 H1044" fill="none" stroke="#2f6bff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#blue)"/>
-<text x="751" y="464" font-size="15" fill="#747780" font-weight="450" text-anchor="middle">Supported models: generation · embeddings · reranking · scoring</text>
+<text x="751" y="464" font-size="15" fill="#747780" font-weight="450" text-anchor="middle">Operations with supported models: generation · embeddings · reranking · scoring</text>
 </svg>
