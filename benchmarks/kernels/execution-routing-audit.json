@@ -669,6 +669,11 @@
       "status": "digest-mismatch"
     },
     {
+      "manifestPath": "models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json",
+      "kernelId": "silu",
+      "status": "digest-mismatch"
+    },
+    {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-eaf16/manifest.json",
       "kernelId": "attn_decode",
       "status": "digest-mismatch"
@@ -4301,7 +4306,7 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -4442,7 +4447,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:3dac47bbad086ecf31df0716bc62fadfb03c5541b82c8cd862e5b5558b771104"
+      "digest": "sha256:83c077e97c7aeea80f5591a7d506f6b9d245f637738dc33e55e43564146aff20"
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
@@ -4545,7 +4550,7 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -4714,7 +4719,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:d6ccdea2fdeea5d6bc8be47f75222dcf77d84330a8bdef032e8bb68b60e68fd6"
+      "digest": "sha256:2f5ee19456e0db0d4cf06b3c9f3707b64eb0c8736f33dde772349f3830db0e48"
     },
     {
       "manifestPath": "models/local/google-embeddinggemma-300m-q4k-ehf16-af32/manifest.json",
@@ -5310,7 +5315,7 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -5547,7 +5552,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:355ea3754cfeae13acb7edb5ef9cb0fe7764a26ebcb9ba74b45a065b14ec0584"
+      "digest": "sha256:2ac15d97813c8dedd3c82e97c6f1496b9cbbc052e6840a357af6bca72a6624a5"
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-bf16-af32/manifest.json",
@@ -5661,7 +5666,7 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -5822,7 +5827,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:58c47cf22854eb4db1ea6c7e1703837e187f0965bc85d98de762e639046fef05"
+      "digest": "sha256:bae6c9edb383711452beb8de9251d69bcc97c8364159a00419bc8fd163a47077"
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
@@ -5936,7 +5941,7 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -6229,14 +6234,14 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:d2ff88b14f34fd75c0dd5fd514f050fbc63fbf302c69a5a09708d7f7f138034c"
+      "digest": "sha256:37109eb2f148d46c8e1a581a22ce6d7fa5abf466f90597cbb694f23e5fcb3600"
     },
     {
       "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
       "schema": "doppler.execution-routing-audit/v1",
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "artifactDigest": null,
-      "executionGraphDigest": "sha256:8014ceec013a7d1e280da12c0027b1059bd169b2130171462a52cedc6ff6546e",
+      "executionGraphDigest": "sha256:447db5cdad84390b420e54edff53fb52650ea0c7e6c05ab328c5df8154b0f910",
       "integrity": [
         {
           "kernelId": "attn_decode",
@@ -6382,8 +6387,8 @@
         {
           "kernelId": "silu",
           "key": "silu.wgsl#main",
-          "declaredDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "declaredDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -6530,7 +6535,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:b3e0a801f22379fe19b328811b33ddaeb8fe6c1096a43954abab09aadbb075c5"
+      "digest": "sha256:14988c1256a7fa15feaae67809731a1e74b06691ff5be3c182cc2ae418648210"
     },
     {
       "manifestPath": "models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json",
@@ -6684,11 +6689,11 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "tiled",
@@ -6831,7 +6836,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:86c194e883eedd141707a78b55b49e4fdc8dc1aa29ac22a42cffd5a49ebec023"
+      "digest": "sha256:31339470270b1cca4cdf70c73be520d351bd1a7d8139c0caab9e8491e1da6b7b"
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-eaf16/manifest.json",
@@ -6985,7 +6990,7 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -7003,7 +7008,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:1f38760935a95fdd3d2990c2ec34d973ea0546a383ee80b65941484676280a1a"
+      "digest": "sha256:04ca6774f1f4f414c60d0d5a33098a68cb14b74f43a17ca4d04e37f298a08b12"
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-ehaf16/manifest.json",
@@ -7157,7 +7162,7 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -7304,7 +7309,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:2b1a1ae770b435fc9e5f86ed7dc379ced227b32d4baee49248cecf499bcc7f1b"
+      "digest": "sha256:6998ca28a07989d930dd9349bb8f07755b288abf46382b3feef75b8b22f5f8e7"
     },
     {
       "manifestPath": "models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json",
@@ -7398,7 +7403,7 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -7618,7 +7623,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:c902bb5eb0b80ed739f29087d8084daae6600c9ffe1c2b7fd91089802bdb78b2"
+      "digest": "sha256:ae9a2232eb0f5bdcc7faa54b9ce43c8071a79b381ace4b63155cd2bdcef627a9"
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-f16-af32/manifest.json",
@@ -7722,7 +7727,7 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -8015,7 +8020,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:899ebe4c27e950e4680d7c342486d33b3a2ca2120dc702aef80ac335c442d582"
+      "digest": "sha256:47992d43e2d2b65140578ce37aba63dc458ede4ce7c0c529a8969005419317e0"
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
@@ -8170,7 +8175,7 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -8514,7 +8519,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:088485cf255465c5cb87d5f1ef2aadd7b430d81d807e7393abb15792a86dfa51"
+      "digest": "sha256:9b305307a66d0c1724deae3a8dd6433447a97f8cdcedbb36392f38693ec41d6f"
     },
     {
       "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
@@ -8708,7 +8713,7 @@
           "kernelId": "silu",
           "key": "silu.wgsl#main",
           "declaredDigest": "sha256:d6b21e62031ac0d748617f7ebfb43834552a5b8f9590c18dc19cd0cd41a2fbca",
-          "expectedDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "expectedDigest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "registeredVariants": [
             "silu/default"
           ],
@@ -8890,7 +8895,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:33e449ce13673a4f424b2e561440a699c15c7694272d2be5029c46177dc6e11f"
+      "digest": "sha256:d9ff48cbde7803c650486e88f9648a0678611cd41f666472ce4a7047354915b6"
     },
     {
       "manifestPath": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32/manifest.json",
@@ -9937,5 +9942,5 @@
       "digest": "sha256:9b01180a777318e992632d82e1a904e793548923ce2668212a6cdd20e94db0c4"
     }
   ],
-  "digest": "sha256:80bc474684216ba45c79963071a64f70e5ae0a1a3b87840d2cdcb9c6e419a73f"
+  "digest": "sha256:cc955324b6cf4d6ea07fd9baa0b92c8df89d107d5910155b39186eb7c6eeb168"
 }

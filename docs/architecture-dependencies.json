@@ -4487,6 +4487,7 @@
         "tests/integration/adapter-evaluation-fixture.test.js",
         "tests/integration/adapter-registry-browser-contract.test.js",
         "tests/integration/attention-decode-platform-replay.js",
+        "tests/integration/attention-gate-platform-replay.js",
         "tests/integration/attention-platform.js",
         "tests/integration/bridge-extension-client-contract.test.js",
         "tests/integration/bridge-source-runtime.test.js",

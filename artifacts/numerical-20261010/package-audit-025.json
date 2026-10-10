@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "purpose": "F32 sigmoid gate correction package audit; application qualification pending",
+  "archives": [
+    {
+      "version": "doppler-gpu-0.6.24.tgz",
+      "sha256": "8906a473297aa298827875e273b26a05c58348debf9ef9cffa21e8f3887de87a",
+      "fileCount": 1897,
+      "unpackedBytes": 13107840
+    },
+    {
+      "version": "doppler-gpu-0.6.25.tgz",
+      "sha256": "cbec67e09fc7c443115558788d65a661e7e63d5907c7e7de3c07f3ecbba269c4",
+      "fileCount": 1897,
+      "unpackedBytes": 13108089
+    }
+  ],
+  "added": [],
+  "removed": [],
+  "changes": [
+    {
+      "path": "package/package.json",
+      "before": 33007,
+      "after": 33007,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/amplify/amplify-120m-f16-af32.json",
+      "before": 12280,
+      "after": 12280,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/esmc/esmc-300m-f32-af32.json",
+      "before": 13695,
+      "after": 13695,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/glmocr/glm-ocr-f16-af32.json",
+      "before": 10298,
+      "after": 10298,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/minicpm/minicpm4-0-5b-f16-af32.json",
+      "before": 11265,
+      "after": 11265,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/muse-glimmer/muse-glimmer-30b-text-bf16-af32.json",
+      "before": 12500,
+      "after": 12500,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/muse-glimmer/muse-glimmer-30b-text-f16-af32.json",
+      "before": 12482,
+      "after": 12482,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32.json",
+      "before": 15325,
+      "after": 15325,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32.json",
+      "before": 12776,
+      "after": 12776,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+      "before": 12853,
+      "after": 12853,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
+      "before": 11903,
+      "after": 11903,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+      "before": 10983,
+      "after": 10983,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-5-9b-q4k-ehaf16.json",
+      "before": 12346,
+      "after": 12346,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json",
+      "before": 13549,
+      "after": 13549,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
+      "before": 13210,
+      "after": 13210,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json",
+      "before": 11667,
+      "after": 11667,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
+      "before": 9124,
+      "after": 9124,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+      "before": 10261,
+      "after": 10261,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json",
+      "before": 12153,
+      "after": 12153,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+      "before": 17274,
+      "after": 17274,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
+      "before": 13869,
+      "after": 13869,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json",
+      "before": 13844,
+      "after": 13844,
+      "delta": 0
+    },
+    {
+      "path": "package/src/gpu/kernels/silu.wgsl",
+      "before": 4967,
+      "after": 5216,
+      "delta": 249
+    },
+    {
+      "path": "package/src/version.js",
+      "before": 98,
+      "after": 98,
+      "delta": 0
+    }
+  ],
+  "unpackedDelta": 249,
+  "budget": 13108089
+}

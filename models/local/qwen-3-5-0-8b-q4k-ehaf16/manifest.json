@@ -14,7 +14,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:bf7c8b49bd43827b9e446e1e629696f0e2af5d837b2fe12dc82f09e6a044d065",
+    "conversionConfigDigest": "sha256:ee873ed7d5b2ff1a798874cae7081867ebc64d56c468efa065588fb5dce866c6",
     "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
     "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
     "materializationProfile": "auto",
@@ -284,7 +284,7 @@
         "silu": {
           "kernel": "silu.wgsl",
           "entry": "main",
-          "digest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+          "digest": "sha256:c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
           "constants": {
             "HAS_GATE": true
           }
@@ -6679,7 +6679,7 @@
     "convertedAt": "2026-04-24T17:34:03.192Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-10-10T03:41:07.989Z",
+      "at": "2026-10-10T04:07:02.747Z",
       "config": "qwen-3-5-0-8b-q4k-ehaf16.json"
     }
   },

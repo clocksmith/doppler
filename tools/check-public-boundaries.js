@@ -159,7 +159,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Refined RoPE and attention add shader bytes; the file inventory is unchanged.
   // 0.6.24: unchanged 1897-file inventory; README +2237 and F32 decode +759 bytes.
   // Evidence: artifacts/numerical-20261010/package-audit.json.
-  maxUnpackedSize: 13_107_840,
+  // 0.6.25: the same files; F32 sigmoid gate +249 bytes.
+  // Evidence: artifacts/numerical-20261010/package-audit-025.json.
+  maxUnpackedSize: 13_108_089,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

@@ -326,7 +326,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "scatter_add.wgsl#main": "dea947b8014e9b674e4fec8f15fac6c926e8a3a4d8eff104b953d77f35a1ac35",
   "scatter_add.wgsl#scatter_add_accumulate": "561800af22dedae63f1abe69b757b0ef6c7832a2bff228c2262e0b7111d89247",
   "silu_f16.wgsl#main": "d1cc4961754b79a7355857f460a115255f5910cf46fd931bd1a6295b22f79664",
-  "silu.wgsl#main": "0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24",
+  "silu.wgsl#main": "c6e28a7e6b2a7cfa805db03c9079fbc90fc2717c621e388bfa55b75ce1737ac0",
   "soft_embedding_logits_f16.wgsl#logits_norm_stats": "192f32e03b36cc0bc6dfec771bad3153d484c8ac1cab62da1b0c1aa32e536883",
   "soft_embedding_logits_f16.wgsl#logits_probability_chunk": "697db38c5b3980572ecca55e11ada2a2ccc22b5ac52408137305b1a60981f3b7",
   "soft_embedding_split_f16.wgsl#main": "5683cfc3fcd0e3e6e86d2227a836bb31a4e61f4bd6b9207afedaca375cd0e679",
