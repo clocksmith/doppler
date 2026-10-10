@@ -1,0 +1,208 @@
+# Library engineering workflows
+
+Repository-oriented conversion, verification, and benchmarking. These are not
+prerequisites for installing Doppler in an application. For the published package
+entry path, use [Getting Started](../getting-started.md).
+
+## Scope
+
+Use this guide for:
+- first local generation via `npx doppler-gpu`
+- first successful `verify`
+- optional local conversion
+- first benchmark artifact
+
+For hardware sizing and expected performance, see [performance-sizing.md](../performance-sizing.md).
+
+## Prerequisites
+
+- Node.js 20+
+- repo dependencies installed
+- WebGPU-capable runtime for `verify`, `debug`, and `bench`
+
+Node execution uses Doppler's own provider-selection adapter. Its checked-in
+`src/tooling/node-webgpu-provider.v1.json` declares pre-installed WebGPU followed
+by the optional `webgpu` package (Dawn). Doe is not required. If optional
+dependencies were omitted, install `webgpu` explicitly or supply an existing
+WebGPU environment. A selected provider failure is recorded; only the declared
+ordered providers may be tried, never an unrequested engine.
+
+The `doe.webgpu-provider/v1` wire name remains readable for compatibility, not
+as a claim that Doe executed the workload. Doppler-owned receipts identify
+`implementation: "doppler"` and the selected provider separately. An explicit
+`providerContractModule` can still select an external adapter. Release devices
+before closing the provider session; closing restores only owned globals and
+does not destroy a caller's pre-installed GPU.
+
+CLI entrypoint:
+
+```bash
+node src/cli/doppler-cli.js
+```
+
+`--config` is the one required input flag and accepts:
+
+- inline JSON payload
+- local file path
+- HTTP/HTTPS URL
+
+All examples below use inline JSON for readability.
+
+## Setup
+
+### Browser requirements
+
+Supported:
+- Chrome/Edge (recommended)
+- Safari with WebGPU support
+- Firefox Nightly (experimental)
+
+Check WebGPU availability:
+
+```javascript
+const adapter = await navigator.gpu.requestAdapter();
+console.log(Boolean(adapter));
+```
+
+### Browser harness and demo
+
+Serve the repo root when you need the browser harness or demo:
+
+```bash
+python3 -m http.server 8080
+```
+
+Useful URLs:
+- `http://localhost:8080/tests/harness.html`
+- `http://localhost:8080/demo/`
+
+## Path A: Run a prebuilt RDRR model
+
+Use this when a model is already in the hosted registry.
+
+```bash
+HF_REVISION=f58f1d0b58641c84e7ea50d13fea0dd4dc91389a
+MODEL_ID=qwen-3-5-0-8b-q4k-ehaf16
+MODEL_URL="https://huggingface.co/clocksmith/rdrr/resolve/${HF_REVISION}/models/qwen-3-5-0-8b-q4k-ehaf16"
+```
+
+### Verify
+
+```bash
+node src/cli/doppler-cli.js verify --config "{
+  \"request\": {
+    \"workload\": \"inference\",
+    \"modelId\": \"${MODEL_ID}\",
+    \"modelUrl\": \"${MODEL_URL}\",
+    \"loadMode\": \"http\",
+    \"cacheMode\": \"warm\",
+    \"runtimeProfile\": \"profiles/production\"
+  },
+  \"run\": { \"surface\": \"auto\" }
+}" --json
+```
+
+Embedding verify uses the explicit embedding workload:
+
+```bash
+node src/cli/doppler-cli.js verify --config "{
+  \"request\": {
+    \"workload\": \"embedding\",
+    \"modelId\": \"google-embeddinggemma-300m-q4k-ehf16-af32\",
+    \"runtimeProfile\": \"profiles/production\"
+  },
+  \"run\": { \"surface\": \"auto\" }
+}" --json
+```
+
+### Benchmark
+
+```bash
+node src/cli/doppler-cli.js bench --config "{
+  \"request\": {
+    \"workload\": \"inference\",
+    \"modelId\": \"${MODEL_ID}\",
+    \"modelUrl\": \"${MODEL_URL}\",
+    \"loadMode\": \"http\",
+    \"cacheMode\": \"warm\"
+  },
+  \"run\": {
+    \"surface\": \"auto\",
+    \"bench\": {
+      \"save\": true,
+      \"saveDir\": \"benchmarks/vendors/results\"
+    }
+  }
+}" --json
+```
+
+Embedding benchmark can now be requested explicitly while still using the benchmark command:
+
+```bash
+node src/cli/doppler-cli.js bench --config "{
+  \"request\": {
+    \"workload\": \"embedding\",
+    \"modelId\": \"google-embeddinggemma-300m-q4k-ehf16-af32\",
+    \"runtimeProfile\": \"profiles/low-memory\"
+  },
+  \"run\": { \"surface\": \"auto\" }
+}" --json
+```
+
+## Path B: Convert locally, then verify
+
+Use this when no prebuilt RDRR artifact exists.
+
+```bash
+INPUT_PATH=/path/to/source/model
+CONVERSION_CONFIG=src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json
+```
+
+### Convert
+
+```bash
+node src/cli/doppler-cli.js convert --config "{
+  \"request\": {
+    \"inputDir\": \"${INPUT_PATH}\",
+    \"convertPayload\": {
+      \"converterConfig\": $(cat \"${CONVERSION_CONFIG}\")
+    }
+  }
+}"
+```
+
+### Verify converted model
+
+Conversion writes artifacts to a filesystem output directory, not into the
+browser shard-manager store. To verify a local conversion, run on the Node
+surface so the command can load the `file://` artifact path directly:
+
+```bash
+MODEL_ID=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));console.log(j.output.modelBaseId);" "${CONVERSION_CONFIG}")
+OUTPUT_DIR=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));console.log(j.output.outputDir || 'models/local');" "${CONVERSION_CONFIG}")
+
+node src/cli/doppler-cli.js verify --config "{
+  \"request\": {
+    \"workload\": \"inference\",
+    \"modelId\": \"${MODEL_ID}\",
+    \"modelUrl\": \"file://${OUTPUT_DIR}\",
+    \"loadMode\": \"http\",
+    \"cacheMode\": \"warm\",
+    \"runtimeProfile\": \"profiles/production\"
+  },
+  \"run\": { \"surface\": \"node\" }
+}" --json
+```
+
+Note: `surface: "node"` is the correct local-filesystem path here. The Node
+runner installs the `file://` fetch shim used by the verify/debug harnesses,
+while the browser relay does not share the same local filesystem contract.
+If you omit `modelUrl`/`loadMode`, the verify harness will look in persistent
+storage instead of the newly converted output directory.
+
+## Next docs
+
+- Command contract and tooling surface: [api/tooling.md](../api/tooling.md)
+- Onboarding consistency checks and scaffolders: [onboarding-tooling.md](../onboarding-tooling.md)
+- Benchmark policy and claims: [benchmark-methodology.md](../benchmark-methodology.md)
+- Troubleshooting and validation workflows: [operations.md](../operations.md)

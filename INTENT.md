@@ -14,22 +14,13 @@ Deliver a simple, fast, portable JavaScript inference library, supported by Rig
 model preparation and signed immutable Capsules. Run executes the declared
 implementation; the application retains publisher trust and upgrade authority.
 
-Active product work covers standalone text generation and the copy-and-run local-search application
-specified in [docs/goals.md](docs/goals.md#next-product-increment-copy-and-run-local-search).
-Reuse `examples/document-search/search.js`; retain `runCapability()` as a one-shot
-example. Nonzero-adapter qualification and structural cleanup follow this increment
-unless a concrete defect blocks it. Embeddings and reranking complete this search
-increment. Standalone generation is independently usable and an active priority;
-it does not wait for compact search acceptance. Evaluate a bounded selected-text
-rewriting application first, retaining facts and user control. This is a use-case
-hypothesis, not a claim of model quality or a decision to add RAG.
-
-The [bounded search sequence](docs/goals.md#bounded-portability-after-browser-delivery)
-maintains the faster released starter, advances an independently qualified smaller
-embedding component, and evaluates one unchanged search application on Doe and
-the supported provider. Rig → Capsule → Run stays intact. Provider comparison
-and independent integration produce evidence; neither makes Doe or payment a
-prerequisite for shipping qualified improvements.
+The authoritative active sequence is [GOALS.md](GOALS.md#current-priorities).
+Generation, embeddings, reranking, narrow choice scoring, and supported partitions
+share one maintained implementation. Useful outputs, installation, opening,
+bounded memory, session reuse, cancellation, and recovery determine the work.
+Reploid exercises public loading and partition interfaces; coordination and
+application policy remain outside Doppler. Doe remains optional. Retained search
+and rewriting plans do not impose a competing priority or adoption prerequisite.
 
 ## Invariants
 

@@ -68,7 +68,7 @@ assert.deepEqual(q4HeadConfig.execution?.kernels?.attn_small, {
 assert.deepEqual(q4HeadConfig.execution?.kernels?.attn_head256, {
   kernel: 'attention_head256_f16kv.wgsl',
   entry: 'main',
-  digest: 'sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a',
+  digest: 'sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da',
   precision: {
     activationDtype: 'f32',
     kvDtype: 'f16',
@@ -139,7 +139,7 @@ assert.deepEqual(q4HeadConfig.execution?.kernels?.q4_decode_gemv_stable, {
 assert.deepEqual(q4HeadConfig.execution?.kernels?.rope_decode_stable, {
   kernel: 'rope.wgsl',
   entry: 'main',
-  digest: 'sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b',
+  digest: 'sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416',
   precision: {
     inputDtype: 'f32',
     outputDtype: 'f32',

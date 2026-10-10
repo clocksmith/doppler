@@ -8,8 +8,10 @@
 [![npm version](https://img.shields.io/npm/v/doppler-gpu.svg?label=version)](https://www.npmjs.com/package/doppler-gpu)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/clocksmith/doppler/blob/main/LICENSE)
 
-Run AI models locally in JavaScript: generate text, create embeddings, and rerank
-search results with WebGPU.
+Run AI models locally in JavaScript: generate text, create embeddings, rerank
+search results, and score bounded choices with WebGPU.
+[Choice scoring](docs/api/choice-scoring.md) uses contextual single-token labels
+and raw logits; it does not establish general judgment quality or calibration.
 
 ![A prepared model stays loaded inside an application while Doppler handles successive inference requests.](assets/readme/application.svg)
 
@@ -24,34 +26,19 @@ separately; Bun remains experimental.
 Inspect example word choices immediately, or load a model to generate on your
 device. Live inference needs a supported WebGPU browser and a model download.
 
-## Run local document search
+## Start with the library
 
-[Download the standalone search starter](https://huggingface.co/clocksmith/rdrr/resolve/eafe756a6b11d19eafc9e030b720a2c92e63b2c7/document-search/releases/0.1.1/4ac65ca5152f43ef0ba39ea2c50a012950de2ba1bdec7cfc236442b04dd85a8c/doppler-document-search-0.1.1.tgz) to index text and Markdown,
-then search locally with embedding and reranking models kept loaded together.
-It includes its pinned runtime; no repository checkout or signing setup is needed.
+Use the [getting-started guide](docs/getting-started.md) for the obtainable,
+version-pinned npm package and its hosted Gemma 3 270M model. That published
+compatibility path is distinct from this checkout's newer public APIs and
+unqualified source candidates. Host and model qualification remain scoped.
 
-```sh
-curl -fL 'https://huggingface.co/clocksmith/rdrr/resolve/eafe756a6b11d19eafc9e030b720a2c92e63b2c7/document-search/releases/0.1.1/4ac65ca5152f43ef0ba39ea2c50a012950de2ba1bdec7cfc236442b04dd85a8c/doppler-document-search-0.1.1.tgz' -o doppler-document-search-0.1.1.tgz
-printf '%s  %s\n' '4ac65ca5152f43ef0ba39ea2c50a012950de2ba1bdec7cfc236442b04dd85a8c' 'doppler-document-search-0.1.1.tgz' | sha256sum -c -
-tar -xzf doppler-document-search-0.1.1.tgz
-cd document-search
-npm ci --omit=optional
-npm start
-```
-
-The qualified configuration is Linux, Chrome 146.0.7680.177, and AMD Radeon
-8060S (RADV STRIX_HALO), with `shader-f16` and `subgroups`. Node 22.22.1/npm 9.2.0
-were used for installation. Models download **2.15 GB**, plus application,
-index, and temporary storage. The tested host has 122 GiB usable RAM; a minimum
-memory configuration is not established. Follow the [browser launch and usage
-steps](examples/document-search/README.md#copy-and-run).
-
-Browser and Node maintenance starters pass installed search, cancellation, recovery,
-and offline reopening on persistent disk. Node warm reopening measured 18.060 →
-12.455 seconds across six runs per archive on this machine. Browser reopening
-measured 28.6 seconds in one acceptance run. Reboot and minimum memory remain
-unqualified. See [release evidence](artifacts/document-search-maintenance-2026-09-26/README.md)
-and the [Node guide](examples/document-search/NODE.md).
+The [local-search starter](examples/document-search/README.md) is a retained,
+versioned embedding/reranking example. Its 0.1.1 signed metadata permitted fresh
+installation only before September 28, 2026, 00:55:40.930 UTC. Renewed metadata
+and a new deliverable are needed before it becomes current fresh-install
+onboarding. Existing [installed evidence](artifacts/document-search-maintenance-2026-09-26/README.md)
+continues to describe its exact configurations; it does not extend that window.
 
 ## Mission, goal, and value
 
@@ -66,7 +53,7 @@ and schemas are not accepted. Capsule v2 and v3 are supported;
 [Capsule v3](docs/capsule-identity-migration.md) separates executable identity from
 release events. Doe, Poolday, and Reploid are optional, not prerequisites.
 
-Build local generation, embeddings, or reranking, or contribute improvements to
+Build local generation, embeddings, reranking, or bounded choice scoring, or contribute improvements to
 source interpretation, kernels, loading, and release reliability. See the
 [goals](docs/goals.md) and [contribution guide](docs/contributing.md).
 
@@ -75,16 +62,15 @@ source interpretation, kernels, loading, and release reliability. See the
 Run the CLI without installing a global package:
 
 ```bash
-npx doppler-gpu "Summarize WebGPU in one sentence"
-npx doppler-gpu --model qwen3-0.8b --prompt "Write a haiku about GPUs"
-npx doppler-gpu --list-models
+npx --package doppler-gpu@0.6.1 doppler-gpu --model gemma3-270m --prompt "Summarize WebGPU in one sentence"
+npx --package doppler-gpu@0.6.1 doppler-gpu --list-models
 ```
 
 The live browser demo is at [d4da.com/doppler](https://d4da.com/doppler/).
 The first documentation path is [getting started](https://github.com/clocksmith/doppler/blob/main/docs/getting-started.md),
 followed by the [Doppler Run API](https://github.com/clocksmith/doppler/blob/main/docs/api/root.md).
 
-For the release-foundry path, the installed command is `doppler release`; from
+For optional release operations, the installed command is `doppler release`; from
 npm use `npx --package doppler-gpu doppler release`. It consumes a pinned
 `production-release/v1` manifest and signed exact-device receipts, then emits an
 `eligible` or `blocked` decision and retained evidence. It never activates or
@@ -92,6 +78,10 @@ deploys the customer application. See the [release platform contract](docs/model
 and [CLI reference](docs/cli.md).
 
 ### Doppler Run API
+
+This example describes the checkout API. Confirm exports and operation
+qualification in the exact package you install; npm 0.6.1 does not contain newer
+choice-scoring or partition exports.
 
 ```js
 import { openCapsule } from 'doppler-gpu/host';

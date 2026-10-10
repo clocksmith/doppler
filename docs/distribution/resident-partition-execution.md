@@ -1,17 +1,51 @@
 # Resident partition execution
 
-The numerical foundation executes assigned transformer layers with Doppler's
-existing GPU kernels. A resident-session implementation and public factory are
-now present in source. The [session checkpoint](../../reports/resident-partitions/20260927-session-checkpoint/README.md)
-retains a physical, same-runtime numerical comparison and the unfinished
-lifecycle, Capsule, packaging, and Reploid integration work. This is not a
-qualified distributed release.
+Doppler executes assigned transformer layers through the same loader and declared
+GPU kernels used for unsplit inference. The public `doppler-gpu/partitions` source
+entry exposes resident factories, layer-plan contracts, verified piece storage,
+and device allocation observations. This guide describes implemented behavior;
+implementation alone does not establish distributed release qualification.
+The published npm 0.6.1 archive does not expose this entry.
 
-The [Reploid consumer handoff](https://github.com/clocksmith/reploid/blob/main/docs/doppler-partition-handoff.md)
-defines the intended resident-session boundary. Doppler owns numerical execution
-and model state; Reploid owns grants, placement, transfer, and conversation
-coordination. The [local diagnostic](../../reports/resident-partitions/20260927/README.md)
-records executed checks and their scope.
+Doppler owns numerical execution, resident weights, and attempt execution state.
+Reploid owns discovery, grants, placement, transfer, readiness, conversations,
+and retries; see the [consumer handoff](https://github.com/clocksmith/reploid/blob/main/docs/doppler-partition-handoff.md).
+The [September 27 local diagnostic](../../reports/resident-partitions/20260927/README.md)
+and [session checkpoint](../../reports/resident-partitions/20260927-session-checkpoint/README.md)
+retain their historical source and incomplete acceptance boundaries. Their former
+next-action lists are not current implementation status.
+
+## Implemented public session boundary
+
+`createResidentPartitionFactory({ openCapsule, capsuleOptions })` delegates to the
+normal verified Capsule opener with explicit host trust. Opening supplies model
+and executable identity, partition plan/hash/index, participant identity,
+generation settings, allocation limits, and an abort signal. The returned
+session exposes `getDescriptor()`, `tokenize()`, `executeGroup0()`,
+`executeGroup1()`, `closeAttempt()`, and `close()`.
+
+Each full attempt identity owns independent KV and recurrent state, continuation,
+sequence position, generation context, and decoder. Calls validate identity,
+step ordering, context bounds, activation shape/dtype, and generation settings.
+Group 0 embeds token IDs and returns activation bytes; group 1 computes logits,
+samples with the bound settings and authorized token context, and returns token,
+decoded delta, completion reason, continuation, and observations. Final stopping
+flushes the incremental decoder. A failed attempt is retired; restart it from
+its prompt rather than inventing a missing recurrent prefix.
+
+Closing an attempt settles pending work before releasing its state while retaining
+resident weights. Session close settles attempts and closes the owned program.
+Submitted GPU commands are not interrupted by cancellation; a cancelled operation
+suppresses successful completion and retains resources until settlement.
+These source mechanisms need exact-package lifecycle evidence on each claimed host.
+
+`createManifestResidentPartitionFactory({ manifest, manifestIdentity,
+runtimeConfig, createStorage })` is an explicit development lane. It requires a
+pinned manifest, exact digest, explicit runtime configuration, and injected
+verified artifact storage. It preserves numerical and allocation checks but does
+not claim signed Capsule or partition qualification. See the
+[public declarations](../../src/client/resident-partitions.d.ts) and
+[session contract](../../src/inference/pipelines/text/resident-partition-contract.d.ts).
 
 Resident Capsule opening requires a signed TargetPlan v2 qualification record
 for each assigned group on the observed surface. The record's
@@ -46,31 +80,35 @@ Legacy GPU execution stays serialized. The executor checks cancellation before
 dispatch, between layers, after completion and after readback; submitted work
 settles before its temporary resources are released.
 
-Supported admission currently requires dense causal incremental attention.
-Recurrent layers, MoE, shared KV, per-layer inputs, adapters, multimodal execution,
-cross-layer normalization fusion and finiteness fallback transitions are rejected.
+Admission allows token-only causal incremental full, sliding, and linear attention.
+Linear attention requires its recurrent state to exist and match the sequence
+position before dispatch. MoE, shared KV, per-layer inputs, adapters, multimodal
+inputs, cross-layer normalization fusion, and finiteness fallback transitions
+are rejected. Token-only use of a model with additional modality capabilities is
+not the same as qualifying its multimodal inputs.
 The retained numerical evidence covers only the exact artifact and precision
 specified in its report.
 
-## Next integration acceptance
+## Physical evidence and remaining acceptance
 
-1. Construct the dedicated resident factory through verified Capsule acquisition
-   and the existing composition root. Preserve signed source, tokenizer, shader,
-   registry, release and execution identities; keep the minimal Capsule root
-   independent of the executor.
-2. Give each full attempt identity its own KV state and bounded continuation.
-   Reject replay, identity changes and ordering violations at the runtime entry.
-   Close and cancellation must settle operations before freeing attempt state;
-   resident weights survive attempt closure.
-3. Bind sampling, stopping, incremental decoding and allocation limits during
-   opening. Reploid `f5763690` forwards the effective `maxTokens` and requires
-   final decoder output. Connect generation settings and authorized token
-   context to the resident contract; validate both through the public path.
-4. Run Reploid's existing `qualifyDopplerPartitionSessions` harness with real
-   residents and an unsplit reference, including multiple attempts and failures.
-   Then replace injected browser arithmetic and qualify the installed-package
-   two-tab path. Physical multi-machine and capacity-pooling claims remain
-   separate acceptance work.
+The [current recovery investigation](../../artifacts/recovery-20261009/README.md)
+retains operator captures, independent calculations, exact archive identities,
+and two-physical-GPU comparisons. The
+[0.6.21 package comparison](https://github.com/clocksmith/reploid/blob/main/artifacts/distributed/2026-10-10T00-55-51-285Z/result.json)
+exceeded the frozen 0.001 tolerance in 60 of 110 steps. Later source corrections
+and bounded operator agreement are diagnostic evidence, not package promotion.
+Read the owning report for subsequent candidates; do not infer current acceptance
+from this earlier result or from selected-token agreement alone.
+
+Remaining integration acceptance must bind one ordinary package pair to both
+physical placements, unchanged model/input/precision/reference requirements,
+and the declared memory ceiling. Exercise failed opening, denial, successful
+reuse, concurrent attempts, isolated cancellation, contributor loss and restart,
+retained weights, and normal application completion. Reploid's requester must
+acquire no weights for this integration. Verify selective acquisition separately
+from partial GPU materialization. Compare task quality separately against unsplit
+execution with identical bytes and settings. No numerical threshold is changed
+by a documentation update.
 
 Partial materialization does not establish selective acquisition. Verification
 can read an entire shared shard. Tied embeddings can be required by both

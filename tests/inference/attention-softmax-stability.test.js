@@ -7,10 +7,16 @@ const WGSL_DIR = path.join(ROOT, 'src', 'gpu', 'kernels');
 const CONVERSION_DIR = path.join(ROOT, 'src', 'config', 'conversion');
 
 function hasMaxSubtractedSoftmax(source) {
-  const hasExpMinus = /exp\s*\(\s*[^\)]*-\s*[^\)]*\)/.test(source);
+  const hasExpMinus = /\bexp(?:_refined)?\s*\(\s*[^\)]*-\s*[^\)]*\)/.test(source);
   const hasMaxTracker = /(max_score|global_max|running_max|m_i|m_new|shared_max|chunk_max_val)/.test(source);
   return hasExpMinus && hasMaxTracker;
 }
+
+// Refined exponentiation preserves the same stabilization requirement.
+assert(hasMaxSubtractedSoftmax('exp_refined(score - max_score)'));
+assert(hasMaxSubtractedSoftmax('exp(score - max_score)'));
+assert.equal(hasMaxSubtractedSoftmax('exp_refined(score); let max_score = score;'), false);
+assert.equal(hasMaxSubtractedSoftmax('exp(score); let max_score = score;'), false);
 
 function collectAttentionKernelsFromGraph(execution) {
   const kernels = new Set();
