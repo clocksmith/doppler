@@ -70,6 +70,11 @@ assert(sustained.trace.every(Number.isFinite));
 assert.equal(sustained.finalState[0], sustained.finalState[1]);
 for (let t = 0; t < count; t++) assert.equal(sustained.output[t * 2 + 1], sustained.output[t * 2] * 2);
 const shader = await readFile(new URL('../../src/gpu/kernels/gated_delta_recurrent.wgsl', import.meta.url), 'utf8');
+const observed = observeRecurrentShader(shader, result.layout);
+for (const field of Object.values(result.layout.fields)) {
+  assert(observed.includes(`recurrent_trace[${field.offset}u +`),
+    'Every requested recurrent stage must have a readback assignment');
+}
 for (const intervention of ['normalization', 'gates', 'decay', 'state', 'normalization-gates', 'all']) {
   const packed = recurrentInterventionOperands(result, intervention);
   for (const [name, f] of Object.entries(packed.layout.fields)) {
