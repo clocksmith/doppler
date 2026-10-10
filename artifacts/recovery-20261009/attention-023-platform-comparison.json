@@ -1,0 +1,32 @@
+{
+  "scope": "Canonical head-256 prefill, captured input and repeated-operand block controls; not full-model acceptance",
+  "cases": [
+    {
+      "seqLen": 19,
+      "shaderSha256": "2f06e4d568f9c9f523a1b6e7bdebb8d02125f657865414b116be74d2ded9ba7d",
+      "fixtureSha256": "ce1adfa5ab1d8114a1f924ed39bb31c19f718cd5bf6dfac0eb1a0c622f7631ad",
+      "valuesSha256": "742ab06277a3a898a31ea5aa99c1b2d638249b93bfb200042cc4a531f154765b",
+      "crossGpuMaximumDifference": 0.0,
+      "independentMaximumError": 5.328705463547578e-07,
+      "passed": true
+    },
+    {
+      "seqLen": 33,
+      "shaderSha256": "2f06e4d568f9c9f523a1b6e7bdebb8d02125f657865414b116be74d2ded9ba7d",
+      "fixtureSha256": "8081e469778fc45c196b12d8db46d7b8a8b239cebf2013cb8f5986c103419471",
+      "valuesSha256": "966ad4dd75b66bcc51bdbd36a0f08166ef05706d6264a70c2fa6363c90dd651f",
+      "crossGpuMaximumDifference": 0.0,
+      "independentMaximumError": 5.328705463547578e-07,
+      "passed": true
+    },
+    {
+      "seqLen": 65,
+      "shaderSha256": "2f06e4d568f9c9f523a1b6e7bdebb8d02125f657865414b116be74d2ded9ba7d",
+      "fixtureSha256": "57e39295069c77cfa2d8b5b290a220d51ccc9fb1ece8a5b7b626e11a0f22cef0",
+      "valuesSha256": "5df847f6ce6b6d9cbded5283ed1b424a056acd083b09bb4d0198adcdd557a51c",
+      "crossGpuMaximumDifference": 0.0,
+      "independentMaximumError": 8.577047956315198e-07,
+      "passed": true
+    }
+  ]
+}

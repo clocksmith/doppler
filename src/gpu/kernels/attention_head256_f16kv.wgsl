@@ -69,6 +69,44 @@ fn get_kv_len() -> u32 {
     return kv_len_buffer[0];
 }
 
+fn exp_refined(x: f32) -> f32 {
+  if (abs(x) > 80.0) {
+    return exp(x);
+  }
+  let n = round(x * 1.4426950408889634);
+  var r = x;
+  if (abs(x) >= 0.000000059604644775390625) {
+    let bits = bitcast<u32>(abs(x));
+    let mantissa = (bits & 0x007fffffu) | 0x00800000u;
+    let shift = i32((bits >> 23u) & 255u) - 118;
+    var input_fixed = 0u;
+    if (shift >= 0) {
+      input_fixed = mantissa << u32(shift);
+    } else {
+      let right = u32(-shift);
+      input_fixed = (mantissa + (1u << (right - 1u))) >> right;
+    }
+    let power_fixed = u32(abs(n)) * 2977044472u;
+    let residual = select(power_fixed - input_fixed, input_fixed - power_fixed, x >= 0.0);
+    r = f32(bitcast<i32>(residual)) * 0.00000000023283064365386962890625;
+  }
+  var p = 0.0001984126984126984;
+  p = fma(p, r, 0.001388888888888889);
+  p = fma(p, r, 0.008333333333333333);
+  p = fma(p, r, 0.041666666666666664);
+  p = fma(p, r, 0.16666666666666666);
+  p = fma(p, r, 0.5);
+  p = fma(p, r, 1.0);
+  p = fma(p, r, 1.0);
+  return p * bitcast<f32>(u32(i32(n) + 127) << 23u);
+}
+
+fn reciprocal_refined(x: f32) -> f32 {
+  let estimate = 1.0 / x;
+  return fma(estimate, fma(-x, estimate, 1.0), estimate);
+}
+
+
 @compute @workgroup_size(WORKGROUP_SIZE, 1, 1)
 fn main(
     @builtin(local_invocation_id) local_id: vec3<u32>,
@@ -186,14 +224,23 @@ fn main(
 
                 let key_row = k * HEAD_DIM_VECS;
                 var dot_partial: f32 = 0.0;
+                // Preserve product and accumulation low parts before scaling the score.
+                var dot_correction: f32 = 0.0;
                 for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
-                    dot_partial = dot_partial + dot(
-                        q_local[d4],
-                        vec4<f32>(shared_block[key_row + d4])
-                    );
+                    let q = q_local[d4];
+                    let key = vec4<f32>(shared_block[key_row + d4]);
+                    for (var component = 0u; component < 4u; component++) {
+                        let product = fma(q[component], key[component], 0.0);
+                        let next = fma(1.0, product, dot_partial);
+                        var error = 0.0;
+                        if (abs(dot_partial) >= abs(product)) { error = fma(-1.0, next, dot_partial) + product; }
+                        else { error = fma(-1.0, next, product) + dot_partial; }
+                        dot_correction += fma(q[component], key[component], -product) + error;
+                        dot_partial = next;
+                    }
                 }
 
-                var s = dot_partial * scale;
+                var s = (dot_partial + dot_correction) * scale;
                 if (u.attn_softcap > 0.0) {
                     s = tanh(s / u.attn_softcap) * u.attn_softcap;
                 }
@@ -202,7 +249,7 @@ fn main(
             }
 
             m_new = max(m_i, block_max);
-            let correction = exp(m_i - m_new);
+            let correction = exp_refined(m_i - m_new);
             l_i = l_i * correction;
             for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
                 acc[d4] = acc[d4] * correction;
@@ -210,7 +257,7 @@ fn main(
 
             for (var k: u32 = 0u; k < BLOCK_SIZE; k = k + 1u) {
                 if (key_active[k] == 0u) { continue; }
-                let p = exp(scores[k] - m_new);
+                let p = exp_refined(scores[k] - m_new);
                 probs[k] = p;
                 l_i = l_i + p;
             }
@@ -245,7 +292,7 @@ fn main(
 
                 let value_row = k * HEAD_DIM_VECS;
                 for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
-                    acc[d4] = acc[d4] + p * vec4<f32>(shared_block[value_row + d4]);
+                    acc[d4] = fma(vec4<f32>(p), vec4<f32>(shared_block[value_row + d4]), acc[d4]);
                 }
             }
             m_i = m_new;
@@ -256,7 +303,7 @@ fn main(
 
     if (valid_query) {
         let out_offset = query_pos * num_heads * HEAD_DIM + head_idx * HEAD_DIM;
-        let inv_l_i = select(0.0, 1.0 / l_i, l_i > 0.0);
+        let inv_l_i = select(0.0, reciprocal_refined(l_i), l_i > 0.0);
         for (var d4: u32 = 0u; d4 < HEAD_DIM_VECS; d4 = d4 + 1u) {
             let out_vec = acc[d4] * inv_l_i;
             let base = out_offset + d4 * 4u;

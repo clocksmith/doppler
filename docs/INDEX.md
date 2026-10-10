@@ -2,78 +2,68 @@
 
 Primary documentation index.
 
-## Start Here
+## Install and run
 
-- [Getting Started](getting-started.md) - canonical first-run workflow.
-- [Goals](goals.md) - compact product and technical contract for Doppler's mainline work.
-- [Component Index](component-index.md) - generated map of recursive CATSCAN authority, targets, and parent boundaries.
-- [Developer Guides](developer-guides/README.md) - task-oriented extension playbooks for adding models, kernels, commands, and pipeline features.
-- [Performance and Sizing](performance-sizing.md) - hardware tiers and planning guidance.
+- [Getting Started](getting-started.md) — published installation and first use.
+- [Run API](api/root.md) — signed-Capsule source facade and its release scope.
+- [Compatibility API](api/compat.md) — explicit published manifest-loading path.
+- [Performance and sizing](performance-sizing.md) — measured limits and prerequisites.
+- [Current priorities](../GOALS.md#current-priorities) — the sole active sequence.
+- [Product contracts](goals.md) — technical requirements and retained campaign evidence.
 
-## Core Runtime Docs
+## Supported operations and evidence
 
-- [Architecture](architecture.md) - system model and boundaries.
-- [Model Release Platform](model-release-platform.md) - standalone product,
-  Capsule-first convergence, qualification offer, explicit gaps, and GTM gate.
-- [Executable-model Adoption Plan](executable-model-adoption-plan.md) -
-  standalone Doppler proof sequence from an external adopter contract through
-  retained application adoption, with no Poolday, Reploid, or Doe dependency.
-- [Archived package changelog through 0.4.15](status/archive/package-changelog-through-0.4.15.md) -
-  complete retained release history moved outside the npm runtime-package budget.
-- [Heterogeneous ModelIR v2 and Source-Truth Rig](model-ir-v2-source-truth-forge.md) - provenance, component/block semantics, partial entry-point scope, and promotion contract.
-- [Glimmer Architectural Generalization Campaign](programs/glimmer-architectural-generalization.md) - one-product capability profiles, current source-truth boundary, and text, split-KV, DFlash, multimodal, and Doe qualification gates.
-- [Pipeline Contract](pipeline-contract.md) - command-to-output runtime contract boundaries.
-- [Config](config.md) - kernel paths, config behavior, and runtime contract notes.
-- [CLI Reference](cli.md) - command flags, config inputs, surface selection, and examples.
-- [RDRR Format](rdrr-format.md) - runtime artifact spec.
-- [Direct-source proof lanes](direct-source-proof-lanes.md) - phased promotion
-  plan for `safetensors` and `gguf` as additional canonical proof lanes.
-- [LoRA Format](lora-format.md) - adapter manifest spec.
-- [Conversion Runtime Contract](conversion-runtime-contract.md) - conversion-static vs runtime-overridable ownership.
-- [Model Promotion Playbook](model-promotion-playbook.md) - canonical sync workflow for repo metadata, external-volume RDRR artifacts, and Hugging Face hosting.
-- [Model Roadmap](model-roadmap.md) - editorial model priorities and status, separate from implementation lanes.
-- [Model Support Matrix](model-support-matrix.md) - generated model status table from catalog, conversion coverage, and quickstart metadata.
-- [Model Competition Scoreboard](model-competition-scoreboard.md) - generated model/platform/Transformers.js evidence ledger from catalog support and benchmark receipts.
-- [Subsystem Support Matrix](subsystem-support-matrix.md) - generated support-tier contract for public, experimental, and internal-only subsystem surfaces.
-- [Registry Workflow](registry-workflow.md) - hosted catalog validation and Hugging Face publication workflow.
-- [Operations](operations.md) - troubleshooting and debug workflows.
-- [Provider Conformance](provider-conformance.md) - exact-tuple browser, Node,
-  and optional named-provider qualification contract.
-- [Product Integration Qualification](product-integration-qualification.md) -
-  maintained-application ownership, identity, and outcome evidence.
-- [Runtime Ownership Decisions](runtime-ownership.md) - source, incumbent, and
-  Doppler evidence gate for choosing an execution owner per workload.
-- [Bun Product Qualification](bun-product-qualification.md) - three-workload
-  Bun/WebGPU evidence composition, non-promoting recording, and atomic promotion.
-- [Model, Artifact, and Adapter Revocation](revocation.md) - bundled deny-only
-  authority, signed refresh mechanism, runtime enforcement, claim propagation,
-  and current trust boundary.
-- [Doppler Program Bundle](integration/program-bundle.md) - closed portable
-  model-program export shape for browser, Node provider, Doe.js capture, and
-  Doe backend lowering.
-- [Resident partition execution](distribution/resident-partition-execution.md) - bounded numerical execution, retained local evidence, and remaining Reploid session acceptance.
-- [MoM Layer Draft](distribution/mom-layer-draft.md) - implementation-side draft
-  for Cross Family Router, debate/adjudication, recursive MoM receipts,
-  residency metadata, and Debate-adjudicated Distillation exports.
+- [API index](api/index.md) — public operations and stability boundaries.
+- [Generation API](api/generation.md) — lower-level text generation.
+- [Choice scoring](api/choice-scoring.md) — contextual single-token labels, raw logits, separate qualification.
+- [Model support matrix](model-support-matrix.md) — generated model verification scope.
+- [Model support inventory](model-support-inventory.md) — evidence gaps.
+- [Subsystem support](subsystem-support-matrix.md) — public, experimental, and internal-only status.
+- [Model competition scoreboard](model-competition-scoreboard.md) — comparison receipts.
+- [Release matrix](release-matrix.md) — model/platform evidence snapshot.
 
-## Public API Docs
+## Model preparation
 
-- [Rig and Run names](rig-run-naming.md) - current component names and compatibility.
+- [Library engineering workflows](developer-guides/library-engineering-workflows.md) — repository conversion, verification, and benchmarks.
+- [Developer guides](developer-guides/README.md) — task-oriented extension playbooks.
+- [Onboarding tooling](onboarding-tooling.md) — source inspection, checks, and scaffolding.
+- [RDRR format](rdrr-format.md) — runtime artifact specification.
+- [Conversion/runtime contract](conversion-runtime-contract.md) — ownership and overrides.
+- [ModelIR v2 and source-truth Rig](model-ir-v2-source-truth-forge.md) — semantics and provenance.
+- [Model roadmap](model-roadmap.md) — editorial needs, separate from support status.
+- [Model promotion](model-promotion-playbook.md) and [registry workflow](registry-workflow.md) — artifact/catalog/hosting synchronization.
+- [Direct-source proof lanes](direct-source-proof-lanes.md) — additional source-format promotion requirements.
 
-- [API Docs Index](api/index.md) - canonical public API navigation.
-- [Doppler Run API](api/root.md) - signed-Capsule application facade.
-- [Choice scoring](api/choice-scoring.md) - typed judgments, contextual labels and independent qualification.
-- [Incremental Capsule Streams](capsule-streaming.md) - explicit v2 migration, decoding, reconstruction, transport and measurement.
-- [Compatibility API](api/compat.md) - explicit legacy manifest-loading facade.
-- [Advanced Root Exports](api/advanced-root-exports.md) - root-level loaders, adapters, and advanced exports.
-- [Loaders API](api/loaders.md) - explicit loader and manifest/bootstrap helpers.
-- [Orchestration API](api/orchestration.md) - KV cache, routers, adapters, and logit merge helpers.
-- [Generation API](api/generation.md) - lower-level text pipeline surface.
-- [Diffusion API](api/diffusion.md) - experimental diffusion/image pipeline surface.
-- [Energy API](api/energy.md) - experimental energy pipeline surface.
-- [Tooling API](api/tooling.md) - command-runner and tooling surface.
-- [Experimental Tooling API](api/tooling-experimental.md) - experimental browser-conversion and P2P helper surface.
-- [Generated Export Inventory](api/reference/exports.md) - machine-derived export inventory from package entrypoints.
+## Integration
+
+- [Architecture](architecture.md) — library, Rig, Capsule, Run, and host boundaries.
+- [Resident partitions](distribution/resident-partition-execution.md) — public factories, implemented restrictions, and remaining physical acceptance.
+- [Program Bundles](integration/program-bundle.md) — closed export and optional provider integration.
+- [Product integration qualification](product-integration-qualification.md) — identity and application outcomes.
+- [Provider conformance](provider-conformance.md) — separately scoped browser/Node/provider support.
+- [Runtime ownership](runtime-ownership.md) — choosing an execution owner with evidence.
+- [Bun qualification](bun-product-qualification.md) — experimental host evidence and promotion.
+- [Loaders](api/loaders.md), [orchestration](api/orchestration.md), and [advanced root exports](api/advanced-root-exports.md) — lower-level APIs.
+
+## Advanced operations
+
+- [Rig/Run naming](rig-run-naming.md) — names and compatibility.
+- [Component index](component-index.md) — generated authority map.
+- [Pipeline contract](pipeline-contract.md) and [config](config.md) — normative execution behavior.
+- [CLI reference](cli.md), [tooling API](api/tooling.md), and [operations](operations.md) — engineering commands and diagnostics.
+- [Incremental Capsule streams](capsule-streaming.md) — migration and receipt transport.
+- [Revocation](revocation.md) — explicit trust and release-history boundaries.
+- [Optional release operations](model-release-platform.md) — retained commercial hypotheses and release contracts.
+- [Optional adoption plan](executable-model-adoption-plan.md) — independent integration proof, not another active queue.
+- [LoRA format](lora-format.md), [experimental tooling](api/tooling-experimental.md), [diffusion](api/diffusion.md), and [energy](api/energy.md) — separately scoped capabilities.
+- [Generated exports](api/reference/exports.md) — machine-derived inventory.
+
+## Historical and experimental campaigns
+
+- [Archived package changelog through 0.4.15](status/archive/package-changelog-through-0.4.15.md) — retained release history.
+- [Search starter](../examples/document-search/README.md) — versioned example; fresh-install metadata expired.
+- [Glimmer campaign](programs/glimmer-architectural-generalization.md) — lowered candidates with failing source parity; separate capability gates.
+- [MoM layer draft](distribution/mom-layer-draft.md) — experimental coordination/research proposal.
 
 ## Testing and Benchmarks
 

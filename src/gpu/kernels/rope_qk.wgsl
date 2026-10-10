@@ -34,9 +34,10 @@ fn get_second_rotary_idx(pair_idx: u32, pair_span_dim: u32) -> u32 {
 }
 
 fn rotate_pair(x0: f32, x1: f32, cos_val: f32, sin_val: f32) -> vec2<f32> {
+    // Match the separate F32 rotation path with explicit product rounding.
     return vec2<f32>(
-        x0 * cos_val - x1 * sin_val,
-        x0 * sin_val + x1 * cos_val
+        fma(x0, cos_val, -fma(x1, sin_val, 0.0)),
+        fma(x0, sin_val, fma(x1, cos_val, 0.0))
     );
 }
 

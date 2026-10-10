@@ -2,7 +2,7 @@
 
 This page is for onboarding automation (`inspect` + `check` + `scaffold`).
 
-For first-run convert/verify/bench workflow, use [getting-started.md](getting-started.md).
+For first-run convert/verify/bench workflow, use [library engineering workflows](developer-guides/library-engineering-workflows.md).
 
 ## Why this exists
 
@@ -66,7 +66,7 @@ Kinds:
 3. Run `check`.
 4. Scaffold missing assets.
 5. Run `check` again in `--strict` mode.
-6. Execute workflow from [getting-started.md](getting-started.md).
+6. Execute workflow from [library engineering workflows](developer-guides/library-engineering-workflows.md).
 
 ## Related
 

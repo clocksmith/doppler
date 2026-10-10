@@ -1,9 +1,11 @@
 # Model Roadmap
 
 This roadmap is the editorial model priority list for Doppler. It is separate
-from the generated support matrix and release matrix. Doppler chooses the best
-artifact and runtime implementation for each model from committed verification
-and benchmark evidence.
+from the generated support matrix and release matrix. Priorities follow concrete application needs in
+[GOALS.md](../GOALS.md#current-priorities), rather than model size or an impressive
+category. Model capability, runtime verification, task quality, and comparative
+performance are separate evidence. This editorial page does not authorize a new
+model campaign or override its owning report.
 
 For exact evidence, use:
 
@@ -18,10 +20,13 @@ For exact evidence, use:
 - `benchmark-needed`: runtime support exists, but fair competitor evidence is incomplete.
 - `runtime-needed`: catalog or conversion work exists, but runtime verification is not green.
 - `target-needed`: no concrete catalog target is ready to claim.
+- `lowered-parity-investigation`: a lowered candidate exists but source parity fails.
 
 ## Tier 1: Ambient Models (Small & Ubiquitous Generation)
 
-Goal: instant, private generation, JSON extraction, and UI intelligence on standard laptops and browser tabs.
+Goal: useful local generation and bounded extraction in applications. Qualify
+opening, memory, task quality, and data locality on declared hosts; local GPU
+execution alone does not guarantee privacy or immediate output.
 
 | Model | Status | Current state |
 | --- | --- | --- |
@@ -38,7 +43,7 @@ Goal: autonomous coding, tool use, document analysis, and multi-step reasoning o
 | Model | Status | Current state |
 | --- | --- | --- |
 | Qwen 3.8 27B | benchmark-needed | The lineage-acceleration campaign produced a development-signed text Capsule with 128/128 exact tokens on physical AMD Node WebGPU, complete artifact verification, prefill identity binding, and immutable TargetPlan identity. Browser, application, comparative benchmark, and production-signing gates remain open. |
-| [Meta Muse Glimmer 30B](programs/glimmer-architectural-generalization.md) | source-truth-only | Text, vision, and projector topology plus pinned reference formulas are represented with zero unresolved text operational facts. Generic Runtime mechanisms now cover the pinned text normalization, query, NoPE, gating, embedding, and output operations, with physical AMD evidence for weightless embedding RMSNorm. Rig has not yet emitted a manifest or TargetPlan binding, so the audit remains fail-closed and no execution support is claimed. |
+| [Meta Muse Glimmer 30B](programs/glimmer-architectural-generalization.md) | lowered-parity-investigation | Generic lowering binds a text execution candidate. Retained AMD F16 and BF16 candidates fail source-token parity and are not promotable; vision remains unlowered. The linked campaign owns detailed status and evidence. |
 | Gemma 4 12B / 31B | benchmark-needed | Node runtime verification exists for 12B/31B lanes. Awaiting workstation capsule qualification. |
 
 ## Tier 3: Retrieval Specialists (Embeddings & Reranking)
@@ -51,13 +56,15 @@ Goal: high-throughput dense embeddings and cross-encoder semantic reranking for 
 | Qwen 3 Embedding 0.6B | publish-story | Browser and Node runtime verification exist. Fresh hosted browser/Vulkan evidence is release-claimable and leads steady-state latency. |
 | Qwen 3 Reranker 0.6B | publish-story | Browser and Node runtime verification exist. Fresh 15-run hosted browser/Vulkan evidence is release-claimable and leads rerank latency and accuracy. |
 
-## Tier 4: Biological Sequence Specialists (First-Class for Reploid)
+## Tier 4: Biological Sequence Specialists (Retained Capability Coverage)
 
-Goal: first-class protein and nucleotide sequence modeling for in-browser scientific research, mutation screening, and zero-egress discovery in Reploid.
+Goal: retained protein and nucleotide model execution evidence. New application
+work requires a concrete need and qualified outputs; complete-application network
+observations are required for data-locality claims.
 
 | Model | Status | Current state |
 | --- | --- | --- |
-| ESM-2 35M (`esm2-t12-35m-ur50d`) | verified | Hosted Node/WebGPU sequence parity passed. Provides zero-egress residue and sequence embeddings in browser/Node sandboxes. |
+| ESM-2 35M (`esm2-t12-35m-ur50d`) | verified | Hosted Node/WebGPU sequence parity passed. Provides residue and sequence embeddings in its qualified execution scope; network custody is separately tested. |
 | ESMC 300M (`esmc-300m`) | verified | Hosted Node/WebGPU sequence parity passed. High-capacity protein representation model for biological decision memory. |
 | Nucleotide Transformer 50M (`nucleotide-transformer-v2-50m`) | verified | Multi-species DNA/RNA genomic sequence encoder verified under WebGPU qualification receipts. |
 

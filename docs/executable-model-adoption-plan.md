@@ -1,13 +1,14 @@
 # Doppler executable-model adoption plan
 
-Status: code-aligned portfolio alternative  
+Status: optional adoption and release-operations plan  
 Strategy unit: Doppler alone  
 Repository owner: Doppler
 
 ## Outcome
 
-Doppler becomes the preferred system for converting attributable source models
-into portable, specialized JavaScript and WebGPU programs. Rig, ModelIR,
+Doppler earns independent retained use as a useful JavaScript model-execution
+library. This optional plan preserves an adoption proof sequence;
+[GOALS.md](../GOALS.md#current-priorities) owns active engineering priorities. Rig, ModelIR,
 TargetPlans, immutable Capsules, the constrained Runtime, application integration,
 and lifecycle support form one product.
 
@@ -117,57 +118,21 @@ with credible adopters:
 - Repeat releases behave like unrelated consulting engagements rather than a
   reusable compiler and runtime product.
 
-## Repository work queue
+## Historical engineering checkpoint
 
-The next destination is dependable generation: useful answers, explicit completion
-outcomes, and qualification of the repaired distributable implementation. This
-queue follows the review of `9b65da13`. Existing architecture, source discovery,
-reproducible release, retention optimization, and scoped inference milestones
-remain closed under their retained evidence below. Do not reopen those tasks or
-undertake cosmetic restructuring to address model-quality failures.
+The former queue following `9b65da13` is superseded by
+[canonical current priorities](../GOALS.md#current-priorities). Its underlying
+[rounding and prompt-reset evidence](../artifacts/f16-conversion-rounding-2026-09-07/README.md#complete-prompt-state-repair)
+is retained. Source-matching tokens, weak task answers, budget exhaustion, and
+distributable-package acceptance remain separate findings. Do not modify GPU
+arithmetic to compensate for a failure reproduced by the source model; do not
+silently change output requirements or generation budgets to manufacture success.
 
-The [rounding and prompt-reset evidence](../artifacts/f16-conversion-rounding-2026-09-07/README.md#complete-prompt-state-repair)
-closes the measured `float32ToFloat16()` rounding and previous-prompt state
-defects. Physical Intel Gen12LP browser controls establish the reset repair;
-hardware evidence is no longer AMD-only. Each receipt still applies only to its
-exact model, runtime, surface, and device. These repairs do not establish useful
-answers or qualify a newly signed Capsule.
-
-### Active TODO, in priority order
-
-- [ ] **1. Finish useful generation.** Evaluate suitable source models and
-  explicitly configured variants against fixed tasks and unchanged answer
-  requirements. Preserve source comparisons and rejected candidates. Freeze
-  untouched questions before selecting candidates; do not tune against them.
-  The [installed Qwen3.5-2B development screen](../artifacts/f16-conversion-rounding-2026-09-07/README.md#actual-packed-candidate-screen)
-  matches source tokens through the stop token but passes only one of eight
-  answer checks. Do not change GPU arithmetic to compensate for weaknesses
-  reproduced by the source model. **Exit evidence:** accepted final answers
-  under the frozen task requirements, with development and untouched results
-  reported separately and exact model/configuration identities retained.
-- [ ] **2. Make generation budgets and completion explicit.** Expose distinct
-  completion, budget-exhaustion, cancellation, and failure outcomes. Preserve
-  raw output and generated tokens, including reasoning. Evaluate separately
-  configured budgets; do not silently raise limits or strip output to manufacture
-  success. The [256-token reasoning diagnostic](../artifacts/f16-conversion-rounding-2026-09-07/README.md#reasoning-enabled-configuration-at-the-existing-budget)
-  produces no final answer, and the CPU reference reproduces every token.
-  **Exit evidence:** executable outcome-contract checks and source-bound runs
-  for the declared budgets; task success requires a final answer satisfying
-  the unchanged answer requirements, not merely completed execution.
-- [ ] **3. Qualify the repaired implementation as distributable software.**
-  Rebuild affected model packages and signed Capsules from pinned source using
-  the repaired implementation. Preserve historical packages, manifests,
-  signatures, observations, approvals, and denials. The latest answer screen
-  uses a development npm archive, not a signed Capsule. **Exit evidence:**
-  clean-checkout reconstruction and remote checks, exact runtime/model/Capsule
-  identities, documented distributable dependencies and artifacts, and installed
-  public-API tests covering repeated prompts, cancellation, recovery, and
-  untouched questions. Qualify the actual rebuilt bytes; earlier frozen-runtime
-  controls cannot stand in for this release acceptance.
-
-External use and broader host comparisons follow these three priorities.
-External adoption retains its separate D0–D5 proof requirements. Preserve
-compiler/runtime ownership and application activation authority throughout.
+The D0–D5 external adoption sequence above applies when an independent integration
+is selected. It is not a gate on technical investigation, useful standalone
+execution, or release of a qualified configuration. Preserve model, Capsule,
+package, host, and application identities; older acceptance does not certify new
+bytes. Optional paid release operations must earn their own demand.
 
 ### Retained milestones and standing constraints
 

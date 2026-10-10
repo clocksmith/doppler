@@ -1,259 +1,78 @@
 # Doppler Getting Started
 
-Doppler Rig prepares signed Capsules; Doppler Run executes them locally.
-Applications use Run through the public model API. See [component names and
-compatibility](rig-run-naming.md).
+Doppler is a JavaScript library for local model execution through WebGPU.
+Start with a published package and an obtainable model; model preparation,
+qualification, and benchmarking are separate engineering workflows.
 
-Start with the [standalone local-search application](../README.md#run-local-document-search).
-Download and verify the archive, extract it, then run `npm ci --omit=optional` and
-`npm start` inside `document-search`. The runtime is included and pinned.
-The 0.1.1 browser archive permits fresh model installation before September 28,
-2026, 00:55:40.930 UTC; later fresh installs require renewed signed metadata in
-a new deliverable. Accepted installations retain explicit offline use.
+## Published first run
 
-The supported configuration, model download size, browser launch command, and
-step-by-step install/search/cancel/reopen instructions are in the
-[starter guide](../examples/document-search/README.md#copy-and-run). The page checks
-GPU features and storage before installation and reports measured progress.
-Start with the six included sample documents, then replace them with your own
-text or Markdown files. Submitted GPU commands finish after cancellation; stale
-results are suppressed.
+The npm registry advertises `doppler-gpu@0.6.1`. Its quickstart includes the
+`gemma3-270m` alias for the hosted Gemma 3 270M Q4K model:
 
-The browser receipt covers Linux/Chrome 146/Radeon 8060S with a persistent ext4
-profile. It does not establish minimum memory, reboot persistence, other GPUs,
-or packaged Electron. Node has separate installed acceptance. See the
-[release evidence](../artifacts/document-search-maintenance-2026-09-26/README.md).
-
-For Node, use the separate [Node starter guide](../examples/document-search/NODE.md)
-and [installed application evidence](../artifacts/document-search-maintenance-2026-09-26/README.md).
-It reuses the browser application's search and controller with filesystem storage;
-its provider, signed model releases, and acceptance are qualified separately.
-
-Application qualification and engineering reproduction are in the separate
-[engineering guide](../examples/document-search/ENGINEERING.md).
-
-## Library and engineering workflows
-
-The remaining sections cover the CLI, conversion, verification, and benchmarking;
-they are not prerequisites for using the search starter.
-
-## Scope
-
-Use this guide for:
-- first local generation via `npx doppler-gpu`
-- first successful `verify`
-- optional local conversion
-- first benchmark artifact
-
-For hardware sizing and expected performance, see [performance-sizing.md](performance-sizing.md).
-
-## Prerequisites
-
-- Node.js 20+
-- repo dependencies installed
-- WebGPU-capable runtime for `verify`, `debug`, and `bench`
-
-Node execution uses Doppler's own provider-selection adapter. Its checked-in
-`src/tooling/node-webgpu-provider.v1.json` declares pre-installed WebGPU followed
-by the optional `webgpu` package (Dawn). Doe is not required. If optional
-dependencies were omitted, install `webgpu` explicitly or supply an existing
-WebGPU environment. A selected provider failure is recorded; only the declared
-ordered providers may be tried, never an unrequested engine.
-
-The `doe.webgpu-provider/v1` wire name remains readable for compatibility, not
-as a claim that Doe executed the workload. Doppler-owned receipts identify
-`implementation: "doppler"` and the selected provider separately. An explicit
-`providerContractModule` can still select an external adapter. Release devices
-before closing the provider session; closing restores only owned globals and
-does not destroy a caller's pre-installed GPU.
-
-## Fastest first run
-
-If you only want a local success moment, use the npm-facing quickstart bin:
-
-```bash
-npx doppler-gpu
+```sh
+npx --yes --package doppler-gpu@0.6.1 doppler-gpu --help
+npx --yes --package doppler-gpu@0.6.1 doppler-gpu --list-models
+npx --yes --package doppler-gpu@0.6.1 doppler-gpu --model gemma3-270m --prompt "Describe WebGPU briefly"
 ```
 
-Optional variants:
+Use Node 20 or newer and a working WebGPU provider. The published package has
+optional native provider dependencies; JavaScript does not remove host GPU,
+driver, or native installation requirements. A provider error needs an explicit
+supported configuration, not a silent CPU or cloud fallback. Browser use requires
+a WebGPU-capable browser; browser and Node qualification are separate.
 
-```bash
-npx doppler-gpu "Summarize WebGPU in one sentence"
-npx doppler-gpu --list-models
+The package's registry pins model revision
+`a8591b20bce7c22d75becde1315482e76ff85fc9`. The six hosted weight shards total
+399,357,184 bytes, plus tokenizer, manifest, package, and cache overhead.
+Package retrieval and those artifact endpoints were checked for this guide;
+that check is not a fresh physical inference, minimum-memory, or offline-reopening
+qualification. See the [model evidence](model-support-matrix.md) for exact support
+scope. First execution downloads model assets. Retain required assets before
+expecting offline operation.
+
+## Embed the published compatibility path
+
+Install the exact release:
+
+```sh
+npm install --save-exact doppler-gpu@0.6.1
 ```
 
-Use the rest of this guide when you want the heavier convert/verify/bench
-tooling workflow.
+```js
+import { dr } from 'doppler-gpu/compat';
 
-CLI entrypoint:
-
-```bash
-node src/cli/doppler-cli.js
+const session = await dr.open('gemma3-270m');
+try {
+  console.log(await session.generate('Describe WebGPU briefly'));
+} finally {
+  await session.close();
+}
 ```
 
-`--config` is the one required input flag and accepts:
+This is the published manifest-loading compatibility API. Keep sessions open
+across requests when appropriate and close them at application shutdown.
+The newer [signed Run API](api/root.md), [choice scoring](api/choice-scoring.md),
+and [resident partitions](distribution/resident-partition-execution.md) describe
+source contracts with their own release and qualification status. Do not assume
+those exports or operations exist in npm 0.6.1. Applications own prompts, policy,
+trust, updates, and presentation; Doppler owns loading and execution lifecycle.
 
-- inline JSON payload
-- local file path
-- HTTP/HTTPS URL
+## Retained search starter
 
-All examples below use inline JSON for readability.
+The [0.1.1 search starter](../examples/document-search/README.md) demonstrates
+embedding/reranking with resident sessions and application-owned indexing. Its
+fresh-install signed eligibility ended September 28, 2026, 00:55:40.930 UTC.
+Treat it as a versioned example until metadata and delivery are renewed; do not
+change signed historical bytes or imply that existing installed acceptance
+qualifies fresh installation. Its [Node guide](../examples/document-search/NODE.md)
+and [retained receipts](../artifacts/document-search-maintenance-2026-09-26/README.md)
+have separate host scopes.
 
-## Setup
+## Next steps
 
-### Browser requirements
-
-Supported:
-- Chrome/Edge (recommended)
-- Safari with WebGPU support
-- Firefox Nightly (experimental)
-
-Check WebGPU availability:
-
-```javascript
-const adapter = await navigator.gpu.requestAdapter();
-console.log(Boolean(adapter));
-```
-
-### Browser harness and demo
-
-Serve the repo root when you need the browser harness or demo:
-
-```bash
-python3 -m http.server 8080
-```
-
-Useful URLs:
-- `http://localhost:8080/tests/harness.html`
-- `http://localhost:8080/demo/`
-
-## Path A: Run a prebuilt RDRR model
-
-Use this when a model is already in the hosted registry.
-
-```bash
-HF_REVISION=f58f1d0b58641c84e7ea50d13fea0dd4dc91389a
-MODEL_ID=qwen-3-5-0-8b-q4k-ehaf16
-MODEL_URL="https://huggingface.co/clocksmith/rdrr/resolve/${HF_REVISION}/models/qwen-3-5-0-8b-q4k-ehaf16"
-```
-
-### Verify
-
-```bash
-node src/cli/doppler-cli.js verify --config "{
-  \"request\": {
-    \"workload\": \"inference\",
-    \"modelId\": \"${MODEL_ID}\",
-    \"modelUrl\": \"${MODEL_URL}\",
-    \"loadMode\": \"http\",
-    \"cacheMode\": \"warm\",
-    \"runtimeProfile\": \"profiles/production\"
-  },
-  \"run\": { \"surface\": \"auto\" }
-}" --json
-```
-
-Embedding verify uses the explicit embedding workload:
-
-```bash
-node src/cli/doppler-cli.js verify --config "{
-  \"request\": {
-    \"workload\": \"embedding\",
-    \"modelId\": \"google-embeddinggemma-300m-q4k-ehf16-af32\",
-    \"runtimeProfile\": \"profiles/production\"
-  },
-  \"run\": { \"surface\": \"auto\" }
-}" --json
-```
-
-### Benchmark
-
-```bash
-node src/cli/doppler-cli.js bench --config "{
-  \"request\": {
-    \"workload\": \"inference\",
-    \"modelId\": \"${MODEL_ID}\",
-    \"modelUrl\": \"${MODEL_URL}\",
-    \"loadMode\": \"http\",
-    \"cacheMode\": \"warm\"
-  },
-  \"run\": {
-    \"surface\": \"auto\",
-    \"bench\": {
-      \"save\": true,
-      \"saveDir\": \"benchmarks/vendors/results\"
-    }
-  }
-}" --json
-```
-
-Embedding benchmark can now be requested explicitly while still using the benchmark command:
-
-```bash
-node src/cli/doppler-cli.js bench --config "{
-  \"request\": {
-    \"workload\": \"embedding\",
-    \"modelId\": \"google-embeddinggemma-300m-q4k-ehf16-af32\",
-    \"runtimeProfile\": \"profiles/low-memory\"
-  },
-  \"run\": { \"surface\": \"auto\" }
-}" --json
-```
-
-## Path B: Convert locally, then verify
-
-Use this when no prebuilt RDRR artifact exists.
-
-```bash
-INPUT_PATH=/path/to/source/model
-CONVERSION_CONFIG=src/config/conversion/embeddinggemma/google-embeddinggemma-300m-q4k-ehf16-af32.json
-```
-
-### Convert
-
-```bash
-node src/cli/doppler-cli.js convert --config "{
-  \"request\": {
-    \"inputDir\": \"${INPUT_PATH}\",
-    \"convertPayload\": {
-      \"converterConfig\": $(cat \"${CONVERSION_CONFIG}\")
-    }
-  }
-}"
-```
-
-### Verify converted model
-
-Conversion writes artifacts to a filesystem output directory, not into the
-browser shard-manager store. To verify a local conversion, run on the Node
-surface so the command can load the `file://` artifact path directly:
-
-```bash
-MODEL_ID=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));console.log(j.output.modelBaseId);" "${CONVERSION_CONFIG}")
-OUTPUT_DIR=$(node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));console.log(j.output.outputDir || 'models/local');" "${CONVERSION_CONFIG}")
-
-node src/cli/doppler-cli.js verify --config "{
-  \"request\": {
-    \"workload\": \"inference\",
-    \"modelId\": \"${MODEL_ID}\",
-    \"modelUrl\": \"file://${OUTPUT_DIR}\",
-    \"loadMode\": \"http\",
-    \"cacheMode\": \"warm\",
-    \"runtimeProfile\": \"profiles/production\"
-  },
-  \"run\": { \"surface\": \"node\" }
-}" --json
-```
-
-Note: `surface: "node"` is the correct local-filesystem path here. The Node
-runner installs the `file://` fetch shim used by the verify/debug harnesses,
-while the browser relay does not share the same local filesystem contract.
-If you omit `modelUrl`/`loadMode`, the verify harness will look in persistent
-storage instead of the newly converted output directory.
-
-## Next docs
-
-- Command contract and tooling surface: [api/tooling.md](api/tooling.md)
-- Onboarding consistency checks and scaffolders: [onboarding-tooling.md](onboarding-tooling.md)
-- Benchmark policy and claims: [benchmark-methodology.md](benchmark-methodology.md)
-- Troubleshooting and validation workflows: [operations.md](operations.md)
+- [API index](api/index.md): select operations qualified for your model and host.
+- [Current priorities](../GOALS.md#current-priorities): one maintained implementation.
+- [Engineering workflows](developer-guides/library-engineering-workflows.md):
+  repository setup, conversion, verification, and benchmark commands.
+- [Operations](operations.md): diagnostics and failure handling.
+- [Performance and sizing](performance-sizing.md): measured limits and host requirements.

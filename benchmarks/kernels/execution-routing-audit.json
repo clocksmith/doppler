@@ -5,6 +5,11 @@
   "integrityFailures": [
     {
       "manifestPath": "models/local/create-gemma-3-1b-qualification/manifest.json",
+      "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/create-gemma-3-1b-qualification/manifest.json",
       "kernelId": "gelu",
       "status": "digest-mismatch"
     },
@@ -15,7 +20,17 @@
     },
     {
       "manifestPath": "models/local/create-gemma-3-1b-qualification/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/create-gemma-3-1b-qualification/manifest.json",
       "kernelId": "sample",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -40,7 +55,17 @@
     },
     {
       "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
       "kernelId": "sample",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -55,7 +80,17 @@
     },
     {
       "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json",
       "kernelId": "sample",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -70,7 +105,17 @@
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json",
       "kernelId": "sample",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -85,7 +130,17 @@
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
       "kernelId": "sample",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af16/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -115,7 +170,17 @@
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af16/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af16/manifest.json",
       "kernelId": "sample",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af32/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -141,6 +206,11 @@
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af32/manifest.json",
       "kernelId": "rmsnorm",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af32/manifest.json",
+      "kernelId": "rope",
       "status": "digest-mismatch"
     },
     {
@@ -165,7 +235,17 @@
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/manifest.json",
       "kernelId": "sample",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -195,7 +275,17 @@
     },
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json",
       "kernelId": "sample",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -225,7 +315,17 @@
     },
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json",
       "kernelId": "sample",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -255,7 +355,17 @@
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
       "kernelId": "sample",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -275,7 +385,17 @@
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
       "kernelId": "sample",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -291,6 +411,11 @@
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
       "kernelId": "rmsnorm",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "rope",
       "status": "digest-mismatch"
     },
     {
@@ -301,6 +426,11 @@
     {
       "manifestPath": "models/local/glm-ocr-f16-af32-pad-token-v1/manifest.json",
       "kernelId": "rmsnorm",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/glm-ocr-f16-af32-pad-token-v1/manifest.json",
+      "kernelId": "rope",
       "status": "digest-mismatch"
     },
     {
@@ -315,7 +445,17 @@
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
+      "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
       "kernelId": "rmsnorm",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
+      "kernelId": "rope",
       "status": "digest-mismatch"
     },
     {
@@ -339,6 +479,11 @@
       "status": "digest-mismatch"
     },
     {
+      "manifestPath": "models/local/google-embeddinggemma-300m-q4k-ehf16-af32/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
       "manifestPath": "models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32/manifest.json",
       "kernelId": "gelu",
       "status": "digest-mismatch"
@@ -350,12 +495,22 @@
     },
     {
       "manifestPath": "models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32/manifest.json",
       "kernelId": "sample",
       "status": "digest-mismatch"
     },
     {
       "manifestPath": "models/local/minicpm4-0-5b-f16-af32/manifest.json",
       "kernelId": "rmsnorm",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/minicpm4-0-5b-f16-af32/manifest.json",
+      "kernelId": "rope",
       "status": "digest-mismatch"
     },
     {
@@ -370,7 +525,17 @@
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-bf16-af32/manifest.json",
+      "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/muse-glimmer-30b-text-bf16-af32/manifest.json",
       "kernelId": "rmsnorm",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/muse-glimmer-30b-text-bf16-af32/manifest.json",
+      "kernelId": "rope",
       "status": "digest-mismatch"
     },
     {
@@ -385,7 +550,17 @@
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
+      "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
       "kernelId": "rmsnorm",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
+      "kernelId": "rope",
       "status": "digest-mismatch"
     },
     {
@@ -396,6 +571,31 @@
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
       "kernelId": "silu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+      "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json",
+      "kernelId": "attn_head256",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-6-27b-q4k-eaf16/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -425,12 +625,22 @@
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-eaf16/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-6-27b-q4k-eaf16/manifest.json",
       "kernelId": "sample",
       "status": "digest-mismatch"
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-eaf16/manifest.json",
       "kernelId": "silu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-6-27b-q4k-ehaf16/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -460,6 +670,11 @@
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-ehaf16/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-6-27b-q4k-ehaf16/manifest.json",
       "kernelId": "sample",
       "status": "digest-mismatch"
     },
@@ -485,12 +700,22 @@
     },
     {
       "manifestPath": "models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json",
       "kernelId": "silu",
       "status": "digest-mismatch"
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-f16-af32/manifest.json",
       "kernelId": "rmsnorm",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-reranker-0-6b-f16-af32/manifest.json",
+      "kernelId": "rope",
       "status": "digest-mismatch"
     },
     {
@@ -525,12 +750,22 @@
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
       "kernelId": "sample",
       "status": "digest-mismatch"
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
       "kernelId": "silu",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
+      "kernelId": "attn_head256",
       "status": "digest-mismatch"
     },
     {
@@ -560,6 +795,11 @@
     },
     {
       "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
       "kernelId": "sample",
       "status": "digest-mismatch"
     },
@@ -580,6 +820,11 @@
     },
     {
       "manifestPath": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32/manifest.json",
+      "kernelId": "rope",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32/manifest.json",
       "kernelId": "sample",
       "status": "digest-mismatch"
     },
@@ -591,6 +836,11 @@
     {
       "manifestPath": "models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json",
       "kernelId": "rmsnorm",
+      "status": "digest-mismatch"
+    },
+    {
+      "manifestPath": "models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json",
+      "kernelId": "rope",
       "status": "digest-mismatch"
     },
     {
@@ -622,11 +872,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_small",
@@ -713,11 +963,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -870,7 +1120,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:b5f30079a7ebb726fad0c72554241ecfd7b87edc0cc2e549523cffe5cb71057b"
+      "digest": "sha256:3ba3d6b501de0cfe4964f770ffdb2d236471c09dba17a0b515c013e00b967ea6"
     },
     {
       "manifestPath": "models/local/diffusiongemma-26b-a4b-it-q4k-ehf16-af16/manifest.json",
@@ -893,11 +1143,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_head512",
@@ -1065,11 +1315,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -1093,7 +1343,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:c52562338b492367b9d87afdf561b521cf16d4d32db9bc0b61fb806e7736253d"
+      "digest": "sha256:ac5e461a046b95443ea5c2996c6142914f1297fd3eed93257c144d2956126088"
     },
     {
       "manifestPath": "models/local/gemma-3-1b-it-q4k-ehf16-af32/manifest.json",
@@ -1116,11 +1366,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_small",
@@ -1207,11 +1457,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -1364,7 +1614,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:b5f30079a7ebb726fad0c72554241ecfd7b87edc0cc2e549523cffe5cb71057b"
+      "digest": "sha256:3ba3d6b501de0cfe4964f770ffdb2d236471c09dba17a0b515c013e00b967ea6"
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-f16-af32/manifest.json",
@@ -1387,11 +1637,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_small",
@@ -1468,11 +1718,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -1595,7 +1845,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:c32aabffff99c3d67ad3e7df4eb9fa1627b5360be476c65c436c1adcd3dc008a"
+      "digest": "sha256:9a40235d656db5a8377660e71931229ecbbc1ebbd59026384a1bbd24cee4a9e7"
     },
     {
       "manifestPath": "models/local/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
@@ -1618,11 +1868,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_small",
@@ -1699,11 +1949,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -1826,7 +2076,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:ff4e5e9e5003e58ba9ac8f36ce7d48409e3a55945a613037ec67627eaabf172e"
+      "digest": "sha256:500d157b2c1e2f351f912ad6c7af8cb16a93482ba3280b671d3739e072d5e2ca"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af16/manifest.json",
@@ -1849,11 +2099,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_head512",
@@ -2011,11 +2261,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -2039,7 +2289,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:51106ae4c525f26ca8ec93b74c7b62d9f8b379cc8c542f430eb6f97680f35b2b"
+      "digest": "sha256:3c70efff7a1e178056e54ffe7327a695212db4d964b91d5bcc7d535d4638d1a0"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-q4k-ehf16-af32/manifest.json",
@@ -2062,11 +2312,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_head512",
@@ -2224,11 +2474,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -2346,7 +2596,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:6eacd89b3ff40881c4b5704d1c232a733bdd4ba6953952ebd8fcde6f382d18d3"
+      "digest": "sha256:42ca3e5ad8dff2333cb594341fcb0cc7f6f0772cdcc9b30e69a36b5d2ce7e391"
     },
     {
       "manifestPath": "models/local/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/manifest.json",
@@ -2502,11 +2752,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -2530,7 +2780,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:83bdf8cc61ea1f45d8312e20dc94993edf15c8cf5631fa698625adbc18e8e90a"
+      "digest": "sha256:8a2c0211f488c161f92333a248ba1a99c973b0769f135fc5a97755fdc19145fc"
     },
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af16/manifest.json",
@@ -2553,11 +2803,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_head512",
@@ -2715,11 +2965,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -2743,7 +2993,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:48348f1647632d209b35c31c42127f278e63f6dbacf30a0b3cbc3e73c535c4cf"
+      "digest": "sha256:26263323a90659878bc2e2a310d8b4c44c85f96d7844ee5985c63eefc993a779"
     },
     {
       "manifestPath": "models/local/gemma-4-31b-it-text-q4k-ehf16-af32/manifest.json",
@@ -2766,11 +3016,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_head512",
@@ -2928,11 +3178,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -3050,7 +3300,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:6ee19279318a43447e4b0b0bd02b14be3eb9f6f5128a5c663d48431261ffd200"
+      "digest": "sha256:5ed5510f10083044c071b04629523defba617346f1fb717fb96aa188bc1b09db"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/manifest.json",
@@ -3073,11 +3323,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_head512",
@@ -3235,11 +3485,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -3263,7 +3513,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:f8f96a8b83a15cdf8f1d6faa77fa504221c06af10ba146c35518febbcb179513"
+      "digest": "sha256:ad181cd2a6139f3ddedaeb5a6a9510378ccb6d88eb79559d5c5b9a8979440dc9"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json",
@@ -3286,11 +3536,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_head512",
@@ -3428,11 +3678,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -3548,7 +3798,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:ed60aac62c77637653ff3862d6ba753a253021d1dab1ab7b4db163ddd64eb5d7"
+      "digest": "sha256:da752ef09ee5e6d415de47857d4b53c9be927873638ef5a75c35068ed7ff6b29"
     },
     {
       "manifestPath": "models/local/gemma-4-e2b-it-q4k-ehf16-af32/manifest.json",
@@ -3571,11 +3821,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_head512",
@@ -3713,11 +3963,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -3833,7 +4083,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:7467576f75e4bb221558a61520a0e0f51fde44ca609b86fed1f95ffb65f31901"
+      "digest": "sha256:3d0a1acae003884b2774d70f0cb1dbcdfdf53c1a8e42e479abfc5085d7ecf9ca"
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32-pad-token-v1/manifest.json",
@@ -3916,11 +4166,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -4077,7 +4327,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:f40b19dc6250b450cce09441aae5b919ee4e1a55a8a99e6f6296fba73c08cf68"
+      "digest": "sha256:78ff8dac0f8bda1909a05b995854c9e0722ebadd96bf58010e52e3b555767cef"
     },
     {
       "manifestPath": "models/local/glm-ocr-f16-af32/manifest.json",
@@ -4100,11 +4350,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "embed",
@@ -4160,11 +4410,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -4300,7 +4550,7 @@
             "operation": "attention",
             "variantId": "prefill_head256_f16kv",
             "descriptorDigest": "sha256:e4cd7216a6309653b0094c4f92cccd634129c17c527828576fd0524d288a20a3",
-            "kernelDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+            "kernelDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
             "requires": [
               "shader-f16"
             ]
@@ -4349,7 +4599,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:e119a7014ab17ca011d87fd1157b6f86cbfe27d05788c5809662270f0787bb4b"
+      "digest": "sha256:9702b6992a1a0b9685f0935dce02a44b827dcc51c7e97b5fccd0a4249860e6f3"
     },
     {
       "manifestPath": "models/local/google-embeddinggemma-300m-q4k-ehf16-af32/manifest.json",
@@ -4413,11 +4663,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "tiled",
@@ -4534,7 +4784,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:cbf3df3fd2cf79357f25a6b0c57864b387a0962ca082c6c703daffe1fc0e3eb4"
+      "digest": "sha256:fb70e85710b0a7497701df03caa423ad5b7bc8dc16494ba7ef4e9fe764eb7f32"
     },
     {
       "manifestPath": "models/local/lfm2-5-1-2b-instruct-q4k-ehf16-af32/manifest.json",
@@ -4628,11 +4878,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -4841,7 +5091,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:1ac4d8c7e26940cf0981b9ba94fff51becbc1896e58377a4e7a78efa2d7de9d6"
+      "digest": "sha256:c504571f3e1b1d56d07af98a70dcbe7d52e2d12e3a0936872f7f2b924c6c7bec"
     },
     {
       "manifestPath": "models/local/minicpm4-0-5b-f16-af32/manifest.json",
@@ -4925,11 +5175,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -5182,7 +5432,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:6725e1510d3225c27044b16642aed9cf224dc6f12b4f3ebaa73e5de06e85f8b7"
+      "digest": "sha256:4e1e34f8c5a9ad442a7eeb120c113c7a0c89ce33114f3af486b34acb7b5f103f"
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-bf16-af32/manifest.json",
@@ -5205,11 +5455,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_stream",
@@ -5276,11 +5526,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -5457,7 +5707,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:6bae8f9c349d25c2b97f6fda565e35d1f30a7328da8242c57dc1f0d2bdc7016e"
+      "digest": "sha256:b2544db5b1510ee83695e5afe0bba0ff6925afaf427326565a6d9240a0693240"
     },
     {
       "manifestPath": "models/local/muse-glimmer-30b-text-f16-af32/manifest.json",
@@ -5480,11 +5730,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_stream",
@@ -5551,11 +5801,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -5864,7 +6114,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:1f8b5f4f74555afad9d0b2d6050667994e1eefe11b60b8246d167ec9599cfa00"
+      "digest": "sha256:5afbb5f2c5ce7d5719ce0d70733b14523cd0e952e751ef65a8acacfe99b4992b"
     },
     {
       "manifestPath": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
@@ -5887,11 +6137,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_stream",
@@ -5998,11 +6248,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -6165,7 +6415,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:73454b983b99f736242d68098e6cfef70decbcc59ab225e25ca7e3b8d1b9315d"
+      "digest": "sha256:256e65a0dcf7a633abfb1029cde5ab86382d098f073c1b600d11c915d275dc3a"
     },
     {
       "manifestPath": "models/local/qwen-3-5-2b-q4k-ehaf16/manifest.json",
@@ -6188,11 +6438,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_stream",
@@ -6299,11 +6549,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -6466,7 +6716,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:cab346916b805275cba86332b6a5b462e8f557b8c41c123f803ecd040943c4e3"
+      "digest": "sha256:b8a84bf4ea8345c50d74cb5e381f9375c11f4c3fb81133b03e85458158243b04"
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-eaf16/manifest.json",
@@ -6489,11 +6739,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_stream",
@@ -6600,11 +6850,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -6638,7 +6888,7 @@
         }
       ],
       "opportunities": [],
-      "digest": "sha256:068998799289b5a26439d3f98040e5b00fb78da7ce03da3e1779fa9635c6c0d3"
+      "digest": "sha256:28153d51d56a523fbf0cdb283ef5e237b340556800a05b4e5836b0e2b16638a8"
     },
     {
       "manifestPath": "models/local/qwen-3-6-27b-q4k-ehaf16/manifest.json",
@@ -6661,11 +6911,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_stream",
@@ -6772,11 +7022,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -6939,7 +7189,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:2440af1d6b84dd8d3fa24d125a0b4b5ccf88ae9da400b28968528a27a10d949a"
+      "digest": "sha256:64b0a4d7edbe06d0b026da723d456e43b5b23ee931b3562e39ab59e5b5b167df"
     },
     {
       "manifestPath": "models/local/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json",
@@ -7023,11 +7273,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "silu",
@@ -7253,7 +7503,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:1703cb358cce57201c0b44b4a891baf5fff98c0d0eff6408e792e91c4ccacf78"
+      "digest": "sha256:4e8df3d5246634553a4e1680c50ab1f88bef9a5b956a4837c5bca5b8401e65bb"
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-f16-af32/manifest.json",
@@ -7337,11 +7587,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -7650,7 +7900,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:0a1e186bdc2d4772f6a3274a0a26ddb00dde3237af58c7d558b78520a06488b4"
+      "digest": "sha256:b386850c28f3d3717abfe5294dc4dbf6c4a17292b8cc2b49cd4ec8323027840f"
     },
     {
       "manifestPath": "models/local/qwen-3-reranker-0-6b-q4k-ehf16-af32/manifest.json",
@@ -7785,11 +8035,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -8149,7 +8399,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:09d0974b37321c03bfbb16569db116f68da770b6339b810be4b21afc727e8070"
+      "digest": "sha256:7d655bcf3e4fd11a3bcdbcc2c3e78596c5d56794063902cf239fa86258e898c5"
     },
     {
       "manifestPath": "models/local/qwen3-8-27b-text-f16-af32/manifest.json",
@@ -8172,11 +8422,11 @@
           "kernelId": "attn_head256",
           "key": "attention_head256_f16kv.wgsl#main",
           "declaredDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
-          "expectedDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+          "expectedDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
           "registeredVariants": [
             "attention/prefill_head256_f16kv"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "attn_stream",
@@ -8323,11 +8573,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -8525,7 +8775,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:1263cf67a7d20b1a1088a7baea4413a157e1d8beef3ebafcd130c1222295ac06"
+      "digest": "sha256:7e068088961ff9b95f2ebee52f9b33962327cc2fa7ff3d89920ad49c7b5b35bf"
     },
     {
       "manifestPath": "models/local/translategemma-4b-1b-enes-q4k-ehf16-af32/manifest.json",
@@ -8619,11 +8869,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -8933,7 +9183,7 @@
             "operation": "attention",
             "variantId": "prefill_head256_f16kv",
             "descriptorDigest": "sha256:e4cd7216a6309653b0094c4f92cccd634129c17c527828576fd0524d288a20a3",
-            "kernelDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+            "kernelDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
             "requires": [
               "shader-f16"
             ]
@@ -8961,7 +9211,7 @@
             "operation": "attention",
             "variantId": "prefill_head256_f16kv",
             "descriptorDigest": "sha256:e4cd7216a6309653b0094c4f92cccd634129c17c527828576fd0524d288a20a3",
-            "kernelDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+            "kernelDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
             "requires": [
               "shader-f16"
             ]
@@ -9094,7 +9344,7 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:4e82dfb9be56a74340b5ed5c4ec0ab96eb05529157eebb1a6b2476c5383da8d6"
+      "digest": "sha256:119ec299ff58d0eef90b13210195be96dd7752cdf49c38518c5af006f760f37d"
     },
     {
       "manifestPath": "models/local/translategemma-4b-it-q4k-ehf16-af32/manifest.json",
@@ -9198,11 +9448,11 @@
           "kernelId": "rope",
           "key": "rope.wgsl#main",
           "declaredDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
-          "expectedDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "expectedDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416",
           "registeredVariants": [
             "rope/default"
           ],
-          "status": "verified"
+          "status": "digest-mismatch"
         },
         {
           "kernelId": "sample",
@@ -9476,7 +9726,7 @@
             "operation": "attention",
             "variantId": "prefill_head256_f16kv",
             "descriptorDigest": "sha256:e4cd7216a6309653b0094c4f92cccd634129c17c527828576fd0524d288a20a3",
-            "kernelDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+            "kernelDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
             "requires": [
               "shader-f16"
             ]
@@ -9504,7 +9754,7 @@
             "operation": "attention",
             "variantId": "prefill_head256_f16kv",
             "descriptorDigest": "sha256:e4cd7216a6309653b0094c4f92cccd634129c17c527828576fd0524d288a20a3",
-            "kernelDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+            "kernelDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
             "requires": [
               "shader-f16"
             ]
@@ -9569,8 +9819,8 @@
           "selectionPolicy": "required-after-evidence-promotion-on-compatible-hardware"
         }
       ],
-      "digest": "sha256:e47dbce68fd10fb705d00e61cbe4a0e4c5a8deb933c5d4e2acdbb57023b56414"
+      "digest": "sha256:81b5294f4bf690b2f4d079cf65a779a2f9927799b809fce9af8fa38c524463af"
     }
   ],
-  "digest": "sha256:eea8f86a5a1e9c8751b5e0548a85f4604cd082a58a8e3e84f49840284084eff2"
+  "digest": "sha256:dfbb0919df31dd2f8d826c5bcf7334f541c7726ca54852852b638bf83bfbefbf"
 }

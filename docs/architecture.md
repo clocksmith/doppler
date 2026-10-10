@@ -2,17 +2,20 @@
 
 ## Architecture Overview
 
-**Doppler** (Deterministic On-device Processing for Prefill, Learning, and
-Execution Runtime) is an AI-native Model Release Foundry for JavaScript and
-WebGPU. It converts pinned source truth into signed immutable Capsules containing
-ModelIR-derived, qualified TargetPlans, then executes those plans through an
-evidence-backed browser and Node runtime.
+**Doppler** is an independently usable JavaScript library for local WebGPU model
+execution: generation, embeddings, reranking, narrow choice scoring, and supported
+partition execution. Applications embed one maintained implementation for loading,
+execution, streaming, cancellation, and cleanup. Useful outputs, straightforward
+installation, fast opening, bounded memory, reuse, and recovery drive the work;
+[GOALS.md](../GOALS.md#current-priorities) owns current sequencing.
 
-The product unit is a supported model release: source lineage, immutable Capsule,
-qualified target plans, application and hardware acceptance, and explicit
-promotion, requalification, rollback, and revocation state. Doppler Run is not
-a second compiler. It validates, selects, binds, executes, and observes without
-changing Capsule semantics.
+Rig is the supporting model compiler/preparation system. It converts pinned source
+truth into signed immutable Capsules containing ModelIR-derived, qualified
+TargetPlans. Run validates, selects, binds, executes, and observes those plans
+without changing their semantics. Applications own trust, upgrades, and policy.
+Release qualification, promotion, rollback, and revocation are supporting operations,
+not the developer's required product journey. Browser and Node have separately
+qualified hosts; Node may require native WebGPU provider installation.
 
 The repo also contains experimental and internal-only subsystem surfaces for
 training, distribution, hotswap, diffusion, energy, bridge integration, and
@@ -162,11 +165,20 @@ Use these code/doc locations to validate architecture claims in this file:
   - `docs/benchmark-methodology.md`
   - `benchmarks/vendors/README.md`
 
-## Optional Ouroboros/Reploid Integration
+## Public application and Reploid integration
 
-Doppler can integrate with [Reploid](https://github.com/clocksmith/reploid) via the minimal Ouroboros substrate contract:
-SharedArrayBuffer for coordination plus VFS file exchange for inference plans and
-results. Integration notes are maintained in private wrapper docs.
+Reploid consumes the same public model and [resident-partition interfaces](distribution/resident-partition-execution.md)
+available to other applications. Hosts inject artifact access and explicit model,
+plan, generation, allocation, and attempt identities. Doppler owns verification,
+loading, numerical execution, resident weights, and attempt-local KV/recurrent
+state. Reploid owns discovery, permissions, placement, transfer, readiness,
+conversation coordination, and retry policy. SharedArrayBuffer or a private VFS
+wrapper is not the required public integration boundary.
+
+A signed Capsule split requires partition-specific TargetPlan qualification.
+The explicit pinned-manifest development factory is a separate route and does
+not assert signed-release qualification. Physical distributed execution, capacity,
+numerical agreement, recovery, and answer quality remain distinct claims.
 
 ## Design Philosophy: Dual-Hexagon Compiler Pipeline & Immutable Capsule Spine
 
@@ -238,7 +250,7 @@ The Run core contains zero model-family conditionals and operates strictly on ge
 * **`ArtifactResolver`:** Streams and verifies weight shards and tokenizers via injected `ArtifactStore`.
 * **`Observer`:** Collects metrics, traces, and verification receipts.
 
-### Production release control plane
+### Optional production release operations
 
 `production-release/v1` sits above Rig and Run. It binds one pinned model
 revision, Electron application revision, application-owned workload/oracle,
@@ -271,7 +283,7 @@ the supported Windows/macOS fleet.
 | **GPU Fusion** | Hot-path tensor ops stay on GPU | Keeps JS orchestration overhead secondary when GPU compute dominates |
 | **Progressive Fusion** | Swap atomic kernels for fused kernels via Rig TargetPlans | High debuggability during development, peak throughput in production |
 | **Minimal Readback** | Logit readback is cadence-controlled | Avoids unnecessary GPU→CPU transfer overhead during decode |
-| **JavaScript Orchestration** | Pure JS dispatches GPU work, handles sampling | Zero-daemon, sandboxed browser/Node embedding without native binaries |
+| **JavaScript Orchestration** | Pure JS dispatches GPU work, handles sampling | Browser embedding through exposed WebGPU; Node may require a native provider |
 
 These principles are not independent product claims. Public claims require the
 support matrices and benchmark receipts named in [goals.md](goals.md).
