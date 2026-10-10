@@ -1,0 +1,337 @@
+{
+  "scope": "Read-only captured-operand observations and test-only arithmetic candidates; no runtime replacement or full-model qualification",
+  "runtimeVersion": "0.6.25",
+  "runtimeChanged": false,
+  "frozenModelTolerance": 0.001,
+  "prototypeSourceSha256": "b8b63b6928bd9ef5e680380d9018d0a362fcf3b6ab7e2d4f777b0e11583d67c4",
+  "outcome": "No candidate passes the retained improvement gate on both physical platforms for the 191-key capture. Ordered summation did not improve Linux results.",
+  "observations": {
+    "baseline": "Scores agree; first observed platform difference is exponentiation.",
+    "productResidual": "All 48896 sampled products and residuals match the independent exact product on each platform.",
+    "prototypeScoreLow": "Ratio prototype score low terms are zero for all 1528 Linux scores; Mac retains them. This is a prototype boundary failure, not established cause of every model disagreement."
+  },
+  "receipts": [
+    {
+      "file": "doppler-025-attention-prototype191-linux.json.gz",
+      "sha256": "fe8465374eec3c39f1d67393f823479ef5513502b128d2587aed73f1611b9e69",
+      "host": "linux",
+      "candidate": "compensated-attention",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 4.023328360007934e-08
+      },
+      "shaderSha256": "af454af92e538202ea0900153cb68d259f07adfa0c08f402cc055620a29799b1",
+      "failure": "Correction must materially improve independent accuracy",
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-decode191-baseline-linux.json.gz",
+      "sha256": "99f5b827a0a850303d927f2abe6203c26f2200473320d07e1f7ac13bad03128f",
+      "host": "linux",
+      "candidate": null,
+      "passed": true,
+      "comparison": {
+        "maxError": 4.10114346705015e-07,
+        "rmsError": 6.694937294763224e-08
+      },
+      "shaderSha256": "9fad0d0d0b62d234d5c7dd8ee4dc8f0b529e0f4e123294bb2195b85ba69a5c02",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-decode191-baseline-mac.json.gz",
+      "sha256": "8ab109112b47120c277022a6d7e77c7db1cefbabeaebcda475bce57a6cfb33ea",
+      "host": "mac",
+      "candidate": null,
+      "passed": true,
+      "comparison": {
+        "maxError": 4.10114346705015e-07,
+        "rmsError": 6.2763811074127e-08
+      },
+      "shaderSha256": "9fad0d0d0b62d234d5c7dd8ee4dc8f0b529e0f4e123294bb2195b85ba69a5c02",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-decode191-observed-linux.json.gz",
+      "sha256": "a2d8e90a42c64e12cb0af288dfb2bb95ba251e68007ada2de6cf34fb8bc16e05",
+      "host": "linux",
+      "candidate": null,
+      "passed": true,
+      "comparison": {
+        "maxError": 4.10114346705015e-07,
+        "rmsError": 6.694937294763224e-08
+      },
+      "shaderSha256": "1fa5c55a8bfad652ee0610e49a4d3e33304b6004baef2df725ce3288817c8e78",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-decode191-observed-mac.json.gz",
+      "sha256": "691f3016ac3421a6209515bfaf95e4336ee0383daa5fc4cc5d941315407a3a50",
+      "host": "mac",
+      "candidate": null,
+      "passed": true,
+      "comparison": {
+        "maxError": 4.10114346705015e-07,
+        "rmsError": 6.2763811074127e-08
+      },
+      "shaderSha256": "1fa5c55a8bfad652ee0610e49a4d3e33304b6004baef2df725ce3288817c8e78",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-low-observed191-linux.json.gz",
+      "sha256": "8a68b3e0aee4a01c0ccd209fd516e83c4a94badb2cac79e8e381464ea13bd3ff",
+      "host": "linux",
+      "candidate": "compensated-attention-ratio",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "66077f3a38a1a26106c2231c0a77d357b694c7b1015a7b004092a070b7c05f86",
+      "failure": "Correction must materially improve independent accuracy",
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-low-observed191-mac.json.gz",
+      "sha256": "14f12a8dead4b678bf72fec628f2b2514fcc0ab4f1c0248d80ccdd0f46820c9b",
+      "host": "mac",
+      "candidate": "compensated-attention-ratio",
+      "passed": true,
+      "comparison": {
+        "maxError": 9.098912778782164e-08,
+        "rmsError": 1.2615255385386875e-08
+      },
+      "shaderSha256": "66077f3a38a1a26106c2231c0a77d357b694c7b1015a7b004092a070b7c05f86",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-ordered-prototype191-linux.json.gz",
+      "sha256": "dbad51abbeced78d11821bdc38db20b710415d9a2cabdbe9c6e36c3af17f302d",
+      "host": "linux",
+      "candidate": "compensated-attention-ordered",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "5a1967f263b018e7f3f853f4d6d829c82f32b518307b86722ab370340a941719",
+      "failure": "Correction must materially improve independent accuracy",
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-ordered-prototype22-linux.json.gz",
+      "sha256": "72b4f5222cdafb81486f2c868c07332ad7e5ac7dd0ce5f6e8ec6ca197a072c1e",
+      "host": "linux",
+      "candidate": "compensated-attention-ordered",
+      "passed": true,
+      "comparison": {
+        "maxError": 1.7981581867942964e-07,
+        "rmsError": 3.406473825414036e-08
+      },
+      "shaderSha256": "5a1967f263b018e7f3f853f4d6d829c82f32b518307b86722ab370340a941719",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-portable-prototype191-linux.json.gz",
+      "sha256": "3480a71309bb06694d835302901b315efc3b19556ebf142c4c7e10e8697f313b",
+      "host": "linux",
+      "candidate": "compensated-attention-portable",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "5feb73cc51257ebf38b1563fce42f0f18eb19f670e55ee4d5fa6997f0828983b",
+      "failure": "Correction must materially improve independent accuracy",
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-portable-prototype22-linux.json.gz",
+      "sha256": "d971c65c05ea050d8fa925a3135359541e8a9be4c28be299e66a6534c6812932",
+      "host": "linux",
+      "candidate": "compensated-attention-portable",
+      "passed": true,
+      "comparison": {
+        "maxError": 1.7981581867942964e-07,
+        "rmsError": 3.406473825414036e-08
+      },
+      "shaderSha256": "5feb73cc51257ebf38b1563fce42f0f18eb19f670e55ee4d5fa6997f0828983b",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-products-linux.json.gz",
+      "sha256": "d3a426b54fec5734fb5fd261e2e0f42ca1f1a9a24178043aa5f1b0fc15edcd64",
+      "host": "linux",
+      "candidate": null,
+      "passed": true,
+      "comparison": {
+        "maxError": 4.10114346705015e-07,
+        "rmsError": 6.694937294763224e-08
+      },
+      "shaderSha256": "22af95807beeeabfb2ad478c2ce0fc1a71183cd698ceaf2f05690f27d48e5009",
+      "failure": null,
+      "productResidual": {
+        "scope": "First 32 dimensions of captured F32 Q and F16 K; exact Float64 products",
+        "products": 48896,
+        "mismatchedProducts": 0,
+        "nonzeroResiduals": 48728,
+        "missingResiduals": 0,
+        "maxResidualError": 0
+      }
+    },
+    {
+      "file": "doppler-025-products-mac.json.gz",
+      "sha256": "72ed2aeaa6bb6007dca7cebb9a85c73d820e1d9d620b35e829e67acb7e9cdea0",
+      "host": "mac",
+      "candidate": null,
+      "passed": true,
+      "comparison": {
+        "maxError": 4.10114346705015e-07,
+        "rmsError": 6.2763811074127e-08
+      },
+      "shaderSha256": "22af95807beeeabfb2ad478c2ce0fc1a71183cd698ceaf2f05690f27d48e5009",
+      "failure": null,
+      "productResidual": {
+        "scope": "First 32 dimensions of captured F32 Q and F16 K; exact Float64 products",
+        "products": 48896,
+        "mismatchedProducts": 0,
+        "nonzeroResiduals": 48728,
+        "missingResiduals": 0,
+        "maxResidualError": 0
+      }
+    },
+    {
+      "file": "doppler-025-ratio-observed191-linux.json.gz",
+      "sha256": "78c5d49ab6a3ffb1d606518fc52167aecda70f37487beddd677f984e46da2608",
+      "host": "linux",
+      "candidate": "compensated-attention-ratio",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "4324e3e38dac23fd3b4bb38f7e9d0a16bcac87591bd52c9db8a62dfa368eaa81",
+      "failure": "Correction must materially improve independent accuracy",
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-ratio-observed191-mac.json.gz",
+      "sha256": "cff4a11a5ac1838600112391de881b4d69c0573da3c6eb020a8855b57a39c6b1",
+      "host": "mac",
+      "candidate": "compensated-attention-ratio",
+      "passed": true,
+      "comparison": {
+        "maxError": 9.098912778782164e-08,
+        "rmsError": 1.2615255385386875e-08
+      },
+      "shaderSha256": "4324e3e38dac23fd3b4bb38f7e9d0a16bcac87591bd52c9db8a62dfa368eaa81",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-ratio-prototype191-linux.json.gz",
+      "sha256": "94da15a51ddb7f2ba11faac4d7811ed27b386e2fba3398e8fb19a24742aa8304",
+      "host": "linux",
+      "candidate": "compensated-attention-ratio",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 3.715319777515382e-08
+      },
+      "shaderSha256": "627f06603ca785cf58942d3c6e60d7ab990ba441549e5c1cd3ee0aa9a3841b7d",
+      "failure": "Correction must materially improve independent accuracy",
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-ratio-prototype191-mac.json.gz",
+      "sha256": "2762da787411292f48bd7a47ce77a098a18db0ef8df0267c5a1dfa877434519d",
+      "host": "mac",
+      "candidate": "compensated-attention-ratio",
+      "passed": true,
+      "comparison": {
+        "maxError": 9.098912778782164e-08,
+        "rmsError": 1.2615255385386875e-08
+      },
+      "shaderSha256": "627f06603ca785cf58942d3c6e60d7ab990ba441549e5c1cd3ee0aa9a3841b7d",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-ratio-prototype22-linux.json.gz",
+      "sha256": "793dc7d1844fe768bdad7992b0a5746a10686f71726efa62c79bce246b3bfdf8",
+      "host": "linux",
+      "candidate": "compensated-attention-ratio",
+      "passed": true,
+      "comparison": {
+        "maxError": 1.7981581867942964e-07,
+        "rmsError": 3.406473825414036e-08
+      },
+      "shaderSha256": "627f06603ca785cf58942d3c6e60d7ab990ba441549e5c1cd3ee0aa9a3841b7d",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-ratio-prototype22-mac.json.gz",
+      "sha256": "da1a3286a0437ac250874dc7730e6500f0e0c068371d02bc99bbc9c0a2032f39",
+      "host": "mac",
+      "candidate": "compensated-attention-ratio",
+      "passed": true,
+      "comparison": {
+        "maxError": 6.288871734483337e-08,
+        "rmsError": 1.2583517460056974e-08
+      },
+      "shaderSha256": "627f06603ca785cf58942d3c6e60d7ab990ba441549e5c1cd3ee0aa9a3841b7d",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-score-prototype191-linux.json.gz",
+      "sha256": "807c03bd338ac582c8e183cc165058fea8521a9ea358908ec637c22ea4b05b00",
+      "host": "linux",
+      "candidate": "compensated-attention-score",
+      "passed": false,
+      "comparison": {
+        "maxError": 2.851589737673521e-07,
+        "rmsError": 4.0168918501826384e-08
+      },
+      "shaderSha256": "0a3b541bf5c616dd35d8c01d0468dab1e45f1e619d4215d781604704b44c946e",
+      "failure": "Correction must materially improve independent accuracy",
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-score-prototype22-linux.json.gz",
+      "sha256": "a24c428e3073fc6c5dceb3ab3a02fd1b71f5484c4eba4461e3a9985c0928990e",
+      "host": "linux",
+      "candidate": "compensated-attention-score",
+      "passed": true,
+      "comparison": {
+        "maxError": 2.439247857033422e-07,
+        "rmsError": 3.7802040268307555e-08
+      },
+      "shaderSha256": "0a3b541bf5c616dd35d8c01d0468dab1e45f1e619d4215d781604704b44c946e",
+      "failure": null,
+      "productResidual": null
+    },
+    {
+      "file": "doppler-025-softmax-prototype191-linux.json.gz",
+      "sha256": "dcdef35dace94f74532579c1bb70a6d2b7c2ec08bc518b8b5cf579d16baf44c3",
+      "host": "linux",
+      "candidate": "compensated-softmax",
+      "passed": false,
+      "comparison": {
+        "maxError": 3.2180968601025484e-07,
+        "rmsError": 4.4726055758121666e-08
+      },
+      "shaderSha256": "5a1ab18960d4ac50ff8b77b242852755303495b6bb7ef51ee1e25fba41a6a087",
+      "failure": "Correction must materially improve independent accuracy",
+      "productResidual": null
+    }
+  ]
+}
