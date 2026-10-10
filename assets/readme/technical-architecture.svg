@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+<title id="title">Doppler: technical architecture</title>
+<desc id="desc">Ten components connect Rig and signed Capsules to runtime verification, artifact storage, operation sessions, resident model state, command execution, and WebGPU. The diagram separates model opening from repeated operations and shows both resource reuse and returned results.</desc>
+<style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.label{font-size:14px;font-weight:500;paint-order:stroke;stroke:white;stroke-width:6px;stroke-linejoin:round}</style>
+<defs>
+<marker id="ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#16181d" stroke-width="1.5"/></marker>
+<marker id="purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#7441ce" stroke-width="1.5"/></marker>
+<marker id="blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#245cd6" stroke-width="1.5"/></marker>
+<marker id="red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#d52749" stroke-width="1.5"/></marker>
+<marker id="gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#626976" stroke-width="1.5"/></marker>
+</defs>
+<rect x="1" y="1" width="1198" height="898" rx="18" fill="white" stroke="#dcdfe6"/>
+<text x="40" y="44" font-size="22" fill="#16181d" font-weight="650" text-anchor="start">doppler</text>
+<text x="1160" y="44" font-size="12" fill="#626976" font-weight="500" text-anchor="end">TECHNICAL ARCHITECTURE</text>
+<text x="40" y="80" font-size="23" fill="#16181d" font-weight="600" text-anchor="start">One declared model, reusable execution</text>
+<path d="M360 179 H452" fill="none" stroke="white" stroke-width="6"/>
+<path d="M360 179 H452" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
+<text x="406" y="169" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">sign</text>
+<path d="M600 228 V310" fill="none" stroke="white" stroke-width="6"/>
+<path d="M600 228 V310" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
+<text x="600" y="273" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">declared plans</text>
+<path d="M840 176 H780 V278 H685 V310" fill="none" stroke="white" stroke-width="6"/>
+<path d="M840 176 H780 V278 H685 V310" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
+<text x="768" y="252" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">trust + accepted plans</text>
+<path d="M452 359 H360" fill="none" stroke="white" stroke-width="6"/>
+<path d="M452 359 H360" fill="none" stroke="#245cd6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#blue)"/>
+<text x="406" y="350" font-size="14" fill="#245cd6" font-weight="500" text-anchor="middle" class="label">verify</text>
+<path d="M748 359 H840" fill="none" stroke="white" stroke-width="6"/>
+<path d="M748 359 H840" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
+<text x="794" y="350" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">handle</text>
+<path d="M955 228 V310" fill="none" stroke="white" stroke-width="6"/>
+<path d="M955 228 V310" fill="none" stroke="#16181d" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ink)"/>
+<text x="922" y="273" font-size="14" fill="#626976" font-weight="500" text-anchor="middle" class="label">request</text>
+<path d="M1060 310 V228" fill="none" stroke="white" stroke-width="6"/>
+<path d="M1060 310 V228" fill="none" stroke="#16181d" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ink)"/>
+<text x="1090" y="273" font-size="14" fill="#626976" font-weight="500" text-anchor="middle" class="label">result</text>
+<path d="M600 408 V510" fill="none" stroke="white" stroke-width="6"/>
+<path d="M600 408 V510" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
+<text x="600" y="465" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">construct program</text>
+<path d="M212 408 V510" fill="none" stroke="white" stroke-width="6"/>
+<path d="M212 408 V510" fill="none" stroke="#245cd6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#blue)"/>
+<text x="212" y="465" font-size="14" fill="#245cd6" font-weight="500" text-anchor="middle" class="label">load verified weights</text>
+<path d="M840 385 H793 V530 H748" fill="none" stroke="white" stroke-width="6"/>
+<path d="M840 385 H793 V530 H748" fill="none" stroke="#16181d" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ink)"/>
+<text x="794" y="457" font-size="14" fill="#626976" font-weight="500" text-anchor="middle" class="label">invoke</text>
+<path d="M748 581 H821 V407 H840" fill="none" stroke="white" stroke-width="6"/>
+<path d="M748 581 H821 V407 H840" fill="none" stroke="#16181d" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ink)"/>
+<text x="822" y="489" font-size="14" fill="#626976" font-weight="500" text-anchor="middle" class="label">output</text>
+<path d="M360 558 H452" fill="none" stroke="white" stroke-width="6"/>
+<path d="M360 558 H452" fill="none" stroke="#245cd6" stroke-width="1.8" stroke-linejoin="round" marker-start="url(#blue)" marker-end="url(#blue)"/>
+<text x="406" y="549" font-size="14" fill="#245cd6" font-weight="500" text-anchor="middle" class="label">reuse</text>
+<path d="M600 608 V710" fill="none" stroke="white" stroke-width="6"/>
+<path d="M600 608 V710" fill="none" stroke="#d52749" stroke-width="1.8" stroke-linejoin="round" marker-start="url(#red)" marker-end="url(#red)"/>
+<text x="600" y="667" font-size="14" fill="#d52749" font-weight="500" text-anchor="middle" class="label">execute / return results</text>
+<path d="M748 745 H931 V608" fill="none" stroke="white" stroke-width="6"/>
+<path d="M748 745 H931 V608" fill="none" stroke="#d52749" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#red)"/>
+<text x="845" y="736" font-size="14" fill="#d52749" font-weight="500" text-anchor="middle" class="label">submit</text>
+<path d="M1060 608 V791 H748" fill="none" stroke="white" stroke-width="6"/>
+<path d="M1060 608 V791 H748" fill="none" stroke="#d52749" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#red)"/>
+<text x="927" y="782" font-size="14" fill="#d52749" font-weight="500" text-anchor="middle" class="label">completion / readback</text>
+<g data-component="Rig · preparation"><rect x="64" y="130" width="296" height="98" rx="10" fill="#f7f3ff" stroke="#7441ce" stroke-width="1.3"/>
+<text x="82" y="151" font-size="11" fill="#7441ce" font-weight="600" text-anchor="start">BUILD TIME</text>
+<text x="82" y="176" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Rig · preparation</text>
+<text x="82" y="199" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Interpret, quantize, qualify</text>
+</g>
+<g data-component="Signed Capsule"><rect x="452" y="130" width="296" height="98" rx="10" fill="#f7f3ff" stroke="#7441ce" stroke-width="1.3"/>
+<text x="470" y="151" font-size="11" fill="#7441ce" font-weight="600" text-anchor="start">IMMUTABLE MODEL CONTRACT</text>
+<text x="470" y="176" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Signed Capsule</text>
+<text x="470" y="199" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Artifacts + executable TargetPlans</text>
+</g>
+<g data-component="Application / host"><rect x="840" y="130" width="296" height="98" rx="10" fill="#ffffff" stroke="#16181d" stroke-width="1.3"/>
+<text x="858" y="151" font-size="11" fill="#16181d" font-weight="600" text-anchor="start">INDEPENDENT CONSUMER</text>
+<text x="858" y="176" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Application / host</text>
+<text x="858" y="199" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Inputs, trust, device and storage ports</text>
+</g>
+<g data-component="Verified artifact store"><rect x="64" y="310" width="296" height="98" rx="10" fill="#f2f6ff" stroke="#245cd6" stroke-width="1.3"/>
+<text x="82" y="331" font-size="11" fill="#245cd6" font-weight="600" text-anchor="start">AUTHENTICATED BYTES</text>
+<text x="82" y="356" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Verified artifact store</text>
+<text x="82" y="379" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Weights, tokenizer, program modules</text>
+</g>
+<g data-component="Run · openCapsule"><rect x="452" y="310" width="296" height="98" rx="10" fill="#f7f3ff" stroke="#7441ce" stroke-width="1.3"/>
+<text x="470" y="331" font-size="11" fill="#7441ce" font-weight="600" text-anchor="start">OPENING</text>
+<text x="470" y="356" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Run · openCapsule</text>
+<text x="470" y="379" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Verify identity; select accepted plan</text>
+</g>
+<g data-component="Session + operations"><rect x="840" y="310" width="296" height="98" rx="10" fill="#ffffff" stroke="#16181d" stroke-width="1.3"/>
+<text x="858" y="331" font-size="11" fill="#16181d" font-weight="600" text-anchor="start">REQUEST / ABORT / CLOSE</text>
+<text x="858" y="356" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Session + operations</text>
+<text x="858" y="379" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Generate, embed, rerank, score choices</text>
+</g>
+<g data-component="Resident model resources"><rect x="64" y="510" width="296" height="98" rx="10" fill="#f2f6ff" stroke="#245cd6" stroke-width="1.3"/>
+<text x="82" y="531" font-size="11" fill="#245cd6" font-weight="600" text-anchor="start">DISTINCT RESOURCE LIFETIMES</text>
+<text x="82" y="556" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Resident model resources</text>
+<text x="82" y="579" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Reusable weights; scoped mutable state</text>
+</g>
+<g data-component="Model execution"><rect x="452" y="510" width="296" height="98" rx="10" fill="#fff3f5" stroke="#d52749" stroke-width="1.3"/>
+<text x="470" y="531" font-size="11" fill="#d52749" font-weight="600" text-anchor="start">MODEL SEMANTICS</text>
+<text x="470" y="556" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Model execution</text>
+<text x="470" y="579" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Declared program + session controller</text>
+</g>
+<g data-component="WebGPU device"><rect x="840" y="510" width="296" height="98" rx="10" fill="#fff3f5" stroke="#d52749" stroke-width="1.3"/>
+<text x="858" y="531" font-size="11" fill="#d52749" font-weight="600" text-anchor="start">COMPUTATION</text>
+<text x="858" y="556" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">WebGPU device</text>
+<text x="858" y="579" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Selected provider executes WGSL</text>
+</g>
+<g data-component="Binder + command executor"><rect x="452" y="710" width="296" height="98" rx="10" fill="#fff3f5" stroke="#d52749" stroke-width="1.3"/>
+<text x="470" y="731" font-size="11" fill="#d52749" font-weight="600" text-anchor="start">EXECUTION</text>
+<text x="470" y="756" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Binder + command executor</text>
+<text x="470" y="779" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Buffers, pipelines, dispatch, completion</text>
+</g>
+<text x="64" y="857" font-size="14" fill="#626976" font-weight="400" text-anchor="start">One session leases one operation at a time. Resident partition attempts own separate continuation state.</text>
+</svg>

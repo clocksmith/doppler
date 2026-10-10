@@ -154,49 +154,27 @@ surface. Cataloged adapter identities and lifecycle states are listed in
 [LoRA format](docs/lora-format.md), [training handbook](docs/training-handbook.md),
 and [Training API](docs/api/training.md).
 
-<!-- model-type-clusters:start -->
-
 ## Technical architecture
 
-These views trace source at `edefc11b`. They show the independently usable runtime
-and its partition boundary, not new model or hardware qualification. See the
+The component view follows source at `f38d95e8`. These diagrams show the standalone
+runtime and its partition boundary, not new model or hardware qualification. See the
 [architecture guide](docs/architecture.md#technical-diagrams) for source owners and details.
 
 ### Preparation, host, and execution ownership
 
-Applications own trust, upgrades and policy. Operations depend on the selected
-program; Doe is optional, and peer placement remains outside Doppler.
+Opening a model joins a declared program with verified artifacts and an accepted
+GPU implementation. Repeated operations reuse loaded weights while their mutable
+state has a separate lifetime. Arrows show construction, calls, and data moving
+between the owners; returned results make the execution loop explicit.
 
-```mermaid
-flowchart TB
-    SOURCE["Pinned source model<br/>weights, configuration, tokenizer"]
-    RIG["Rig / converter<br/>interpret, lower, evaluate, construct"]
-    CAP["Signed Capsule<br/>artifacts, programs, accepted TargetPlans"]
-    APP["Application<br/>input, trust, release policy, lifetime"]
-    HOST["Model host<br/>acquisition, caching, device setup, handles"]
-    PORTS["Explicit ports<br/>device, artifactStore, trustedSigners, programFactory"]
-    RUN["Run composition root<br/>verify metadata and artifacts; select declared plan"]
-    PROGRAM["Program factory<br/>construct the declared numerical program"]
-    SESSION["Session controller and operation adapters<br/>generation, embeddings, reranking, scoring"]
-    BIND["Resource binder + command executor<br/>buffers, layouts, pipelines, submission"]
-    GPU["WebGPU device<br/>declared WGSL computation"]
-    OBS["Results returned to application<br/>deltas, scores, identity, progress, errors"]
-    SOURCE --> RIG --> CAP
-    APP --> HOST --> PORTS
-    APP -->|advanced direct integration| PORTS
-    PORTS --> RUN
-    CAP --> RUN
-    RUN --> PROGRAM --> SESSION --> BIND --> GPU
-    GPU --> OBS
-    classDef app fill:#ffffff,stroke:#111827,color:#111827
-    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
-    classDef runtime fill:#edf3ff,stroke:#2563eb,color:#111827
-    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
-    class SOURCE,APP,HOST,PORTS app
-    class RIG,CAP contract
-    class RUN,SESSION,OBS runtime
-    class PROGRAM,BIND,GPU compute
-```
+![Ten Doppler components show signed model preparation, runtime verification, artifact loading, resident state, operation sessions, and the GPU submission and result loop.](assets/readme/technical-architecture.svg)
+
+[Open the diagram at full size](assets/readme/technical-architecture.svg).
+
+A normal Capsule session leases one operation at a time. Cancellation and close
+await settlement; they cannot interrupt already submitted GPU work. Supported
+resident partitions expose the same model computation to an external coordinator.
+Peer discovery and placement remain outside Doppler; Doe is an optional provider.
 
 ### Resident partitions and resource lifetime
 
@@ -233,6 +211,8 @@ flowchart TB
     class A,B,CLOSE,DISPOSE attempt
     class STEP compute
 ```
+
+<!-- model-type-clusters:start -->
 
 ## Supported RDRR model types
 
