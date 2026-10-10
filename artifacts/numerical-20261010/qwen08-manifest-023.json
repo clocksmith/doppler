@@ -14,7 +14,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:bf7c8b49bd43827b9e446e1e629696f0e2af5d837b2fe12dc82f09e6a044d065",
+    "conversionConfigDigest": "sha256:ca931d6b0a4b50793c669e499ed60ef543d0c7d837619125931f164585459eec",
     "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
     "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
     "materializationProfile": "auto",
@@ -266,12 +266,12 @@
         "rope": {
           "kernel": "rope.wgsl",
           "entry": "main",
-          "digest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
         },
         "attn_decode": {
           "kernel": "attention_decode_online_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:cb47a297183367fa8f0c92493a2d843e9bef77de5a21a1558410caf2547000be",
+          "digest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
           "precision": {
             "kvDtype": "f16"
           }
@@ -315,7 +315,7 @@
         "attn_head256": {
           "kernel": "attention_head256_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
+          "digest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
           "precision": {
             "kvDtype": "f16"
           }
@@ -6679,7 +6679,7 @@
     "convertedAt": "2026-04-24T17:34:03.192Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-10-10T03:41:07.989Z",
+      "at": "2026-10-08T18:59:26.336Z",
       "config": "qwen-3-5-0-8b-q4k-ehaf16.json"
     }
   },

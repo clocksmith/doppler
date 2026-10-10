@@ -95,6 +95,7 @@ currentWithRetainedKernel.execution.kernels.gelu.digest = retainedConfig.executi
 const digestRebindings = {
   ...readJson('artifacts/release-kernel-digests-2026-09-12/recipe-digest-rebindings.json'),
   ...readJson('artifacts/recovery-20261009/numerical-digest-rebindings.json'),
+  ...readJson('artifacts/numerical-20261010/digest-rebindings.json'),
   'sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1':
     'sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c',
   'sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62':

@@ -1,0 +1,112 @@
+{
+  "component": "doppler.runtime-source.gpu.kernels",
+  "intent": "preserved",
+  "scope": "Identical actual F32 queries and stored F16 KV; layer 3 decode of frozen prompt 1 step 1. Operator evidence, not complete model qualification.",
+  "contract": {
+    "archiveSha256": "14f95c3492b4db049c3083059f1340d02918f835caf4237aad5994227a006ab9",
+    "modelManifestSha256": "43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0",
+    "shader": "attention_decode_online_f16kv.wgsl",
+    "entryPoint": "main",
+    "constants": {},
+    "shaderSha256": "4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035"
+  },
+  "firstDivergentOperation": "layer.3.attn.core_out",
+  "operandComparison": "All q, k, v, cachedK, cachedV and gate bytes match exactly across Metal and Vulkan.",
+  "observation": "Unmasked observed logits match unobserved execution; reset-prefix replay is byte-exact on both hosts.",
+  "correction": "Compensated F32 query/key accumulation using explicit fused operations; declared precision, weights and kernel topology unchanged.",
+  "runs": [
+    {
+      "receipt": "doppler-decode-baseline-mac.json",
+      "host": "mac",
+      "candidate": null,
+      "shaderSha256": "4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035",
+      "comparison": {
+        "maxError": 0.000001815770935609251,
+        "rmsError": 2.736546807315376e-7
+      },
+      "capturedReplay": {
+        "maxError": 0,
+        "rmsError": 0
+      }
+    },
+    {
+      "receipt": "doppler-decode-baseline-linux.json",
+      "host": "linux",
+      "candidate": null,
+      "shaderSha256": "4feba111cc381d0a365909938e3f500175131f0e023d33d60e2b447f9b9f1035",
+      "comparison": {
+        "maxError": 0.000001815770935609251,
+        "rmsError": 2.7282053748764335e-7
+      },
+      "capturedReplay": {
+        "maxError": 0,
+        "rmsError": 0
+      }
+    },
+    {
+      "receipt": "doppler-decode-compensated-mac.json",
+      "host": "mac",
+      "candidate": "compensated-qk",
+      "shaderSha256": "b07ef56b761504522bce74ff460a350dadd8efc8db678f81b40922efdfd4bf4d",
+      "comparison": {
+        "maxError": 0.00000172411581556009,
+        "rmsError": 2.7218337718052005e-7
+      },
+      "capturedReplay": {
+        "maxError": 4.76837158203125e-7,
+        "rmsError": 9.731233189155e-8
+      }
+    },
+    {
+      "receipt": "doppler-decode-compensated-linux.json",
+      "host": "linux",
+      "candidate": "compensated-qk",
+      "shaderSha256": "b07ef56b761504522bce74ff460a350dadd8efc8db678f81b40922efdfd4bf4d",
+      "comparison": {
+        "maxError": 3.052437114181572e-7,
+        "rmsError": 4.917647622641233e-8
+      },
+      "capturedReplay": {
+        "maxError": 0.0000019669532775878906,
+        "rmsError": 2.7612174577068695e-7
+      }
+    },
+    {
+      "receipt": "doppler-decode-compensated-explicit-mac.json",
+      "host": "mac",
+      "candidate": "compensated-qk",
+      "shaderSha256": "9fad0d0d0b62d234d5c7dd8ee4dc8f0b529e0f4e123294bb2195b85ba69a5c02",
+      "comparison": {
+        "maxError": 3.052437114181572e-7,
+        "rmsError": 4.888565754020584e-8
+      },
+      "capturedReplay": {
+        "maxError": 0.0000019669532775878906,
+        "rmsError": 2.7841289026926676e-7
+      }
+    },
+    {
+      "receipt": "doppler-decode-compensated-explicit-linux.json",
+      "host": "linux",
+      "candidate": "compensated-qk",
+      "shaderSha256": "9fad0d0d0b62d234d5c7dd8ee4dc8f0b529e0f4e123294bb2195b85ba69a5c02",
+      "comparison": {
+        "maxError": 3.052437114181572e-7,
+        "rmsError": 4.917647622641233e-8
+      },
+      "capturedReplay": {
+        "maxError": 0.0000019669532775878906,
+        "rmsError": 2.7612174577068695e-7
+      }
+    }
+  ],
+  "rejectedExpression": "Ordinary additions in compensation did not retain a material accuracy improvement on Metal. Explicit fused form improved both maximum errors from 1.8157709356e-6 to 3.0524371142e-7.",
+  "completeModelAcceptance": "Pending exact standard 0.6.24 archive; frozen tolerance remains 0.001.",
+  "deployed": false,
+  "candidate": {
+    "version": "0.6.24",
+    "archiveSha256": "8906a473297aa298827875e273b26a05c58348debf9ef9cffa21e8f3887de87a",
+    "manifestSha256": "397dcc5fbf1a388a50fddd731cc42515ce1d0217afa3e0d7c50adcbff3c6f141",
+    "qualified": false
+  }
+}

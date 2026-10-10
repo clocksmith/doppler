@@ -148,7 +148,7 @@ assert.deepEqual(q4HeadConfig.execution?.kernels?.rope_decode_stable, {
 assert.deepEqual(q4HeadConfig.execution?.kernels?.attn_decode_stable, {
   kernel: 'attention_decode_online_f16kv.wgsl',
   entry: 'main',
-  digest: 'sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1',
+  digest: 'sha256:cb47a297183367fa8f0c92493a2d843e9bef77de5a21a1558410caf2547000be',
   precision: {
     activationDtype: 'f32',
     kvDtype: 'f16',
