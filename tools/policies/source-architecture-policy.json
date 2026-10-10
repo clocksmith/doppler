@@ -939,13 +939,6 @@
         "gpu/kernels/attention-components.js"
       ]
     },
-    "gpu/kernels/codegen/wgsl-variants.js": {
-      "reviewedLines": 885,
-      "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",
-      "extractTo": [
-        "gpu/kernels/codegen/wgsl-variants-components.js"
-      ]
-    },
     "inference/browser-harness/benchmark-execution.js": {
       "reviewedLines": 872,
       "reason": "The module remains one named runtime or tooling lifecycle; the component boundary ratchets further growth.",

@@ -44,6 +44,7 @@
     "src/client/resident-partitions.js",
     "src/partitions.js",
     "src/storage/verified-piece-storage.js",
-    "src/memory/device-budget.js"
+    "src/memory/device-budget.js",
+    "src/gpu/kernels/codegen/attention-decode-online-variant.js"
   ]
 }

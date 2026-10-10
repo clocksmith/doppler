@@ -157,7 +157,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: artifacts/buffer-retirement-2026-10-05/package-audit.json.
   // Exact 0.6.19 payload, including the installed kernel suite's operands.
   // Refined RoPE and attention add shader bytes; the file inventory is unchanged.
-  maxUnpackedSize: 13_104_844,
+  // 0.6.24: unchanged 1897-file inventory; README +2237 and F32 decode +759 bytes.
+  // Evidence: artifacts/numerical-20261010/package-audit.json.
+  maxUnpackedSize: 13_107_840,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
