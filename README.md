@@ -22,7 +22,7 @@ Available operations depend on the model and its qualified execution plan.
 Applications own user experience, trust, and updates. Rig prepares the model;
 Run executes its declared program. Browser and Node support are qualified
 separately; Bun remains experimental.
-[Technical diagrams: components, execution, resource lifetime](docs/architecture.md#technical-diagrams).
+[Technical diagrams: components, execution, resource lifetime](#technical-architecture).
 
 **[Try Doppler in your browser](https://d4da.com/doppler/)** · [Get started](docs/getting-started.md)
 
@@ -155,6 +155,127 @@ surface. Cataloged adapter identities and lifecycle states are listed in
 and [Training API](docs/api/training.md).
 
 <!-- model-type-clusters:start -->
+
+## Technical architecture
+
+These views trace source at `edefc11b`. They show the independently usable runtime
+and its partition boundary, not new model or hardware qualification. See the
+[architecture guide](docs/architecture.md#technical-diagrams) for source owners and details.
+
+### Preparation, host, and execution ownership
+
+Applications own trust, upgrades and policy. Operations depend on the selected
+program; Doe is optional, and peer placement remains outside Doppler.
+
+```mermaid
+flowchart TB
+    SOURCE["Pinned source model<br/>weights, configuration, tokenizer"]
+    RIG["Rig / converter<br/>interpret, lower, evaluate, construct"]
+    CAP["Signed Capsule<br/>artifacts, programs, accepted TargetPlans"]
+    APP["Application<br/>input, trust, release policy, lifetime"]
+    HOST["Model host<br/>acquisition, caching, device setup, handles"]
+    PORTS["Explicit ports<br/>device, artifactStore, trustedSigners, programFactory"]
+    RUN["Run composition root<br/>verify metadata and artifacts; select declared plan"]
+    PROGRAM["Program factory<br/>construct the declared numerical program"]
+    SESSION["Session controller and operation adapters<br/>generation, embeddings, reranking, scoring"]
+    BIND["Resource binder + command executor<br/>buffers, layouts, pipelines, submission"]
+    GPU["WebGPU device<br/>declared WGSL computation"]
+    OBS["Results returned to application<br/>deltas, scores, identity, progress, errors"]
+    SOURCE --> RIG --> CAP
+    APP --> HOST --> PORTS
+    APP -->|advanced direct integration| PORTS
+    PORTS --> RUN
+    CAP --> RUN
+    RUN --> PROGRAM --> SESSION --> BIND --> GPU
+    GPU --> OBS
+    classDef app fill:#ffffff,stroke:#111827,color:#111827
+    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
+    classDef runtime fill:#edf3ff,stroke:#2563eb,color:#111827
+    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
+    class SOURCE,APP,HOST,PORTS app
+    class RIG,CAP contract
+    class RUN,SESSION,OBS runtime
+    class PROGRAM,BIND,GPU compute
+```
+
+### Capsule opening and repeated requests
+
+A loaded session reuses weights across successive operations. It rejects overlap;
+request state remains separate, and submitted GPU commands must settle.
+
+```mermaid
+sequenceDiagram
+    participant H as Application / host
+    participant R as Doppler Run
+    participant S as Verified artifact store
+    participant P as Declared program
+    participant G as WebGPU device
+    H->>R: openCapsule(capsule, acceptance policy)
+    R->>R: Freeze metadata, verify signatures and release authority
+    opt Capsule v3 release history
+        R->>H: Persist verified release checkpoint
+        H-->>R: Checkpoint persisted
+    end
+    R->>G: Inspect capabilities and device availability
+    R->>R: Select an accepted TargetPlan, validate registries
+    R->>S: Verify artifacts, read declared modules and manifest
+    S-->>R: Authenticated bytes and artifact observations
+    R->>P: programFactory with selected plan and verified storage
+    P->>G: Prepare weights and required GPU resources
+    P-->>R: Initial execution identity
+    R->>R: Compare identity where required by the plan
+    R-->>H: Loaded session with supported operations
+    loop Reuse loaded session for successive operations
+        H->>R: Operation request + AbortSignal
+        R->>R: Acquire operation lease, recheck authority and device
+        R->>P: Execute with resolved settings
+        P->>G: Bind and submit declared computation
+        G-->>P: Results / observed completion
+        P-->>R: Deltas or structured result
+        R-->>H: Yield output, release lease when settled
+    end
+    H->>R: close()
+    R->>R: Reject new operations, abort and drain active work
+    R->>P: Dispose owned session resources
+    R->>S: Close verified store
+    R-->>H: Cleanup completion or error
+```
+
+### Resident partitions and resource lifetime
+
+Resident weights and attempt state have distinct lifetimes. The manifest factory
+is an explicit integration path, not a signed Capsule qualification claim.
+
+```mermaid
+flowchart TB
+    CAPS["createResidentPartitionFactory<br/>normal Capsule opener + trust options"]
+    MAN["createManifestResidentPartitionFactory<br/>exact manifest + verified storage + explicit config"]
+    ALLOC["Partition allocation contract<br/>layer range, dependencies, shared weights, dtype"]
+    RES["Resident partition session<br/>loaded weights and reusable GPU resources"]
+    A["Attempt A<br/>identity, attention/recurrent state, token context"]
+    B["Attempt B<br/>separate identity and generation state"]
+    STEP["Serialized execution lease<br/>executeGroup0 or executeGroup1"]
+    CLOSE["closeAttempt(identity)<br/>retire, abort, await pending work, release state"]
+    REUSE["Resident stays open<br/>another admitted attempt can reuse weights"]
+    DISPOSE["resident.close()<br/>settle attempts, unload owned resources"]
+    CAPS --> ALLOC
+    MAN --> ALLOC
+    ALLOC --> RES
+    RES --> A
+    RES --> B
+    A --> STEP
+    B --> STEP
+    STEP --> CLOSE --> REUSE
+    RES --> DISPOSE
+    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
+    classDef resident fill:#edf3ff,stroke:#2563eb,color:#111827
+    classDef attempt fill:#ffffff,stroke:#111827,color:#111827
+    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
+    class CAPS,MAN,ALLOC contract
+    class RES,REUSE resident
+    class A,B,CLOSE,DISPOSE attempt
+    class STEP compute
+```
 
 ## Supported RDRR model types
 
