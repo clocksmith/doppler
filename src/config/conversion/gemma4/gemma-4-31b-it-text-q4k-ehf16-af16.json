@@ -320,7 +320,7 @@
       "rope": {
         "kernel": "rope.wgsl",
         "entry": "main",
-        "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b"
+        "digest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
       },
       "attn_decode": {
         "kernel": "attention_decode_online_f16kv.wgsl",

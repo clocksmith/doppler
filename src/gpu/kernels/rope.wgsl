@@ -97,8 +97,8 @@ fn main(
     let x1 = input[base_idx + second_idx];
 
     // Apply rotation
-    let y0 = x0 * cos_val - x1 * sin_val;
-    let y1 = x0 * sin_val + x1 * cos_val;
+    let y0 = fma(x0, cos_val, -fma(x1, sin_val, 0.0));
+    let y1 = fma(x0, sin_val, fma(x1, cos_val, 0.0));
 
     // Write back
     input[base_idx + first_idx] = y0;

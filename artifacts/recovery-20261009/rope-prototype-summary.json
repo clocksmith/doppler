@@ -1,0 +1,29 @@
+{
+  "scope": "Physical operator prototype; full installed-package qualification pending",
+  "candidatePackageVersion": "0.6.21",
+  "shaderSource": [
+    "src/gpu/kernels/rope_precompute.wgsl",
+    "src/gpu/kernels/rope.wgsl"
+  ],
+  "physicalAdapters": [
+    "AMD RDNA3 Vulkan",
+    "Apple Metal3"
+  ],
+  "capturedPosition": 19,
+  "crossGpuMaximumDifference": 0,
+  "independentCapturedQueryMaximumErrorBefore": 1.7318121121601138e-06,
+  "independentCapturedQueryMaximumErrorAfter": 3.677130138157736e-07,
+  "independentCapturedKeyMaximumErrorBefore": 1.052339879681341e-06,
+  "independentCapturedKeyMaximumErrorAfter": 2.6431588695530195e-07,
+  "fullTableIdealCosMaximumError": 0.00013486181204129533,
+  "fullTableIdealSinMaximumError": 0.00013437695815426975,
+  "limitations": [
+    "Only the captured rotation and 4096-position table were physically measured.",
+    "Large-angle builtin path, other scaling schemes and complete generation remain unqualified.",
+    "CPU/gate run is pending; stale closure, package size budget and old digest-pinning assertions were already observed."
+  ],
+  "rejectedPackage": {
+    "version": "0.6.20",
+    "reason": "npm/runtime version mismatch; rejected before GPU execution"
+  }
+}
