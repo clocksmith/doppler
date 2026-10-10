@@ -11,7 +11,7 @@ export const KERNEL_REF_CONTENT_DIGESTS = Object.freeze({
   "attention_decode_f16.wgsl#attention_decode": "b028bce22bba771cb96ea7e64dd7897ddc941c577d8d6a66b460d71f418b5f65",
   "attention_decode_f16kv.wgsl#attention_decode": "25db1ee75424d0cfe621447b490b586e5c666b9209f7c586d06be92b83abf9cf",
   "attention_decode_online_f16.wgsl#main": "b1a3b2f6366d36e119f5ba0c0b1c9bcd7d830f4a053dea9f60505fa91c6e67b0",
-  "attention_decode_online_f16kv.wgsl#main": "cb47a297183367fa8f0c92493a2d843e9bef77de5a21a1558410caf2547000be",
+  "attention_decode_online_f16kv.wgsl#main": "c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912",
   "attention_decode_online_head256_f16kv_output_gate.wgsl#main": "275a1f7cfdd40ab95c467bb4744a1509dd6eadb39ec8fdd0d1e1ba80eb34f9c5",
   "attention_decode_online_head256_f16kv.wgsl#main": "fa4a40535b2aa1389b0510329fb31675d4da50ddfdfbf1e8125c7213c7ffb525",
   "attention_decode_paged_f16.wgsl#main": "773c9b37398ec7aea07bde0f53b80ca942eaa2dae76d906a0ad5d7a28a2deacd",

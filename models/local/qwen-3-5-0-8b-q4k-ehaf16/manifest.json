@@ -14,7 +14,7 @@
   },
   "artifactIdentity": {
     "artifactCompleteness": "complete",
-    "conversionConfigDigest": "sha256:ee873ed7d5b2ff1a798874cae7081867ebc64d56c468efa065588fb5dce866c6",
+    "conversionConfigDigest": "sha256:0dc4434639c098aa9ff724dd89028996ff43d888ab14b5293d61613fc424766a",
     "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
     "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
     "materializationProfile": "auto",
@@ -271,7 +271,7 @@
         "attn_decode": {
           "kernel": "attention_decode_online_f16kv.wgsl",
           "entry": "main",
-          "digest": "sha256:cb47a297183367fa8f0c92493a2d843e9bef77de5a21a1558410caf2547000be",
+          "digest": "sha256:c6d9f8c614a2a088cb533958007896391efb3e348377dc8095c409944c562912",
           "precision": {
             "kvDtype": "f16"
           }
@@ -6679,7 +6679,7 @@
     "convertedAt": "2026-04-24T17:34:03.192Z",
     "hasTokenizer": true,
     "manifestRefresh": {
-      "at": "2026-10-10T04:07:02.747Z",
+      "at": "2026-10-10T04:54:19.637Z",
       "config": "qwen-3-5-0-8b-q4k-ehaf16.json"
     }
   },

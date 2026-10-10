@@ -1,0 +1,530 @@
+{
+  "scope": "Read-only content-digest audit; shader matches do not identify the actual reference-producing runtime or host",
+  "referenceManifestSha256": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "archives": [
+    {
+      "archive": "doppler-gpu-0.6.10.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "77175324a1911aae42165b5fefc2547c761c082ca55a23b1c0bf897c3e81e0ba"
+    },
+    {
+      "archive": "doppler-gpu-0.6.11.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "6cf446e587d6f4e7801eb8f141749f7237cab68238800f533771af7e48efd6e9"
+    },
+    {
+      "archive": "doppler-gpu-0.6.12.tgz",
+      "matched": 10,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "63567075ba00da71245d2607e8e373d2e332eebec1cc575da55abe98a9ba4b5d"
+    },
+    {
+      "archive": "doppler-gpu-0.6.13.tgz",
+      "matched": 9,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "silu",
+        "q4_widetile",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "4b272b706a25177ced36e9e97f12ae8fa69fcd2f28ca4c3a36c3461ad160c9be"
+    },
+    {
+      "archive": "doppler-gpu-0.6.14.tgz",
+      "matched": 9,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "silu",
+        "q4_widetile",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "b4652b0cbb25f39199fadfcd13e0cf3747ddc09efd866721bbc15f2a4e7d6a77"
+    },
+    {
+      "archive": "doppler-gpu-0.6.15.tgz",
+      "matched": 9,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "silu",
+        "q4_widetile",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "89b78de06724bacbfca22b803fc8acf9906bb6034d8b12ffa635c331e4e0c3d7"
+    },
+    {
+      "archive": "doppler-gpu-0.6.16.tgz",
+      "matched": 9,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "silu",
+        "q4_widetile",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "2457cb25be3dc99ec3b17fa3db39eca9b7251ed2a4fae0bf53c92ea65d4cd111"
+    },
+    {
+      "archive": "doppler-gpu-0.6.17.tgz",
+      "matched": 9,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "silu",
+        "q4_widetile",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "8d911c4dc48e68dc3f18dcdae17d9a299f8ce4218f50a0554e101c2993f37089"
+    },
+    {
+      "archive": "doppler-gpu-0.6.18.tgz",
+      "matched": 9,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "silu",
+        "q4_widetile",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "21f5bb84342131e63481b20d6471038871775e293c1fdbc5ca0d98bf78646d07"
+    },
+    {
+      "archive": "doppler-gpu-0.6.19.tgz",
+      "matched": 9,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "silu",
+        "q4_widetile",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "d35550b0fd80753ed20512e6da36da34a468ce7cede51de4cab1dd4f2894dbaf"
+    },
+    {
+      "archive": "doppler-gpu-0.6.2.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "7fe02ebd3206bfac744e5c2a2342eb96ff56480ac33cf5d505854f7a681804cc"
+    },
+    {
+      "archive": "doppler-gpu-0.6.20.tgz",
+      "matched": 8,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "rope",
+        "silu",
+        "q4_widetile",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "dc34855503edcf0d70790534a9730ba104277458d25e0917662f2d83c52d74dc"
+    },
+    {
+      "archive": "doppler-gpu-0.6.21.tgz",
+      "matched": 8,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "rope",
+        "silu",
+        "q4_widetile",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "bcd0d7b9a1138fa9d21c2798b1f9a4f28067f4437447c276b64946de72705cb5"
+    },
+    {
+      "archive": "doppler-gpu-0.6.22.tgz",
+      "matched": 8,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "rope",
+        "silu",
+        "q4_widetile",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "fd644eb8ac2a68d96eaa775d35cd2c0b9f65742b2cce7eaab2cc804e85fd8b6c"
+    },
+    {
+      "archive": "doppler-gpu-0.6.23.tgz",
+      "matched": 7,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "rope",
+        "silu",
+        "q4_widetile",
+        "attn_head256",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "14f95c3492b4db049c3083059f1340d02918f835caf4237aad5994227a006ab9"
+    },
+    {
+      "archive": "doppler-gpu-0.6.24.tgz",
+      "matched": 6,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "rope",
+        "attn_decode",
+        "silu",
+        "q4_widetile",
+        "attn_head256",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "8906a473297aa298827875e273b26a05c58348debf9ef9cffa21e8f3887de87a"
+    },
+    {
+      "archive": "doppler-gpu-0.6.25.tgz",
+      "matched": 6,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "rope",
+        "attn_decode",
+        "silu",
+        "q4_widetile",
+        "attn_head256",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "cbec67e09fc7c443115558788d65a661e7e63d5907c7e7de3c07f3ecbba269c4"
+    },
+    {
+      "archive": "doppler-gpu-0.6.26.tgz",
+      "matched": 6,
+      "kernelCount": 16,
+      "mismatches": [
+        "rmsnorm",
+        "q4_decode",
+        "rope",
+        "attn_decode",
+        "silu",
+        "q4_widetile",
+        "attn_head256",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "e0f558cfd0980eabc6db42496d8fe250e66f3d125e67c9635333e80077f8f7b7"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.1.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "dc5c4a61b1a502d6b7c6efc72fc553267452ed383076202a76be56e90d9d92ca"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.10.probe.1.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "5adf985ea76a98836aef162281a182d8b9fa55380c7c918aee9f884cccbdf3ea"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.10.probe.2.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "91f98d35aaa9b98ec166f2add59abdfd8d8cde89481e0d1a35cc2e21f200772b"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.10.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "2ca115ac0ce243f4ee3fcc1d8c335af8e88836603f864e64e88ff37842a150ea"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.11.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "5932374fa4adc93c5214151f8aecb8964d3fc51f5e2c4eb2a26d0183a3869003"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.12.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "9f8012a96e0fe43302fdccb4a09bb3faace62bdeb202271389f7a2bafd9f6893"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.13.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "162be004c1d07bbf15e2b2f8cd57f906b459f6ac7b24a1c514a47d9e806fabdb"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.4.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "e8129a7fb081ec019c11975f0d8b5caf102b9bc435f060bd01b7e2b089deac9c"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.5.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "dd97b995791c617ff893864e3db51ddec3a541af1e88e8b4182577d7f4bde3bf"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.6.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "40333fc0a6d5956366aae1be1ab09d7c419ff449cd5f94ac39e5384a1175f6e4"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.7.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "267e15a27bc8739263e1a64351d55d16e6f51a5b971926585b5e36948adece37"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.8.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "65a8b123324246a4d2702362385f90d562f4ee800acee5de38976c9d41676be9"
+    },
+    {
+      "archive": "doppler-gpu-0.6.3-dev.split.9.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "74698e35b823d25c772cf17985ff20e0ddcff0796e8d066575e9c70d34f9ae3d"
+    },
+    {
+      "archive": "doppler-gpu-0.6.4.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "c1e703c6e32ddeb9536a72f6db93236d1546f6e6f9273423eba931e17bc8742f"
+    },
+    {
+      "archive": "doppler-gpu-0.6.5.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "ab02643d568325e2d5aaceb3aeb4e0d213c2454f75f43b3abf9184d199d6648e"
+    },
+    {
+      "archive": "doppler-gpu-0.6.6.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "e9ab93fe8d16b2d139bd488bf7178e7e13c99d1e3ae50bfc1158e4b2ed7555ae"
+    },
+    {
+      "archive": "doppler-gpu-0.6.7.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "ec9345eea6c75343100bdba8c36fb8601db4cdc7b8d2da90f0eb5e2d029b6142"
+    },
+    {
+      "archive": "doppler-gpu-0.6.8.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "fddaaaeb8b63b2ef00ed61851b150ad791251a524973135239aa03f4c815c4a5"
+    },
+    {
+      "archive": "doppler-gpu-0.6.9.tgz",
+      "matched": 11,
+      "kernelCount": 16,
+      "mismatches": [
+        "q4_decode",
+        "silu",
+        "lm_head_q4",
+        "sample",
+        "q4_decode_gemv"
+      ],
+      "archiveSha256": "6e8ceacb2d17b5470e569b68d7bf77e001116b72604f2503ae2a911cd5e4cd90"
+    }
+  ]
+}
