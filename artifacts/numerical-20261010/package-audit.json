@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Exact package budget audit; numerical qualification remains failed",
+  "archives": [
+    {
+      "version": "doppler-gpu-0.6.23.tgz",
+      "sha256": "14f95c3492b4db049c3083059f1340d02918f835caf4237aad5994227a006ab9",
+      "fileCount": 1897,
+      "unpackedBytes": 13104844
+    },
+    {
+      "version": "doppler-gpu-0.6.24.tgz",
+      "sha256": "8906a473297aa298827875e273b26a05c58348debf9ef9cffa21e8f3887de87a",
+      "fileCount": 1897,
+      "unpackedBytes": 13107840
+    }
+  ],
+  "added": [],
+  "removed": [],
+  "changes": [
+    {
+      "path": "package/README.md",
+      "before": 12642,
+      "after": 14879,
+      "delta": 2237
+    },
+    {
+      "path": "package/package.json",
+      "before": 33007,
+      "after": 33007,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/diffusiongemma/diffusiongemma-26b-a4b-it-q4k-ehf16-af16.json",
+      "before": 16183,
+      "after": 16183,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+      "before": 9274,
+      "after": 9274,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+      "before": 9816,
+      "after": 9816,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json",
+      "before": 10685,
+      "after": 10685,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32.json",
+      "before": 9568,
+      "after": 9568,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma3/translategemma-4b-it-q4k-ehf16-af32.json",
+      "before": 9572,
+      "after": 9572,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json",
+      "before": 19000,
+      "after": 19000,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json",
+      "before": 18531,
+      "after": 18531,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json",
+      "before": 20546,
+      "after": 20546,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af16.json",
+      "before": 18358,
+      "after": 18358,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json",
+      "before": 18040,
+      "after": 18040,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
+      "before": 15399,
+      "after": 15399,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32-int4ple.json",
+      "before": 14242,
+      "after": 14242,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af32.json",
+      "before": 14086,
+      "after": 14086,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json",
+      "before": 8661,
+      "after": 8661,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/glmocr/glm-ocr-f16-af32.json",
+      "before": 10298,
+      "after": 10298,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/gpt-oss-20b-f16-xmxfp4.json",
+      "before": 8958,
+      "after": 8958,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/janus/janus-pro-1b-text-q4k-ehaf16.json",
+      "before": 8794,
+      "after": 8794,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+      "before": 9381,
+      "after": 9381,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/minicpm/minicpm4-0-5b-f16-af32.json",
+      "before": 11265,
+      "after": 11265,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/muse-glimmer/muse-glimmer-30b-text-bf16-af32.json",
+      "before": 12500,
+      "after": 12500,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/muse-glimmer/muse-glimmer-30b-text-f16-af32.json",
+      "before": 12482,
+      "after": 12482,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32.json",
+      "before": 12776,
+      "after": 12776,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+      "before": 12853,
+      "after": 12853,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
+      "before": 11903,
+      "after": 11903,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-5-9b-f16-af32.json",
+      "before": 10983,
+      "after": 10983,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-5-9b-q4k-ehaf16.json",
+      "before": 12346,
+      "after": 12346,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json",
+      "before": 13549,
+      "after": 13549,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
+      "before": 13210,
+      "after": 13210,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json",
+      "before": 11667,
+      "after": 11667,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
+      "before": 9124,
+      "after": 9124,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-af32.json",
+      "before": 10261,
+      "after": 10261,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-reranker-0-6b-f16-true-logit-af32.json",
+      "before": 12153,
+      "after": 12153,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+      "before": 17274,
+      "after": 17274,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
+      "before": 13869,
+      "after": 13869,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json",
+      "before": 13844,
+      "after": 13844,
+      "delta": 0
+    },
+    {
+      "path": "package/src/config/source-packages/litert/gemma-4-e2b-it.json",
+      "before": 17691,
+      "after": 17691,
+      "delta": 0
+    },
+    {
+      "path": "package/src/gpu/kernels/attention_decode_online_f16kv.wgsl",
+      "before": 7779,
+      "after": 8538,
+      "delta": 759
+    },
+    {
+      "path": "package/src/version.js",
+      "before": 98,
+      "after": 98,
+      "delta": 0
+    }
+  ],
+  "unpackedDelta": 2996,
+  "budget": 13107840,
+  "maintenanceArchiveSha256": "8906a473297aa298827875e273b26a05c58348debf9ef9cffa21e8f3887de87a",
+  "shaderBytesUnchangedByExtraction": true,
+  "sourceArchitecture": "Existing soft-limit review removed after extraction; no ceiling increased"
+}
