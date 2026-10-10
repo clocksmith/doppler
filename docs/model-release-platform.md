@@ -1,11 +1,15 @@
 # Doppler Production Release platform
 
-Doppler is an AI-native model release foundry for JavaScript and WebGPU. The
-primary technical contract is standalone executable-model adoption, defined in
-[goals](goals.md) and the policy's `adoptionGate`. Free retained use counts;
-Doe, Poolday, Reploid, and payment are not prerequisites. The optional network
-experiment retains its own `networkAcceptance` and cannot inherit adoption proof.
-The separate commercial offer remains:
+Doppler is an independently usable JavaScript model-execution library. This page
+retains **optional release-operations and commercial hypotheses**, alongside their
+implemented contracts and unresolved external evidence. It is not the library's
+primary onboarding path or a competing engineering queue.
+[GOALS.md](../GOALS.md#current-priorities) owns current priorities. Useful local
+execution and independent adoption remain primary; free retained use counts.
+Doe, Poolday, Reploid, and payment are not prerequisites. The separate network
+experiment cannot inherit adoption proof.
+
+The retained commercial hypothesis is:
 
 - Entry product: **Doppler Production Release**.
 - Recurring product: **Doppler Release Operations**.

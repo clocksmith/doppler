@@ -1,0 +1,72 @@
+{
+  "component": "doppler.gpu.kernels",
+  "intent": "preserved",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.23",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.23.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.23.tgz",
+    "integrity": "sha512-j/9kGjf6d91EC4eH8maKbaTeP3Zg3G1kYC5tFPLO+VdiwY9I3Ht6URchpLrZbhZalAv6qJ5MCsZa6QNMNVcKwQ=="
+  },
+  "archiveSha256": "14f95c3492b4db049c3083059f1340d02918f835caf4237aad5994227a006ab9",
+  "browserIdentity": "sha256:2fc93cfd19e7178b36e5473b63ea09533f39605be4d2ff00a96afcaa78e037ad",
+  "physicalOperatorComparison": "attention-023-platform-comparison.json",
+  "fullGeneration": {
+    "policy": "required",
+    "steps": 110,
+    "failed": 54,
+    "maxDifference": 0.002967357635498047,
+    "tolerance": 0.001,
+    "directions": [
+      {
+        "direction": "linux-mac",
+        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T01-17-17-840Z/reference-linux-mac.json",
+        "partitionHosts": [
+          {
+            "index": 1,
+            "host": "mac"
+          },
+          {
+            "index": 0,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 33,
+        "maxDifference": 0.002967357635498047,
+        "tolerance": 0.001
+      },
+      {
+        "direction": "mac-linux",
+        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T01-17-17-840Z/reference-mac-linux.json",
+        "partitionHosts": [
+          {
+            "index": 0,
+            "host": "mac"
+          },
+          {
+            "index": 1,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 21,
+        "maxDifference": 0.00177001953125,
+        "tolerance": 0.001
+      }
+    ]
+  },
+  "frozenReferenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "qualified": false,
+  "publication": false,
+  "deployment": false,
+  "cpuCheck": "Initial full check passed 894/895 files; max-subtracted-softmax source check updated for refined exp with negative controls. Full recheck pending.",
+  "firstRemainingOperation": "layer.3.attn.out (output projection), captured prefill; maximum cross-GPU difference 3.725290298461914e-8",
+  "boundaryEffects": "Canonical F32 Q/K rotation and head-256 F16-KV prefill arithmetic; precision, resources, frozen inputs and 0.001 bound preserved.",
+  "tokenAgreement": {
+    "scope": "Selected tokens at the frozen prefixes for three retained prompts, both physical placements; not general task quality",
+    "steps": 110,
+    "mismatches": 0,
+    "allSixRunsCompletedWithEos": true
+  }
+}

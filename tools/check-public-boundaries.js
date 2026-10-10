@@ -124,7 +124,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // 2,158-byte cross-npm allowance. No model weights or test operands ship.
   // Those four fixtures and the retained numerical corrections measure
   // 3,339,005 bytes on npm 9; preserve the existing 2,158-byte npm allowance.
-  maxPackedSize: 3_341_163,
+  // Head-256 attention refinement: exact payload plus the retained npm allowance.
+  // Evidence: artifacts/recovery-20261009/package-inventory-023.json.
+  maxPackedSize: 3_343_696,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -154,7 +156,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Baseline drift and this existing-file safety delta are separately audited.
   // Evidence: artifacts/buffer-retirement-2026-10-05/package-audit.json.
   // Exact 0.6.19 payload, including the installed kernel suite's operands.
-  maxUnpackedSize: 13_097_430,
+  // Refined RoPE and attention add shader bytes; the file inventory is unchanged.
+  maxUnpackedSize: 13_104_844,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',

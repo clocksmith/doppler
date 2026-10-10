@@ -1,0 +1,13 @@
+{
+  "version": "0.6.22",
+  "cpuAndSourceGates": "npm run check:green passed; 895 files",
+  "physicalNumerical": "failed",
+  "firstPlacementFailed": 31,
+  "reversePlacementFailed": 31,
+  "steps": 110,
+  "maxDifference": 0.0037908554077148438,
+  "tolerance": 0.001,
+  "firstRemainingOperation": "layer.3.attn.core_out",
+  "rotationCrossGpuMaximumDifference": 0,
+  "referenceUnchanged": true
+}

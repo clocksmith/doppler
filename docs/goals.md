@@ -2,7 +2,7 @@
 
 Doppler is a JavaScript library for running AI models locally through WebGPU,
 without a separate Python environment or mandatory cloud inference service. Generation,
-embeddings, and reranking should be independently usable, composable application dependencies. Loading,
+embeddings, reranking, and [typed choice scoring](api/choice-scoring.md) should be independently usable, composable application dependencies. Loading,
 GPU execution, streaming, cancellation, and cleanup belong to the library;
 application policy does not. Browser and Node support are qualified separately;
 Bun remains experimental. Host prerequisites remain explicit: Node can require
@@ -34,45 +34,34 @@ must use this engine, not a second execution path bypassing its checks.
 
 ## Goal 1: Earn standalone executable-model adoption
 
-### Active product priorities: generation and search
+### Current priorities
 
-Standalone text generation is active product work alongside search. The compact
-embedding/reranking target, no-answer calibration and independent search adoption
-must not become prerequisites for a useful generation deliverable. This updates
-product sequencing; Rig → Capsule → Run and all execution/trust boundaries remain
-unchanged. Maintain the accepted search application and reuse its proven loading
-and lifecycle work where the contracts match.
+[Root GOALS.md](../GOALS.md#current-priorities) owns the active sequence. This page
+preserves product acceptance, implementation contracts, and historical evidence;
+it does not authorize a parallel search, rewriting, provider, or model campaign.
+Supported resident partitions are a current public integration requirement.
+Reploid's coordination requirements do not make it the owner of this library's
+roadmap; see [resident partition execution](distribution/resident-partition-execution.md).
 
-The first generation use-case hypothesis is rewriting selected text for clarity.
-Ship one qualified model and a small application outside Run, with streaming,
-honest cancellation, and user-controlled accept/discard. Freeze representative
-inputs and criteria before model selection: preserve names, numbers, negation,
-meaning and requested format; retain the original; reject oversized inputs
-explicitly; measure opening, first useful output, completion, memory, repeated
-use and offline reopening. A coherent smoke response or numerical source parity
-does not establish useful rewriting quality. Qualify installed assets, session
-reuse, closure and recovery separately on each claimed host.
+### Retained generation and search hypotheses
 
-Chrome's [Rewriter API](https://developer.chrome.com/docs/ai/rewriter-api) and
-[Summarizer API](https://developer.chrome.com/docs/ai/summarizer-api) provide
-concrete alternative workflows to evaluate where available. Their existence
-supports the use-case comparison, not a claim that Doppler is faster or more
-portable. Doppler must demonstrate a useful difference on the adopter's actual
-constraints. The first model and final application choice remain subject to
-task-quality evidence.
-
-Document retrieval within an existing application remains the leading use case
-for the embedding/reranking pair: find relevant passages and improve their order.
-Keep reranking only where its measured relevance benefit justifies its cost.
-The internal compact screening has not established a stronger independent-use
-case that warrants postponing generation. RAG composition remains optional;
-generation does not need a retrieval pipeline to be useful.
+Selected-text rewriting and compact embedding/reranking were earlier use-case
+hypotheses. Rewriting requires separate task-quality evidence; preserve names,
+numbers, negation, meaning, and user-controlled acceptance when it is explicitly
+selected. Existing retrieval code remains reusable outside Run; generation does
+not require search, and RAG composition remains application-owned.
 
 ### Next product increment: copy-and-run local search
 
+**Historical campaign label; retained acceptance contract.** This heading remains
+for existing links. The following search sequence describes its original campaign,
+not mandatory next work. Current priorities are owned by root GOALS.md. The 0.1.1
+starter's first-install metadata expired; its installed evidence remains valid for
+the recorded configuration and does not prove fresh installation today.
+
 Deliver a complete local-search application that developers can copy, run, and
-modify. This takes priority over nonzero-adapter qualification and further
-structural cleanup, except where a concrete defect blocks the application.
+modify. The original campaign prioritized this over nonzero-adapter qualification and
+structural cleanup; current sequencing follows root GOALS.md.
 Preserve the completed allocation, duplicate-verification, bounded-acquisition,
 and session-ownership repairs. Do not reopen them as an architecture project.
 
@@ -94,8 +83,8 @@ They are reference configurations, not evidence of minimum memory, reboot
 persistence, or independent adoption. Do not reopen the completed Node runner or
 repository-hygiene work as unfinished milestones.
 
-The next bounded search increments precede Electron expansion; they do not gate
-the standalone generation work above:
+The original bounded search sequence is retained below for its evidence and
+acceptance scope. It does not authorize these experiments as current next work:
 
 1. Maintain the delivered faster starter and its exact retained runtime archive.
    Preserve historical digest behavior and previous archives. Report fresh
@@ -380,26 +369,18 @@ policy registry, nonzero adapter, or generic capability wrapper for this deliver
 
 ### Retained integration context: Reploid's ordered milestones
 
-The September 8 Reploid milestones remain integration context, not the current
-priority ahead of the local-search increment above. Reploid is one consumer of the
-same public inference contracts as standalone applications; it owns agents, peer
-coordination, consent, and application policy. Preserve existing request/settings/
-completion propagation and support qualification of grounded answers. Then support
-the same frozen model/adapter
-through verified acquisition, approved execution, durable completed-result
-replay, ownership reversal, privacy checks, and multi-machine acquisition.
-History-based scheduling and distributed model execution remain disabled during
-these milestones. Startup reliability and adapter usefulness require separate
-experiments; none substitutes for answer quality or a connected physical journey.
+The September 8 sequence is historical integration context. Its instruction to
+disable distributed model execution applied to that sequence, not to current
+resident-partition work. Preserve its evidence and identities without reviving
+its operational ordering.
 
-Reploid owns prompts, passage selection, citations, semantic review, consent,
-network transfer, attempts, persistence, and replay. Doppler owns model/adapter
-verification and inference, honoring explicit injected restrictions. Every
-current change must remove an application limitation or improve inference
-reliability. Installed hashes, paired revisions, and model identities bind the
-evidence; reports about earlier revisions do not certify later bytes. This
-integration work does not convert sibling integration into independent adoption or
-change the standalone completion matrix below.
+Current Reploid integration consumes public inference and resident-partition
+contracts. Doppler owns artifact verification, loading, computation, and attempt
+execution state. Reploid owns prompts, consent, placement, transport, readiness,
+conversations, and retry policy. Installed hashes, paired revisions, and model
+identities bind physical acceptance; older reports do not certify later bytes.
+Distributed execution, numerical parity, bounded capacity, recovery, and useful
+answers require separate evidence. Sibling integration is not independent adoption.
 
 ### Retained independent adoption objective
 
@@ -833,7 +814,7 @@ safe candidates were attempted.
 
 | Area | Goal |
 | --- | --- |
-| Complete local-search application using existing search code and installed public APIs | Next Goal 1 increment; not external adoption |
+| Complete local-search application using existing search code and installed public APIs | Retained reference acceptance; not external adoption |
 | Open ESM-2 execution network, authorized custody, explicit complete-job delegation | Optional network experiment |
 | Release CLI, Electron adapter, fleet action | Goal 1; commercial evidence separate |
 | Browser execution, JS orchestration, WGSL kernels, Capsule execution | Goals 1 and 2 |

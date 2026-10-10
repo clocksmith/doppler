@@ -390,7 +390,7 @@
       "rope_precompute": {
         "kernel": "rope_precompute.wgsl",
         "entry": "main",
-        "digest": "sha256:d1e58348b15ffe60e1526ec209fdbaf4d93c78b36ac7d28d6bd23a787d9bc124"
+        "digest": "sha256:12ed4da65720d91f0f262f6e83a205b4d964e1878a51d6825cd7cbd0d23266b7"
       },
       "gather_vec4": {
         "kernel": "gather_vec4.wgsl",
@@ -415,7 +415,7 @@
       "rope_qk": {
         "kernel": "rope_qk.wgsl",
         "entry": "main",
-        "digest": "sha256:379186c35451a1bf08f3d157db52e48f4865c92caee230656fd55b7fa500351c"
+        "digest": "sha256:40244daeacaa49ee9fdade0bce0e39320154b5597d09742b9f6f2a7942fa0964"
       },
       "attention_general": {
         "kernel": "attention.wgsl",

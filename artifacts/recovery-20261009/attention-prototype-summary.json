@@ -1,0 +1,22 @@
+{
+  "scope": "Physical head-256 prefill prototype, captured inputs and block boundaries; not installed-package acceptance",
+  "oldCapturedErrorMac": 2.265524905231686e-06,
+  "oldCapturedErrorLinux": 3.847197863615648e-06,
+  "cases": [
+    {
+      "tokens": 19,
+      "crossGpuMaximumDifference": 0,
+      "independentMaximumError": 5.328705463547578e-07
+    },
+    {
+      "tokens": 33,
+      "crossGpuMaximumDifference": 0,
+      "independentMaximumError": 5.328705463547578e-07
+    },
+    {
+      "tokens": 65,
+      "crossGpuMaximumDifference": 0,
+      "independentMaximumError": 8.577047956315198e-07
+    }
+  ]
+}

@@ -9,28 +9,14 @@ qualified, signed immutable Capsules; the deliberately uncreative Run validates,
 selects, binds, executes, and observes their declared programs. Browser and Node
 support are qualified separately; Bun remains experimental.
 
-**Current Product Priority:** Advance standalone text generation alongside the
-copy-and-run local-search application. Compact search completion is not a gate
-on generation work. See [active product priorities](docs/goals.md#active-product-priorities-generation-and-search)
-and the [search acceptance contract](docs/goals.md#next-product-increment-copy-and-run-local-search).
-Reuse `examples/document-search/search.js`; keep application lifetime, indexing,
-and presentation outside the runtime. This precedes nonzero-adapter qualification
-and structural cleanup except for concrete application-blocking defects. Preserve
-the one-shot capability example, existing trust/checkpoint protections, and
-completed loading repairs. Reploid consumes the same public inference contracts.
-Embeddings and reranking complete the search workflow. A bounded standalone
-generation application is an active priority; combining generation with search
-as RAG remains a separate application decision. Treat privacy, offline availability, cancellation, memory, and numerical
-portability as scoped acceptance requirements, not automatic WebGPU guarantees.
-See the goals for host prerequisites, release-history limits, and GPU lifecycle semantics.
-
-**Current Search Sequence:** Maintain the published faster starter; qualify MiniLM
-embeddings with the incumbent reranker; complete one bounded unchanged-application
-Doe/provider comparison; support independent use through a second application
-revision. Follow the [canonical sequence and acceptance](docs/goals.md#bounded-portability-after-browser-delivery).
-Qwen quantization and abstention research do not block delivery. Doe stays optional;
-generation remains an independent active priority. Do not reopen delivered loader
-or Node work as unfinished, or mark MiniLM/Doe acceptance complete from planning.
+**Current priorities:** Follow the single active sequence in
+[GOALS.md](GOALS.md#current-priorities). Finish dependable execution and lifecycle
+in the current public integration, then ordinary installation and independent
+application value. Reploid is a demanding consumer, not the owner of Doppler's
+roadmap; Doe is optional. Historical search, rewriting, and provider campaigns
+are retained evidence and acceptance contracts, not mandatory next work.
+Preserve model identity, compatibility, trust/checkpoint protections, and scoped
+qualification. Verification supports useful, fast, simple, portable execution.
 
 **File Extensions:** Always use `.js`. Never create `.mjs` files. The repo uses `"type": "module"` in `package.json`, so all `.js` files are ES modules. The `.mjs` extension is redundant and prohibited.
 
