@@ -105,7 +105,68 @@
     "shaderSha256": "38f7209006ccacb8654f82fc5cf5b17a9c2f9647c9a2b07f933c2c2420d8ebe5",
     "archiveSha256": "cbec67e09fc7c443115558788d65a661e7e63d5907c7e7de3c07f3ecbba269c4",
     "modelManifestSha256": "9d6d621650134275f017ae268c519e90c8b184b01a53d1495d0d43dfc410b206",
-    "numericalAcceptance": "pending",
+    "numericalAcceptance": "failed",
     "deployed": false
+  },
+  "completeModelComparison": {
+    "policy": "required",
+    "steps": 110,
+    "failed": 60,
+    "maxDifference": 0.0035047531127929688,
+    "tolerance": 0.001,
+    "directions": [
+      {
+        "direction": "linux-mac",
+        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-linux-mac.json",
+        "partitionHosts": [
+          {
+            "index": 1,
+            "host": "mac"
+          },
+          {
+            "index": 0,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 25,
+        "maxDifference": 0.001842498779296875,
+        "tolerance": 0.001
+      },
+      {
+        "direction": "mac-linux",
+        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-10-04-628Z/reference-mac-linux.json",
+        "partitionHosts": [
+          {
+            "index": 0,
+            "host": "mac"
+          },
+          {
+            "index": 1,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 35,
+        "maxDifference": 0.0035047531127929688,
+        "tolerance": 0.001
+      }
+    ]
+  },
+  "interpretation": "Captured gate accuracy improved and both backends now match at the first prefill step. Complete frozen comparison regressed from 46/110 failures in 0.6.24 to 60/110 in 0.6.25. This is not release acceptance or a material application gain.",
+  "cpuChecks": {
+    "initialUnitFiles": 895,
+    "initialUnitFilesFailed": [
+      "tests/config/amplify-120m-conversion-contract.test.js"
+    ],
+    "focusedRepairPassed": true,
+    "generatedReportsRechecked": true,
+    "packageSmokePassed": true,
+    "logs": [
+      "doppler-025-check-green.log.gz",
+      "doppler-025-generated-gates.log.gz",
+      "doppler-025-amplify-regression.log.gz"
+    ],
+    "aggregateCheckGreen": "Initial run failed; focused repairs passed. No claim of a successful original aggregate."
   }
 }

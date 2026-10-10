@@ -127,7 +127,7 @@ try {
   console.log(JSON.stringify({ host, candidate, capturedAgreement: receipt.capturedAgreement,
     independentCaptured: receipt.independentCaptured, independentSweep: receipt.independentSweep }));
   if (candidate === null) assert.equal(receipt.capturedAgreement.maxError, 0, 'Baseline must reproduce the actual gate');
-  else assert(receipt.independentCaptured.maxError <= 3e-7 && receipt.independentSweep.maxError <= 5e-7,
+  else assert(receipt.independentCaptured.maxError <= 1.1e-7 && receipt.independentSweep.maxError <= 3.3e-7,
     'Refined sigmoid exceeds the independent accuracy bound');
 } finally {
   await browser?.close(); await new Promise(done => server.close(done));

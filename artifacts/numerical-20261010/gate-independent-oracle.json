@@ -1,0 +1,34 @@
+{
+  "scope": "Separate Python Float64 oracle on captured F32 operands; no inference intervention",
+  "elements": 38912,
+  "comparisons": [
+    {
+      "host": "mac",
+      "stage": "baseline",
+      "pythonMaximumError": 1.638304922835232e-07,
+      "javascriptMaximumError": 1.638304922835232e-07,
+      "maximumMetricDifference": 0.0
+    },
+    {
+      "host": "mac",
+      "stage": "candidate",
+      "pythonMaximumError": 1.030385148315105e-07,
+      "javascriptMaximumError": 1.030385148315105e-07,
+      "maximumMetricDifference": 0.0
+    },
+    {
+      "host": "linux",
+      "stage": "baseline",
+      "pythonMaximumError": 1.537951628272083e-07,
+      "javascriptMaximumError": 1.537951628272083e-07,
+      "maximumMetricDifference": 0.0
+    },
+    {
+      "host": "linux",
+      "stage": "candidate",
+      "pythonMaximumError": 1.030385148315105e-07,
+      "javascriptMaximumError": 1.030385148315105e-07,
+      "maximumMetricDifference": 0.0
+    }
+  ]
+}
