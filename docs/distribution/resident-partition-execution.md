@@ -93,12 +93,11 @@ specified in its report.
 
 The [current recovery investigation](../../artifacts/recovery-20261009/README.md)
 retains operator captures, independent calculations, exact archive identities,
-and two-physical-GPU comparisons. The
-[0.6.21 package comparison](https://github.com/clocksmith/reploid/blob/main/artifacts/distributed/2026-10-10T00-55-51-285Z/result.json)
-exceeded the frozen 0.001 tolerance in 60 of 110 steps. Later source corrections
-and bounded operator agreement are diagnostic evidence, not package promotion.
-Read the owning report for subsequent candidates; do not infer current acceptance
-from this earlier result or from selected-token agreement alone.
+and two-physical-GPU comparisons. Retained package comparisons still exceed the
+frozen 0.001 tolerance; the owning report records exact candidates and failure
+outcomes. Bounded operator agreement is diagnostic evidence, not package
+promotion. Do not infer acceptance from selected-token agreement alone or from
+an earlier candidate's outcome.
 
 Remaining integration acceptance must bind one ordinary package pair to both
 physical placements, unchanged model/input/precision/reference requirements,

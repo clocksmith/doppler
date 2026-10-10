@@ -7,7 +7,7 @@ entry path, use [Getting Started](../getting-started.md).
 ## Scope
 
 Use this guide for:
-- first local generation via `npx doppler-gpu`
+
 - first successful `verify`
 - optional local conversion
 - first benchmark artifact
@@ -52,10 +52,9 @@ All examples below use inline JSON for readability.
 
 ### Browser requirements
 
-Supported:
-- Chrome/Edge (recommended)
-- Safari with WebGPU support
-- Firefox Nightly (experimental)
+Check WebGPU availability on the intended host. Chrome/Edge, Safari with WebGPU,
+and experimental Firefox configurations still need their own model, device,
+and lifecycle qualification; browser availability is not a support receipt.
 
 Check WebGPU availability:
 

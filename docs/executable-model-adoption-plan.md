@@ -1,6 +1,6 @@
 # Doppler executable-model adoption plan
 
-Status: optional adoption and release-operations plan  
+Status: optional adoption and release-operations plan
 Strategy unit: Doppler alone  
 Repository owner: Doppler
 
