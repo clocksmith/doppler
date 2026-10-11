@@ -9,7 +9,7 @@ The published npm 0.6.1 archive does not expose this entry.
 
 Doppler owns numerical execution, resident weights, and attempt execution state.
 Reploid owns discovery, grants, placement, transfer, readiness, conversations,
-and retries; see the [consumer handoff](https://github.com/clocksmith/reploid/blob/main/docs/doppler-partition-handoff.md).
+and retries; see the [consumer acceptance contract](https://github.com/clocksmith/reploid/blob/main/docs/chat-mvp.md#resident-integration-contract).
 The [September 27 local diagnostic](../../reports/resident-partitions/20260927/README.md)
 and [session checkpoint](../../reports/resident-partitions/20260927-session-checkpoint/README.md)
 retain their historical source and incomplete acceptance boundaries. Their former
