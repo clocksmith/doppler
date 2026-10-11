@@ -1,0 +1,177 @@
+{
+  "schema": "doppler.w8a8-conversion/v1",
+  "scope": "Artifact construction and packed-byte validation; no model execution or quality acceptance.",
+  "command": "node tools/convert-safetensors-node.js /var/tmp/doppler-gemma270-source-20261011 --config src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json --output-dir /var/tmp/doppler-gemma270-w8a8-final-20261011",
+  "source": {
+    "source": "google/gemma-3-270m-it",
+    "revision": "ac82b4e820549b854eebf28ce6dedaf9fdfa17b3",
+    "files": [
+      {
+        "path": "README.md",
+        "bytes": 28308,
+        "sha256": "9568b09f2a80d09746687bc077aefe9a070948c68d5f1af07007b2da9a70a065",
+        "expectedLfsSha256": null,
+        "url": "https://huggingface.co/google/gemma-3-270m-it/resolve/ac82b4e820549b854eebf28ce6dedaf9fdfa17b3/README.md"
+      },
+      {
+        "path": "added_tokens.json",
+        "bytes": 35,
+        "sha256": "50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946",
+        "expectedLfsSha256": null,
+        "url": "https://huggingface.co/google/gemma-3-270m-it/resolve/ac82b4e820549b854eebf28ce6dedaf9fdfa17b3/added_tokens.json"
+      },
+      {
+        "path": "chat_template.jinja",
+        "bytes": 1532,
+        "sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+        "expectedLfsSha256": null,
+        "url": "https://huggingface.co/google/gemma-3-270m-it/resolve/ac82b4e820549b854eebf28ce6dedaf9fdfa17b3/chat_template.jinja"
+      },
+      {
+        "path": "config.json",
+        "bytes": 1352,
+        "sha256": "8983343e5bfbf8e336d222a522a1d781443491e9de2d081b8856f8fd26ab6046",
+        "expectedLfsSha256": null,
+        "url": "https://huggingface.co/google/gemma-3-270m-it/resolve/ac82b4e820549b854eebf28ce6dedaf9fdfa17b3/config.json"
+      },
+      {
+        "path": "generation_config.json",
+        "bytes": 173,
+        "sha256": "f3d7bb125d6b8751b8fc57c7155c10d6716ebe5a64900a27f56ca236c1c0c241",
+        "expectedLfsSha256": null,
+        "url": "https://huggingface.co/google/gemma-3-270m-it/resolve/ac82b4e820549b854eebf28ce6dedaf9fdfa17b3/generation_config.json"
+      },
+      {
+        "path": "model.safetensors",
+        "bytes": 536223056,
+        "sha256": "700b710a9a99c295ed546647aa81cacf9f81f4c573ea2be613a0e2517a44afab",
+        "expectedLfsSha256": "700b710a9a99c295ed546647aa81cacf9f81f4c573ea2be613a0e2517a44afab",
+        "url": "https://huggingface.co/google/gemma-3-270m-it/resolve/ac82b4e820549b854eebf28ce6dedaf9fdfa17b3/model.safetensors"
+      },
+      {
+        "path": "special_tokens_map.json",
+        "bytes": 662,
+        "sha256": "2f7b0adf4fb469770bb1490e3e35df87b1dc578246c5e7e6fc76ecf33213a397",
+        "expectedLfsSha256": null,
+        "url": "https://huggingface.co/google/gemma-3-270m-it/resolve/ac82b4e820549b854eebf28ce6dedaf9fdfa17b3/special_tokens_map.json"
+      },
+      {
+        "path": "tokenizer.json",
+        "bytes": 33384570,
+        "sha256": "7d4046bf0505a327dd5a0abbb427ecd4fc82f99c2ceaa170bc61ecde12809b0c",
+        "expectedLfsSha256": "7d4046bf0505a327dd5a0abbb427ecd4fc82f99c2ceaa170bc61ecde12809b0c",
+        "url": "https://huggingface.co/google/gemma-3-270m-it/resolve/ac82b4e820549b854eebf28ce6dedaf9fdfa17b3/tokenizer.json"
+      },
+      {
+        "path": "tokenizer.model",
+        "bytes": 4689074,
+        "sha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c",
+        "expectedLfsSha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c",
+        "url": "https://huggingface.co/google/gemma-3-270m-it/resolve/ac82b4e820549b854eebf28ce6dedaf9fdfa17b3/tokenizer.model"
+      },
+      {
+        "path": "tokenizer_config.json",
+        "bytes": 1155375,
+        "sha256": "94b03056ec5831e9021c3e3fe9db682778c4f2d081c4188f1fcb8b90541cf1cf",
+        "expectedLfsSha256": null,
+        "url": "https://huggingface.co/google/gemma-3-270m-it/resolve/ac82b4e820549b854eebf28ce6dedaf9fdfa17b3/tokenizer_config.json"
+      }
+    ]
+  },
+  "recipe": {
+    "path": "src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json",
+    "sha256": "246a898ba5b693b6e618668e8fac169228fd04e478a6551e4834eabe0f0a8d29"
+  },
+  "manifest": {
+    "path": "/var/tmp/doppler-gemma270-w8a8-final-20261011/manifest.json",
+    "sha256": "6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+    "validation": {
+      "valid": true,
+      "errors": [],
+      "warnings": []
+    }
+  },
+  "shards": [
+    {
+      "index": 0,
+      "filename": "shard_00000.bin",
+      "bytes": 67108864,
+      "sha256": "b67e53c657a2f46580cc7aa1a1e0d665243574a8fba0d71ef8e1f35328ff378a"
+    },
+    {
+      "index": 1,
+      "filename": "shard_00001.bin",
+      "bytes": 67108864,
+      "sha256": "b2d4778ab0b9ba95a47bfc7d8b1fd89bd7f3d44442e1ead60f84c885d5d15924"
+    },
+    {
+      "index": 2,
+      "filename": "shard_00002.bin",
+      "bytes": 67108864,
+      "sha256": "8b499de08e74237e4b1fe7dfc287ce7ba1a287fc77ec2143169c7f1f1200b50b"
+    },
+    {
+      "index": 3,
+      "filename": "shard_00003.bin",
+      "bytes": 67108864,
+      "sha256": "33d2c4cf20d69c6f4ad40be1da02144b9eb151209abf24f3fc5066502e68049c"
+    },
+    {
+      "index": 4,
+      "filename": "shard_00004.bin",
+      "bytes": 67108864,
+      "sha256": "9afd2664de8368373adb6282f023d0bfcd27edc5d5312988b1ab5daa700375a8"
+    },
+    {
+      "index": 5,
+      "filename": "shard_00005.bin",
+      "bytes": 67108864,
+      "sha256": "d73065752ece78694ebd6b35a068b6a33e385be2ac01430c577475346f928f88"
+    },
+    {
+      "index": 6,
+      "filename": "shard_00006.bin",
+      "bytes": 33770752,
+      "sha256": "285c3b263a810603c3f981a42f504bdab96fef4f8718050e534455d5b5024c55"
+    }
+  ],
+  "tensors": {
+    "total": 236,
+    "w8a8": 126,
+    "f16": 110
+  },
+  "policy": {
+    "schema": "doppler.w8a8/v1",
+    "scheme": "symmetric",
+    "weightGranularity": "output-channel",
+    "activationGranularity": "token",
+    "codeRange": [
+      -127,
+      127
+    ],
+    "inputDtype": "f32",
+    "scaleDtype": "f32",
+    "zeroScale": 1,
+    "rounding": "nearest-even",
+    "inputPolicy": "finite-normal-or-zero",
+    "scalePolicy": "positive-normal",
+    "packing": "w8a8-row-v1",
+    "accumulatorDtype": "i32",
+    "maxReductionWidth": 133144,
+    "rescaleOrder": [
+      "activation",
+      "weight"
+    ],
+    "outputDtype": "f32",
+    "quantizationRatio": "exact-input-over-stored-scale",
+    "scaleRounding": "nearest-even",
+    "rescaleRounding": "nearest-even",
+    "outputSubnormals": "flush-to-signed-zero-after-each-rescale"
+  },
+  "allPackedRowsValid": true,
+  "priorConstruction": {
+    "manifestSha256": "f6066e050e5bee3479f4222ed2f0da9aac038bddb394dbcb59c356bb225d3fc3",
+    "sameShardBytes": true,
+    "change": "Explicit F32 public projection input/output precision and conversion metadata."
+  }
+}

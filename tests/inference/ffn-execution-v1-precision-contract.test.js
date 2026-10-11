@@ -18,10 +18,10 @@ const {
   canFuseSplitPrefillF16GateUpPath,
 } = await import('../../src/inference/pipelines/text/ffn/dense.js');
 
-{
-  const gate = createWeightBuffer({}, 'w4a16', 'row', [128, 32], 'packed_gate');
+for (const packedDtype of ['w4a16', 'w8a8']) {
+  const gate = createWeightBuffer({}, packedDtype, 'row', [128, 32], 'packed_gate');
   const gateDtype = requireFusedWeightDtype(getWeightDtype(gate), 'gate');
-  assert.equal(gateDtype, 'w4a16', 'Known packed metadata must reach the declared FFN path selection');
+  assert.equal(gateDtype, packedDtype, 'Known packed metadata must reach the declared FFN path selection');
   assert.equal(canUseNativeF16FusedGateUp({ inputDtype: 'f16', hasF16: true, gateDtype }), false,
     'Accepting packed metadata must not reinterpret it as native fused F16 weights');
   assert.equal(canFuseSplitPrefillF16GateUpPath({

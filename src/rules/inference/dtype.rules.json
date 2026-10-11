@@ -89,6 +89,7 @@
     { "match": {}, "value": { "context": "fallback" } }
   ],
   "matmulDtype": [
+    { "match": { "dtype": "w8a8" }, "value": "w8a8" },
     { "match": { "dtype": "bf16" }, "value": "bf16" },
     { "match": { "dtype": "f16" }, "value": "f16" },
     { "match": { "dtype": "f32" }, "value": "f32" },

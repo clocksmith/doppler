@@ -1,3 +1,4 @@
+import { validateW8A8Policy } from '../config/schema/w8a8.schema.js';
 
 import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../config/index.js';
 import { classifyTensorRole } from '../formats/rdrr/index.js';
@@ -27,6 +28,7 @@ const QUANT_TAG_ALIASES = {
   'q8_0': 'q8_0',
   'q8': 'q8_0',
   // Compressed-tensors / mobile QAT variants
+  'w8a8': 'w8a8',
   'w4a16': 'w4a16',
   'w4a16-ct': 'w4a16',
   'w4a16_ct': 'w4a16',
@@ -124,7 +126,7 @@ function validateQuantType(value, source) {
   if (!value) return;
   const normalized = normalizeQuantTag(value);
 
-  const supported = ['q4k', 'q4_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32'];
+  const supported = ['w8a8', 'q4k', 'q4_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32'];
   if (supported.includes(normalized)) return;
 
   const planned = ['q6k', 'q8_0', 'fp8e4', 'fp8e5', 'i4', 'i8'];
@@ -457,6 +459,16 @@ export function buildQuantizationInfo(
     lmHead: lmHead !== embeddings ? lmHead : undefined,
   };
 
+  if (weights === 'w8a8') {
+    info.w8a8 = { ...validateW8A8Policy(quantization.w8a8, 'converter.quantization.w8a8') };
+    if (!['f16', 'bf16', 'f32'].includes(embeddings)
+      || !['f16', 'bf16', 'f32'].includes(lmHead) || computePrecision !== 'f32') {
+      throw new Error('W8A8 requires explicit F32 compute and dense embedding/head storage.');
+    }
+  } else if (quantization.w8a8 != null) {
+    throw new Error('converter.quantization.w8a8 requires weights=w8a8.');
+  }
+
   const hasExperts = Boolean(
     modelConfig?.num_local_experts ||
     modelConfig?.num_experts ||
@@ -613,6 +625,9 @@ export function resolveEffectiveQuantizationInfo(baseInfo, tensors) {
         `Configured quantizationInfo.weights="${baseWeights}" is not present in converted matmul tensors.`
       );
     }
+  }
+  if (base.w8a8 != null && weights !== 'w8a8') {
+    throw new Error('Requested W8A8 conversion produced no W8A8 matmul weights.');
   }
   const embeddings = detectedEmbeddings
     ?? normalizeQuantTag(base.embeddings ?? weights);

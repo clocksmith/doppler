@@ -5,6 +5,9 @@ import * as writers1 from './uniform-writers-1.js';
 import * as writers2 from './uniform-writers-2.js';
 
 export const UNIFORM_WRITERS = Object.freeze({
+  "w8a8_quantize/f32": { size: 16, write: writers0.write_w8a8_quantize_f32 },
+  "w8a8_rescale/activation": { size: 16, write: writers0.write_w8a8_quantize_f32 },
+  "w8a8_rescale/weight": { size: 16, write: writers0.write_w8a8_quantize_f32 },
   "qwen_attention_split_q_gate/default": { size: 16, write: writers0.write_qwen_attention_split_q_gate_default },
   "qwen_attention_split_q_gate_backward/default": { size: 16, write: writers0.write_qwen_attention_split_q_gate_default },
   "qwen_gqa_softmax_recompute/default": { size: 32, write: writers0.write_qwen_gqa_softmax_recompute_default },
@@ -16,6 +19,8 @@ export const UNIFORM_WRITERS = Object.freeze({
   "gated_rmsnorm/default": { size: 16, write: writers0.write_gated_rmsnorm_default },
   "causal_conv1d_silu/default": { size: 16, write: writers0.write_causal_conv1d_silu_default },
   "gated_delta_recurrent_checkpoint_forward/default": { size: 48, write: writers0.write_gated_delta_recurrent_checkpoint_forward_default },
+  "matmul/w8a8_portable": { size: 16, write: writers0.write_w8a8_quantize_f32 },
+  "matmul/w8a8_packed": { size: 16, write: writers0.write_w8a8_quantize_f32 },
   "matmul/f16": { size: 32, write: writers0.write_matmul_f16 },
   "matmul/f16_vec4": { size: 32, write: writers0.write_matmul_f16 },
   "matmul/f16_tiled": { size: 32, write: writers0.write_matmul_f16 },
@@ -179,8 +184,8 @@ export const UNIFORM_WRITERS = Object.freeze({
   "rope/ntk_f16": { size: 48, write: writers0.write_rope_default },
   "rope/yarn": { size: 48, write: writers0.write_rope_default },
   "rope/yarn_f16": { size: 48, write: writers0.write_rope_default },
-  "rope_qk/default": { size: 32, write: writers0.write_rope_qk_default },
-  "rope_qk/default_f16": { size: 32, write: writers0.write_rope_qk_default },
+  "rope_qk/default": { size: 32, write: writers1.write_rope_qk_default },
+  "rope_qk/default_f16": { size: 32, write: writers1.write_rope_qk_default },
   "silu/default": { size: 16, write: writers1.write_silu_default },
   "silu/default_f16": { size: 16, write: writers1.write_silu_default },
   "gelu/gelu": { size: 16, write: writers1.write_gelu_gelu },
@@ -314,7 +319,7 @@ export const UNIFORM_WRITERS = Object.freeze({
   "modulate/f16": { size: 32, write: writers1.write_modulate_default },
   "pixel_shuffle/default": { size: 32, write: writers1.write_pixel_shuffle_default },
   "pixel_shuffle/f16": { size: 32, write: writers1.write_pixel_shuffle_default },
-  "cross_entropy_backward/default": { size: 16, write: writers1.write_cross_entropy_backward_default },
+  "cross_entropy_backward/default": { size: 16, write: writers2.write_cross_entropy_backward_default },
   "adam/default": { size: 32, write: writers2.write_adam_default },
   "bias_add_backward/default": { size: 16, write: writers2.write_bias_add_backward_default },
   "upsample2d_backward/default": { size: 32, write: writers1.write_upsample2d_default },

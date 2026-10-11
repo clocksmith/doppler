@@ -1,0 +1,491 @@
+{
+  "output": {
+    "baseDir": "models/local",
+    "modelBaseId": "gemma-3-270m-it-w8a8-ehf16-af32"
+  },
+  "quantization": {
+    "weights": "w8a8",
+    "embeddings": "f16",
+    "lmHead": "f16",
+    "computePrecision": "f32",
+    "w8a8": {
+      "schema": "doppler.w8a8/v1",
+      "scheme": "symmetric",
+      "weightGranularity": "output-channel",
+      "activationGranularity": "token",
+      "codeRange": [
+        -127,
+        127
+      ],
+      "inputDtype": "f32",
+      "scaleDtype": "f32",
+      "zeroScale": 1,
+      "rounding": "nearest-even",
+      "inputPolicy": "finite-normal-or-zero",
+      "scalePolicy": "positive-normal",
+      "packing": "w8a8-row-v1",
+      "accumulatorDtype": "i32",
+      "maxReductionWidth": 133144,
+      "rescaleOrder": [
+        "activation",
+        "weight"
+      ],
+      "outputDtype": "f32",
+      "quantizationRatio": "exact-input-over-stored-scale",
+      "scaleRounding": "nearest-even",
+      "rescaleRounding": "nearest-even",
+      "outputSubnormals": "flush-to-signed-zero-after-each-rescale"
+    }
+  },
+  "inference": {
+    "attention": {
+      "queryPreAttnScalar": 256,
+      "attnLogitSoftcapping": null,
+      "slidingWindow": 512,
+      "queryKeyNorm": true,
+      "causal": true,
+      "attentionBias": false,
+      "attentionOutputGate": false,
+      "valueNorm": false
+    },
+    "normalization": {
+      "rmsNormEps": 0.000001,
+      "rmsNormWeightOffset": true,
+      "postAttentionNorm": true,
+      "preFeedforwardNorm": true,
+      "postFeedforwardNorm": true
+    },
+    "ffn": {
+      "activation": "gelu",
+      "gatedActivation": true,
+      "branchMode": "auto",
+      "swigluLimit": null,
+      "useDoubleWideMlp": false
+    },
+    "rope": {
+      "ropeTheta": 1000000,
+      "ropeLocalTheta": 10000,
+      "mropeInterleaved": false,
+      "mropeSection": null,
+      "partialRotaryFactor": null,
+      "ropeScalingType": null,
+      "ropeScalingFactor": 1,
+      "ropeLocalScalingType": null,
+      "ropeLocalScalingFactor": 1,
+      "yarnBetaFast": null,
+      "yarnBetaSlow": null,
+      "yarnOriginalMaxPos": null,
+      "ropeLocalYarnBetaFast": null,
+      "ropeLocalYarnBetaSlow": null,
+      "ropeLocalYarnOriginalMaxPos": null,
+      "ropeLocalPartialRotaryFactor": null,
+      "ropeFrequencyBaseDim": null,
+      "ropeLocalFrequencyBaseDim": null,
+      "longropeShortFactor": null,
+      "longropeLongFactor": null,
+      "longropeOriginalMaxPos": null
+    },
+    "output": {
+      "finalLogitSoftcapping": null,
+      "tieWordEmbeddings": true,
+      "scaleEmbeddings": true,
+      "embeddingTranspose": false,
+      "embeddingVocabSize": null,
+      "embeddingPostprocessor": null,
+      "embeddingScale": null,
+      "logitInputScale": 1
+    },
+    "layerPattern": {
+      "type": "every_n",
+      "globalPattern": null,
+      "period": 6,
+      "offset": 5,
+      "layerTypes": null,
+      "residualBranchScale": 1
+    },
+    "chatTemplate": {
+      "type": "gemma",
+      "enabled": true
+    }
+  },
+  "session": {
+    "compute": {
+      "defaults": {
+        "activationDtype": "f32",
+        "mathDtype": "f32",
+        "accumDtype": "f32",
+        "outputDtype": "f32"
+      }
+    },
+    "kvcache": {
+      "kvDtype": "f16",
+      "layout": "contiguous",
+      "pageSize": 256,
+      "tiering": {
+        "mode": "off",
+        "hotWindow": 1024,
+        "coldPageSize": 256,
+        "coldDtype": "f16",
+        "compression": {
+          "mode": "none",
+          "blockSize": 1,
+          "bitWidth": 4,
+          "prodMode": false
+        },
+        "gating": {
+          "mode": "auto",
+          "minAluBwRatio": 0
+        }
+      },
+      "quantization": {
+        "mode": "none",
+        "bitWidth": 4,
+        "prodMode": false
+      }
+    },
+    "decodeLoop": {
+      "batchSize": 1,
+      "stopCheckMode": "batch",
+      "readbackInterval": 1,
+      "readbackMode": "sequential",
+      "ringTokens": 1,
+      "ringStop": 1,
+      "ringStaging": 1,
+      "disableCommandBatching": false
+    },
+    "perLayerInputs": {
+      "materialization": "auto",
+      "rowCache": {
+        "mode": "lru",
+        "maxRows": 256,
+        "maxBytes": 134217728,
+        "decodedDtype": "f32"
+      },
+      "prefetch": {
+        "mode": "next_token",
+        "rowsAhead": 1
+      },
+      "gpuUpload": {
+        "mode": "per_step_slices",
+        "stagingRows": 2
+      },
+      "hotCache": {
+        "mode": "prepared_tokens",
+        "maxTokens": 1024,
+        "maxBytes": 134217728,
+        "outputDtype": "f32"
+      }
+    },
+    "prefillChunkSubmitMode": "sync",
+    "useFlashPrefillAttention": false,
+    "useWideTileQ4KPrefill": false,
+    "retainQ4KMaterialization": false
+  },
+  "execution": {
+    "kernels": {
+      "embed": {
+        "kernel": "gather.wgsl",
+        "entry": "main",
+        "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6"
+      },
+      "rmsnorm": {
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "digest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
+      },
+      "gemv": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_vec4",
+        "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
+      },
+      "rope": {
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "digest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
+      },
+      "attn_decode": {
+        "kernel": "attention_decode_online_head256_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:fa4a40535b2aa1389b0510329fb31675d4da50ddfdfbf1e8125c7213c7ffb525",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "residual": {
+        "kernel": "residual.wgsl",
+        "entry": "main",
+        "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117"
+      },
+      "gelu": {
+        "kernel": "gelu.wgsl",
+        "entry": "main",
+        "digest": "sha256:db864455ec72070d7d8729c8744e2eac377a4939a9bc2ecb26eb086d866e16b0",
+        "constants": {
+          "HAS_GATE": true
+        }
+      },
+      "tiled": {
+        "kernel": "matmul_f16w_f32a_tiled.wgsl",
+        "entry": "main",
+        "digest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8"
+      },
+      "attn_small": {
+        "kernel": "attention_small_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:ad3bb913c17167eb28fefc6abd24602ea0f148bc22a2b5f437eeffcc6f7fc668",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "attn_head256": {
+        "kernel": "attention_head256_f16kv.wgsl",
+        "entry": "main",
+        "digest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da",
+        "precision": {
+          "kvDtype": "f16"
+        }
+      },
+      "lm_head_gemv": {
+        "kernel": "matmul_gemv_subgroup.wgsl",
+        "entry": "main_multicol",
+        "digest": "sha256:e41f94574d5ac54dd2710036da5d5acc643a483b79b2d74b86825efdaaa7438f",
+        "constants": {
+          "MULTICOL_COLS_PER_WG": 8,
+          "MULTICOL_THREADS_PER_COL": 32
+        }
+      },
+      "sample": {
+        "kernel": "sample.wgsl",
+        "entry": "sample_single_pass",
+        "digest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef"
+      },
+      "w8a8": {
+        "kernel": "matmul_w8a8.wgsl",
+        "entry": "main",
+        "digest": "sha256:ed8ff1e148b0d4297d8c781a2e6c1ff65d410f1dd553f294cd3d9dbf8d4f0f38",
+        "constants": {
+          "WORKGROUP_SIZE": 64
+        },
+        "precision": {
+          "inputDtype": "f32",
+          "outputDtype": "f32"
+        }
+      },
+      "w8a8_quantize": {
+        "kernel": "quantize_w8a8.wgsl",
+        "entry": "main",
+        "digest": "sha256:71f7926023f1fc7326f194d653aea1dde3eead24605aad76e2cb133225ae1dc5",
+        "constants": {
+          "WORKGROUP_SIZE": 256
+        }
+      },
+      "w8a8_rescale_activation": {
+        "kernel": "rescale_w8a8.wgsl",
+        "entry": "main",
+        "digest": "sha256:9bec44ec2b292731cdf64c49af4e2c69455f18e2dcfdce00e009e8072c8038e9",
+        "constants": {
+          "WORKGROUP_SIZE": 256,
+          "INPUT_IS_I32": true,
+          "SCALE_BY_ROW": true
+        }
+      },
+      "w8a8_rescale_weight": {
+        "kernel": "rescale_w8a8.wgsl",
+        "entry": "main",
+        "digest": "sha256:9bec44ec2b292731cdf64c49af4e2c69455f18e2dcfdce00e009e8072c8038e9",
+        "constants": {
+          "WORKGROUP_SIZE": 256,
+          "INPUT_IS_I32": false,
+          "SCALE_BY_ROW": false
+        }
+      }
+    },
+    "preLayer": [
+      [
+        "embed",
+        "embed",
+        "embed_tokens"
+      ]
+    ],
+    "decode": [
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "w8a8",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "w8a8",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "w8a8",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_decode"
+      ],
+      [
+        "o_proj",
+        "w8a8",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "gate_proj",
+        "w8a8",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "w8a8",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "gelu"
+      ],
+      [
+        "down_proj",
+        "w8a8",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
+    ],
+    "prefill": [
+      [
+        "input_norm",
+        "rmsnorm"
+      ],
+      [
+        "q_proj",
+        "w8a8",
+        "layer.{L}.self_attn.q_proj"
+      ],
+      [
+        "k_proj",
+        "w8a8",
+        "layer.{L}.self_attn.k_proj"
+      ],
+      [
+        "v_proj",
+        "w8a8",
+        "layer.{L}.self_attn.v_proj"
+      ],
+      [
+        "rope_q",
+        "rope"
+      ],
+      [
+        "rope_k",
+        "rope"
+      ],
+      [
+        "attention",
+        "attn_head256"
+      ],
+      [
+        "o_proj",
+        "w8a8",
+        "layer.{L}.self_attn.o_proj"
+      ],
+      [
+        "attn_residual",
+        "residual"
+      ],
+      [
+        "post_attn_norm",
+        "rmsnorm"
+      ],
+      [
+        "gate_proj",
+        "w8a8",
+        "layer.{L}.mlp.gate_proj"
+      ],
+      [
+        "up_proj",
+        "w8a8",
+        "layer.{L}.mlp.up_proj"
+      ],
+      [
+        "activation",
+        "gelu"
+      ],
+      [
+        "down_proj",
+        "w8a8",
+        "layer.{L}.mlp.down_proj"
+      ],
+      [
+        "ffn_residual",
+        "residual"
+      ]
+    ],
+    "postLayer": [
+      [
+        "final_norm",
+        "rmsnorm"
+      ],
+      [
+        "lm_head",
+        "lm_head_gemv",
+        "lm_head"
+      ],
+      [
+        "lm_head_prefill",
+        "tiled",
+        "lm_head"
+      ],
+      [
+        "sample",
+        "sample"
+      ]
+    ],
+    "policies": {
+      "unsupportedPrecision": "error",
+      "dtypeTransition": "require_cast_step",
+      "unresolvedKernel": "error"
+    },
+    "mechanismKernels": [
+      "w8a8_quantize",
+      "w8a8_rescale_activation",
+      "w8a8_rescale_weight"
+    ]
+  },
+  "largeWeights": {
+    "gpuResidentOverrides": null
+  },
+  "manifest": {
+    "artifactIdentity": {
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "weightCapsuleId": "gemma-3-270m-it-f16-af32-wp-control-v1",
+      "manifestVariantId": "gemma-3-270m-it-f16-af32-mv-control-v1",
+      "artifactCompleteness": "complete"
+    }
+  },
+  "modelType": "transformer"
+}

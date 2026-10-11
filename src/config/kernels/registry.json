@@ -2,6 +2,166 @@
  "$schema": "./kernel-registry.schema.json",
  "version": "1.0",
  "operations": {
+  "w8a8_quantize": {
+   "description": "Exact rational row-interleaved signed activation packing",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "output",
+     "type": "storage"
+    },
+    {
+     "index": 3,
+     "name": "status",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "rows",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "columns",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "inner",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "row_words",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "f32": {
+     "wgsl": "quantize_w8a8.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["gemma3/gemma-3-270m-it-w8a8-ehf16-af32"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
+  "w8a8_rescale": {
+   "description": "Ordered W8A8 F32 scale multiplication with signed-zero subnormal flush",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "input",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "packed_scales",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "output",
+     "type": "storage"
+    },
+    {
+     "index": 4,
+     "name": "status",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "rows",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "columns",
+      "type": "u32",
+      "offset": 4
+     },
+     {
+      "name": "inner",
+      "type": "u32",
+      "offset": 8
+     },
+     {
+      "name": "row_words",
+      "type": "u32",
+      "offset": 12
+     }
+    ]
+   },
+   "variants": {
+    "activation": {
+     "wgsl": "rescale_w8a8.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "INPUT_IS_I32": true,
+      "SCALE_BY_ROW": true
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["gemma3/gemma-3-270m-it-w8a8-ehf16-af32"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "weight": {
+     "wgsl": "rescale_w8a8.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "outputDtype": "f32",
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 256,
+      "INPUT_IS_I32": false,
+      "SCALE_BY_ROW": false
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["gemma3/gemma-3-270m-it-w8a8-ehf16-af32"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    }
+   }
+  },
   "qwen_attention_split_q_gate": {
    "description": "Split Qwen full-attention interleaved per-head query and output gate",
    "baseBindings": [
@@ -1084,6 +1244,178 @@
     ]
    },
    "variants": {
+    "w8a8_portable": {
+     "wgsl": "matmul_w8a8.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "requiredWgslFeatures": [],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "activations",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "status",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "rows",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "columns",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "inner",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "row_words",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
+     },
+     "weightDtype": "w8a8",
+     "outputDtype": "i32",
+     "variantMetadata": {
+      "mechanismKernels": [
+       {
+        "operation": "w8a8_quantize",
+        "variant": "f32"
+       },
+       {
+        "operation": "w8a8_rescale",
+        "variant": "activation"
+       },
+       {
+        "operation": "w8a8_rescale",
+        "variant": "weight"
+       }
+      ]
+     },
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 64
+     },
+     "reachability": {
+      "status": "pinned",
+      "inlineConfigs": ["gemma3/gemma-3-270m-it-w8a8-ehf16-af32"],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "w8a8_packed": {
+     "wgsl": "matmul_w8a8_packed.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "requiredWgslFeatures": ["packed_4x8_integer_dot_product"],
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "activations",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 2,
+       "name": "weights",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      },
+      {
+       "index": 4,
+       "name": "status",
+       "type": "storage"
+      }
+     ],
+     "uniformsOverride": {
+      "size": 16,
+      "fields": [
+       {
+        "name": "rows",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "columns",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "inner",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "row_words",
+        "type": "u32",
+        "offset": 12
+       }
+      ]
+     },
+     "weightDtype": "w8a8",
+     "outputDtype": "i32",
+     "variantMetadata": {
+      "mechanismKernels": [
+       {
+        "operation": "w8a8_quantize",
+        "variant": "f32"
+       },
+       {
+        "operation": "w8a8_rescale",
+        "variant": "activation"
+       },
+       {
+        "operation": "w8a8_rescale",
+        "variant": "weight"
+       }
+      ]
+     },
+     "wgslOverrides": {
+      "WORKGROUP_SIZE": 64
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
     "f16": {
      "wgsl": "matmul_f16.wgsl",
      "entryPoint": "main",
@@ -1601,6 +1933,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "glmocr/glm-ocr-f16-af32",
        "lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32",
        "qwen3/qwen-3-embedding-0-6b-f16-af32"
@@ -2345,6 +2678,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
@@ -2742,6 +3076,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
        "gemma3/translategemma-4b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
@@ -7129,6 +7464,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
@@ -7164,6 +7500,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
@@ -7226,6 +7563,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16",
@@ -8001,7 +8339,11 @@
      "description": "Online decode kernel specialized for head_dim=256 with f32 Q, f16 KV, and subgroup reductions",
      "reachability": {
       "status": "pinned",
-      "inlineConfigs": ["gemma3/gemma-3-270m-it-f16-af32","gemma3/gemma-3-270m-it-q4k-ehf16-af32"],
+      "inlineConfigs": [
+       "gemma3/gemma-3-270m-it-f16-af32",
+       "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32"
+      ],
       "ruleChains": [],
       "wgslOnDisk": true
      },
@@ -10002,6 +10344,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
        "gemma3/translategemma-4b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
@@ -11267,6 +11610,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
        "gemma3/translategemma-4b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
@@ -11690,6 +12034,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
        "gemma3/translategemma-4b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
@@ -12637,6 +12982,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
@@ -13401,6 +13747,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
        "gemma3/translategemma-4b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",
@@ -16084,6 +16431,7 @@
        "gemma3/gemma-3-270m-it-f16-af32",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af16",
        "gemma3/gemma-3-270m-it-q4k-ehf16-af32",
+       "gemma3/gemma-3-270m-it-w8a8-ehf16-af32",
        "gemma3/translategemma-4b-1b-enes-q4k-ehf16-af32",
        "gemma3/translategemma-4b-it-q4k-ehf16-af32",
        "gemma4/gemma-4-12b-it-text-q4k-ehf16-af16",

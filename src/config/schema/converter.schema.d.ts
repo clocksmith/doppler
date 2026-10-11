@@ -1,3 +1,4 @@
+import type { W8A8Policy } from './w8a8.schema.js';
 /**
  * Converter Config Schema Definitions
  *
@@ -34,6 +35,7 @@ export type ConverterWorkerCountPolicy = 'cap' | 'error';
 
 export interface ConverterQuantizationConfigSchema {
   weights: QuantizationValue | null;
+  w8a8: W8A8Policy | null;
   embeddings: QuantizationValue | null;
   lmHead: QuantizationValue | null;
   sourceTrainingQuantization: SourceTrainingQuantization | null;

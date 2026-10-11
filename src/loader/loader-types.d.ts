@@ -8,6 +8,7 @@
 
 import type { CpuWeightBuffer, WeightBuffer } from '../gpu/weight-buffer.js';
 import type { TensorRole } from '../config/schema/index.js';
+import type { TensorPhysicalStorageDescriptor } from '../formats/rdrr/types.js';
 import type { TensorSourceTransform } from '../formats/rdrr/index.js';
 import type { FunctionalDescriptorManifest } from '../formats/rdrr/functional-descriptor.js';
 
@@ -29,6 +30,7 @@ export interface TensorLocation {
   originalShape?: number[];
   /** Optional direct-source transform applied before dtype-specific loading */
   sourceTransform?: TensorSourceTransform;
+  storage?: TensorPhysicalStorageDescriptor;
   /** Parsed manifoldgguf descriptor for FUNCTIONAL_DESCRIPTOR tensors */
   descriptorManifest?: FunctionalDescriptorManifest;
 }

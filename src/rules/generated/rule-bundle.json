@@ -23,7 +23,7 @@
   },
   {
    "path": "inference/dtype.rules.json",
-   "digest": "sha256:3f58b85a48d7c390573d914f4e6d0097b0e7099ce5cb8449685472e25adf1526"
+   "digest": "sha256:64499449634c5ecaf85341521a0f5a66d8670de70b6159f1c755989642590518"
   },
   {
    "path": "inference/execution.rules.json",
@@ -215,11 +215,11 @@
   },
   {
    "path": "loader/tensor-loader.rules.json",
-   "digest": "sha256:61bafd04ae60d45f478976f09df6a910b0ed750877008d2edb3b23659c972ead"
+   "digest": "sha256:4916a3f8dc5d1cda79522a46508c9b498901071a3fddaf067f6fe5ae62b17c31"
   },
   {
    "path": "loader/weights.rules.json",
-   "digest": "sha256:121e76226c214d8aa30a2f4e1076488b207a31e8d5be86d8c08a2ae1df939ca3"
+   "digest": "sha256:615186016e45e11275c81104e3ad5c1c93e718a4004ecf362ed4c20f31db5c6f"
   },
   {
    "path": "tooling/command-runtime.rules.json",
@@ -1034,6 +1034,12 @@
     }
    ],
    "matmulDtype": [
+    {
+     "match": {
+      "dtype": "w8a8"
+     },
+     "value": "w8a8"
+    },
     {
      "match": {
       "dtype": "bf16"
@@ -3858,6 +3864,12 @@
    "gpuLoaderPath": [
     {
      "match": {
+      "dtype": "W8A8"
+     },
+     "value": "w8a8_packed"
+    },
+    {
+     "match": {
       "dtype": "FUNCTIONAL_DESCRIPTOR"
      },
      "value": "functional_descriptor"
@@ -3985,6 +3997,12 @@
    "cpuLoaderPath": [
     {
      "match": {
+      "dtype": "W8A8"
+     },
+     "value": "unsupported_packed_quantization"
+    },
+    {
+     "match": {
       "dtype": "FUNCTIONAL_DESCRIPTOR"
      },
      "value": "unsupported_functional_descriptor"
@@ -4074,6 +4092,12 @@
     }
    ],
    "matmulWeightDtype": [
+    {
+     "match": {
+      "locationDtype": "W8A8"
+     },
+     "value": "w8a8"
+    },
     {
      "match": {
       "locationDtype": "F16",

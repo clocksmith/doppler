@@ -66,6 +66,55 @@ Notes:
   - `hotCache.mode`: `off | prepared_tokens | tokenizer_scores`
   - Converter authors the baseline policy in the manifest; runtime may override it per run.
 
+## W8A8 linear projections
+
+The versioned numerical contract lives in
+[`w8a8.schema.js`](../src/config/schema/w8a8.schema.js). Conversion must explicitly
+declare it in `quantization.w8a8` and retain it in `quantizationInfo.w8a8`.
+The distinct `W8A8` tensor encoding is not GGUF Q8_0, reconstructed-F32 activation
+quantization, or the existing WNA8O8 metadata. Runtime cannot reinterpret one as
+another.
+
+The initial scheme quantizes attention and feed-forward linear projection
+weights per output channel and their activations per token. Other tensors retain
+their declared precision. Each row contains a little-endian F32 scale followed
+by signed two's-complement bytes in logical reduction order, padded with zero
+bytes to a multiple of four. Explicit storage descriptors bind logical shape,
+row stride, scale offset and data offset. Codes range from -127 to 127; -128 is
+invalid. Reduction widths above 133,144 reject before dispatch so every possible
+partial sum fits I32.
+
+Inputs are F32, finite and normal or signed zero. Nonzero subnormal inputs reject;
+all-zero rows use scale one. The scale is max-absolute-value divided by 127,
+rounded to nearest-even F32, and must be positive normal. Codes round the exact
+ratio of the input to that stored scale to nearest-even integer, then clip to
+the declared range. Rounding the quotient to F32 first is a different algorithm.
+WGSL performs activation reduction and packing without a host tensor round trip.
+
+Rescaling first converts the I32 accumulator to nearest-even F32, multiplies by
+the activation scale and materializes F32, then multiplies by the weight scale
+and materializes F32. Each multiplication rounds to nearest-even; each subnormal
+result becomes signed zero, and overflow rejects. Native WGSL conversion and
+arithmetic do not universally promise this rounding mode, so the W8A8 shaders
+implement these narrow rounding operations with integer bit arithmetic.
+[WGSL floating-point rules](https://www.w3.org/TR/WGSL/#floating-point-accuracy).
+
+Portable and packed-dot kernels consume identical packed operands. The packed
+implementation requires the host WGSL language feature
+`packed_4x8_integer_dot_product`. Its availability does not establish faster
+execution. The quantizer and both rescale specializations belong in the existing
+`execution.mechanismKernels` closure with explicit shader identities and constants;
+the projection's registry metadata declares those dependencies. Recorded execution
+must validate GPU status before exposing results and settle owned resources on
+rejection.
+
+The [frozen qualification fixture](../tests/fixtures/w8a8-qualification.json)
+separates exact operator correctness, model approximation quality, lifecycle and
+complete prefill/decode costs against Q4 and F16. It does not replace the
+distributed-chat reference or its 0.001 tolerance. Support requires passing
+scoped installed-package and physical execution evidence, not this format's
+presence in source.
+
 ## Runtime Precedence
 
 Kernel-path resolution (low to high):

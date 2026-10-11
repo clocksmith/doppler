@@ -2,6 +2,13 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_cross_entropy_backward_default(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["vocab_size"], kernel, "vocab_size");
+  writeU32(view, 8, values["dispatch_stride"], kernel, "dispatch_stride");
+  view.setUint32(12, 0, true);
+}
+
 export function write_adam_default(view, values, kernel) {
   writeU32(view, 0, values["size"], kernel, "size");
   writeU32(view, 4, values["step"], kernel, "step");

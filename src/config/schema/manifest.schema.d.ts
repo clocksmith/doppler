@@ -1,3 +1,4 @@
+import type { W8A8Policy } from './w8a8.schema.js';
 /**
  * Manifest Schema Definitions
  *
@@ -77,6 +78,7 @@ export type QuantizationValue =
   | 'q4_0'     // GGUF Q4_0 block quantization
   | 'q6k'      // Q6_K block quantization
   | 'q8_0'     // Q8_0 quantization
+  | 'w8a8'     // Symmetric per-channel weights and per-token activations
   | 'w4a16'    // Packed W4A16 quantization
   | 'wna8o8'   // Mobile wNa8o8 quantization
   | 'mxfp4'    // MXFP4 quantization (MoE experts)
@@ -108,6 +110,7 @@ export type SourceQuantizationFormat =
 export interface QuantizationInfoSchema {
   // Core text model components
   weights: QuantizationValue;
+  w8a8?: W8A8Policy;
   embeddings?: QuantizationValue;
   lmHead?: QuantizationValue;
   sourceTrainingQuantization?: SourceTrainingQuantization;

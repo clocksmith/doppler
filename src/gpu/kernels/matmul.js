@@ -41,6 +41,7 @@ import {
   getMatmulPipeline,
 } from './matmul-dispatch.js';
 import { getPipelineBindGroupLayout } from './pipeline-cache.js';
+import { runW8A8Matmul, recordW8A8Matmul } from './w8a8.js';
 
 export { isFusedQ4KDisabled, selectMatmulKernel };
 export { createMatmulBindGroupLayout };
@@ -213,6 +214,10 @@ async function executeMatmul(recorder, A, B, M, N, K, options = {}) {
 
   const phase = resolveMatmulPhase(M, options.phaseOverride ?? null);
   const pathVariant = getKernelPathMatmulVariant(options.role, phase, options.layerIdx, options.kernelPath);
+  if (getWeightDtype(B) === 'w8a8' || (pathVariant && getKernelConfig('matmul', pathVariant).weightDtype === 'w8a8')) {
+    const bound = { ...options, variant: pathVariant };
+    return recorder ? recordW8A8Matmul(recorder, A, B, M, N, K, bound) : runW8A8Matmul(A, B, M, N, K, bound);
+  }
   const hasQ4KMat = isWeightBuffer(B) && B.materializations?.q4k?.buffer != null;
   const preferredWeightDtype = resolvePreferredWeightDtype(pathVariant, hasQ4KMat, capabilities);
   const resolvedWeight = resolveWeightBufferMaterialization(B, preferredWeightDtype);
