@@ -201,7 +201,7 @@
       "q4_widetile": {
         "kernel": "fused_matmul_q4_widetile.wgsl",
         "entry": "main",
-        "digest": "sha256:26e00e5a829ac064b85ed9b1c2565ec8d957ee468666903f1d47e07d93dfb3bc"
+        "digest": "sha256:c434473d64a163eddbb6fc349aec944e4bef6b067170acdf4d55daf92f1932bf"
       },
       "q4_prefill": {
         "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",

@@ -21,6 +21,19 @@ def accumulate(x, weight, mode, lanes=4):
     This does not assert how a particular driver optimizes WGSL expressions.
     """
     assert x.dtype == weight.dtype == np.float32 and x.shape[1] == weight.shape[1]
+    if mode in ('q4-widetile', 'q4-widetile-blocked'):
+        assert x.shape[1] % 256 == 0
+        # Q4 pairs interleave low/high nibbles, four elements from each.
+        order = [base + offset + lane for base in range(0, x.shape[1], 64)
+                 for group in range(8) for offset in (group * 4, 32 + group * 4)
+                 for lane in range(4)]
+        x, weight = x[:, order], weight[:, order]
+        if mode == 'q4-widetile':
+            return accumulate(x, weight, 'fma', 4)
+        total = np.zeros((len(x), len(weight)), dtype=np.float32)
+        for start in range(0, x.shape[1], 256):
+            total += accumulate(x[:, start:start + 256], weight[:, start:start + 256], 'fma', 4)
+        return total
     if mode == 'blocked-tile':
         assert lanes > 0
         total = np.zeros((len(x), len(weight)), dtype=np.float32)
@@ -109,6 +122,11 @@ def run(args):
             actual = accumulate(normalized, weight, mode, lanes)
             modes[mode] = {**error(actual, precise), 'versusGpu': error(actual, gpu),
                            'equalGpuValues': int(np.sum(actual == gpu)), 'values': int(actual.size)}
+        if storage == 'Q4_K_M':
+            for mode in ('q4-widetile', 'q4-widetile-blocked'):
+                actual = accumulate(normalized, weight, mode)
+                modes[mode] = {**error(actual, precise), 'versusGpu': error(actual, gpu),
+                               'equalGpuValues': int(np.sum(actual == gpu)), 'values': int(actual.size)}
         if storage == 'F16':
             actual = accumulate(normalized, weight, 'blocked-tile', 16)
             modes['blocked-tile'] = {**error(actual, precise), 'versusGpu': error(actual, gpu),
@@ -127,6 +145,37 @@ def run(args):
               'normalizationError': error(normalized, precise_norm), 'embeddingExact': True, 'results': results}
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(report, indent=2) + '\n')
+    if args.q4_operands_out:
+        encode = lambda values, dtype: base64.b64encode(values.astype(dtype).tobytes()).decode()
+        root = Path(inputs['manifest']['path']).parent
+        def raw_weight(name):
+            entry = manifest['tensors']['model.language_model.' + name]
+            spans = entry.get('spans') or [{'shardIndex': entry['shard'], 'offset': entry['offset'], 'size': entry['size']}]
+            raw = b''.join((root / manifest['shards'][s['shardIndex']]['filename']).read_bytes()[s['offset']:s['offset'] + s['size']] for s in spans)
+            return np.frombuffer(raw, dtype=np.uint8).reshape(entry['shape'][0], -1, 144)
+        cases = []
+        for name, boundary in [('qkv', 'qkv_proj'), ('z', 'linear_z_proj')]:
+            tensor = f'layers.0.linear_attn.in_proj_{name}.weight'
+            weight, raw = weights[tensor], raw_weight(tensor)
+            cases.append({'name': boundary, 'kind': 'actual', 'M': len(selected), 'N': len(weight), 'K': 1024,
+                          'alpha': 1, 'inputF32': encode(normalized, '<f4'), 'weightQ4': encode(raw, 'u1'),
+                          'expectedF64': encode(normalized.astype(np.float64) @ weight.T, '<f8'),
+                          'observedF32': encode(observed('layer.0.attn.' + boundary), '<f4')})
+        raw = raw_weight('layers.0.linear_attn.in_proj_qkv.weight')
+        for index, (m, n, k, alpha) in enumerate([(1, 1, 256, 1), (5, 257, 1024, -0.5),
+                                                (9, 17, 768, 1), (3, 3, 257, 1), (8, 65, 4096, 2)]):
+            blocks = (k + 255) // 256
+            packed = np.tile(raw[:n], (1, (blocks + 3) // 4, 1))[:, :blocks].copy()
+            weight = reference.dequantize(packed.reshape(-1), reference.GGMLQuantizationType.Q4_K).reshape(n, -1)[:, :k].astype(np.float64)
+            x = (((np.arange(m * k).reshape(m, k) * 17 + 13) % 113) - 56).astype(np.float32) / 16
+            expected = (x.astype(np.float64) @ weight.T) * alpha
+            bounds = np.abs(x.astype(np.float64)) @ np.abs(weight.T) * abs(alpha) * (k + 8) * 2 ** -23 + 1e-10
+            cases.append({'name': f'shape_{index}', 'kind': 'synthetic', 'M': m, 'N': n, 'K': k, 'alpha': alpha,
+                          'tileM': 8 if index == 2 else 4, 'tileN': 128 if index == 2 else 256,
+                          'inputF32': encode(x, '<f4'), 'weightQ4': encode(packed, 'u1'),
+                          'expectedF64': encode(expected, '<f8'), 'errorBoundF64': encode(bounds, '<f8')})
+        Path(args.q4_operands_out).write_text(json.dumps({'schema': 'doppler.q4-projection-actual-operands/v1',
+                                                        'captureSha256': report['captureSha256'], 'cases': cases}) + '\n')
     if args.operands_out:
         full_input = observed('layer.0.attn.post_input_norm', list(range(184)))
         encode = lambda values, dtype: base64.b64encode(values.astype(dtype).tobytes()).decode()
@@ -147,4 +196,5 @@ if __name__ == '__main__':
     parser.add_argument('--capture', required=True)
     parser.add_argument('--out', required=True)
     parser.add_argument('--operands-out')
+    parser.add_argument('--q4-operands-out')
     run(parser.parse_args())
