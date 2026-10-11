@@ -26,7 +26,8 @@ export interface KernelConfig {
   readonly uniforms: DeepReadonly<UniformsSchema> | null;
   readonly wgslOverrides?: DeepReadonly<Record<string, unknown>>;
   readonly sharedMemory?: number;
-  readonly outputDtype?: 'f16' | 'f32';
+  /** Raw shader output; composed wrappers may apply declared subsequent stages. */
+  readonly outputDtype?: 'f16' | 'f32' | 'i32';
   readonly weightDtype?: string;
   readonly variantMetadata?: DeepReadonly<VariantMetadata>;
 }

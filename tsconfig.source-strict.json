@@ -16,6 +16,11 @@
   },
   "include": [],
   "files": [
+    "src/config/schema/w8a8.schema.js",
+    "src/converter/w8a8-quantizer.js",
+    "src/formats/rdrr/w8a8-storage.js",
+    "src/loader/tensors/w8a8-loader.js",
+    "src/gpu/kernels/w8a8.js",
     "src/config/reasoning-output.js",
     "src/inference/generation-output.js",
     "src/inference/pipelines/text/init-tokenizer.js",

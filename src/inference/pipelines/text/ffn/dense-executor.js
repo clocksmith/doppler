@@ -87,7 +87,7 @@ export async function coerceTensorDtype(tensor, targetDtype, recorder, options =
 }
 
 export function requireFusedWeightDtype(dtype, label) {
-  if (dtype !== 'bf16' && dtype !== 'f16' && dtype !== 'f32' && dtype !== 'q4k' && dtype !== 'w4a16') {
+  if (dtype !== 'bf16' && dtype !== 'f16' && dtype !== 'f32' && dtype !== 'q4k' && dtype !== 'w4a16' && dtype !== 'w8a8') {
     throw new Error(`[FFN] ${label} dtype metadata is required for fused gate/up planning.`);
   }
   return dtype;

@@ -1,3 +1,4 @@
+import { quantizeToW8A8Rows } from './w8a8-quantizer.js';
 import {
   // Constants
   SHARD_SIZE as SCHEMA_SHARD_SIZE,
@@ -367,7 +368,7 @@ export function toFloat32FromTensor(bytes, sourceDtype, tensorName) {
     for (let i = 0; i < src16.length; i++) out[i] = bf16ToFloat32(src16[i]);
     return out;
   }
-  throw new Error(`Unsupported source dtype "${sourceDtype}" for PLE INT4 quantization of ${tensorName}`);
+  throw new Error(`Unsupported source dtype "${sourceDtype}" for F32 conversion of ${tensorName}`);
 }
 
 export function buildInt4PerRowPleTransform(tensor, bytes, sourceDtype, options = {}) {
@@ -491,6 +492,24 @@ export function transformTensorBytes(tensor, rawData, options = {}) {
       `native import requires source dtype ${SOURCE_PACKED_MANIFEST_DTYPES[tensorTargetQuant]}; ` +
       'the converter does not re-quantize tensors into this packed format.'
     );
+  }
+
+  if (tensorTargetQuant === 'w8a8') {
+    const eligible = forceQuantizeDecision ?? (resolveTensorRole(tensor) === 'matmul'
+      && !shouldSkipModuleQuantization(tensor.name, modulesToNotConvert));
+    if (eligible) {
+      if (resolveTensorRole(tensor) !== 'matmul' || tensor.shape.length !== 2) {
+        throw new Error(`W8A8 currently supports only two-dimensional matmul weights: ${tensor.name}.`);
+      }
+      const values = toFloat32FromTensor(tensorData, sourceDtype, tensor.name);
+      const result = quantizeToW8A8Rows(values, tensor.shape, quantizationInfo?.w8a8);
+      return { tensorData: result.quantized, outDtype: 'W8A8', outLayout: 'row',
+        sourceDtype, tensorTargetQuant, storage: result.storage };
+    }
+    // Unquantized weights retain the existing F16 conversion contract.
+    return transformTensorBytes(tensor, tensorDataInput, {
+      ...options, targetQuant: 'f16', quantizationInfo: { ...quantizationInfo, weights: 'f16' },
+    });
   }
 
   if (tensorTargetQuant === 'q4k') {

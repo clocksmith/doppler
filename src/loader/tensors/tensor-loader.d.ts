@@ -1,3 +1,4 @@
+import type { W8A8Policy } from '../../config/schema/w8a8.schema.js';
 /**
  * Tensor Loader - Dtype-specific tensor loading and conversion.
  *
@@ -15,6 +16,7 @@ import type { TensorLocation, KernelCapabilities } from '../loader-types.js';
 import type { LoaderDebugConfigSchema } from '../../config/schema/debug.schema.js';
 
 export interface TensorLoadConfig {
+  w8a8Policy?: W8A8Policy | null;
   /** Use fused Q4K matmul kernels */
   useFusedQ4K: boolean;
   /** Q4K weight materialization mode derived from the resolved execution graph */

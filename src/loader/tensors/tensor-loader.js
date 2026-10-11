@@ -1,3 +1,4 @@
+import { loadW8A8Packed } from './w8a8-loader.js';
 
 
 import { getDevice, getKernelCapabilities, getPlatformConfig } from '../../gpu/device.js';
@@ -503,6 +504,7 @@ export async function loadW4A16Dequant(shardData, location, name, config) {
 // ============================================================================
 
 const GPU_LOADER_DISPATCH = {
+  w8a8_packed: loadW8A8Packed,
   functional_descriptor: (shardData, location, name, config) => {
     debugTrace.loader(`Loading functional descriptor: ${name}`);
     return loadFunctionalDescriptor(shardData, location, name, config);

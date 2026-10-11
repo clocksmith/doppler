@@ -1,6 +1,7 @@
+import { validateW8A8StorageDescriptor } from './w8a8-storage.js';
 import { Q4K_BLOCK_BYTES, QK_K } from '../../config/schema/quantization.schema.js';
 
-const SUPPORTED_PACKINGS = new Set(['dense', 'q4k', 'q4_0', 'w4a16', 'gguf-block-v2']);
+const SUPPORTED_PACKINGS = new Set(['dense', 'w8a8-row-v1', 'q4k', 'q4_0', 'w4a16', 'gguf-block-v2']);
 const Q4_0_BLOCK_BYTES = 18;
 const Q4_0_BLOCK_VALUES = 32;
 const W4A16_BLOCK_BYTES = 16;
@@ -106,6 +107,9 @@ export function normalizeTensorStorageDescriptor(storage, label) {
     fail(label, 'storage must be an object');
   }
   const packing = normalizePacking(storage.packing, label);
+  if (packing === 'w8a8-row-v1') {
+    validateW8A8StorageDescriptor(storage, storage.blockShape?.[1]);
+  }
   const blockShape = normalizeBlockShape(storage.blockShape, label, packing);
   const companions = normalizeCompanions(storage.companions, label);
   const shardSpans = normalizeShardSpans(storage.shardSpans, label);

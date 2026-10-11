@@ -522,3 +522,4 @@ export {
 
 // Re-export profiling utilities
 export { recordSuppressLogits } from './logit-suppress.js';
+export { runW8A8Matmul, recordW8A8Matmul } from './w8a8.js';

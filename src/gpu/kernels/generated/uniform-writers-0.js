@@ -2,6 +2,13 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_w8a8_quantize_f32(view, values, kernel) {
+  writeU32(view, 0, values["rows"], kernel, "rows");
+  writeU32(view, 4, values["columns"], kernel, "columns");
+  writeU32(view, 8, values["inner"], kernel, "inner");
+  writeU32(view, 12, values["row_words"], kernel, "row_words");
+}
+
 export function write_qwen_attention_split_q_gate_default(view, values, kernel) {
   writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
   writeU32(view, 4, values["num_heads"], kernel, "num_heads");
@@ -589,15 +596,4 @@ export function write_rope_default(view, values, kernel) {
   view.setUint32(36, 0, true);
   view.setUint32(40, 0, true);
   view.setUint32(44, 0, true);
-}
-
-export function write_rope_qk_default(view, values, kernel) {
-  writeU32(view, 0, values["seq_len"], kernel, "seq_len");
-  writeU32(view, 4, values["num_q_heads"], kernel, "num_q_heads");
-  writeU32(view, 8, values["num_kv_heads"], kernel, "num_kv_heads");
-  writeU32(view, 12, values["head_dim"], kernel, "head_dim");
-  writeU32(view, 16, values["start_pos"], kernel, "start_pos");
-  writeU32(view, 20, values["rotary_dim"], kernel, "rotary_dim");
-  writeU32(view, 24, values["interleaved"], kernel, "interleaved");
-  writeU32(view, 28, values["pair_span_dim"], kernel, "pair_span_dim");
 }

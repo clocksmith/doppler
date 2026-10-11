@@ -26,6 +26,7 @@ export {
 export { prewarmKernels } from './kernel-prewarm.js';
 
 // Matrix Multiplication
+export { runW8A8Matmul, recordW8A8Matmul } from './w8a8.js';
 export {
   selectMatmulKernel,
   createMatmulBindGroupLayout,

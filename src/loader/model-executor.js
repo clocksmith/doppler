@@ -63,7 +63,7 @@ export async function _loadTensor(name, toGPU = true, silent = false) {
       debugTrace.loader(`Loading ${name}: shape=${JSON.stringify(location.shape)}, size=${location.size}, dtype=${location.dtype}, spans=${!!location.spans}`);
     }
 
-    const streamedUpload = toGPU && this._shouldStreamUploadToGPU(location);
+    const streamedUpload = toGPU && location.dtype !== 'W8A8' && this._shouldStreamUploadToGPU(location);
     let shardData;
     try {
       const preserveRawSourceBytes = toGPU && isLiteRTAffineInt4FusedEligible(location, {
@@ -101,6 +101,7 @@ export async function _loadTensor(name, toGPU = true, silent = false) {
         throw new Error('runtime.loading.allowF32UpcastNonMatmul is required.');
       }
       const config = {
+        w8a8Policy: this.manifest?.quantizationInfo?.w8a8,
         useFusedQ4K: this.useFusedQ4K,
         q4kMaterializationMode: this.q4kMaterializationMode,
         q4kFusedRoles: this.q4kFusedRoles,

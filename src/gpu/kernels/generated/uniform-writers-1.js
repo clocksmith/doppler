@@ -2,6 +2,17 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_rope_qk_default(view, values, kernel) {
+  writeU32(view, 0, values["seq_len"], kernel, "seq_len");
+  writeU32(view, 4, values["num_q_heads"], kernel, "num_q_heads");
+  writeU32(view, 8, values["num_kv_heads"], kernel, "num_kv_heads");
+  writeU32(view, 12, values["head_dim"], kernel, "head_dim");
+  writeU32(view, 16, values["start_pos"], kernel, "start_pos");
+  writeU32(view, 20, values["rotary_dim"], kernel, "rotary_dim");
+  writeU32(view, 24, values["interleaved"], kernel, "interleaved");
+  writeU32(view, 28, values["pair_span_dim"], kernel, "pair_span_dim");
+}
+
 export function write_silu_default(view, values, kernel) {
   writeU32(view, 0, values["size"], kernel, "size");
   writeU32(view, 4, values["rowsplit_dim"], kernel, "rowsplit_dim");
@@ -585,11 +596,4 @@ export function write_pixel_shuffle_default(view, values, kernel) {
   writeU32(view, 20, values["patch_size"], kernel, "patch_size");
   writeU32(view, 24, values["patch_channels"], kernel, "patch_channels");
   view.setUint32(28, 0, true);
-}
-
-export function write_cross_entropy_backward_default(view, values, kernel) {
-  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
-  writeU32(view, 4, values["vocab_size"], kernel, "vocab_size");
-  writeU32(view, 8, values["dispatch_stride"], kernel, "dispatch_stride");
-  view.setUint32(12, 0, true);
 }

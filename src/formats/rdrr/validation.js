@@ -1,3 +1,5 @@
+import { validateW8A8Policy } from '../../config/schema/w8a8.schema.js';
+import { validateW8A8StorageDescriptor } from './w8a8-storage.js';
 import { validateTensorConfigConsistency } from './tensor-config-validator.js';
 import { validateManifestExecutionContract } from '../../config/execution-contract-check.js';
 import { validateManifestInference } from '../../config/schema/index.js';
@@ -250,6 +252,18 @@ export function validateManifest(manifest) {
   const errors = [];
   const warnings = [];
 
+  if (manifest.quantizationInfo?.weights === 'w8a8' || manifest.quantizationInfo?.w8a8 != null) {
+    try {
+      validateW8A8Policy(manifest.quantizationInfo.w8a8);
+      const info = manifest.quantizationInfo;
+      if (info.weights !== 'w8a8' || info.compute !== 'f32'
+        || !['f16', 'bf16', 'f32'].includes(info.embeddings)
+        || !['f16', 'bf16', 'f32'].includes(info.lmHead ?? info.embeddings)) {
+        throw new Error('W8A8 requires explicit F32 compute and dense embedding/head storage.');
+      }
+    } catch (error) { errors.push(error.message); }
+  }
+
   const isDiffusion = manifest.modelType === 'diffusion';
   const isEnergy = manifest.modelType === 'energy';
   const isEmbedding = manifest.modelType === 'embedding';
@@ -375,6 +389,20 @@ export function validateManifest(manifest) {
     for (const [name, tensor] of Object.entries(manifest.tensors)) {
       if (!tensor.role || typeof tensor.role !== 'string') {
         errors.push(`Tensor "${name}" missing role`);
+      }
+      if (tensor.dtype === 'W8A8' || tensor.storage?.packing === 'w8a8-row-v1') {
+        try {
+          validateW8A8Policy(manifest.quantizationInfo?.w8a8);
+          if (tensor.dtype !== 'W8A8' || manifest.quantizationInfo?.weights !== 'w8a8'
+            || manifest.quantizationInfo?.compute !== 'f32' || tensor.role !== 'matmul'
+            || tensor.layout !== 'row' || tensor.shape?.length !== 2) {
+            throw new Error(`Invalid W8A8 tensor contract: ${name}.`);
+          }
+          validateW8A8StorageDescriptor(tensor.storage, tensor.shape[1]);
+          if (tensor.size !== tensor.shape[0] * tensor.storage.rowStrideBytes) {
+            throw new Error(`W8A8 tensor byte length mismatch: ${name}.`);
+          }
+        } catch (error) { errors.push(error.message); }
       }
       if (isFunctionalDescriptorDtype(tensor.dtype)) {
         const descriptorValidation = validateFunctionalDescriptorManifest(

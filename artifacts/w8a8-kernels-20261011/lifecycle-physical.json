@@ -1,0 +1,657 @@
+{
+  "scope": "Physical W8A8 operator and ownership checks against independent rational reference; not model qualification",
+  "files": {
+    "/tests/kernels/w8a8-physical.js": "adef85d31c0c102b907e5be6a547cc11bb2978585469815e868b49fb8d3d7eb3",
+    "/tests/kernels/reference/w8a8.js": "e604d49a3dc69ab2b40169db211ee22cdf9a5c73e4ffb39adf6fe7ff1580212d",
+    "/src/gpu/device.js": "74545dc0914fba5ab5a87393c4dd460ba8c5c66f205538f176d7bd98a02646f3",
+    "/src/gpu/submit-tracker.js": "41d2ef79bbe42f07b226035b15840aba1b9ca0f5b26540560bb732a48e314d48",
+    "/src/gpu/submit-probe.js": "c5e7571e12fe4047fa69041f6335790755b9065cfdc29ad3df210abeec4995e6",
+    "/src/debug/index.js": "d6bb999afcc25fc437bffbfac63bc5653692478b280b04d837e6bf114e181800",
+    "/src/errors/doppler-error.js": "e0383d676e5132a84cb94f33288ff513279f88ce5d3301a745cfb4fb3ab09cd4",
+    "/src/config/schema/index.js": "a4c4ade31884531d6e9d7062373104d8e807841150df136bd514fde2abf01485",
+    "/src/gpu/device-state.js": "17fca78e22cb9f85511ef565b8fbf6e5ddb84e298bbea1f49b45fc0e21918f94",
+    "/src/memory/device-budget.js": "90b51128e9e20d17e278a839b8df21dabfbed33cbe2686b8b18f5f2828e6b00a",
+    "/src/gpu/perf-guards.js": "d4e9cf344ec1c987b2c147e5989c7ca8d2ce2a0f685079ae02a73a137d03889d",
+    "/src/debug/signals.js": "961bd8fbf9649b9cf1d1abfd5ea42fa8de5fd846c6fd8a195f4f8caa4815243e",
+    "/src/debug/config.js": "a0a763a5ecd9c90d479650e9dd31cd80721d36fedb139c2c12659b519d811d58",
+    "/src/debug/log.js": "0e13a658a145f3dc178138c30860226ea270c91557c07b98f6709c3a116d809a",
+    "/src/debug/trace.js": "410f87a4d37892e28a7e153b072250dfd558c988bcc9a2226f183a1cf2b276ee",
+    "/src/debug/tensor.js": "6c011dcf181139f7cc1fcd01026e7146b6d0eba2050339bf03906a432d3756e4",
+    "/src/debug/capture-policy.js": "eebe99b3bd281bd8b46d63f1ab952fc465a4225c4d9edb8d326ae849106b6025",
+    "/src/debug/history.js": "357c5ffab86bc997474845710379603008f64a025572bebbff5212d7aba7422c",
+    "/src/config/schema/debug.schema.js": "2e93df23cf8dbc54f3548cb38a5cba00bd1e96b3827de29ae409038f8992c59f",
+    "/src/config/schema/manifest.schema.js": "bee74b587b535be96cee5bb281116ad5518c89b39be171f08e2887e4df9b4cbb",
+    "/src/config/schema/kernel-path.schema.js": "3267b3198fd06ed25b60df19bbe815b63475d775120371703befdbe635be96e7",
+    "/src/config/schema/inference.schema.js": "3df7a3e2cb7296d7790f586b0b46579c47d7a686fe7aa974cef6548120fd13c8",
+    "/src/config/schema/execution-v1.schema.js": "09a7053d5e0aa292c357b68b920bfbc2525511441b8acab85eea94f5c480fef3",
+    "/src/config/schema/conversion.schema.js": "72837f68bece395ca01df9ae956d82e768a7f2d5c83256a2105a37ec0f8e41b9",
+    "/src/config/schema/browser-suite-metrics.schema.js": "dab51946376a3b5a8b228080f4e37f90ec7fccffb07a7ae1d31e64d259ea6fe1",
+    "/src/config/schema/program-bundle.schema.js": "ba7c83439e957d58632fcee4695d6e24d1676896af064b319b2cb2d962d68495",
+    "/src/config/schema/support-tiers.schema.js": "51d42fbf338a03a973fdad9a582ef1912a8f40d23672966042a007a417168905",
+    "/src/config/schema/conversion-report.schema.js": "829e67c59ac88d4002d6b1c0236114244c1c0555d303bde06cc258d6351abd2c",
+    "/src/config/schema/converter.schema.js": "ef923b5c102bc9f13ea7bbb6e0f77ca45089cefc9709371495694f2c7f2d7ff5",
+    "/src/config/schema/loading.schema.js": "9f324e70e702d5593b6f2b326c2b477b747ca424af62fd7373d25a1931fec089",
+    "/src/config/schema/kernel-registry.schema.js": "c32d842c7db094cb88a6484876edb5bd449b7c181be4454ca941124556354210",
+    "/src/config/schema/storage.schema.js": "71fae3efc1e84fb6bedc7d003701481d636b4ab1bfd92a90efd08e8141262cab",
+    "/src/config/schema/distribution.schema.js": "2826f4bd3a54cd648bf9456985a0ac1d42ba9d9b36c31121ae49c2912efb8cc4",
+    "/src/config/schema/moe.schema.js": "1a435478d792cab87700b881de9b4718c3ef0cbb528ad8ac9f4dc1ea4fcf1952",
+    "/src/config/schema/diffusion.schema.js": "87cdf7bfbb988d3ef389dfc2ce29b0afb385bfb8f1c758dfff4c8617ecf9d2ab",
+    "/src/config/schema/energy.schema.js": "f1a2ffe889d67b849bf31bb805d8679d63b87f2ce7fb84426167f664e5f033c0",
+    "/src/config/schema/kvcache.schema.js": "8f4fc7f9b53112d66041296e480a779ec382047c533c85ec8c9404c5acd034dd",
+    "/src/config/schema/gpu-cache.schema.js": "4bcf9b0e7d888eaf3db76369fcad628d07b6996221c091be6a63cd55010965f3",
+    "/src/config/schema/benchmark.schema.js": "de1d2bcfc16ebd91cc2806ce502f6c64b37d08f5f2c2c8bef11df90d5bee9f53",
+    "/src/config/schema/tooling.schema.js": "e3a103cb851b86be3ae87319fddd634431af8ba845e2ac8838cd73a1e95c8187",
+    "/src/config/schema/runtime-profile.schema.js": "5aa668e23e677017816e6d7991e55844c2c8a3e0b5e11ae9de53741ae205434e",
+    "/src/config/schema/ecosystem.schema.js": "4c76d9258865fb6f78cb6cebaf025c681404a8254b89a97c0cd0e3ab6d1ea868",
+    "/src/config/schema/hotswap.schema.js": "2d1076a52fd46770a7039b96f63a9815e7a13ff7e2435af9c14c219630126e77",
+    "/src/config/schema/buffer-pool.schema.js": "cc0e809d95df3ff0528a0c166fbe0f41ad5c5d3917d5a5374b2a53371d7baebb",
+    "/src/config/schema/memory-limits.schema.js": "b264b693055d199d913f115d78a1d46d73c1f6c3609bc275e6ddb55d5c27fe8a",
+    "/src/config/schema/bridge.schema.js": "a8281b541070d0c679838e912c1fcae3c8b6b678888f487e071e51ca1cae92e7",
+    "/src/config/schema/adapter.schema.js": "edbec0a4cb410f7c564c80a73a0f4bb6c0bef8e5d2913f8a4975ac2b25a5b34e",
+    "/src/config/schema/lora.schema.js": "f9595412014d43660f7a7eb0f16798b8360a2f0c90c0b8e7dc2e3f9880daa402",
+    "/src/config/schema/training.schema.js": "5dab9141fcf812cfdce22845c241df5ab54b31e1a7146324261183e62ea78229",
+    "/src/config/schema/distill-training.schema.js": "33d34082a4c8565cc2d4a0c66d342938e6f01ec42614de8c7b1576ef850a3cca",
+    "/src/config/schema/ul-training.schema.js": "d72909a1638d959836abe893dfd82fc8c95ae7923fcf968336e259592b846c54",
+    "/src/config/schema/training-metrics.schema.js": "191603eadc76cffc995bde2b2b486b7704ac37f1fe52c84fa7070b7944d43df6",
+    "/src/config/schema/backward-registry.schema.js": "2e1ce767d58162a38b9a6a3719d8771cbcdc23ae2b8dc339802744690e3a0ea8",
+    "/src/config/schema/quantization-defaults.schema.js": "71984557038d593825a1feeaa7073bd17b0de6514aa39d9910ce54d039e4b77a",
+    "/src/config/schema/quantization.schema.js": "a98180248fb4dcd4586b6344a86a7cbfd32b83ae0a079fdd16784ae2450ca599",
+    "/src/config/schema/units.schema.js": "436ae15805b8fb513e20c7f24cc0212a6ee4a365905e3c19e7a90637f90efe31",
+    "/src/config/schema/kernel-thresholds.schema.js": "26c8bccd9448af53420c7cfe1909557a386afdd67dec825b319b65592d9c9a0c",
+    "/src/config/schema/kernel-warmup.schema.js": "579146336a8d3d84a4e463c45b057b85b2bfd894e5ef8eb3a0d137a821d67656",
+    "/src/config/schema/emulation.schema.js": "6f3e2a8bab2ec3ded5930421a8372852f350548b08f3001911c0426bc04465f4",
+    "/src/config/schema/shared-runtime.schema.js": "acfe3f963caf835f461bcbcfdc247fd75024e2f536cc7665c6be8f79beb8095f",
+    "/src/config/schema/harness.schema.js": "0e3e7f10ef3b75bf83cbc3bedc0f9e73ea8c0587d18a69a05393dd4a0f320c66",
+    "/src/config/schema/speculative.schema.js": "98be0cc410bc69587679ecb8bb8a29a8522600c17344d5696292651091e6a9e3",
+    "/src/config/schema/speculation-self.schema.js": "f37a74decd95b7b699a2fbc07b0dfbc52bef2f6936f38b338e343794bb38cf80",
+    "/src/config/schema/doppler.schema.js": "5327df3db1d72a0a9714fe596c0d07651bf1ebedb91d73e93770f7f7ffb77007",
+    "/src/debug/stats.js": "d41d4c21fe45c3425bb34f1509bbaab44097ddf4168277e4173c4e8ccaadf2d5",
+    "/src/formats/sha256.js": "5a8e1d52e1e7349cbb4f990d854a420c45a65c1eaf83f4e1921b369f4512868b",
+    "/src/config/execution-registry-contract.js": "827355fce2bee1e6268f83bde05db00058537af27bc5260e5a05b57151d11a82",
+    "/src/config/manifest-inference-validation.js": "1b92d5b749dbaa4ec28dca18dc0a5753977b5301ed42e43c14b723dd5823283d",
+    "/src/formats/stable-sort-object.js": "2318fb1b8fd8930544459f330827ac71e14c06b14bc47c16dce7a7f9c14fd8d9",
+    "/src/config/sequence-reference.js": "4183b0ca9e007dadecb2ba24dd05d59299b2dd1f6a2730790ca8467b2e36d2d3",
+    "/src/config/rerank-reference.js": "cd08c7677ba9c7c4c880a6c732e9919af9614d6cb740e2523397f274234b4a64",
+    "/src/config/embedding-reference.js": "4e83aaef87ea9357bbda68e921b579ecb8443f2dcf1fd75dad9fbf8a04e498f5",
+    "/src/formats/clone-json.js": "c185ee208e39d52c8d123eaac4f2695cdf6e55fc4719d54359d0a16c22c0520c",
+    "/src/config/choice-scoring-reference.js": "904007f625a674da2b5eb91f2336e75788d006d02d1b61dfbd4c660eb935a15e",
+    "/src/formats/load-json.js": "71761a83b6d7a0e89962592f6d3181f9524eb6784bafb1879dcd4316b936ed5f",
+    "/src/config/schema/intent-bundle.schema.js": "d537b93ac42f7aeb2981fee421ae0670102b92175af24d6237e977f458947422",
+    "/src/config/runtime-merge.js": "c874fdb59b8d0030f6449a394ba7b394fd043ee44f27375ac212f8da9db1b49b",
+    "/src/formats/plain-object.js": "2d966f313816b1dfed810fd83bdabf3b38360ead2e926763ceadb6c3df81caf8",
+    "/src/config/param-validator.js": "f512eb17886a79523bc55c95e68a53349af65833bef39333226f43339a05ae4a",
+    "/src/config/merge/value-selection.js": "11912af8839df7e26de1f8a04726277295ba226aa3f60b1a00378ad79606f19e",
+    "/src/config/merge/kernel-path-policy.js": "8dc20d3fc105ea17cd4ffb1d8ae1ba162c5f82ddbde645e7ac7aad82683885df",
+    "/src/config/merge/execution-patches.js": "2bf1cdb949a30eb89979d4dee7d6cd2deb00a4db44789828eab93614e9037ca9",
+    "/src/config/kernel-registry-contract.js": "c37ac8ad8d99f4e9bfe46e06980676976ed693c78811f071f43bef45d7331a7a",
+    "/src/formats/canonical-hash.js": "0034c8318465e897c78d01f2a15025ce86464e05799d4b1162327618251a9fda",
+    "/src/config/heterogeneous-attention-contract.js": "ec87da2df5790c1312beb5182171cc64a7c406a1a93f96537e012c9d0325dad5",
+    "/src/config/choice-scoring.js": "fb3342e5a9aeb0c9faa29b93fdb70693fab56ea88077061b1fef203efab756f0",
+    "/src/config/param-categories.js": "af4f70c4d040a73fc78f68f58c0f3fcb9879af70155b555ca1c5c906b67f1bb1",
+    "/src/config/choice-scoring.json": "ca0f7ac4360d47d4c27c331b604258d082c80ffa0467df2c6b6fdb99b4ff55e8",
+    "/src/config/capsule-v2.js": "6121d72a2e99d43d2ac5e0d788e094f2bacb78e220404c6a94c792e44e7ea797",
+    "/src/config/model-ir.js": "cb808e6a8c05a0b174f930891d648eac027f6e270266b68b7227afc8dd74078d",
+    "/src/config/capsule-release-contract.js": "1111bb795b062f008c4aebfc2a54cee961b0ffabaf6f328de00013b57cbfef1a",
+    "/src/config/target-plan.js": "83c248897470442ee72c5473d6de16ee39bcf7ab5fbcedf4cd5b9c91d73d7f8b",
+    "/src/config/capsule-token-selection.js": "a66302a574c4f9c8832c4db14b0417fbd5b9ee3a20a75261ffc47fa6880a4567",
+    "/src/config/rope-frequencies.js": "35ce10b989052c732a0c7b9a94476c7e543599e39cc2bcf5a66c1778bfb585ad",
+    "/src/config/model-ir-v2.js": "f64d3b1be9d3c86cfc0bae569af1c095c72701b335fd8a7f4425c3930191a084",
+    "/src/config/capsule-adapter-policy.js": "234d879e345dd0d5d238fccaa232f03dfa9bde504777f26e270c01c4632d7cdb",
+    "/src/config/initial-execution-identity.js": "2c25b83186104597025031a9436a53ba0d3a71c1ee170c4f4ccebdd3e4f6d689",
+    "/src/config/capsule-token-selection.json": "2b5f496ee8768df816c0ca441ddc5ab9d501fddb91a8bd3616483033ff9c6746",
+    "/src/config/capsule-adapters.json": "fdc319264ebd39573a354d63246bf2c5d1a1a7897be566b5a7fd853615dea621",
+    "/src/config/kernels/registry.json": "5bba15f7cd1f06a2a82576b926b5db4199932797f40f3ffa6390da3f3f97488b",
+    "/src/config/platforms/nvidia-gh200.json": "328dfac7c24af3cb12f0fdf7a3fc425a2690051a4fa06a996a330f0ad818258d",
+    "/src/config/platforms/nvidia-gh200-nvl2.json": "3d2f9beabcda6e10e8c3db9b01aa7b58a5b143fbb81fe51f65e46e5b9c81c916",
+    "/src/config/platforms/nvidia-gb200-8gpu.json": "a896127e6577bb36859e37625a393bb86bee74701c424ed7941ee9099f94a180",
+    "/src/config/platforms/nvidia-gb200-nvl72.json": "e05bffb6ab634ef872f663cc21b8667c9d652e54d6434fb5caa7572401c95353",
+    "/src/memory/buffer-pool.js": "6dd5d04cd8f6d16c15753fa6c6152a5b4a9f48bb4dcdb670f536f889ae351b80",
+    "/src/config/runtime.js": "34edef5761faf6b4cd5fb6c44d9ec4cd817b36ac2b9367fae422353397eb5038",
+    "/src/gpu/kernels/kernel-execution.js": "b19b01c476c3cdd4c664e4e3eeeb38aab50f4eb1383270d8b844701d1fce5865",
+    "/src/gpu/kernels/kernel-configs.js": "2b10fc9582156946d017f5b028d7a86d7c3da77b5d1ebe54443b2617453c4039",
+    "/src/gpu/kernels/pipeline-cache.js": "496e3c8ebe883489b6df48d63e53b88d258f6e0fc6a98a1851ae366680a227c1",
+    "/src/gpu/kernels/dispatch.js": "39b111f491f408a785f00f9d6c974264ddf1d9911620e2aef3330d7278f6d761",
+    "/src/gpu/kernels/uniform-utils.js": "ded8f67ff50cbb1298ffbab9deb91fe7bcd792285b7e67349dedc18700ed4847",
+    "/src/gpu/kernels/feature-check.js": "ce4ba97642f0e1c0b213145dfe22f5b9b531c72a3f7f0cf9be5065902a88ab9e",
+    "/src/gpu/kernels/generated/uniform-writers.js": "282afc7313bc4c59efb38f818a2f4e518dc93a1d13bb26fd482211f15ddedd40",
+    "/src/gpu/uniform-cache.js": "a05e20d00b726506591af8af4a3b9defed790c9a6ad50ba305670162c0747957",
+    "/src/gpu/kernels/shader-cache.js": "1fc90e90b9b28fd9effe0669e86eef200b3e15be8f93fa768f70340c80067145",
+    "/src/gpu/kernels/constants.js": "749760ad2fb7cd82279fd31452bf3cda10c44ed3700731ff634f408e5baaac71",
+    "/src/gpu/kernels/shader-source-scope.js": "683ba9c805a1b77936dc12b5beebd001a19001e2ab90c781373ed2c6241d28fb",
+    "/src/gpu/kernels/generated/uniform-writers-1.js": "dcd935d74ff912be38a30f81a2403d0ec159ea948c4255d60945fe727b13426e",
+    "/src/gpu/kernels/generated/uniform-writers-0.js": "9a40b335b4c20997e1f0d7b7d0d324b2ec3c2ae7addfb0cc0d7aa82e39c310e3",
+    "/src/gpu/kernels/generated/uniform-writers-2.js": "c506666dfe7e0c5012e1e645e7326044499ac38dfe3f532e3a40d9b5401153c3",
+    "/src/config/wgsl-language-contract.js": "3d0c959cfe7d934fcb48763eab16cfa072cd802e7ca935f5936c62f628fd4007",
+    "/src/gpu/kernels/uniform-encoding.js": "ad59e6b06afd3fd29fd0a4930f71856c80e7d3ad2c5e12b654ae7ee70831cd41",
+    "/src/gpu/kernels/w8a8.js": "698a9950d03a7cdb8dcf43c2857b5daa5d6d96ec6288d4dd4bde4ed2fd8208d1",
+    "/src/gpu/tensor.js": "4bfd5ae846d71256a79f61fe4a382ef761276a2314bdd28d6437078b34cff429",
+    "/src/config/schema/w8a8.schema.js": "74f9a1694bea3efa7be84894fed9399b871b41fb79d509b92992b7179e3a5074",
+    "/src/rules/rule-registry.js": "44c476555d8a8b7bbdb42ce18a1f5742475ccc7a44b24a2f61abb4c3fdc11106",
+    "/src/rules/rule-matcher.js": "a980451d7fcd2b137b7cf31497a7308319a971d0cded4646833b4d23b40e2eff",
+    "/src/rules/execution-rules-contract-check.js": "4537911c5da8842688ff9a51ecc96016c505850161cfe0bea32921dc8c43d9ec",
+    "/src/rules/layer-pattern-contract-check.js": "c39e20a428a6fee2da312399871398154221a13fd2104d41334aa703b858a26b",
+    "/src/rules/generated/rule-bundle.json": "bc1d0fe425536e1ff67a916d577faae51ee42318947294fb44da2fe2ec80c847",
+    "/src/gpu/weight-buffer.js": "9f9167fbdbf022b7735399afdee2f01879276e94a89a1660c549e77d2b9d58d0",
+    "/src/gpu/command-recorder.js": "03b56ff86c71008cc8fd2f0cd306b6e2f151e8a57150340d668da89b3ef06fd3",
+    "/src/config/platforms/loader.js": "d2d61e83282c767df9f8155d1c7e6e87b29e66e1629ae886b0511024bdd14d1d",
+    "/src/config/kernels/registry.js": "5370bf22394dd13a172139f00d05b86fe53ca0872868f3ca991e41183adacac4",
+    "/src/config/platforms/apple-m3.json": "a64fd02be5da0b24ad7c94c88cac4998e9d3a635f83baff795be280662f26f6a",
+    "/src/config/platforms/apple-m2.json": "1f83309dfe543b0ab82cc8245ef009797f16a8318e0feb45a983f3352f3e7946",
+    "/src/config/platforms/apple-m1.json": "20b316e2383d286c0a596124c7db088a7dc046390b71715a1e24d811ae780cd7",
+    "/src/config/platforms/amd-strix-halo-gfx1151.json": "460cf8261af7c6d7d39e89673ded8def2fbf5b7c1e48e6493ff8d6576c3cdf6c",
+    "/src/config/platforms/nvidia-rtx40.json": "725af94daf0a43d5421f75733c211d3dcd499e5dd90a638a40129523bcdc1e6e",
+    "/src/config/platforms/nvidia-rtx30.json": "5fe22385a1a5af3162ea1c9f7ce517b6762be430bd0291769e9b2113275c69f4",
+    "/src/config/platforms/amd-rdna3.json": "02844f68e61b8c699df8fa4658d47439bc7072dc76aaf760a0e44530226aa70f",
+    "/src/gpu/kernels/probe_shader_f16.wgsl": "85d26934e7253dc9a4e88c19098d57745f8d9723d4f03ecb81b2f70302a9b748",
+    "/src/gpu/kernels/submit_probe.wgsl": "b6001e7264cff565d8a29faa2e53e693a5c931d51d169ab5bbfe2392b672c9fb",
+    "/src/gpu/kernels/quantize_w8a8.wgsl": "d01bbb40e706e027c70cdd5360eb5745b6e0412db7d2f05203a8d67cc8260899",
+    "/src/gpu/kernels/matmul_w8a8.wgsl": "adb69e32003508afddb0844bdf4b4cc62f72e6ec0f01d66e80c44dc3a886d00e",
+    "/src/gpu/kernels/rescale_w8a8.wgsl": "84779a6e84571b2733f5f4e5ba96127e31d452ee04ab94c1224f82e7b8459884",
+    "/src/gpu/kernels/matmul_w8a8_packed.wgsl": "073aaece4131b2ec3fcbd6cbc304f4a5497ddd62a3f1954d01bd7f9a33424d1b"
+  },
+  "commit": "e033ed92276118e1c470029e3aa9b061c6b4135c",
+  "sourceStatus": " M docs/conversion-runtime-contract.md\n M src/config/kernel-registry-contract.d.ts\n M src/config/kernels/registry.json\n M src/config/schema/converter.schema.d.ts\n M src/config/schema/converter.schema.js\n M src/config/schema/manifest.schema.d.ts\n M src/converter/quantization-info.js\n M src/converter/tensor-transform.js\n M src/formats/rdrr/storage-descriptor.js\n M src/formats/rdrr/types.d.ts\n M src/formats/rdrr/validation.js\n M src/gpu/kernels/generated/uniform-writers-0.d.ts\n M src/gpu/kernels/generated/uniform-writers-0.js\n M src/gpu/kernels/generated/uniform-writers-1.d.ts\n M src/gpu/kernels/generated/uniform-writers-1.js\n M src/gpu/kernels/generated/uniform-writers-2.d.ts\n M src/gpu/kernels/generated/uniform-writers-2.js\n M src/gpu/kernels/generated/uniform-writers.d.ts\n M src/gpu/kernels/generated/uniform-writers.js\n M src/gpu/kernels/index.d.ts\n M src/gpu/kernels/index.js\n M src/gpu/kernels/matmul.d.ts\n M src/gpu/kernels/matmul.js\n M src/gpu/weight-buffer.d.ts\n M src/inference/pipelines/text/ffn/dense-executor.js\n M src/loader/loader-types.d.ts\n M src/loader/model-executor.js\n M src/loader/tensors/tensor-loader.d.ts\n M src/loader/tensors/tensor-loader.js\n M src/rules/generated/rule-bundle.json\n M src/rules/inference/dtype.rules.json\n M src/rules/loader/tensor-loader.rules.json\n M src/rules/loader/weights.rules.json\n M tests/inference/ffn-execution-v1-precision-contract.test.js\n M tools/gemma3-deployed-generation-control.py\n M tsconfig.source-strict.json\n?? artifacts/w8a8-conversion-20261011/\n?? artifacts/w8a8-kernels-20261011/\n?? src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json\n?? src/config/schema/w8a8.schema.d.ts\n?? src/config/schema/w8a8.schema.js\n?? src/converter/w8a8-quantizer.d.ts\n?? src/converter/w8a8-quantizer.js\n?? src/formats/rdrr/w8a8-storage.d.ts\n?? src/formats/rdrr/w8a8-storage.js\n?? src/gpu/kernels/matmul_w8a8.wgsl\n?? src/gpu/kernels/matmul_w8a8_packed.wgsl\n?? src/gpu/kernels/quantize_w8a8.wgsl\n?? src/gpu/kernels/rescale_w8a8.wgsl\n?? src/gpu/kernels/w8a8.d.ts\n?? src/gpu/kernels/w8a8.js\n?? src/loader/tensors/w8a8-loader.d.ts\n?? src/loader/tensors/w8a8-loader.js\n?? tests/converter/w8a8-quantizer.test.js\n?? tests/integration/w8a8-model-reference-test.py\n?? tests/integration/w8a8-physical.test.js\n?? tests/kernels/w8a8-physical.js\n?? tests/loader/w8a8-loader.test.js\n?? tools/lib/w8a8_model_quality.py\n?? tools/lib/w8a8_model_reference.py\n",
+  "browser": "146.0.7680.177",
+  "systemInfo": {
+    "gpu": {
+      "devices": [
+        {
+          "vendorId": 4098,
+          "deviceId": 5510,
+          "vendorString": "Google Inc. (AMD)",
+          "deviceString": "ANGLE (AMD, Vulkan 1.4.335 (Radeon 8060S Graphics (RADV STRIX_HALO) (0x00001586)), radv-26.0.3)",
+          "driverVendor": "AMD",
+          "driverVersion": "26.0.3"
+        }
+      ],
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "canSupportThreadedTextureMailbox": false,
+        "directRenderingVersion": "",
+        "displayType": "ANGLE_VULKAN",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_image GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_logic_op GL_ANGLE_memory_object_flags GL_ANGLE_memory_size GL_ANGLE_multi_draw GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_read_only_depth_stencil_feedback_loops GL_ANGLE_relaxed_vertex_attribute_type GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_robust_fragment_shader_output GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_ANGLE_vulkan_image GL_ANGLE_yuv_internal_format GL_ARM_rgba8 GL_ARM_shader_framebuffer_fetch GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_array GL_EXT_EGL_image_external_wrap_modes GL_EXT_EGL_image_storage GL_EXT_EGL_image_storage_compression GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_fragment_shading_rate GL_EXT_fragment_shading_rate_primitive GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_multisample_compatibility GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_semaphore GL_EXT_semaphore_fd GL_EXT_separate_shader_objects GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shadow_samplers GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_cube_map_array GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_format_sRGB_override GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_RG8 GL_EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_EXT_texture_storage_compression GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_blend_equation_advanced GL_KHR_debug GL_KHR_robustness GL_NV_depth_buffer_float2 GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_compressed_EAC_R11_signed_texture GL_OES_compressed_EAC_R11_unsigned_texture GL_OES_compressed_EAC_RG11_signed_texture GL_OES_compressed_EAC_RG11_unsigned_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_compressed_ETC2_RGB8_texture GL_OES_compressed_ETC2_RGBA8_texture GL_OES_compressed_ETC2_punchthroughA_RGBA8_texture GL_OES_compressed_ETC2_punchthroughA_sRGB8_alpha_texture GL_OES_compressed_ETC2_sRGB8_alpha8_texture GL_OES_compressed_ETC2_sRGB8_texture GL_OES_compressed_paletted_texture GL_OES_copy_image GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_border_clamp GL_OES_texture_cube_map_array GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_vertex_type_10_10_10_2 GL_OVR_multiview GL_OVR_multiview2 GL_QCOM_framebuffer_foveated GL_QCOM_render_shared_exponent GL_QCOM_shading_rate GL_QCOM_texture_foveated ",
+        "glImplementationParts": "(gl=egl-angle,angle=vulkan)",
+        "glRenderer": "ANGLE (AMD, Vulkan 1.4.335 (Radeon 8060S Graphics (RADV STRIX_HALO) (0x00001586)), radv-26.0.3)",
+        "glResetNotificationStrategy": 33362,
+        "glVendor": "Google Inc. (AMD)",
+        "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.27045 git hash: 1c0f91aaa60a)",
+        "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_surface_orientation EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_EXT_image_gl_colorspace EGL_KHR_gl_colorspace EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_fence_sync EGL_KHR_wait_sync EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_KHR_swap_buffers_with_damage EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANDROID_native_fence_sync EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_IMG_context_priority EGL_KHR_create_context_no_error EGL_EXT_image_dma_buf_import EGL_EXT_image_dma_buf_import_modifiers EGL_KHR_reusable_sync EGL_EXT_buffer_age EGL_ANGLE_create_surface_swap_interval EGL_ANGLE_vulkan_image EGL_KHR_partial_update EGL_ANGLE_global_fence_sync EGL_ANGLE_memory_usage_report ",
+        "glWsVendor": "Google Inc. (AMD)",
+        "glWsVersion": "1.5 (ANGLE 2.1.27045 git hash: 1c0f91aaa60a)",
+        "hardwareSupportsVulkan": true,
+        "inProcessGpu": false,
+        "initializationTime": 0.08209,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "8",
+        "optimus": false,
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "3.00",
+        "processCrashCount": 0,
+        "sandboxed": false,
+        "skiaBackendType": "GaneshVulkan",
+        "subpixelFontRendering": true,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "3.00",
+        "visibilityCallbackCallCount": 0
+      },
+      "featureStatus": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "disabled_software",
+        "vulkan": "enabled_on",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webgpu_on_vk_via_gl_interop": "disabled_off",
+        "webnn": "disabled_off"
+      },
+      "driverBugWorkarounds": [
+        "disable_software_to_accelerated_canvas_upgrade",
+        "enable_webgl_timer_query_extensions",
+        "exit_on_context_lost",
+        "force_cube_map_positive_x_allocation",
+        "force_int_or_srgb_cube_texture_complete",
+        "disabled_extension_GL_KHR_blend_equation_advanced",
+        "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+      ],
+      "videoDecoding": [],
+      "videoEncoding": []
+    },
+    "modelName": "",
+    "modelVersion": "",
+    "commandLine": "/opt/google/chrome/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --enable-unsafe-webgpu --enable-features=Vulkan --use-angle=vulkan --disable-gpu-sandbox --user-data-dir=/tmp/playwright_chromiumdev_profile-SqfLK2 --remote-debugging-pipe --no-startup-window --noerrdialogs --ozone-platform=headless --ozone-override-screen-size=800,600 --flag-switches-begin --flag-switches-end --enable-unsafe-swiftshader"
+  },
+  "result": {
+    "qualified": true,
+    "capabilities": {
+      "hasSubgroups": true,
+      "wgslLanguageFeatures": [
+        "packed_4x8_integer_dot_product",
+        "subgroup_uniformity",
+        "subgroup_id",
+        "readonly_and_readwrite_storage_textures",
+        "unrestricted_pointer_parameters",
+        "pointer_composite_access",
+        "texture_and_sampler_let",
+        "uniform_buffer_standard_layout"
+      ],
+      "hasSubgroupsF16": true,
+      "hasF16": true,
+      "hasTimestampQuery": true,
+      "maxBufferSize": 4294967292,
+      "maxWorkgroupSize": 1024,
+      "maxWorkgroupStorageSize": 65536,
+      "adapterInfo": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "unknown",
+        "description": ""
+      },
+      "submitProbeMs": 1.5
+    },
+    "packedAvailable": true,
+    "rows": [
+      {
+        "M": 1,
+        "N": 1,
+        "K": 1,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 1,
+        "N": 1,
+        "K": 1,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 3,
+        "N": 7,
+        "K": 9,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 3,
+        "N": 7,
+        "K": 9,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 5,
+        "K": 4,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 5,
+        "K": 4,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 5,
+        "N": 3,
+        "K": 257,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 5,
+        "N": 3,
+        "K": 257,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 8,
+        "K": 640,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 2,
+        "N": 8,
+        "K": 640,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 3,
+        "N": 17,
+        "K": 2048,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 3,
+        "N": 17,
+        "K": 2048,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 1,
+        "N": 2,
+        "K": 133144,
+        "variant": "w8a8_portable",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "M": 1,
+        "N": 2,
+        "K": 133144,
+        "variant": "w8a8_packed",
+        "packedBytesExact": true,
+        "accumulatorsExact": true,
+        "outputBitsExact": true
+      },
+      {
+        "rescalePairs": 1032,
+        "overflows": 126,
+        "exactBits": true,
+        "minimumNormalRoundUp": true,
+        "signedZeroFlush": true
+      },
+      {
+        "failure": "nan",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "nan",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "nan",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "nan",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "infinity",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "infinity",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "infinity",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "infinity",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 1
+      },
+      {
+        "failure": "subnormal",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 2
+      },
+      {
+        "failure": "subnormal",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 2
+      },
+      {
+        "failure": "subnormal",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 2
+      },
+      {
+        "failure": "subnormal",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 2
+      },
+      {
+        "failure": "scale-underflow",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "scale-underflow",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "scale-underflow",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "scale-underflow",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "negative128",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "negative128",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "negative128",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "negative128",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "padding",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "padding",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "padding",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "padding",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 8
+      },
+      {
+        "failure": "bad-scale",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "bad-scale",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "bad-scale",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "bad-scale",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 4
+      },
+      {
+        "failure": "overflow",
+        "variant": "w8a8_portable",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 16
+      },
+      {
+        "failure": "overflow",
+        "variant": "w8a8_portable",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 16
+      },
+      {
+        "failure": "overflow",
+        "variant": "w8a8_packed",
+        "recorded": false,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 16
+      },
+      {
+        "failure": "overflow",
+        "variant": "w8a8_packed",
+        "recorded": true,
+        "code": "DOPPLER_W8A8_INVALID_INPUT",
+        "statusBits": 16
+      },
+      {
+        "lifecycle": "shared-status-deferred",
+        "partial": false,
+        "validations": 1,
+        "code": "DOPPLER_W8A8_INVALID_INPUT"
+      },
+      {
+        "lifecycle": "shared-status-deferred",
+        "partial": true,
+        "validations": 1,
+        "code": "DOPPLER_W8A8_INVALID_INPUT"
+      },
+      {
+        "lifecycle": "abort-and-fresh-reuse",
+        "preflightRejections": 9,
+        "outputExact": true
+      }
+    ],
+    "resources": {
+      "retainedModel": {
+        "bytes": 0,
+        "count": 0
+      },
+      "active": {
+        "bytes": 0,
+        "count": 0
+      },
+      "reusable": {
+        "bytes": 1656064,
+        "count": 24
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    }
+  }
+}
