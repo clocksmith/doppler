@@ -7,10 +7,13 @@ const target = new URL('../../src/inference/pipelines/text/generator/prefill-run
 const hidden = { __dopplerFakeGPUBuffer: true, size: 32, usage: 0 };
 globalThis.prefillOwnershipProbe = { hidden, released: [], fail: 'logits' };
 const modules = {
-  '../../../../gpu/device.js': 'export const getDevice = () => null; export const setTrackSubmits = () => {};',
+  '../../../../gpu/device.js': 'export const getDevice = () => globalThis.prefillOwnershipProbe.device ?? null; export const setTrackSubmits = () => {};',
   '../../../../memory/buffer-pool.js': `export const releaseBuffer = buffer => globalThis.prefillOwnershipProbe.released.push(buffer);
+    export const getBufferPool = device => { const probe = globalThis.prefillOwnershipProbe; probe.poolDevice = device; return probe.pool; };
     export const acquireBuffer = () => { throw Error('unexpected acquire'); }; export const readBuffer = acquireBuffer;
     export const readBufferSlice = acquireBuffer; export const uploadData = acquireBuffer;`,
+  '../../../../gpu/command-recorder.js': `export const createCommandRecorder = () => globalThis.prefillOwnershipProbe.recorder;
+    export const createProfilingRecorder = createCommandRecorder; export class CommandRecorder {}`,
   '../embed.js': 'export const embed = async () => ({ buffer: globalThis.prefillOwnershipProbe.hidden, dtype: "f32", shape: [2, 4] });',
   '../layer.js': 'export const processLayer = async () => { if (globalThis.prefillOwnershipProbe.fail === "layer") throw Error("layer failed"); return globalThis.prefillOwnershipProbe.hidden; };',
   '../logits/index.js': `export const computeLogits = async () => { if(globalThis.prefillOwnershipProbe.fail === 'logits') throw Error('logits failed'); return { logitsBuffer: 'caller-owned' }; };
@@ -45,5 +48,59 @@ try {
   const intermediate = await _prefill.call(host, [1, 2], { _returnHidden: true });
   assert.equal(intermediate.currentHiddenBuffer, hidden);
   assert.deepEqual(globalThis.prefillOwnershipProbe.released, [], 'chunk caller owns transferred hidden state');
+
+  // The public failure must await recorder ownership release before retiring the
+  // captured pool. Changing the global device during cleanup must not redirect it.
+  const probe = globalThis.prefillOwnershipProbe;
+  const originalDevice = {};
+  const abortGate = Promise.withResolvers();
+  const retirementGate = Promise.withResolvers();
+  const abortStarted = Promise.withResolvers();
+  const retirementStarted = Promise.withResolvers();
+  const order = [];
+  probe.device = originalDevice;
+  probe.fail = 'layer';
+  probe.pool = { async settleDeferredDestruction() {
+    order.push('retire'); retirementStarted.resolve(); await retirementGate.promise;
+  } };
+  probe.recorder = { async abort() {
+    order.push('abort'); abortStarted.resolve(); await abortGate.promise; order.push('abort-done');
+  } };
+  let completed = false;
+  const failed = _prefill.call(host, [1, 2], { _returnGpuLogits: true })
+    .then(() => { throw Error('Expected layer failure'); }, error => error)
+    .finally(() => { completed = true; });
+  await abortStarted.promise;
+  await Promise.resolve();
+  assert.equal(completed, false, 'Failed prefill must await its recorder abort');
+  probe.device = {};
+  probe.pool = { settleDeferredDestruction() { throw Error('Wrong device pool'); } };
+  abortGate.resolve();
+  const retirementReached = await Promise.race([
+    retirementStarted.promise.then(() => true), failed.then(() => false),
+  ]);
+  assert.equal(retirementReached, true, 'Failure must retire buffers before becoming observable');
+  assert.equal(probe.poolDevice, originalDevice, 'Pool ownership is captured before async work');
+  assert.equal(completed, false, 'Failed prefill must await deferred retirement');
+  retirementGate.resolve();
+  assert.match((await failed).message, /layer failed/);
+  assert.deepEqual(order, ['abort', 'abort-done', 'retire']);
+
+  const abortError = Error('recorder cleanup failed');
+  const retirementError = Error('retirement failed');
+  probe.device = originalDevice;
+  probe.recorder = { async abort() { throw abortError; } };
+  probe.pool = { async settleDeferredDestruction() { throw retirementError; } };
+  await assert.rejects(_prefill.call(host, [1, 2], { _returnGpuLogits: true }), error => {
+    assert(error instanceof AggregateError);
+    assert.match(error.errors[0].message, /layer failed/);
+    assert.equal(error.cause, error.errors[0]);
+    assert.equal(error.errors[1], abortError);
+    assert.equal(error.errors[2], retirementError);
+    return true;
+  });
+  probe.device = null;
+  probe.fail = null;
+  assert.equal((await _prefill.call(host, [1, 2], { _returnGpuLogits: true })).logitsBuffer, 'caller-owned');
 } finally { hooks.deregister(); delete globalThis.prefillOwnershipProbe; }
 console.log('prefill-output-ownership: passed');
