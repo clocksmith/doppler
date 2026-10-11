@@ -140,6 +140,25 @@ delete missingApplication.input.application;
 assert.throws(() => test.session.executeOperation(missingApplication), /application binding/);
 assert.equal(test.calls, callsBeforeInvalid);
 
+// The ordinary public batch and independently submitted subsets must invoke the
+// same single-text contract. Synthetic pipeline vectors distinguish input order;
+// this does not qualify a physical model or an application's subdivision policy.
+const subdivided = await openFixture();
+subdivided.pipeline.embed = async (text) => ({
+  embedding: new Float32Array(text === 'first' ? [1, 0, 0, 0] : [0, 1, 0, 0]),
+  tokens: text === 'first' ? [1, 2] : [1, 3], seqLen: 2, embeddingMode: 'last',
+});
+const executeTexts = async (texts) => {
+  const request = operationRequest(subdivided.request.application);
+  request.input.texts = texts;
+  return (await collect(subdivided.session.executeOperation(request))).at(-1).output.embeddings;
+};
+const whole = await executeTexts(['first', 'second', 'first']);
+const tail = await executeTexts(['first']);
+const head = await executeTexts(['first', 'second']);
+assert.deepEqual([...head, ...tail], whole, 'subdivision preserves duplicate inputs and original output positions');
+await subdivided.session.close();
+
 for (const [request, message] of [
   [null, /request as an object/],
   [{ ...test.request, text: '' }, /non-empty string/],

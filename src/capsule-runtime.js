@@ -4,6 +4,7 @@ export { createDopplerRun, createDopplerRuntime, createForecastProgramFactory, R
 export { createFetchCapsuleArtifactStore } from './client/runtime/fetch-capsule-artifact-store.js';
 export { createCapsuleStreamAccumulator, capsuleOperationSnapshots } from './client/runtime/capsule-operation-stream.js';
 export { CHOICE_SCORING_CONTRACT, snapshotChoiceScoringRequest, validateChoiceScoringResult } from './config/choice-scoring.js';
+export { resolveEmbeddingBatchSemantics } from './config/embedding-contract.js';
 
 
 import { createDopplerRun } from './client/runtime/composition-root.js';

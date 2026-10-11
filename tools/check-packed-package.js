@@ -119,8 +119,12 @@ import { createLayerPartitionPlan } from '${packageJson.name}';
 import { serializeActivationFrame } from '${packageJson.name}/runtime';
 // @ts-expect-error Run must keep the same public boundary
 import { serializeActivationFrame as leakedRunHelper } from '${packageJson.name}/run';
-import { createDopplerRun, RUN_CORE_VERSION } from '${packageJson.name}/run';
-import type { RunPorts, DopplerRun, DopplerRunSession } from '${packageJson.name}/run';
+import { createDopplerRun, RUN_CORE_VERSION, resolveEmbeddingBatchSemantics } from '${packageJson.name}/run';
+import type { RunPorts, DopplerRun, DopplerRunSession, EmbeddingBatchSemantics } from '${packageJson.name}/run';
+declare const embeddingManifest: Record<string, unknown>;
+const embeddingBatchSemantics: EmbeddingBatchSemantics = resolveEmbeddingBatchSemantics(embeddingManifest);
+// @ts-expect-error Embedding semantics cannot authorize generation subdivision.
+embeddingBatchSemantics.operation.name = 'generate';
 import type { ResidentPartitionSession, ResidentPartitionDescriptor, ResidentPartitionARequest,
   ResidentPartitionAResult, ResidentPartitionBRequest, ResidentPartitionBResult,
   ResidentPartitionTokenizationRequest, ResidentPartitionTokenizationResult,
