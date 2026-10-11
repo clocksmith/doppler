@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.task-quality-review/v1",
+  "candidateAccepted": false,
+  "passedTasks": 3,
+  "totalTasks": 6,
+  "naturalTerminationTasks": 6,
+  "productionChanged": false,
+  "standardArchiveChanged": false,
+  "gpuExecutionPerformed": false,
+  "instrumentationPreservedAllGeneratedTokens": true,
+  "sourceWeightLineageEstablished": false,
+  "legacyManifestHashesMatchingStandardBlake3": 0,
+  "shards": 13,
+  "runtimeQualified": false,
+  "numericalToleranceChanged": false,
+  "memoryBudgetChanged": false,
+  "ascendingPenaltyCauseSupported": false,
+  "descendingPenaltyChangesWinner": true,
+  "suiteSha256": "a85d4dd9e78cf3bcf927b32c9d31997d3941f1ccfb1bfcc9c44184a800e4779a",
+  "resultSha256": "0b44495befc889a632999acdecb224b920bbb308d6ae407ecd91a03081822d94"
+}
