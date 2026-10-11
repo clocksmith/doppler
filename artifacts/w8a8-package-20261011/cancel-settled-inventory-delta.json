@@ -1,0 +1,20 @@
+{
+  "schema": "doppler.package-inventory-delta/v1",
+  "baseline": "settled-package-inventory.json.gz",
+  "candidate": "cancel-settled-package-inventory.json.gz",
+  "sourceCommit": "3a87d710de3ad68db0a060fca7b32177d93501ca",
+  "standardArchiveChanged": false,
+  "added": [],
+  "removed": [],
+  "changed": [
+    {
+      "path": "src/inference/pipelines/text/generator/prefill-runtime.js",
+      "beforeBytes": 35196,
+      "afterBytes": 36013
+    }
+  ],
+  "entryCount": 1917,
+  "packedBytes": 3367020,
+  "unpackedBytes": 13214003,
+  "retainedCrossNpmAllowanceBytes": 2158
+}

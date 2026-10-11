@@ -132,7 +132,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Resident contract 0.6.27: measured archive plus the existing npm allowance.
   // Evidence: artifacts/partition-contracts-20261010/npm-pack.json.
   // Measured npm 9 payload plus the same 2,158-byte compression allowance.
-  maxPackedSize: 3_368_972,
+  maxPackedSize: 3_369_178,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -177,8 +177,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Exact source inventory: artifacts/embedding-subdivision-20261011/package-inventory.json.
   // Exact W8A8 candidate including awaited retirement and first-token cancellation.
   // CPU-logits ownership adds 34 source bytes; file count is unchanged.
-  // Evidence: artifacts/w8a8-package-20261011/settled-package-inventory.json.gz.
-  maxUnpackedSize: 13_213_186,
+  // Submitted-prefill failure settlement adds 817 bytes in one existing module.
+  // Evidence: artifacts/w8a8-package-20261011/cancel-settled-package-inventory.json.gz.
+  maxUnpackedSize: 13_214_003,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
