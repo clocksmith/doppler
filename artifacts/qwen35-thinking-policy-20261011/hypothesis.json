@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.source-policy-hypothesis/v1",
+  "hypothesis": "Enabling the original checkpoint thinking template may resolve the spelled-out endpoint and plan the whole range before answering. Only the template mode changes.",
+  "candidateControlSha256": "6d409fd0c2754f457e240f05da10438561dd6f5278239523d5515d01da3ef2de",
+  "acceptance": "Natural EOS and exactly one closing thinking boundary within 4096 generated / 8192 total tokens. After the thinking boundary, exactly integers 1 through 200, one per line, with no omissions, duplicates, extra prose or wrong values. Passing this alone cannot qualify document quality or deployment.",
+  "status": "frozen-before-execution",
+  "settings": {
+    "maxTokens": 4096,
+    "maxSeqLen": 8192,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1.1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "preflight": "Initial setup compared a Transformers BatchEncoding object with an ID array and rejected before model execution. With return_dict=False, source no-thinking IDs exactly equal the retained baseline. No template mismatch exists."
+}
