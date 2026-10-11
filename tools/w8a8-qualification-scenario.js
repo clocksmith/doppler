@@ -14,6 +14,40 @@ export function summarizeLogits(logits, target) {
   return { targetLogit: logits[target], nll: maximum + Math.log(sum) - logits[target], top1, vocabulary: logits.length };
 }
 
+export async function qualifySubmittedGeneration({ queue, run, stats, resources }) {
+  const before = structuredClone(resources());
+  const controller = new AbortController();
+  const reason = new Error('Generation qualification cancellation after GPU submission');
+  const originalSubmit = queue.submit;
+  let submissions = 0, rejection = null;
+  queue.submit = function (...args) {
+    const result = originalSubmit.apply(this, args);
+    submissions++;
+    if (!controller.signal.aborted) controller.abort(reason);
+    return result;
+  };
+  try { await run(controller.signal); }
+  catch (error) { rejection = error; }
+  finally {
+    queue.submit = originalSubmit;
+    await queue.onSubmittedWorkDone();
+  }
+  const after = structuredClone(resources());
+  const aborted = stats().stopReason === 'aborted';
+  const abortRejection = rejection === reason || rejection?.name === 'AbortError'
+    || String(rejection?.message).includes(reason.message);
+  const evidence = { submissions, before, after, stopReason: stats().stopReason,
+    rejection: rejection ? { name: rejection.name, message: rejection.message } : null };
+  try {
+    requireValue(submissions > 0 && controller.signal.aborted, 'Cancellation must follow an actual GPU submission.');
+    requireValue(rejection ? abortRejection : aborted, 'Submitted generation did not report cancellation.');
+    requireValue(after.active.bytes <= before.active.bytes && after.active.count <= before.active.count
+      && after.deferredCleanup.bytes === 0 && after.deferredCleanup.count === 0,
+    'Submitted cancellation retained active or deferred resources.');
+  } catch (error) { error.evidence = evidence; throw error; }
+  return { passed: true, ...evidence };
+}
+
 export async function runW8A8QualificationScenario(config, reference, observe) {
   const api = await import(config.apiModule);
   const { getDevice } = await import(config.deviceModule);
@@ -22,7 +56,10 @@ export async function runW8A8QualificationScenario(config, reference, observe) {
   const report = { passed: false, outputs: [], teacherForced: [], fixedWork: [], cleanup: [], stage: 'load' };
   let session;
   const generation = reference.suite.generation;
-  const lane = reference.lanes.find(row => row.modelIdentity === config.manifestDigest);
+  const variant = reference.executionVariants?.find(row => row.modelIdentity === config.manifestDigest);
+  const sourceIdentity = variant ? variant.independentSourceModelIdentity : config.manifestDigest;
+  const lane = reference.lanes.find(row => row.modelIdentity === sourceIdentity);
+  report.referenceBinding = { modelIdentity: config.manifestDigest, independentSourceModelIdentity: sourceIdentity, variant: variant ?? null };
   requireValue(lane, 'No independently bound model reference.');
   async function generate(task, referenceRow) {
     session.resetGenerationState();
@@ -72,10 +109,24 @@ export async function runW8A8QualificationScenario(config, reference, observe) {
     for await (const _chunk of session.generate(reference.suite.quality.tasks[0].messages[0].content,
       { ...generation, signal: controller.signal, onToken() { callbacks++; controller.abort(); } })) { /* owned stream drained */ }
     report.cancellation = { callbacks, aborted: controller.signal.aborted, stats: session.advanced.getStats() };
-    requireValue(callbacks > 0 && controller.signal.aborted && report.cancellation.stats.stopReason === 'aborted', 'Submitted cancellation was not observed.');
+    requireValue(callbacks > 0 && controller.signal.aborted && report.cancellation.stats.stopReason === 'aborted', 'First-token callback cancellation was not observed.');
     report.afterCancellation = await generate(reference.suite.quality.tasks[0], lane.tasks[0]);
     requireValue(same(report.afterCancellation.result.tokenIds, report.outputs[0].result.tokenIds), 'Resident recovery changed deterministic generation.');
     requireValue(report.repeated.every(row => same(row.result.tokenIds, report.outputs[0].result.tokenIds)), 'Resident reuse changed deterministic generation.');
+    session.resetGenerationState();
+    await getDevice().queue.onSubmittedWorkDone();
+    report.submittedCancellation = await qualifySubmittedGeneration({
+      queue: getDevice().queue,
+      run: async signal => {
+        for await (const _chunk of session.generate(reference.suite.quality.tasks[0].messages[0].content,
+          { ...generation, signal })) { /* runtime owns the cancelled stream */ }
+      },
+      stats: () => session.advanced.getStats(),
+      resources: () => getBufferPool().getStats().resources,
+    });
+    report.afterSubmittedCancellation = await generate(reference.suite.quality.tasks[0], lane.tasks[0]);
+    requireValue(same(report.afterSubmittedCancellation.result.tokenIds, report.outputs[0].result.tokenIds),
+      'Submitted cancellation changed subsequent deterministic generation.');
     await getDevice().queue.onSubmittedWorkDone();
     report.memory = { device: inspectDeviceMemory(), pool: getBufferPool().getStats() };
     requireValue(report.memory.device.peakBytes <= reference.suite.lifecycle.maxGpuBufferBytes, 'Allocation ceiling exceeded.');
@@ -85,7 +136,7 @@ export async function runW8A8QualificationScenario(config, reference, observe) {
         / report.teacherForced.reduce((sum, row) => sum + row.rows.length, 0),
       qualityAccepted: false, lifecyclePassed: true };
     report.passed = true; report.stage = 'execution-complete';
-  } catch (error) { report.error = { name: error.name, message: error.message, stack: error.stack }; }
+  } catch (error) { report.error = { name: error.name, message: error.message, stack: error.stack, evidence: error.evidence ?? null }; }
   finally {
     try {
       await session?.unload();

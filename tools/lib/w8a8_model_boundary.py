@@ -13,8 +13,13 @@ def replay_w8a8_boundary(model, config, manifest, args, report):
     assert contract['schema'] == 'doppler.w8a8-source-boundary/v1'
     assert contract['modelIdentity'] == report['modelIdentity']
     assert contract['execution'] == 'sequential-decode'
-    assert contract['layer'] == 0 and len(contract['inputIds']) == 2
-    captured, hooks = {}, []
+    layer = contract['layer']
+    assert type(layer) is int and 0 <= layer < len(model.model.layers)
+    assert len(contract['inputIds']) == 2
+    captured, residuals, hooks = {}, {}, []
+    residual_layers = contract.get('residualLayers', [])
+    assert len(set(residual_layers)) == len(residual_layers)
+    assert all(isinstance(index, int) and 0 <= index < len(model.model.layers) for index in residual_layers)
     active = False
 
     def hook(name):
@@ -27,9 +32,22 @@ def replay_w8a8_boundary(model, config, manifest, args, report):
                                   'output': result.detach().flatten().tolist()}
         return observe
 
+    def residual_hook(index):
+        def observe(module, operands, result):
+            if active:
+                assert isinstance(result, torch.Tensor) and list(result.shape) == [1, 1, config.hidden_size]
+                residuals[str(index)] = result.detach().flatten().tolist()
+        return observe
+
     try:
-        for name in ['q_proj', 'k_proj', 'v_proj']:
-            module = model.get_submodule('model.layers.0.self_attn.' + name)
+        for index in residual_layers:
+            hooks.append(model.model.layers[index].register_forward_hook(residual_hook(index)))
+        names = contract.get('projections', ['q_proj', 'k_proj', 'v_proj'])
+        assert len(set(names)) == len(names)
+        for name in names:
+            assert name in ['q_proj', 'k_proj', 'v_proj', 'o_proj', 'gate_proj', 'up_proj', 'down_proj']
+            owner = 'self_attn' if name in ['q_proj', 'k_proj', 'v_proj', 'o_proj'] else 'mlp'
+            module = model.get_submodule(f'model.layers.{layer}.{owner}.{name}')
             hooks.append(module.register_forward_hook(hook(name)))
         cache = StoredHalfCache(config=config)
         with torch.inference_mode():
@@ -43,7 +61,7 @@ def replay_w8a8_boundary(model, config, manifest, args, report):
                        'scope': 'Independently evolved source operands, not a GPU-derived reference',
                        'boundaryToolSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                        'contractSha256': hashlib.sha256(contract_path.read_bytes()).hexdigest(),
-                       'contract': contract, 'targetLogit': target, 'captured': captured})
+                       'contract': contract, 'targetLogit': target, 'captured': captured, 'residuals': residuals})
         return report
     finally:
         for handle in hooks:

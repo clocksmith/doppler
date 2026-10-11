@@ -14,7 +14,9 @@ export async function runW8A8BenchmarkScenario(config, reference, observe) {
     await configureDeviceMemoryBudget({ maxBytes: reference.suite.lifecycle.maxGpuBufferBytes });
     requireValue(config.comparisonModels.length === 2, 'A paired benchmark requires exactly two explicitly bound models.');
     for (const model of config.comparisonModels) {
-      requireValue(reference.lanes.some(lane => lane.modelIdentity === model.manifestDigest), 'Unbound benchmark model.');
+      const variant = reference.executionVariants?.find(row => row.modelIdentity === model.manifestDigest);
+      const sourceIdentity = variant ? variant.independentSourceModelIdentity : model.manifestDigest;
+      requireValue(reference.lanes.some(lane => lane.modelIdentity === sourceIdentity), 'Unbound benchmark model.');
       const started = performance.now();
       const handle = await api.load({ url: model.modelUrl }, { runtimeConfig: config.runtimeConfig });
       handles.set(model.id, handle);

@@ -67,7 +67,7 @@ const observe = async phase => {
   await fs.writeFile(path.join(config.outputDir, 'progress.json'), JSON.stringify({ stage: report.stage, phases: report.phases }, null, 2));
   console.log(JSON.stringify(phase));
 };
-const scenario = { generation: config.generation, runtimeConfig: config.runtimeConfig, manifestDigest: config.manifestDigest,
+const scenario = { generation: config.generation, runtimeConfig: config.runtimeConfig, manifestDigest: config.manifestDigest, boundaryStage: config.boundaryStage, boundaryLayer: config.boundaryLayer,
   cancellation: config.cancellation, repeatRuns: config.repeatRuns };
 try {
   if (config.surface === 'browser') {
