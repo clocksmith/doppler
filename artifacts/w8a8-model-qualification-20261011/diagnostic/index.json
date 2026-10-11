@@ -1,0 +1,68 @@
+[
+  {
+    "source": "reports/local/w8a8-qualification-20261011/source-residual-config.json",
+    "retained": "source-residual-config.json.gz",
+    "sha256": "bf7b817b375b9676393bb19546da7bde7f0462b07128e8c6462797ad37f4fcab",
+    "bytes": 474
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/source-residuals.json",
+    "retained": "source-residuals.json.gz",
+    "sha256": "893df81a8e9ed37cdb558ef29937382e6f88c36d400f1de289a2e58a2007cde3",
+    "bytes": 434373
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-residual-config-01.json",
+    "retained": "w8a8-residual-config-01.json.gz",
+    "sha256": "425f04cd1517e54b64cd47b8839a553de0e0aaf3dd12ca79833462a976309c0f",
+    "bytes": 1593
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-residual-01/qualification.json",
+    "retained": "w8a8-residual-01-qualification.json.gz",
+    "sha256": "197d3d3f6c9c826ebfc60621740f424726da2e67582e8f9c309bbf10d02808e5",
+    "bytes": 972824
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/residual-comparison-duplicate-checked.json",
+    "retained": "residual-comparison-duplicate-checked.json.gz",
+    "sha256": "8ae3bd7d51eed56b9e6d221ee63966b1c025b24ab0a19af1e301143ed4c40559",
+    "bytes": 2694
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/source-layer10-config.json",
+    "retained": "source-layer10-config.json.gz",
+    "sha256": "063b25b8f855e952113269436dc4ffcd8e2639b9dc9b3035c18be5a7d6e4dd7a",
+    "bytes": 443
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/source-layer10.json",
+    "retained": "source-layer10.json.gz",
+    "sha256": "edf7b3fdea43e002eb3715af4f09cf74be84aafb11c02cf56b0e6274d94807de",
+    "bytes": 471272
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-layer10-config-01.json",
+    "retained": "w8a8-layer10-config-01.json.gz",
+    "sha256": "2a7106de50c8a0749a9a977b02c29301db70fdc88ceb5dc1b02250c1027a6c07",
+    "bytes": 1614
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-layer10-01/qualification.json",
+    "retained": "w8a8-layer10-01-qualification.json.gz",
+    "sha256": "466cd0d35fa9b81cc477aebac2e435f0b00f78855222ca32616ea532f6ee21f9",
+    "bytes": 537635
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/layer10-comparison.json",
+    "retained": "layer10-comparison.json.gz",
+    "sha256": "30a11fa40f3626c9b022ff5a4a730e29e6c1a1b1008d51944d5c91a4fb536e11",
+    "bytes": 5456
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/layer10-nonlinear-comparison.json",
+    "retained": "layer10-nonlinear-comparison.json.gz",
+    "sha256": "0b6db85b640a85e41dbe644c0602cbb39682042ad89481f5daeff9679b524313",
+    "bytes": 6785
+  }
+]

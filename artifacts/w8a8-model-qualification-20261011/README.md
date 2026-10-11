@@ -48,8 +48,9 @@ expected-F16 rounding audits are retained.
 - Existing Gemma deployed-weight decoding test: five controls.
 - Three CPU full-model evaluations with four threads each; every task and teacher-forced target retained.
 
-GPU installed-model, complete lifecycle and measured performance are separate
-pending checks. Passing operator tests does not close the failed model-quality gate.
+Installed portable-model execution and lifecycle results are recorded below.
+Packed-variant qualification and fixed-work timings remain separate checks.
+Passing execution or operator controls does not close the failed model-quality gate.
 
 ## Installed observations and corrected lifecycle
 
@@ -93,3 +94,27 @@ hypothesis, not the remaining full-model disagreement.
 Fixed-work benchmark code is prepared but no timing campaign or speed advantage
 is established by these records. Further residual localization uses this same
 frozen two-token context; it must preserve the baseline and reference separation.
+
+
+## First material residual divergence
+
+The same two-token context, exact installed archive and immutable weights were
+observed again with baseline logits unchanged in every bit. All duplicate
+`layer.out` observations were required to agree before comparison. Independent
+source and GPU residual differences remain below 0.000733 through layer 9, then
+reach 33.6621 at layer 10. The retained compact records are in `diagnostic/index.json`.
+
+Layer 10's seven Q/K/V/O/gate/up/down projections are all bit-exact against the
+independent integer and ordered-rescale calculation using their **actual GPU
+operands**. Q/K/V also match independently evolved source outputs. The O input
+differs from source by at most 5.37e-7, crossing one activation-code rounding
+boundary; its output differs by 0.003644. The FFN gate/up operands cross one code
+boundary, then the down operands differ in 97 codes. Their raw output difference
+of 0.010802 becomes 33.1506 after the learned post-FFN normalization.
+
+Independent binary64 evaluation of normalization, GELU and residual addition on
+actual GPU operands differs from the corresponding GPU observations by at most
+6.104e-5. These checks account for amplification through discontinuous activation
+quantization and learned normalization; they establish no defective projection
+or nonlinear operation at this boundary. They do not establish source equality
+or excuse the failed full-model quality and approximation gates.
