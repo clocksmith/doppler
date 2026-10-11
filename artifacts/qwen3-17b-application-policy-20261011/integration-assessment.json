@@ -1,0 +1,77 @@
+{
+  "schema": "doppler.source-policy-integration-assessment/v1",
+  "source": "Qwen/Qwen3-1.7B",
+  "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "implemented": false,
+  "physicalQualification": false,
+  "perContributorCeilingBytes": 1420000000,
+  "sourceShapes": {
+    "layers": 28,
+    "hiddenSize": 2048,
+    "intermediateSize": 6144,
+    "kvHeads": 8,
+    "headDim": 128,
+    "vocabSize": 151936
+  },
+  "proposedStorage": {
+    "layerMatrices": "Q4_K",
+    "embedding": "F16",
+    "separateHead": "Q4_K",
+    "kv": "F16"
+  },
+  "layerSplit": [
+    11,
+    17
+  ],
+  "weightBytes": {
+    "allLayerMatrices": 792723456,
+    "embedding": 622329856,
+    "head": 175030272
+  },
+  "weightAndCacheLowerBounds": [
+    {
+      "combinedReservedTokenPositions": 8192,
+      "bytes": [
+        1302855680,
+        1226752000
+      ]
+    },
+    {
+      "combinedReservedTokenPositions": 8240,
+      "bytes": [
+        1305018368,
+        1230094336
+      ]
+    }
+  ],
+  "excludedAllocations": [
+    "normalization weights",
+    "activations",
+    "scratch",
+    "buffer pools",
+    "staging",
+    "padding and alignment"
+  ],
+  "reservation": "Existing resident attempts reserve actual prompt plus output allowance. Combined8240 is illustrative for two short4096-output requests, not a new fixed limit or physical result.",
+  "headConstraint": "F16 head does not fit the lower-bound budget. Candidate must explicitly select supported Q4_K head for both phases and verify no full F16 materialization.",
+  "outputProposal": {
+    "owner": "Doppler prepared model output semantics",
+    "publicShape": "Retain existing resident token/delta result; output final-answer text only. No new Reploid reasoning UI or wire protocol.",
+    "prompt": "Reproduce pinned official Qwen3 source template IDs, rather than shared Qwen prefilled<think> suffix.",
+    "decoder": "Per-attempt token-ID finite-state wrapper over existing incremental decoding, natural start/end boundary validation, no regex stripping.",
+    "accounting": "Count all raw reasoning, final text and special-token delimiters against original16000 UTF16 allowance and4096 generation tokens. Current visible decoder drops specials, so visible length is insufficient.",
+    "failure": "Missing, duplicate or out-of-order boundaries fail honestly; cancellation and raw provenance remain attributable; no injectedEOS."
+  },
+  "promotionConditions": [
+    "All14 frozen original-source cases pass before preparation.",
+    "Exact deployed Q4_K/F16 candidate requires new independent decoded-weight quality and numerical references.",
+    "Physical cache/workspace, concurrency, cancellation and complete-application budgets pass on both placements."
+  ],
+  "unchanged": [
+    "standard archive",
+    "historical references and failures",
+    "0.001 tolerance",
+    "protected task requirements",
+    "8192 context and4096 generation budgets"
+  ]
+}

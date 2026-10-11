@@ -1,0 +1,6 @@
+{
+  "commit": "1e0b8be889402111b23bc9338f94f6d06192effb",
+  "status": " M src/client/runtime/capsule-acquisition.d.ts\n M src/client/runtime/capsule-artifact-source.js\n M src/client/runtime/composition-root.d.ts\n M src/client/runtime/composition-root.js\n M src/client/runtime/verified-capsule-artifact-store.d.ts\n M src/client/runtime/verified-capsule-artifact-store.js\n M src/config/capsule-v2.d.ts\n M src/config/capsule-v2.js\n M src/config/schema/capsule-v2.schema.json\n M src/storage/verified-piece-storage.d.ts\n M src/storage/verified-piece-storage.js\n M tests/storage/verified-piece-storage.test.js\n M tools/lib/source_task_quality.py\n M tools/source-model-task-quality.py\n M tsconfig.source-strict.json\n?? artifacts/qwen3-17b-application-policy-20261011/\n?? src/client/runtime/capsule-piece-reader.d.ts\n?? src/client/runtime/capsule-piece-reader.js\n?? tests/runtime/resident-piece-acquisition.test.js\n",
+  "configSha256": "7815934cb684702331f0c66036d7c1d7f69d5654727de652ad16169fe73d43c3",
+  "scope": "Isolated diagnostic conversion only; active Q4 shader candidate pins preserved, not qualified or promoted."
+}
