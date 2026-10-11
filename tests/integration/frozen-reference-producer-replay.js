@@ -22,6 +22,7 @@ if (observationTarget.opIds !== undefined) {
   assert(observationTarget.opIds.includes('embed.out'));
 }
 const captureDecode = Boolean(process.argv[6]);
+const physicalCache = observationTarget.physicalCache === true;
 const fullPrefixes = process.env.DOPPLER_FORENSIC_FULL_PREFIXES === '1';
 assert(archivePath && modelDirectory && destination, 'Supply retained archive, unchanged model directory and receipt');
 assert(['frozen', 'current'].includes(manifestMode), 'Manifest mode must be frozen or current');
@@ -44,6 +45,8 @@ const receipt = { scope: 'Retained archive forensic fixed-prefix replay; produci
   referenceSha256: hash(referenceBytes), manifestIdentity: 'sha256:' + hash(manifestBytes), results: [],
   frozenManifestIdentity: reference.modelIdentity, manifestMode, changedKernelPins,
   servedShaders: {}, modelDirectory: resolve(modelDirectory), fullPrefixes, observationTarget };
+const cacheObserverSource = await readFile(new URL('../helpers/physical-kv-cache-observer.js', import.meta.url));
+if (physicalCache) receipt.cacheObserverSha256 = hash(cacheObserverSource);
 async function recordPrefill(row) {
   const retained = { ...row };
   receipt.results.push(retained);
@@ -85,6 +88,9 @@ try {
     try {
       const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
       if (pathname === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html>'); return; }
+      if (pathname === '/diagnostic/physical-kv-cache-observer.js') {
+        response.setHeader('Content-Type', 'text/javascript'); response.end(cacheObserverSource); return;
+      }
       if (pathname === '/model/manifest.json') { response.setHeader('Content-Type', 'application/json'); response.end(manifestBytes); return; }
       const root = pathname.startsWith('/runtime/') ? runtimeRoot
         : pathname.startsWith('/model/') ? resolve(modelDirectory) : null;
@@ -160,7 +166,8 @@ try {
           kvcache: { maxSeqLen: generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
           prefillTokenChunkSize: policy.prefillTokenChunkSize } } } });
       const { maxSeqLen: _contextLength, ...executionOptions } = generation;
-      for (const index of [...prompts.keys(), 0]) {
+      const physicalCache = observationTarget.physicalCache === true;
+      for (const index of physicalCache ? [observationTarget.index] : [...prompts.keys(), 0]) {
         const messages = prompts[index];
         await handle.resetGenerationState();
         const inputIds = handle.advanced.tokenizePrompt(messages, generation);
@@ -174,8 +181,8 @@ try {
         };
         const value = await handle.advanced.prefillWithLogits(messages, { ...executionOptions, inputIds });
         try { await record(value, 0); } finally { value.cache?.destroy(); }
-        if (fullPrefixes) {
-          for (let step = 1; step < expected[index].steps.length; step++) {
+        if (fullPrefixes || physicalCache) {
+          for (let step = 1; step < (physicalCache ? observationTarget.step + 1 : expected[index].steps.length); step++) {
             const value = await handle.advanced.decodeStepLogits([expected[index].steps[step - 1].tokenId], executionOptions);
             await record(value, step);
           }
@@ -185,6 +192,14 @@ try {
       // Observe the same first prefix after reset; quantify instrumentation effects.
       await handle.resetGenerationState();
       let observedLogits = null; const observedSteps = [];
+      let cacheObserver = null;
+      const cacheReadbacks = [];
+      if (physicalCache) {
+        const { KVCache } = await import('/runtime/src/inference/kv-cache/base.js');
+        const { observePhysicalKVCache } = await import('/diagnostic/physical-kv-cache-observer.js');
+        const layers = manifest.inference.layerPattern.layerTypes.flatMap((type, layer) => type === 'full_attention' ? [layer] : []);
+        cacheObserver = observePhysicalKVCache({ KVCache, getDevice, layers });
+      }
       const targetOpIds = observationTarget.opIds ?? ['embed.out', 'final_norm.pre', 'final_norm.out',
         ...manifest.inference.layerPattern.layerTypes.flatMap((type, layer) =>
           type === 'linear_attention'
@@ -199,11 +214,26 @@ try {
             : []),
         ...Array.from({ length: manifest.architecture.numLayers }, (_, layer) =>
           [`layer.${layer}.attn.post_input_norm`, `layer.${layer}.layer.out`]).flat()];
-      for await (const _chunk of handle.generate(prompts[observationTarget.index], { ...executionOptions,
+      let physicalRows;
+      try { for await (const _chunk of handle.generate(prompts[observationTarget.index], { ...executionOptions,
         disableCommandBatching: true, diagnostics: { enabled: true,
           captureConfig: { enabled: true, defaultLevel: 'none', targetOpIds, targetLevel: 'full' } },
-        onLogits: values => { observedLogits = Array.from(values); observedSteps.push(observedLogits); },
+        onLogits: values => {
+          if (cacheObserver) {
+            const step = observedSteps.length;
+            const pending = cacheObserver.capture(step, rows[0].inputIds.length + step);
+            // Attach rejection immediately; all readbacks settle before cleanup.
+            cacheReadbacks.push(pending.then(rows => ({ rows }), error => ({ error })));
+          }
+          observedLogits = Array.from(values); observedSteps.push(observedLogits);
+        },
       })) { if (observedSteps.length > observationTarget.step) break; }
+      } finally {
+        cacheObserver?.restore();
+        physicalRows = await Promise.all(cacheReadbacks);
+      }
+      const cacheFailure = physicalRows.find(value => value.error);
+      if (cacheFailure) throw cacheFailure.error;
       const { operatorDiagnostics } = handle.advanced.getStats();
       // Transfer one bounded operator observation at a time. Decimal arrays for
       // all attention histories can exceed the browser automation IPC limit.
@@ -222,6 +252,7 @@ try {
         await window.recordProducerObservation({ ...row, capture });
       }
       return { runtimeVersion: DOPPLER_VERSION, rows, normalizationDispatch, observation: { logits: observedLogits, observedSteps, target: observationTarget,
+        physicalCache: cacheObserver ? physicalRows.flatMap(value => value.rows) : null,
         samplingExcludedTokenIds: [handle.advanced.getSpecialTokens().pad, ...executionOptions.suppressTokenIds]
           .filter(Number.isInteger), timeline: [] } };
     } finally {
@@ -240,7 +271,9 @@ try {
   assert.equal(result.runtimeVersion, metadata.version);
   receipt.executionCompleted = true;
   receipt.referenceProducingOwnershipEstablished = false;
-  if (fullPrefixes) {
+  if (physicalCache) {
+    assert.equal(receipt.results.length, observationTarget.step + 1);
+  } else if (fullPrefixes) {
     const expectedCount = reference.expected.reduce((count, row) => count + row.steps.length, 0)
       + reference.expected[0].steps.length;
     assert.equal(receipt.results.length, expectedCount, 'Every fixed prefix and the first request reuse must complete');
@@ -263,6 +296,20 @@ try {
     }
     receipt.observation.maximumUnmaskedDifference = maximumUnmaskedDifference;
     assert.equal(maximumUnmaskedDifference, 0, 'Observation must preserve the controlled output logits');
+    if (physicalCache) {
+      receipt.observation.prefixDifferences = result.observation.observedSteps.map((values, step) => {
+        const control = receipt.results.find(row => row.index === observationTarget.index && row.step === step);
+        const bytes = Buffer.from(control.logits, 'base64');
+        const baseline = new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+        assert.equal(values.length, baseline.length);
+        let difference = 0;
+        for (let i = 0; i < baseline.length; i++) {
+          if (!excluded.has(i)) difference = Math.max(difference, Math.abs(values[i] - baseline[i]));
+        }
+        assert.equal(difference, 0, `Physical cache readback changed prefix ${step}`);
+        return { step, maximumUnmaskedDifference: difference };
+      });
+    }
   }
   console.log(JSON.stringify({ package: receipt.package, shaderPinMismatches: shaderMismatches.length,
     comparisons: receipt.results.map(({ index, inputIds, maxDifference, matches }) => ({ index, inputTokens: inputIds.length, maxDifference, matches })) }));
