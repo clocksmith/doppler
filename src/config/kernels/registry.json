@@ -1305,6 +1305,7 @@
      "weightDtype": "w8a8",
      "outputDtype": "i32",
      "variantMetadata": {
+      "dispatchGeometry": "linear-output-workgroup",
       "mechanismKernels": [
        {
         "operation": "w8a8_quantize",
@@ -1391,6 +1392,7 @@
      "weightDtype": "w8a8",
      "outputDtype": "i32",
      "variantMetadata": {
+      "dispatchGeometry": "linear-output-workgroup",
       "mechanismKernels": [
        {
         "operation": "w8a8_quantize",

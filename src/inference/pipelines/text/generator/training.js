@@ -738,8 +738,9 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}, emissi
       yield emissionMode === 'token' ? firstToken : firstText;
       if (options.onToken) options.onToken(firstToken, firstText);
 
-      if (this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
-        this._recordStopReason('stop-token-or-sequence', firstToken);
+      if (options.signal?.aborted || this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
+        this._recordStopReason(options.signal?.aborted ? 'aborted' : 'stop-token-or-sequence',
+          options.signal?.aborted ? null : firstToken);
         this._state.stats.decodeTimeMs = 0;
         this._state.stats.tokensGenerated = 1;
         this._state.stats.decodeTokens = 1;

@@ -274,8 +274,9 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
 
       yield* emitToken(this, firstToken, decodeToken);
 
-      if (this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
-        this._recordStopReason('stop-token-or-sequence', firstToken);
+      if (options.signal?.aborted || this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
+        this._recordStopReason(options.signal?.aborted ? 'aborted' : 'stop-token-or-sequence',
+          options.signal?.aborted ? null : firstToken);
         this._state.stats.decodeTimeMs = 0;
         this._state.stats.tokensGenerated = 1;
         this._state.stats.decodeTokens = 1;
@@ -437,12 +438,13 @@ export async function generateTokenIds(prompt, options = {}) {
         emitMode: 'token',
       };
 
-      if (!this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
+      if (!options.signal?.aborted && !this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
         for await (const tokenId of this._runDecodeLoop(generatedIds, opts, options, decodeRuntime)) {
           tokenIds.push(tokenId);
         }
       } else {
-        this._recordStopReason('stop-token-or-sequence', firstToken);
+        this._recordStopReason(options.signal?.aborted ? 'aborted' : 'stop-token-or-sequence',
+          options.signal?.aborted ? null : firstToken);
         this._state.stats.decodeTimeMs = 0;
         this._state.stats.tokensGenerated = 1;
         this._state.stats.decodeTokens = 1;
