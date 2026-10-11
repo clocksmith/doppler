@@ -47,11 +47,35 @@ Longer concurrent prompts require their actual reservations and may correctly
 reject under the unchanged limit; repeated 1,588-token controls are separate.
 
 Original-source quality completed 14 of 14 cases before the first deployed
-invocation. That independent deployed-weight run now uses the exact frozen suite
-and manifest; its result remains pending. No GPU execution or model promotion
-is recorded here. Measured partition memory, exact deployed-weight quality,
+invocation. The independent deployed-weight run passed the two long ordered
+lists and integer answer for seed 17, then failed the frozen permission-negation
+case: its final answer was `No.` instead of the required `No`. The meaning was
+correct, but the exact-output gate remains failed. The result used a natural
+reasoning close and EOS, 279 generated tokens and 1,334 raw UTF-16 characters.
+The fail-fast monitor interrupted the next case after one token; nine cases
+were never started. `review.json` distinguishes completed, interrupted and unrun
+cases. The complete raw report and interrupted process log remain compressed
+here. No GPU execution or model promotion is recorded here.
+Measured partition memory, exact deployed-weight quality,
 numerical comparison and model-owned final-answer decoding remain separate gates.
 The standard 0.6.27 archive, catalog and signed records are unchanged.
+
+The next bounded configuration experiment is frozen in
+`format-policy-holdout.json` (SHA-256
+`f08c3e7a5d027371fa6adefcc212ebd54c16fbdc2c001561c29db3719fbf7143`).
+It adds one general system instruction about following explicitly requested
+final-answer formats; seven new cases use seeds 29 and 71. Model bytes, sampling,
+precision, budgets and exact-answer comparison are unchanged. A complete fresh
+pass must be followed by unchanged prior-case regression; no punctuation is
+stripped or accepted retroactively. The result is pending.
+
+The instruction was refined while the first invocation was initializing. Its
+interruption retained one opening marker token but no evaluated answer. A guard
+then failed before rewriting the suite, and a shell continuation inadvertently
+started another initialization; that was also stopped. The superseded suite,
+partial report and both interrupted logs remain here. They are not candidate
+quality results or evidence comparing two instructions. The revised suite was
+written and hashed in a separate completed operation before the actual launch.
 
 Component: `doppler.repository-tooling`. Intent: preserved. Boundary effects:
 none; offline evaluation cannot change a running model's computation.
