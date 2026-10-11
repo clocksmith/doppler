@@ -1,0 +1,14 @@
+{
+  "schema": "doppler.w8a8-model-variant-comparison/v1",
+  "portableManifest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+  "packedManifest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
+  "installedPackage": "79b7c68ceb23d3e156e5e6287d978bfbe218940b832c2460b80efe2472e9b44b",
+  "portableReportSha256": "90be940b3e2be9d90776224a79075c036f9f7abeff359d1d3867c238db483480",
+  "packedReportSha256": "229663bbd9d17cc6d9e3dc6de8479c9a0c180917e083d216301a66bea8dd404b",
+  "scope": "Outputs completed before submitted-cancellation failure; does not establish lifecycle or quality acceptance",
+  "taskTokensEqual": true,
+  "taskTextEqual": true,
+  "teacherForcedEqual": true,
+  "tasks": 12,
+  "targets": 200
+}

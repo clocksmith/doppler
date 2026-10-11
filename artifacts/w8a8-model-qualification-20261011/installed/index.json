@@ -115,5 +115,77 @@
     "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
     "error": null,
     "cleanup": []
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-packed-installed-model-01/qualification.json",
+    "retained": "w8a8-packed-installed-model-01.json.gz",
+    "sha256": "f8153718693ff4fc78d14a391324f853482dab2931faafe72eec43c4b7873bfb",
+    "passed": false,
+    "packageSha256": "79b7c68ceb23d3e156e5e6287d978bfbe218940b832c2460b80efe2472e9b44b",
+    "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
+    "error": {
+      "name": "Error",
+      "message": "Submitted cancellation retained active or deferred resources.",
+      "stack": "Error: Submitted cancellation retained active or deferred resources.\n    at requireValue (http://127.0.0.1:36117/qualification-tools/w8a8-qualification-scenario.js:3:70)\n    at qualifySubmittedGeneration (http://127.0.0.1:36117/qualification-tools/w8a8-qualification-scenario.js:41:3)\n    at async runW8A8QualificationScenario (http://127.0.0.1:36117/qualification-tools/w8a8-qualification-scenario.js:115:36)\n    at async <anonymous>:316:30"
+    },
+    "cleanup": []
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-packed-installed-model-02/qualification.json",
+    "retained": "w8a8-packed-installed-model-02.json.gz",
+    "sha256": "229663bbd9d17cc6d9e3dc6de8479c9a0c180917e083d216301a66bea8dd404b",
+    "passed": false,
+    "packageSha256": "79b7c68ceb23d3e156e5e6287d978bfbe218940b832c2460b80efe2472e9b44b",
+    "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
+    "error": {
+      "name": "Error",
+      "message": "Submitted cancellation retained active or deferred resources.",
+      "stack": "Error: Submitted cancellation retained active or deferred resources.\n    at requireValue (http://127.0.0.1:42551/qualification-tools/w8a8-qualification-scenario.js:3:70)\n    at qualifySubmittedGeneration (http://127.0.0.1:42551/qualification-tools/w8a8-qualification-scenario.js:44:5)\n    at async runW8A8QualificationScenario (http://127.0.0.1:42551/qualification-tools/w8a8-qualification-scenario.js:118:36)\n    at async <anonymous>:316:30",
+      "evidence": {
+        "submissions": 2,
+        "before": {
+          "retainedModel": {
+            "bytes": 443060224,
+            "count": 236
+          },
+          "active": {
+            "bytes": 67108864,
+            "count": 4
+          },
+          "reusable": {
+            "bytes": 6868224,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "after": {
+          "retainedModel": {
+            "bytes": 443060224,
+            "count": 236
+          },
+          "active": {
+            "bytes": 67108864,
+            "count": 4
+          },
+          "reusable": {
+            "bytes": 6475264,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 13094144,
+            "count": 133
+          }
+        },
+        "stopReason": null,
+        "rejection": {
+          "name": "AbortError",
+          "message": "Doppler: prefill aborted"
+        }
+      }
+    },
+    "cleanup": []
   }
 ]
