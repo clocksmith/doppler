@@ -6415,7 +6415,7 @@
     {
       "file": "tests/inference/prefill-output-ownership.test.js",
       "kind": "dynamic",
-      "line": 28,
+      "line": 31,
       "expression": "import(target)"
     },
     {
@@ -6847,25 +6847,25 @@
     {
       "file": "tools/w8a8-qualification-scenario.js",
       "kind": "dynamic",
-      "line": 18,
+      "line": 52,
       "expression": "import(config.apiModule)"
     },
     {
       "file": "tools/w8a8-qualification-scenario.js",
       "kind": "dynamic",
-      "line": 19,
+      "line": 53,
       "expression": "import(config.deviceModule)"
     },
     {
       "file": "tools/w8a8-qualification-scenario.js",
       "kind": "dynamic",
-      "line": 20,
+      "line": 54,
       "expression": "import(config.partitionsModule)"
     },
     {
       "file": "tools/w8a8-qualification-scenario.js",
       "kind": "dynamic",
-      "line": 21,
+      "line": 55,
       "expression": "import(config.poolObservationModule)"
     }
   ]

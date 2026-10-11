@@ -1,0 +1,32 @@
+{
+  "scope": "Installed synthetic package acceptance; no model, performance or standard release promotion.",
+  "bundle": "/var/tmp/doppler-w8-installed-cancel-settled-20261011",
+  "packageSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
+  "files": {
+    "cancel-settled-installed-receipt.json.gz": {
+      "uncompressedSha256": "eb824a10f0940bb6866cb70254a262b21d5b396894a33ad8b81c33791d0275ca",
+      "uncompressedBytes": 1821,
+      "compressedSha256": "eab4236bdabac289e78969abc80fa7dbc5074048869ba6bcc66649fdd5458918"
+    },
+    "cancel-settled-installed-commands.json.gz": {
+      "uncompressedSha256": "5e13e664cee3371d2d4164cd31601675daf1725bf6d1ce7dcc854d80f4ad48db",
+      "uncompressedBytes": 270787,
+      "compressedSha256": "91f7b54ea7af791339fa9b25f17924ab7b7b4d035bcac1c3b34842b3d03356a3"
+    },
+    "cancel-settled-installed-source-state.json.gz": {
+      "uncompressedSha256": "924c3bc7bcf86470c2e7870e2e9beca1ceb2c24e1555e89e3c48c2fc267a40e8",
+      "uncompressedBytes": 386,
+      "compressedSha256": "451ff99166b333de9017c30380239a425a7d8e7fc1d6c4d81ffbc8ca67f22b4d"
+    },
+    "cancel-settled-installed-smoke.log.gz": {
+      "uncompressedSha256": "7947a07d6f3b7be6bac62f4c12843dfbe77b435eaa4b995897d33d9ea3bdecbb",
+      "uncompressedBytes": 4272,
+      "compressedSha256": "3344c661518840c7e06239e4b0da11fc4092eb336a33288b250d7dea60499c6c"
+    },
+    "cancel-settled-public-boundaries.log.gz": {
+      "uncompressedSha256": "5719c74f862a1f018e1572cde42fb62121edcd5d1cd30bc2d8a299529b28c4ae",
+      "uncompressedBytes": 102,
+      "compressedSha256": "967a4dcc41133e54bf460f31213224ff875fef3c96f07ebd847a4d2b709123dc"
+    }
+  }
+}
