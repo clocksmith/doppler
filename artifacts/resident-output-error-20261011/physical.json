@@ -1,0 +1,240 @@
+{
+  "kind": "same-device-resident-partition-diagnostic",
+  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+  "generation": {
+    "maxTokens": 3,
+    "maxSeqLen": 128,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 0,
+    "repetitionPenalty": 1.1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0.1,
+    "useChatTemplate": false,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "actualModelInference": true,
+  "publicCapsuleAcquisition": false,
+  "steps": [
+    {
+      "thread": 0,
+      "step": 0,
+      "tokenId": 264,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 1,
+      "step": 0,
+      "tokenId": 11751,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 0,
+      "step": 1,
+      "tokenId": 1067,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 1,
+      "step": 1,
+      "tokenId": 13,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 0,
+      "step": 2,
+      "tokenId": 314,
+      "stopReason": "max-tokens",
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999999,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 1,
+      "step": 2,
+      "tokenId": 198,
+      "stopReason": "max-tokens",
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    }
+  ],
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": false
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "descriptors": [
+    {
+      "schema": "doppler.resident-partition/v1",
+      "ready": true,
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+      "index": 0,
+      "layerRange": [
+        0,
+        11
+      ],
+      "residentWeightBytes": 650989568,
+      "generationDigest": "sha256:50599ef56b513db2592c97d65a2a37681674f4698100499fd706bbe2b5ae3393"
+    },
+    {
+      "schema": "doppler.resident-partition/v1",
+      "ready": true,
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+      "index": 1,
+      "layerRange": [
+        12,
+        23
+      ],
+      "residentWeightBytes": 285497344,
+      "generationDigest": "sha256:50599ef56b513db2592c97d65a2a37681674f4698100499fd706bbe2b5ae3393"
+    }
+  ],
+  "texts": [
+    " a result of",
+    " Paris.\n"
+  ],
+  "outputAllocationFailure": {
+    "code": "DOPPLER_RESIDENT_OUTPUT_LIMIT",
+    "settled": true
+  },
+  "checks": [
+    "isolated-recurrent-buffer-cleanup",
+    "interleaved-attempts",
+    "full-logit-parity",
+    "sampling-penalties",
+    "text-parity",
+    "length-finalization",
+    "closed-replay",
+    "cancel-before-submit"
+  ],
+  "sourceFiles": {
+    "src/errors/doppler-error.js": "4fa480de39b1479399d34b28e1d30f83b8391574cd1c253a84f5871c489b0f46",
+    "src/inference/pipelines/text/resident-partition.js": "61366f04e3d22417a4029f6b1f4f09577e535a55035d762910b367eb09d82e18",
+    "tests/integration/resident-partition-physical.test.js": "f68b192766832d27c55e690205fadf806e83e9f49c2911d50a137c1a0f6afde6"
+  }
+}

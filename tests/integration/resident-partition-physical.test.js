@@ -151,6 +151,38 @@ if (!modelDirectory) {
       tokenPosition: 0, inputTokenCount: victim.ids.length, maxTokens: generation.maxTokens, generation, continuation: null,
       signal: cancelled.signal }), /cancel-before-submit/);
     await Promise.all(residents.map(resident => resident.closeAttempt({ identity: victim.identity })));
+    // Exercise the actual GPU output path with a denied character allocation.
+    const outputTokens = createCapsuleProgramAdapter(handles[2],
+      { modelId: manifest.modelId, program: { executionGraphHash: 'diagnostic' } },
+      { phases: { prefill: [], decode: [] } });
+    const deniedAllocation = resolveResidentPartitionAllocation(manifest, modelIdentity,
+      { model: { id: manifest.modelId, identity: modelIdentity }, plan, planId, index: 1,
+        participantId: 'b', limits: { ...limits, maxOutputCharacters: 1 }, generation });
+    const denied = await createResidentPartitionSession(pipelines[2], deniedAllocation, outputTokens, async () => {});
+    residents.push(denied);
+    const deniedIdentity = identity('output-denied');
+    const deniedState = { ids: requests[0].tokenIds, position: 0, continuationA: null, continuationB: null };
+    assert.ok(expected[0].text.length > 1, 'The physical fixture must exceed one output character');
+    let outputError;
+    try {
+      for (let index = 0; index < generation.maxTokens; index++) {
+        const common = { identity: deniedIdentity, step: index, tokenPosition: deniedState.position,
+          inputTokenCount: deniedState.ids.length, maxTokens: generation.maxTokens, generation, signal };
+        const left = await a.executeGroup0({ ...common, tokenIds: deniedState.ids, continuation: deniedState.continuationA });
+        const activation = deserializeActivationFrame(serializeActivationFrame(left.activationTensor));
+        try {
+          const right = await denied.executeGroup1({ ...common, activation, inputTokenIds: deniedState.ids,
+            continuation: deniedState.continuationB });
+          deniedState.position += deniedState.ids.length; deniedState.ids = [right.tokenId];
+          deniedState.continuationA = left.continuation; deniedState.continuationB = right.continuation;
+        } catch (error) { outputError = error; break; }
+      }
+      assert.equal(outputError?.code, 'DOPPLER_RESIDENT_OUTPUT_LIMIT');
+    } finally {
+      await Promise.all([a.closeAttempt({ identity: deniedIdentity }), denied.closeAttempt({ identity: deniedIdentity })]);
+      await denied.close();
+    }
+    report.outputAllocationFailure = { code: outputError.code, settled: true };
     report.checks = ['isolated-recurrent-buffer-cleanup', 'interleaved-attempts', 'full-logit-parity', 'sampling-penalties', 'text-parity', 'length-finalization', 'closed-replay', 'cancel-before-submit'];
     console.log(JSON.stringify(report));
   } finally {
