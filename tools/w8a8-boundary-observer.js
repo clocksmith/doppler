@@ -12,7 +12,22 @@ export async function runW8A8BoundaryScenario(config, reference, observe) {
   const document = reference.documents[0];
   assert(document.firstText === '' && document.inputIds[0] === 2 && document.inputIds[1] === 236776,
     'Boundary context differs from the selected failing teacher-forced prefix.');
-  const opIds = ['post_input_norm', 'q_proj', 'k_proj', 'v_proj'].map(stage => 'layer.0.attn.' + stage);
+  const boundaryStage = config.boundaryStage === undefined ? 'qkv' : config.boundaryStage;
+  assert(['qkv', 'layer-output', 'projections'].includes(boundaryStage), 'Unknown boundary observation stage');
+  const boundaryLayer = boundaryStage === 'projections' ? config.boundaryLayer : 0;
+  assert(Number.isInteger(boundaryLayer) && boundaryLayer >= 0 && boundaryLayer < 18, 'Invalid selected boundary layer');
+  const opIds = ['post_input_norm', 'q_proj', 'k_proj', 'v_proj'].map(stage => `layer.${boundaryLayer}.attn.${stage}`);
+  if (boundaryStage === 'layer-output') {
+    opIds.push(...Array.from({ length: 18 }, (_, layer) => `layer.${layer}.layer.out`));
+  }
+  if (boundaryStage === 'projections') {
+    opIds.push(...['attn.core_out', 'attn.out', 'attn.post_attn', 'ffn.in',
+      'ffn.gate', 'ffn.up', 'ffn.act', 'ffn.out', 'layer.out']
+      .map(stage => `layer.${boundaryLayer}.${stage}`));
+  }
+  report.boundaryStage = boundaryStage;
+  report.boundaryLayer = boundaryLayer;
+  report.requestedOpIds = opIds;
   const prototype = PipelineGenerator.prototype;
   const original = prototype._decodeStepToLogits;
   let session;
