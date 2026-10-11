@@ -1,0 +1,8 @@
+{
+  "schema": "doppler.offline-evaluator-refactor-check/v1",
+  "allSixInputAndOutputTokenSequencesIdentical": true,
+  "allSixFirstStepLogitsIdentical": true,
+  "verdictsUnchanged": true,
+  "producerSha256": "26fe6fe87f70d3ffa3ca8e1399199bda7f88d32d952ac181266dabad662ae30a",
+  "evaluatorSha256": "476b1c6e2fb0f6c3cf01281376db73195513bb82abd31ce8c385bd27ffeb1300"
+}

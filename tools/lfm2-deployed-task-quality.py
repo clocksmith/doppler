@@ -6,6 +6,8 @@ import importlib.metadata
 import json
 from pathlib import Path
 
+from lib.source_task_quality import evaluate_tasks
+
 import blake3
 import numpy as np
 import torch
@@ -13,18 +15,12 @@ from gguf import GGMLQuantizationType, dequantize
 from tokenizers import Tokenizer
 from transformers import AutoTokenizer
 from transformers.models.lfm2.configuration_lfm2 import Lfm2Config
-from transformers.models.lfm2.modeling_lfm2 import DynamicCache, Lfm2ForCausalLM, Lfm2RotaryEmbedding
+from transformers.models.lfm2.modeling_lfm2 import Lfm2ForCausalLM, Lfm2RotaryEmbedding
 
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
 
-
-class StoredHalfCache(DynamicCache):
-    """Round stored K/V to the declared F16 policy; source math remains F32."""
-    def update(self, key_states, value_states, layer_idx, *args, **kwargs):
-        keys, values = super().update(key_states.half(), value_states.half(), layer_idx, *args, **kwargs)
-        return keys.float(), values.float()
 
 
 def run(args):
@@ -81,6 +77,7 @@ def run(args):
     report = {'schema': 'doppler.source-task-quality-result/v1', 'qualified': False,
               'modelIdentity': 'sha256:' + digest(manifest_bytes), 'suiteSha256': digest(suite_bytes),
               'producerSha256': digest(Path(__file__).read_bytes()), 'source': source_receipt,
+              'evaluatorSha256': digest((Path(__file__).parent / 'lib/source_task_quality.py').read_bytes()),
               'weights': identities, 'packages': {name: importlib.metadata.version(name)
                   for name in ['torch', 'transformers', 'gguf', 'tokenizers']},
               'scope': suite['scope'], 'arithmetic': 'F32 independent source equations, F16 stored attention K/V',
@@ -88,56 +85,7 @@ def run(args):
     output = Path(args.out)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report) + '\n')
-    settings = suite['generation']
-    assert settings['temperature'] == 0 and settings['topK'] == 1 and settings['topP'] == 1
-    assert settings['repetitionPenaltyWindow'] == 0 and settings['presencePenalty'] == 0
-    assert settings['stopSequences'] == []
-    for task in suite['cases']:
-        rendered = source_tokenizer.apply_chat_template([{'role': 'user', 'content': task['prompt']}],
-                                                        tokenize=False, add_generation_prompt=True)
-        ids = tokenizer.encode(rendered, add_special_tokens=False).ids
-        assert ids == source_tokenizer.encode(rendered, add_special_tokens=False)
-        assert len(ids) + settings['maxTokens'] <= settings['maxSeqLen']
-        row = {'id': task['id'], 'renderedPrompt': rendered, 'inputIds': ids,
-               'tokenIds': [], 'stopReason': None}
-        report['results'].append(row)
-        cache, history, current = StoredHalfCache(config=config), list(ids), ids
-        for step in range(settings['maxTokens']):
-            with torch.inference_mode():
-                result = model(input_ids=torch.tensor([current]), past_key_values=cache,
-                               use_cache=True, logits_to_keep=1)
-                logits = result.logits[0, -1].float().numpy().copy()
-            assert np.isfinite(logits).all()
-            raw_logits = logits.copy() if step == 0 else None
-            for token in set(history):
-                value = float(logits[token])
-                logits[token] = value / settings['repetitionPenalty'] if value > 0 else value * settings['repetitionPenalty']
-            logits[config.pad_token_id] = -np.inf
-            if step == 0:
-                def top(values):
-                    return [{'token': int(index), 'text': tokenizer.decode([int(index)], skip_special_tokens=False),
-                             'logit': float(values[index]), 'presentInPrompt': int(index) in history}
-                            for index in np.argsort(values)[-10:][::-1]]
-                row['firstStep'] = {'raw': top(raw_logits), 'afterRepetitionPenalty': top(logits)}
-            token = int(logits.argmax())
-            row['tokenIds'].append(token)
-            history.append(token)
-            current = [token]
-            if token == config.eos_token_id:
-                row['stopReason'] = 'eos'
-            elif step + 1 == settings['maxTokens']:
-                row['stopReason'] = 'max-tokens'
-            if step % 64 == 0 or row['stopReason']:
-                row['text'] = tokenizer.decode(row['tokenIds'], skip_special_tokens=True)
-                output.write_text(json.dumps(report) + '\n')
-                print(json.dumps({'id': row['id'], 'step': step, 'stopReason': row['stopReason'],
-                                  'textTail': row['text'][-160:]}), flush=True)
-            if row['stopReason']:
-                break
-        row['passed'] = row['stopReason'] == 'eos' and row['text'].split() == task['expected'].split()
-        output.write_text(json.dumps(report) + '\n')
-    report['passed'] = all(row['passed'] for row in report['results'])
-    output.write_text(json.dumps(report) + '\n')
+    evaluate_tasks(model, config, tokenizer, source_tokenizer, suite, report, output)
 
 
 if __name__ == '__main__':
