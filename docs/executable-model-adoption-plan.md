@@ -8,7 +8,7 @@ Repository owner: Doppler
 
 Doppler earns independent retained use as a useful JavaScript model-execution
 library. This optional plan preserves an adoption proof sequence;
-[GOALS.md](../GOALS.md#current-priorities) owns active engineering priorities. Rig, ModelIR,
+[TODO.md](../TODO.md) owns active implementation work. Rig, ModelIR,
 TargetPlans, immutable Capsules, the constrained Runtime, application integration,
 and lifecycle support form one product.
 

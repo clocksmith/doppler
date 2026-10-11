@@ -587,7 +587,7 @@ For MoE storage research, the first clean target is expert paging:
    - measure prefill and decode separately
 
    If a correctness-clean candidate is behind its reference engine, follow the
-   [correct-but-behind performance trigger](../model-failure-action-plan.md#correct-but-behind-performance-trigger)
+   [correct-but-behind performance trigger](https://github.com/clocksmith/doppler/blob/4b28d7831f12884c53e3a4c6e3470ca0dea9775f/docs/model-failure-action-plan.md#correct-but-behind-performance-trigger)
    and [kernel performance guide](16-kernel-performance-optimization.md). Close
    near-parity results with interleaved paired evidence before changing another
    kernel.
@@ -727,7 +727,7 @@ depends on browser WebGPU behavior.
 - [14-quantization-format.md](14-quantization-format.md)
 - [15-kvcache-layout.md](15-kvcache-layout.md)
 - [16-kernel-performance-optimization.md](16-kernel-performance-optimization.md)
-- [../model-failure-action-plan.md](../model-failure-action-plan.md)
+- [https://github.com/clocksmith/doppler/blob/4b28d7831f12884c53e3a4c6e3470ca0dea9775f/docs/model-failure-action-plan.md](https://github.com/clocksmith/doppler/blob/4b28d7831f12884c53e3a4c6e3470ca0dea9775f/docs/model-failure-action-plan.md)
 - [../agents/conversion-protocol.md](../agents/conversion-protocol.md)
 - [../agents/debug-protocol.md](../agents/debug-protocol.md)
 - [../agents/benchmark-protocol.md](../agents/benchmark-protocol.md)
