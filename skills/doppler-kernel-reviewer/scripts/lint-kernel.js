@@ -1,5 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const strictImplementations = new Set(JSON.parse(fs.readFileSync(
+    path.join(repoRoot, 'tsconfig.source-strict.json'), 'utf8'
+)).files);
 
 const filePath = process.argv[2];
 if (!filePath) {
@@ -16,9 +22,10 @@ const warnings = [];
 
 // === JavaScript Checks ===
 if (ext === '.js') {
-    // Check for JSDoc
-    if (/\/\*\*\s*\n/.test(content) || /\s\*\s@param/.test(content)) {
-        errors.push('Found JSDoc comments (/** ... */). Move types to .d.ts.');
+    // Use the same explicit strict roots as the canonical source-style check.
+    const relative = path.relative(repoRoot, path.resolve(filePath)).split(path.sep).join('/');
+    if (content.includes('/**') && !strictImplementations.has(relative)) {
+        errors.push('Implementation JSDoc requires a declared tsconfig.source-strict.json root; public types belong in .d.ts.');
     }
 
     // Check for hardcoded workgroup sizes (heuristic)

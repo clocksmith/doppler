@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 76,
-  "sourceBytes": 811386,
+  "sourceBytes": 820511,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -229,8 +229,8 @@
     },
     {
       "path": "src/config/execution-registry-contract.js",
-      "sizeBytes": 1830,
-      "hash": "sha256:0618ea0a74131b0f5e046e2d631998d86aaaa46845bdeaf00f75f600e44d6635"
+      "sizeBytes": 3842,
+      "hash": "sha256:827355fce2bee1e6268f83bde05db00058537af27bc5260e5a05b57151d11a82"
     },
     {
       "path": "src/config/forecast-manifest.js",
@@ -259,8 +259,8 @@
     },
     {
       "path": "src/config/kernels/registry.json",
-      "sizeBytes": 442203,
-      "hash": "sha256:766a1481153ed1491f69116eba743dd326cf8dbe8a0386aa13fc8f9d34e74288"
+      "sizeBytes": 449316,
+      "hash": "sha256:c8bfae97a54f3db6055d27a96dd76834f3fd764006b8b2d70faba33f7993a6f2"
     },
     {
       "path": "src/config/lora-layouts.js",
