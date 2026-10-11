@@ -1,0 +1,14 @@
+{
+  "receipt.json": {
+    "retained": "settled-installed-receipt.json.gz",
+    "uncompressedSha256": "ddb760398918a0e22481d44632ab80b867d4a8f77e39c669d345a12ed6bb3f15"
+  },
+  "source-state.json": {
+    "retained": "settled-installed-source-state.json.gz",
+    "uncompressedSha256": "913228c15ddaa3445622f089c5700bf2a049a276d5c8072346f1c3846ad6b5cd"
+  },
+  "commands.json": {
+    "retained": "settled-installed-commands.json.gz",
+    "uncompressedSha256": "a55985c9dbd45404a89c4709b4455e1545d4c63094d2422e0c9eafea223700bc"
+  }
+}
