@@ -7,8 +7,34 @@ from transformers import DynamicCache
 from transformers.generation.logits_process import TemperatureLogitsWarper, TopKLogitsWarper, TopPLogitsWarper
 
 
+def task_messages(task, suite):
+    """Keep frozen user-ended history intact; never flatten or invent a turn."""
+    assert ('prompt' in task) != ('messages' in task), 'Declare prompt or messages, not both.'
+    messages = []
+    if 'instruction' in suite:
+        assert isinstance(suite['instruction'], str) and suite['instruction'].strip()
+        messages.append({'role': 'system', 'content': suite['instruction']})
+    if 'prompt' in task:
+        assert isinstance(task['prompt'], str) and task['prompt'].strip()
+        return messages + [{'role': 'user', 'content': task['prompt']}]
+    history = task['messages']
+    assert isinstance(history, list) and history and len(history) % 2 == 1
+    for index, message in enumerate(history):
+        assert isinstance(message, dict) and set(message) == {'role', 'content'}
+        assert message['role'] == ('user' if index % 2 == 0 else 'assistant')
+        assert isinstance(message['content'], str) and message['content'].strip()
+        messages.append(dict(message))
+    return messages
+
+
 def compare_task_answer(answer, task):
     """Apply only the frozen task's declared output contract, never rewrite output."""
+    if 'reviewCriteria' in task:
+        assert 'expected' not in task and 'comparison' not in task
+        criteria = task['reviewCriteria']
+        assert isinstance(criteria, list) and criteria
+        assert all(isinstance(item, str) and item.strip() for item in criteria)
+        return None  # Free-form factual review cannot be inferred from EOS or keywords.
     if 'comparison' not in task:
         return answer.split() == task['expected'].split()
     contract = task['comparison']
@@ -73,7 +99,11 @@ def probe_retained_prefix(model, config, tokenizer, baseline, case_id, selected_
 
 def evaluate_tasks(model, config, tokenizer, source_tokenizer, suite, report, output):
     for task in suite['cases']:
-        assert compare_task_answer(task['expected'], task), 'Invalid frozen answer contract.'
+        task_messages(task, suite)
+        if 'reviewCriteria' in task:
+            assert compare_task_answer('', task) is None
+        else:
+            assert compare_task_answer(task['expected'], task), 'Invalid frozen answer contract.'
     settings = suite['generation']
     greedy = settings['temperature'] == 0
     if greedy:
@@ -92,16 +122,12 @@ def evaluate_tasks(model, config, tokenizer, source_tokenizer, suite, report, ou
         template_options = {'tokenize': False, 'add_generation_prompt': True}
         if 'enableThinking' in suite:
             template_options['enable_thinking'] = suite['enableThinking']
-        messages = []
-        if 'instruction' in suite:
-            assert isinstance(suite['instruction'], str) and suite['instruction'].strip()
-            messages.append({'role': 'system', 'content': suite['instruction']})
-        messages.append({'role': 'user', 'content': task['prompt']})
+        messages = task_messages(task, suite)
         rendered = source_tokenizer.apply_chat_template(messages, **template_options)
         ids = tokenizer.encode(rendered, add_special_tokens=False).ids
         assert ids == source_tokenizer.encode(rendered, add_special_tokens=False)
         assert len(ids) + settings['maxTokens'] <= settings['maxSeqLen']
-        row = {'id': task['id'], 'renderedPrompt': rendered, 'inputIds': ids,
+        row = {'id': task['id'], 'messages': messages, 'renderedPrompt': rendered, 'inputIds': ids,
                'tokenIds': [], 'stopReason': None}
         if seed is not None:
             row['seed'] = seed
@@ -167,7 +193,13 @@ def evaluate_tasks(model, config, tokenizer, source_tokenizer, suite, report, ou
                                     and row['generatedTokenCount'] <= settings['maxTokens']
                                     and row['totalTokenCount'] <= settings['maxSeqLen'])
             boundary_valid = boundary_valid and row['withinBudgets']
-        row['passed'] = row['stopReason'] == 'eos' and boundary_valid and compare_task_answer(answer, task)
+        completion_passed = row['stopReason'] == 'eos' and boundary_valid and bool(answer.strip())
+        answer_passed = compare_task_answer(answer, task)
+        row['passed'] = completion_passed and answer_passed
+        if 'reviewCriteria' in task:
+            row.update({'completionPassed': completion_passed,
+                        'reviewCriteria': task['reviewCriteria'], 'reviewStatus': 'pending'})
         output.write_text(json.dumps(report) + '\n')
-    report['passed'] = all(row['passed'] for row in report['results'])
+    report['passed'] = bool(report['results']) and all(row['passed'] is True for row in report['results'])
+    report['reviewRequired'] = any(row.get('reviewStatus') == 'pending' for row in report['results'])
     output.write_text(json.dumps(report) + '\n')
