@@ -132,6 +132,74 @@ def compare_attention_history(model, capture, cache):
     return comparisons
 
 
+def compare_linear_history(model, capture):
+    """Offline float64 source equations over layer 0's captured projection history.
+
+    This replays convolution and recurrence from zero, not from independently
+    evolved model inputs. It neither observes nor replaces live GPU state.
+    """
+    layer = model.model.layers[0].linear_attn
+    dimensions = {'qkv_proj': layer.conv_dim, 'linear_z_proj': layer.value_dim,
+                  'linear_a_proj': layer.num_v_heads, 'linear_b_proj': layer.num_v_heads,
+                  'linear_core_out': layer.value_dim}
+    history = {name: [] for name in dimensions}
+    for row in capture['observation']['timeline']:
+        name = row['opId'].removeprefix('layer.0.attn.')
+        if name not in history:
+            continue
+        values = capture_values(row.get('capture'))
+        assert values is not None and np.isfinite(values).all(), row['opId']
+        history[name].append(values.reshape(-1, dimensions[name]).astype(np.float64))
+    lengths = [[len(batch) for batch in batches] for batches in history.values()]
+    assert lengths[0] and all(length == lengths[0] for length in lengths), 'incomplete linear history'
+    inputs = {name: np.concatenate(batches) for name, batches in history.items()}
+
+    def weight(value):
+        return value.detach().cpu().numpy().astype(np.float64)
+
+    conv_weight = weight(layer.conv1d.weight).squeeze(1)
+    conv_state = np.zeros_like(conv_weight)
+    state = np.zeros((layer.num_v_heads, layer.head_k_dim, layer.head_v_dim))
+    norm_weight = weight(layer.norm.weight)
+    a_log, dt_bias = weight(layer.A_log), weight(layer.dt_bias)
+    assert layer.num_v_heads % layer.num_k_heads == 0
+    outputs = []
+    for index, projected in enumerate(inputs['qkv_proj']):
+        conv_state[:, :-1] = conv_state[:, 1:]
+        conv_state[:, -1] = projected
+        mixed = np.sum(conv_state * conv_weight, axis=-1)
+        mixed = mixed / (1 + np.exp(-mixed))
+        query, key, value = np.split(mixed, [layer.key_dim, 2 * layer.key_dim])
+        query = query.reshape(layer.num_k_heads, layer.head_k_dim)
+        key = key.reshape(layer.num_k_heads, layer.head_k_dim)
+        value = value.reshape(layer.num_v_heads, layer.head_v_dim)
+        # Transformers' gated delta rule explicitly uses l2norm epsilon 1e-6.
+        query /= np.sqrt(np.sum(query ** 2, axis=-1, keepdims=True) + 1e-6)
+        key /= np.sqrt(np.sum(key ** 2, axis=-1, keepdims=True) + 1e-6)
+        repeats = layer.num_v_heads // layer.num_k_heads
+        query = np.repeat(query, repeats, axis=0) / np.sqrt(layer.head_k_dim)
+        key = np.repeat(key, repeats, axis=0)
+        beta = 1 / (1 + np.exp(-inputs['linear_b_proj'][index]))
+        decay = np.exp(-np.exp(a_log) * np.logaddexp(0, inputs['linear_a_proj'][index] + dt_bias))
+        state *= decay[:, None, None]
+        memory = np.sum(state * key[:, :, None], axis=1)
+        delta = (value - memory) * beta[:, None]
+        state += key[:, :, None] * delta[:, None, :]
+        output = np.sum(state * query[:, :, None], axis=1)
+        output /= np.sqrt(np.mean(output ** 2, axis=-1, keepdims=True) + layer.norm.variance_epsilon)
+        gate = inputs['linear_z_proj'][index].reshape(layer.num_v_heads, layer.head_v_dim)
+        output *= norm_weight * gate / (1 + np.exp(-gate))
+        outputs.append(output.reshape(-1))
+    precise = np.stack(outputs)
+    error = np.abs(precise - inputs['linear_core_out'])
+    assert np.isfinite(error).all()
+    return {'boundary': 'layer.0.attn.linear_core_out',
+            'scope': 'Captured projection history, zero initial state, float64 source equations',
+            'tokens': len(outputs), 'values': int(error.size),
+            'maxAbsError': float(error.max()), 'lastTokenMaxAbsError': float(error[-1].max()),
+            'rmsError': float(np.sqrt(np.mean(error ** 2)))}
+
+
 def compare_boundaries(model, capture, input_ids, cache):
     """Observe the selected prefix; hooks never replace model values."""
     retained = {}
@@ -410,6 +478,7 @@ def run(args):
             if boundary_capture and target is targets[-1]:
                 result, report['boundaryComparisons'], report['operandComparisons'], report['unobservedBoundaries'], report['attentionHistoryComparisons'] = compare_boundaries(
                     model, boundary_capture, torch.tensor([input_ids]), cache)
+                report['linearHistoryComparison'] = compare_linear_history(model, boundary_capture)
             else:
                 result = model(input_ids=torch.tensor([input_ids]), past_key_values=cache,
                                use_cache=True, logits_to_keep=1)

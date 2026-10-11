@@ -1,0 +1,8 @@
+{
+  "constantAttentionMean": "pass",
+  "binaryCaptureEquivalence": "pass",
+  "missingHistoryRejected": "pass",
+  "nonfiniteCaptureRejected": "pass",
+  "scalarRecurrenceClosedForm": "pass",
+  "missingRecurrenceHistoryRejected": "pass"
+}

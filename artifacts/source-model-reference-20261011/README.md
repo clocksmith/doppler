@@ -33,6 +33,17 @@ justify replacing the reference. It is not a proposed runtime substitution.
 results, actual-operand comparisons, environment versions and identity hashes.
 Full raw reports, including logits, stay at their hash-bound local paths.
 
+**Linear-operation error:** `linear-history.json` replays layer 0's complete
+captured QKV, gate and decay projections through independent float64 causal
+convolution, gated delta recurrence and output normalization. It starts from
+zero state and uses the deployed convolution, decay and normalization weights.
+Across 187 tokens / 382,976 output values, maximum difference is
+0.0000008118932455; the final token differs by at most 0.0000001691524057.
+This control does not establish a local layer-0 recurrence defect. It does not
+measure the other recurrent layers or read back the GPU's internal state.
+The full-model logit failure remains unchanged. Its executed tool is retained
+separately as `qwen35-linear-history-reference.py.gz`.
+
 ## Physical capture
 
 `physical-capture.json` identifies the standard 0.6.27 archive and a new physical
@@ -82,3 +93,7 @@ tests/integration/qwen35-deployed-reference-test.py` passes constant-attention,
 binary-encoding equivalence, missing-history rejection and nonfinite-input
 rejection controls. These are synthetic diagnostic tests, not model acceptance.
 Python compilation, JavaScript syntax, CATSCAN and diff checks pass.
+The recurrence extension also passes a scalar two-token closed-form reference
+and rejects incomplete projection history (`diagnostic-checks-linear.json`).
+Reproduce the linear control using the same default command and a separate
+output path; no additional physical capture is required.
