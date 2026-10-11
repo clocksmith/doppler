@@ -50,10 +50,11 @@ def run(args):
     root = Path(args.model)
     manifest = read_json(root / 'manifest.json')
     binding = read_json(args.binding)
-    control = read_json(args.generation_control)
+    control = read_json(args.generation_control) if args.generation_control else None
     identity = 'sha256:' + sha256(root / 'manifest.json')
     assert identity == binding['preparedManifest'] == args.model_identity
-    assert control['modelIdentity'] == identity
+    if control:
+        assert control['modelIdentity'] == identity
     source = read_json(args.source_config)
     assert source['model_type'] == 'gemma3_text'
     for source_key, deployed_key in [('hidden_size', 'hiddenSize'), ('num_hidden_layers', 'numLayers'),
@@ -80,13 +81,27 @@ def run(args):
         shards[index] = path.read_bytes()
         assert len(shards[index]) == shard['size']
     weights = {}
+    encoded_w8a8 = {}
     for name, entry in manifest['tensors'].items():
         spans = entry.get('spans') or [{'shardIndex': entry['shard'], 'offset': entry['offset'], 'size': entry['size']}]
         data = b''.join(shards[span['shardIndex']][span['offset']:span['offset'] + span['size']] for span in spans)
-        weights[name] = decode_weight(data, entry)
+        if entry['dtype'] == 'W8A8':
+            from lib.w8a8_model_reference import decode_rows
+            codes, scales = decode_rows(data, entry)
+            encoded_w8a8[name] = (codes, scales)
+            # Strict state loading still checks every named tensor/shape. These
+            # placeholder weights are replaced by integer-operation modules.
+            weights[name] = torch.from_numpy(codes.astype(np.float32) * scales[:, None])
+        else:
+            weights[name] = decode_weight(data, entry)
     weights['lm_head.weight'] = weights['model.embed_tokens.weight']
     model.load_state_dict(weights, strict=True, assign=True)
     model.eval()
+    if encoded_w8a8:
+        from lib.w8a8_model_reference import install_w8a8_modules
+        installed_w8a8 = install_w8a8_modules(model, encoded_w8a8)
+    else:
+        installed_w8a8 = {}
     del shards, weights
     report = {'schema': 'doppler.source-generation-diagnostic/v1', 'qualified': False,
               'scope': 'Independent source generation using deployed Gemma weights; no numerical or distributed qualification',
@@ -95,16 +110,31 @@ def run(args):
               'sharedReplaySha256': sha256(Path(__file__).with_name('qwen35-deployed-reference.py')),
               'bindingSha256': sha256(args.binding), 'files': binding['files'],
               'versions': {name: importlib.metadata.version(name) for name in ['torch', 'transformers', 'gguf', 'numpy']},
-              'precision': {'arithmetic': 'float32', 'kvStorage': 'float16', 'weights': 'identified deployed bytes'},
-              'expectedOutputText': control['result']['evidence']['outputText']}
-    report = replay_generation(model, config, manifest, args, report)
-    report['sameTokens'] = report['generatedTokenIds'] == control['result']['evidence']['tokenIds']
+              'precision': {'arithmetic': 'float32', 'kvStorage': 'float16', 'weights': 'identified deployed bytes'}}
+    if args.quality_suite:
+        from lib.w8a8_model_quality import evaluate_deployed_quality
+        report = evaluate_deployed_quality(model, config, manifest, args, report)
+    else:
+        report['expectedOutputText'] = control['result']['evidence']['outputText']
+        report = replay_generation(model, config, manifest, args, report)
+        report['sameTokens'] = report['generatedTokenIds'] == control['result']['evidence']['tokenIds']
+    if installed_w8a8:
+        report['w8a8Reference'] = {
+            'implementationSha256': sha256(Path(__file__).parent / 'lib/w8a8_model_reference.py'),
+            'scope': 'Exact integer-code GEMM via binary64 with ordered F32 rescale and explicit FTZ',
+            'modules': {name: {'calls': module.calls, 'rows': module.rows} for name, module in installed_w8a8.items()},
+        }
+        assert all(module.calls > 0 for module in installed_w8a8.values())
     Path(args.out).write_text(json.dumps(report, indent=2) + '\n')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ('model', 'model-identity', 'binding', 'source-config', 'source-revision', 'generation-control', 'out'):
+    for name in ('model', 'model-identity', 'binding', 'source-config', 'source-revision', 'out'):
         parser.add_argument('--' + name, required=True)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument('--generation-control')
+    mode.add_argument('--quality-suite')
+    parser.add_argument('--source-tokenizer')
     parser.add_argument('--threads', type=int, default=8)
     run(parser.parse_args())
