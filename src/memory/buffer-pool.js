@@ -372,6 +372,19 @@ export class BufferPool {
     this.#pendingDestruction.add(buffer);
     this.#scheduleDestruction();
   }
+  async settleDeferredDestruction() {
+    // Freeze this retirement boundary; later work in another session is not ours.
+    const pending = Array.from(this.#pendingDestruction);
+    if (pending.length === 0) return;
+    const device = this.#device;
+    if (device && !isDeviceLost(device)) {
+      try { await device.queue.onSubmittedWorkDone(); }
+      catch (error) { if (!isDeviceLost(device)) throw error; }
+    }
+    this.#destroyPendingBuffers(pending);
+    const retained = pending.filter(buffer => this.#pendingDestruction.has(buffer));
+    if (retained.length) throw new Error(`BufferPool could not retire ${retained.length} buffers; ownership retained for retry.`);
+  }
   #scheduleDestruction() {
     const device = this.#device;
     if (!device || isDeviceLost(device)) {
