@@ -68,7 +68,8 @@ const observe = async phase => {
   console.log(JSON.stringify(phase));
 };
 const scenario = { generation: config.generation, runtimeConfig: config.runtimeConfig, manifestDigest: config.manifestDigest, boundaryStage: config.boundaryStage, boundaryLayer: config.boundaryLayer,
-  cancellation: config.cancellation, repeatRuns: config.repeatRuns };
+  cancellation: config.cancellation, repeatRuns: config.repeatRuns,
+  residencyPolicy: config.residencyPolicy ?? 'paired-resident' };
 try {
   if (config.surface === 'browser') {
     server = await createStaticFileServer({ rootDir: installedRoot, host: '127.0.0.1', port: 0,
