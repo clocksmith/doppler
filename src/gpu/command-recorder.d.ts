@@ -117,8 +117,16 @@ export declare class CommandRecorder {
   /**
    * Schedule async work that must run after GPU submission completes but before
    * recorder-owned cleanup makes the captured data unavailable.
+   * Diagnostic failures are logged and do not invalidate output.
    */
   enqueueCompletionTask(task: () => Promise<void> | void): void;
+
+  /**
+   * Validate submitted results before they may be consumed. All tasks drain and
+   * owned resources settle; submitAndWait/completeDeferredCleanup then reject
+   * with the first validation failure. Repeated waits preserve that failure.
+   */
+  enqueueValidationTask(task: () => Promise<void> | void): void;
 
   /** Submit the recorded prefix and continue recording without readback or cleanup. */
   submitPartial(): void;
