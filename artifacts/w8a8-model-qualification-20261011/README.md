@@ -154,3 +154,17 @@ the F16 literal-copy pass. NLL 4.76907409 exceeds the frozen F16 +0.10 limit.
 Neither variant qualifies for promotion. Earlier baseline and failed-candidate
 archive identities remain explicit in that report; no historical result was
 regraded or replaced.
+
+## Final completion metadata control
+
+Archive `7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d`
+corrects initial stopping classification. `w8a8-installed-model-07` and
+`w8a8-packed-installed-model-04` pass complete execution and both cancellation
+controls. All twelve task token sequences/texts and all 200 teacher-forced
+observations remain unchanged from `47d7d18f...`; every task now reports the
+public `stop-token` reason, including initial stop token 106. The earlier
+`stop-token-or-sequence` metadata defect remains visible in historical receipts.
+`installed/completion-and-lifecycle-final.json` records the mechanical comparison.
+Peak owned GPU buffer allocation is 668,488,920 bytes for each variant; every
+ownership category is zero after unload. Quality remains rejected at 4/12 and
+NLL 4.76907409. This package remains a diagnostic candidate, not the standard pin.
