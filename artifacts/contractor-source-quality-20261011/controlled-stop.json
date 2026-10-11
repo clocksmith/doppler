@@ -1,0 +1,8 @@
+{
+  "reason": "First completed source answer fails frozen factual criteria. Finish the already-running retained-history correction, then stop redundant seed repetition. Unstarted/interrupted cases are not passes or model failures.",
+  "pid": 2079091,
+  "completedCases": 2,
+  "command": "python3 tools/source-model-task-quality.py --source /var/tmp/doppler-qwen3-17b-source-20261011 --suite artifacts/contractor-source-quality-20261011/suite.json --out result.json --threads 4 ",
+  "signal": "SIGINT",
+  "timestamp": 1791753810.4586842
+}

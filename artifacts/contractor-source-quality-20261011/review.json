@@ -1,0 +1,122 @@
+{
+  "schema": "doppler.contractor-source-manual-review/v1",
+  "qualified": false,
+  "reviewer": "Codex; not independent human review",
+  "criteria": "suite.json frozen before execution",
+  "completedCases": 2,
+  "plannedCases": 4,
+  "remainingDisposition": "Seed 53 cases not completed; operator SIGINT after both seed 17 cases finished. They are neither model failures nor passes.",
+  "results": [
+    {
+      "id": "contractor-comparison",
+      "seed": 17,
+      "stopReason": "eos",
+      "generatedTokenCount": 1874,
+      "totalTokenCount": 2360,
+      "rawDecodedCharacters": 7333,
+      "withinBudgets": true,
+      "completionPassed": true,
+      "qualityPassed": false,
+      "failures": [
+        {
+          "criterion": 1,
+          "observation": "Lists the included Harbor electrical allowance under Exclusions and later contradicts this; omits Maple sales tax in its summary."
+        },
+        {
+          "criterion": 2,
+          "observation": "Computes Cedar 10550 correctly but calls Maple lowest and Cedar most expensive; no remaining-budget comparison."
+        },
+        {
+          "criterion": 3,
+          "observation": "Uses Cedar May 20 as an estimated completion date in its questions, though it is the start; does not identify three weeks extending beyond June 1."
+        },
+        {
+          "criterion": 5,
+          "observation": "Many monetary claims have no supporting passage identity."
+        },
+        {
+          "criterion": 6,
+          "observation": "Invents Maple 3240 removal cost; this amount is the deposit, while removal is included."
+        },
+        {
+          "criterion": 8,
+          "observation": "Cedar deposit 5275 assumes removal is in the deposit basis without identifying this assumption."
+        }
+      ]
+    },
+    {
+      "id": "contractor-retained-correction",
+      "seed": 17,
+      "stopReason": "eos",
+      "generatedTokenCount": 2435,
+      "totalTokenCount": 3995,
+      "rawDecodedCharacters": 9884,
+      "withinBudgets": true,
+      "completionPassed": true,
+      "qualityPassed": false,
+      "failures": [
+        {
+          "criterion": 1,
+          "observation": "Claims no document mentions further Harbor electrical work despite D2:P2 requiring written approval for changes above the allowance."
+        },
+        {
+          "criterion": 2,
+          "observation": "Labels Maple and Harbor totals as having no additional costs mentioned despite stated exclusions; omits remaining budget."
+        },
+        {
+          "criterion": 3,
+          "observation": "Repeats Cedar start and duration but does not identify the deadline conflict."
+        },
+        {
+          "criterion": 4,
+          "observation": "Acknowledges plumbing conflict but still says the client must assume Page 1 includes plumbing instead of keeping this unresolved."
+        },
+        {
+          "criterion": 5,
+          "observation": "Attributes plumbing reconnection to D3:P1; the clause is in D3:P2."
+        },
+        {
+          "criterion": 6,
+          "observation": "Labels quoted schedule/deposit statements as questions instead of supplying concrete clarification questions."
+        },
+        {
+          "criterion": 7,
+          "observation": "Ends with No corrections are needed and The previous analysis is correct, missing historical removal reversals and unsupported Cedar preference."
+        }
+      ]
+    }
+  ],
+  "scope": "Original Qwen3-1.7B source-equation CPU quality control, exact retained messages; neither GPU nor partition acceptance.",
+  "arithmetic": "Original pretrained weights represented exactly in F32; eager source equations; stored F16 K/V",
+  "referenceActivated": false,
+  "evidence": [
+    {
+      "file": "suite.json",
+      "sha256": "ea50e4e539660ff3fc7c697e209a28ffb4a55b7abbee2ed67f9615c90186e39e"
+    },
+    {
+      "file": "run-binding.json",
+      "sha256": "21a6409fa23f1f1bbd2e4cab11913aa49dd79dc353f0f7d74583e64b5df6023b"
+    },
+    {
+      "file": "executed-source.tar.gz",
+      "sha256": "ee609482508c167f8d1e199a8a7ba5fabbe9b28e60307eaf053ee4c47000a062"
+    },
+    {
+      "file": "result.json.gz",
+      "sha256": "28d9db44315d0a6bedd2266cbcec4042446caaed5297424ef9a9a25c383bbab1"
+    },
+    {
+      "file": "run.log.gz",
+      "sha256": "28501f2bc6e6131ddc7e4e0fa66616385003ad0861bbbf283618455d6f6c1526"
+    },
+    {
+      "file": "controlled-stop.json",
+      "sha256": "4afdd78421975678d729453e2e7d3044d0e3978ac34ce9859bbfd9d1428485d4"
+    },
+    {
+      "file": "interrupted-snapshot.json.gz",
+      "sha256": "3fb4e8e222d9d9d7959b4bb5565a0c506827d73551bb51abdefaa96e22cff841"
+    }
+  ]
+}
