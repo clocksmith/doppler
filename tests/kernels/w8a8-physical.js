@@ -1,6 +1,6 @@
 import { quantizeW8A8Reference, matmulW8A8Reference, rescaleW8A8Reference } from './reference/w8a8.js';
 
-export async function auditW8A8() {
+export async function auditW8A8(operators = null) {
   const { initDevice, getKernelCapabilities, destroyDevice } = await import('/src/gpu/device.js');
   const { acquireBuffer, releaseBuffer, readBuffer, getBufferPool, destroyBufferPool } = await import('/src/memory/buffer-pool.js');
   const { unifiedKernelWrapper } = await import('/src/gpu/kernels/kernel-execution.js');
@@ -28,11 +28,20 @@ export async function auditW8A8() {
     throw Error('Owned GPU retirement did not settle');
   };
   const floats = (size, salt) => Float32Array.from({ length: size }, (_, i) => ((i * 37 + salt) % 255 - 127) / 8);
-  const shapes = [[1, 1, 1], [3, 7, 9], [2, 5, 4], [5, 3, 257], [2, 8, 640], [3, 17, 2048], [1, 2, 133144]];
+  const shapes = [[1, 1, 1], [2, 3, 5], [3, 7, 9], [2, 5, 4], [5, 3, 257], [2, 8, 640], [3, 17, 2048], [1, 2, 133144]];
+  if (operators) {
+    check(Array.isArray(operators.M) && Array.isArray(operators.projections)
+      && Number.isSafeInteger(operators.seed), 'Malformed frozen operator suite');
+    for (const M of operators.M) for (const { N, K } of operators.projections) {
+      check([M, N, K].every(value => Number.isSafeInteger(value) && value > 0), 'Invalid frozen projection geometry');
+      shapes.push([M, N, K]);
+    }
+  }
   try {
     for (const [M, N, K] of shapes) {
-      const A = K === 133144 ? new Float32Array(K).fill(127) : floats(M * K, 7);
-      const W = K === 133144 ? new Float32Array(N * K).fill(127) : floats(N * K, 19);
+      const A = K === 133144 ? new Float32Array(K).fill(127) : floats(M * K, operators?.seed ?? 7);
+      const W = K === 133144 ? new Float32Array(N * K).fill(127) : floats(N * K, (operators?.seed ?? 7) + 12);
+      if (K === 5) { A.fill(0, 0, K); W.fill(0, 0, K); }
       if (K === 9) A.set([127, 0.5, 1.5, 2.5, -0.5, -1.5, -2.5, 0, 126.5]);
       if (K === 4) A.set([0.001003009034320712, 0.00001184656321129296, 0, 0]);
       const qa = quantizeW8A8Reference(A, M, K), qw = quantizeW8A8Reference(W, N, K);

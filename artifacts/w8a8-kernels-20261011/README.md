@@ -36,3 +36,23 @@ All three completed successfully. The final receipt adds to the earlier controls
 Only the four-byte status is read to the CPU by runtime execution; activation
 packing, dot products, and both exact rescale stages execute in WGSL. Test-only
 readbacks verify the declared arithmetic against the independent reference.
+
+## Frozen representative projections
+
+The follow-up invocation uses the unchanged qualification fixture and its seed:
+
+```sh
+node tests/integration/w8a8-physical.test.js artifacts/w8a8-kernels-20261011/frozen-projections-physical.json tests/fixtures/w8a8-qualification.json
+```
+
+It passed all fifteen combinations of M=1/16/128 and the declared projection
+(N,K) pairs (1024,640), (256,640), (640,1024), (2048,640), and (640,2048).
+Both variants match every independently quantized activation byte, every I32
+accumulator, and every F32 result bit, in immediate and recorded execution. The
+same run repeats the boundary/lifecycle controls and adds explicit all-zero rows.
+No output sampling substitutes for complete matrices. The receipt binds the
+fixture digest and served source identities at committed runtime `a7193ebe`.
+The reference uses independent BigInt rational quantization; its integer products
+and sums remain exactly representable in JavaScript Number under the fixed I32
+bound. Active and deferred allocation counts both finish at zero. This extends
+operator correctness coverage; it does not establish model accuracy or speed.
