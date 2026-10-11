@@ -1,0 +1,1 @@
+{"index": 2, "step": 3, "physicalCache": true, "opIds": ["embed.out", "layer.3.attn.k_rope", "layer.3.attn.v_proj", "layer.7.attn.k_rope", "layer.7.attn.v_proj", "layer.11.attn.k_rope", "layer.11.attn.v_proj", "layer.15.attn.k_rope", "layer.15.attn.v_proj", "layer.19.attn.k_rope", "layer.19.attn.v_proj", "layer.23.attn.k_rope", "layer.23.attn.v_proj"]}

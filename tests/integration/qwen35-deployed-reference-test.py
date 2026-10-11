@@ -164,6 +164,42 @@ try:
 except AssertionError as error:
     assert 'incomplete linear history' in str(error)
 
+physical = {'observation': {'target': {'step': 1}, 'maximumUnmaskedDifference': 0,
+                           'prefixDifferences': [{'maximumUnmaskedDifference': 0}] * 2,
+                           'timeline': [], 'physicalCache': []}}
+history = []
+for step, values in enumerate(([[1.0004, -2.0008], [3.0, 4.0]], [[5.0, 6.0001]])):
+    history.extend(values)
+    timeline = physical['observation']['timeline']
+    timeline.append({'opId': 'embed.out'})
+    for name in ['k_rope', 'v_proj']:
+        timeline.append({'opId': 'layer.3.attn.' + name, 'capture': {'data': np.array(values).reshape(-1).tolist()}})
+    encoded = base64.b64encode(np.array(history, dtype='<f2').tobytes()).decode()
+    physical['observation']['physicalCache'].append({
+        'step': step, 'layer': 3, 'keysId': 1, 'valuesId': 2, 'seqLen': len(history),
+        'shape': [len(history), 1, 2], 'dtype': 'f16', 'layout': 'contiguous',
+        'byteOffset': 0, 'byteLength': len(history) * 4,
+        'reads': [{'seqLen': len(history), 'keysId': 1, 'valuesId': 2}],
+        'values': {name: {'encoding': 'base64-f16le', 'dataBase64': encoded} for name in ['k', 'v']}})
+assert reference.compare_physical_cache(physical, [3], 1, 2)['passed']
+changed = copy.deepcopy(physical)
+row = changed['observation']['physicalCache'][1]
+bits = np.frombuffer(base64.b64decode(row['values']['k']['dataBase64']), dtype='<u2').copy()
+bits[0] += 1
+row['values']['k']['dataBase64'] = base64.b64encode(bits.tobytes()).decode()
+assert not reference.compare_physical_cache(changed, [3], 1, 2)['passed']
+for fault in ['missing', 'offset', 'read', 'instrumentation']:
+    broken = copy.deepcopy(physical)
+    if fault == 'missing': broken['observation']['physicalCache'].pop()
+    elif fault == 'offset': broken['observation']['physicalCache'][1]['byteOffset'] = 4
+    elif fault == 'read': broken['observation']['physicalCache'][1]['reads'][0]['keysId'] = 99
+    else: broken['observation']['prefixDifferences'][0]['maximumUnmaskedDifference'] = 0.01
+    try:
+        reference.compare_physical_cache(broken, [3], 1, 2)
+        raise RuntimeError('Invalid physical capture was accepted: ' + fault)
+    except AssertionError:
+        pass
+
 print(json.dumps({'constantAttentionMean': 'pass', 'binaryCaptureEquivalence': 'pass',
                   'missingHistoryRejected': 'pass', 'nonfiniteCaptureRejected': 'pass',
                   'scalarRecurrenceClosedForm': 'pass', 'missingRecurrenceHistoryRejected': 'pass',
@@ -171,4 +207,7 @@ print(json.dumps({'constantAttentionMean': 'pass', 'binaryCaptureEquivalence': '
                   'uncapturedOperatorsNotCompared': 'pass',
                   'cacheOperandIsolation': 'pass', 'halfRoundingAmplification': 'pass',
                   'normalizationClosedForm': 'pass', 'nonfiniteNormalizationRejected': 'pass',
-                  'cacheInterventionIsolation': 'pass', 'incompleteInterventionRejected': 'pass'}, indent=2))
+                  'cacheInterventionIsolation': 'pass', 'incompleteInterventionRejected': 'pass',
+                  'physicalCacheExactRoundTrip': 'pass', 'physicalCacheBitMismatchDetected': 'pass',
+                  'physicalCacheMissingRejected': 'pass', 'physicalCachePositionRejected': 'pass',
+                  'physicalCacheReadIdentityRejected': 'pass', 'physicalCacheInstrumentationRejected': 'pass'}, indent=2))

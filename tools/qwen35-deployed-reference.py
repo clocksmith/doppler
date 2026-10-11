@@ -153,6 +153,73 @@ def capture_values(capture):
     return None
 
 
+def compare_physical_cache(capture, layers, kv_heads, head_dim):
+    """Compare direct GPU cache readbacks with independently rounded inputs.
+
+    This certifies only storage/conversion/indexing at captured boundaries.
+    Source-model numerical accuracy remains a separate question.
+    """
+    observation = capture['observation']
+    rows = observation['physicalCache']
+    target = observation['target']['step']
+    assert observation['maximumUnmaskedDifference'] == 0
+    assert len(observation['prefixDifferences']) == target + 1
+    assert all(row['maximumUnmaskedDifference'] == 0 for row in observation['prefixDifferences'])
+    assert len(rows) == len(layers) * (target + 1), 'missing or duplicate physical cache readback'
+    physical = {(row['step'], row['layer']): row for row in rows}
+    assert len(physical) == len(rows), 'duplicate physical cache boundary'
+    history = {layer: {'k': [], 'v': []} for layer in layers}
+    current = -1
+    inputs = {}
+    for row in observation['timeline']:
+        if row['opId'] == 'embed.out':
+            current += 1
+        for layer in layers:
+            for name, op in [('k', 'k_rope'), ('v', 'v_proj')]:
+                if row['opId'] == f'layer.{layer}.attn.{op}':
+                    values = capture_values(row.get('capture'))
+                    assert values is not None and np.isfinite(values).all()
+                    key = (current, layer, name)
+                    assert key not in inputs, 'duplicate pre-storage input'
+                    inputs[key] = np.asarray(values, dtype=np.float32).reshape(-1, kv_heads, head_dim)
+    assert current == target, 'pre-storage capture must cover every selected prefix'
+    comparisons = []
+    for step in range(target + 1):
+        for layer in layers:
+            physical_row = physical[(step, layer)]
+            assert physical_row['dtype'] == 'f16' and physical_row['layout'] == 'contiguous'
+            assert physical_row['byteOffset'] == 0
+            assert physical_row['reads'], 'actual attention cache read required'
+            if step:
+                previous = physical[(step - 1, layer)]
+                assert physical_row['seqLen'] == previous['seqLen'] + 1
+                assert (physical_row['keysId'], physical_row['valuesId']) == (previous['keysId'], previous['valuesId'])
+            for read in physical_row['reads']:
+                assert read['seqLen'] == physical_row['seqLen']
+                assert (read['keysId'], read['valuesId']) == (physical_row['keysId'], physical_row['valuesId'])
+            for name in ['k', 'v']:
+                history[layer][name].append(inputs[(step, layer, name)])
+                expected = np.concatenate(history[layer][name]).astype('<f2')
+                assert list(expected.shape) == physical_row['shape']
+                assert expected.shape[0] == physical_row['seqLen']
+                assert expected.nbytes == physical_row['byteLength']
+                value = physical_row['values'][name]
+                assert value['encoding'] == 'base64-f16le'
+                data = base64.b64decode(value['dataBase64'], validate=True)
+                assert len(data) == expected.nbytes
+                actual = np.frombuffer(data, dtype='<f2').reshape(expected.shape)
+                assert np.isfinite(actual).all()
+                different = actual.view('<u2') != expected.view('<u2')
+                indices = np.argwhere(different)
+                comparisons.append({'step': step, 'layer': layer, 'cache': name,
+                                    'shape': list(actual.shape), 'values': actual.size,
+                                    'differentBits': int(different.sum()),
+                                    'firstMismatch': indices[0].tolist() if len(indices) else None,
+                                    'maxAbs': float(np.max(np.abs(actual.astype(np.float64) - expected.astype(np.float64))))})
+    return {'scope': 'Physical F16 cache storage and subsequent read identity; not independent model qualification',
+            'passed': all(row['differentBits'] == 0 for row in comparisons), 'comparisons': comparisons}
+
+
 def compare_attention_history(model, capture, cache):
     """Compare observed attention against its actual captured cache operands.
 
