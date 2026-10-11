@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.source-policy-review/v1",
+  "qualified": false,
+  "penaltyProbe": {
+    "retainedPrefixExact": true,
+    "winnerChanged": false,
+    "hypothesisRejectedAtBoundary": true
+  },
+  "formattingInstruction": {
+    "baselinePassed": 1,
+    "instructionPassed": 1,
+    "casesPerArm": 7,
+    "accepted": false
+  },
+  "recommendedThinking": {
+    "status": "running",
+    "suiteSha256": "0cf151811add3f9a61e931a1d3a24b1a3d6e64a878b2ee4ba617cf7f558b0b1f",
+    "requiredCases": 14,
+    "acceptanceUnchanged": true,
+    "modelPromotion": false
+  },
+  "samplingRepair": "7e9cb892 and b0354ba4; independent of candidate quality",
+  "standardArchiveChanged": false
+}

@@ -1,0 +1,22 @@
+{
+  "schema": "doppler.diagnostic-preparation-review/v1",
+  "qualified": false,
+  "manifestSha256": "bc7ede46274d8c18ebb882bb30a87b7a31ccbf3e87afb691a63c476fa0cdcf38",
+  "suiteSha256": "34ca02e794f8067c08bb19a0d1dbc84e39617557eeeff9432d004a459e338537",
+  "sourceQualityPending": true,
+  "sourceCommit": "1e0b8be889402111b23bc9338f94f6d06192effb",
+  "allKernelDigestsVerified": true,
+  "digestInput": "Normalized WGSL source plus newline @@entry:<entry>, matching canonical registry. Initial raw-file-only SHA check rejected embed; corrected to canonical algorithm.",
+  "tensorCount": 311,
+  "totalShardBytes": 1590331392,
+  "sourceTokenizerJsonExactSemanticEquality": true,
+  "outputEmbeddingHeadDistinct": true,
+  "storedEmbeddingBytes": 622329856,
+  "storedHeadBytes": 175030272,
+  "sourceOriginalTieWordEmbeddings": true,
+  "deployedHeadRetiePermitted": false,
+  "physicalMemoryQualified": false,
+  "standardArchiveChanged": false,
+  "catalogChanged": false,
+  "signedOrPromoted": false
+}

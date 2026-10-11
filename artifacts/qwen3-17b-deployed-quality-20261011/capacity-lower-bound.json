@@ -1,0 +1,32 @@
+{
+  "manifestSha256": "bc7ede46274d8c18ebb882bb30a87b7a31ccbf3e87afb691a63c476fa0cdcf38",
+  "physicalQualification": false,
+  "combinedReservedPositions": 8240,
+  "partitions": [
+    {
+      "index": 0,
+      "layerRange": [
+        0,
+        10
+      ],
+      "storedWeightBytes": 933852672,
+      "f16CacheBytesFor8240CombinedPositions": 371261440,
+      "storedWeightPlusCacheBytes": 1305114112,
+      "remainingTo1420000000": 114885888
+    },
+    {
+      "index": 1,
+      "layerRange": [
+        11,
+        27
+      ],
+      "storedWeightBytes": 656478720,
+      "f16CacheBytesFor8240CombinedPositions": 573767680,
+      "storedWeightPlusCacheBytes": 1230246400,
+      "remainingTo1420000000": 189753600
+    }
+  ],
+  "excluded": "Weight materialization changes, alignment, workspaces, retained reusable buffers, staging, in-flight activations and other allocations. No budget or context increase.",
+  "reservationScope": "Two concurrent attempts, each24 prompt tokens plus4096 output tokens; not two full8192-token reservations.",
+  "longerConcurrentPrompts": "Require their actual prompt-plus-output reservations and may reject under the unchanged per-device limit; no universal concurrent-full-context claim."
+}
