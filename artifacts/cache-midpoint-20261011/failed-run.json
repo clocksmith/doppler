@@ -1,0 +1,8 @@
+{
+  "cause": "NumPy boolean in midpoint sample was not JSON serializable. All prefix results were retained before failure; no completed audit was claimed. Explicit native bool and JSON-roundtrip regression added.",
+  "retainedPrefixes": {
+    "path": "reports/local/cache-midpoint-20261011/serialization-failure-prefixes.json",
+    "sha256": "b4ba806745156a9c95e030c8bbc62b999602b26a15d27f287c290e93ff7fa7f6"
+  },
+  "log": "serialization-failure.log.gz"
+}
