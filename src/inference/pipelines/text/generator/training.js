@@ -8,6 +8,7 @@ import {
   validateCaptureConfig,
 } from '../../../../debug/index.js';
 import { validateCallTimeOptions } from '../../../../config/param-validator.js';
+import { isStopToken } from '../init.js';
 import { sample, applyRepetitionPenalty, applyPresencePenalty, logitsSanity, getTopK } from '../sampling.js';
 import { computeLogits, computeLogitsGPU, recordLogitsGPU, extractLastPositionLogits, applySoftcapping } from '../logits/index.js';
 import { OperatorEventEmitter } from '../operator-events.js';
@@ -739,7 +740,8 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}, emissi
       if (options.onToken) options.onToken(firstToken, firstText);
 
       if (options.signal?.aborted || this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
-        this._recordStopReason(options.signal?.aborted ? 'aborted' : 'stop-token-or-sequence',
+        this._recordStopReason(options.signal?.aborted ? 'aborted'
+          : isStopToken(firstToken, decodeRuntime.stopTokenIds, decodeRuntime.eosToken) ? 'stop-token' : 'stop-sequence',
           options.signal?.aborted ? null : firstToken);
         this._state.stats.decodeTimeMs = 0;
         this._state.stats.tokensGenerated = 1;
