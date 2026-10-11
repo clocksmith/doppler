@@ -325,6 +325,24 @@ passes the assignment into its sequence receipt. Neither adapter may borrow
 generation qualification. Partial events are not application acceptance;
 cancellation or invalid evidence prevents a completed operation receipt.
 
+`resolveEmbeddingBatchSemantics(manifest)` describes the maintained text embedding
+implementation after validating that manifest's embedding contract. Its immutable
+`doppler.embedding-batch-semantics/v1` declaration identifies `embed` version 1,
+the `texts` input, single-text units, state reset per text, and input-order results.
+The normal batch operation already invokes each text independently; subdividing
+it does not permit concurrent mutation of one session. This declaration is not
+application approval or numerical qualification, and does not describe arbitrary
+injected programs, reranking, or token generation.
+
+An application must explicitly permit subdivision under its existing signed
+application, model, execution and comparison bindings. Qualify the selected
+application by comparing both whole and subdivided batches against the same
+independent source reference, preserving duplicate inputs and original positions.
+The offline `evaluateEmbeddingBatchSubdivision` reference evaluator checks those
+positions, exact tokens, vector dimensions and the reference's unchanged numerical
+tolerance. Hashes and matching split/whole outputs alone cannot establish model
+correctness. This additive source API is not present in previously packed archives.
+
 ## Request-bound adapters
 
 `session.executeOperation(request, { signal, adapterArtifactStore })` accepts an

@@ -1,4 +1,5 @@
 import type { CapsuleExecutionAdapter } from './capsule-adapters.js';
+import type { EmbeddingBatchSemantics } from './embedding-contract.js';
 export const CAPSULE_OPERATION_REQUEST_SCHEMA: 'doppler.capsule-operation-request/v1';
 export const CAPSULE_OPERATION_RECEIPT_SCHEMA: 'doppler.capsule-operation-receipt/v1';
 export const CAPSULE_OPERATION_EVENT_SCHEMA: 'doppler.capsule-operation-event/v1';
@@ -12,7 +13,10 @@ export interface CapsuleOperationRequest {
   assignment: Record<string, unknown> | null;
   limits: { maxInputBytes: number; maxOutputBytes: number; deadlineAt: number };
 }
-export const CAPSULE_OPERATIONS: Readonly<Record<CapsuleOperationName, { version: number; inputFields: string[]; optionFields: string[] }>>;
+export const CAPSULE_OPERATIONS: Readonly<Record<CapsuleOperationName, {
+  version: number; inputFields: string[]; optionFields: string[];
+  batchSemantics?: EmbeddingBatchSemantics;
+}>>;
 export interface CapsuleStreamFormat { eventSchema: string; receiptSchema: string; incremental: boolean; }
 export const CAPSULE_OPERATION_STREAM_FORMATS: Readonly<Record<string, CapsuleStreamFormat>>;
 export function resolveCapsuleStreamFormat(schema: string): CapsuleStreamFormat;

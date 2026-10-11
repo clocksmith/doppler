@@ -33,6 +33,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DopplerRunSession`
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
+  - `EmbeddingBatchSemantics`
   - `GENERATION_CONTRACT`
   - `GenerationCompletion`
   - `GenerationError`
@@ -41,6 +42,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `GenerationOutput`
   - `openCapsule`
   - `ResolvedGenerationOptions`
+  - `resolveEmbeddingBatchSemantics`
   - `resolveGenerationOptions`
   - `RUN_CORE_VERSION`
   - `RunPorts`
@@ -81,6 +83,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DopplerRunSession`
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
+  - `EmbeddingBatchSemantics`
   - `GENERATION_CONTRACT`
   - `GenerationCompletion`
   - `GenerationError`
@@ -89,6 +92,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `GenerationOutput`
   - `openCapsule`
   - `ResolvedGenerationOptions`
+  - `resolveEmbeddingBatchSemantics`
   - `resolveGenerationOptions`
   - `RUN_CORE_VERSION`
   - `RunPorts`
@@ -128,6 +132,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `DopplerRunSession`
   - `DopplerRuntime`
   - `DopplerRuntimeSession`
+  - `EmbeddingBatchSemantics`
   - `GENERATION_CONTRACT`
   - `GenerationCompletion`
   - `GenerationError`
@@ -136,6 +141,7 @@ This is a reference inventory, not the behavior guide. Manual API guides live on
   - `GenerationOutput`
   - `openCapsule`
   - `ResolvedGenerationOptions`
+  - `resolveEmbeddingBatchSemantics`
   - `resolveGenerationOptions`
   - `RUN_CORE_VERSION`
   - `RunPorts`

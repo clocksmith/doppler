@@ -19,7 +19,19 @@
       "contract": "doppler.generation-contract/v1"
     },
     "scoreChoices": { "version": 1, "inputFields": ["prompt", "choices"], "optionFields": ["maxSeqLen"] },
-    "embed": { "version": 1, "inputFields": ["texts", "application"], "optionFields": [] },
+    "embed": {
+      "version": 1,
+      "inputFields": ["texts", "application"],
+      "optionFields": [],
+      "batchSemantics": {
+        "schema": "doppler.embedding-batch-semantics/v1",
+        "operation": { "name": "embed", "version": 1 },
+        "inputField": "texts",
+        "unit": "text",
+        "state": "reset-per-text",
+        "outputOrder": "input-order"
+      }
+    },
     "rerank": { "version": 1, "inputFields": ["query", "documents", "application"], "optionFields": [] },
     "encodeSequence": {
       "version": 1,

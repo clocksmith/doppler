@@ -24,3 +24,10 @@ export function evaluateEmbeddingReference(reference: EmbeddingReference, observ
   passed: boolean; checks: Array<{ id: string; passed: boolean; [key: string]: unknown }>;
 };
 export function assertEmbeddingReferenceTranscript(value: unknown): EmbeddingReferenceTranscript;
+export function evaluateEmbeddingBatchSubdivision(reference: EmbeddingReference, whole: EmbeddingObservation,
+  units: Array<{ positions: number[]; observation: EmbeddingObservation }>): {
+  passed: boolean;
+  wholeReference: ReturnType<typeof evaluateEmbeddingReference>;
+  splitReference: ReturnType<typeof evaluateEmbeddingReference>;
+  splitWhole: ReturnType<typeof evaluateEmbeddingReference>;
+};

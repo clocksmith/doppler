@@ -1,3 +1,15 @@
+import catalog from './capsule-operations.json' with { type: 'json' };
+import { freezeCapsuleV2 } from './capsule-v2.js';
+
+const batchSemantics = freezeCapsuleV2(catalog.operations.embed.batchSemantics);
+
+// This describes the maintained text-embedding implementation, not application
+// permission, model qualification, or arbitrary injected program behavior.
+export function resolveEmbeddingBatchSemantics(manifest) {
+  resolveCapsuleEmbeddingContract(manifest);
+  return batchSemantics;
+}
+
 // Shared signed-manifest admission for Forge qualification and Capsule invocation.
 export function resolveCapsuleEmbeddingContract(manifest) {
   if (manifest.modelType !== 'embedding' && manifest.inference?.supportsEmbedding !== true) {

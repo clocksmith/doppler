@@ -83,3 +83,35 @@ export function assertEmbeddingReferenceTranscript(transcript) {
   requireValue(result.passed, `source comparison failed: ${result.checks.filter(check => !check.passed).map(check => check.id).join(', ')}.`);
   return transcript;
 }
+
+// Qualification observation only. Original positions, not text equality, identify
+// results: repeated inputs remain distinct and completion order is irrelevant.
+export function evaluateEmbeddingBatchSubdivision(reference, whole, units) {
+  const wholeReference = evaluateEmbeddingReference(reference, whole);
+  requireValue(Array.isArray(units) && units.length > 0, 'subdivision requires observed units.');
+  const outputs = new Array(reference.input.texts.length);
+  const positions = new Set();
+  for (const unit of units) {
+    requireValue(Array.isArray(unit?.positions) && unit.positions.length > 0,
+      'each unit requires original input positions.');
+    const unitTexts = [];
+    for (const position of unit.positions) {
+      requireValue(Number.isSafeInteger(position) && position >= 0 && position < outputs.length
+        && !positions.has(position), 'unit positions must be unique and in range.');
+      positions.add(position);
+      unitTexts.push(reference.input.texts[position]);
+    }
+    requireValue(computeCanonicalSha256(unit.observation?.input) === computeCanonicalSha256({ texts: unitTexts }),
+      'unit inputs differ from original positions.');
+    requireValue(computeCanonicalSha256(unit.observation.embeddingContract) === computeCanonicalSha256(reference.embeddingContract),
+      'unit embedding contract differs.');
+    validateRows(unit.observation.outputs, unitTexts, reference.embeddingContract, 'unit.outputs');
+    unit.positions.forEach((position, index) => { outputs[position] = unit.observation.outputs[index]; });
+  }
+  requireValue(positions.size === outputs.length, 'subdivision must cover every input exactly once.');
+  const split = { input: reference.input, embeddingContract: reference.embeddingContract, outputs };
+  const splitReference = evaluateEmbeddingReference(reference, split);
+  const splitWhole = evaluateEmbeddingReference({ ...reference, outputs: whole.outputs }, split);
+  return { passed: wholeReference.passed && splitReference.passed && splitWhole.passed,
+    wholeReference, splitReference, splitWhole };
+}

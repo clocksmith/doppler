@@ -2,13 +2,19 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import http from 'node:http';
 import { once } from 'node:events';
-import { createDopplerRun, createCapsuleStreamAccumulator } from 'doppler-gpu/run';
+import { createDopplerRun, createCapsuleStreamAccumulator, resolveEmbeddingBatchSemantics } from 'doppler-gpu/run';
 import { createCapsuleServeHandler } from 'doppler-gpu/serve';
 import { computeCanonicalSha256 } from './consumer-evidence.js';
 
 // Installed public API contract, with synthetic device and execution components.
 const fixture = JSON.parse(await fs.readFile(new URL('./embedding-fixture.json', import.meta.url)));
 const bytes = new Map(fixture.artifacts.map(([id, values]) => [id, new Uint8Array(values)]));
+const manifest = JSON.parse(new TextDecoder().decode(bytes.get('manifest')));
+const semantics = resolveEmbeddingBatchSemantics(manifest);
+assert.equal(semantics.state, 'reset-per-text');
+assert.equal(semantics.operation.name, 'embed');
+assert(Object.isFrozen(semantics.operation));
+assert.throws(() => resolveEmbeddingBatchSemantics({ ...manifest, inference: {} }), /embeddingPostprocessor/);
 let executions = 0;
 let closes = 0;
 const manifestHash = fixture.capsule.artifacts.find(artifact => artifact.artifactId === 'manifest').hash;

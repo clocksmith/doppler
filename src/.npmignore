@@ -45,7 +45,6 @@ config/capsule-v0-trusted-signers.d.ts
 config/capsule-v0-trusted-signers.js
 config/choice-scoring-reference.d.ts
 config/dtype-transition-contract.d.ts
-config/embedding-contract.d.ts
 config/embedding-reference.d.ts
 config/evidence/token-cost-classifier-policy.json
 config/evidence/workflow-ownership-policy.json

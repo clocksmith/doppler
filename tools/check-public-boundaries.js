@@ -61,7 +61,8 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // The installed kernel suite requires four captured-operand fixtures already
   // present in 0.6.15 and 0.6.18. No model weights or new runtime modules.
   // Exact 0.6.19 inventory: artifacts/recovery-20261009/package-inventory.json.
-  maxEntryCount: 1897,
+  // Public embedding batch semantics adds its previously internal declaration.
+  maxEntryCount: 1898,
   // add14e4b: npm 9.2.0 produces 2,104,958 bytes; CI Node 22.23.2/npm 10.9.8
   // produces 2,107,073. Keep the measured cross-toolchain compression allowance.
   // Evidence: reports/capsule-baseline/20260907-release/remote-package-budget-failure.log.
@@ -169,7 +170,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: artifacts/partition-contracts-20261010/npm-pack.json.
   // Typed resident output-allocation error: 186 bytes across existing shipped files.
   // Inventory: artifacts/resident-output-error-20261011/package-inventory.json.
-  maxUnpackedSize: 13_115_728,
+  // Additive embedding semantics, declarations and qualification evaluator.
+  // Exact source inventory: artifacts/embedding-subdivision-20261011/package-inventory.json.
+  maxUnpackedSize: 13_119_792,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
@@ -194,6 +197,7 @@ const FILE_RULES = [
       './version.js',
       './config/generation-contract.js',
       './config/choice-scoring.js',
+      './config/embedding-contract.js',
       './client/runtime/composition-root.js',
       './client/runtime/fetch-capsule-artifact-store.js',
       './client/runtime/capsule-forecast-program.js',
@@ -219,6 +223,7 @@ const FILE_RULES = [
       './version.js',
       './config/generation-contract.js',
       './config/choice-scoring.js',
+      './config/embedding-contract.js',
       './config/capsule.js',
       './config/capsule-operation.js',
       './client/runtime/composition-root.js',
