@@ -1,0 +1,15 @@
+{
+  "status": "awaiting explicit fixture-correction approval; independent complete-model qualification remains failed",
+  "historicalReferenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "proposedReferenceSha256": "a056956131e6944de2ba1d7f13b48327bc9e2c7fc55b55c57f1fc95fcca00046",
+  "proposedReferenceLocalPath": "reports/local/frozen-reference-producer/proposed-declared-main-reference.json.gz",
+  "tolerance": 0.001,
+  "archiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "runtimeVersion": "0.6.27",
+  "matchingPrefixes": 55,
+  "onlyExpectedOutputsChange": true,
+  "inputsPlanGenerationAndModelIdentityUnchanged": true,
+  "currentCaptureSha256": "a81004dc9b5b9fc2405f806b415ccad9b4328c933914a658b50952da67aea8b4",
+  "independentSourceMaxDifferenceSelectedPrefix": 0.0014121532440185547,
+  "scope": "Correct known historical shader-entry mismatch; not permission to waive independent-source, quality, lifecycle, or deployment gates"
+}
