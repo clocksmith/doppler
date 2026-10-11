@@ -1,11 +1,35 @@
 """Ordered source-evaluator history and pending factual-review controls."""
 import copy
+import json
 from pathlib import Path
 import runpy
 import sys
+import tempfile
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools'))
-from lib.source_task_quality import task_messages, compare_task_answer
+from lib.source_task_quality import task_messages, compare_task_answer, write_quality_report
+
+with tempfile.TemporaryDirectory() as directory:
+    output = Path(directory) / 'result.json'
+    write_quality_report(output, {'completed': 1})
+    original_write = Path.write_text
+
+    def failed_write(path, text):
+        original_write(path, text[:5])
+        raise OSError('simulated interrupted report write')
+
+    with patch.object(Path, 'write_text', failed_write):
+        try:
+            write_quality_report(output, {'completed': 2})
+        except OSError:
+            pass
+        else:
+            raise AssertionError('Write failure was swallowed')
+    assert json.loads(output.read_text()) == {'completed': 1}
+    assert not output.with_name('result.json.tmp').exists()
+    write_quality_report(output, {'completed': 2})
+    assert json.loads(output.read_text()) == {'completed': 2}
 
 history = [{'role': 'user', 'content': 'source [D1:P1]'},
            {'role': 'assistant', 'content': 'retained wrong answer'},
@@ -39,6 +63,9 @@ else:
 # The synthetic execution also checks unchanged EOS/budget/reasoning failures.
 controls = runpy.run_path('artifacts/qwen3-17b-application-policy-20261011/evaluator-boundary-check.py')
 suite = copy.deepcopy(controls['base'])
+suite['cases'] = [{'id': 'ordered-exact', **task, 'expected': 'A'}]
+row = controls['check']([2, 4, 3, 4, 5], suite)
+assert row['passed'] and row['messages'] == history
 suite['cases'] = [{'id': 'ordered-review', **task, **manual}]
 row = controls['check']([2, 4, 3, 4, 5], suite)
 assert row['messages'] == history and row['completionPassed']
