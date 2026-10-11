@@ -1,0 +1,370 @@
+{
+  "schema": "doppler.source-generation-diagnostic/v1",
+  "qualified": false,
+  "scope": "Independent model-equation diagnostic, not reference activation or runtime fallback",
+  "linearPrefillReference": "source-chunk",
+  "tolerance": 0.001,
+  "tokenization": "Exact captured IDs; independently round-tripped through deployed tokenizer",
+  "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "sourceConfigSha256": "ed1c1723241f23f7f4e23430759cbd7dcfb4103cbdfe052bfe7626b57c2615b4",
+  "captureSha256": "dc46d67c8aa4171596fbd944ce90f2938972d14b03dc6fe4d2dc540a64bac5a2",
+  "pieceIndexIdentity": "sha256:fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+  "pieceIndexManifestIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "integrityScope": "Pinned SHA-256 pieces, separate from the retained legacy shard hash implementation",
+  "toolSha256": "c749af9d4da05f82669001c5807c08d8c9bdca38d5b2dc0a16fb8934e3926133",
+  "tokenizerSha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+  "shards": [
+    {
+      "filename": "shard_00000.bin",
+      "bytes": 67108864,
+      "sha256": "e40985f8ab9f9d321fe46c309edf79d39291156826c9a77903caed4fadf8138c",
+      "legacyManifestHash": "7f38a80c6ba6593361224d8041712c18cb78151c1697cc5de7562cf53a2dbb4a",
+      "standardBlake3": "ed436f5e41bb514f0ecc2b49a8eae00a8b0985d470e649d3b1265eba54347f2d"
+    },
+    {
+      "filename": "shard_00001.bin",
+      "bytes": 67108864,
+      "sha256": "90e92e3d8514b5c2fcaef03aff390b3c8f631accbcfe65c128df1596a125ccaa",
+      "legacyManifestHash": "cf15fbe95c20f9b181fae2fcb3e5510034d76c2901ed5ed82405f66c25771267",
+      "standardBlake3": "28ddf176dec5254244004ac3b9e2275493a5037f391395f5755e331086f85aff"
+    },
+    {
+      "filename": "shard_00002.bin",
+      "bytes": 67108864,
+      "sha256": "b5669f5a6d833823f0da3df5d0342d33e10d5d7a3680f48ca2620837017ed2c1",
+      "legacyManifestHash": "82bbf02093da93a1d00e46443fd8039b63cd4f255dad9fe8c0c0f1757d97c522",
+      "standardBlake3": "d900aabfa3fd3985f7f3b63f343c6e4b97b69096790146be85536292cce27592"
+    },
+    {
+      "filename": "shard_00003.bin",
+      "bytes": 67108864,
+      "sha256": "7e3fdae5f8d99e432f7a292a1254418d1d09a0a79314f0bc3e9d3c09eeb3854b",
+      "legacyManifestHash": "bf97d50cd5a9b75227311232c8e62f0e6adb47632d2ab7ccf89e9a84ff87ed8c",
+      "standardBlake3": "5e591ad61f618f2340ef55531d2d5cb53bab3069d1c9c891ed02c7792e05372f"
+    },
+    {
+      "filename": "shard_00004.bin",
+      "bytes": 67108864,
+      "sha256": "7c21e0947d289020054e86a1612d786645599329804916476aec43434a2a5642",
+      "legacyManifestHash": "7afb28d220ddfb15469862c07e729aa01174beda50f4f301b1c7dffdeb076525",
+      "standardBlake3": "5304e30233d4e1a96991685a160f920afdf95935184d1865d03206f887856b88"
+    },
+    {
+      "filename": "shard_00005.bin",
+      "bytes": 67108864,
+      "sha256": "75ffea68179bfc1661f5c397773075a49bc6b47f573a61e2abd8528eb10f7e67",
+      "legacyManifestHash": "cfe3eef3e969a26ecbb603980807d6720cae4428a21591fd893732cabd477919",
+      "standardBlake3": "0af30ef113b6445d88e9aed183763de631204e50c77d60749085a1b1cd14b158"
+    },
+    {
+      "filename": "shard_00006.bin",
+      "bytes": 67108864,
+      "sha256": "2da4b5acbb6d8228fef116737ef97d3a59132ce23aae9924d67132ac27768da3",
+      "legacyManifestHash": "85460810a922b5af7113670f9e2ce79cfc87a6bdd93558d29ff3aba4ff2727bc",
+      "standardBlake3": "09672f72298a6ec50679a99d8fa8c599bf14974bc011e9c76cc87e4e10095e10"
+    },
+    {
+      "filename": "shard_00007.bin",
+      "bytes": 67108864,
+      "sha256": "86a40588ebd372311f58c5e373ea37eb9a1d333086b3ab66f3e98e0f5363f740",
+      "legacyManifestHash": "9bd38a6686f7820f354e75a40f2aeb3b9a77bdc95d1ad05db205e5e389798379",
+      "standardBlake3": "695463c02344cd93bd8dcc41449ba46fb4fe6811cbe5744dfd4b778177fd0577"
+    },
+    {
+      "filename": "shard_00008.bin",
+      "bytes": 67108864,
+      "sha256": "57bef927eb6501d0e1926ea193287d795ea29786872897bb4b8d3a06b2ee69d8",
+      "legacyManifestHash": "e7145ce0937de9972b4f9c6e3c3c4c6ad044a1015f880f265613e22acafff54d",
+      "standardBlake3": "728ee1bacf5a0e82194c153432e2622042dff84d1e959fd415efd5f632115da2"
+    },
+    {
+      "filename": "shard_00009.bin",
+      "bytes": 67108864,
+      "sha256": "e42fa398483166c68229199b46421b7c6b0c37c637bae74a96881975dc789c33",
+      "legacyManifestHash": "a77e632b63066a904200af9249a826d0cbc7a08a06c1b44688bfd0f41c4be033",
+      "standardBlake3": "b7d1a713ba449d2db6c5078dd9a936be9e87dfd34b0659a5d04b7a460ac8101f"
+    },
+    {
+      "filename": "shard_00010.bin",
+      "bytes": 67108864,
+      "sha256": "20fc0c589c4d1b6c392494efdcc19dc609330b40e5c6d7f6c88d2d2960edcf80",
+      "legacyManifestHash": "743a617f0e9e8f1e6fda4fbe2623251ad9d277a85b03b8e0743ae646d5baa214",
+      "standardBlake3": "eb177853a22d396f96b8c69fe7d0a409159a181a6540e690c1cc7f6d4907eb32"
+    },
+    {
+      "filename": "shard_00011.bin",
+      "bytes": 67108864,
+      "sha256": "2314a134f563a9c293473b6ef5bf069ddfe5004603e1c2191d96105a541a2a2b",
+      "legacyManifestHash": "1eee5040b27874adb9a61ea90bb5678c62214bab76a734eb0d6685dec87c6515",
+      "standardBlake3": "2515fe0f0d395fe849b9fd6f5c7ff2adcc3fd20c8e5bca1fffe7eeed9df8f0d1"
+    },
+    {
+      "filename": "shard_00012.bin",
+      "bytes": 67108864,
+      "sha256": "df0251383140bd5ba1b29d344dae040d1ddc767b36e420a1ca78f0cbf09f9662",
+      "legacyManifestHash": "f456acfd2333b46abe1a8f073da6e2caed924aa808e8d90d7acdb1060f1d4121",
+      "standardBlake3": "4a0d483d00e687c38608ae21de881a7f56cb7bfc0318d3069e5028e0e17acc76"
+    },
+    {
+      "filename": "shard_00013.bin",
+      "bytes": 67108864,
+      "sha256": "ed6f9a979093bcee652843e6690fb03c9a1075d99415550f946c9e63d022116e",
+      "legacyManifestHash": "706d9f931e616ff603c01f050387afe87c146b355c1c32ac4569d5e5ed108840",
+      "standardBlake3": "09340181f5d152b0708d4fc4a387191b37c205d15562ef178470f8d1f671514c"
+    },
+    {
+      "filename": "shard_00014.bin",
+      "bytes": 67108864,
+      "sha256": "b03f83743498cc9fa485585500f1f1bd091e5728dff67d44ea5515cb56d68aa7",
+      "legacyManifestHash": "e21d193068a1ecf60a486f7b1fd52c646e8c88a1acb067d6f7f79b73770eee3e",
+      "standardBlake3": "a79e02b4ffddcf7a7f69a81366bc45df7148c5a002c2ae23d9273b11ac3a52ce"
+    },
+    {
+      "filename": "shard_00015.bin",
+      "bytes": 67108864,
+      "sha256": "16f9ef87c68a85a29e010b889f9e9fae6406d9ad0afba453a4fb89cef46c31b3",
+      "legacyManifestHash": "eef3888a705966a7717214e233454fb14744204f0e92c39ed0cdeba21c3a3ae9",
+      "standardBlake3": "59debcdf9805927b0465350207fbb3de0bd87c840a791864a1d42e99503a1c52"
+    },
+    {
+      "filename": "shard_00016.bin",
+      "bytes": 67108864,
+      "sha256": "55db600b5c517044abc2dc77623d793e90c5d9328026e273f7d66703b7bb47b5",
+      "legacyManifestHash": "5eb3eda655f773830d65a7407c1a2a653ba84706c38688fb2ae426cf11f738dc",
+      "standardBlake3": "4386cd8c3a50514e070374caa23f4c1d44f1ea64b41017e4b3eb83859654e300"
+    },
+    {
+      "filename": "shard_00017.bin",
+      "bytes": 67108864,
+      "sha256": "40840ec94c809d140126b4024bba274fa4f828309e910b77098d2c89c85e930b",
+      "legacyManifestHash": "48ec0288446779bab80d7b0a5162f523c82cbb673c210de651e0fa1b9136b27d",
+      "standardBlake3": "4b1b9ee3281040d0023a25e4e9bd5913abfde4abe691bf079904ae61541f45db"
+    },
+    {
+      "filename": "shard_00018.bin",
+      "bytes": 67108864,
+      "sha256": "77dd43e6cdaac7b5a0dece8ae50a1103a42fb2c79d8b68077444442fb3fe87fd",
+      "legacyManifestHash": "b78df1f7d591e2b4c939e7b096612f45803407def3538d372874a5071f9eefee",
+      "standardBlake3": "81b89b7b796dfeb7777b20a5b3a364b3f11ebee2cbe1f98c61ff894fccf5a74e"
+    },
+    {
+      "filename": "shard_00019.bin",
+      "bytes": 67108864,
+      "sha256": "8d455c998b8a42f7204047b5817753c10b3b5cd0b8086182dca25329f5e25798",
+      "legacyManifestHash": "97436f183a955caa25d584ae3ab34e3cda5145af43d056b23423ca5ae714936f",
+      "standardBlake3": "f1db83d570e477c271775c7c12d3c6752b243ef293408c2e3cf51da8801b77d4"
+    },
+    {
+      "filename": "shard_00020.bin",
+      "bytes": 67108864,
+      "sha256": "acf08871b5f94896bd8baf3c2ed865fcf474e00963725c834d156927469fa48e",
+      "legacyManifestHash": "a97c98dbbee2b980bd5c12374f8362ad91ccd4a969c87910dbaf5e63a0da8c60",
+      "standardBlake3": "a4339d6109acb7f944e2a602e9dde12617f109672557caf7f8a4c82d57fc9c32"
+    },
+    {
+      "filename": "shard_00021.bin",
+      "bytes": 67108864,
+      "sha256": "8fc284f0a15469c06d947294ba3c8f23a28d2c8c9f12ba61c8f7ad7f1f112cb9",
+      "legacyManifestHash": "38aec5830660748a07555e19bdeeb26d7c599cb5bea7a65757e21626491afe8d",
+      "standardBlake3": "d0bf29289803a619537e9ae16fd57cb4ad7435ff4192446de9578366332fc377"
+    },
+    {
+      "filename": "shard_00022.bin",
+      "bytes": 67108864,
+      "sha256": "e6be53cf5aa65c614a9f8abdb5b936065ee35ba5b7a2887e26943c33d7ba6b5c",
+      "legacyManifestHash": "86e71515aef515998028878e4e2fe9238dbb98a4c4e941ba89b420d6482d84ec",
+      "standardBlake3": "da23de2f13f02f1356f42fc147bb943de162e9fdd812e880c29e0196ff43f793"
+    },
+    {
+      "filename": "shard_00023.bin",
+      "bytes": 67108864,
+      "sha256": "b3afaaef362b461e733c7bc92036b4431d73fe2cea5c7ad24a9f3f4a7ca2468b",
+      "legacyManifestHash": "0130d0068628eefb9a5d5d7a0a1f4df07761a861247f658cb5796edbe1f7fa69",
+      "standardBlake3": "e0211a52ddbb1e2deb0c67b468fc9cb684b797986b25ecd25bb47a82f0eea515"
+    },
+    {
+      "filename": "shard_00024.bin",
+      "bytes": 67108864,
+      "sha256": "fac5325975af8c3891ac06eab551bc626214ebc8592a66d0ff68f3ec748b8e6b",
+      "legacyManifestHash": "88d6bae28d3e2a58aa48b51af29db5ca3700ff24d6a9852295b22f07963bd5ba",
+      "standardBlake3": "9cb8b4b0a3e54ac22933aebf74ac1aec00acf2e3df71ab1ca7fe59238799ce9a"
+    },
+    {
+      "filename": "shard_00025.bin",
+      "bytes": 67108864,
+      "sha256": "9696fd9d6aa8ba3c0ce1e5baa6d2fab07175352e5e223321838d084c98d65119",
+      "legacyManifestHash": "1c685464cbc832b578ef259e17e0595246827b85a86c29828d6c98f25e482c4c",
+      "standardBlake3": "3d0c42957eb7ddf9529139c166fa8fa741eb9b5fd372a4b4756bb5688c3866ca"
+    },
+    {
+      "filename": "shard_00026.bin",
+      "bytes": 47239872,
+      "sha256": "4f266183c6d2908e2ad40340d72a8a67da5c19c4424bf49ac3c9703620dc2d4d",
+      "legacyManifestHash": "ff56ddb38e9e2ec1428dbd19cbf7f8ea889d41da8a63ef7a64ac368b5fad2ecb",
+      "standardBlake3": "015dfb82f1c64ce0d985d872450aba9cea09da9c79be3142b66c48ab3ce42563"
+    },
+    {
+      "filename": "shard_00027.bin",
+      "bytes": 67108864,
+      "sha256": "bc4a80fb6194d0a234be97ce4ab952a87d91116287895b1a6ba91df0a223d81a",
+      "legacyManifestHash": "007bbc632276700a2092bbabfaf38738f54735ef840a255ccb6cae908165ea81",
+      "standardBlake3": "cc688e9a4eea374cb4270a9ffe6b09cc40ae5dbc8d286d1504a8eb9f26897013"
+    },
+    {
+      "filename": "shard_00028.bin",
+      "bytes": 67108864,
+      "sha256": "b568aca6801ebe959b4ad24dceb84710bdcf1713f3486ae3d1eca2485fdbfcb7",
+      "legacyManifestHash": "8497d3fbabafa345137e53dbf0af02ecb3b122ad0ba2b262f3cf2ee382b67263",
+      "standardBlake3": "45e9c921671f830c6b113d12e8931e1927d0fcdea9c822aa03ea971ee4bcf839"
+    },
+    {
+      "filename": "shard_00029.bin",
+      "bytes": 67108864,
+      "sha256": "0194e7576e12ea20135be07705b7bb3d066081c86020eeee0f863cf126c68ce6",
+      "legacyManifestHash": "d14052ad8a0d3b57f465b2d7da16aaa8b22fe350347b5b1c3167e55534d671bd",
+      "standardBlake3": "b013d4477b5dba369bf7185a1681811b66b6e2e500ee1f147088bb804c9a7354"
+    },
+    {
+      "filename": "shard_00030.bin",
+      "bytes": 67108864,
+      "sha256": "fbd36138bfce2c76a465f7d38fb7d44f5914dbb6094e89de65e69fcca2880beb",
+      "legacyManifestHash": "17787497d33b9dac5aa995877a80fc444c52099f4d5d394f76826dc7712ec466",
+      "standardBlake3": "ddef2091b3a09cfba5c278a21d811fdc6efeabbadda74ed4d67ecd286f80da58"
+    },
+    {
+      "filename": "shard_00031.bin",
+      "bytes": 17629184,
+      "sha256": "f17e99a1989c12d1ca0e3eb0f8f6c00a3125df1a87e1ad2d869bf89a92d87449",
+      "legacyManifestHash": "ed3a40511aa68c1d91ad58db9badb308c929b5a463f28a0ae8b5a9bb4767dc60",
+      "standardBlake3": "f19cdc1ba09766055d4436c613cb83e34ba1de17b793a8c2085e4eedbbd00983"
+    }
+  ],
+  "versions": {
+    "torch": "2.11.0",
+    "transformers": "5.6.2",
+    "gguf": "0.19.0",
+    "numpy": "2.4.4"
+  },
+  "precision": {
+    "arithmetic": "float32",
+    "kvStorage": "float16",
+    "weights": "exact deployed bytes decoded to float32"
+  },
+  "results": [],
+  "generationControlSha256": "bfa686bed2e1594fe5d376c88804addf45060ec2d1312d30ba6f871a3118697a",
+  "inputIds": [
+    248045,
+    846,
+    198,
+    826,
+    660,
+    24959,
+    494,
+    220,
+    17,
+    15,
+    23,
+    1472,
+    220,
+    17,
+    16,
+    24,
+    27389,
+    303,
+    34217,
+    1906,
+    11,
+    799,
+    7308,
+    791,
+    1500,
+    13,
+    3301,
+    1132,
+    279,
+    1103,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271
+  ],
+  "settings": {
+    "maxTokens": 4096,
+    "maxSeqLen": 8192,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1.1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "eosTokenIds": [
+    248046,
+    248044
+  ],
+  "generatedTokenIds": [
+    17,
+    15,
+    23,
+    198,
+    17,
+    15,
+    24,
+    198,
+    17,
+    16,
+    15,
+    198,
+    17,
+    16,
+    16,
+    198,
+    17,
+    16,
+    17,
+    198,
+    17,
+    16,
+    18,
+    198,
+    17,
+    16,
+    19,
+    198,
+    17,
+    16,
+    20,
+    198,
+    17,
+    16,
+    21,
+    198,
+    17,
+    16,
+    22,
+    198,
+    17,
+    16,
+    23,
+    198,
+    17,
+    16,
+    24,
+    248046
+  ],
+  "firstTokenDivergence": null,
+  "stopReason": "eos",
+  "outputText": "208\n209\n210\n211\n212\n213\n214\n215\n216\n217\n218\n219",
+  "rawResultPath": "reports/local/source-model-reference-20261011/model-2b/source-generation.json",
+  "rawResultSha256": "9e14e3a4b295475b3b67d2c1ee8120486cda8118d93523cb14218466831e042a",
+  "sourceConfigUrl": "https://huggingface.co/Qwen/Qwen3.5-2B/resolve/15852e8c16360a2fea060d615a32b45270f8a8fc/config.json"
+}
