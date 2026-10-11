@@ -53,6 +53,7 @@ export async function qualifyEmbeddingBrowser(config) {
   if (config.mode === 'capsule' && (!config.capsulePath || !config.application || !config.openOptions?.trustedSigners)) {
     throw new Error('Capsule qualification requires a Capsule path, application and explicit trust.');
   }
+  if (config.cancellation !== undefined && typeof config.cancellation !== 'boolean') throw new Error('Explicit cancellation control must be boolean.');
   if (config.diagnostics && config.mode !== 'model') throw new Error('Raw diagnostics require model mode.');
   const bundle = config.packageBundlePath;
   const installed = JSON.parse(await fs.readFile(path.join(bundle, 'receipt.json'), 'utf8'));
@@ -86,6 +87,7 @@ export async function qualifyEmbeddingBrowser(config) {
   try {
     server = await createStaticFileServer({ rootDir: packageRoot, host: '127.0.0.1', port: 0,
       staticMounts: [{ urlPrefix: '/model', rootDir: config.modelDir },
+        { urlPrefix: '/qualification-tools', rootDir: path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'lib') },
         ...(config.mode === 'capsule' ? [{ urlPrefix: '/capsule', rootDir: path.dirname(config.capsulePath) }] : [])] });
     browser = await chromium.launch({ headless: true, args: config.launchArgs, timeout: config.timeoutMs });
     report.runtime.browserVersion = browser.version();
@@ -185,7 +187,37 @@ export async function qualifyEmbeddingBrowser(config) {
           for (const positions of config.subdivision) units.push(await executeBatch(positions));
           subdivision = { semantics, whole, units };
         }
-        return { outputs, timings, receipts, subdivision, manifest: session.manifest, initialExecutionIdentity: identity,
+        let cancellation = null;
+        if (config.cancellation) {
+          const { getDevice } = await import('/src/gpu/device.js');
+          const { qualifyEmbeddingCancellation } = await import('/qualification-tools/embedding-qualification-lifecycle.js');
+          const execute = async (inputs, signal) => {
+            if (config.mode !== 'capsule') {
+              const values = [];
+              for (const text of inputs) values.push(await session.embedWithEvidence(text, { signal }));
+              return values;
+            }
+            const request = { schema: 'doppler.capsule-operation-request/v1', operation: { name: 'embed', version: 1 },
+              input: { texts: inputs, application: config.application }, options: {}, assignment: null,
+              limits: { maxInputBytes: 1048576, maxOutputBytes: 1048576, deadlineAt: Date.now() + config.timeoutMs } };
+            let completed;
+            for await (const event of session.executeOperation(request, { signal })) if (event.status === 'completed') completed = event;
+            if (!completed) throw new Error('Embedding batch ended without completion.');
+            return completed.output.embeddings;
+          };
+          cancellation = await qualifyEmbeddingCancellation({ queue: getDevice().queue,
+            run: signal => execute(texts, signal), resources: () => getBufferPool().getStats().resources });
+          const positions = texts.map((_text, index) => index).reverse();
+          const recovered = await execute(positions.map(index => texts[index]));
+          cancellation.reusedOutputs = recovered.map((value, index) => ({ position: positions[index],
+            text: texts[positions[index]], tokenIds: value.tokens, embedding: Array.from(value.embedding) }));
+          if (recovered.length !== texts.length || cancellation.reusedOutputs.some(value =>
+            JSON.stringify(value.tokenIds) !== JSON.stringify(outputs[value.position].tokenIds)
+            || JSON.stringify(value.embedding) !== JSON.stringify(outputs[value.position].embedding))) {
+            throw new Error('Embedding batch reuse after cancellation changed output or input order.');
+          }
+        }
+        return { outputs, timings, receipts, subdivision, cancellation, manifest: session.manifest, initialExecutionIdentity: identity,
           loadMs: loaded - started, elapsedMs: performance.now() - started,
           memory: { before, afterLoad, afterExecution: memory(), gpuBytes: null,
             buffersAfterLoad, buffersAfterExecution: getBufferPool().getStats(),
