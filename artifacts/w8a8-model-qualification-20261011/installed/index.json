@@ -207,5 +207,25 @@
     "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
     "error": null,
     "cleanup": []
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-07/qualification.json",
+    "retained": "w8a8-installed-model-07.json.gz",
+    "sha256": "53520c348a0c70a79f4c761651ef92d672af18ec93341c45c6cee8680be41161",
+    "passed": true,
+    "packageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
+    "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+    "error": null,
+    "cleanup": []
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-packed-installed-model-04/qualification.json",
+    "retained": "w8a8-packed-installed-model-04.json.gz",
+    "sha256": "f0298a36a11ae33be3b901689108372a5016482f4a0af4b763bf618baa77787e",
+    "passed": true,
+    "packageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
+    "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
+    "error": null,
+    "cleanup": []
   }
 ]

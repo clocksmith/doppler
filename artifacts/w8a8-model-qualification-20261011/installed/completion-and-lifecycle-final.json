@@ -1,0 +1,173 @@
+{
+  "schema": "doppler.w8a8-completion-regression/v1",
+  "packageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
+  "scope": "Both declared model variants, unchanged bytes/settings; output quality remains unqualified",
+  "variants": [
+    {
+      "previous": "w8a8-installed-model-06",
+      "current": "w8a8-installed-model-07",
+      "reportSha256": "53520c348a0c70a79f4c761651ef92d672af18ec93341c45c6cee8680be41161",
+      "all12TaskTokensAndTextUnchanged": true,
+      "all200TeacherForcedObservationsUnchanged": true,
+      "all12StopReasonsValid": true,
+      "firstStopReason": "stop-token",
+      "firstStopTokenId": 106,
+      "firstTokenCancellation": "aborted",
+      "submittedCancellation": {
+        "passed": true,
+        "submissions": 2,
+        "before": {
+          "retainedModel": {
+            "bytes": 443060224,
+            "count": 236
+          },
+          "active": {
+            "bytes": 67108864,
+            "count": 4
+          },
+          "reusable": {
+            "bytes": 6868224,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "after": {
+          "retainedModel": {
+            "bytes": 443060224,
+            "count": 236
+          },
+          "active": {
+            "bytes": 67108864,
+            "count": 4
+          },
+          "reusable": {
+            "bytes": 6475264,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "stopReason": null,
+        "rejection": {
+          "name": "AbortError",
+          "message": "Doppler: prefill aborted"
+        }
+      },
+      "afterUnload": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 0,
+          "count": 0
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "summary": {
+        "correctTasks": 4,
+        "taskCount": 12,
+        "sourceTokenMatches": 7,
+        "meanNll": 4.769074093670992,
+        "qualityAccepted": false,
+        "lifecyclePassed": true
+      },
+      "peakDeviceBufferBytes": 668488920
+    },
+    {
+      "previous": "w8a8-packed-installed-model-03",
+      "current": "w8a8-packed-installed-model-04",
+      "reportSha256": "f0298a36a11ae33be3b901689108372a5016482f4a0af4b763bf618baa77787e",
+      "all12TaskTokensAndTextUnchanged": true,
+      "all200TeacherForcedObservationsUnchanged": true,
+      "all12StopReasonsValid": true,
+      "firstStopReason": "stop-token",
+      "firstStopTokenId": 106,
+      "firstTokenCancellation": "aborted",
+      "submittedCancellation": {
+        "passed": true,
+        "submissions": 2,
+        "before": {
+          "retainedModel": {
+            "bytes": 443060224,
+            "count": 236
+          },
+          "active": {
+            "bytes": 67108864,
+            "count": 4
+          },
+          "reusable": {
+            "bytes": 6868224,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "after": {
+          "retainedModel": {
+            "bytes": 443060224,
+            "count": 236
+          },
+          "active": {
+            "bytes": 67108864,
+            "count": 4
+          },
+          "reusable": {
+            "bytes": 6475264,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "stopReason": null,
+        "rejection": {
+          "name": "AbortError",
+          "message": "Doppler: prefill aborted"
+        }
+      },
+      "afterUnload": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 0,
+          "count": 0
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "summary": {
+        "correctTasks": 4,
+        "taskCount": 12,
+        "sourceTokenMatches": 7,
+        "meanNll": 4.769074093670992,
+        "qualityAccepted": false,
+        "lifecyclePassed": true
+      },
+      "peakDeviceBufferBytes": 668488920
+    }
+  ]
+}
