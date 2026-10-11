@@ -1,0 +1,30 @@
+[
+  {
+    "name": "retained",
+    "sha256": "8a004d4e2c90eca8a46aa5fd94361c02d34d6ce2e39d68d0f3f0a93c32158fb2",
+    "passed": false,
+    "stage": "embedding",
+    "failure": "page.evaluate: Error: Release policy requires an explicit ISO verification time.\n    at verifyCapsuleReleaseEvents (http://127.0.0.1:40247/src/config/capsule-release-events.js:130:82)\n    at verifyCapsuleMetadata (http://127.0.0.1:40247/src/config/capsule.js:34:13)\n    at async Object.openCapsule (http://127.0.0.1:40247/src/client/runtime/composition-root.js:90:26)\n    at async Module.openCapsule (http://127.0.0.1:40247/src/client/model-host/index.js:456:14)\n    at async eval (eval at evaluate (:290:30), <anonymous>:15:13)\n    at async <anonymous>:316:30"
+  },
+  {
+    "name": "retained-canonical-time",
+    "sha256": "0f6ebea5cea88588d4c4e36312da1d11bbdda6285d71342cc03cb14bafba82d5",
+    "passed": false,
+    "stage": "embedding",
+    "failure": "page.evaluate: Error: Capsule v3 requires persistReleaseCheckpoint before execution.\n    at Object.openCapsule (http://127.0.0.1:35873/src/client/runtime/composition-root.js:92:79)\n    at async Module.openCapsule (http://127.0.0.1:35873/src/client/model-host/index.js:456:14)\n    at async eval (eval at evaluate (:290:30), <anonymous>:15:13)\n    at async <anonymous>:316:30"
+  },
+  {
+    "name": "retained-persisted",
+    "sha256": "cc434286c282ffab2a7e282c933bd18445434e950408cdd0700915a8a1a03ce5",
+    "passed": false,
+    "stage": "embedding",
+    "failure": "page.evaluate: Error: Capsule artifact fetch failed (404).\n    at Object.streamArtifact (http://127.0.0.1:41171/src/client/runtime/fetch-capsule-artifact-store.js:36:33)\n    at async waitForCapsuleRead (http://127.0.0.1:41171/src/client/runtime/capsule-acquisition.js:47:12)\n    at async http://127.0.0.1:41171/src/client/runtime/verified-capsule-artifact-store.js:137:44"
+  },
+  {
+    "name": "retained-complete-assets",
+    "sha256": "7e947c3462116c8c2a26a04ea3948dbdb146f6e89f336e487362dbb1f848153e",
+    "passed": true,
+    "stage": "complete",
+    "failure": null
+  }
+]

@@ -6,10 +6,41 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { createStaticFileServer } from '../src/tooling/node-browser-command-runner.js';
 import { computeCanonicalSha256, hashBytesSha256 } from '../src/formats/canonical-hash.js';
-import { assertEmbeddingReference, assertEmbeddingSourceIdentity, evaluateEmbeddingReference } from '../src/config/embedding-reference.js';
+import { assertEmbeddingReference, assertEmbeddingSourceIdentity, evaluateEmbeddingReference, evaluateEmbeddingBatchSubdivision } from '../src/config/embedding-reference.js';
 import { resolveCapsuleEmbeddingContract } from '../src/config/embedding-contract.js';
 import { hashStableJson } from '../src/tooling/program-bundle/materialize.js';
 import { parseManifest } from '../src/formats/rdrr/parsing.js';
+
+export function validateEmbeddingSubdivisionPlan(units, inputCount) {
+  if (!Array.isArray(units) || units.length < 2) throw new Error('Subdivision requires at least two units.');
+  const seen = new Set();
+  for (const positions of units) {
+    if (!Array.isArray(positions) || positions.length === 0) throw new Error('Subdivision units require original positions.');
+    for (const position of positions) {
+      if (!Number.isSafeInteger(position) || position < 0 || position >= inputCount || seen.has(position)) {
+        throw new Error('Subdivision positions must be unique and in range.');
+      }
+      seen.add(position);
+    }
+  }
+  if (seen.size !== inputCount) throw new Error('Subdivision must cover every original input.');
+  return units.map(positions => [...positions]);
+}
+
+export async function persistEmbeddingQualificationCheckpoint(outputDir, previous, checkpoint) {
+  if (!Number.isSafeInteger(checkpoint?.sequence) || checkpoint.sequence < 1
+    || !/^sha256:[0-9a-f]{64}$/.test(checkpoint.digest ?? '')) {
+    throw new Error('Embedding qualification requires a verified release checkpoint.');
+  }
+  if (previous && (checkpoint.sequence < previous.sequence
+    || (checkpoint.sequence === previous.sequence && checkpoint.digest !== previous.digest))) {
+    throw new Error('Embedding qualification release checkpoint rollback or fork.');
+  }
+  const destination = path.join(outputDir, 'release-checkpoint.json');
+  await fs.writeFile(`${destination}.pending`, JSON.stringify(checkpoint, null, 2), { flag: 'wx' });
+  await fs.rename(`${destination}.pending`, destination);
+  return structuredClone(checkpoint);
+}
 
 export async function qualifyEmbeddingBrowser(config) {
   for (const key of ['packageBundlePath', 'modelDir', 'referencePath', 'outputDir']) {
@@ -30,6 +61,10 @@ export async function qualifyEmbeddingBrowser(config) {
   }
   const packageRoot = path.join(bundle, 'consumer/node_modules/doppler-gpu');
   const reference = assertEmbeddingReference(JSON.parse(await fs.readFile(config.referencePath, 'utf8')));
+  if (config.subdivision !== undefined) {
+    if (config.mode !== 'capsule') throw new Error('Subdivision qualification requires the signed Capsule operation.');
+    validateEmbeddingSubdivisionPlan(config.subdivision, reference.input.texts.length);
+  }
   const manifestBytes = await fs.readFile(path.join(config.modelDir, 'manifest.json'));
   const manifest = JSON.parse(manifestBytes);
   assertEmbeddingSourceIdentity(manifest.artifactIdentity, reference);
@@ -56,6 +91,11 @@ export async function qualifyEmbeddingBrowser(config) {
     report.runtime.browserVersion = browser.version();
     timer = setTimeout(() => { browser.close().catch(() => {}); }, config.timeoutMs);
     const page = await browser.newPage();
+    let persistedCheckpoint = config.openOptions?.releasePolicy?.checkpoint;
+    await page.exposeFunction('persistEmbeddingReleaseCheckpoint', async checkpoint => {
+      persistedCheckpoint = await persistEmbeddingQualificationCheckpoint(config.outputDir, persistedCheckpoint, checkpoint);
+      report.releaseCheckpoint = persistedCheckpoint;
+    });
     page.on('console', message => report.logs.push({ type: message.type(), text: message.text() }));
     page.on('pageerror', error => report.logs.push({ type: 'pageerror', text: error.message }));
     await page.route('**/*', route => {
@@ -90,7 +130,10 @@ export async function qualifyEmbeddingBrowser(config) {
       const before = memory();
       try {
         session = config.mode === 'capsule'
-          ? await api.openCapsule(`${location.origin}/capsule/${encodeURIComponent(config.capsuleFilename)}`, config.openOptions)
+          ? await api.openCapsule(`${location.origin}/capsule/${encodeURIComponent(config.capsuleFilename)}`, {
+            ...config.openOptions,
+            persistReleaseCheckpoint: checkpoint => window.persistEmbeddingReleaseCheckpoint(checkpoint),
+          })
           : await api.load({ url: `${location.origin}/model/` }, { runtimeConfig: config.runtimeConfig });
         const loaded = performance.now();
         const afterLoad = memory();
@@ -118,7 +161,31 @@ export async function qualifyEmbeddingBrowser(config) {
             else if (JSON.stringify(Array.from(evidence.embedding)) !== JSON.stringify(outputs[index].embedding)) throw new Error('Repeated embedding changed.');
           }
         }
-        return { outputs, timings, receipts, manifest: session.manifest, initialExecutionIdentity: identity,
+        let subdivision = null;
+        if (config.subdivision) {
+          const { resolveEmbeddingBatchSemantics } = await import('/src/capsule-runtime.js');
+          const semantics = resolveEmbeddingBatchSemantics(session.manifest);
+          const executeBatch = async positions => {
+            const inputs = positions.map(index => texts[index]);
+            const request = { schema: 'doppler.capsule-operation-request/v1', operation: { name: 'embed', version: 1 },
+              input: { texts: inputs, application: config.application }, options: {}, assignment: null,
+              limits: { maxInputBytes: 1048576, maxOutputBytes: 1048576, deadlineAt: Date.now() + config.timeoutMs } };
+            let completed;
+            for await (const event of session.executeOperation(request)) if (event.status === 'completed') completed = event;
+            if (!completed || completed.output.embeddings.length !== positions.length) {
+              throw new Error('Subdivision operation ended without complete outputs.');
+            }
+            return { positions, receipt: completed.receipt,
+              outputs: completed.output.embeddings.map((result, index) => ({
+                text: inputs[index], tokenIds: result.tokens, embedding: Array.from(result.embedding),
+              })), itemReceipts: completed.output.embeddings.map(result => result.receipt) };
+          };
+          const whole = await executeBatch(texts.map((_text, index) => index));
+          const units = [];
+          for (const positions of config.subdivision) units.push(await executeBatch(positions));
+          subdivision = { semantics, whole, units };
+        }
+        return { outputs, timings, receipts, subdivision, manifest: session.manifest, initialExecutionIdentity: identity,
           loadMs: loaded - started, elapsedMs: performance.now() - started,
           memory: { before, afterLoad, afterExecution: memory(), gpuBytes: null,
             buffersAfterLoad, buffersAfterExecution: getBufferPool().getStats(),
@@ -131,9 +198,17 @@ export async function qualifyEmbeddingBrowser(config) {
     }
     report.observation = { input: reference.input, embeddingContract: reference.embeddingContract, outputs: report.raw.outputs };
     report.result = evaluateEmbeddingReference(reference, report.observation);
+    if (report.raw.subdivision) {
+      const observation = outputs => ({ input: { texts: outputs.map(value => value.text) },
+        embeddingContract: reference.embeddingContract, outputs });
+      report.subdivisionResult = evaluateEmbeddingBatchSubdivision(reference,
+        observation(report.raw.subdivision.whole.outputs), report.raw.subdivision.units.map(unit => ({
+          positions: unit.positions, observation: observation(unit.outputs),
+        })));
+    }
     report.initialExecutionIdentity = report.raw.initialExecutionIdentity;
     report.boundary.signedCapsuleExecution = config.mode === 'capsule' && report.raw.receipts.length === reference.input.texts.length * (config.repeatRuns + 1);
-    report.passed = report.result.passed;
+    report.passed = report.result.passed && (report.subdivisionResult?.passed ?? true);
     report.stage = 'complete';
   } catch (error) { report.error = { name: error.name, message: error.message, stack: error.stack }; }
   finally {
