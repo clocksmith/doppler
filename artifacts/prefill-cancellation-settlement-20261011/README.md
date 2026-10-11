@@ -32,9 +32,20 @@ node tests/gpu/command-recorder-cleanup.test.js
 ```
 
 The pool controls separately exercise retained active resources, later
-retirements, failed destruction, and retry. These are deterministic controls,
-not the post-repair physical qualification. The installed model cancellation
-must be rerun against the newly packed source before that claim is made.
+retirements, failed destruction, and retry. These are deterministic controls;
+the physical qualification below is separate.
+
+The post-repair physical controls passed on exact archive
+`47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc`,
+for both portable and packed W8 models. Actual-submission cancellation rejected
+with `AbortError`; active buffers stayed at the same 67,108,864-byte baseline,
+and deferred bytes/count were both zero when cancellation completed. Subsequent
+generation succeeded; unload settled every pool ownership category to zero.
+The receipts are
+[`w8a8-packed-installed-model-03.json.gz`](../w8a8-model-qualification-20261011/installed/w8a8-packed-installed-model-03.json.gz)
+and
+[`w8a8-installed-model-06.json.gz`](../w8a8-model-qualification-20261011/installed/w8a8-installed-model-06.json.gz).
+These lifecycle successes do not change the model's failed task-quality result.
 
 Component: `doppler.runtime-source.inference.pipelines.text`. Intent: preserved.
 Acceptance evidence: the focused commands and retained logs above. Boundary
