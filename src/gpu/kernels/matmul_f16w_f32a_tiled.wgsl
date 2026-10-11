@@ -109,6 +109,13 @@ fn main(
 
         workgroupBarrier();
 
+        // Bound each local accumulation to one K tile. Keep only the tile
+        // subtotal and the outer sum for each output, all in F32.
+        var tile00: f32 = 0.0; var tile01: f32 = 0.0; var tile02: f32 = 0.0; var tile03: f32 = 0.0;
+        var tile10: f32 = 0.0; var tile11: f32 = 0.0; var tile12: f32 = 0.0; var tile13: f32 = 0.0;
+        var tile20: f32 = 0.0; var tile21: f32 = 0.0; var tile22: f32 = 0.0; var tile23: f32 = 0.0;
+        var tile30: f32 = 0.0; var tile31: f32 = 0.0; var tile32: f32 = 0.0; var tile33: f32 = 0.0;
+
         // Compute: each thread accumulates its 4x4 output tile
         for (var k: u32 = 0u; k < TILE_K; k = k + 1u) {
             let a0 = tileA[(tx * THREAD_M + 0u) * TILE_K + k];
@@ -121,11 +128,16 @@ fn main(
             let b2 = tileB[(ty * THREAD_N + 2u) * TILE_K + k];
             let b3 = tileB[(ty * THREAD_N + 3u) * TILE_K + k];
 
-            acc00 += a0 * b0; acc01 += a0 * b1; acc02 += a0 * b2; acc03 += a0 * b3;
-            acc10 += a1 * b0; acc11 += a1 * b1; acc12 += a1 * b2; acc13 += a1 * b3;
-            acc20 += a2 * b0; acc21 += a2 * b1; acc22 += a2 * b2; acc23 += a2 * b3;
-            acc30 += a3 * b0; acc31 += a3 * b1; acc32 += a3 * b2; acc33 += a3 * b3;
+            tile00 = fma(a0, b0, tile00); tile01 = fma(a0, b1, tile01); tile02 = fma(a0, b2, tile02); tile03 = fma(a0, b3, tile03);
+            tile10 = fma(a1, b0, tile10); tile11 = fma(a1, b1, tile11); tile12 = fma(a1, b2, tile12); tile13 = fma(a1, b3, tile13);
+            tile20 = fma(a2, b0, tile20); tile21 = fma(a2, b1, tile21); tile22 = fma(a2, b2, tile22); tile23 = fma(a2, b3, tile23);
+            tile30 = fma(a3, b0, tile30); tile31 = fma(a3, b1, tile31); tile32 = fma(a3, b2, tile32); tile33 = fma(a3, b3, tile33);
         }
+
+        acc00 += tile00; acc01 += tile01; acc02 += tile02; acc03 += tile03;
+        acc10 += tile10; acc11 += tile11; acc12 += tile12; acc13 += tile13;
+        acc20 += tile20; acc21 += tile21; acc22 += tile22; acc23 += tile23;
+        acc30 += tile30; acc31 += tile31; acc32 += tile32; acc33 += tile33;
 
         workgroupBarrier();
     }

@@ -200,7 +200,7 @@
       "tiled": {
         "kernel": "matmul_f16w_f32a_tiled.wgsl",
         "entry": "main",
-        "digest": "sha256:e94ae5374e8b43dd48b663eff59a45c822c3784d5702a1145266b6ffd15ba78c"
+        "digest": "sha256:bfa95bf42cf7da2ab8b9d6b8af5b494dd8abcfe436d7788f7ecdb8892f04d3b8"
       },
       "q4_prefill_shared": {
         "kernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
