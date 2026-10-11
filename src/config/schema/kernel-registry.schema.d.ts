@@ -105,7 +105,7 @@ export interface KernelVariantSchema {
   outputDtype?: string;
 
   /** Variant-specific metadata for dispatch planning */
-  variantMetadata?: Record<string, number | boolean | string>;
+  variantMetadata?: import('../kernel-registry-contract.js').VariantMetadata;
 
   /** Additional bindings beyond the base operation bindings */
   bindingsOverride?: BindingSchema[];
@@ -187,7 +187,7 @@ export interface ResolvedKernelConfig {
   outputDtype: string | null;
 
   /** Variant-specific metadata for dispatch planning */
-  variantMetadata: Record<string, number | boolean | string> | null;
+  variantMetadata: import('../kernel-registry-contract.js').VariantMetadata | null;
 }
 
 /**

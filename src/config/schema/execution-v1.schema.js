@@ -1,4 +1,5 @@
 import { log } from '../../debug/index.js';
+import { assertExecutionMechanismClosure } from '../execution-registry-contract.js';
 
 // =============================================================================
 // Execution v1 Schema
@@ -289,6 +290,7 @@ export function expandExecutionV1(graph, options = {}) {
   }
 
   const allSteps = [...preLayer, ...decode, ...prefill, ...postLayer];
+  assertExecutionMechanismClosure(graph, allSteps);
 
   if (knownOps) {
     const unknownOps = [];

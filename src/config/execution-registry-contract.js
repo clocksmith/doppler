@@ -1,4 +1,4 @@
-import { isKernelRegistry } from './kernel-registry-contract.js';
+import { isKernelRegistry, getKernelConfigs, getKernelConfig } from './kernel-registry-contract.js';
 import { computeCanonicalSha256 } from '../formats/canonical-hash.js';
 
 /** @param {import('./execution-registry-contract.js').ExecutionRegistries | null | undefined} registries */
@@ -25,6 +25,38 @@ export function assertExecutionRegistriesAccepted(targetPlan, registries) {
     for (const validator of Object.values(variants)) {
       if (validator.id.startsWith('legacy:')) {
         throw new Error('Capsule execution requires explicitly identified validators; compatibility registrations are not accepted.');
+      }
+    }
+  }
+}
+
+/** Auxiliary dispatches are part of the accepted shader closure, even when a
+ * projection wrapper orchestrates them rather than separate semantic steps.
+ * @param {import('./schema/execution-v1.schema.js').ExecutionV1GraphSchema} graph
+ * @param {import('./schema/execution-v1.schema.js').ExecutionV1ExpandedStepSchema[]} steps */
+export function assertExecutionMechanismClosure(graph, steps) {
+  const configs = Object.values(getKernelConfigs()).flatMap(variants => Object.values(variants));
+  const declarations = (graph.mechanismKernels ?? []).map(key => graph.kernels[key]);
+  const used = new Set([...steps, ...declarations].map(decl => `${decl.kernel}#${decl.entry}`));
+  for (const config of configs) {
+    if (!used.has(`${config.shaderFile}#${config.entryPoint}`)) continue;
+    const dependencies = config.variantMetadata?.mechanismKernels;
+    if (dependencies === undefined) continue;
+    if (!Array.isArray(dependencies) || dependencies.length === 0) {
+      throw new Error(`Kernel ${config.operation}/${config.variant} has invalid mechanismKernels metadata.`);
+    }
+    for (const dependency of dependencies) {
+      if (!dependency || typeof dependency.operation !== 'string' || typeof dependency.variant !== 'string') {
+        throw new Error(`Kernel ${config.operation}/${config.variant} has an invalid mechanism dependency.`);
+      }
+      const mechanism = getKernelConfig(dependency.operation, dependency.variant);
+      const constantsHash = computeCanonicalSha256(mechanism.wgslOverrides ?? {});
+      const declared = declarations.some(decl => decl.kernel === mechanism.shaderFile
+        && decl.entry === mechanism.entryPoint
+        && computeCanonicalSha256(decl.constants ?? {}) === constantsHash);
+      if (!declared) {
+        throw new Error(`Execution requires mechanism ${dependency.operation}/${dependency.variant} `
+          + `in mechanismKernels with its declared shader, entry and specialization constants.`);
       }
     }
   }
