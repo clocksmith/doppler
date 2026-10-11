@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import { chromium } from 'playwright';
 
 const output = process.argv[2];
+const fixturePath = process.argv[3] ?? null;
 if (!output) console.log('w8a8-physical: SKIP (explicit result path required)');
 else {
   const exec = promisify(execFile), hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -16,6 +17,12 @@ else {
   let server, browser;
   const receipt = { scope: 'Physical W8A8 operator and ownership checks against independent rational reference; not model qualification', files: {} };
   try {
+    const fixtureBytes = fixturePath ? await readFile(fixturePath) : null;
+    const fixture = fixtureBytes ? JSON.parse(fixtureBytes) : null;
+    if (fixture) {
+      assert.equal(fixture.schema, 'doppler.w8a8-qualification/v1');
+      receipt.fixture = { path: fixturePath, sha256: hash(fixtureBytes), operators: fixture.operators };
+    }
     receipt.commit = (await exec('git', ['rev-parse', 'HEAD'])).stdout.trim();
     receipt.sourceStatus = (await exec('git', ['status', '--short'])).stdout;
     await cp('src', join(directory, 'src'), { recursive: true });
@@ -37,10 +44,10 @@ else {
     receipt.browser = browser.version();
     const system = await browser.newBrowserCDPSession(); receipt.systemInfo = await system.send('SystemInfo.getInfo'); await system.detach();
     const page = await browser.newPage(); await page.goto(`http://127.0.0.1:${server.address().port}`);
-    receipt.result = await page.evaluate(async () => {
+    receipt.result = await page.evaluate(async fixture => {
       globalThis.__DOPPLER_KERNEL_BASE_PATH__ = '/src/gpu/kernels/';
-      return (await import('/tests/kernels/w8a8-physical.js')).auditW8A8();
-    });
+      return (await import('/tests/kernels/w8a8-physical.js')).auditW8A8(fixture?.operators ?? null);
+    }, fixture);
     await writeFile(output, JSON.stringify(receipt, null, 2) + '\n');
     assert(receipt.result.qualified, receipt.result.failure);
     console.log(JSON.stringify({ commit: receipt.commit, browser: receipt.browser, result: receipt.result }));
