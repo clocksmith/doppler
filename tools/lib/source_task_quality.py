@@ -7,6 +7,16 @@ from transformers import DynamicCache
 from transformers.generation.logits_process import TemperatureLogitsWarper, TopKLogitsWarper, TopPLogitsWarper
 
 
+def write_quality_report(output, report):
+    """Publish a complete snapshot so concurrent observers cannot copy torn JSON."""
+    temporary = output.with_name(output.name + '.tmp')
+    try:
+        temporary.write_text(json.dumps(report) + '\n')
+        temporary.replace(output)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def task_messages(task, suite):
     """Keep frozen user-ended history intact; never flatten or invent a turn."""
     assert ('prompt' in task) != ('messages' in task), 'Declare prompt or messages, not both.'
@@ -89,7 +99,7 @@ def probe_retained_prefix(model, config, tokenizer, baseline, case_id, selected_
                            'inputIds': ids, 'generatedPrefix': row['tokenIds'][:step],
                            'raw': top(raw), 'afterRepetitionPenalty': top(adjusted),
                            'winnerChangedByPenalty': int(raw.argmax()) != winner})
-            output.write_text(json.dumps(report) + '\n')
+            write_quality_report(output, report)
             print(json.dumps({'caseId': case_id, 'step': step, 'raw': report['raw'][:3],
                               'adjusted': report['afterRepetitionPenalty'][:3]}), flush=True)
         history.append(winner)
@@ -172,7 +182,7 @@ def evaluate_tasks(model, config, tokenizer, source_tokenizer, suite, report, ou
                     row['stopReason'] = 'output-character-limit'
             if step % 64 == 0 or row['stopReason']:
                 row['text'] = tokenizer.decode(row['tokenIds'], skip_special_tokens=True)
-                output.write_text(json.dumps(report) + '\n')
+                write_quality_report(output, report)
                 print(json.dumps({'id': row['id'], 'step': step, 'stopReason': row['stopReason'],
                                   'textTail': row['text'][-160:]}), flush=True)
             if row['stopReason']:
@@ -199,7 +209,7 @@ def evaluate_tasks(model, config, tokenizer, source_tokenizer, suite, report, ou
         if 'reviewCriteria' in task:
             row.update({'completionPassed': completion_passed,
                         'reviewCriteria': task['reviewCriteria'], 'reviewStatus': 'pending'})
-        output.write_text(json.dumps(report) + '\n')
+        write_quality_report(output, report)
     report['passed'] = bool(report['results']) and all(row['passed'] is True for row in report['results'])
     report['reviewRequired'] = any(row.get('reviewStatus') == 'pending' for row in report['results'])
-    output.write_text(json.dumps(report) + '\n')
+    write_quality_report(output, report)

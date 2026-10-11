@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch.nn.functional import linear
 from transformers.generation.logits_process import TemperatureLogitsWarper, TopKLogitsWarper, TopPLogitsWarper
-from .source_task_quality import StoredHalfCache
+from .source_task_quality import StoredHalfCache, write_quality_report
 
 
 def probabilities(logits, history, settings, pad):
@@ -77,7 +77,7 @@ def probe_deployed_head(model, original_head, config, tokenizer, baseline, task,
                                'deployedHead': selected(q4, distribution, chosen),
                                'originalHead': selected(source, source_prob, alternate),
                                'scope': 'One counterfactual output projection on identical deployed-model hidden state; not quality or numeric qualification.'})
-                output.write_text(json.dumps(report) + '\n')
+                write_quality_report(output, report)
                 print(json.dumps({key: report[key] for key in ['selectedStep', 'allRetainedPrefixTokensMatch',
                                   'selectedTokenChanged', 'sourceHeadSelectsEos']}), flush=True)
             history.append(chosen); current = [chosen]

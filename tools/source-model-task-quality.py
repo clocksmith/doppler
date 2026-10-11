@@ -11,7 +11,7 @@ import torch
 from tokenizers import Tokenizer
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
-from lib.source_task_quality import evaluate_tasks, probe_retained_prefix
+from lib.source_task_quality import evaluate_tasks, probe_retained_prefix, write_quality_report
 
 
 def digest(path):
@@ -70,7 +70,7 @@ def run(args):
         report['packages']['gguf'] = importlib.metadata.version('gguf')
     output = Path(args.out)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(report) + '\n')
+    write_quality_report(output, report)
     if args.head_probe_contract is not None:
         from lib.deployed_head_attribution import probe_deployed_head
         assert args.deployed is not None and args.probe_report is None
