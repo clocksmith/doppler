@@ -46,6 +46,9 @@ export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, useLiteRT
   };
   let x, y, uniformWorkgroupsX;
   switch (geometry) {
+    case 'linear-output-workgroup':
+      x = Math.ceil(M * N / config.workgroupSize[0]); y = 1;
+      break;
     case 'column':
       x = N; y = 1;
       break;

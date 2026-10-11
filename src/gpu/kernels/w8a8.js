@@ -1,6 +1,7 @@
 import { getDevice, getKernelCapabilities } from '../device.js';
 import { createTensor } from '../tensor.js';
 import { getKernelConfig } from './kernel-configs.js';
+import { calculateMatmulDispatch } from './matmul-dispatch.js';
 import { hasRequiredFeatures, getKernelWgslRequirements } from './feature-check.js';
 import { unifiedKernelWrapper, withKernelOutput } from './kernel-execution.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../memory/buffer-pool.js';
@@ -129,12 +130,14 @@ async function executeW8A8(recorder, input, weights, M, N, K, options) {
     const accumulator = temporary(M * N * 4, 'w8a8_accumulator');
     const intermediate = temporary(M * N * 4, 'w8a8_activation_scaled');
     const status = recorder ? recorderStatus(recorder) : temporary(4, 'w8a8_status');
+    const dotDispatch = calculateMatmulDispatch(options.variant, false, false, M, N,
+      getKernelConfig('matmul', options.variant)).workgroups;
     if (!recorder) device.queue.writeBuffer(status, 0, new Uint32Array(1));
     return await withKernelOutput(recorder, options.outputBuffer ?? null, M * N * 4, 'w8a8_output', async output => {
       await unifiedKernelWrapper('w8a8_quantize', recorder, 'f32', [input.buffer, packed, status], uniforms,
         M, null, null, null, options.signal ?? null);
       await unifiedKernelWrapper('matmul', recorder, options.variant, [packed, weights.buffer, accumulator, status], uniforms,
-        Math.ceil(M * N / getKernelConfig('matmul', options.variant).workgroupSize[0]), null, null, null, options.signal ?? null);
+        dotDispatch, null, null, null, options.signal ?? null);
       await unifiedKernelWrapper('w8a8_rescale', recorder, 'activation', [accumulator, packed, intermediate, status], uniforms,
         Math.ceil(M * N / getKernelConfig('w8a8_rescale', 'activation').workgroupSize[0]), null, null, null, options.signal ?? null);
       await unifiedKernelWrapper('w8a8_rescale', recorder, 'weight', [intermediate, weights.buffer, output, status], uniforms,

@@ -421,3 +421,11 @@ for (const [variant, config] of Object.entries(KERNEL_CONFIGS.matmul)) {
 }
 
 console.log('matmul-dispatch-contract.test: ok');
+
+// W8A8 integer stage flattens all output elements in global invocation X.
+for (const variant of ['w8a8_portable', 'w8a8_packed']) {
+  for (const [M, N] of [[19, 517], [1, 1024], [128, 2048]]) {
+    assert.deepEqual(calculateMatmulDispatch(variant, false, false, M, N, KERNEL_CONFIGS.matmul[variant]).workgroups,
+      [Math.ceil(M * N / 64), 1, 1]);
+  }
+}

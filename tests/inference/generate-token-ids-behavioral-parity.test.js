@@ -478,3 +478,31 @@ console.log('  ok: cleanup on success and throw');
 console.log('  ok: double-generation guard');
 
 console.log('generate-token-ids-behavioral-parity.test: ok');
+
+// A callback cancellation after the first emitted token outranks a simultaneous
+// EOS/stop-token disposition and never enters another decode step.
+for (const surface of ['generate', 'generateTokenIds']) {
+  for (const firstToken of [10, EOS_TOKEN]) {
+    const state = createMinimalState({ maxTokens: 4 });
+    const generator = new PipelineGenerator(state);
+    stubGenerator(generator, [firstToken, 11, EOS_TOKEN]);
+    let decoded = 0, callbacks = 0;
+    const decode = generator._decodeNextTokenViaLogits.bind(generator);
+    generator._decodeNextTokenViaLogits = (...args) => { decoded++; return decode(...args); };
+    const controller = new AbortController();
+    const options = { useChatTemplate: false, signal: controller.signal,
+      onToken() { callbacks++; controller.abort(); } };
+    if (surface === 'generate') {
+      for await (const _ of generator.generate('test', options)) { void _; }
+    } else await generator.generateTokenIds('test', options);
+    assert.equal(callbacks, 1);
+    assert.equal(decoded, 0);
+    assert.equal(state.stats.stopReason, 'aborted', `${surface} first token ${firstToken}`);
+    assert.equal(state.stats.stopTokenId, null);
+    assert.equal(state.stats.tokensGenerated, 1);
+    assert.equal(state.isGenerating, false);
+    stubGenerator(generator, [10, EOS_TOKEN]);
+    assert.deepEqual((await generator.generateTokenIds('fresh', { useChatTemplate: false })).tokenIds, [10, EOS_TOKEN]);
+  }
+}
+console.log('  ok: first-token callback cancellation disposition and reuse');
