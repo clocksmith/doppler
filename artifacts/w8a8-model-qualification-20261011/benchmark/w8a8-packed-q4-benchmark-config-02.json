@@ -1,0 +1,68 @@
+{
+  "schema": "doppler.installed-generation-qualification/v1",
+  "surface": "browser",
+  "packageBundlePath": "/var/tmp/doppler-w8-installed-completion-20261011",
+  "modelDir": "/var/tmp/doppler-gemma270-w8a8-packed-diagnostic-20261011",
+  "outputDir": "/home/x/deco/doppler/reports/local/w8a8-qualification-20261011/w8a8-packed-q4-benchmark-02",
+  "reference": {
+    "path": "/home/x/deco/doppler/reports/local/w8a8-qualification-20261011/installed-reference-v4.json",
+    "digest": "sha256:3862c318a91cf46c252441cdf27a6a4631b2ddd481a5f497ef664845ed0b6de1"
+  },
+  "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
+  "generation": {
+    "maxTokens": 96,
+    "maxSeqLen": 2048,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokens": [],
+    "stopSequences": []
+  },
+  "timeoutMs": 1800000,
+  "repeatRuns": 3,
+  "sampleIntervalMs": 500,
+  "requiredVendor": "amd",
+  "temporaryDirectory": "/var/tmp",
+  "launchArgs": [
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-gpu-sandbox"
+  ],
+  "runtimeConfig": {
+    "shared": {
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "silent"
+        },
+        "logOutput": {
+          "stdout": false
+        },
+        "trace": {
+          "enabled": false
+        }
+      }
+    }
+  },
+  "cancellation": {
+    "afterChunks": 1,
+    "maxElapsedMs": 60000
+  },
+  "phase": "fixed-work-benchmark",
+  "comparisonModels": [
+    {
+      "id": "q4",
+      "modelDir": "/home/x/deco/doppler/models/local/gemma-3-270m-it-q4k-ehf16-af32",
+      "manifestDigest": "sha256:afecba81640288d0849838c8d4d8c763af80edc1fc22051853ce6700dda4b315"
+    },
+    {
+      "id": "w8a8-packed",
+      "modelDir": "/var/tmp/doppler-gemma270-w8a8-packed-diagnostic-20261011",
+      "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e"
+    }
+  ]
+}
