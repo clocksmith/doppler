@@ -132,7 +132,7 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Resident contract 0.6.27: measured archive plus the existing npm allowance.
   // Evidence: artifacts/partition-contracts-20261010/npm-pack.json.
   // Measured npm 9 payload plus the same 2,158-byte compression allowance.
-  maxPackedSize: 3_368_524,
+  maxPackedSize: 3_368_954,
   // Capsule naming changes identifiers and declarations, not the shipped file count.
   // Measured 0.6.0 payload: 2,097,039 packed / 10,835,420 unpacked bytes.
   // The remaining GPU diagnostic label adds three uncompressed bytes.
@@ -175,8 +175,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Inventory: artifacts/resident-output-error-20261011/package-inventory.json.
   // Additive embedding semantics, declarations and qualification evaluator.
   // Exact source inventory: artifacts/embedding-subdivision-20261011/package-inventory.json.
-  // Exact W8A8 candidate inventory; no model weights included.
-  maxUnpackedSize: 13_211_399,
+  // Exact W8A8 candidate including awaited retirement and first-token cancellation.
+  // Evidence: artifacts/w8a8-package-20261011/repaired-package-inventory.json.
+  maxUnpackedSize: 13_213_152,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
