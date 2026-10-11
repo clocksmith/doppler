@@ -15,6 +15,12 @@ const [archivePath, modelDirectory, destination, manifestMode = 'frozen'] = proc
 const observationTarget = process.argv[6] ? JSON.parse(await readFile(process.argv[6], 'utf8')) : { index: 0, step: 0 };
 assert(Number.isSafeInteger(observationTarget.index) && observationTarget.index >= 0
   && Number.isSafeInteger(observationTarget.step) && observationTarget.step >= 0);
+if (observationTarget.opIds !== undefined) {
+  assert(Array.isArray(observationTarget.opIds) && observationTarget.opIds.length > 0
+    && observationTarget.opIds.length <= 256);
+  assert(observationTarget.opIds.every(id => typeof id === 'string' && /^[a-z0-9_.]+$/.test(id)));
+  assert(observationTarget.opIds.includes('embed.out'));
+}
 const captureDecode = Boolean(process.argv[6]);
 const fullPrefixes = process.env.DOPPLER_FORENSIC_FULL_PREFIXES === '1';
 assert(archivePath && modelDirectory && destination, 'Supply retained archive, unchanged model directory and receipt');
@@ -179,7 +185,7 @@ try {
       // Observe the same first prefix after reset; quantify instrumentation effects.
       await handle.resetGenerationState();
       let observedLogits = null; const observedSteps = [];
-      const targetOpIds = ['embed.out', 'final_norm.pre', 'final_norm.out',
+      const targetOpIds = observationTarget.opIds ?? ['embed.out', 'final_norm.pre', 'final_norm.out',
         ...manifest.inference.layerPattern.layerTypes.flatMap((type, layer) =>
           type === 'linear_attention'
             ? ['qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj',

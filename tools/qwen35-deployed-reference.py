@@ -222,6 +222,9 @@ def compare_boundaries(model, capture, input_ids, cache):
     for index, layer in enumerate(model.model.layers):
         modules[f'layer.{index}.attn.post_input_norm'] = layer.input_layernorm
         modules[f'layer.{index}.layer.out'] = layer
+        modules[f'layer.{index}.ffn.in'] = layer.post_attention_layernorm
+        modules[f'layer.{index}.ffn.out'] = layer.mlp
+    modules['logits.out'] = model.lm_head
     layer = model.model.layers[0]
     for name, module in {
         'attn.qkv_proj': layer.linear_attn.in_proj_qkv,
@@ -261,6 +264,9 @@ def compare_boundaries(model, capture, input_ids, cache):
 
     operands = []
     def compare_operand(name, input_name, module, kind):
+        if name not in retained:
+            return
+        assert input_name in retained, f'Missing operand {input_name} for {name}'
         x = np.asarray(retained[input_name]['data'], dtype=np.float32).reshape(-1, module.weight.shape[-1])
         expected = np.asarray(retained[name]['data'], dtype=np.float32).reshape(-1)
         native = module(torch.from_numpy(x.copy())).detach().float().numpy().reshape(-1)
@@ -295,6 +301,28 @@ def compare_boundaries(model, capture, input_ids, cache):
                             'embed.out' if index == 0 else f'layer.{index - 1}.layer.out',
                             layer.input_layernorm, 'rmsnorm')
         compare_operand('final_norm.out', 'final_norm.pre', model.model.norm, 'rmsnorm')
+        compare_operand('logits.out', 'final_norm.out', model.lm_head, 'linear')
+        for index, layer in enumerate(model.model.layers):
+            name, input_name = f'layer.{index}.ffn.out', f'layer.{index}.ffn.in'
+            if name not in retained:
+                continue
+            assert input_name in retained, f'Missing operand {input_name} for {name}'
+            x = np.asarray(retained[input_name]['data'], dtype=np.float32).reshape(-1, model.config.hidden_size)
+            native = layer.mlp(torch.from_numpy(x.copy())).detach().float().numpy().reshape(-1)
+            def weight(module):
+                assert module.bias is None
+                return module.weight.detach().float().numpy().astype(np.float64)
+            gate = x.astype(np.float64) @ weight(layer.mlp.gate_proj).T
+            up = x.astype(np.float64) @ weight(layer.mlp.up_proj).T
+            precise = ((gate * np.exp(-np.logaddexp(0, -gate))) * up) @ weight(layer.mlp.down_proj).T
+            expected = np.asarray(retained[name]['data'], dtype=np.float64).reshape(-1)
+            precise = precise.reshape(-1)
+            assert expected.shape == native.shape == precise.shape and np.isfinite(precise).all()
+            operands.append({'boundary': name, 'inputBoundary': input_name, 'operation': 'swiglu-ffn',
+                             'values': int(expected.size),
+                             'gpuVsFloat64': float(np.max(np.abs(expected - precise))),
+                             'sourceF32VsFloat64': float(np.max(np.abs(native.astype(np.float64) - precise))),
+                             'gpuVsSourceF32SameOperands': float(np.max(np.abs(expected - native)))})
         for name in ['qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj']:
             compare_operand('layer.0.attn.' + name, 'layer.0.attn.post_input_norm',
                             modules['layer.0.attn.' + name], 'linear')
@@ -488,8 +516,8 @@ def run(args):
                 result, report['boundaryComparisons'], report['operandComparisons'], report['unobservedBoundaries'], report['attentionHistoryComparisons'] = compare_boundaries(
                     model, boundary_capture, torch.tensor([input_ids]), cache)
                 report['linearHistoryComparisons'] = compare_linear_histories(model, boundary_capture)
-                report['linearHistoryComparison'] = next(row for row in report['linearHistoryComparisons']
-                                                        if row['boundary'] == 'layer.0.attn.linear_core_out')
+                report['linearHistoryComparison'] = next((row for row in report['linearHistoryComparisons']
+                                                         if row['boundary'] == 'layer.0.attn.linear_core_out'), None)
             else:
                 result = model(input_ids=torch.tensor([input_ids]), past_key_values=cache,
                                use_cache=True, logits_to_keep=1)
