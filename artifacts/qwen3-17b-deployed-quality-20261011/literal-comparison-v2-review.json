@@ -1,0 +1,140 @@
+{
+  "schema": "doppler.deployed-source-quality-review/v1",
+  "qualified": false,
+  "status": "rejected-unchanged-punctuation-requirement",
+  "classification": "Exposed comparison-contract correction, not a new holdout. Frozen suite/report inherited top-level scope incorrectly says fresh; comparisonRevision is authoritative classification.",
+  "suiteSha256": "c60149d173e4be545d0f12ecdc7eb8a5ab218bdb20e490c951bffb02cd61f81e",
+  "reportSha256": "e278a36d658de726df6e500cd53244f5f4271dde1550f7ce7f8d4e7b7082d347",
+  "comparisonRevision": {
+    "schema": "doppler.task-comparison-correction/v1",
+    "revision": 2,
+    "supersedesSuiteSha256": "2747c2c3dc7b611de36050788bd8d89e53a4ee5303613420aa634ba5eedb28f5",
+    "scope": "Exposed contract-correction suite, not a new holdout. Same prompts, expected strings, instruction, seeds, model and generation. Both cited-value cases use exact value and citation fields with optional ASCII horizontal whitespace only at their boundary after outer trim. Original failure remains unchanged."
+  },
+  "instructionSha256": "5f04d085b3ff6b7fad5b7ce4cb8486453f171ca9f53e188f1326bc7e842a5730",
+  "requiredCases": 16,
+  "completedCases": 10,
+  "passedCases": 9,
+  "failedCases": 1,
+  "originalStrictPassedCases": 8,
+  "originalStrictFailedCases": 2,
+  "interruptedCases": [
+    {
+      "id": "sum-literal",
+      "seed": 89,
+      "retainedTokenCount": 1
+    }
+  ],
+  "unstartedCases": 5,
+  "exitCode": 130,
+  "failure": {
+    "id": "permission-negative",
+    "seed": 89,
+    "expected": "No",
+    "actualFinalText": "\n\nNo.",
+    "category": "exact-output-punctuation",
+    "meaningCorrect": true,
+    "naturalCloseAndEos": true,
+    "withinBudgets": true,
+    "generatedTokens": 218,
+    "totalTokens": 307,
+    "rawUtf16Characters": 1036
+  },
+  "results": [
+    {
+      "id": "permission-positive",
+      "seed": 37,
+      "correctedPassed": true,
+      "originalStrictPassed": true,
+      "generatedTokens": 330,
+      "totalTokens": 420,
+      "rawUtf16Characters": 1562
+    },
+    {
+      "id": "permission-negative",
+      "seed": 37,
+      "correctedPassed": true,
+      "originalStrictPassed": true,
+      "generatedTokens": 154,
+      "totalTokens": 243,
+      "rawUtf16Characters": 694
+    },
+    {
+      "id": "sum-literal",
+      "seed": 37,
+      "correctedPassed": true,
+      "originalStrictPassed": true,
+      "generatedTokens": 90,
+      "totalTokens": 162,
+      "rawUtf16Characters": 264
+    },
+    {
+      "id": "duplicates-literal",
+      "seed": 37,
+      "correctedPassed": true,
+      "originalStrictPassed": true,
+      "generatedTokens": 215,
+      "totalTokens": 304,
+      "rawUtf16Characters": 915
+    },
+    {
+      "id": "conditional-fulfilled",
+      "seed": 37,
+      "correctedPassed": true,
+      "originalStrictPassed": true,
+      "generatedTokens": 95,
+      "totalTokens": 220,
+      "rawUtf16Characters": 371
+    },
+    {
+      "id": "amount-literal",
+      "seed": 37,
+      "correctedPassed": true,
+      "originalStrictPassed": false,
+      "generatedTokens": 153,
+      "totalTokens": 278,
+      "rawUtf16Characters": 564
+    },
+    {
+      "id": "ascending-literal",
+      "seed": 37,
+      "correctedPassed": true,
+      "originalStrictPassed": true,
+      "generatedTokens": 1645,
+      "totalTokens": 1731,
+      "rawUtf16Characters": 4089
+    },
+    {
+      "id": "descending-literal",
+      "seed": 37,
+      "correctedPassed": true,
+      "originalStrictPassed": true,
+      "generatedTokens": 1713,
+      "totalTokens": 1801,
+      "rawUtf16Characters": 4243
+    },
+    {
+      "id": "permission-positive",
+      "seed": 89,
+      "correctedPassed": true,
+      "originalStrictPassed": true,
+      "generatedTokens": 422,
+      "totalTokens": 512,
+      "rawUtf16Characters": 2054
+    },
+    {
+      "id": "permission-negative",
+      "seed": 89,
+      "correctedPassed": false,
+      "originalStrictPassed": false,
+      "generatedTokens": 218,
+      "totalTokens": 307,
+      "rawUtf16Characters": 1036
+    }
+  ],
+  "priorRegressionExecuted": false,
+  "numericalObserverExecuted": false,
+  "gpuExecuted": false,
+  "modelPromotion": false,
+  "preparationDisposition": "Frozen contingent regressions, observer preparation and inactive runtime annotation retained, but failed gate prevents execution or activation."
+}
