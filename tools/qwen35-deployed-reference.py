@@ -20,6 +20,7 @@ from gguf import GGMLQuantizationType, dequantize
 from transformers.models.qwen3_5.configuration_qwen3_5 import Qwen3_5TextConfig
 from transformers.models.qwen3_5.modeling_qwen3_5 import (
     DynamicCache, Qwen3_5ForCausalLM, Qwen3_5TextRotaryEmbedding, torch_recurrent_gated_delta_rule,
+    Qwen3_5RMSNorm,
 )
 
 
@@ -32,16 +33,81 @@ def sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def tree_rms_normalize(value, epsilon):
+    """Offline F32 reduction-order control for declared 256-lane main RMSNorm.
+
+    Products and additions round separately to F32; inverse root rounds once
+    to F32. This is a sensitivity control, not a GPU-instruction emulator or
+    permission to replace either accepted reference or runtime arithmetic.
+    """
+    assert value.device.type == 'cpu' and value.dtype == torch.float32
+    x = value.detach().numpy()
+    assert x.shape[-1] > 0 and np.isfinite(x).all() and epsilon > 0
+    width, lanes = x.shape[-1], 256
+    per_lane = (width + lanes - 1) // lanes
+    padded = np.zeros((*x.shape[:-1], lanes * per_lane), dtype=np.float32)
+    padded[..., :width] = x
+    groups = padded.reshape(*x.shape[:-1], lanes, per_lane)
+    partial = np.zeros(groups.shape[:-1], dtype=np.float32)
+    for offset in range(per_lane):
+        partial = partial + groups[..., offset] * groups[..., offset]
+    stride = lanes // 2
+    while stride:
+        partial = partial[..., :stride] + partial[..., stride:stride * 2]
+        stride //= 2
+    variance = partial / np.float32(width) + np.float32(epsilon)
+    inverse = (1 / np.sqrt(variance.astype(np.float64))).astype(np.float32)
+    return torch.from_numpy(x * inverse)
+
+
+class ObservedCacheControl:
+    """Offline intervention on cache operands; never an independent oracle."""
+    def __init__(self, model, capture):
+        self.history, self.positions = {}, {}
+        for index, layer in enumerate(model.model.layers):
+            if not hasattr(layer, 'self_attn'):
+                continue
+            shape = (model.config.num_key_value_heads, layer.self_attn.head_dim)
+            pair = []
+            for name in ['k_rope', 'v_proj']:
+                parts = [capture_values(row.get('capture'))
+                         for row in capture['observation']['timeline']
+                         if row['opId'] == f'layer.{index}.attn.{name}']
+                assert parts and all(part is not None for part in parts), 'missing cache history'
+                values = np.concatenate(parts).reshape(-1, *shape).astype(np.float16)
+                assert values.size and np.isfinite(values).all(), 'invalid cache history'
+                pair.append(torch.from_numpy(values.transpose(1, 0, 2).copy()).unsqueeze(0))
+            assert pair[0].shape == pair[1].shape, 'unequal cache histories'
+            self.history[index], self.positions[index] = pair, 0
+        assert self.history, 'no captured attention cache'
+
+    def take(self, index, keys, values):
+        assert keys.shape == values.shape and keys.shape[0] == 1
+        assert index in self.history, 'uncaptured cache layer'
+        start, count = self.positions[index], keys.shape[-2]
+        pair = [value[:, :, start:start + count] for value in self.history[index]]
+        assert all(value.shape == keys.shape for value in pair), 'incomplete cache history'
+        self.positions[index] += count
+        return pair
+
+    def assert_consumed(self):
+        assert all(self.positions[index] == pair[0].shape[-2]
+                   for index, pair in self.history.items()), 'unused cache history'
+
+
 class StoredHalfCache(DynamicCache):
-    def __init__(self, *args, observe_storage=False, **kwargs):
+    def __init__(self, *args, observe_storage=False, observed_control=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.storage_observations = {} if observe_storage else None
+        self.observed_control = observed_control
 
     def update(self, key_states, value_states, layer_idx, *args, **kwargs):
         if self.storage_observations is not None:
             history = self.storage_observations.setdefault(layer_idx, {'k_rope': [], 'v_proj': []})
             for name, value in [('k_rope', key_states), ('v_proj', value_states)]:
                 history[name].append(value.detach().cpu().numpy()[0].transpose(1, 0, 2).copy())
+        if self.observed_control is not None:
+            key_states, value_states = self.observed_control.take(layer_idx, key_states, value_states)
         keys, values = super().update(key_states.half(), value_states.half(), layer_idx, *args, **kwargs)
         return keys.float(), values.float()
 
@@ -508,6 +574,11 @@ def run(args):
     model.load_state_dict(weights, strict=True, assign=True)
     del weights
     model.eval()
+    if args.normalization == 'source-tree':
+        assert manifest['inference']['execution']['kernels']['rmsnorm']['entry'] == 'main'
+        for module in model.modules():
+            if isinstance(module, Qwen3_5RMSNorm):
+                module._norm = lambda x, eps=module.eps: tree_rms_normalize(x, eps)
     if args.linear_prefill == 'source-recurrent':
         # Independent source sensitivity control, never a runtime substitution.
         # Both functions implement the same recurrence with different F32 order.
@@ -517,6 +588,7 @@ def run(args):
     report = {'schema': 'doppler.source-model-reference-diagnostic/v1', 'qualified': False,
               'scope': 'Independent model-equation diagnostic, not reference activation or runtime fallback',
               'linearPrefillReference': args.linear_prefill,
+              'normalizationReference': args.normalization,
               'tolerance': 0.001, 'tokenization': 'Exact captured prompt IDs, followed by frozen reference tokens',
               'modelIdentity': observed['manifestIdentity'], 'sourceConfigSha256': sha256(args.source_config),
               'captureSha256': sha256(args.capture), 'pieceIndexIdentity': args.piece_index_identity,
@@ -546,12 +618,21 @@ def run(args):
         assert matching['logits'] == target['logits']
         report['boundaryCaptureSha256'] = sha256(args.boundary_capture)
         report['boundaryCaptureManifestIdentity'] = boundary_capture['manifestIdentity']
+        assert boundary_capture['manifestIdentity'] == observed['manifestIdentity']
+    observed_control = None
+    if args.observed_cache_control:
+        assert boundary_capture, 'observed cache control requires a boundary capture'
+        observed_control = ObservedCacheControl(model, boundary_capture)
+        report['scope'] = 'Captured-cache counterfactual; not independent numerical qualification'
+        report['observedCacheControl'] = {'requestIndex': targets[-1]['index'],
+                                          'layers': sorted(observed_control.history)}
     cache, active_request, next_step = None, None, 0
     for target in targets:
         if target['step'] == 0:
             active_request, next_step = target['index'], 0
-            cache = StoredHalfCache(config=config, observe_storage=bool(
-                boundary_capture and target['index'] == targets[-1]['index']))
+            selected = target['index'] == targets[-1]['index']
+            cache = StoredHalfCache(config=config, observe_storage=bool(boundary_capture and selected),
+                                    observed_control=observed_control if selected else None)
             input_ids = target['inputIds']
         else:
             input_ids = [reference['expected'][target['index']]['steps'][target['step'] - 1]['tokenId']]
@@ -575,6 +656,10 @@ def run(args):
         report['results'].append(row)
         Path(args.out).write_text(json.dumps(report) + '\n')
         print(json.dumps({key: value for key, value in row.items() if key != 'logits'}), flush=True)
+    if observed_control is not None:
+        observed_control.assert_consumed()
+        report['observedCacheControl']['completeHistoryConsumed'] = True
+        Path(args.out).write_text(json.dumps(report) + '\n')
     return report
 
 
@@ -587,7 +672,12 @@ if __name__ == '__main__':
     parser.add_argument('--generation-control', help='Replay exact deployed greedy generation with independent source equations')
     parser.add_argument('--linear-prefill', choices=['source-chunk', 'source-recurrent'], default='source-chunk',
                         help='Independent source recurrence ordering sensitivity; never reference activation')
+    parser.add_argument('--normalization', choices=['source', 'source-tree'], default='source',
+                        help='Offline normalization reduction-order control; never runtime or reference activation')
     parser.add_argument('--boundary-capture', help='Retained GPU observations for the last requested prefix')
+    parser.add_argument('--observed-cache-control', action='store_true',
+                        help='Offline captured-cache intervention; cannot qualify independent accuracy')
     options = parser.parse_args()
     assert options.prefixes > 0 and options.threads > 0
+    assert not (options.observed_cache_control and options.generation_control)
     run(options)

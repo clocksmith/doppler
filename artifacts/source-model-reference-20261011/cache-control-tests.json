@@ -1,0 +1,17 @@
+{
+  "constantAttentionMean": "pass",
+  "binaryCaptureEquivalence": "pass",
+  "missingHistoryRejected": "pass",
+  "nonfiniteCaptureRejected": "pass",
+  "scalarRecurrenceClosedForm": "pass",
+  "missingRecurrenceHistoryRejected": "pass",
+  "distinctLayerWeights": "pass",
+  "missingLaterLayerHistoryRejected": "pass",
+  "uncapturedOperatorsNotCompared": "pass",
+  "cacheOperandIsolation": "pass",
+  "halfRoundingAmplification": "pass",
+  "normalizationClosedForm": "pass",
+  "nonfiniteNormalizationRejected": "pass",
+  "cacheInterventionIsolation": "pass",
+  "incompleteInterventionRejected": "pass"
+}

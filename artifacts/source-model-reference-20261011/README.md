@@ -181,3 +181,30 @@ input control and invocation log are retained compressed. This establishes
 that the incomplete answer reproduces outside Doppler; it does not qualify the
 answer, clear full-model numerical acceptance or justify changing protected
 requirements. No runtime or reference changed.
+
+## Normalization ordering and cache intervention
+
+`source-tree-normalization.json` uses a separately implemented 256-lane F32
+normalization reduction in the offline source model. The selected request 2,
+step 3 error increases from 0.0014121532440185547 to 0.0015132427215576172.
+This does not support a normalization-order correction. The runtime is unchanged.
+
+`observed-cache-control.json` intervenes only on the offline model's K/V cache
+inputs for that request, using the complete captured history rounded to F16.
+The selected logit error falls to 0.000026464462280273438; all four prefixes
+of that request fall below 0.000027. The other requests retain independently
+evolved state. Every captured history is consumed exactly, and missing or
+truncated histories reject the diagnostic. Source queries, recurrence and all
+remaining arithmetic are unchanged.
+
+This counterfactual attributes most of the selected discrepancy to differences
+in stored cache values. It cannot independently certify the captured values or
+close numerical acceptance: captured GPU operands enter this offline control.
+The untouched independent source result still exceeds 0.001. Existing actual-
+operand float64 checks put both the first full-attention projections and their
+normalizations within ordinary F32 rounding differences, without establishing
+a local implementation error. Neither precision nor tolerance changed.
+
+Fifteen synthetic controls pass, including missing/exhausted cache rejection,
+no mutation of original cache inputs, and normalization closed forms. Archived
+source and logs bind the executed controls; no runtime or release bytes changed.
