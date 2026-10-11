@@ -15,6 +15,18 @@ spec = importlib.util.spec_from_file_location(
 reference = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(reference)
 
+# Closed-form normalization and batch independence, including a partial lane.
+for width in [1, 127, 256, 1025]:
+    values = torch.stack((torch.full((width,), 2.0), torch.zeros(width)))
+    actual = reference.tree_rms_normalize(values, 1e-6).numpy()
+    np.testing.assert_allclose(actual[0], 2 / np.sqrt(4 + 1e-6), rtol=2e-7)
+    np.testing.assert_array_equal(actual[1], 0)
+try:
+    reference.tree_rms_normalize(torch.tensor([[float('nan')]]), 1e-6)
+    raise RuntimeError('Nonfinite normalization input was accepted')
+except AssertionError:
+    pass
+
 
 def row(name, values):
     return {'opId': 'layer.0.attn.' + name, 'capture': {'data': values}}
@@ -33,6 +45,31 @@ capture = {'observation': {'timeline': [
     row('q_rope', [1, 0, 0, 1]), row('core_out', [3, 4, 3, 4]),
 ]}}
 expected = reference.compare_attention_history(model, capture, cache)
+control = reference.ObservedCacheControl(model, capture)
+original_keys = torch.full((1, 1, 1, 2), 99.0)
+original_values = torch.full((1, 1, 1, 2), 77.0)
+keys, values = control.take(0, original_keys, original_values)
+assert torch.equal(keys, torch.zeros_like(keys))
+assert values.flatten().tolist() == [2, 3]
+assert original_keys.flatten().tolist() == [99, 99]
+assert original_values.flatten().tolist() == [77, 77]
+try:
+    control.assert_consumed()
+    raise RuntimeError('Unconsumed cache history was accepted')
+except AssertionError:
+    pass
+assert control.take(0, original_keys, original_values)[1].flatten().tolist() == [4, 5]
+control.assert_consumed()
+try:
+    control.take(0, original_keys, original_values)
+    raise RuntimeError('Exhausted cache history was accepted')
+except AssertionError:
+    pass
+try:
+    reference.ObservedCacheControl(model, {'observation': {'timeline': [row('k_rope', [0, 0])]}})
+    raise RuntimeError('Missing cache operands were accepted')
+except AssertionError:
+    pass
 assert expected[0]['maxAbsError'] == 0
 assert all(item['differentStoredValues'] == 0 for item in expected[0]['independentlyEvolvedCache'])
 assert expected[0]['cacheOnlyOutputMaxAbsDifference'] == 0
@@ -132,4 +169,6 @@ print(json.dumps({'constantAttentionMean': 'pass', 'binaryCaptureEquivalence': '
                   'scalarRecurrenceClosedForm': 'pass', 'missingRecurrenceHistoryRejected': 'pass',
                   'distinctLayerWeights': 'pass', 'missingLaterLayerHistoryRejected': 'pass',
                   'uncapturedOperatorsNotCompared': 'pass',
-                  'cacheOperandIsolation': 'pass', 'halfRoundingAmplification': 'pass'}, indent=2))
+                  'cacheOperandIsolation': 'pass', 'halfRoundingAmplification': 'pass',
+                  'normalizationClosedForm': 'pass', 'nonfiniteNormalizationRejected': 'pass',
+                  'cacheInterventionIsolation': 'pass', 'incompleteInterventionRejected': 'pass'}, indent=2))
