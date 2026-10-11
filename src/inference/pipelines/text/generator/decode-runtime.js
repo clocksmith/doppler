@@ -894,8 +894,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
 
 export async function _decodeStep(currentIds, opts) {
     if (usesReplayPrefillDecode(this._state)) {
-      const stepResult = await this._decodeStepToLogits(currentIds, opts);
-      return this._sampleNextTokenFromLogits(stepResult.logits, currentIds, opts);
+      return this._decodeNextTokenViaLogits(currentIds, opts);
     }
     const debugCheckBuffer = this._state.debug
       ? (buffer, label, numTokens, expectedDim) =>

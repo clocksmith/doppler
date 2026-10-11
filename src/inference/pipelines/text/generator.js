@@ -431,7 +431,11 @@ export class PipelineGenerator {
 
   async _decodeNextTokenViaLogits(currentIds, opts) {
     const stepResult = await this._decodeStepToLogits(currentIds, opts);
-    return this._sampleNextTokenFromLogits(stepResult.logits, currentIds, opts);
+    try {
+      return this._sampleNextTokenFromLogits(stepResult.logits, currentIds, opts);
+    } finally {
+      if (stepResult.logitsBuffer) releaseBuffer(stepResult.logitsBuffer);
+    }
   }
 
   _matchesStopSequence(generatedIds, stopSequenceStart, stopSequences) {
