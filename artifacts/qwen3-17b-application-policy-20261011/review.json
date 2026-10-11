@@ -13,11 +13,119 @@
     "accepted": false
   },
   "recommendedThinking": {
-    "status": "running",
+    "status": "completed",
     "suiteSha256": "0cf151811add3f9a61e931a1d3a24b1a3d6e64a878b2ee4ba617cf7f558b0b1f",
     "requiredCases": 14,
     "acceptanceUnchanged": true,
-    "modelPromotion": false
+    "modelPromotion": false,
+    "passedCases": 14,
+    "failedCases": 0,
+    "sourcePolicyPassed": true,
+    "reportSha256": "f2cca5d2901c5550f2a4f455326eadd0894b0c744ce9327e31763dfefc5270db",
+    "maximumGeneratedTokens": 2586,
+    "maximumTotalTokens": 2625,
+    "maximumRawUtf16Characters": 7933,
+    "naturalClosingMarkerAndEosEveryCase": true,
+    "results": [
+      {
+        "id": "long-ascending",
+        "seed": 17,
+        "passed": true,
+        "generatedTokens": 1881,
+        "rawUtf16Characters": 4770
+      },
+      {
+        "id": "long-descending",
+        "seed": 17,
+        "passed": true,
+        "generatedTokens": 2280,
+        "rawUtf16Characters": 6804
+      },
+      {
+        "id": "integer-answer",
+        "seed": 17,
+        "passed": true,
+        "generatedTokens": 436,
+        "rawUtf16Characters": 1170
+      },
+      {
+        "id": "permission-negation",
+        "seed": 17,
+        "passed": true,
+        "generatedTokens": 124,
+        "rawUtf16Characters": 654
+      },
+      {
+        "id": "duplicate-order",
+        "seed": 17,
+        "passed": true,
+        "generatedTokens": 289,
+        "rawUtf16Characters": 1160
+      },
+      {
+        "id": "conditional-citation",
+        "seed": 17,
+        "passed": true,
+        "generatedTokens": 191,
+        "rawUtf16Characters": 856
+      },
+      {
+        "id": "amount-citation",
+        "seed": 17,
+        "passed": true,
+        "generatedTokens": 350,
+        "rawUtf16Characters": 1448
+      },
+      {
+        "id": "long-ascending",
+        "seed": 53,
+        "passed": true,
+        "generatedTokens": 2586,
+        "rawUtf16Characters": 7787
+      },
+      {
+        "id": "long-descending",
+        "seed": 53,
+        "passed": true,
+        "generatedTokens": 2548,
+        "rawUtf16Characters": 7933
+      },
+      {
+        "id": "integer-answer",
+        "seed": 53,
+        "passed": true,
+        "generatedTokens": 404,
+        "rawUtf16Characters": 1118
+      },
+      {
+        "id": "permission-negation",
+        "seed": 53,
+        "passed": true,
+        "generatedTokens": 240,
+        "rawUtf16Characters": 1177
+      },
+      {
+        "id": "duplicate-order",
+        "seed": 53,
+        "passed": true,
+        "generatedTokens": 303,
+        "rawUtf16Characters": 1167
+      },
+      {
+        "id": "conditional-citation",
+        "seed": 53,
+        "passed": true,
+        "generatedTokens": 197,
+        "rawUtf16Characters": 886
+      },
+      {
+        "id": "amount-citation",
+        "seed": 53,
+        "passed": true,
+        "generatedTokens": 252,
+        "rawUtf16Characters": 1065
+      }
+    ]
   },
   "samplingRepair": "7e9cb892 and b0354ba4; independent of candidate quality",
   "standardArchiveChanged": false

@@ -6,6 +6,15 @@ rejection. It changes no production model, generation policy, parser, numerical
 fixture, release archive, or memory limit. Final execution disposition is in
 `review.json`; the complete generated sequences remain in compressed reports.
 
+The original-source recommended thinking policy passes **14 of 14** frozen
+cases: seven tasks under each of two seeds. Every case produces one natural
+closing boundary and EOS. Maximum generated and total tokens are 2,586 and
+2,625; maximum raw decoded output is 7,933 UTF-16 code units. These include
+reasoning and final output, below the unchanged 4,096/8,192/16,000 limits.
+`recommended-thinking-result.json.gz` retains every raw token and answer.
+The independently decoded deployed artifact has a separate pending evaluation;
+source success does not qualify quantization, GPU execution, memory or deployment.
+
 ## Repetition penalty at the first omitted range
 
 The retained `extended-ascending` failure first emits an ellipsis at generated
@@ -108,6 +117,22 @@ independently reproduced and repaired in `7e9cb892`; the separate
 step-indexed scalar sequence still differs from PyTorch. Numeric seed equality
 does not establish identical sampling semantics. Required independent fixed-token
 numerical comparisons remain separate from stochastic quality tests.
+
+The subsequent `template-token-audit.json.gz` compares 48 exact token sequences
+without generating a model answer. Existing **ChatML**, already selected by the
+diagnostic conversion, matches official thinking mode for all seven frozen
+prompts, system-plus-user input, and ordinary user-ended history containing only
+final assistant answers. Forty ordinary-history comparisons mechanically verify
+the declared match/mismatch pattern. The existing Qwen thinking formatter adds
+two tokens (`<think>` and newline); its nonthinking mode matches the source's
+ordinary nonthinking input instead. Single-prompt and message-list runtime
+entrypoints agree in every applicable case.
+
+Raw reasoning embedded in prior assistant content and assistant-ended
+continuations differ from source processing. This audit does not broaden support
+to those input shapes. The supported final-only, user-ended conversation needs
+no new formatter. Output boundary handling and complete raw character accounting
+remain model-owned integration work, gated on exact deployed-weight quality.
 
 `evaluator-boundary-check.py` provides six synthetic harness controls: single
 boundary success, absent boundary rejection, duplicate boundary rejection,
