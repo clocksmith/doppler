@@ -5,7 +5,7 @@ callback that reported `stop-token-or-sequence` instead of `aborted`. The existi
 behavioral parity harness reproduces it when that first token is EOS. Cancellation
 must retain its own disposition even when the token also satisfies a stop rule.
 
-`before.log` preserves the failing invocation; `after.log` records the same
+`before.log.gz` preserves the failing invocation; `after.log.gz` records the same
 regression passing after correction:
 
 ```sh
