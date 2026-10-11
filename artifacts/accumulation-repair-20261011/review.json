@@ -1,0 +1,607 @@
+{
+  "schema": "doppler.f16-tiled-accumulation-repair/v1",
+  "scope": "General F32 accumulation improvement with scoped AMD physical evidence; full numerical acceptance still fails",
+  "shaderSha256": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5",
+  "executedProjectionDispatch": [
+    {
+      "entry": "main",
+      "selections": 36,
+      "shaderSha256": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5"
+    }
+  ],
+  "binding": {
+    "standardArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+    "diagnosticArchiveSha256": "74cb03298e3fe4cdb1126c940553b91d64dc30dc93ea3b4a4bf252e78c028c63",
+    "modifiedArchiveMembers": [
+      "package/src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl"
+    ],
+    "shaderSha256": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5",
+    "manifestChanged": false,
+    "runtimePrecisionChanged": false,
+    "weightsChanged": false,
+    "selectionChanged": false
+  },
+  "modelComparisons": [
+    {
+      "step": 0,
+      "candidateError": 0.0006071924048285382,
+      "baselineError": 0.000702657925669925,
+      "overTolerance": 0,
+      "pass": true,
+      "greedyToken": 16
+    },
+    {
+      "step": 1,
+      "candidateError": 0.0008898752491512951,
+      "baselineError": 0.0009400796513965304,
+      "overTolerance": 0,
+      "pass": true,
+      "greedyToken": 198
+    },
+    {
+      "step": 2,
+      "candidateError": 0.0007923877312085992,
+      "baselineError": 0.0009795541261512497,
+      "overTolerance": 0,
+      "pass": true,
+      "greedyToken": 17
+    },
+    {
+      "step": 3,
+      "candidateError": 0.0012063517164224713,
+      "baselineError": 0.0015289395075548384,
+      "overTolerance": 11,
+      "pass": false,
+      "greedyToken": 198
+    }
+  ],
+  "physical": {
+    "scope": "Exact retained operands; F32 accumulation diagnostic, not model acceptance or performance claim",
+    "browser": "146.0.7680.177",
+    "geometry": "tiled",
+    "operandsSha256": "baa44adb7d1363246d821cb4fa8ff6e1bc6a68a153313d44643f34ccb0281087",
+    "baselineSha256": "569971d79c3ea3ae9e632a06befe43bc9d9a1a657ddd53357368fa24b073cd7d",
+    "candidateSha256": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5",
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "description": ""
+    }
+  },
+  "physicalResults": [
+    {
+      "variant": "baseline",
+      "name": "linear_a_proj",
+      "batchWallMs": [
+        10.09999942779541,
+        8.90000057220459,
+        9.399999618530273,
+        8.699999809265137,
+        9.100000381469727
+      ],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 2.3652032838938908e-05,
+      "rmsError": 1.4508315248721478e-06,
+      "differentObserved": 0,
+      "outsideErrorBound": 0,
+      "kind": "actual",
+      "shape": {
+        "M": 184,
+        "N": 16,
+        "K": 1024,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 16
+      }
+    },
+    {
+      "variant": "baseline",
+      "name": "linear_b_proj",
+      "batchWallMs": [
+        8.899999618530273,
+        8.899999618530273,
+        9,
+        8.90000057220459,
+        9
+      ],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 6.454761194873981e-06,
+      "rmsError": 7.261350381109709e-07,
+      "differentObserved": 0,
+      "outsideErrorBound": 0,
+      "kind": "actual",
+      "shape": {
+        "M": 184,
+        "N": 16,
+        "K": 1024,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 16
+      }
+    },
+    {
+      "variant": "baseline",
+      "name": "synthetic-0",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 1,
+        "N": 1,
+        "K": 1,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 1
+      }
+    },
+    {
+      "variant": "baseline",
+      "name": "synthetic-1",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 3,
+        "N": 5,
+        "K": 7,
+        "transpose": 1,
+        "alpha": -0.5,
+        "tileSize": 3
+      }
+    },
+    {
+      "variant": "baseline",
+      "name": "synthetic-2",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 17,
+        "N": 19,
+        "K": 33,
+        "transpose": 1,
+        "alpha": 2,
+        "tileSize": 16
+      }
+    },
+    {
+      "variant": "baseline",
+      "name": "synthetic-3",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 9,
+        "N": 7,
+        "K": 129,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 8
+      }
+    },
+    {
+      "variant": "baseline",
+      "name": "synthetic-4",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 1,
+        "N": 16,
+        "K": 4096,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 16
+      }
+    },
+    {
+      "variant": "baseline",
+      "name": "synthetic-5",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 3,
+        "N": 5,
+        "K": 1024,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 16
+      }
+    },
+    {
+      "variant": "baseline",
+      "name": "synthetic-6",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 2,
+        "N": 3,
+        "K": 32,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 8
+      }
+    },
+    {
+      "variant": "baseline",
+      "name": "synthetic-7",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 65,
+        "N": 67,
+        "K": 33,
+        "transpose": 1,
+        "alpha": -2,
+        "tileSize": 16
+      }
+    },
+    {
+      "variant": "candidate",
+      "name": "linear_a_proj",
+      "batchWallMs": [
+        8.800000190734863,
+        8.899999618530273,
+        10.200000762939453,
+        9.09999942779541,
+        10
+      ],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 2.133584697361357e-06,
+      "rmsError": 2.9264358757782035e-07,
+      "differentObserved": 2829,
+      "outsideErrorBound": 0,
+      "kind": "actual",
+      "shape": {
+        "M": 184,
+        "N": 16,
+        "K": 1024,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 16
+      }
+    },
+    {
+      "variant": "candidate",
+      "name": "linear_b_proj",
+      "batchWallMs": [
+        9.199999809265137,
+        8.699999809265137,
+        8.800000190734863,
+        8.699999809265137,
+        8.90000057220459
+      ],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 1.143483246757171e-06,
+      "rmsError": 1.6990912404716395e-07,
+      "differentObserved": 2759,
+      "outsideErrorBound": 0,
+      "kind": "actual",
+      "shape": {
+        "M": 184,
+        "N": 16,
+        "K": 1024,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 16
+      }
+    },
+    {
+      "variant": "candidate",
+      "name": "synthetic-0",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 1,
+        "N": 1,
+        "K": 1,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 1
+      }
+    },
+    {
+      "variant": "candidate",
+      "name": "synthetic-1",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 3,
+        "N": 5,
+        "K": 7,
+        "transpose": 1,
+        "alpha": -0.5,
+        "tileSize": 3
+      }
+    },
+    {
+      "variant": "candidate",
+      "name": "synthetic-2",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 17,
+        "N": 19,
+        "K": 33,
+        "transpose": 1,
+        "alpha": 2,
+        "tileSize": 16
+      }
+    },
+    {
+      "variant": "candidate",
+      "name": "synthetic-3",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 9,
+        "N": 7,
+        "K": 129,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 8
+      }
+    },
+    {
+      "variant": "candidate",
+      "name": "synthetic-4",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 1,
+        "N": 16,
+        "K": 4096,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 16
+      }
+    },
+    {
+      "variant": "candidate",
+      "name": "synthetic-5",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 3,
+        "N": 5,
+        "K": 1024,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 16
+      }
+    },
+    {
+      "variant": "candidate",
+      "name": "synthetic-6",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 2,
+        "N": 3,
+        "K": 32,
+        "transpose": 1,
+        "alpha": 1,
+        "tileSize": 8
+      }
+    },
+    {
+      "variant": "candidate",
+      "name": "synthetic-7",
+      "batchWallMs": [],
+      "dispatchesPerBatch": 32,
+      "maxAbsError": 0,
+      "rmsError": 0,
+      "differentObserved": null,
+      "outsideErrorBound": 0,
+      "kind": "synthetic",
+      "shape": {
+        "M": 65,
+        "N": 67,
+        "K": 33,
+        "transpose": 1,
+        "alpha": -2,
+        "tileSize": 16
+      }
+    }
+  ],
+  "retained": [
+    {
+      "path": "comparison.json.gz",
+      "uncompressedSha256": "7f38a5630096f9e00a97c0c7c53e9cc5005e204e7c2c4ea090cc25620dc268c6"
+    },
+    {
+      "path": "execution.log.gz",
+      "uncompressedSha256": "59a40b445a06505c14822602de2ca958d4f07b8fb463fedc647890f8f468c036"
+    },
+    {
+      "path": "four-lane-scope-incomplete.json.gz",
+      "uncompressedSha256": "4fc518334b121e04a6ed6454406ba21f0406ccbde8143fa99215472e1fafb23f"
+    },
+    {
+      "path": "four-lane-scope-incomplete.log.gz",
+      "uncompressedSha256": "adce8803db4caeab21e02f843c383aa3c053f85994e5cc8d6cb80f6c537895b7"
+    },
+    {
+      "path": "operands.json.gz",
+      "uncompressedSha256": "baa44adb7d1363246d821cb4fa8ff6e1bc6a68a153313d44643f34ccb0281087"
+    },
+    {
+      "path": "rejected-kahan-physical.json.gz",
+      "uncompressedSha256": "9313e86c1f2c518863a4c4f8757e6f5105d7707bad3c22cbd477ec6609dac20a"
+    },
+    {
+      "path": "rejected-kahan-physical.log.gz",
+      "uncompressedSha256": "3848d1616e452174e5fcb2fd33fb2229ef40abe1620c79b89eb85b4d5c232bea"
+    },
+    {
+      "path": "rejected-unaligned-harness.log.gz",
+      "uncompressedSha256": "4e4a9cf73ff0a47aee5ee406e912ede91ecf671769ff38007bef7a1f1809c9e6"
+    },
+    {
+      "path": "physical-pairwise.json.gz",
+      "uncompressedSha256": "6d4b24e46f9075753dee3aea2556b5c57603c3e339e02f0aec32dc90bd083996"
+    },
+    {
+      "path": "physical-pairwise.log.gz",
+      "uncompressedSha256": "493f60cedf6be8566fbb558d1a8a3d5d95c4446bb39289b8652704d38aef2682"
+    },
+    {
+      "path": "physical-shapes.json.gz",
+      "uncompressedSha256": "008dbc2fdb90cb79a2600285c5c72a2563bd808be6c111ce82c564f0521bd02e"
+    },
+    {
+      "path": "physical-shapes.log.gz",
+      "uncompressedSha256": "abd05aca401cb32e64b83aa81a4932e1f561e65a7133dd828caaab6eed778805"
+    },
+    {
+      "path": "candidate-prefixes.json.gz",
+      "uncompressedSha256": "947e914d26c785d4906e2754e69c57713767f11d6280136c0835a83397dec11b"
+    },
+    {
+      "path": "candidate-prefixes.log.gz",
+      "uncompressedSha256": "012eae4b9a5e305f01c60ac38714a85e6d28811d41d850f94a2bb8e3b51bcbf5"
+    },
+    {
+      "path": "candidate-binding.json.gz",
+      "uncompressedSha256": "6179d7c7bfe8257e70a378236a6b23e2674ce58118da517421b8657d41299384"
+    },
+    {
+      "path": "pairwise-offline.json.gz",
+      "uncompressedSha256": "92e2c8af2483ff159a657a3977e6928207360a64bb49942c782807e0f5881c2f"
+    },
+    {
+      "path": "blocked-offline.json.gz",
+      "uncompressedSha256": "108b1ea06c42c997fbe147f7b38b32ec6ce121123c7707908f970b0a2911799b"
+    },
+    {
+      "path": "physical-tiled.json.gz",
+      "uncompressedSha256": "ab212b8b4552cd53eae2a817aa19f9b10af4a43133746e5b80c11bea5ad554a4"
+    },
+    {
+      "path": "physical-tiled.log.gz",
+      "uncompressedSha256": "0a1114e332297dc960e0db84aeec4300e1e73a5ca13e368b14dea359fa2aef07"
+    },
+    {
+      "path": "physical-tiled-shapes.json.gz",
+      "uncompressedSha256": "f29e2aecc740451011b1d609cbbf423b513fd792f0bedeb744fe4b6b3d555cc0"
+    },
+    {
+      "path": "physical-tiled-shapes.log.gz",
+      "uncompressedSha256": "46ed68db8735dded43ae62294dff474589c0bbd338809be403ae076fdc657775"
+    },
+    {
+      "path": "tiled-candidate-prefixes.json.gz",
+      "uncompressedSha256": "a358662f05f982e2dfb791a0505a5d73c18ed9c245dc81012beb7ce57e20bdb9"
+    },
+    {
+      "path": "tiled-candidate-prefixes.log.gz",
+      "uncompressedSha256": "02257f61fa95f8afa45fbd1cf7f933983fb74c12625a2e7702dcf319326f40e3"
+    },
+    {
+      "path": "tiled-candidate-binding.json.gz",
+      "uncompressedSha256": "3dbcd9054b0c07241cdf5c706a40ebec563388820b53d7baf4ec0ea3d45b9ce4"
+    },
+    {
+      "path": "tiled-model-comparison.json.gz",
+      "uncompressedSha256": "e281f22ddb282d25d5bd44b5424ec70fee3a8380bd2aa807e76f6865eb07aeec"
+    },
+    {
+      "path": "target.json.gz",
+      "uncompressedSha256": "48031f6407a7d5c78232f1eec39a7c501104d8d12b74b4775786b87c220f027b"
+    },
+    {
+      "path": "final-offline.json.gz",
+      "uncompressedSha256": "9ea9a460f46dcde02410e595221685131394068c094fe5c917ab894f2a8ec0a4"
+    },
+    {
+      "path": "final-offline.log.gz",
+      "uncompressedSha256": "e070563293660a4393a13a5080522ba9d37dd24a80d4dfcdfa3cc21b3acd0871"
+    }
+  ],
+  "disposition": {
+    "numericalTolerance": 0.001,
+    "selectedPrefixAccuracyPass": false,
+    "greedyTokensUnchanged": true,
+    "standardArchiveChanged": false,
+    "referenceActivated": false,
+    "productionDtypeChanged": false,
+    "kernelSelectionChanged": false,
+    "macReplayed": false,
+    "unisolatedTimingNotPerformanceClaim": true,
+    "rejectedInterventions": [
+      "naive compensated expression optimized to baseline",
+      "base shader is not the selected model variant"
+    ],
+    "remainingSelectedLogitsOverTolerance": 11
+  }
+}

@@ -10,6 +10,7 @@ import { resolve, join, sep, extname } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import { chromium } from 'playwright';
 import { compareReferenceModel } from '../../../reploid/tests/fixtures/distributed-reference-model.js';
+import { validatePrefixOnlyTarget } from '../helpers/frozen-prefix-scope.js';
 
 const [archivePath, modelDirectory, destination, manifestMode = 'frozen'] = process.argv.slice(2);
 const observationTarget = process.argv[6] ? JSON.parse(await readFile(process.argv[6], 'utf8')) : { index: 0, step: 0 };
@@ -32,6 +33,7 @@ const fixtureRoot = new URL('../../../reploid/tests/fixtures/', import.meta.url)
 const referenceBytes = gunzipSync(await readFile(new URL('distributed-reference.json.gz', fixtureRoot)));
 assert.equal(hash(referenceBytes), '9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd');
 const reference = JSON.parse(referenceBytes);
+const prefixesOnly = validatePrefixOnlyTarget(observationTarget, reference);
 const frozenManifestBytes = gunzipSync(await readFile(new URL('distributed-reference-manifest.json.gz', fixtureRoot)));
 assert.equal('sha256:' + hash(frozenManifestBytes), reference.modelIdentity);
 const manifestBytes = manifestMode === 'current'
@@ -44,7 +46,7 @@ const receipt = { scope: 'Retained archive forensic fixed-prefix replay; produci
   host: process.platform, producerSha256: hash(await readFile(new URL(import.meta.url))), archiveSha256: hash(await readFile(archivePath)),
   referenceSha256: hash(referenceBytes), manifestIdentity: 'sha256:' + hash(manifestBytes), results: [],
   frozenManifestIdentity: reference.modelIdentity, manifestMode, changedKernelPins,
-  servedShaders: {}, modelDirectory: resolve(modelDirectory), fullPrefixes, observationTarget };
+  servedShaders: {}, modelDirectory: resolve(modelDirectory), fullPrefixes, prefixesOnly, observationTarget };
 const cacheObserverSource = await readFile(new URL('../helpers/physical-kv-cache-observer.js', import.meta.url));
 if (physicalCache) receipt.cacheObserverSha256 = hash(cacheObserverSource);
 async function recordPrefill(row) {
@@ -115,9 +117,9 @@ try {
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   const observedTimeline = [];
   await page.exposeFunction('recordProducerObservation', row => { observedTimeline.push(row); });
-  const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, expected, observationTarget, captureDecode }) => {
+  const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, prefixesOnly, expected, observationTarget, captureDecode }) => {
     // Observe selected native pipelines without rewriting shader arithmetic.
-    const moduleSources = new WeakMap(), pipelines = new WeakMap(), normalizationDispatch = [];
+    const moduleSources = new WeakMap(), pipelines = new WeakMap(), normalizationDispatch = [], projectionDispatch = [];
     const createModule = GPUDevice.prototype.createShaderModule;
     GPUDevice.prototype.createShaderModule = function (descriptor) {
       const module = createModule.call(this, descriptor);
@@ -129,6 +131,11 @@ try {
         const record = { entry: descriptor.compute.entryPoint, constants: descriptor.compute.constants,
           source, selections: 0 };
         normalizationDispatch.push(record); pipelines.set(pipeline, record);
+      }
+      if (source?.includes('Register-Tiled Matrix Multiplication Kernel - f16 weights, f32 activations')) {
+        const record = { entry: descriptor.compute.entryPoint, constants: descriptor.compute.constants,
+          source, selections: 0 };
+        projectionDispatch.push(record); pipelines.set(pipeline, record);
       }
       return pipeline;
     };
@@ -167,7 +174,7 @@ try {
           prefillTokenChunkSize: policy.prefillTokenChunkSize } } } });
       const { maxSeqLen: _contextLength, ...executionOptions } = generation;
       const physicalCache = observationTarget.physicalCache === true;
-      for (const index of physicalCache ? [observationTarget.index] : [...prompts.keys(), 0]) {
+      for (const index of physicalCache || prefixesOnly ? [observationTarget.index] : [...prompts.keys(), 0]) {
         const messages = prompts[index];
         await handle.resetGenerationState();
         const inputIds = handle.advanced.tokenizePrompt(messages, generation);
@@ -181,14 +188,14 @@ try {
         };
         const value = await handle.advanced.prefillWithLogits(messages, { ...executionOptions, inputIds });
         try { await record(value, 0); } finally { value.cache?.destroy(); }
-        if (fullPrefixes || physicalCache) {
-          for (let step = 1; step < (physicalCache ? observationTarget.step + 1 : expected[index].steps.length); step++) {
+        if (fullPrefixes || physicalCache || prefixesOnly) {
+          for (let step = 1; step < (physicalCache || prefixesOnly ? observationTarget.step + 1 : expected[index].steps.length); step++) {
             const value = await handle.advanced.decodeStepLogits([expected[index].steps[step - 1].tokenId], executionOptions);
             await record(value, step);
           }
         }
       }
-      if (fullPrefixes && !captureDecode) return { runtimeVersion: DOPPLER_VERSION, rows, observation: null, normalizationDispatch };
+      if (prefixesOnly || (fullPrefixes && !captureDecode)) return { runtimeVersion: DOPPLER_VERSION, rows, observation: null, normalizationDispatch, projectionDispatch };
       // Observe the same first prefix after reset; quantify instrumentation effects.
       await handle.resetGenerationState();
       let observedLogits = null; const observedSteps = [];
@@ -251,7 +258,7 @@ try {
         }
         await window.recordProducerObservation({ ...row, capture });
       }
-      return { runtimeVersion: DOPPLER_VERSION, rows, normalizationDispatch, observation: { logits: observedLogits, observedSteps, target: observationTarget,
+      return { runtimeVersion: DOPPLER_VERSION, rows, normalizationDispatch, projectionDispatch, observation: { logits: observedLogits, observedSteps, target: observationTarget,
         physicalCache: cacheObserver ? physicalRows.flatMap(value => value.rows) : null,
         samplingExcludedTokenIds: [handle.advanced.getSpecialTokens().pad, ...executionOptions.suppressTokenIds]
           .filter(Number.isInteger), timeline: [] } };
@@ -261,17 +268,19 @@ try {
       await getDevice().queue.onSubmittedWorkDone();
     }
   }, { compatEntry, partitionsEntry, generation: reference.generation, prompts: reference.prompts, policy,
-    fullPrefixes, expected: reference.expected, observationTarget, captureDecode });
+    fullPrefixes, prefixesOnly, expected: reference.expected, observationTarget, captureDecode });
   receipt.physicalExecutionCompleted = true;
   receipt.runtimeVersion = result.runtimeVersion;
   receipt.normalizationDispatch = result.normalizationDispatch.map(({ source, ...record }) => ({
+    ...record, shaderSha256: hash(source) }));
+  receipt.projectionDispatch = result.projectionDispatch.map(({ source, ...record }) => ({
     ...record, shaderSha256: hash(source) }));
   receipt.observation = result.observation;
   if (receipt.observation) receipt.observation.timeline = observedTimeline;
   assert.equal(result.runtimeVersion, metadata.version);
   receipt.executionCompleted = true;
   receipt.referenceProducingOwnershipEstablished = false;
-  if (physicalCache) {
+  if (physicalCache || prefixesOnly) {
     assert.equal(receipt.results.length, observationTarget.step + 1);
   } else if (fullPrefixes) {
     const expectedCount = reference.expected.reduce((count, row) => count + row.steps.length, 0)
