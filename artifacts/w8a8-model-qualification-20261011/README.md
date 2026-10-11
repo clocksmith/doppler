@@ -134,3 +134,23 @@ resources after the public operation rejects and the queue settles; active
 allocation remains unchanged. Final unload does release all resources. This
 exposes a cancellation-settlement defect distinct from the passing first-token
 callback cancellation. Neither failure is removed by the subsequent repair.
+
+
+## Repaired submission-time cancellation
+
+Archive `47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc`
+contains the failed-prefill settlement repair. `w8a8-installed-model-06` and
+`w8a8-packed-installed-model-03` both pass the complete model execution controls:
+12 tasks, 200 teacher-forced targets, three repeated requests, first-token
+callback cancellation, actual submitted-prefill cancellation, deterministic
+reuse, and settled unload. Submitted cancellation rejects with `AbortError`;
+active ownership stays unchanged and deferred bytes/counts are zero after the
+public operation and submitted queue have settled. All ownership categories are zero after unload.
+
+Both variants retain identical task tokens/text and teacher-forced observations,
+also unchanged from the earlier candidate. `installed/model-quality-disposition.json`
+keeps model quality separate: 4/12 tasks pass versus F16 5/12 and Q4 2/12; W8 loses
+the F16 literal-copy pass. NLL 4.76907409 exceeds the frozen F16 +0.10 limit.
+Neither variant qualifies for promotion. Earlier baseline and failed-candidate
+archive identities remain explicit in that report; no historical result was
+regraded or replaced.
