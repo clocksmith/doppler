@@ -1,0 +1,34 @@
+{
+  "schema": "doppler.w8a8-fixed-work-plan/v1",
+  "scope": "Unqualified performance observations only: the W8 model fails task and approximation gates",
+  "sourceFixture": "tests/fixtures/w8a8-qualification.json",
+  "fixtureSha256": "890a28e543ef614bcfb0fa60de195c189d30c1216f29804559a2b2de7b8edd5a",
+  "installedPackageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
+  "scenarios": [
+    {
+      "config": "w8a8-packed-f16-benchmark-config-02.json",
+      "sha256": "c541359b8c907fb3f165f1fa0cc967af065e35f87297bab7f2c6ef17de6c27d0"
+    },
+    {
+      "config": "w8a8-packed-q4-benchmark-config-02.json",
+      "sha256": "2a845dd1c36da311bcd412801bc4025a145fa19ae47c8dda991a8c9019e8e9aa"
+    },
+    {
+      "config": "w8a8-packed-portable-benchmark-config-02.json",
+      "sha256": "bff3069fa40206d97c877d20d20da1a8753f91a0618a9d409e3e04062dab7c08"
+    }
+  ],
+  "runtimeCostIncluded": [
+    "activation quantization",
+    "I32 projection",
+    "both ordered rescale passes",
+    "required status readback",
+    "full vocabulary logits readback",
+    "Prefill snapshot creation, destruction and queue settlement"
+  ],
+  "modelLoading": "Recorded separately; both handles warm and resident for primary paired samples under a shared 1,420,000,000-byte allocation ceiling",
+  "instrumentation": "No numerical capture or periodic RSS sampler during timing; observations outside primary boundaries",
+  "failurePolicy": "Retain every invocation and all samples; do not remove outliers, raise budgets, or silently change cache/load policy",
+  "status": "partially-executed-shared-budget-failure",
+  "executed": "F16 versus packed:128/32 and128/128 complete; first512 warmup rejected by unchanged1.42B budget. Other planned paired-resident comparisons not executed."
+}

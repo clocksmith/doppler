@@ -6,16 +6,16 @@
   "installedPackageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
   "scenarios": [
     {
-      "config": "w8a8-packed-f16-benchmark-config-02.json",
-      "sha256": "c541359b8c907fb3f165f1fa0cc967af065e35f87297bab7f2c6ef17de6c27d0"
+      "config": "w8a8-packed-f16-benchmark-config-03.json",
+      "sha256": "dd402547b33b32f8928382e3ba107579cdb5ba27bbf36584621ae5d1c598d81e"
     },
     {
-      "config": "w8a8-packed-q4-benchmark-config-02.json",
-      "sha256": "2a845dd1c36da311bcd412801bc4025a145fa19ae47c8dda991a8c9019e8e9aa"
+      "config": "w8a8-packed-q4-benchmark-config-03.json",
+      "sha256": "8bc769a26fc2c43ac963b80f3112414f133e433abdaef2f32ded6d0b1089062a"
     },
     {
-      "config": "w8a8-packed-portable-benchmark-config-02.json",
-      "sha256": "bff3069fa40206d97c877d20d20da1a8753f91a0618a9d409e3e04062dab7c08"
+      "config": "w8a8-packed-portable-benchmark-config-03.json",
+      "sha256": "3160e29946ffa04c7f4830a0776cc02b12e622147953aaf8f8722b148aebbae5"
     }
   ],
   "runtimeCostIncluded": [
@@ -26,8 +26,9 @@
     "full vocabulary logits readback",
     "Prefill snapshot creation, destruction and queue settlement"
   ],
-  "modelLoading": "Recorded separately; both handles warm and resident for primary paired samples under a shared 1,420,000,000-byte allocation ceiling",
+  "modelLoading": "One model resident at a time under unchanged1,420,000,000byte ceiling. For each lane of each measured pair: load, two identical-shape unmeasured warmup operations, measured operation, settled unload. Loading and warmup durations are retained separately. Pair order alternates.",
   "instrumentation": "No numerical capture or periodic RSS sampler during timing; observations outside primary boundaries",
   "failurePolicy": "Retain every invocation and all samples; do not remove outliers, raise budgets, or silently change cache/load policy",
-  "status": "frozen-before-measurement"
+  "status": "revised-before-serialized-measurement",
+  "revisionReason": "Both-resident first512-token warmup exceeded aggregate allocation ceiling; retained separately. No quota, work shape, measured operation boundary, numerical or quality requirement changed."
 }
