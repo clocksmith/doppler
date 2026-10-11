@@ -888,10 +888,14 @@ export class BundledTokenizer extends BaseTokenizer {
     return tokens;
   }
 
-  createIncrementalDecoder() {
+  createRawIncrementalDecoder() {
+    return this.createIncrementalDecoder({ skipSpecialTokens: false });
+  }
+
+  createIncrementalDecoder({ skipSpecialTokens = true } = {}) {
     if (this.#vocab.size === 0) throw new Error('BundledTokenizer not loaded');
     return createBundledIncrementalDecoder({
-      tokenForId: id => this.isSpecialToken(id) ? undefined : this.#reverseVocab.get(id),
+      tokenForId: id => skipSpecialTokens && this.isSpecialToken(id) ? undefined : this.#reverseVocab.get(id),
       byteLevel: this.#type === 'bpe' && this.#useByteLevelEncoding,
       byteDecoder: this.#byteDecoder,
       wordPiece: this.#type === 'wordpiece',

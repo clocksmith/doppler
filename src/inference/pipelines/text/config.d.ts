@@ -202,6 +202,7 @@ export interface ParsedModelConfig {
   embeddingScale: number | null;
   embeddingNormalization: WeightlessEmbeddingNormalization | null;
   logitInputScale: number;
+  reasoningOutput?: import('../../../config/reasoning-output.js').ReasoningOutputContract | null;
   logitOutputScale: number;
   residualBranchScale: number;
   useTiedEmbeddings: boolean;

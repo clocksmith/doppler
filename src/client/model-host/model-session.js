@@ -4,6 +4,7 @@ import {
   buildGenerationEvidence, buildEmbeddingEvidence, snapshotModelEvidenceStats,
 } from './model-evidence.js';
 import { getKernelCapabilities } from '../../gpu/device.js';
+import { createGenerationOutputDecoder, decodeGenerationOutput } from '../../inference/generation-output.js';
 import { formatChatMessages } from '../../inference/pipelines/text/chat-format.js';
 import { applyChatTemplate } from '../../inference/pipelines/text/init-chat-templates.js';
 import { resolveTextGenerationRequest, generationRequestEvidence } from '../../inference/pipelines/text/generation-request.js';
@@ -125,11 +126,17 @@ function resolveGenerationConfigEvidence(request, options) {
   });
 }
 
+function outputStopTokens(pipeline) {
+  return [...(pipeline.modelConfig?.stopTokenIds ?? []), pipeline.tokenizer?.getSpecialTokens?.()?.eos]
+    .filter(Number.isSafeInteger);
+}
+
 function decodeGeneratedTokens(pipeline, tokenIds) {
   if (!pipeline?.tokenizer || typeof pipeline.tokenizer.decode !== 'function') {
     throw new Error('Loaded Doppler pipeline does not expose tokenizer.decode().');
   }
-  return String(pipeline.tokenizer.decode(tokenIds, true, false));
+  return decodeGenerationOutput(pipeline.tokenizer, pipeline.modelConfig?.reasoningOutput,
+    outputStopTokens(pipeline), tokenIds, true, pipeline.getStats?.()?.stopReason);
 }
 
 function resolveInspectionBrowserIdentity() {
@@ -454,13 +461,15 @@ export function createModelHandle(pipeline, resolved) {
         return tokenizePrompt(pipeline, prompt, options);
       },
       createIncrementalDecoder() {
-        return pipeline.tokenizer.createIncrementalDecoder();
+        return createGenerationOutputDecoder(pipeline.tokenizer, pipeline.modelConfig?.reasoningOutput,
+          outputStopTokens(pipeline));
       },
       decodeTokenIds(tokenIds) {
         if (!Array.isArray(tokenIds)) {
           throw new Error('Doppler advanced.decodeTokenIds requires an array.');
         }
-        return String(pipeline.tokenizer.decode(tokenIds, true, false));
+        return decodeGenerationOutput(pipeline.tokenizer, pipeline.modelConfig?.reasoningOutput,
+          outputStopTokens(pipeline), tokenIds, false);
       },
       getSpecialTokens() {
         return pipeline.tokenizer?.getSpecialTokens?.() ?? {};

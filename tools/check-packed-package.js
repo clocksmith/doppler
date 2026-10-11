@@ -145,6 +145,19 @@ const bResult: Promise<ResidentPartitionBResult> = resident.executeGroup1(bReque
 const tokenization: Promise<ResidentPartitionTokenizationResult> = resident.tokenize(tokenizationRequest);
 bResult.then(result => { const metrics: ResidentPartitionMetrics = result.metrics;
   const timing: PartitionTiming = metrics; return timing; });
+import type { DopplerGenerationResult, DopplerScopedModelSession } from '${packageJson.name}/compat';
+import type { GenerationCompletion } from '${packageJson.name}/generation-contract';
+declare const scopedSession: DopplerScopedModelSession;
+scopedSession.generate('prompt').then((result: DopplerGenerationResult) => {
+  const completion: GenerationCompletion | null = result.completion; return completion;
+});
+async function readScopedCompletion() {
+  for await (const event of scopedSession.stream('prompt')) {
+    if (event.type === 'complete') {
+      const completion: GenerationCompletion | null = event.completion; return completion;
+    }
+  }
+}
 import { createKernelRegistry, createRuleRegistry } from '${packageJson.name}/tooling/runtime';
 const mutableRequires: Array<'shader-f16' | 'subgroups'> = [];
 const mutableWorkgroup: [number, number, number] = [256, 1, 1];
@@ -383,6 +396,21 @@ async function runPartitionApiSmoke(consumerDir, packageJson) {
   console.log('installed minimal runtime closure and explicit partition entry checks passed');
 }
 
+async function runInstalledGenerationImplementationChecks(consumerDir) {
+  // These reuse implementation fixtures against installed bytes, separately
+  // from the public Capsule entrypoint and declaration checks above.
+  for (const relative of ['integration/doppler-scoped-session.test.js',
+    'inference/generation-output.test.js', 'inference/resident-reasoning-output.test.js']) {
+    const target = path.join(consumerDir, 'contracts', relative);
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    const source = (await fs.readFile(path.join(ROOT_DIR, 'tests', relative), 'utf8'))
+      .replaceAll("'../../src/", "'../../node_modules/doppler-gpu/src/");
+    await fs.writeFile(target, source);
+    process.stdout.write(run(process.execPath, [target], { cwd: consumerDir }));
+  }
+  console.log('installed generation implementation controls passed (synthetic, no model qualification)');
+}
+
 async function runCliSmokes(consumerDir, packageJson) {
   const packageDir = path.join(consumerDir, 'node_modules', packageJson.name);
   for (const [name, target] of Object.entries(packageJson.bin ?? {})) {
@@ -503,6 +531,7 @@ async function main() {
     receipt.applicationFiles = await runElectronCapsuleSmoke(consumerDir);
     await runEmbeddingCapsuleSmoke(consumerDir);
     await runGenerationCapsuleSmoke(consumerDir);
+    await runInstalledGenerationImplementationChecks(consumerDir);
     await writeTypeSmoke(consumerDir, packageJson);
     receipt.passed = true;
     console.log(

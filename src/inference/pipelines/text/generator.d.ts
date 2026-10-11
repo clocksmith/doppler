@@ -57,7 +57,9 @@ export declare class PipelineGenerator {
    * Batching and readback cadence are controlled by runtime.inference.batching.
    */
   generate(prompt: PromptInput, options?: GenerateOptions): AsyncGenerator<string, void, void>;
+  /** Raw generated IDs, including declared reasoning markers and hidden reasoning. */
   generateTokens(prompt: PromptInput, options?: GenerateOptions): AsyncGenerator<number, void, void>;
+  /** Raw token evidence; text consumers apply the manifest-owned output contract. */
   generateTokenIds(
     prompt: PromptInput,
     options?: GenerateOptions

@@ -72,6 +72,7 @@ import {
 
 import { resolveSamplingConfig } from './sampling-config.js';
 import { samplingSeedForToken } from '../../token-sampling.js';
+import { createGenerationOutputDecoder, decodeGenerationStream } from '../../generation-output.js';
 import { matchesStopSequence } from './stopping.js';
 import { decodeReadback, getLogitsHealth } from './debug-utils/index.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
@@ -444,7 +445,8 @@ export class PipelineGenerator {
     if (!Array.isArray(stopSequences) || stopSequences.length === 0) {
       return false;
     }
-    return matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, stopSequences);
+    return matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, stopSequences,
+      this._state.modelConfig?.reasoningOutput);
   }
 
   _shouldStopAfterAppendedToken(generatedIds, tokenId, opts, runtime) {
@@ -517,6 +519,20 @@ export class PipelineGenerator {
   }
 
   async *generate(prompt, options = {}) {
+    if (this._state.modelConfig?.reasoningOutput != null) {
+      const decoder = createGenerationOutputDecoder(this._state.tokenizer,
+        this._state.modelConfig.reasoningOutput,
+        [...this._state.modelConfig.stopTokenIds, this._state.tokenizer.getSpecialTokens?.()?.eos]
+          .filter(Number.isSafeInteger));
+      try {
+        yield* decodeGenerationStream(this._generateTokensInternal(prompt, { ...options, onToken: undefined }, 'token'),
+          decoder, { ...options, getStopReason: () => this._state.stats.stopReason });
+      } finally {
+        const usage = decoder.getUsage();
+        if (usage.rawTokens > 0) this._state.stats.outputUsage = usage;
+      }
+      return;
+    }
     yield* this._generateTokensInternal(prompt, options, 'text');
   }
 
@@ -561,6 +577,21 @@ export class PipelineGenerator {
   }
 
   async *generateWithPrefixKV(prefix, prompt, options = {}) {
+    if (this._state.modelConfig?.reasoningOutput != null) {
+      const decoder = createGenerationOutputDecoder(this._state.tokenizer,
+        this._state.modelConfig.reasoningOutput,
+        [...this._state.modelConfig.stopTokenIds, this._state.tokenizer.getSpecialTokens?.()?.eos]
+          .filter(Number.isSafeInteger));
+      try {
+        yield* decodeGenerationStream(generateWithPrefixKVImpl.call(this, prefix, prompt,
+          { ...options, onToken: undefined }, 'token'), decoder,
+          { ...options, getStopReason: () => this._state.stats.stopReason });
+      } finally {
+        const usage = decoder.getUsage();
+        if (usage.rawTokens > 0) this._state.stats.outputUsage = usage;
+      }
+      return;
+    }
     return yield* generateWithPrefixKVImpl.apply(this, arguments);
   }
 

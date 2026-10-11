@@ -13,7 +13,6 @@ import {
 } from '../../../gpu/kernels/turboquant-codebook.js';
 import { getKernelConfig } from '../../../gpu/kernels/kernel-configs.js';
 import { selectRuleValue as selectKernelRuleValue } from '../../../gpu/kernels/rule-registry.js';
-import { Tokenizer } from '../../tokenizer.js';
 import { MoERouter } from '../../moe-router.js';
 import { SpeculativeDecoder } from '../../speculative.js';
 import { createDopplerLoader } from '../../../loader/doppler-loader.js';
@@ -628,21 +627,7 @@ function requirePositiveInteger(value, label) {
 // Tokenizer Setup
 // ============================================================================
 
-export async function initTokenizer(manifest, options = {}) {
-  const { baseUrl, tokenizerHints, storageContext } = options;
-  const tokenizer = new Tokenizer();
-  await tokenizer.initialize(manifest, {
-    baseUrl,
-    tokenizerHints,
-    loadTokenizerJson: typeof storageContext?.loadTokenizerJson === 'function'
-      ? () => storageContext.loadTokenizerJson()
-      : null,
-    loadTokenizerModel: typeof storageContext?.loadTokenizerModel === 'function'
-      ? (path) => storageContext.loadTokenizerModel(path)
-      : null,
-  });
-  return tokenizer;
-}
+export { initTokenizer } from './init-tokenizer.js';
 
 // ============================================================================
 // Weight Loading

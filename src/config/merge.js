@@ -1,6 +1,7 @@
 import { DEFAULT_MANIFEST_INFERENCE } from './schema/manifest.schema.js';
 import { chooseDefined, chooseDefinedWithSource } from './merge/value-selection.js';
 import { log } from '../debug/index.js';
+import { validateReasoningOutput } from './reasoning-output.js';
 
 // =============================================================================
 // Merge Implementation
@@ -376,7 +377,13 @@ function mergeOutput(
   sources
 ) {
   const prefix = 'inference.output';
+  if (runtime?.reasoningOutput !== undefined) {
+    throw new Error('inference.output.reasoningOutput is manifest-owned and cannot be overridden.');
+  }
+  const reasoningOutput = validateReasoningOutput(manifest.reasoningOutput);
+  if (reasoningOutput !== undefined) sources.set(`${prefix}.reasoningOutput`, 'manifest');
   return {
+    ...(reasoningOutput === undefined ? {} : { reasoningOutput }),
     finalLogitSoftcapping: overlay(
       `${prefix}.finalLogitSoftcapping`,
       manifest.finalLogitSoftcapping,

@@ -120,6 +120,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
         attempt.step++; attempt.position = state.currentSeqLen;
         const next = { nonce: attempt.nonce, step: attempt.step, position: attempt.position };
         const memory = getDeviceMemorySnapshot(owner.gpuContext?.device ?? null);
+        /** @type {import('./resident-partition-contract.js').ResidentPartitionMetrics} */
         const metrics = { ...result.timing, executionMs: performance.now() - executionStarted,
           logitsReadbackMs: 0, samplingMs: 0,
           memory: memory && { maxBytes: memory.maxBytes, liveBytes: memory.liveBytes,
@@ -147,11 +148,19 @@ export async function createResidentPartitionSession(pipeline, allocation, token
         attempt.decoder ??= tokens.createIncrementalDecoder();
         const decoder = attempt.decoder;
         let delta = decoder.push(tokenId);
+        const assertOutputAllowance = () => {
+          const usage = decoder.getUsage?.();
+          if (usage) metrics.outputUsage = usage;
+          if ((usage?.rawCharacters ?? attempt.text.length) > allocation.limits.maxOutputCharacters) {
+            throw createDopplerError(ERROR_CODES.RESIDENT_OUTPUT_LIMIT, 'Resident output exceeds its character allocation.');
+          }
+        };
         attempt.text += delta;
+        assertOutputAllowance();
         const stopReason = stoppingReason(tokenId, attempt.step, generation, tokenContract,
           () => attempt.text + decoder.pendingText());
-        if (stopReason) { const final = decoder.finish(); delta += final; attempt.text += final; attempt.done = true; }
-        if (attempt.text.length > allocation.limits.maxOutputCharacters) throw createDopplerError(ERROR_CODES.RESIDENT_OUTPUT_LIMIT, 'Resident output exceeds its character allocation.');
+        if (stopReason) { const final = decoder.finish({ stopReason }); delta += final; attempt.text += final; attempt.done = true; }
+        assertOutputAllowance();
         metrics.samplingMs = performance.now() - samplingStarted;
         return { identity: request.identity, step: request.step, tokenPosition: request.tokenPosition,
           tokenId, delta, done: attempt.done, stopReason, continuation: next, logits, metrics };

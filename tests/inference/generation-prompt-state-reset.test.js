@@ -5,13 +5,14 @@ import { createDopplerConfig } from '../../src/config/schema/index.js';
 // Exercise the actual generation entry points and reset owner, stopping before
 // GPU work. Physical reset/no-reset controls are retained separately.
 for (const surface of ['generate', 'generateTokenIds']) {
-  for (const condition of ['ready', 'busy', 'unloaded']) {
+  for (const condition of ['ready', 'ready-stat-reset', 'busy', 'unloaded']) {
     let clears = 0;
     const layer = { seqLen: 19 };
     const state = {
       isLoaded: condition !== 'unloaded',
       isGenerating: condition === 'busy',
       currentSeqLen: 19,
+      stats: { outputUsage: { rawTokens: 19, rawCharacters: 100, state: 'reasoning' } },
       runtimeConfig: createDopplerConfig().runtime,
       executionPlanState: {
         activePlanId: 'primary',
@@ -27,19 +28,26 @@ for (const surface of ['generate', 'generateTokenIds']) {
     const generator = new PipelineGenerator(state);
     const reachedDecodeReset = new Error('reached decode reset');
     generator._resetDecodeRuntimeState = () => { throw reachedDecodeReset; };
+    if (condition === 'ready-stat-reset') {
+      generator._resetDecodeRuntimeState = () => {};
+      Object.defineProperty(state.stats, 'gpuTimePrefillMs', { set() { throw reachedDecodeReset; } });
+    }
     const run = () => surface === 'generate'
       ? generator.generate('a new complete prompt', {}).next()
       : generator.generateTokenIds('a new complete prompt', {});
-    if (condition === 'ready') {
+    if (condition === 'ready' || condition === 'ready-stat-reset') {
       await assert.rejects(run, error => error === reachedDecodeReset);
       assert.equal(clears, 1, `${surface}: new prompts must clear the preceding KV context`);
       assert.equal(state.currentSeqLen, 0);
       assert.equal(state.linearAttentionRuntime.layers.size, 0);
+      if (condition === 'ready-stat-reset') assert.equal(state.stats.outputUsage, undefined,
+        'An admitted new execution clears output usage before recording new statistics');
     } else {
       await assert.rejects(run, condition === 'busy' ? /Generation already in progress/ : /Model not loaded/);
       assert.equal(clears, 0, 'Rejected concurrent/unloaded calls must not reset owned state');
       assert.equal(state.currentSeqLen, 19);
       assert.equal(state.linearAttentionRuntime.layers.get(0), layer);
+      assert.equal(state.stats.outputUsage.rawTokens, 19, 'Rejected calls preserve the active output usage');
     }
   }
 }

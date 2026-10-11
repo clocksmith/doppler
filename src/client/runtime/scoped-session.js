@@ -1,3 +1,5 @@
+import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
+
 const SESSION_SCHEMA = 'doppler.scoped-session/v1';
 const RESULT_SCHEMA = 'doppler.generation-result/v1';
 const EVENT_SCHEMA = 'doppler.generation-event/v1';
@@ -60,6 +62,18 @@ function buildObservation(policy, evidence, inspectionReceipt = null) {
   };
 }
 
+function generationCompletion(stats, tokenCount = null) {
+  if (stats?.stopReason == null) return null;
+  const generatedTokenCount = tokenCount ?? stats.tokensGenerated;
+  if (!GENERATION_CONTRACT.stoppingReasons.includes(stats.stopReason)
+    || !Number.isSafeInteger(stats.prefillTokens) || stats.prefillTokens < 0
+    || !Number.isSafeInteger(generatedTokenCount) || generatedTokenCount < 0) {
+    throw new Error('Doppler generation completion requires valid stopping metadata.');
+  }
+  return { schema: GENERATION_CONTRACT.completionSchema, stopReason: stats.stopReason,
+    promptTokenCount: stats.prefillTokens, generatedTokenCount };
+}
+
 function buildGenerationResult(evidence, policy, inspectionReceipt = null) {
   const outputText = String(evidence?.outputText ?? '');
   const tokenIds = Array.from(evidence?.tokenIds || [], Number);
@@ -74,6 +88,7 @@ function buildGenerationResult(evidence, policy, inspectionReceipt = null) {
     outputText,
     content: outputText,
     tokenIds,
+    completion: generationCompletion(evidence?.stats, tokenIds.length),
     resolution,
     usage: {
       promptTokens: null,
@@ -181,6 +196,7 @@ export function createScopedModelSession(handle) {
         schema: EVENT_SCHEMA,
         type: 'complete',
         outputText,
+        completion: generationCompletion(handle.advanced?.getStats?.()),
         observationPolicyId: policy.id,
       };
     },

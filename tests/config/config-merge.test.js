@@ -291,4 +291,20 @@ function createManifest(overrides = {}) {
   assert.ok(summary.manifest > 0);
 }
 
+{
+  const contract = { schema: 'doppler.reasoning-output/v1', openingToken: { id: 10, text: '<think>' },
+    closingToken: { id: 11, text: '</think>' } };
+  const manifest = createManifest();
+  manifest.inference.output.reasoningOutput = contract;
+  const merged = mergeConfig(manifest);
+  assert.deepEqual(merged.inference.output.reasoningOutput, contract);
+  assert.equal(merged._sources.get('inference.output.reasoningOutput'), 'manifest');
+  assert.throws(() => mergeConfig(manifest, { output: { reasoningOutput: null } }), /manifest-owned/);
+  manifest.inference.output.reasoningOutput = { ...contract, schema: 'unknown' };
+  assert.throws(() => mergeConfig(manifest), /reasoning-output/);
+  manifest.inference.output.reasoningOutput = null;
+  assert.equal(mergeConfig(manifest).inference.output.reasoningOutput, null);
+  delete manifest.inference.output.reasoningOutput;
+  assert.equal(mergeConfig(manifest).inference.output.reasoningOutput, undefined);
+}
 console.log('config-merge.test: ok');

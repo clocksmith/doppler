@@ -1,3 +1,4 @@
+import { validateReasoningOutput } from '../config/reasoning-output.js';
 import {
   // Constants
   SHARD_SIZE as SCHEMA_SHARD_SIZE,
@@ -570,6 +571,7 @@ export function createManifest(
   if (!inference) {
     throw new Error('inference config is required — use a v1 conversion config');
   }
+  validateReasoningOutput(inference.output?.reasoningOutput);
   inference = applyDiffusionGemmaInferenceContract(
     inference,
     rawConfig,

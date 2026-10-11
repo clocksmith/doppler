@@ -115,6 +115,47 @@ test('stream emits semantic events instead of return-dependent unions', async ()
   for await (const event of session.stream('prompt')) events.push(event);
   assert.deepEqual(events.map((event) => event.type), ['text-delta', 'text-delta', 'complete']);
   assert.equal(events.at(-1).outputText, 'hello');
+  assert.equal(events.at(-1).completion, null);
+});
+
+test('scoped completion preserves declared stopping reasons and raw token counts', async () => {
+  for (const stopReason of ['max-tokens', 'eos-token', 'stop-token', 'stop-sequence']) {
+    const stats = { stopReason, prefillTokens: 4, tokensGenerated: 7 };
+    const base = makeHandle();
+    const evidence = await base.generateWithEvidence();
+    const session = createScopedModelSession(makeHandle({
+      inspect: null,
+      advanced: { getStats: () => stats },
+      generateWithEvidence: async () => ({ ...evidence, tokenIds: [1, 2, 3, 4, 5, 6, 7], stats }),
+      async *generate() { yield ''; yield 'answer'; },
+    }));
+    const events = [];
+    for await (const event of session.stream('prompt')) events.push(event);
+    const expected = { schema: 'doppler.generation-completion/v1', stopReason,
+      promptTokenCount: 4, generatedTokenCount: 7 };
+    assert.deepEqual(events.at(-1).completion, expected);
+    assert.deepEqual((await session.generate('prompt')).completion, expected);
+    stats.tokensGenerated = 99;
+    assert.equal(events.at(-1).completion.generatedTokenCount, 7);
+  }
+});
+
+test('scoped stream never invents completion on failure or early consumer return', async () => {
+  const events = [];
+  const session = createScopedModelSession(makeHandle({ async *generate() { yield 'partial'; throw new Error('cancelled'); } }));
+  await assert.rejects(async () => { for await (const event of session.stream('prompt')) events.push(event); }, /cancelled/);
+  assert.deepEqual(events.map(event => event.type), ['text-delta']);
+  const iterator = createScopedModelSession(makeHandle()).stream('prompt');
+  assert.equal((await iterator.next()).value.type, 'text-delta');
+  assert.equal((await iterator.return()).done, true);
+});
+
+test('scoped completion rejects invalid reasons or counters instead of inferring EOS', async () => {
+  for (const stats of [{ stopReason: 'invented', prefillTokens: 1, tokensGenerated: 1 },
+    { stopReason: 'max-tokens', prefillTokens: 1, tokensGenerated: -1 }]) {
+    const session = createScopedModelSession(makeHandle({ advanced: { getStats: () => stats } }));
+    await assert.rejects(async () => { for await (const _event of session.stream('prompt')) {} }, /stopping metadata/);
+  }
 });
 
 test('specialized models reject generation and streaming capabilities', async () => {

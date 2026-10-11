@@ -1,5 +1,6 @@
 import type { ResolvedGenerationOptions, GenerationStoppingReason } from '../config/generation-contract.js';
 export interface GenerationTokenContract {
+  reasoningOutput?: import('../config/reasoning-output.js').ReasoningOutputContract;
   padTokenId?: number | null;
   eosTokenId?: number | null;
   stopTokenIds?: readonly number[];

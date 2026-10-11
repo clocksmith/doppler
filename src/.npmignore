@@ -497,6 +497,7 @@ inference/browser-harness/text-execution.d.ts
 inference/browser-harness/text-input.d.ts
 inference/browser-harness/timing-diagnostics.d.ts
 inference/choice-scoring.d.ts
+inference/generation-output.d.ts
 inference/kv-cache/layer-range.d.ts
 inference/kv-cache/update.d.ts
 inference/network-evolution.js
@@ -626,6 +627,7 @@ inference/pipelines/text/index.d.ts
 inference/pipelines/text/index.js
 inference/pipelines/text/init-chat-templates.d.ts
 inference/pipelines/text/init-qkv-fusion.d.ts
+inference/pipelines/text/init-tokenizer.d.ts
 inference/pipelines/text/kernel-trace.d.ts
 inference/pipelines/text/layer-execution-contract.d.ts
 inference/pipelines/text/layer-input-execution.d.ts

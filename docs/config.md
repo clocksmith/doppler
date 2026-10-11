@@ -16,6 +16,26 @@ Implementation internals for the config subsystem live in
 
 ## Runtime config model
 
+`manifest.inference.output.reasoningOutput` is an optional, model-owned output
+contract. Absent or `null` preserves ordinary decoding. The explicit
+`doppler.reasoning-output/v1` value contains `openingToken` and `closingToken`,
+each with an integer `id` and literal `text`. Conversion validates its shape;
+opening checks both markers against the actual tokenizer and rejects overlap
+with stop tokens. Runtime overrides cannot change this signed model fact.
+
+With this contract, text generation, model handles, Capsule operations and
+resident partitions expose final-answer text after the naturally generated
+closing marker. Raw token APIs and receipts still retain every generated token.
+Resident character allocations count the full raw decoded UTF-16 stream,
+including hidden reasoning and special tokens; per-step `metrics.outputUsage`
+reports raw and final counts. Stop sequences apply to final text.
+Natural EOS before the required boundary or an empty final answer is a typed
+`DOPPLER_GENERATION_OUTPUT_INVALID` failure. Token-budget and stop-sequence
+exhaustion retain their actual stop reason and a `truncated` output state;
+cancellation discards decoder state without manufacturing a malformed-output
+failure. Truncation is not a complete answer or task-quality acceptance.
+No currently pinned model or standard archive enables this optional contract.
+
 Doppler resolves runtime behavior from explicit runtime inputs composed in order
 (each later input overrides the previous):
 
