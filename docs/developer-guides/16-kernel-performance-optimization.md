@@ -12,7 +12,7 @@ a reference engine on a specific hardware and workload lane.
 
 Do not use it to route around a stale artifact, a manifest mismatch, incoherent
 output, or an invalid comparison contract. Follow
-[Model Failure Action Plan](../model-failure-action-plan.md) until correctness
+[debugging protocol](../agents/debug-protocol.md) until correctness
 and artifact identity are established first.
 
 ## Blast Radius

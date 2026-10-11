@@ -8,7 +8,8 @@ Primary documentation index.
 - [Run API](api/root.md) — signed-Capsule source facade and its release scope.
 - [Compatibility API](api/compat.md) — explicit published manifest-loading path.
 - [Performance and sizing](performance-sizing.md) — measured limits and prerequisites.
-- [Current priorities](../GOALS.md#current-priorities) — the sole active sequence.
+- [Implementation checklist](../TODO.md) — the sole active sequence and completion state.
+- [Product priorities](../GOALS.md#current-priorities) — durable goals and ownership.
 - [Product contracts](goals.md) — technical requirements and retained campaign evidence.
 
 ## Supported operations and evidence

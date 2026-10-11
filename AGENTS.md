@@ -9,8 +9,9 @@ qualified, signed immutable Capsules; the deliberately uncreative Run validates,
 selects, binds, executes, and observes their declared programs. Browser and Node
 support are qualified separately; Bun remains experimental.
 
-**Current priorities:** Follow the single active sequence in
-[GOALS.md](GOALS.md#current-priorities). Finish dependable execution and lifecycle
+**Current priorities:** Follow [TODO.md](TODO.md), which points to the single
+canonical Doppler–Reploid implementation checklist, within the product boundaries
+in [GOALS.md](GOALS.md#current-priorities). Finish dependable execution and lifecycle
 in the current public integration, then ordinary installation and independent
 application value. Reploid is a demanding consumer, not the owner of Doppler's
 roadmap; Doe is optional. Historical search, rewriting, and provider campaigns

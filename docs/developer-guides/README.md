@@ -39,7 +39,7 @@ Every guide in this directory should answer the same four questions:
 | Add a new model family contract | [03-model-family-config.md](03-model-family-config.md) | Explicit conversion config, no family registry |
 | Convert a checkpoint with an existing family | [04-conversion-config.md](04-conversion-config.md) | Explicit conversion config + existing kernels |
 | Publish a verified artifact | [05-promote-model-artifact.md](05-promote-model-artifact.md) | Curated metadata + external storage + HF |
-| Migrate model artifacts to source/weight/manifest identity | [artifact-identity-migration-plan.md](artifact-identity-migration-plan.md) | Resumable checklist for replacing modelId-as-artifact-identity |
+| Migrate model artifacts to source/weight/manifest identity | [historical artifact identity migration](https://github.com/clocksmith/doppler/blob/4b28d7831f12884c53e3a4c6e3470ca0dea9775f/docs/developer-guides/artifact-identity-migration-plan.md) | Retained migration evidence; current work is selected by TODO.md |
 | Compose existing kernels differently | [06-kernel-path-config.md](06-kernel-path-config.md) | New execution identity, no new WGSL |
 | Check config ownership before cross-runtime work | [config-source-of-truth.md](config-source-of-truth.md) | Source-of-truth map for conversion, runtime, harness, kernel, model, hosted registry, and evidence policy |
 | Export a portable Doe/Cerebras model program | [../integration/program-bundle.md](../integration/program-bundle.md) | Program Bundle schema, exporter, transcript gate |
@@ -66,7 +66,7 @@ Every guide in this directory should answer the same four questions:
 | [03-model-family-config.md](03-model-family-config.md) | atomic | migration note |
 | [04-conversion-config.md](04-conversion-config.md) | atomic | JSON only |
 | [05-promote-model-artifact.md](05-promote-model-artifact.md) | atomic | metadata + publication workflow |
-| [artifact-identity-migration-plan.md](artifact-identity-migration-plan.md) | migration | source checkpoint + weight capsule + manifest variant identity |
+| [historical artifact identity migration](https://github.com/clocksmith/doppler/blob/4b28d7831f12884c53e3a4c6e3470ca0dea9775f/docs/developer-guides/artifact-identity-migration-plan.md) | migration | source checkpoint + weight capsule + manifest variant identity |
 | [06-kernel-path-config.md](06-kernel-path-config.md) | atomic | execution graph + transforms |
 | [07-manifest-runtime-field.md](07-manifest-runtime-field.md) | atomic | schema + merge + parser + tests |
 | [08-chat-template-formatter.md](08-chat-template-formatter.md) | atomic | JS + type declarations + tests |

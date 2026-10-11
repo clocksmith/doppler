@@ -2,6 +2,9 @@
 
 Additive distributed execution contract for canonical RDRR artifacts.
 
+This is a design contract, not an implementation queue. Follow
+[TODO.md](../../TODO.md) for work selection and completion.
+
 ## Purpose
 
 Keep one canonical RDRR weight artifact while allowing Doppler to execute that

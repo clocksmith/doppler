@@ -68,7 +68,7 @@ For text models, "passes" means more than "process did not crash". The run must 
 
 When promotion includes a performance claim, a correctness-clean candidate that
 trails its reference engine must follow the
-[correct-but-behind performance trigger](model-failure-action-plan.md#correct-but-behind-performance-trigger).
+[correct-but-behind performance trigger](https://github.com/clocksmith/doppler/blob/4b28d7831f12884c53e3a4c6e3470ca0dea9775f/docs/model-failure-action-plan.md#correct-but-behind-performance-trigger).
 Near-parity claims require the paired stopping rule in
 [Benchmark Methodology](benchmark-methodology.md#near-parity-statistical-protocol),
 and the published score must come from a saved receipt rather than a hand-edited
