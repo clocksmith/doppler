@@ -1,0 +1,68 @@
+{
+  "scope": "Independent source recurrence-order sensitivity; neither implementation is a newly approved reference",
+  "tolerance": 0.001,
+  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "sources": [
+    {
+      "path": "reports/local/source-model-reference-20261011/final-default-comparison.json",
+      "sha256": "76990b7d1fb885a92489cf786a5b98fbf48e43fdedd4a269208dc88c96fa8b85"
+    },
+    {
+      "path": "reports/local/source-model-reference-20261011/recurrent-prefill-comparison.json",
+      "sha256": "7dbbaeafb3962f212bdcbc1831def136bf8d766f24dbefbed41dd09adac89b68"
+    }
+  ],
+  "comparisons": [
+    {
+      "index": 0,
+      "step": 0,
+      "maxAbsDifference": 0.0009125471115112305,
+      "sameGreedyToken": true
+    },
+    {
+      "index": 0,
+      "step": 1,
+      "maxAbsDifference": 0.0009088516235351562,
+      "sameGreedyToken": true
+    },
+    {
+      "index": 1,
+      "step": 0,
+      "maxAbsDifference": 0.0008182525634765625,
+      "sameGreedyToken": true
+    },
+    {
+      "index": 1,
+      "step": 1,
+      "maxAbsDifference": 0.0008676648139953613,
+      "sameGreedyToken": true
+    },
+    {
+      "index": 2,
+      "step": 0,
+      "maxAbsDifference": 0.0009622573852539062,
+      "sameGreedyToken": true
+    },
+    {
+      "index": 2,
+      "step": 1,
+      "maxAbsDifference": 0.0007557868957519531,
+      "sameGreedyToken": true
+    },
+    {
+      "index": 2,
+      "step": 2,
+      "maxAbsDifference": 0.0008072853088378906,
+      "sameGreedyToken": true
+    },
+    {
+      "index": 2,
+      "step": 3,
+      "maxAbsDifference": 0.0010614395141601562,
+      "sameGreedyToken": true
+    }
+  ],
+  "maximumDifference": 0.0010614395141601562,
+  "runtimeChanged": false,
+  "referenceChanged": false
+}
