@@ -115,3 +115,23 @@ a wrong amount or citation. The rejected receipt remains unchanged; neither the
 comparison nor the output was rewritten to pass. One following opening token is
 retained as interrupted; nine cases were not started. Raw report, process log and
 `literal-format-review.json` preserve the complete disposition.
+
+The exposed fixture now has a prospective comparison correction in
+`literal-format-comparison-v2.json` (SHA-256
+`c60149d173e4be545d0f12ecdc7eb8a5ab218bdb20e490c951bffb02cd61f81e`).
+It is not a new holdout. Prompts, expected strings, instruction, seeds, model and
+generation settings are unchanged. Both cited-value cases explicitly compare
+the exact value and exact bracketed citation, permitting only ASCII spaces or
+tabs at their boundary after trimming outer whitespace. Internal whitespace,
+wrong values or citations, extra punctuation and extra text still reject. Every
+other case retains the previous comparator. Focused synthetic tests cover those
+positive and negative boundaries and unchanged historical punctuation rejection.
+The original failed receipt is not regraded. The exact v2 evaluator and entrypoint
+are retained before the new invocation; its model results are pending separately.
+
+The frozen v2 suite's inherited top-level `scope` string still says fresh
+holdout; its `comparisonRevision.scope` is the accurate classification. The
+producer copies that stale top-level string into the report. Treat this run as
+an exposed comparison-contract correction, as recorded here and in its review;
+neither the suite nor completed execution bytes are changed to hide that
+metadata inconsistency.

@@ -1,9 +1,24 @@
 """Offline source-model task comparison shared by retained quality controls."""
 import json
+import re
 import numpy as np
 import torch
 from transformers import DynamicCache
 from transformers.generation.logits_process import TemperatureLogitsWarper, TopKLogitsWarper, TopPLogitsWarper
+
+
+def compare_task_answer(answer, task):
+    """Apply only the frozen task's declared output contract, never rewrite output."""
+    if 'comparison' not in task:
+        return answer.split() == task['expected'].split()
+    contract = task['comparison']
+    assert isinstance(contract, dict) and set(contract) == {'schema', 'value', 'citation'}
+    assert contract['schema'] == 'doppler.cited-value-comparison/v1'
+    value, citation = contract['value'], contract['citation']
+    assert isinstance(value, str) and value and not any(character.isspace() for character in value)
+    assert isinstance(citation, str) and re.fullmatch(r'\[[A-Za-z0-9_-]+\]', citation)
+    assert task['expected'] == value + ' ' + citation
+    return re.fullmatch(re.escape(value) + r'[ \t]*' + re.escape(citation), answer.strip()) is not None
 
 
 class StoredHalfCache(DynamicCache):
@@ -57,6 +72,8 @@ def probe_retained_prefix(model, config, tokenizer, baseline, case_id, selected_
 
 
 def evaluate_tasks(model, config, tokenizer, source_tokenizer, suite, report, output):
+    for task in suite['cases']:
+        assert compare_task_answer(task['expected'], task), 'Invalid frozen answer contract.'
     settings = suite['generation']
     greedy = settings['temperature'] == 0
     if greedy:
@@ -150,7 +167,7 @@ def evaluate_tasks(model, config, tokenizer, source_tokenizer, suite, report, ou
                                     and row['generatedTokenCount'] <= settings['maxTokens']
                                     and row['totalTokenCount'] <= settings['maxSeqLen'])
             boundary_valid = boundary_valid and row['withinBudgets']
-        row['passed'] = row['stopReason'] == 'eos' and boundary_valid and answer.split() == task['expected'].split()
+        row['passed'] = row['stopReason'] == 'eos' and boundary_valid and compare_task_answer(answer, task)
         output.write_text(json.dumps(report) + '\n')
     report['passed'] = all(row['passed'] for row in report['results'])
     output.write_text(json.dumps(report) + '\n')

@@ -1,0 +1,119 @@
+{
+  "schema": "doppler.source-task-quality/v1",
+  "modelId": "Qwen/Qwen3-1.7B",
+  "sourceRevision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "hypothesis": "A general literal-format instruction explicitly covers answer-only constraints while preserving requested punctuation and ordinary prose; no case-specific examples or answers.",
+  "acceptance": "Every task under both frozen seeds must have one natural closing-think token, subsequent nonempty final answer meeting its frozen comparison, declared EOS, at most4096 generated tokens,8192 total tokens, and16000 raw decoded characters. Tasks without comparison retain exact whitespace-token comparison. Any failure rejects the configuration; complete raw output is retained.",
+  "scope": "Fresh bounded application-policy holdout on the same exact decoded deployed weights; original failed cases remain unchanged regression gates. No GPU qualification or promotion.",
+  "enableThinking": true,
+  "generation": {
+    "maxTokens": 4096,
+    "maxSeqLen": 8192,
+    "temperature": 0.6,
+    "topK": 20,
+    "topP": 0.95,
+    "repetitionPenalty": 1.0,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "stopSequences": [],
+    "useChatTemplate": true,
+    "minP": 0
+  },
+  "cases": [
+    {
+      "id": "permission-positive",
+      "prompt": "Read: \"Harper may unlock the storage room after clearance. Clearance has been granted.\" Is Harper allowed to unlock the storage room now? Answer only Yes or No.",
+      "expected": "Yes"
+    },
+    {
+      "id": "permission-negative",
+      "prompt": "Read: \"Nico must not publish the report without approval.\" Nico has no approval. Is Nico allowed to publish the report now? Answer only Yes or No.",
+      "expected": "No"
+    },
+    {
+      "id": "sum-literal",
+      "prompt": "What is 28 plus 16? Output only the integer answer.",
+      "expected": "44"
+    },
+    {
+      "id": "duplicates-literal",
+      "prompt": "Copy these values exactly, preserving duplicates and order, one per line. Output nothing else: maple, lichen, maple, maple, lichen, lichen.",
+      "expected": "maple\nlichen\nmaple\nmaple\nlichen\nlichen"
+    },
+    {
+      "id": "conditional-fulfilled",
+      "prompt": "Use only this passage. [S4] Inspection may start on July 19 only if access is approved by July 15. Access was approved on July 14.\nDoes the stated approval satisfy the condition for inspection on July 19? Output exactly one line with Yes or No followed by the passage citation in square brackets.",
+      "expected": "Yes [S4]",
+      "comparison": {
+        "schema": "doppler.cited-value-comparison/v1",
+        "value": "Yes",
+        "citation": "[S4]"
+      }
+    },
+    {
+      "id": "amount-literal",
+      "prompt": "Use only these passages. [S1] The preliminary estimate was $128.10. [S8] The final signed invoice supersedes that estimate and gives a total of $137.65.\nWhat is the final invoice total? Output exactly the dollar amount followed by the supporting passage citation in square brackets.",
+      "expected": "$137.65 [S8]",
+      "comparison": {
+        "schema": "doppler.cited-value-comparison/v1",
+        "value": "$137.65",
+        "citation": "[S8]"
+      }
+    },
+    {
+      "id": "ascending-literal",
+      "prompt": "List the integers from three hundred and eleven through five hundred and twenty-five inclusive, in ascending order, one integer per line. Output only the list.",
+      "expected": "311\n312\n313\n314\n315\n316\n317\n318\n319\n320\n321\n322\n323\n324\n325\n326\n327\n328\n329\n330\n331\n332\n333\n334\n335\n336\n337\n338\n339\n340\n341\n342\n343\n344\n345\n346\n347\n348\n349\n350\n351\n352\n353\n354\n355\n356\n357\n358\n359\n360\n361\n362\n363\n364\n365\n366\n367\n368\n369\n370\n371\n372\n373\n374\n375\n376\n377\n378\n379\n380\n381\n382\n383\n384\n385\n386\n387\n388\n389\n390\n391\n392\n393\n394\n395\n396\n397\n398\n399\n400\n401\n402\n403\n404\n405\n406\n407\n408\n409\n410\n411\n412\n413\n414\n415\n416\n417\n418\n419\n420\n421\n422\n423\n424\n425\n426\n427\n428\n429\n430\n431\n432\n433\n434\n435\n436\n437\n438\n439\n440\n441\n442\n443\n444\n445\n446\n447\n448\n449\n450\n451\n452\n453\n454\n455\n456\n457\n458\n459\n460\n461\n462\n463\n464\n465\n466\n467\n468\n469\n470\n471\n472\n473\n474\n475\n476\n477\n478\n479\n480\n481\n482\n483\n484\n485\n486\n487\n488\n489\n490\n491\n492\n493\n494\n495\n496\n497\n498\n499\n500\n501\n502\n503\n504\n505\n506\n507\n508\n509\n510\n511\n512\n513\n514\n515\n516\n517\n518\n519\n520\n521\n522\n523\n524\n525"
+    },
+    {
+      "id": "descending-literal",
+      "prompt": "List the integers from eight hundred and seventy-six down to six hundred and sixty-seven inclusive, in descending order, one integer per line. Output only the list.",
+      "expected": "876\n875\n874\n873\n872\n871\n870\n869\n868\n867\n866\n865\n864\n863\n862\n861\n860\n859\n858\n857\n856\n855\n854\n853\n852\n851\n850\n849\n848\n847\n846\n845\n844\n843\n842\n841\n840\n839\n838\n837\n836\n835\n834\n833\n832\n831\n830\n829\n828\n827\n826\n825\n824\n823\n822\n821\n820\n819\n818\n817\n816\n815\n814\n813\n812\n811\n810\n809\n808\n807\n806\n805\n804\n803\n802\n801\n800\n799\n798\n797\n796\n795\n794\n793\n792\n791\n790\n789\n788\n787\n786\n785\n784\n783\n782\n781\n780\n779\n778\n777\n776\n775\n774\n773\n772\n771\n770\n769\n768\n767\n766\n765\n764\n763\n762\n761\n760\n759\n758\n757\n756\n755\n754\n753\n752\n751\n750\n749\n748\n747\n746\n745\n744\n743\n742\n741\n740\n739\n738\n737\n736\n735\n734\n733\n732\n731\n730\n729\n728\n727\n726\n725\n724\n723\n722\n721\n720\n719\n718\n717\n716\n715\n714\n713\n712\n711\n710\n709\n708\n707\n706\n705\n704\n703\n702\n701\n700\n699\n698\n697\n696\n695\n694\n693\n692\n691\n690\n689\n688\n687\n686\n685\n684\n683\n682\n681\n680\n679\n678\n677\n676\n675\n674\n673\n672\n671\n670\n669\n668\n667"
+    }
+  ],
+  "seeds": [
+    37,
+    89
+  ],
+  "answerBoundary": {
+    "text": "</think>",
+    "tokenId": 151668,
+    "exactlyOne": true
+  },
+  "maxOutputCharacters": 16000,
+  "eosTokenIds": [
+    151645,
+    151643
+  ],
+  "officialPolicy": {
+    "url": "https://huggingface.co/Qwen/Qwen3-1.7B/blob/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/README.md",
+    "readmeSha256": "257e52c419dac2258852643f18af6c974f21f8c6c1b6f371b6cca6201cf29091",
+    "generationConfigSha256": "2325da0f15bb848e018c5ae071b7943332e9f871d6b60e2ed22ca97d4cb993d2",
+    "repetitionPenalty": "No source repetition_penalty override. Installed Transformers GenerationConfig resolves None (disabled), mathematically equivalent to multiplier1.0."
+  },
+  "sourceQualitySuiteSha256": "0cf151811add3f9a61e931a1d3a24b1a3d6e64a878b2ee4ba617cf7f558b0b1f",
+  "deployed": {
+    "modelId": "qwen-3-1-7b-q4k-ehf16-hq4k-af32-diagnostic",
+    "manifestSha256": "bc7ede46274d8c18ebb882bb30a87b7a31ccbf3e87afb691a63c476fa0cdcf38"
+  },
+  "instruction": "Treat explicit output constraints literally. If asked to output only specified words, numbers, lines, or a cited value, add no other words or punctuation. Preserve punctuation required by the requested format. Otherwise answer naturally.",
+  "regressionSuiteSha256": "34ca02e794f8067c08bb19a0d1dbc84e39617557eeeff9432d004a459e338537",
+  "failFast": "Stop on first completed failure; full16 pass then requires both prior14-task suites unchanged except candidate system instruction as regression. Preserve failed, partial, and unrun cases.",
+  "instructionSha256": "5f04d085b3ff6b7fad5b7ce4cb8486453f171ca9f53e188f1326bc7e842a5730",
+  "requiredRegressionSuites": [
+    {
+      "file": "suite.json",
+      "sha256": "34ca02e794f8067c08bb19a0d1dbc84e39617557eeeff9432d004a459e338537"
+    },
+    {
+      "file": "format-policy-holdout.json",
+      "sha256": "f08c3e7a5d027371fa6adefcc212ebd54c16fbdc2c001561c29db3719fbf7143"
+    }
+  ],
+  "comparisonRevision": {
+    "schema": "doppler.task-comparison-correction/v1",
+    "revision": 2,
+    "supersedesSuiteSha256": "2747c2c3dc7b611de36050788bd8d89e53a4ee5303613420aa634ba5eedb28f5",
+    "scope": "Exposed contract-correction suite, not a new holdout. Same prompts, expected strings, instruction, seeds, model and generation. Both cited-value cases use exact value and citation fields with optional ASCII horizontal whitespace only at their boundary after outer trim. Original failure remains unchanged."
+  }
+}
