@@ -1,0 +1,88 @@
+{
+  "schema": "doppler.w8a8-source-comparison/v1",
+  "passed": false,
+  "modelQualified": false,
+  "scope": "Independent CPU source equations on exact deployed weights, not GPU qualification",
+  "suiteSha256": "890a28e543ef614bcfb0fa60de195c189d30c1216f29804559a2b2de7b8edd5a",
+  "lanes": {
+    "f16": {
+      "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+      "correctTasks": 5,
+      "taskCount": 12,
+      "meanNll": 4.630961223030469,
+      "targetTokenCount": 200,
+      "approximationAcceptance": "requires all compared lanes"
+    },
+    "q4": {
+      "modelIdentity": "sha256:afecba81640288d0849838c8d4d8c763af80edc1fc22051853ce6700dda4b315",
+      "correctTasks": 2,
+      "taskCount": 12,
+      "meanNll": 5.1531543895274305,
+      "targetTokenCount": 200,
+      "approximationAcceptance": "requires all compared lanes"
+    },
+    "w8a8": {
+      "modelIdentity": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+      "correctTasks": 5,
+      "taskCount": 12,
+      "meanNll": 4.717551487921449,
+      "targetTokenCount": 200,
+      "approximationAcceptance": "requires all compared lanes"
+    }
+  },
+  "criteria": {
+    "minimumCorrect": false,
+    "retainsF16Passes": false,
+    "q4TaskFloor": true,
+    "nllAboveF16": 0.08659026489098043,
+    "nllF16Limit": 0.1,
+    "nllPass": true
+  },
+  "lostF16Tasks": [
+    "literal"
+  ],
+  "evidence": [
+    {
+      "source": "reports/local/w8a8-qualification-20261011/f16-source-quality.json",
+      "retained": "artifacts/w8a8-model-qualification-20261011/f16-source-quality.json.gz",
+      "sha256": "676c72b5f18025f3726873551918d72fca4cf73ba111321f0e7cf0a3e72e08dc"
+    },
+    {
+      "source": "reports/local/w8a8-qualification-20261011/q4-source-quality.json",
+      "retained": "artifacts/w8a8-model-qualification-20261011/q4-source-quality.json.gz",
+      "sha256": "41fb4e4bf97848919c27745819d2f6410b799427b468dcf977083249aef1f01e"
+    },
+    {
+      "source": "reports/local/w8a8-qualification-20261011/w8a8-source-quality.json",
+      "retained": "artifacts/w8a8-model-qualification-20261011/w8a8-source-quality.json.gz",
+      "sha256": "de1f9f4a004dd55a6b9c5068dbdb8c9c8ae2d9d967fe331c66d964f185204e5d"
+    },
+    {
+      "source": "reports/local/w8a8-qualification-20261011/f16-af32-binding.json",
+      "retained": "artifacts/w8a8-model-qualification-20261011/f16-af32-binding.json.gz",
+      "sha256": "280e1ee512003857092dfe869bcc2b5df3d5ebe47fc924d8aad349c23d42ecc6"
+    },
+    {
+      "source": "reports/local/w8a8-qualification-20261011/q4k-ehf16-af32-binding.json",
+      "retained": "artifacts/w8a8-model-qualification-20261011/q4k-ehf16-af32-binding.json.gz",
+      "sha256": "604611df1482615da491a6f13ba9516024623b11306621bf695fb3f814bdfa70"
+    },
+    {
+      "source": "reports/local/w8a8-qualification-20261011/w8a8-binding.json",
+      "retained": "artifacts/w8a8-model-qualification-20261011/w8a8-binding.json.gz",
+      "sha256": "13bbb9ac4e048673e8b7ff2d74d486a0a4bc85da826e884482ceaaa50db53450"
+    },
+    {
+      "source": "reports/local/w8a8-qualification-20261011/source-lineage.json",
+      "retained": "artifacts/w8a8-model-qualification-20261011/source-lineage.json.gz",
+      "sha256": "50fd7beb6c9351914aaf906a69e2329006f2a8623cbb0b6edd7a1b3e2bfea640"
+    },
+    {
+      "source": "reports/local/w8a8-qualification-20261011/f16-rounding-audit.json",
+      "retained": "artifacts/w8a8-model-qualification-20261011/f16-rounding-audit.json.gz",
+      "sha256": "aed569548a792777f7c8e57d2570ceb4ba02fcdf827cec331294e63fd6fc183c"
+    }
+  ],
+  "standardArchiveChanged": false,
+  "distributedToleranceChanged": false
+}
