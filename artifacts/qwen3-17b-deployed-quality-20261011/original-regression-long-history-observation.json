@@ -1,0 +1,44 @@
+{
+  "schema": "doppler.source-logit-observation/v1",
+  "suiteSha256": "985acd4224288ff3491ea51cd2ec3a6c87ec01d0ca463894b0a0f81e5a539e8f",
+  "manifestSha256": "bc7ede46274d8c18ebb882bb30a87b7a31ccbf3e87afb691a63c476fa0cdcf38",
+  "sourceRevision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "threadPolicy": {
+    "torch": 4,
+    "OPENBLAS_NUM_THREADS": 4,
+    "OMP_NUM_THREADS": 4
+  },
+  "arithmetic": {
+    "weights": "Independent exact deployed F16 and Q4_K decoding into F32; separate quantized output head.",
+    "equations": "Pinned Transformers 5.6.2 Qwen3 eager equations, F32 tensors and arithmetic, source model config. This is an independent F32 reference implementation, not emulation of GPU reduction order.",
+    "kvStorage": "Round each stored key/value update to F16, then widen stored values to F32 for attention.",
+    "observation": "Full151936 raw F32 logits before penalties, filters or stochastic sampling; exact source input prefixes, no Doppler state.",
+    "sampling": "Unchanged frozen source suite policy and per-case Torch seed. No promise of Torch/Doppler RNG token parity."
+  },
+  "positions": [
+    {
+      "caseId": "long-ascending",
+      "seed": 17,
+      "steps": [
+        256,
+        512,
+        1024
+      ]
+    },
+    {
+      "caseId": "long-descending",
+      "seed": 17,
+      "steps": [
+        256,
+        512,
+        1024
+      ]
+    }
+  ],
+  "requiredTotalPositions": 6,
+  "coverage": "Supplemental extended-history boundaries for both long ordered-list tasks. Retain explicit skipped positions after EOS or interruption, and never count unobserved vectors as covered.",
+  "qualification": false,
+  "referenceDisposition": "Candidate-specific independent selected-boundary evidence only. No activation or substitution of old Qwen3.5 numerical fixtures; historical .001 gates remain unchanged.",
+  "vocabSize": 151936,
+  "supplementsContractSha256": "29d290703bf467755a61bbd30dc774528903e77584f15daab116b275977854c9"
+}

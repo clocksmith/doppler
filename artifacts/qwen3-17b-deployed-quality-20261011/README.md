@@ -127,7 +127,7 @@ wrong values or citations, extra punctuation and extra text still reject. Every
 other case retains the previous comparator. Focused synthetic tests cover those
 positive and negative boundaries and unchanged historical punctuation rejection.
 The original failed receipt is not regraded. The exact v2 evaluator and entrypoint
-are retained before the new invocation; its model results are pending separately.
+are retained before the new invocation; its rejected result is reported below.
 
 The frozen v2 suite's inherited top-level `scope` string still says fresh
 holdout; its `comparisonRevision.scope` is the accurate classification. The
@@ -148,3 +148,42 @@ instruction is bound explicitly. They may execute only after the complete
 sixteen-case v2 gate passes. Each result review must report the original strict
 and corrected decisions on the same raw answers; corrected acceptance must not
 be presented as passing a strict comparator that actually rejected it.
+
+Contingent numerical observation contracts separately bind each regression's
+first seed, all seven cases at steps 0, 1, 7 and 31, and supplemental steps 256,
+512 and 1024 for both long-list cases. These are at most 68 full-vector
+observations across both regressions; actual coverage must identify every skipped
+position. The independent source uses the same decoded weights, pinned F32 eager
+equations and stored F16 cache, with four CPU threads. It is not an emulator of
+GPU reduction order or a replacement for the old Qwen3.5 reference. Binary vectors
+remain outside Git with hashes in a compact index. The isolated observer's tests
+verify unchanged model weights, logits, random state and sampled tokens, plus
+identity binding, complete vector size, duplicate rejection and skipped coverage.
+It has not yet been attached to the source evaluator or executed on this model.
+
+`reasoning-runtime-manifest.json` is a separate inactive diagnostic manifest.
+`reasoning-runtime-derivation.json` binds source manifest `bc7ede46…` to derived
+manifest `a8647c3f…`: the only semantic addition is the explicit model-owned
+reasoning-output contract. Existing ChatML, every numeric field, all shard
+references and tokenizer bytes remain unchanged. Both marker IDs were verified
+against the actual tokenizer. Any later independent-reference fixture must retain
+the source identity and cite this derivation to its runtime identity. Preparing
+this annotation does not activate a model or establish physical qualification.
+
+The corrected sixteen-case invocation passed all eight seed-37 cases, including
+both complete long lists, and the seed-89 positive-permission case. The next
+negative-permission case emitted `No.` instead of the unchanged required `No`.
+It naturally closed reasoning and emitted EOS after 218 generated tokens, using
+307 total tokens and 1,036 raw UTF-16 characters. The candidate therefore fails.
+The fail-fast monitor retained one opening token of the next case and left five
+cases unstarted. Nine completed cases pass the corrected contract; eight pass
+the original strict comparator. The latter additionally rejects the previously
+documented citation separator. Both decisions are recorded on identical raw
+answers in `literal-comparison-v2-review.json`; neither historical verdict is
+rewritten. Complete result and interrupted process log are retained compressed.
+
+The contingent prior regressions, numerical observer and inactive annotated
+runtime manifest were prepared but not executed or activated. No observer was
+attached to this run. The failed quality gate prevents advancement to physical
+model qualification. No additional instruction or model variant follows from
+this result, and the standard archive and old numerical fixtures remain unchanged.
