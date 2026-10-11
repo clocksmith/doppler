@@ -6,42 +6,51 @@ import { createHash } from 'node:crypto';
 import { probeNodeGPU } from '../helpers/gpu-probe.js';
 import { createPipeline } from '../../src/inference/pipelines/text.js';
 import { createNodeFileArtifactStorageContext } from '../../src/storage/artifact-storage-context.js';
-import { createLayerPartitionPlan, deserializeActivationFrame, serializeActivationFrame,
+import { deserializeActivationFrame, serializeActivationFrame,
   comparePartitionExecution } from '../../src/partitions.js';
 import { resolveResidentPartitionAllocation } from '../../src/inference/pipelines/text/resident-partition-contract.js';
 import { createResidentPartitionSession } from '../../src/inference/pipelines/text/resident-partition.js';
 import { createModelHandle } from '../../src/client/model-host/model-session.js';
 import { createCapsuleProgramAdapter } from '../../src/client/runtime/capsule-program-adapter.js';
-import { computeCanonicalSha256 } from '../../src/formats/canonical-hash.js';
 import { resolveGenerationOptions } from '../../src/config/generation-contract.js';
 import { sampleCapsuleLogits, stoppingReason } from '../../src/inference/generation-step.js';
+import { samplingSeedForToken } from '../../src/inference/token-sampling.js';
 import { createPartitionAttempt } from '../../src/inference/pipelines/text/partition-attempt.js';
 import { acquireBuffer, isBufferActive } from '../../src/memory/buffer-pool.js';
 import { destroyDevice, getDevice } from '../../src/gpu/device.js';
 import { releaseNodeWebGPU } from '../../src/tooling/node-webgpu.js';
+import { resolvePhysicalPartitionConfig, bindPhysicalIndependentReference, physicalInputDigest,
+  INDEPENDENT_TOLERANCE } from '../helpers/resident-partition-physical-config.js';
 
 const modelDirectory = process.env.DOPPLER_PARTITION_MODEL_DIR;
 if (!modelDirectory) {
+  assert(!process.env.DOPPLER_PARTITION_CONFIG, 'Explicit physical config requires DOPPLER_PARTITION_MODEL_DIR');
   console.log('resident-partition-physical: skipped; set DOPPLER_PARTITION_MODEL_DIR');
 } else {
   const manifestBytes = await fs.readFile(path.join(modelDirectory, 'manifest.json'));
   const manifest = JSON.parse(manifestBytes);
   const modelIdentity = 'sha256:' + createHash('sha256').update(manifestBytes).digest('hex');
-  const plan = createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
-    activationDtype: manifest.inference.session.compute.defaults.activationDtype });
-  const planId = computeCanonicalSha256(plan);
-  const chat = process.env.DOPPLER_PARTITION_CHAT === '1';
-  const generation = resolveGenerationOptions(chat ? { maxTokens: 1024, maxSeqLen: 4096, temperature: 0,
-    topK: 1, topP: 1, repetitionPenalty: 1, repetitionPenaltyWindow: 0, presencePenalty: 0, useChatTemplate: true } : { maxTokens: 3, maxSeqLen: 128, temperature: 0,
-    topK: 0, topP: 1, repetitionPenalty: 1.1, repetitionPenaltyWindow: 0,
-    presencePenalty: 0.1, useChatTemplate: false });
-  const limits = { maxTokens: generation.maxTokens, maxPromptTokens: 2048, maxActivationBytes: 1024 * 1024,
-    maxOutputCharacters: 1024, maxAttempts: 16, maxConcurrentAttempts: 2 };
+  const configPath = process.env.DOPPLER_PARTITION_CONFIG;
+  const configBytes = configPath ? await fs.readFile(configPath) : null;
+  const configuration = resolvePhysicalPartitionConfig(manifest, modelIdentity,
+    configBytes ? JSON.parse(configBytes) : null, { chat: process.env.DOPPLER_PARTITION_CHAT === '1',
+      prompts: process.env.DOPPLER_PARTITION_PROMPTS
+        ? JSON.parse(await fs.readFile(process.env.DOPPLER_PARTITION_PROMPTS, 'utf8')) : undefined });
+  const { plan, planId, generation, limits, prompts, chat } = configuration;
+  const independent = configuration.reference ? bindPhysicalIndependentReference(
+    await fs.readFile(path.resolve(path.dirname(configPath), configuration.reference.path)),
+    configuration.reference, configuration) : null;
   const runtimeConfig = { inference: { session: { kvcache: { maxSeqLen: generation.maxSeqLen } } } };
   const signal = new AbortController().signal;
   const pipelines = [], residents = [], handles = [], references = [];
   const report = { kind: 'same-device-resident-partition-diagnostic', modelIdentity, planId, generation,
-    actualModelInference: true, publicCapsuleAcquisition: false, steps: [] };
+    actualModelInference: true, publicCapsuleAcquisition: false, capacityQualification: false,
+    configDigest: configBytes ? physicalInputDigest(configBytes) : null, limits,
+    parity: { source: 'unsplit-doppler', tolerance: 1e-4 },
+    independentAccuracy: independent ? { sourceDigest: configuration.reference.sha256,
+      provenance: independent.provenance, tolerance: INDEPENDENT_TOLERANCE,
+      scope: 'Unsplit forced-prefix logits at independently produced contexts; not resident sampling or complete-model qualification', steps: [] } : null,
+    steps: [] };
   try {
     const gpu = await probeNodeGPU({ installFileFetchShim: true });
     assert.ok(gpu.ready, gpu.reason); report.provider = gpu.providerReceipt;
@@ -75,13 +84,14 @@ if (!modelDirectory) {
             ? await reference.prefillWithLogits(prompt, { inputIds: input, useChatTemplate: false })
             : await reference.decodeStepLogits(context, { useChatTemplate: false });
           if (step === 0) snapshot = output.cache;
-          const tokenId = sampleCapsuleLogits(output.logits, context, options, referenceTokens.getTokenContract());
+          const tokenId = sampleCapsuleLogits(output.logits, context,
+            { ...options, seed: samplingSeedForToken(options.seed, step) }, referenceTokens.getTokenContract());
           context.push(tokenId); text += decoder.push(tokenId);
           const stopReason = stoppingReason(tokenId, step + 1, options, referenceTokens.getTokenContract(), () => text + decoder.pendingText());
           steps.push({ tokenId, logits: output.logits, stopReason });
           if (stopReason) break;
         }
-        text += decoder.finish(); return { steps, text, input };
+        text += decoder.finish({ stopReason: steps.at(-1)?.stopReason }); return { steps, text, input };
       } finally { snapshot?.destroy(); }
     }
     const cacheLength = pipelines[1].runtimeConfig.inference.session.kvcache.maxSeqLen;
@@ -92,16 +102,32 @@ if (!modelDirectory) {
     assert.equal(isBufferActive(buffers[0]), false);
     assert.equal(isBufferActive(buffers[1]), true, 'Closing one attempt must preserve the other recurrent state');
     probes[1].close(); assert.equal(isBufferActive(buffers[1]), false);
-    const prompts = process.env.DOPPLER_PARTITION_PROMPTS
-      ? JSON.parse(await fs.readFile(process.env.DOPPLER_PARTITION_PROMPTS, 'utf8'))
-      : chat ? [[{ role: 'user', content: 'Reply with only the word Hello.' }],
-      [{ role: 'user', content: 'What is two plus two? Answer briefly.' }]]
-      : ['The color of the sky is', 'The capital of France is'];
     const expected = [];
     for (const prompt of prompts) expected.push(await unsplit(prompt, generation));
+    if (independent) for (const [thread, sample] of independent.expected.entries()) {
+      assert.deepEqual(sample.input, expected[thread].input, 'Independent reference tokenization changed');
+      reference.reset();
+      const last = sample.steps.at(-1);
+      let snapshot;
+      try {
+        for (let index = 0; index <= last.step; index++) {
+          const output = index === 0
+            ? await reference.prefillWithLogits(prompts[thread], { inputIds: sample.input, useChatTemplate: false })
+            : await reference.decodeStepLogits([last.context[sample.input.length + index - 1]], { useChatTemplate: false });
+          if (index === 0) snapshot = output.cache;
+          const selected = sample.steps.find(step => step.step === index);
+          if (!selected) continue;
+          const comparison = comparePartitionExecution({ splitOutput: output.logits,
+            referenceOutput: selected.logits, tolerance: INDEPENDENT_TOLERANCE, minCosineSimilarity: -1 });
+          report.independentAccuracy.steps.push({ thread, step: index, comparison });
+          assert.ok(comparison.matches, `Independent numerical accuracy: ${JSON.stringify(comparison)}`);
+        }
+      } finally { snapshot?.destroy(); }
+    }
     if (process.env.DOPPLER_PARTITION_REFERENCE_OUT) {
-      await fs.writeFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, JSON.stringify({ modelIdentity, planId, generation, prompts,
-        expected: expected.map(result => ({ text: result.text, steps: result.steps.map(step => ({ tokenId: step.tokenId,
+      await fs.writeFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, JSON.stringify({ kind: 'doppler-parity-capture',
+        scope: 'Doppler-generated regression fixture; not independent numerical accuracy', modelIdentity, planId, generation, prompts,
+        expected: expected.map(result => ({ input: result.input, text: result.text, steps: result.steps.map(step => ({ tokenId: step.tokenId,
           stopReason: step.stopReason, logits: Buffer.from(step.logits.buffer, step.logits.byteOffset, step.logits.byteLength).toString('base64') })) })) }));
     }
     const requests = await Promise.all(prompts.map((messages, index) => a.tokenize({ messages, identity: identity(String(index)), signal })));
@@ -185,6 +211,9 @@ if (!modelDirectory) {
     report.outputAllocationFailure = { code: outputError.code, settled: true };
     report.checks = ['isolated-recurrent-buffer-cleanup', 'interleaved-attempts', 'full-logit-parity', 'sampling-penalties', 'text-parity', 'length-finalization', 'closed-replay', 'cancel-before-submit'];
     console.log(JSON.stringify(report));
+  } catch (error) {
+    console.error(JSON.stringify({ ...report, failure: { name: error.name, message: error.message } }));
+    throw error;
   } finally {
     await Promise.allSettled(residents.map(resident => resident.close()));
     for (const pipeline of pipelines.reverse()) await pipeline.unload();
