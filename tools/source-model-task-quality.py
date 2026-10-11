@@ -39,6 +39,7 @@ def run(args):
     model = AutoModelForCausalLM.from_pretrained(source, config=config, local_files_only=True,
                                                dtype=torch.float32, attn_implementation='eager')
     model.eval()
+    original_head = model.get_output_embeddings().weight.detach().clone() if args.head_probe_contract else None
     tokenizer = Tokenizer.from_file(str(source / 'tokenizer.json'))
     deployed = None
     if args.deployed is not None:
@@ -70,7 +71,18 @@ def run(args):
     output = Path(args.out)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report) + '\n')
-    if args.probe_report is not None:
+    if args.head_probe_contract is not None:
+        from lib.deployed_head_attribution import probe_deployed_head
+        assert args.deployed is not None and args.probe_report is None
+        task = json.loads(Path(args.head_probe_contract).read_text())
+        baseline_path = Path(task['retainedReport'])
+        assert digest(baseline_path) == task['retainedReportFileSha256']
+        data = baseline_path.read_bytes()
+        baseline = json.loads(gzip.decompress(data) if data[:2] == b'\x1f\x8b' else data)
+        assert baseline['suiteSha256'] == digest(args.suite)
+        report['attributionContractSha256'] = digest(args.head_probe_contract)
+        probe_deployed_head(model, original_head, config, tokenizer, baseline, task, report, output)
+    elif args.probe_report is not None:
         assert args.probe_case is not None and args.probe_step is not None
         data = Path(args.probe_report).read_bytes()
         baseline = json.loads(gzip.decompress(data) if data[:2] == b'\x1f\x8b' else data)
@@ -91,4 +103,5 @@ if __name__ == '__main__':
     parser.add_argument('--probe-case')
     parser.add_argument('--probe-step', type=int)
     parser.add_argument('--deployed', help='Exact RDRR artifact bound by the frozen suite, for offline source equations.')
+    parser.add_argument('--head-probe-contract', help='Frozen same-hidden-state original/deployed head attribution; never a quality pass.')
     run(parser.parse_args())

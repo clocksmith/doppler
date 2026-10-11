@@ -68,7 +68,7 @@
     "scope": "One general application-format instruction on same exact deployed model; no numeric or budget changes.",
     "suiteSha256": "f08c3e7a5d027371fa6adefcc212ebd54c16fbdc2c001561c29db3719fbf7143",
     "instructionSha256": "9d062c9ce34e9e538b4426b56345ac17c614a3a13336d2aad8f857d9d4733b1a",
-    "status": "running",
+    "status": "rejected-fresh-holdout",
     "requiredCases": 14,
     "regressionRequiredAfterPass": true,
     "supersededPreparations": [
@@ -85,6 +85,48 @@
         "reason": "Guard assertion prevented suite rewrite but shell started initialization; immediately stopped before evaluation.",
         "completedCases": 0
       }
-    ]
+    ],
+    "passedCases": 0,
+    "failedCases": 1,
+    "interruptedCases": [
+      {
+        "id": "sum-answer",
+        "seed": 29,
+        "retainedTokenCount": 1
+      }
+    ],
+    "unstartedCases": 12,
+    "reportSha256": "9a1ba243dc4190cf94cf10b309bf59691109057990b3a4c92d6b519a17f4b03e",
+    "exitCode": 130,
+    "regressionExecuted": false,
+    "failure": {
+      "id": "permission-approval",
+      "seed": 29,
+      "expected": "No",
+      "actualFinalText": "\n\nNo.",
+      "category": "exact-output-format",
+      "meaningCorrect": true,
+      "naturalCloseAndEos": true,
+      "generatedTokens": 197,
+      "rawUtf16Characters": 933,
+      "withinBudgets": true
+    }
+  },
+  "headAttribution": {
+    "status": "no-head-specific-selection-cause-at-tested-boundary",
+    "reportSha256": "c3cb822cafcc0a54ec3bc1ddd8f039e9dd0098ad1463982c41c66581c019f5f6",
+    "contractSha256": "a6216acc030eedb77a77cbed98d5b5963038dc28c449094f260ee4af0a5d0362",
+    "executedHelperSha256": "7069f618c39519b7ec619923c1a321af3779f8f3bd8da7098c034d396ec01ca8",
+    "selectedStep": 277,
+    "all278RetainedSelectionsMatch": true,
+    "identicalHiddenOperands": true,
+    "sameRngPosition": true,
+    "deployedHeadReplayExact": true,
+    "bothSelectPunctuation": true,
+    "bothPunctuationProbabilityAfterPolicy": 1.0,
+    "bothEosProbabilityAfterPolicy": 0.0,
+    "qualification": false,
+    "scope": "Head-only counterfactual at one actual failing decision; does not exclude inherited hidden-state differences. No further quantization or model changes selected.",
+    "syntheticFixtureCorrection": "Top-k diagnostic display now caps at synthetic vocab size. Actual151936-token executed helper snapshot preserved; no change to actual projection or sampling."
   }
 }
