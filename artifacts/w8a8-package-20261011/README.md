@@ -2,8 +2,11 @@
 
 The installed test candidate is **not a replacement for Reploid's accepted
 package**. W8A8 operator correctness and the repaired generation lifecycle pass
-their scoped checks; Gemma model quality and the separate distributed numerical
-gate remain open. No Mac execution or Reploid deployment is claimed here.
+their scoped token-callback cancellation checks. A stronger abort immediately
+after GPU submission exposes pending retirement on prefill rejection, so complete
+cancellation settlement remains open for this candidate. Gemma model quality and
+the separate distributed numerical gate also remain open. No Mac execution or
+Reploid deployment is claimed here.
 
 ## Exact identities
 
@@ -74,6 +77,10 @@ and residuals retain their declared precision.
   are checked separately from failed task quality and likelihood criteria.
   Candidate `79b7c68` peaks at 668,488,920 accounted allocation bytes; sampled
   renderer RSS is 926,752,768 bytes. Neither measure is physical VRAM usage.
+  Later packed-model controls abort directly after `queue.submit`: active
+  ownership returns to its baseline, but 13,094,144 bytes across 133 deferred
+  resources remain after rejection and queue completion. Unload clears them;
+  this does not meet the stronger cancellation-settlement requirement.
 - [Embedding regression](../w8-runtime-embedding-20261011/README.md): all 18
   complete texts, ordering, submitted cancellation and reuse passed on candidate
   `975adf34`; that report is not relabeled as a new `79b7c68` physical run.
