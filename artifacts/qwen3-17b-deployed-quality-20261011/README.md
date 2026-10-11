@@ -135,3 +135,16 @@ producer copies that stale top-level string into the report. Treat this run as
 an exposed comparison-contract correction, as recorded here and in its review;
 neither the suite nor completed execution bytes are changed to hide that
 metadata inconsistency.
+
+Two contingent prior-task regressions are frozen separately. Their first
+versions preserve every original strict comparison; neither has been executed.
+Independent review found the same undefined citation separator in four prior
+case prompts. Prospective `literal-policy-original-comparison-v2.json` and
+`literal-policy-first-format-comparison-v2.json` apply the same exact cited-value
+class only to those cases. These are exposed comparison-contract corrections,
+not fresh holdouts. All original prompts, expected strings, seeds, model bytes
+and generation settings remain unchanged; the single selected literal-format
+instruction is bound explicitly. They may execute only after the complete
+sixteen-case v2 gate passes. Each result review must report the original strict
+and corrected decisions on the same raw answers; corrected acceptance must not
+be presented as passing a strict comparator that actually rejected it.
