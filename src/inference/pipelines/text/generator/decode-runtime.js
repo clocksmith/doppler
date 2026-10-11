@@ -573,6 +573,11 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
     const padTokenId = this._state.tokenizer?.getSpecialTokens?.()?.pad;
 
     const decodeSingleTokenViaLogits = async () => this._decodeNextTokenViaLogits(generatedIds, opts);
+    const stopIfAborted = () => {
+      if (!options.signal?.aborted) return false;
+      this._recordStopReason('aborted');
+      return true;
+    };
 
     if (logBatchPath && useBatchPath) {
       log.debug(
@@ -582,10 +587,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
     }
 
     while (tokensGenerated < opts.maxTokens) {
-      if (options.signal?.aborted) {
-        this._recordStopReason('aborted');
-        break;
-      }
+      if (stopIfAborted()) break;
       if (this._hasFinitenessFallbackWindow() && useBatchPath) {
         useBatchPath = false;
       }
@@ -641,52 +643,11 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           ? opts
           : { ...opts, executionPlan: boundedExecutionPlan };
 
+        let batchResult;
         try {
-          const batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, batchOpts);
-          let batchTokens = [];
-          let hitStop = false;
-          let stopTokenId = null;
-          for (const tokenId of batchResult.tokens) {
-            generatedIds.push(tokenId);
-            tokensGenerated++;
-            if (emitMode === 'token') {
-              yield tokenId;
-              if (options.onToken) options.onToken(tokenId, '');
-              batchTokens.push({ id: tokenId, text: '' });
-            } else {
-              const tokenText = decodeToken(tokenId);
-              yield tokenText;
-              if (options.onToken) options.onToken(tokenId, tokenText);
-              batchTokens.push({ id: tokenId, text: tokenText });
-            }
-            if (batchTokens.length === executionPlan.batchSize) {
-              if (options.onBatch) options.onBatch(batchTokens);
-              batchTokens = [];
-            }
-            if (isStopToken(tokenId, stopTokenIds, eosToken)) {
-              hitStop = true;
-              stopTokenId = tokenId;
-              break;
-            }
-          }
-          if (batchTokens.length > 0 && options.onBatch) options.onBatch(batchTokens);
-          if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
-            this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
-            break;
-          }
-          if (hitStop) {
-            this._recordStopReason('stop-token', stopTokenId);
-            break;
-          }
-          if (shouldDisableBatchDecodeAfterShortBatch({
-            hitStop,
-            actualCount: batchResult.actualCount,
-            requestedCount: thisBatchSize,
-          })) {
-            useBatchPath = false;
-            continue;
-          }
+          batchResult = await this._generateNTokensGPU(lastToken, thisBatchSize, generatedIds, batchOpts);
         } catch (error) {
+          if (stopIfAborted()) break;
           log.warn('Pipeline', `Batch decode failed, falling back to single-token: ${error}`);
           useBatchPath = false;
           let nextToken;
@@ -704,6 +665,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
               throw singleTokenError;
             }
           }
+          if (stopIfAborted()) break;
           generatedIds.push(nextToken);
           tokensGenerated++;
           if (emitMode === 'token') {
@@ -719,6 +681,52 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
             this._recordStopReason('stop-token', nextToken);
             break;
           }
+          continue;
+        }
+        let batchTokens = [];
+        let hitStop = false;
+        let stopTokenId = null;
+        for (const tokenId of batchResult.tokens) {
+          if (options.signal?.aborted) break;
+          generatedIds.push(tokenId);
+          tokensGenerated++;
+          if (emitMode === 'token') {
+            yield tokenId;
+            if (options.onToken) options.onToken(tokenId, '');
+            batchTokens.push({ id: tokenId, text: '' });
+          } else {
+            const tokenText = decodeToken(tokenId);
+            yield tokenText;
+            if (options.onToken) options.onToken(tokenId, tokenText);
+            batchTokens.push({ id: tokenId, text: tokenText });
+          }
+          if (batchTokens.length === executionPlan.batchSize) {
+            if (options.onBatch) options.onBatch(batchTokens);
+            batchTokens = [];
+          }
+          if (isStopToken(tokenId, stopTokenIds, eosToken)) {
+            hitStop = true;
+            stopTokenId = tokenId;
+            break;
+          }
+        }
+        if (batchTokens.length > 0 && options.onBatch) options.onBatch(batchTokens);
+        if (stopIfAborted()) break;
+        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
+          this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
+          break;
+        }
+        if (hitStop) {
+          this._recordStopReason('stop-token', stopTokenId);
+          break;
+        }
+        if (shouldDisableBatchDecodeAfterShortBatch({
+          hitStop,
+          actualCount: batchResult.actualCount,
+          requestedCount: thisBatchSize,
+        })) {
+          useBatchPath = false;
+          continue;
         }
       } else if (opts.speculation?.mode === 'self') {
         // Self-speculation: decode one base token plus a configurable burst of
@@ -747,6 +755,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
             throw error;
           }
         }
+        if (stopIfAborted()) break;
         generatedIds.push(baseToken);
         tokensGenerated++;
         if (emitMode === 'token') {
@@ -770,6 +779,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
         }
 
         for (let specIndex = 0; specIndex < speculativeBurstTokens; specIndex += 1) {
+          if (stopIfAborted()) break;
           if (tokensGenerated >= opts.maxTokens) {
             break;
           }
@@ -784,6 +794,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
               throw error;
             }
           }
+          if (stopIfAborted()) break;
           generatedIds.push(specToken);
           tokensGenerated++;
           this._state.stats.speculationAttempts = (this._state.stats.speculationAttempts ?? 0) + 1;
@@ -841,6 +852,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           }
         }
         const tokenTime = performance.now() - tokenStart;
+        if (stopIfAborted()) break;
         generatedIds.push(nextToken);
         tokensGenerated++;
 
