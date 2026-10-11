@@ -20,8 +20,9 @@
 
 ## JavaScript (`*.js`)
 
-- [ ] **No Types**: JS files must NOT contain JSDoc type annotations or `/** ... */` blocks describing types.
-    - Note: `//` comments are fine.
+- [ ] **Checked Types**: Public definitions belong in `.d.ts`; only explicit
+    `tsconfig.source-strict.json` roots may contain implementation type annotations,
+    as required by the canonical JavaScript style guide. Verify source typechecking.
 - [ ] **Config as Code**:
     - No inline `if (isDecode) ...` for kernel variant strings. Use `src/rules/*.json`.
     - No hardcoded magic numbers for block sizes. Import from `quantization-constants.js`.

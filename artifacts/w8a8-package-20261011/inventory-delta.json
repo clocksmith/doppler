@@ -1,0 +1,476 @@
+{
+  "schema": "doppler.package-inventory-delta/v1",
+  "baseline": "artifacts/embedding-subdivision-20261011/package-inventory.json",
+  "sourceCommit": "42e57a5d",
+  "standardArchiveChanged": false,
+  "added": [
+    {
+      "path": "src/client/runtime/capsule-piece-reader.js",
+      "size": 4958,
+      "mode": 420
+    },
+    {
+      "path": "src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json",
+      "size": 11802,
+      "mode": 420
+    },
+    {
+      "path": "src/config/reasoning-output.d.ts",
+      "size": 336,
+      "mode": 420
+    },
+    {
+      "path": "src/config/reasoning-output.js",
+      "size": 1560,
+      "mode": 420
+    },
+    {
+      "path": "src/config/schema/w8a8.schema.d.ts",
+      "size": 837,
+      "mode": 420
+    },
+    {
+      "path": "src/config/schema/w8a8.schema.js",
+      "size": 1657,
+      "mode": 420
+    },
+    {
+      "path": "src/converter/w8a8-quantizer.js",
+      "size": 2662,
+      "mode": 420
+    },
+    {
+      "path": "src/formats/rdrr/w8a8-storage.js",
+      "size": 2948,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_w8a8.wgsl",
+      "size": 2260,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/matmul_w8a8_packed.wgsl",
+      "size": 2191,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/quantize_w8a8.wgsl",
+      "size": 3431,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/rescale_w8a8.wgsl",
+      "size": 3650,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/w8a8.d.ts",
+      "size": 1125,
+      "mode": 420
+    },
+    {
+      "path": "src/gpu/kernels/w8a8.js",
+      "size": 9169,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/generation-output.js",
+      "size": 5104,
+      "mode": 420
+    },
+    {
+      "path": "src/inference/pipelines/text/init-tokenizer.js",
+      "size": 1301,
+      "mode": 420
+    },
+    {
+      "path": "src/loader/tensors/w8a8-loader.js",
+      "size": 1652,
+      "mode": 420
+    },
+    {
+      "path": "src/storage/verified-piece-reader.d.ts",
+      "size": 1399,
+      "mode": 420
+    },
+    {
+      "path": "src/storage/verified-piece-reader.js",
+      "size": 7488,
+      "mode": 420
+    }
+  ],
+  "removed": [],
+  "changed": [
+    {
+      "path": "package.json",
+      "before": 33007,
+      "after": 33047
+    },
+    {
+      "path": "src/client/model-host/model-session.d.ts",
+      "before": 12065,
+      "after": 12246
+    },
+    {
+      "path": "src/client/model-host/model-session.js",
+      "before": 23894,
+      "after": 24453
+    },
+    {
+      "path": "src/client/runtime/capsule-acquisition.d.ts",
+      "before": 1812,
+      "after": 2064
+    },
+    {
+      "path": "src/client/runtime/capsule-artifact-source.js",
+      "before": 4250,
+      "after": 4727
+    },
+    {
+      "path": "src/client/runtime/capsule-operation-adapters.js",
+      "before": 5035,
+      "after": 5412
+    },
+    {
+      "path": "src/client/runtime/capsule-program-adapter.js",
+      "before": 7013,
+      "after": 7193
+    },
+    {
+      "path": "src/client/runtime/composition-root.d.ts",
+      "before": 5932,
+      "after": 6204
+    },
+    {
+      "path": "src/client/runtime/composition-root.js",
+      "before": 26525,
+      "after": 27804
+    },
+    {
+      "path": "src/client/runtime/scoped-session.d.ts",
+      "before": 4751,
+      "after": 5085
+    },
+    {
+      "path": "src/client/runtime/scoped-session.js",
+      "before": 9324,
+      "after": 10191
+    },
+    {
+      "path": "src/client/runtime/session-controller.js",
+      "before": 5401,
+      "after": 5619
+    },
+    {
+      "path": "src/client/runtime/verified-capsule-artifact-store.d.ts",
+      "before": 2007,
+      "after": 2413
+    },
+    {
+      "path": "src/client/runtime/verified-capsule-artifact-store.js",
+      "before": 14608,
+      "after": 15927
+    },
+    {
+      "path": "src/config/capsule-v2.d.ts",
+      "before": 3317,
+      "after": 3352
+    },
+    {
+      "path": "src/config/capsule-v2.js",
+      "before": 20230,
+      "after": 20497
+    },
+    {
+      "path": "src/config/execution-registry-contract.d.ts",
+      "before": 717,
+      "after": 941
+    },
+    {
+      "path": "src/config/execution-registry-contract.js",
+      "before": 1830,
+      "after": 3842
+    },
+    {
+      "path": "src/config/kernel-registry-contract.d.ts",
+      "before": 3031,
+      "after": 3195
+    },
+    {
+      "path": "src/config/kernels/registry.json",
+      "before": 442203,
+      "after": 449316
+    },
+    {
+      "path": "src/config/merge.js",
+      "before": 20873,
+      "after": 21326
+    },
+    {
+      "path": "src/config/schema/converter.schema.d.ts",
+      "before": 5222,
+      "after": 5301
+    },
+    {
+      "path": "src/config/schema/converter.schema.js",
+      "before": 6026,
+      "after": 6040
+    },
+    {
+      "path": "src/config/schema/execution-v1.schema.js",
+      "before": 10858,
+      "after": 10995
+    },
+    {
+      "path": "src/config/schema/kernel-registry.schema.d.ts",
+      "before": 5265,
+      "after": 5295
+    },
+    {
+      "path": "src/config/schema/manifest.schema.d.ts",
+      "before": 26285,
+      "after": 26587
+    },
+    {
+      "path": "src/config/schema/manifest.schema.js",
+      "before": 10285,
+      "after": 10312
+    },
+    {
+      "path": "src/converter/manifest-builder.js",
+      "before": 23149,
+      "after": 23284
+    },
+    {
+      "path": "src/converter/quantization-info.js",
+      "before": 20140,
+      "after": 20852
+    },
+    {
+      "path": "src/converter/tensor-transform.js",
+      "before": 22236,
+      "after": 23262
+    },
+    {
+      "path": "src/errors/doppler-error.js",
+      "before": 3348,
+      "after": 3414
+    },
+    {
+      "path": "src/formats/rdrr/storage-descriptor.js",
+      "before": 6936,
+      "after": 7126
+    },
+    {
+      "path": "src/formats/rdrr/types.d.ts",
+      "before": 10962,
+      "after": 11082
+    },
+    {
+      "path": "src/formats/rdrr/validation.js",
+      "before": 18294,
+      "after": 19803
+    },
+    {
+      "path": "src/gpu/command-recorder.d.ts",
+      "before": 6101,
+      "after": 6483
+    },
+    {
+      "path": "src/gpu/command-recorder.js",
+      "before": 21842,
+      "after": 22525
+    },
+    {
+      "path": "src/gpu/kernels/fused_matmul_q4_widetile.wgsl",
+      "before": 6030,
+      "after": 6179
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-0.js",
+      "before": 30526,
+      "after": 30232
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-1.js",
+      "before": 27893,
+      "after": 28169
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-2.js",
+      "before": 11398,
+      "after": 11714
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers.js",
+      "before": 32042,
+      "after": 32444
+    },
+    {
+      "path": "src/gpu/kernels/index.d.ts",
+      "before": 11104,
+      "after": 11165
+    },
+    {
+      "path": "src/gpu/kernels/index.js",
+      "before": 8439,
+      "after": 8500
+    },
+    {
+      "path": "src/gpu/kernels/matmul.d.ts",
+      "before": 3060,
+      "after": 3069
+    },
+    {
+      "path": "src/gpu/kernels/matmul.js",
+      "before": 20976,
+      "after": 21327
+    },
+    {
+      "path": "src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
+      "before": 7142,
+      "after": 8182
+    },
+    {
+      "path": "src/gpu/weight-buffer.d.ts",
+      "before": 6799,
+      "after": 6984
+    },
+    {
+      "path": "src/inference/generation-step.d.ts",
+      "before": 639,
+      "after": 724
+    },
+    {
+      "path": "src/inference/pipelines/text/config.d.ts",
+      "before": 10621,
+      "after": 10719
+    },
+    {
+      "path": "src/inference/pipelines/text/config.js",
+      "before": 34032,
+      "after": 34081
+    },
+    {
+      "path": "src/inference/pipelines/text/ffn/dense-executor.js",
+      "before": 24298,
+      "after": 24318
+    },
+    {
+      "path": "src/inference/pipelines/text/generator-steps.js",
+      "before": 35348,
+      "after": 35651
+    },
+    {
+      "path": "src/inference/pipelines/text/generator.d.ts",
+      "before": 4615,
+      "after": 4788
+    },
+    {
+      "path": "src/inference/pipelines/text/generator.js",
+      "before": 22643,
+      "after": 24511
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/decode-runtime.js",
+      "before": 42924,
+      "after": 43694
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/decode.js",
+      "before": 36825,
+      "after": 36856
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/training.js",
+      "before": 29181,
+      "after": 29342
+    },
+    {
+      "path": "src/inference/pipelines/text/init.js",
+      "before": 35279,
+      "after": 34725
+    },
+    {
+      "path": "src/inference/pipelines/text/resident-partition-contract.d.ts",
+      "before": 4569,
+      "after": 4671
+    },
+    {
+      "path": "src/inference/pipelines/text/resident-partition.js",
+      "before": 15559,
+      "after": 16077
+    },
+    {
+      "path": "src/inference/pipelines/text/stopping.js",
+      "before": 456,
+      "after": 851
+    },
+    {
+      "path": "src/inference/pipelines/text/types.d.ts",
+      "before": 24795,
+      "after": 24987
+    },
+    {
+      "path": "src/inference/token-sampling.js",
+      "before": 8794,
+      "after": 9421
+    },
+    {
+      "path": "src/inference/tokenizer.d.ts",
+      "before": 3045,
+      "after": 3157
+    },
+    {
+      "path": "src/inference/tokenizer.js",
+      "before": 17880,
+      "after": 18139
+    },
+    {
+      "path": "src/inference/tokenizers/bundled.js",
+      "before": 33788,
+      "after": 33953
+    },
+    {
+      "path": "src/inference/tokenizers/bundled/incremental-decoder.d.ts",
+      "before": 396,
+      "after": 537
+    },
+    {
+      "path": "src/loader/loader-types.d.ts",
+      "before": 10980,
+      "after": 11106
+    },
+    {
+      "path": "src/loader/model-executor.js",
+      "before": 19273,
+      "after": 19361
+    },
+    {
+      "path": "src/loader/tensors/tensor-loader.d.ts",
+      "before": 5453,
+      "after": 5557
+    },
+    {
+      "path": "src/loader/tensors/tensor-loader.js",
+      "before": 25300,
+      "after": 25382
+    },
+    {
+      "path": "src/rules/generated/rule-bundle.json",
+      "before": 74192,
+      "after": 74554
+    },
+    {
+      "path": "src/storage/verified-piece-storage.d.ts",
+      "before": 1053,
+      "after": 481
+    },
+    {
+      "path": "src/storage/verified-piece-storage.js",
+      "before": 5588,
+      "after": 963
+    }
+  ]
+}

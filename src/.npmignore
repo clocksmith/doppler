@@ -235,6 +235,7 @@ converter/tokenizer-manifest.d.ts
 converter/tokenizer-special-tokens.d.ts
 converter/tokenizer-utils.d.ts
 converter/tokenizer-utils.js
+converter/w8a8-quantizer.d.ts
 errors/doppler-error.d.ts
 experimental/audio/gemma4.d.ts
 experimental/bdpa/steamroller.d.ts
@@ -419,6 +420,7 @@ formats/rdrr/distributed/validation.d.ts
 formats/rdrr/source-transform-contract.d.ts
 formats/rdrr/storage-descriptor.d.ts
 formats/rdrr/tensor-config-validator.d.ts
+formats/rdrr/w8a8-storage.d.ts
 formats/safetensors/types.d.ts
 formats/sha256.d.ts
 formats/stable-sort-object.d.ts
@@ -713,6 +715,7 @@ loader/tensors/load-executor.d.ts
 loader/tensors/source-transform.d.ts
 loader/tensors/source-transform/executor.d.ts
 loader/tensors/source-transform/plan.d.ts
+loader/tensors/w8a8-loader.d.ts
 memory/address-table.d.ts
 rules/capability-transform-resolver.d.ts
 rules/capability-transform-resolver.js
