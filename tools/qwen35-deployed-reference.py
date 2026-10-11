@@ -205,7 +205,8 @@ def compare_linear_histories(model, capture):
     indices = sorted({int(row['opId'].split('.')[1])
                       for row in capture['observation']['timeline']
                       if row['opId'].startswith('layer.')
-                      and row['opId'].endswith('.attn.linear_core_out')})
+                      and row['opId'].endswith('.attn.linear_core_out')
+                      and capture_values(row.get('capture')) is not None})
     return [compare_linear_history(model, capture, index) for index in indices]
 
 

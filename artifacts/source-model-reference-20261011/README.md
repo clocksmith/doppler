@@ -114,3 +114,20 @@ remain in `reports/local/source-model-reference-20261011/all-recurrence/`;
 `all-recurrence-gpu.log.gz` retains physical completion and historical comparison
 failures. Synthetic controls additionally check distinct weights in different
 layers and reject incomplete later-layer histories.
+
+## Feed-forward layers and final projection
+
+`all-ffn.json` checks all 24 feed-forward layers and the final projection using
+the captured inputs, independently decoded deployed weights and float64
+equations. The largest local feed-forward difference is 0.0000013279863708
+(layer 23); the final projection differs by 0.0000075189989683. These results
+do not identify a local feed-forward or final-projection defect. The complete
+source-model discrepancy remains 0.0014121532440185547, above 0.001.
+
+The physical capture used `bac4ad37` and the unchanged standard archive.
+`all-ffn-gpu.log.gz` retains completion and failed historical comparisons.
+The first offline comparison rejected metadata-only recurrence observations;
+`all-ffn-missing-capture-failure.log.gz` preserves that failure. The diagnostic
+now selects only captured recurrence outputs, with a synthetic regression.
+`qwen35-all-ffn-reference.py.gz` preserves the executed corrected source; the
+receipt binds the complete raw report and GPU observation by SHA-256.

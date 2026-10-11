@@ -95,6 +95,9 @@ for item in linear_capture['observation']['timeline']:
 multi = reference.compare_linear_histories(linear_model, multi_capture)
 assert [item['boundary'] for item in multi] == ['layer.0.attn.linear_core_out', 'layer.1.attn.linear_core_out']
 assert all(item['maxAbsError'] < 2e-7 for item in multi)
+assert reference.compare_linear_histories(linear_model, {'observation': {'timeline': [
+    {'opId': 'layer.0.attn.linear_core_out', 'capture': None},
+]}}) == []
 del multi_capture['observation']['timeline'][10]
 try:
     reference.compare_linear_histories(linear_model, multi_capture)
@@ -111,4 +114,5 @@ except AssertionError as error:
 print(json.dumps({'constantAttentionMean': 'pass', 'binaryCaptureEquivalence': 'pass',
                   'missingHistoryRejected': 'pass', 'nonfiniteCaptureRejected': 'pass',
                   'scalarRecurrenceClosedForm': 'pass', 'missingRecurrenceHistoryRejected': 'pass',
-                  'distinctLayerWeights': 'pass', 'missingLaterLayerHistoryRejected': 'pass'}, indent=2))
+                  'distinctLayerWeights': 'pass', 'missingLaterLayerHistoryRejected': 'pass',
+                  'uncapturedOperatorsNotCompared': 'pass'}, indent=2))
