@@ -67,7 +67,13 @@ It adds one general system instruction about following explicitly requested
 final-answer formats; seven new cases use seeds 29 and 71. Model bytes, sampling,
 precision, budgets and exact-answer comparison are unchanged. A complete fresh
 pass must be followed by unchanged prior-case regression; no punctuation is
-stripped or accepted retroactively. The result is pending.
+stripped or accepted retroactively. This configuration also failed its first
+completed fresh case: `permission-approval`, seed 29, emitted `No.` instead of
+`No`. It naturally closed reasoning and emitted EOS after 197 tokens, using 933
+raw UTF-16 characters. The next case was interrupted after one opening token;
+twelve cases were unstarted. The unchanged prior-case regression was not run
+because the fresh gate failed. `format-policy-result.json.gz` and its process
+log preserve the failure; no further instruction variant was evaluated.
 
 The instruction was refined while the first invocation was initializing. Its
 interruption retained one opening marker token but no evaluated answer. A guard
@@ -79,3 +85,20 @@ written and hashed in a separate completed operation before the actual launch.
 
 Component: `doppler.repository-tooling`. Intent: preserved. Boundary effects:
 none; offline evaluation cannot change a running model's computation.
+
+One attribution control tested the original rejected answer's punctuation
+decision at generated-token index 277. It replayed every preceding token and
+sampling draw exactly, captured the actual input to the deployed head, and
+compared the Q4 and original higher-precision heads on those identical hidden
+operands with cloned RNG state. Both selected `.` with probability 1 after the
+unchanged sampling filters; both filtered out EOS. The deployed head reproduced
+the actual logits exactly. This does not identify a head-specific selection
+defect, nor exclude differences inherited from earlier computations.
+
+`head-attribution-contract.json`, the complete report, log and exact executed
+source snapshots retain that result. The helper's diagnostic top-ten listing
+was subsequently capped for six-token synthetic test vocabularies; this does
+not change the actual 151,936-token computation. Synthetic controls verify
+same-head agreement, a deliberately changed head, exact RNG replay, mismatched
+prefix rejection and observer cleanup. No model or quantization change follows
+from this negative attribution result.
