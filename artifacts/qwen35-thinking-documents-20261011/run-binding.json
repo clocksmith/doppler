@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.source-quality-run-binding/v1",
+  "host": "x@128.tail995236.ts.net",
+  "runDirectory": "/var/tmp/doppler-repetition-source-20261011",
+  "ownedPid": 3882811,
+  "command": "PYTHONPATH=/tmp/doppler-reference-deps OPENBLAS_NUM_THREADS=8 OMP_NUM_THREADS=8 python3 -u tools/qwen35-original-weight-generation.py --source /var/tmp/doppler-qwen35-2b-source-20261011 --revision 15852e8c16360a2fea060d615a32b45270f8a8fc --deployed /home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16 --control document-fresh-bathroom-comparison.json --out document-fresh-bathroom-comparison-result.json --threads 8",
+  "files": [
+    {
+      "path": "tools/qwen35-original-weight-generation.py",
+      "sha256": "fa9cb70ed25b9cdc35ef5e9377eccd77c444e40afddbd76a8525217a3e02e28e"
+    },
+    {
+      "path": "tools/qwen35-deployed-reference.py",
+      "sha256": "53efd11870619ee5aa6c5c24d378269100672ad999a0f0e1c47939c18d63d0a0"
+    },
+    {
+      "path": "artifacts/qwen35-thinking-documents-20261011/suite.json",
+      "sha256": "bedb6724c8c71d4f8c7083bb1a2122be5f3959c2b10710dd626f6fb1dbc33fd9"
+    },
+    {
+      "path": "artifacts/qwen35-thinking-documents-20261011/document-fresh-bathroom-comparison.json",
+      "sha256": "3a09c85272209f66479b5268efd828f558b60b5fde9dac5fcea222cefe0c1c46"
+    }
+  ],
+  "scope": "CPU source-quality investigation. No GPU timing or package qualification."
+}
