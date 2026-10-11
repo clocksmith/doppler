@@ -80,3 +80,45 @@ from Reploid `b44f99a2` (SHA-256
 `--boundary-capture reports/local/frozen-reference-producer/doppler-current026-normalization-linux.json.gz`,
 and a separate output path. The original 55-prefix tool version is retained in
 Doppler `6faaee44`; its recorded tool hash and receipt remain unchanged.
+
+## Independent counting replay and failing decode prefix
+
+`count-generation.json` records an independent source-equation replay of the exact
+count-to-200 control: identical deployed bytes, captured prompt IDs, F32 arithmetic,
+F16 KV storage, greedy selection and full-history repetition penalty 1.1. The
+captured IDs independently round-trip through the deployed tokenizer. All 4,096
+generated tokens and all 16,821 characters equal Doppler's unsplit control. Both
+exhaust the token budget without EOS. This reproduces the task-quality failure
+outside Doppler; it does not qualify a new prompt, model, or numerical reference.
+The exact executed diagnostic is retained compressed and its hash matches the
+report. No runtime arithmetic or protected acceptance case was changed.
+
+Reproduce using the existing command with the current piece index and
+`--generation-control ../reploid/artifacts/partition-contracts-20261010/physical/count-unsplit-control.json.gz`.
+Choose a new `--out` path. The declared generation maximum remains 4,096.
+
+`decode-boundaries.json` investigates request 2, decode step 3, whose independent
+source logits differ by 0.0014121532440185547. A new physical browser capture of
+standard 0.6.27 reproduces the controlled logits exactly with instrumentation.
+Its declared shader pins all match. The source diagnostic preserves earlier
+steps' recurrent and attention state and compares only the final selected step.
+Unfused FFN gate/up boundaries are absent from this fused decode and explicitly
+listed as unobserved; earlier prefill tensors are never substituted for them.
+
+For identical captured inputs, the 25 input/final normalization operations differ
+from float64 by at most 0.000001968. The first QKV projection differs by at most
+0.000005383. Layer 3 K/V projections and Q/K normalization are also checked against
+their actual captured inputs. These small local errors do not explain away the
+failing full-model threshold. Full-path differences grow through the layers; final
+normalization differs by 0.0019130706787109375 with independently evolved inputs.
+No demonstrated arithmetic defect or replacement reference is established.
+Attention-cache rounding and accumulated state remain investigation boundaries.
+
+Capture with `DOPPLER_FORENSIC_FULL_PREFIXES=1 node tests/integration/frozen-reference-producer-replay.js`
+followed by the standard archive, model directory, new output path, `current`, and
+a JSON file containing `{"index":2,"step":3}`. Then run the independent tool with
+`--prefixes 8 --boundary-capture <capture>` and a separate output path. Full raw
+reports stay at the hash-bound local paths in the compact report. The first
+operand diagnostic rejected a stale prefill FFN capture on shape mismatch; it
+produced no accepted boundary result. Selection was corrected to the final
+embedding-to-logits interval before the retained result.

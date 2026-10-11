@@ -12,6 +12,10 @@ import { chromium } from 'playwright';
 import { compareReferenceModel } from '../../../reploid/tests/fixtures/distributed-reference-model.js';
 
 const [archivePath, modelDirectory, destination, manifestMode = 'frozen'] = process.argv.slice(2);
+const observationTarget = process.argv[6] ? JSON.parse(await readFile(process.argv[6], 'utf8')) : { index: 0, step: 0 };
+assert(Number.isSafeInteger(observationTarget.index) && observationTarget.index >= 0
+  && Number.isSafeInteger(observationTarget.step) && observationTarget.step >= 0);
+const captureDecode = Boolean(process.argv[6]);
 const fullPrefixes = process.env.DOPPLER_FORENSIC_FULL_PREFIXES === '1';
 assert(archivePath && modelDirectory && destination, 'Supply retained archive, unchanged model directory and receipt');
 assert(['frozen', 'current'].includes(manifestMode), 'Manifest mode must be frozen or current');
@@ -30,10 +34,10 @@ const changedKernelPins = compareReferenceModel(manifest, JSON.parse(frozenManif
 const policy = JSON.parse(await readFile(new URL('../../../reploid/self/config/partition-policy.json', import.meta.url)));
 const directory = await mkdtemp(join(tmpdir(), 'doppler-reference-producer-'));
 const receipt = { scope: 'Retained archive forensic fixed-prefix replay; producing ownership is unproven, no reference replacement or release acceptance',
-  host: process.platform, archiveSha256: hash(await readFile(archivePath)),
+  host: process.platform, producerSha256: hash(await readFile(new URL(import.meta.url))), archiveSha256: hash(await readFile(archivePath)),
   referenceSha256: hash(referenceBytes), manifestIdentity: 'sha256:' + hash(manifestBytes), results: [],
   frozenManifestIdentity: reference.modelIdentity, manifestMode, changedKernelPins,
-  servedShaders: {}, modelDirectory: resolve(modelDirectory), fullPrefixes };
+  servedShaders: {}, modelDirectory: resolve(modelDirectory), fullPrefixes, observationTarget };
 async function recordPrefill(row) {
   const retained = { ...row };
   receipt.results.push(retained);
@@ -97,7 +101,7 @@ try {
   await page.exposeFunction('recordProducerPrefill', recordPrefill);
   page.on('console', event => { if (event.text().startsWith('producer-progress:')) console.log(event.text()); });
   await page.goto(`http://127.0.0.1:${server.address().port}`);
-  const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, expected }) => {
+  const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, expected, observationTarget, captureDecode }) => {
     // Observe selected native pipelines without rewriting shader arithmetic.
     const moduleSources = new WeakMap(), pipelines = new WeakMap(), normalizationDispatch = [];
     const createModule = GPUDevice.prototype.createShaderModule;
@@ -169,23 +173,25 @@ try {
           }
         }
       }
-      if (fullPrefixes) return { runtimeVersion: DOPPLER_VERSION, rows, observation: null, normalizationDispatch };
+      if (fullPrefixes && !captureDecode) return { runtimeVersion: DOPPLER_VERSION, rows, observation: null, normalizationDispatch };
       // Observe the same first prefix after reset; quantify instrumentation effects.
       await handle.resetGenerationState();
-      let observedLogits = null;
+      let observedLogits = null; const observedSteps = [];
       const targetOpIds = ['embed.out', 'final_norm.pre', 'final_norm.out',
         ...['qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj',
           'linear_core_out', 'out', 'post_attn'].map(op => 'layer.0.attn.' + op),
         ...['in', 'gate', 'up', 'act', 'out'].map(op => 'layer.0.ffn.' + op),
+        ...['q_proj', 'k_proj', 'v_proj', 'q_norm', 'k_norm', 'q_rope', 'k_rope', 'core_out', 'out']
+          .map(op => 'layer.3.attn.' + op),
         ...Array.from({ length: manifest.architecture.numLayers }, (_, layer) =>
           [`layer.${layer}.attn.post_input_norm`, `layer.${layer}.layer.out`]).flat()];
-      for await (const _chunk of handle.generate(prompts[0], { ...executionOptions,
+      for await (const _chunk of handle.generate(prompts[observationTarget.index], { ...executionOptions,
         disableCommandBatching: true, diagnostics: { enabled: true,
           captureConfig: { enabled: true, defaultLevel: 'none', targetOpIds, targetLevel: 'full' } },
-        onLogits: values => { if (!observedLogits) observedLogits = Array.from(values); },
-      })) { if (observedLogits) break; }
+        onLogits: values => { observedLogits = Array.from(values); observedSteps.push(observedLogits); },
+      })) { if (observedSteps.length > observationTarget.step) break; }
       const { operatorDiagnostics } = handle.advanced.getStats();
-      return { runtimeVersion: DOPPLER_VERSION, rows, normalizationDispatch, observation: { logits: observedLogits,
+      return { runtimeVersion: DOPPLER_VERSION, rows, normalizationDispatch, observation: { logits: observedLogits, observedSteps, target: observationTarget,
         samplingExcludedTokenIds: [handle.advanced.getSpecialTokens().pad, ...executionOptions.suppressTokenIds]
           .filter(Number.isInteger), timeline: operatorDiagnostics?.timeline || [] } };
     } finally {
@@ -194,7 +200,7 @@ try {
       await getDevice().queue.onSubmittedWorkDone();
     }
   }, { compatEntry, partitionsEntry, generation: reference.generation, prompts: reference.prompts, policy,
-    fullPrefixes, expected: reference.expected });
+    fullPrefixes, expected: reference.expected, observationTarget, captureDecode });
   receipt.physicalExecutionCompleted = true;
   receipt.runtimeVersion = result.runtimeVersion;
   receipt.normalizationDispatch = result.normalizationDispatch.map(({ source, ...record }) => ({
@@ -207,8 +213,11 @@ try {
     const expectedCount = reference.expected.reduce((count, row) => count + row.steps.length, 0)
       + reference.expected[0].steps.length;
     assert.equal(receipt.results.length, expectedCount, 'Every fixed prefix and the first request reuse must complete');
-  } else {
-    const first = receipt.results.findLast(row => row.index === 0 && row.step === 0);
+  }
+  if (result.observation) {
+    const first = receipt.results.findLast(row => row.index === observationTarget.index && row.step === observationTarget.step);
+    assert(first, 'Requested observation prefix must also have an uninstrumented control');
+    assert.equal(result.observation.observedSteps.length, observationTarget.step + 1);
     const bytes = Buffer.from(first.logits, 'base64');
     const plain = new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
     const excluded = new Set(result.observation.samplingExcludedTokenIds);
@@ -222,6 +231,7 @@ try {
       }
     }
     receipt.observation.maximumUnmaskedDifference = maximumUnmaskedDifference;
+    assert.equal(maximumUnmaskedDifference, 0, 'Observation must preserve the controlled output logits');
   }
   console.log(JSON.stringify({ package: receipt.package, shaderPinMismatches: shaderMismatches.length,
     comparisons: receipt.results.map(({ index, inputIds, maxDifference, matches }) => ({ index, inputTokens: inputIds.length, maxDifference, matches })) }));
