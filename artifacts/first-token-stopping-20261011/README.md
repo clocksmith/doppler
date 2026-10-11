@@ -33,8 +33,11 @@ npm run source:architecture:check
 ```
 
 The stopped full repository-check invocation predates this correction and is
-retained separately. A fresh archive and physical replay must bind the corrected
-source before claiming installed stopping-metadata acceptance.
+retained separately. The [final installed model replay](../w8a8-model-qualification-20261011/README.md#final-completion-metadata-control)
+on archive `7c240dad` now verifies both variants: all task tokens and 200
+teacher-forced observations remain unchanged, all twelve tasks expose valid
+`stop-token` metadata, and both cancellation controls plus settled unload pass.
+Task quality remains failed independently of completion classification.
 
 Component: `doppler.runtime-source.inference.pipelines.text`, `doppler.tests`.
 Intent: preserved. Boundary effects: valid completion classification reaches

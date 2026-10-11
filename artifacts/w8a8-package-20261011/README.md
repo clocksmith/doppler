@@ -2,10 +2,10 @@
 
 The installed test candidate is **not a replacement for Reploid's accepted
 package**. W8A8 operator correctness and the repaired generation lifecycle pass
-their scoped token-callback cancellation checks. A stronger abort immediately
-after GPU submission exposes pending retirement on prefill rejection, so complete
-cancellation settlement remains open for this candidate. Gemma model quality and
-the separate distributed numerical gate also remain open. No Mac execution or
+their scoped controls, including cancellation immediately after GPU submission.
+The current candidate also corrects first-token stopping metadata without
+changing generated tokens or arithmetic. Gemma model quality and the separate
+distributed numerical gate remain open. No Mac execution or
 Reploid deployment is claimed here.
 
 ## Exact identities
@@ -13,18 +13,18 @@ Reploid deployment is claimed here.
 | Item | Identity |
 | --- | --- |
 | Accepted standard archive, unchanged | `9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc` |
-| Installed test candidate | `79b7c68ceb23d3e156e5e6287d978bfbe218940b832c2460b80efe2472e9b44b` |
+| Installed test candidate | `7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d` |
 | Filename and version | `doppler-gpu-0.6.27.tgz`, `0.6.27` |
-| Candidate source | `86e3761beeaf4dd702acf813a9adf7e0de7ac1ee` plus the recorded unshipped tooling state |
-| Packed / unpacked bytes | 3,366,814 / 13,213,186 |
+| Candidate source | `e571e22090ef5fe583b33449222c7a2bcce7206c` plus the recorded unshipped tooling state |
+| Packed / unpacked bytes | 3,367,098 / 13,214,327 |
 | Package members | 1,917 |
 | Gemma W8A8 manifest | `6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c` |
 | Frozen W8A8 acceptance fixture | `890a28e543ef614bcfb0fa60de195c189d30c1216f29804559a2b2de7b8edd5a` |
 
 The candidate resides at
-`/var/tmp/doppler-w8-installed-settled-20261011/doppler-gpu-0.6.27.tgz`.
-`settled-package-inventory.json.gz` records its package inventory. The adjacent
-`settled-installed-*` files retain the isolated installation receipt, commands,
+`/var/tmp/doppler-w8-installed-completion-20261011/doppler-gpu-0.6.27.tgz`.
+`completion-package-inventory.json.gz` records its package inventory. The adjacent
+`completion-installed-*` files retain the isolated installation receipt, commands,
 source state and their uncompressed digests. Browser qualification serves the
 installed archive's files; it does not silently substitute checkout source.
 This is local test delivery, not a published archive or a refreshed Reploid bundle.
@@ -75,23 +75,29 @@ and residuals retain their declared precision.
 - [Installed model results](../w8a8-model-qualification-20261011/README.md):
   generation, repeated use, submitted cancellation, recovery and settled unload
   are checked separately from failed task quality and likelihood criteria.
-  Candidate `79b7c68` peaks at 668,488,920 accounted allocation bytes; sampled
-  renderer RSS is 926,752,768 bytes. Neither measure is physical VRAM usage.
-  Later packed-model controls abort directly after `queue.submit`: active
-  ownership returns to its baseline, but 13,094,144 bytes across 133 deferred
-  resources remain after rejection and queue completion. Unload clears them;
-  this does not meet the stronger cancellation-settlement requirement.
-- [Embedding regression](../w8-runtime-embedding-20261011/README.md): all 18
-  complete texts, ordering, submitted cancellation and reuse passed on candidate
-  `975adf34`; that report is not relabeled as a new `79b7c68` physical run.
-- [Scoring regression](../w8-runtime-scoring-20261011/README.md): candidate
-  `79b7c68` passes all 12 selections and all 24 returned logits against the
-  retained independent reference (maximum error 0.012686491, unchanged limit
-  0.05), plus submitted cancellation, settled reuse and unload on Node/Vulkan.
-  Its operation-specific tolerance does not alter the distributed 0.001 gate.
-- [Repository checks](../w8a8-repository-checks-20261011/README.md): 917 unit files,
-  36 Capsule files and repaired generated checks. This is composite evidence,
-  not an immutable-source `check:green` invocation.
+  Candidate `7c240dad` peaks at 668,488,920 accounted allocation bytes; the complete installed receipts retain sampled
+  renderer RSS separately. Neither measure is physical VRAM usage. Both variants pass immediate submission-time
+  cancellation with unchanged active ownership and zero deferred resources;
+  every pool ownership category is zero after unload. The failed earlier
+  cancellation receipts remain retained.
+- [Prefill cancellation repair](../prefill-cancellation-settlement-20261011/README.md):
+  failed execution awaits recorder abort and retirement on its owning device.
+  Primary and cleanup failures remain attributable.
+- [First-token completion repair](../first-token-stopping-20261011/README.md):
+  token-ID, streaming and prefix generation classify declared stop tokens and
+  text stop sequences consistently, with cancellation taking precedence.
+- [Fresh core regression](../w8-runtime-core-completion-20261011/README.md): exact
+  `7c240dad` signed embedding passes all 18 complete texts, original and reversed
+  ordering, repeated/subdivided batches, actual submitted cancellation and
+  deterministic reuse. All 12 scoring selections and all 24 returned logits
+  pass their independent reference; maximum error is 0.012686491 at unchanged
+  0.05. These operation-specific tolerances do not alter distributed 0.001.
+  Reports are scoped to their recorded archive, never relabeled as a new run.
+- [Repository checks](../w8a8-repository-checks-20261011/README.md): final
+  `npm run check:green` passes, including 917 unit files and 36 Capsule files.
+  Start/end hashes confirm all covered source and configuration remained
+  unchanged; concurrent commits contain evidence only. Earlier failed and
+  interrupted invocations remain retained.
 - [Distributed reference disposition](../whole-model-f64-complete-20261011/README.md):
   independent F32 and F64 evaluations do not qualify a replacement. Historical
   failures and the 0.001 threshold remain unchanged; captured outputs are not
