@@ -1,0 +1,88 @@
+{
+  "scope": "Repository source checks; no GPU, application-quality, release, or performance qualification",
+  "headAtEvidenceAssembly": "86e3761beeaf4dd702acf813a9adf7e0de7ac1ee",
+  "sourceTiming": "The shared tree changed during the initial and final unit sweeps. This report combines retained runs and final affected checks; it is not an immutable-snapshot check:green pass.",
+  "initial": {
+    "command": "npm run check:green",
+    "exitCode": 1,
+    "unitFiles": 916,
+    "unitFailures": [
+      "tests/config/model-support-inventory-contract.test.js",
+      "tests/config/tracked-benchmark-evidence-contract.test.js",
+      "tests/gpu/matmul-dispatch-contract.test.js",
+      "tests/inference/pipeline-unload-resources.test.js"
+    ],
+    "otherFailedScripts": [
+      "routing:audit:check",
+      "source:dependencies:check",
+      "support:matrix:check"
+    ],
+    "capsuleFilesPassed": 36
+  },
+  "final": {
+    "unitCommand": "npm run test:unit",
+    "unitExitCode": 0,
+    "unitFilesPassed": 917,
+    "otherGatesCommand": "check:green script roster excluding test:unit; includes capsule-v2:check",
+    "otherGatesExitCode": 1,
+    "otherGatesFailure": "source:dependencies:check: generated line metadata changed with diagnostic tool edits",
+    "capsuleFilesPassed": 36,
+    "dependencyRepair": "node tools/report-source-dependencies.js --write; node tools/report-source-dependencies.js",
+    "dependencyRepairExitCode": 0,
+    "cleanupTestsPassed": [
+      "tests/inference/decode-output-ownership.test.js",
+      "tests/inference/decode-sampling-ownership.test.js",
+      "tests/inference/pipeline-unload-resources.test.js"
+    ]
+  },
+  "repairs": {
+    "inventoryCommit": "bf6f76b7",
+    "dispatchAndCancellationCommit": "77bd0eb2",
+    "decodeLogitsOwnershipCommit": "7349b415"
+  },
+  "runnerInvocationError": "First final-gates launcher accidentally omitted the runner filename. Node exited9 without executing checks. That error is retained separately; corrected invocation produced final-gates.log.gz.",
+  "remainingLimit": "Physical diagnostics and model quality continue independently; neither this check report nor generated conversion-ready status promotes W8A8 or a standard archive.",
+  "logs": {
+    "initial-check-green.log.gz": {
+      "uncompressedSha256": "bbdde34a3adb502f69d7ed37be1300a24d838018802a9bd55c722220d397cf42",
+      "uncompressedBytes": 643020,
+      "compressedSha256": "15bcde78f1737a2136070eb25ae83fbd71a67033ae161dbae5d7c658710fc210"
+    },
+    "generated-inventory-checks.log.gz": {
+      "uncompressedSha256": "1a7470dbab07f36363628c9d7659e36f497911e08ca68fcff3fb34f208cb56b6",
+      "uncompressedBytes": 2873,
+      "compressedSha256": "cfb36e7e5ecdbdbe16464933bb4f39d9535ca0284e985345cb4acaa0c5460f99"
+    },
+    "final-unit.log.gz": {
+      "uncompressedSha256": "062af15c71bab9660f4a4aee0e840b784789fa1c3d527e4341d891da1d957bd0",
+      "uncompressedBytes": 449364,
+      "compressedSha256": "182faff950748bac21667c162e40121dc5ee6ccd43395aa609e64bdb317f01a9"
+    },
+    "final-gates.log.gz": {
+      "uncompressedSha256": "0c41c03d048dee63194de49b9a44f345bb9a59140562c05185bd2cfeb223ce8b",
+      "uncompressedBytes": 39559,
+      "compressedSha256": "1995cb0f4ab97e7387196101840fbf04ec083d4a52b92aff77fd40c9b7622e8a"
+    },
+    "final-cleanup.log.gz": {
+      "uncompressedSha256": "f042ceb152d56dbb87d9e1d41364ad56e5a1f419ac76a2ca343133f86f84ec7e",
+      "uncompressedBytes": 2244,
+      "compressedSha256": "ac91a70597a251958ce3788bf52e0190de05d27576ae19f515c962499f983dce"
+    },
+    "final-dependencies.log.gz": {
+      "uncompressedSha256": "8f2f9d6657e8840c1e52da27a2af17c23a42bfcc7630f32c79087280ef3b14e2",
+      "uncompressedBytes": 168,
+      "compressedSha256": "1a9db2536bf8ffccd09cc4b26182d6bb88efbb3de60a76248f561cdc16d8a338"
+    },
+    "gate-launch-error.log.gz": {
+      "uncompressedSha256": "83bb1fe973f609f48011ffcd005001316f13f14d485b35e23629c203ead5a4c9",
+      "uncompressedBytes": 37,
+      "compressedSha256": "508887e84e53c2aa236e39b7a2f6bee9d4ef7309f938116a2b17ba3597f2c0fc"
+    },
+    "post-tools-dependencies.log.gz": {
+      "uncompressedSha256": "8f2f9d6657e8840c1e52da27a2af17c23a42bfcc7630f32c79087280ef3b14e2",
+      "uncompressedBytes": 168,
+      "compressedSha256": "1a9db2536bf8ffccd09cc4b26182d6bb88efbb3de60a76248f561cdc16d8a338"
+    }
+  },
+  "postToolsDependencyHead": "9dc4832f0d05766373003c002ffdccf220762b5b"
+}
