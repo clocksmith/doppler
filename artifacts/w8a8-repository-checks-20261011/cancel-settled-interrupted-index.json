@@ -1,0 +1,23 @@
+{
+  "status": "intentionally-interrupted",
+  "sourceCommit": "f100db05278632d73c5a4d450f853b37522aadec",
+  "changedCoveredSource": [],
+  "reason": "New independently discovered first-token stop-reason defect requires a subsequent runtime correction. Full sweep stopped before editing; not a full check pass.",
+  "files": {
+    "cancel-settled-interrupted-check-green.log.gz": {
+      "sourceSha256": "ebd0207dc8ba189c955493bdb09a45c0905d2b6c55f29699377d06e5a09fdaa6",
+      "compressedSha256": "98e64d34861df47ae9dd2749ce9cfd86ce0f40066c7bbf2a360543870f2f6433",
+      "sourceBytes": 228083
+    },
+    "cancel-settled-interrupted-source.json.gz": {
+      "sourceSha256": "f2ea8acaea58c53d34c58c525f8abee1919119a7935baa1876ecba953bfea017",
+      "compressedSha256": "546837a33c18adb12614aa0f4f74200719396f40f08076f82e5113b0bd370fdb",
+      "sourceBytes": 820254
+    },
+    "cancel-settled-interruption.json.gz": {
+      "sourceSha256": "d2223c20064b5613e0df92488d86d67ba6227de37ba6908cfae892372e6f8b1b",
+      "compressedSha256": "ecd4bab7c063103699425505c5ced2be1a57932fca8d28877ce893f13dd084c7",
+      "sourceBytes": 296
+    }
+  }
+}

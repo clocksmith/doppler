@@ -1,0 +1,25 @@
+{
+  "schema": "doppler.package-inventory-delta/v1",
+  "baseline": "cancel-settled-package-inventory.json.gz",
+  "candidate": "completion-package-inventory.json.gz",
+  "sourceCommit": "e571e22090ef5fe583b33449222c7a2bcce7206c",
+  "standardArchiveChanged": false,
+  "added": [],
+  "removed": [],
+  "changed": [
+    {
+      "path": "src/inference/pipelines/text/generator/decode-runtime.js",
+      "beforeBytes": 43911,
+      "afterBytes": 44099
+    },
+    {
+      "path": "src/inference/pipelines/text/generator/training.js",
+      "beforeBytes": 29450,
+      "afterBytes": 29586
+    }
+  ],
+  "entryCount": 1917,
+  "packedBytes": 3367098,
+  "unpackedBytes": 13214327,
+  "retainedCrossNpmAllowanceBytes": 2158
+}
