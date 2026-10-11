@@ -636,7 +636,7 @@ export async function prefillWithTokenLogitsFromKV(prefix, prompt, tokenIds, opt
     }
   }
 
-export async function* generateWithPrefixKV(prefix, prompt, options = {}) {
+export async function* generateWithPrefixKV(prefix, prompt, options = {}, emissionMode = 'text') {
     if (!this._state.isLoaded) throw new Error('Model not loaded');
     if (this._state.isGenerating) throw new Error('Generation already in progress');
     assertIncrementalDecodeSupport(this._state, 'generateWithPrefixKV');
@@ -669,6 +669,7 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}) {
     this._state.isGenerating = true;
     this._state.decodeStepCount = 0;
     resetActiveExecutionPlan(this._state);
+    delete this._state.stats.outputUsage;
     this._state.stats.gpuTimePrefillMs = undefined;
     this._state.stats.gpuTimeDecodeMs = undefined;
     this._state.stats.prefillProfileSteps = [];
@@ -718,6 +719,7 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}) {
       });
 
       const decodeRuntime = {
+        emitMode: emissionMode,
         stopTokenIds: this._state.modelConfig.stopTokenIds,
         eosToken: this._state.tokenizer.getSpecialTokens?.()?.eos,
         stopSequenceStart: promptTokenCount,
@@ -733,7 +735,7 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}) {
         (tokens) => this._state.tokenizer?.decode?.(tokens, true, false),
         (tokens) => this._state.tokenizer?.decode?.(tokens, false, false)
       );
-      yield firstText;
+      yield emissionMode === 'token' ? firstToken : firstText;
       if (options.onToken) options.onToken(firstToken, firstText);
 
       if (this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {

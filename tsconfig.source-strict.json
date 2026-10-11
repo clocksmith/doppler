@@ -16,6 +16,9 @@
   },
   "include": [],
   "files": [
+    "src/config/reasoning-output.js",
+    "src/inference/generation-output.js",
+    "src/inference/pipelines/text/init-tokenizer.js",
     "src/client/runtime/capsule-piece-reader.js",
     "src/config/choice-scoring.js",
     "src/config/choice-scoring-reference.js",

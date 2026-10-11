@@ -15,20 +15,25 @@ export function createCapsuleOperationAdapters({ program, generate, scoreChoices
       },
       async *execute({ schema, input, options }, signal) {
         const incremental = resolveCapsuleStreamFormat(schema).incremental;
-        if (incremental && typeof program.createIncrementalDecoder !== 'function') {
+        const decodedOutput = incremental || program.getTokenContract?.().reasoningOutput != null;
+        if (decodedOutput && typeof program.createIncrementalDecoder !== 'function') {
           throw new Error('Operation request v2 requires a program with incremental tokenizer decoding.');
         }
-        const decoder = incremental ? program.createIncrementalDecoder() : null;
+        const decoder = decodedOutput ? program.createIncrementalDecoder() : null;
         const tokenIds = [];
         const textParts = [];
         const iterator = generate({ ...input, ...options, signal }, { incremental });
         try {
           while (true) {
             const next = await iterator.next();
+            signal.throwIfAborted();
             if (next.done) {
               if (decoder) {
-                const text = decoder.finish();
-                if (text) { textParts.push(text); yield { delta: { tokenIds: [], text } }; }
+                const text = decoder.finish({ stopReason: next.value?.completion?.stopReason });
+                if (text) {
+                  textParts.push(text);
+                  if (incremental) yield { delta: { tokenIds: [], text } };
+                }
               }
               return { text: decoder ? textParts.join('') : program.decodeTokens(tokenIds), tokenIds, ...next.value };
             }
@@ -38,7 +43,8 @@ export function createCapsuleOperationAdapters({ program, generate, scoreChoices
             if (decoder) {
               const text = decoder.push(tokenId);
               if (text) textParts.push(text);
-              yield { delta: { tokenIds: [tokenId], text } };
+              yield incremental ? { delta: { tokenIds: [tokenId], text } }
+                : { delta: { tokenId }, output: { text: textParts.join(''), tokenIds: [...tokenIds] } };
             } else {
               const output = { text: program.decodeTokens(tokenIds), tokenIds: [...tokenIds] };
               yield { delta: { tokenId }, output };

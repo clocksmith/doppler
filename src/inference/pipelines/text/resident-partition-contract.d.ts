@@ -55,6 +55,7 @@ export interface ResidentPartitionAResult {
   metrics: ResidentPartitionMetrics;
 }
 export interface ResidentPartitionMetrics extends PartitionTiming {
+  outputUsage?: { rawCharacters: number; rawTokens: number; finalCharacters: number; state: string };
   executionMs: number; logitsReadbackMs: number; samplingMs: number;
   memory: Pick<import('../../../memory/device-budget.js').DeviceMemorySnapshot,
     'maxBytes' | 'liveBytes' | 'peakBytes' | 'categories'> | null;

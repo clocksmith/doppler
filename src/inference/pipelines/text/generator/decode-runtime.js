@@ -96,6 +96,7 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
     this._resetReplayPrefillRuntimeState();
     this._state.isGenerating = true;
     this._resetDecodeRuntimeState();
+    delete this._state.stats.outputUsage;
     this._state.stats.gpuTimePrefillMs = undefined;
     this._state.stats.gpuTimeDecodeMs = undefined;
     this._state.stats.decodeRecordMs = 0;
@@ -330,6 +331,7 @@ export async function generateTokenIds(prompt, options = {}) {
     this._resetReplayPrefillRuntimeState();
     this._state.isGenerating = true;
     this._resetDecodeRuntimeState();
+    delete this._state.stats.outputUsage;
     this._state.stats.gpuTimePrefillMs = undefined;
     this._state.stats.gpuTimeDecodeMs = undefined;
     this._state.stats.decodeRecordMs = 0;
@@ -712,7 +714,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
         }
         if (batchTokens.length > 0 && options.onBatch) options.onBatch(batchTokens);
         if (stopIfAborted()) break;
-        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
+        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences, this._state.modelConfig?.reasoningOutput)) {
           this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
           break;
         }
@@ -773,7 +775,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           break;
         }
         if (tokensGenerated >= opts.maxTokens) break;
-        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
+        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences, this._state.modelConfig?.reasoningOutput)) {
           this._recordStopReason('stop-sequence', baseToken);
           break;
         }
@@ -819,7 +821,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
             this._recordStopReason('stop-token', specToken);
             break;
           }
-          if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
+          if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences, this._state.modelConfig?.reasoningOutput)) {
             this._recordStopReason('stop-sequence', specToken);
             break;
           }
@@ -828,7 +830,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           this._recordStopReason('stop-token', generatedIds[generatedIds.length - 1]);
           break;
         }
-        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
+        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences, this._state.modelConfig?.reasoningOutput)) {
           this._recordStopReason('stop-sequence', generatedIds[generatedIds.length - 1] ?? null);
           break;
         }
@@ -889,7 +891,7 @@ export async function* _runDecodeLoop(generatedIds, opts, options, runtime) {
           this._recordStopReason('stop-token', nextToken);
           break;
         }
-        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences)) {
+        if (matchesStopSequence(this._state.tokenizer, generatedIds, stopSequenceStart, opts.stopSequences, this._state.modelConfig?.reasoningOutput)) {
           this._recordStopReason('stop-sequence', nextToken);
           break;
         }

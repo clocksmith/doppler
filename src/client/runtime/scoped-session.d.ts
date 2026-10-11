@@ -1,4 +1,5 @@
 import type { ChatMessage } from '../../inference/pipelines/text/chat-format.js';
+import type { GenerationCompletion } from '../../config/generation-contract.js';
 import type { SequenceEncodeOptions, SequenceEncodeResult } from '../../inference/pipelines/text/types.d.ts';
 import type {
   DopplerGenerateOptions,
@@ -35,6 +36,8 @@ export interface DopplerGenerationResult {
   outputText: string;
   content: string;
   tokenIds: number[];
+  /** Null when an older handle supplies no authoritative stopping metadata. */
+  completion: GenerationCompletion | null;
   resolution: DopplerGenerationEvidence['resolution'];
   usage: {
     promptTokens: number | null;
@@ -77,6 +80,8 @@ export type DopplerGenerationEvent =
     schema: 'doppler.generation-event/v1';
     type: 'complete';
     outputText: string;
+    /** Counts raw generated tokens, including tokens hidden from visible output. */
+    completion: GenerationCompletion | null;
     observationPolicyId: DopplerObservationPolicyId;
   };
 

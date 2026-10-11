@@ -142,6 +142,7 @@ export const DEFAULT_MANIFEST_INFERENCE = {
     ropeLocalYarnOriginalMaxPos: null,
   },
   output: {
+    reasoningOutput: null,
     finalLogitSoftcapping: null,  // No softcapping (null = disabled)
     tieWordEmbeddings: false,
     scaleEmbeddings: false,

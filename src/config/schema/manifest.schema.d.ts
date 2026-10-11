@@ -328,6 +328,8 @@ export interface ManifestFFNSchema {
  * All fields required - converter must populate everything.
  */
 export interface ManifestOutputSchema {
+  /** Optional opt-in model-owned reasoning/final output boundary. */
+  reasoningOutput?: import('../reasoning-output.js').ReasoningOutputContract | null;
   /** Final logit softcapping (Gemma 2: 30, null = disabled) */
   finalLogitSoftcapping: number | null;
   /** Whether embeddings and LM head share weights */

@@ -82,6 +82,9 @@ export function createCapsuleProgramAdapter(modelHandle, capsule, targetPlan, re
         padTokenId: Number.isInteger(special.pad) ? special.pad : null,
         eosTokenId: Number.isInteger(special.eos) ? special.eos : null,
         stopTokenIds: modelHandle.advanced.getStopTokenIds(),
+        ...(modelHandle.manifest?.inference?.output?.reasoningOutput == null ? {} : {
+          reasoningOutput: modelHandle.manifest.inference.output.reasoningOutput,
+        }),
       };
     },
 

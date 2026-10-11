@@ -436,6 +436,13 @@ export class Tokenizer {
     return this.backend.createIncrementalDecoder();
   }
 
+  createRawIncrementalDecoder() {
+    if (typeof this.backend?.createRawIncrementalDecoder !== 'function') {
+      throw new Error('This tokenizer does not support raw incremental decoding.');
+    }
+    return this.backend.createRawIncrementalDecoder();
+  }
+
   decode(ids, skipSpecialTokens = true, trim = true) {
     if (!this.backend) {
       throw new Error('Tokenizer not initialized');

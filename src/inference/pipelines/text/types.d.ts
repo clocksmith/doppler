@@ -577,6 +577,8 @@ export interface PipelineLoadTiming {
 }
 
 export interface PipelineStats {
+  /** Full raw decoding counts when a manifest declares final-answer output semantics. */
+  outputUsage?: { rawCharacters: number; rawTokens: number; finalCharacters: number; state: string };
   /** Total prefill time in milliseconds */
   prefillTimeMs: number;
 

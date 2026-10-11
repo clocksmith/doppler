@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 
 import { createManifest } from '../../src/converter/core.js';
 import { DEFAULT_MANIFEST_INFERENCE } from '../../src/config/schema/index.js';
+import { parseModelConfigFromManifest } from '../../src/inference/pipelines/text/config.js';
+import { createExecutionV1Session } from '../helpers/execution-v1-fixtures.js';
 
 const model = {
   modelId: 'translategemma-eos-test',
@@ -72,5 +74,17 @@ const manifest = createManifest(
 );
 
 assert.deepEqual(manifest.eos_token_id, [1, 106]);
+
+const reasoningOutput = { schema: 'doppler.reasoning-output/v1', openingToken: { id: 10, text: '<think>' },
+  closingToken: { id: 11, text: '</think>' } };
+const options = { source: 'unit-test', modelType: 'transformer', quantization: 'Q4K', hashAlgorithm: 'sha256',
+  inference: { ...DEFAULT_MANIFEST_INFERENCE, output: { ...DEFAULT_MANIFEST_INFERENCE.output, reasoningOutput } } };
+assert.deepEqual(createManifest('fixture', model, shards, tensorLocations, options).inference.output.reasoningOutput, reasoningOutput);
+const parsedManifest = createManifest('fixture', model, shards, tensorLocations, options);
+parsedManifest.inference.session = createExecutionV1Session();
+parsedManifest.tensors = {};
+assert.deepEqual(parseModelConfigFromManifest(parsedManifest).reasoningOutput, reasoningOutput);
+options.inference.output.reasoningOutput = { ...reasoningOutput, openingToken: { id: -1, text: '<think>' } };
+assert.throws(() => createManifest('fixture', model, shards, tensorLocations, options), /explicit token/);
 
 console.log('core-manifest-generation-config-eos.test: ok');

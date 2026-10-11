@@ -729,6 +729,7 @@ function toParsedConfigFromMerged(merged, manifest) {
     postFeedforwardNorm: inf.normalization.postFeedforwardNorm,
     scaleEmbeddings: inf.output.scaleEmbeddings,
     embeddingScale,
+    reasoningOutput: inf.output.reasoningOutput,
     embeddingNormalization: resolveEmbeddingNormalization(inf.output.embeddingNormalization),
     logitInputScale,
     logitOutputScale: inf.output.logitOutputScale ?? 1,

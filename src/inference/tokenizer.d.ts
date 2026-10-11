@@ -82,6 +82,7 @@ export declare class Tokenizer {
    * @param trim - Whether to trim whitespace (default true, set false for streaming)
    */
   createIncrementalDecoder(): import('./tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder;
+  createRawIncrementalDecoder(): import('./tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder;
   decode(ids: number[], skipSpecialTokens?: boolean, trim?: boolean): string;
 
   /**
