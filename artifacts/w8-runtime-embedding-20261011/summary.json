@@ -1,0 +1,68 @@
+{
+  "schema": "doppler.embedding-regression-summary/v1",
+  "passed": true,
+  "archive": {
+    "filename": "doppler-gpu-0.6.27.tgz",
+    "version": "0.6.27",
+    "integrity": "sha512-yzcMDx0zE/ggwLAvvBnF4Q+YVyGtbI5Dbura4uXPIkZx49qgIegKr5T+ASnLKZ8qO7cgbIOoNIYPrXWLooVxFA==",
+    "sizeBytes": 3366796,
+    "source": "local-npm-pack",
+    "sha256": "975adf34cd6985b9420bbbf8c4a8736e44a84fc916465fd90158bf73fddef8c5"
+  },
+  "manifestHash": "sha256:4a9c96e34fda3d97e6dab0989c5f40333bc2f6cc31a7e5f3cfef7dc85e118c34",
+  "referenceDigest": "sha256:be4ed910a95a6e7ed26cfe7ce39d539760187698d7f8703a106afbabcdc46772",
+  "qualificationSha256": "cf4ae1696e4d59deeb2f5920be36d280b8fa1a9cf62af251c4bdffc370e6d877",
+  "sourceChecks": 36,
+  "maxAbsoluteError": 7.295608520507812e-05,
+  "tolerance": 0.02,
+  "subdivisionPassed": true,
+  "cancellation": {
+    "passed": true,
+    "submissions": 12,
+    "rejected": {
+      "name": "AbortError",
+      "message": "Doppler: aborted"
+    },
+    "before": {
+      "retainedModel": {
+        "bytes": 1191632896,
+        "count": 338
+      },
+      "active": {
+        "bytes": 16777216,
+        "count": 2
+      },
+      "reusable": {
+        "bytes": 20919296,
+        "count": 64
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    },
+    "after": {
+      "retainedModel": {
+        "bytes": 1191632896,
+        "count": 338
+      },
+      "active": {
+        "bytes": 16777216,
+        "count": 2
+      },
+      "reusable": {
+        "bytes": 20525824,
+        "count": 64
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    }
+  },
+  "reusedOutputs": 18,
+  "cleanup": {
+    "passed": true,
+    "errors": []
+  }
+}

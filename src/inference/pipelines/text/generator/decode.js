@@ -925,6 +925,8 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
           const logitsData = await readBuffer(logitsBuffer, numTokens * rawVocabSize * logitsBytes);
           const rawLogits = decodeReadback(logitsData, logitsDtype);
           logits = extractLastPositionLogits(rawLogits, numTokens, config.vocabSize);
+          releaseBuffer(logitsBuffer);
+          logitsBuffer = null;
         }
       }
     }
@@ -951,15 +953,8 @@ export async function decodeStepLogits(state, currentIds, opts, helpers) {
     }
 
     state.currentSeqLen++;
-
     returned = true;
-    return {
-      logits,
-      logitsBuffer,
-      logitsDtype,
-      rawVocabSize,
-      vocabSize: config.vocabSize,
-    };
+    return { logits, logitsBuffer, logitsDtype, rawVocabSize, vocabSize: config.vocabSize };
   } finally {
     if (hiddenStates && !isOwnedDecodeBuffer(hiddenStates, decodeHiddenBuffer, decodeAltBuffer)) releaseBuffer(hiddenStates);
     if (!returned && logitsBuffer) releaseBuffer(logitsBuffer);
