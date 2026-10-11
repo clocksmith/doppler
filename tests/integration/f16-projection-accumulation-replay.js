@@ -8,11 +8,12 @@ import { createF16ProjectionCases } from '../helpers/f16-projection-cases.js';
 
 const [operandsPath, baselinePath, candidatePath, destination, geometry = 'base'] = process.argv.slice(2);
 assert(operandsPath && baselinePath && candidatePath && destination);
-assert(['base', 'tiled'].includes(geometry));
+assert(['base', 'tiled', 'q4-widetile'].includes(geometry));
 const bytes = await readFile(operandsPath);
 const fixture = JSON.parse(bytes);
-assert.equal(fixture.schema, 'doppler.f16-projection-actual-operands/v1');
-fixture.cases = [...fixture.cases.map(item => ({ ...item, kind: 'actual', tileSize: 16, transpose: 1, alpha: 1 })),
+assert.equal(fixture.schema, geometry === 'q4-widetile'
+  ? 'doppler.q4-projection-actual-operands/v1' : 'doppler.f16-projection-actual-operands/v1');
+if (geometry !== 'q4-widetile') fixture.cases = [...fixture.cases.map(item => ({ ...item, kind: 'actual', tileSize: 16, transpose: 1, alpha: 1 })),
   ...createF16ProjectionCases({ transpose: geometry === 'tiled' ? 1 : null })];
 const hash = value => createHash('sha256').update(value).digest('hex');
 const sources = await Promise.all([baselinePath, candidatePath].map(path => readFile(path, 'utf8')));
@@ -44,7 +45,8 @@ try {
         if (errors.length) throw new Error(errors.map(message => message.message).join('\n'));
         for (const item of fixture.cases) {
           const pipeline = await device.createComputePipelineAsync({ layout: 'auto', compute: {
-            module, entryPoint: 'main', constants: geometry === 'tiled' ? {} : { TILE_SIZE: item.tileSize },
+            module, entryPoint: 'main', constants: geometry === 'q4-widetile' ? { TILE_M: item.tileM ?? 4, TILE_N: item.tileN ?? 256 }
+              : geometry === 'tiled' ? {} : { TILE_SIZE: item.tileSize },
           } });
           const owned = [];
           const allocate = (size, usage) => { const buffer = device.createBuffer({ size, usage }); owned.push(buffer); return buffer; };
@@ -52,14 +54,15 @@ try {
           try {
             const uniform = allocate(32, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);
             const input = allocate(item.M * item.K * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST);
-            const weightBytes = new Uint8Array(Math.ceil(item.N * item.K * 2 / 4) * 4);
-            weightBytes.set(decode(item.weightF16));
+            const weightBytes = geometry === 'q4-widetile' ? decode(item.weightQ4)
+              : new Uint8Array(Math.ceil(item.N * item.K * 2 / 4) * 4);
+            if (geometry !== 'q4-widetile') weightBytes.set(decode(item.weightF16));
             const weight = allocate(weightBytes.length, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST);
             const output = allocate(item.M * item.N * 4, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
             const staging = allocate(item.M * item.N * 4, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
             const data = new ArrayBuffer(32), view = new DataView(data);
             view.setUint32(0, item.M, true); view.setUint32(4, item.N, true); view.setUint32(8, item.K, true);
-            view.setFloat32(12, item.alpha, true); view.setUint32(16, item.transpose, true);
+            view.setFloat32(12, item.alpha, true); view.setUint32(16, geometry === 'q4-widetile' ? Math.ceil(item.K / 256) : item.transpose, true);
             device.queue.writeBuffer(uniform, 0, data);
             device.queue.writeBuffer(input, 0, decode(item.inputF32));
             device.queue.writeBuffer(weight, 0, weightBytes);
@@ -69,7 +72,10 @@ try {
               const encoder = device.createCommandEncoder(), pass = encoder.beginComputePass();
               pass.setPipeline(pipeline); pass.setBindGroup(0, group);
               const tile = geometry === 'tiled' ? 64 : item.tileSize;
-              for (let i = 0; i < count; i++) pass.dispatchWorkgroups(Math.ceil(item.M / tile), Math.ceil(item.N / tile));
+              for (let i = 0; i < count; i++) {
+                if (geometry === 'q4-widetile') pass.dispatchWorkgroups(Math.ceil(item.N / (item.tileN ?? 256)), Math.ceil(item.M / (item.tileM ?? 4)));
+                else pass.dispatchWorkgroups(Math.ceil(item.M / tile), Math.ceil(item.N / tile));
+              }
               pass.end();
               if (readback) encoder.copyBufferToBuffer(output, 0, staging, 0, item.M * item.N * 4);
               device.queue.submit([encoder.finish()]);
@@ -114,7 +120,7 @@ try {
     }
     Object.assign(row, { maxAbsError, rmsError: Math.sqrt(squaredError / actual.length),
       differentObserved: observed ? differentObserved : null, outsideErrorBound, kind: input.kind,
-      shape: { M: input.M, N: input.N, K: input.K, transpose: input.transpose, alpha: input.alpha, tileSize: input.tileSize } });
+      shape: { M: input.M, N: input.N, K: input.K, transpose: input.transpose, alpha: input.alpha, tileSize: input.tileSize, tileM: input.tileM, tileN: input.tileN } });
   }
   const receipt = { scope: 'Exact retained operands; F32 accumulation diagnostic, not model acceptance or performance claim',
     browser: browser.version(), geometry, operandsSha256: hash(bytes), baselineSha256: hash(sources[0]), candidateSha256: hash(sources[1]), ...physical };
@@ -124,7 +130,7 @@ try {
     const baseline = receipt.results.find(row => row.name === name && row.variant === 'baseline');
     const candidate = receipt.results.find(row => row.name === name && row.variant === 'candidate');
     assert.equal(baseline.differentObserved, 0, `${name}: baseline reproduction`);
-    assert(candidate.maxAbsError < baseline.maxAbsError / 5, `${name}: compensation must materially reduce local error`);
+    assert(candidate.maxAbsError < baseline.maxAbsError / (geometry === 'q4-widetile' ? 1.5 : 5), `${name}: partial sums must materially reduce local error`);
   }
   for (const row of receipt.results.filter(item => item.kind === 'synthetic')) {
     assert.equal(row.outsideErrorBound, 0, `${row.variant}/${row.name}: general shape precision`);

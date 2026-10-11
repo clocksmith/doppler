@@ -119,7 +119,8 @@ try {
   await page.exposeFunction('recordProducerObservation', row => { observedTimeline.push(row); });
   const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, prefixesOnly, expected, observationTarget, captureDecode }) => {
     // Observe selected native pipelines without rewriting shader arithmetic.
-    const moduleSources = new WeakMap(), pipelines = new WeakMap(), normalizationDispatch = [], projectionDispatch = [];
+    const moduleSources = new WeakMap(), pipelines = new WeakMap(), normalizationDispatch = [], projectionDispatch = [], quantizedDispatch = [], passPipelines = new WeakMap();
+    let dispatchOrdinal = 0;
     const createModule = GPUDevice.prototype.createShaderModule;
     GPUDevice.prototype.createShaderModule = function (descriptor) {
       const module = createModule.call(this, descriptor);
@@ -137,6 +138,11 @@ try {
           source, selections: 0 };
         projectionDispatch.push(record); pipelines.set(pipeline, record);
       }
+      if (source?.includes('struct Q4KBlock')) {
+        const record = { entry: descriptor.compute.entryPoint, constants: descriptor.compute.constants,
+          source, selections: 0, dispatches: [] };
+        quantizedDispatch.push(record); pipelines.set(pipeline, record);
+      }
       return pipeline;
     };
     const createPipeline = GPUDevice.prototype.createComputePipeline;
@@ -150,7 +156,17 @@ try {
     const setPipeline = GPUComputePassEncoder.prototype.setPipeline;
     GPUComputePassEncoder.prototype.setPipeline = function (pipeline) {
       const record = pipelines.get(pipeline); if (record) record.selections++;
+      passPipelines.set(this, record);
       return setPipeline.call(this, pipeline);
+    };
+    const dispatchWorkgroups = GPUComputePassEncoder.prototype.dispatchWorkgroups;
+    GPUComputePassEncoder.prototype.dispatchWorkgroups = function (...dimensions) {
+      const record = passPipelines.get(this);
+      if (record?.dispatches && record.dispatches.length < 32) {
+        record.dispatches.push({ ordinal: dispatchOrdinal, dimensions });
+      }
+      dispatchOrdinal++;
+      return dispatchWorkgroups.call(this, ...dimensions);
     };
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = '/runtime/src/gpu/kernels/';
     const { load, DOPPLER_VERSION } = await import('/runtime/' + compatEntry.replace(/^\.\//, ''));
@@ -195,7 +211,7 @@ try {
           }
         }
       }
-      if (prefixesOnly || (fullPrefixes && !captureDecode)) return { runtimeVersion: DOPPLER_VERSION, rows, observation: null, normalizationDispatch, projectionDispatch };
+      if (prefixesOnly || (fullPrefixes && !captureDecode)) return { runtimeVersion: DOPPLER_VERSION, rows, observation: null, normalizationDispatch, projectionDispatch, quantizedDispatch };
       // Observe the same first prefix after reset; quantify instrumentation effects.
       await handle.resetGenerationState();
       let observedLogits = null; const observedSteps = [];
@@ -258,7 +274,7 @@ try {
         }
         await window.recordProducerObservation({ ...row, capture });
       }
-      return { runtimeVersion: DOPPLER_VERSION, rows, normalizationDispatch, projectionDispatch, observation: { logits: observedLogits, observedSteps, target: observationTarget,
+      return { runtimeVersion: DOPPLER_VERSION, rows, normalizationDispatch, projectionDispatch, quantizedDispatch, observation: { logits: observedLogits, observedSteps, target: observationTarget,
         physicalCache: cacheObserver ? physicalRows.flatMap(value => value.rows) : null,
         samplingExcludedTokenIds: [handle.advanced.getSpecialTokens().pad, ...executionOptions.suppressTokenIds]
           .filter(Number.isInteger), timeline: [] } };
@@ -274,6 +290,8 @@ try {
   receipt.normalizationDispatch = result.normalizationDispatch.map(({ source, ...record }) => ({
     ...record, shaderSha256: hash(source) }));
   receipt.projectionDispatch = result.projectionDispatch.map(({ source, ...record }) => ({
+    ...record, shaderSha256: hash(source) }));
+  receipt.quantizedDispatch = result.quantizedDispatch.map(({ source, ...record }) => ({
     ...record, shaderSha256: hash(source) }));
   receipt.observation = result.observation;
   if (receipt.observation) receipt.observation.timeline = observedTimeline;

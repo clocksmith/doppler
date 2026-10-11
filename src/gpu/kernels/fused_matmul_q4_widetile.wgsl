@@ -91,16 +91,18 @@ fn main(
     let col_base = wg_id.x * TILE_N;
     let col = col_base + col_local;
 
-    // Independent FMA lanes shorten each accumulation chain and avoid the
-    // platform-dependent reassociation permitted by vector dot products.
-    var results: array<vec4<f32>, MAX_TILE_M>;
+    // Reduce each quantization block separately to bound F32 dependency depth.
+    // Four local FMA lanes plus one outer scalar per row preserve bounded registers.
+    var totals: array<f32, MAX_TILE_M>;
     for (var i: u32 = 0u; i < TILE_M; i = i + 1u) {
-        results[i] = vec4<f32>(0.0);
+        totals[i] = 0.0;
     }
 
     let num_blocks = u.num_blocks_per_row;
 
     for (var b: u32 = 0u; b < num_blocks; b = b + 1u) {
+        var results: array<vec4<f32>, MAX_TILE_M>;
+        for (var m = 0u; m < TILE_M; m++) { results[m] = vec4<f32>(0.0); }
         let total_a_elems = TILE_M * QK_K;
         for (var idx: u32 = col_local; idx < total_a_elems; idx = idx + TILE_N) {
             let load_row_local = idx / QK_K;
@@ -152,6 +154,11 @@ fn main(
                     }
                 }
             }
+            for (var m = 0u; m < TILE_M; m++) {
+                var subtotal = 0.0;
+                for (var lane = 0u; lane < 4u; lane++) { subtotal += results[m][lane]; }
+                totals[m] += subtotal;
+            }
         }
         workgroupBarrier();
     }
@@ -160,12 +167,7 @@ fn main(
         for (var m: u32 = 0u; m < TILE_M; m = m + 1u) {
             let row = row_base + m;
             if (row < u.M) {
-                let accum = results[m];
-                var reduced = 0.0;
-                for (var lane = 0u; lane < 4u; lane++) {
-                    reduced = reduced + accum[lane];
-                }
-                C[row * u.N + col] = reduced * u.alpha;
+                C[row * u.N + col] = totals[m] * u.alpha;
             }
         }
     }
