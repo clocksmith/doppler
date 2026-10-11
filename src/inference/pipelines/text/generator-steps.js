@@ -229,19 +229,22 @@ export async function readBatchTokensFromStagingBuffers(options) {
     if (stopMapped) {
       stopStagingBuffer.unmap();
     }
-    if (!cleanupCompleted) {
-      await cleanupRecorder?.completeDeferredCleanup({ discardPooled: true });
+    try {
+      if (!cleanupCompleted) {
+        await cleanupRecorder?.completeDeferredCleanup({ discardPooled: true });
+      }
+    } finally {
+      if (ownsFinitenessStaging) {
+        finitenessStagingBuffer.destroy();
+      }
+      if (ownsTokensStaging) {
+        tokensStagingBuffer.destroy();
+      }
+      if (ownsStopStaging) {
+        stopStagingBuffer?.destroy();
+      }
+      ring?.advance();
     }
-    if (ownsFinitenessStaging) {
-      finitenessStagingBuffer.destroy();
-    }
-    if (ownsTokensStaging) {
-      tokensStagingBuffer.destroy();
-    }
-    if (ownsStopStaging) {
-      stopStagingBuffer?.destroy();
-    }
-    ring?.advance();
   }
 }
 

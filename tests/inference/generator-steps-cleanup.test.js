@@ -79,6 +79,42 @@ function createStagingBuffer(words, options = {}) {
   };
 }
 
+for (const batched of [false, true]) {
+  const failure = new Error('Required GPU validation failed');
+  const staging = createStagingBuffer([42]);
+  staging.getMappedRange = () => { throw new Error('Invalid output must never be read'); };
+  const stop = createStagingBuffer([0]);
+  const finiteness = createStagingBuffer([0, 0, 0, 0]);
+  const ring = createRingTracker();
+  const cleanupRecorder = { async completeDeferredCleanup() { throw failure; } };
+  const operation = batched
+    ? () => readBatchTokensFromStagingBuffers({
+      tokensStagingBuffer: staging,
+      stopStagingBuffer: stop,
+      finitenessStagingBuffer: finiteness,
+      tokenCount: 1,
+      ownsTokensStaging: true,
+      ownsStopStaging: true,
+      cleanupRecorder,
+      ring,
+    })
+    : () => readSampledTokenFromStagingBuffer(staging, {
+      ownsStagingBuffer: true,
+      cleanupRecorder,
+      ring,
+    });
+  await assert.rejects(operation, error => error === failure);
+  assert.equal(staging.unmapCount, 1);
+  assert.equal(staging.destroyCount, 1, 'Rejected validation must not leak staging.');
+  assert.equal(ring.advanceCount, 1);
+  if (batched) {
+    assert.equal(stop.unmapCount, 1);
+    assert.equal(stop.destroyCount, 1);
+    assert.equal(finiteness.unmapCount, 1);
+    assert.equal(finiteness.destroyCount, 1);
+  }
+}
+
 {
   assert.equal(
     generatorStepsSource.match(

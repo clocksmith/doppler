@@ -10,7 +10,6 @@ import { getRuntimeConfig } from '../config/runtime.js';
 let didLogQueryClamp = false;
 let didLogQueryFallback = false;
 
-
 export class CommandRecorder {
   
   device;
@@ -18,7 +17,6 @@ export class CommandRecorder {
   label;
   
   #encoder;
-
 
   #tempBuffers;
 
@@ -36,11 +34,12 @@ export class CommandRecorder {
 
   #completionTasks;
 
+  #completionFailure = null;
+
   #submitted;
 
   #submissionCount = 0;
 
-  
   #opCount;
 
   #opLabelCounts;
@@ -75,11 +74,9 @@ export class CommandRecorder {
   
   #queryCapacity = 0;
 
-
   #submitLatencyMs = null;
   #uniformCache = null;
-  
-  
+
   constructor(device = null, label = 'command_recorder', options = {}) {
     this.device = device || getDevice();
     if (!this.device) {
@@ -118,7 +115,6 @@ export class CommandRecorder {
     }
   }
 
-  
   #initProfiling() {
     let querySet = null;
     let queryBuffer = null;
@@ -179,12 +175,10 @@ export class CommandRecorder {
     }
   }
 
-  
   isProfilingEnabled() {
     return this.#profilingEnabled;
   }
 
-  
   createTempBuffer(size, usage, label = 'temp_buffer') {
     if (this.#submitted) {
       throw new Error('[CommandRecorder] Cannot create buffers after submit');
@@ -202,7 +196,6 @@ export class CommandRecorder {
     return buffer;
   }
 
-  
   createIndirectDispatchBuffer(
     workgroups = [0, 0, 0],
     label = 'indirect_dispatch'
@@ -221,7 +214,6 @@ export class CommandRecorder {
     return buffer;
   }
 
-  
   writeIndirectDispatchBuffer(
     buffer,
     workgroups,
@@ -237,7 +229,6 @@ export class CommandRecorder {
     this.device.queue.writeBuffer(buffer, offset, source, data.byteOffset, data.byteLength);
   }
 
-  
   createUniformBuffer(data, label = 'uniforms') {
     this.#uniformCache ??= getUniformCache(this.device);
     return this.#uniformCache.getOrCreate(toUniformArrayBuffer(data), label);
@@ -406,7 +397,6 @@ export class CommandRecorder {
     pass.dispatchWorkgroupsIndirect(indirectBuffer, indirectOffset);
   }
 
-  
   getEncoder() {
     if (this.#submitted) {
       throw new Error('[CommandRecorder] Cannot access encoder after submit');
@@ -414,7 +404,6 @@ export class CommandRecorder {
     this.closeActiveComputePass();
     return this.#encoder;
   }
-
 
   trackTemporaryBuffer(buffer) {
     if (this.#submitted) {
@@ -443,7 +432,17 @@ export class CommandRecorder {
     if (typeof task !== 'function') {
       throw new Error('[CommandRecorder] completion task must be a function');
     }
-    this.#completionTasks.push(task);
+    this.#completionTasks.push({ task, required: false });
+  }
+
+  enqueueValidationTask(task) {
+    if (this.#submitted) {
+      throw new Error('[CommandRecorder] Cannot enqueue validation tasks after submit');
+    }
+    if (typeof task !== 'function') {
+      throw new Error('[CommandRecorder] validation task must be a function');
+    }
+    this.#completionTasks.push({ task, required: true });
   }
 
   async #runCompletionTasks() {
@@ -452,11 +451,15 @@ export class CommandRecorder {
     }
     const tasks = this.#completionTasks;
     this.#completionTasks = [];
-    for (const task of tasks) {
+    for (const { task, required } of tasks) {
       try {
         await task();
       } catch (error) {
-        log.warn('CommandRecorder', `Completion task failed: ${error instanceof Error ? error.message : String(error)}`);
+        if (required) {
+          this.#completionFailure ??= { error };
+        } else {
+          log.warn('CommandRecorder', `Completion task failed: ${error instanceof Error ? error.message : String(error)}`);
+        }
       }
     }
   }
@@ -522,7 +525,6 @@ export class CommandRecorder {
       .then(() => cleanup(false), () => cleanup(true));
   }
 
-  
   submit(options = {}) {
     if (this.#submitted) {
       throw new Error('[CommandRecorder] Already submitted');
@@ -552,7 +554,8 @@ export class CommandRecorder {
         this.#cleanupPromise = this.device.queue.onSubmittedWorkDone().then(async () => {
           await this.#runCompletionTasks();
         }).catch((err) => {
-          log.warn('CommandRecorder', `Completion tasks failed: ${ (err).message}`);
+          this.#completionTasks = [];
+          this.#completionFailure ??= { error: err };
         });
       }
       this.#deferredCleanup = {
@@ -568,7 +571,8 @@ export class CommandRecorder {
       this.#submitLatencyMs = performance.now() - submitStart;
       this.#finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, false);
     }).catch((err) => {
-      log.warn('CommandRecorder', `Deferred cleanup failed: ${ (err).message}`);
+      this.#completionTasks = [];
+      this.#completionFailure ??= { error: err };
       this.#finalizeTrackedBuffers(buffersToDestroy, buffersToRelease, true);
     });
   }
@@ -578,10 +582,10 @@ export class CommandRecorder {
     if (this.#cleanupPromise) {
       await this.#cleanupPromise;
     }
-    this.#finalizeDeferredCleanup(discardPooled);
+    this.#finalizeDeferredCleanup(discardPooled || this.#completionFailure !== null);
+    if (this.#completionFailure) throw this.#completionFailure.error;
   }
 
-  
   async submitAndWait() {
     this.submit();
     if (this.#cleanupPromise) {
@@ -591,8 +595,8 @@ export class CommandRecorder {
       // Safe to destroy evicted uniform buffers now that GPU work is complete
       this.#uniformCache?.flushPendingDestruction();
     }
+    if (this.#completionFailure) throw this.#completionFailure.error;
   }
-
 
   getStats() {
     const opLabelCounts = this.#opLabelCounts
@@ -622,7 +626,6 @@ export class CommandRecorder {
     return this.#submitLatencyMs;
   }
 
-
   abort() {
     if (this.#submitted) return this.#cleanupPromise;
 
@@ -634,7 +637,6 @@ export class CommandRecorder {
     return this.#cleanupPromise;
   }
 
-  
   async resolveProfileTimings() {
     if (!this.#profilingEnabled || !this.#querySet || !this.#queryBuffer || !this.#readbackBuffer) {
       return null;
@@ -645,8 +647,11 @@ export class CommandRecorder {
     }
 
     if (this.#profileEntries.length === 0) {
-      this.#finalizeDeferredCleanup(false);
-      this.#destroyProfilingResources();
+      try {
+        await this.completeDeferredCleanup();
+      } finally {
+        this.#destroyProfilingResources();
+      }
       return {};
     }
 
@@ -654,7 +659,7 @@ export class CommandRecorder {
 
     try {
       await this.device.queue.onSubmittedWorkDone();
-      this.#finalizeDeferredCleanup(false);
+      await this.completeDeferredCleanup();
 
       const maxIndex = Math.max(...this.#profileEntries.map(e => e.endQueryIndex)) + 1;
       const resolveEncoder = this.device.createCommandEncoder({ label: 'profile_resolve' });
@@ -696,7 +701,6 @@ export class CommandRecorder {
     }
   }
 
-  
   static formatProfileReport(timings) {
     const entries = Object.entries(timings).sort((a, b) => b[1] - a[1]);
     const total = entries.reduce((sum, [, t]) => sum + t, 0);
@@ -717,7 +721,6 @@ export class CommandRecorder {
     return report;
   }
 
-  
   #destroyProfilingResources() {
     if (this.#querySet) {
       this.#querySet.destroy();
@@ -735,11 +738,9 @@ export class CommandRecorder {
   }
 }
 
-
 export function createCommandRecorder(label = 'command_recorder', options, device = null) {
   return new CommandRecorder(device, label, options);
 }
-
 
 export function createProfilingRecorder(label = 'profiled_recorder', device = null, options = {}) {
   return new CommandRecorder(device, label, { ...options, profile: true });

@@ -3,7 +3,6 @@ import { releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { recordArgmax, recordGPUSample, isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
 import { recordHistoryPenalties } from '../../../../gpu/kernels/rep-penalty.js';
 
-
 import { resetSubmitStats, logSubmitStats } from '../../../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../../gpu/command-recorder.js';
 import { allowReadback } from '../../../../gpu/perf-guards.js';
@@ -198,16 +197,17 @@ export async function readSampledTokenFromStagingBuffer(stagingBuffer, options =
     timing.copyMs = performance.now() - copyStart;
     return result;
   } finally {
-    if (mapped) {
-      stagingBuffer.unmap();
+    if (mapped) stagingBuffer.unmap();
+    try {
+      if (!cleanupCompleted) {
+        await cleanupRecorder?.completeDeferredCleanup({ discardPooled: true });
+      }
+    } finally {
+      if (ownsStagingBuffer) {
+        stagingBuffer.destroy();
+      }
+      ring?.advance();
     }
-    if (!cleanupCompleted) {
-      await cleanupRecorder?.completeDeferredCleanup({ discardPooled: true });
-    }
-    if (ownsStagingBuffer) {
-      stagingBuffer.destroy();
-    }
-    ring?.advance();
   }
 }
 

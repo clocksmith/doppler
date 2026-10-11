@@ -204,6 +204,42 @@ async function flushMicrotasks() {
 }
 
 for (const cleanup of ['queue', 'deferred']) {
+  const device = createFakeDevice();
+  const recorder = new CommandRecorder(device, 'required_validation');
+  const temp = recorder.createTempBuffer(64, GPUBufferUsage.STORAGE);
+  const failure = Object.assign(new Error('Invalid quantized activation'), { code: 'W8A8_INVALID_INPUT' });
+  const order = [];
+  recorder.enqueueCompletionTask(() => { throw new Error('Optional diagnostic unavailable'); });
+  recorder.enqueueValidationTask(() => {
+    assert.equal(temp.destroyed, false);
+    order.push('validate');
+    throw failure;
+  });
+  recorder.enqueueValidationTask(() => { order.push('drain'); });
+  if (cleanup === 'queue') {
+    await assert.rejects(recorder.submitAndWait(), error => error === failure);
+  } else {
+    recorder.submit({ cleanup });
+    await assert.rejects(recorder.completeDeferredCleanup(), error => error === failure);
+  }
+  assert.deepEqual(order, ['validate', 'drain']);
+  assert.equal(temp.destroyed, true, 'Required rejection must still settle owned buffers.');
+  await assert.rejects(recorder.completeDeferredCleanup(), error => error === failure);
+  assert.deepEqual(order, ['validate', 'drain'], 'Repeated cleanup does not repeat validation.');
+  assert.throws(() => recorder.enqueueValidationTask(() => {}), /after submit/);
+}
+
+{
+  const recorder = new CommandRecorder(createFakeDevice({ rejectSubmitted: true }), 'required_device_loss');
+  const temp = recorder.createTempBuffer(64, GPUBufferUsage.STORAGE);
+  let validations = 0;
+  recorder.enqueueValidationTask(() => { validations += 1; });
+  await assert.rejects(recorder.submitAndWait(), /device lost/);
+  assert.equal(validations, 0);
+  assert.equal(temp.destroyed, true);
+}
+
+for (const cleanup of ['queue', 'deferred']) {
   const clock = Object.getOwnPropertyDescriptor(globalThis, 'performance');
   let now = 10;
   Object.defineProperty(globalThis, 'performance', { configurable: true, value: { now: () => now } });
