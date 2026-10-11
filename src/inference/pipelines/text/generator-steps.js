@@ -16,6 +16,7 @@ import {
   isProfileDecodeRecorderEnabled,
 } from './execution-plan.js';
 import { sample, applyRepetitionPenalty, logitsSanity, getTopK } from './sampling.js';
+import { samplingSeedForToken } from '../../token-sampling.js';
 import { isStopToken } from './init.js';
 import { embed } from './embed.js';
 import { resolvePerLayerInputsSession } from './generator/session-context.js';
@@ -347,7 +348,10 @@ async function generateNTokensGPUStepwiseRangeBackedPle(state, N, currentIds, op
     }
 
     for (let i = 0; i < N; i += 1) {
-      const nextToken = await decodeStep(state, rollingIds, opts, helpers);
+      const nextToken = await decodeStep(state, rollingIds, {
+        ...opts,
+        seed: samplingSeedForToken(opts.seed, rollingIds.length - opts.promptTokenCount),
+      }, helpers);
       gpuSubmissions += 1;
       generatedTokens.push(nextToken);
       rollingIds.push(nextToken);
@@ -728,7 +732,7 @@ export async function generateNTokensGPU(state, startToken, N, currentIds, opts,
             outputBuffer: tokensBuffer,
             outputIndex,
             greedyThreshold: samplingDefaults.greedyThreshold,
-            randomSeed: opts.seed,
+            randomSeed: samplingSeedForToken(opts.seed, currentIds.length - opts.promptTokenCount + i),
           });
         }
       }

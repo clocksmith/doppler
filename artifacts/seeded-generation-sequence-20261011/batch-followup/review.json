@@ -1,0 +1,37 @@
+{
+  "scope": "Behavioral control-loop regression with GPU/storage stubs; not physical sampling arithmetic parity.",
+  "before": {
+    "test": "tests/inference/seeded-batch-generation.test.js",
+    "observedSeeds": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedSeeds": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "failed": true
+  },
+  "after": {
+    "recordedBatch": true,
+    "rangeBackedPle": true,
+    "wholeVersusSplitRecording": true,
+    "sameIndexRetry": true,
+    "firstDrawPreserved": true,
+    "undefinedZeroFractionWrapHugeSeeds": true,
+    "greedyUnchanged": true,
+    "generationOptionsImmutable": true
+  },
+  "review": "Independent numerical agent inspected seed ownership and ran focused tests; no double advancement.",
+  "standardArchiveChanged": false
+}
