@@ -132,19 +132,20 @@ def compare_attention_history(model, capture, cache):
     return comparisons
 
 
-def compare_linear_history(model, capture):
-    """Offline float64 source equations over layer 0's captured projection history.
+def compare_linear_history(model, capture, layer_index=0):
+    """Offline float64 source equations over one layer's captured projection history.
 
     This replays convolution and recurrence from zero, not from independently
     evolved model inputs. It neither observes nor replaces live GPU state.
     """
-    layer = model.model.layers[0].linear_attn
+    layer = model.model.layers[layer_index].linear_attn
+    prefix = f'layer.{layer_index}.attn.'
     dimensions = {'qkv_proj': layer.conv_dim, 'linear_z_proj': layer.value_dim,
                   'linear_a_proj': layer.num_v_heads, 'linear_b_proj': layer.num_v_heads,
                   'linear_core_out': layer.value_dim}
     history = {name: [] for name in dimensions}
     for row in capture['observation']['timeline']:
-        name = row['opId'].removeprefix('layer.0.attn.')
+        name = row['opId'].removeprefix(prefix)
         if name not in history:
             continue
         values = capture_values(row.get('capture'))
@@ -193,11 +194,19 @@ def compare_linear_history(model, capture):
     precise = np.stack(outputs)
     error = np.abs(precise - inputs['linear_core_out'])
     assert np.isfinite(error).all()
-    return {'boundary': 'layer.0.attn.linear_core_out',
+    return {'boundary': prefix + 'linear_core_out',
             'scope': 'Captured projection history, zero initial state, float64 source equations',
             'tokens': len(outputs), 'values': int(error.size),
             'maxAbsError': float(error.max()), 'lastTokenMaxAbsError': float(error[-1].max()),
             'rmsError': float(np.sqrt(np.mean(error ** 2)))}
+
+
+def compare_linear_histories(model, capture):
+    indices = sorted({int(row['opId'].split('.')[1])
+                      for row in capture['observation']['timeline']
+                      if row['opId'].startswith('layer.')
+                      and row['opId'].endswith('.attn.linear_core_out')})
+    return [compare_linear_history(model, capture, index) for index in indices]
 
 
 def compare_boundaries(model, capture, input_ids, cache):
@@ -478,7 +487,9 @@ def run(args):
             if boundary_capture and target is targets[-1]:
                 result, report['boundaryComparisons'], report['operandComparisons'], report['unobservedBoundaries'], report['attentionHistoryComparisons'] = compare_boundaries(
                     model, boundary_capture, torch.tensor([input_ids]), cache)
-                report['linearHistoryComparison'] = compare_linear_history(model, boundary_capture)
+                report['linearHistoryComparisons'] = compare_linear_histories(model, boundary_capture)
+                report['linearHistoryComparison'] = next(row for row in report['linearHistoryComparisons']
+                                                        if row['boundary'] == 'layer.0.attn.linear_core_out')
             else:
                 result = model(input_ids=torch.tensor([input_ids]), past_key_values=cache,
                                use_cache=True, logits_to_keep=1)

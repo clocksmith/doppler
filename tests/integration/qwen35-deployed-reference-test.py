@@ -82,6 +82,25 @@ for state in [d, d * (1 + alpha)]:
         row('linear_core_out', [output]),
     ])
 assert reference.compare_linear_history(linear_model, linear_capture)['maxAbsError'] < 1e-7
+second_layer = copy.deepcopy(linear)
+second_layer.norm.weight *= 2
+linear_model.model.layers.append(SimpleNamespace(linear_attn=second_layer))
+multi_capture = copy.deepcopy(linear_capture)
+for item in linear_capture['observation']['timeline']:
+    item = copy.deepcopy(item)
+    item['opId'] = item['opId'].replace('layer.0.', 'layer.1.')
+    if item['opId'].endswith('linear_core_out'):
+        item['capture']['data'] = [2 * value for value in item['capture']['data']]
+    multi_capture['observation']['timeline'].append(item)
+multi = reference.compare_linear_histories(linear_model, multi_capture)
+assert [item['boundary'] for item in multi] == ['layer.0.attn.linear_core_out', 'layer.1.attn.linear_core_out']
+assert all(item['maxAbsError'] < 2e-7 for item in multi)
+del multi_capture['observation']['timeline'][10]
+try:
+    reference.compare_linear_histories(linear_model, multi_capture)
+    raise RuntimeError('Incomplete later-layer recurrence history was accepted')
+except AssertionError as error:
+    assert 'incomplete linear history' in str(error)
 del linear_capture['observation']['timeline'][0]
 try:
     reference.compare_linear_history(linear_model, linear_capture)
@@ -91,4 +110,5 @@ except AssertionError as error:
 
 print(json.dumps({'constantAttentionMean': 'pass', 'binaryCaptureEquivalence': 'pass',
                   'missingHistoryRejected': 'pass', 'nonfiniteCaptureRejected': 'pass',
-                  'scalarRecurrenceClosedForm': 'pass', 'missingRecurrenceHistoryRejected': 'pass'}, indent=2))
+                  'scalarRecurrenceClosedForm': 'pass', 'missingRecurrenceHistoryRejected': 'pass',
+                  'distinctLayerWeights': 'pass', 'missingLaterLayerHistoryRejected': 'pass'}, indent=2))

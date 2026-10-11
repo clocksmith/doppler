@@ -180,8 +180,11 @@ try {
       await handle.resetGenerationState();
       let observedLogits = null; const observedSteps = [];
       const targetOpIds = ['embed.out', 'final_norm.pre', 'final_norm.out',
-        ...['qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj',
-          'linear_core_out', 'out', 'post_attn'].map(op => 'layer.0.attn.' + op),
+        ...manifest.inference.layerPattern.layerTypes.flatMap((type, layer) =>
+          type === 'linear_attention'
+            ? ['qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj',
+              'linear_core_out', 'out', 'post_attn'].map(op => `layer.${layer}.attn.${op}`)
+            : []),
         ...['in', 'gate', 'up', 'act', 'out'].map(op => 'layer.0.ffn.' + op),
         ...manifest.inference.layerPattern.layerTypes.flatMap((type, layer) =>
           type === 'full_attention'
