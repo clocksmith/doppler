@@ -20,7 +20,7 @@ Policy: smallest artifact size first. Size tiers use catalog artifact bytes, not
 
 - Catalog models: 31
 - Source checkpoints: 23
-- Conversion-only configs: 13
+- Conversion-only configs: 14
 - HF-published catalog models: 19
 - Runtime-verified catalog models: 26
 - Benchmark-selected source architectures: 1
@@ -128,6 +128,7 @@ These entries have checked-in conversion configs but are not catalog-supported r
 | --- | --- | --- | --- | --- |
 | src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json | gemma-3-1b-it-f16-af32 | gemma3 | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | Catalog, verify, and publish gemma-3-1b-it-f16-af32 before claiming runtime support. |
 | src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json | gemma-3-270m-it-q4k-ehf16-af16 | gemma3 | RDRR, q4k weights, f16 embeddings, f16 LM head, f16 compute, row Q4K layout | Catalog, verify, and publish gemma-3-270m-it-q4k-ehf16-af16 before claiming runtime support. |
+| src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json | gemma-3-270m-it-w8a8-ehf16-af32 | gemma3 | RDRR, w8a8 weights, f16 embeddings, f16 LM head, f32 compute | Catalog, verify, and publish gemma-3-270m-it-w8a8-ehf16-af32 before claiming runtime support. |
 | src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json | gemma-4-12b-it-text-q4k-ehf16-hq4k-af16 | gemma4 | RDRR, q4k weights, f16 embeddings, q4k LM head, f16 compute, row Q4K layout | Catalog, verify, and publish gemma-4-12b-it-text-q4k-ehf16-hq4k-af16 before claiming runtime support. |
 | src/config/conversion/gemma4/gemma-4-moe-q4k-ehf16-af32.json | gemma-4-moe-q4k-ehf16-af32 | gemma4 | RDRR, q4k weights, f16 embeddings, f16 LM head, f32 compute, row Q4K layout | Catalog, verify, and publish gemma-4-moe-q4k-ehf16-af32 before claiming runtime support. |
 | src/config/conversion/glmocr/glm-ocr-f16-af32.json | glm-ocr-f16-af32 | glmocr | RDRR, f16 weights, f16 embeddings, f16 LM head, f32 compute | Catalog, verify, and publish glm-ocr-f16-af32 before claiming runtime support. |

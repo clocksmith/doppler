@@ -110,7 +110,7 @@
   "summary": {
     "catalogModelCount": 31,
     "sourceCheckpointCount": 23,
-    "conversionOnlyConfigCount": 13,
+    "conversionOnlyConfigCount": 14,
     "hfPublishedModelCount": 19,
     "verifiedModelCount": 26,
     "benchmarkSelectedSourceCount": 1,
@@ -3893,6 +3893,24 @@
       },
       "status": "conversion-ready",
       "nextAction": "Catalog, verify, and publish gemma-3-270m-it-q4k-ehf16-af16 before claiming runtime support.",
+      "nextCommand": null
+    },
+    {
+      "modelBaseId": "gemma-3-270m-it-w8a8-ehf16-af32",
+      "family": "gemma3",
+      "conversionConfig": "src/config/conversion/gemma3/gemma-3-270m-it-w8a8-ehf16-af32.json",
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "architecture": {
+        "artifactFormat": "rdrr",
+        "weights": "w8a8",
+        "embeddings": "f16",
+        "lmHead": "f16",
+        "computePrecision": "f32",
+        "q4kLayout": null,
+        "label": "RDRR, w8a8 weights, f16 embeddings, f16 LM head, f32 compute"
+      },
+      "status": "conversion-ready",
+      "nextAction": "Catalog, verify, and publish gemma-3-270m-it-w8a8-ehf16-af32 before claiming runtime support.",
       "nextCommand": null
     },
     {
