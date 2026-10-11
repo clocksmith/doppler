@@ -71,6 +71,7 @@ import {
 } from './generator-runtime.js';
 
 import { resolveSamplingConfig } from './sampling-config.js';
+import { samplingSeedForToken } from '../../token-sampling.js';
 import { matchesStopSequence } from './stopping.js';
 import { decodeReadback, getLogitsHealth } from './debug-utils/index.js';
 import { parseFinitenessStatusWords } from './finiteness-guard-status.js';
@@ -390,7 +391,8 @@ export class PipelineGenerator {
       topP: opts.topP,
       topK: opts.topK,
       padTokenId,
-      seed: opts.seed,
+      seed: opts.temperature === 0 ? opts.seed
+        : samplingSeedForToken(opts.seed, generatedIds.length - opts.promptTokenCount),
       suppressTokenIds: opts.suppressTokenIds,
     });
     if (typeof opts.onLogits === 'function') {

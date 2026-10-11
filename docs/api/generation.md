@@ -37,6 +37,25 @@ context while retaining loaded model weights. Prior calls cannot supply hidden
 KV or recurrent state to that prompt. Explicit prefix-KV and manual decode APIs
 remain available for continuation, with their existing lifecycle contracts.
 
+Seeded generation advances a separate deterministic draw sequence for each
+request or resident attempt. Generated-token index zero uses the original seed
+and preserves the existing first draw. Later indices use
+`((seed % 4294967296) + (index % 4294967296)) % 4294967296` with the existing
+scalar sampler. This defines wrapping and advancement for all accepted finite
+non-negative seeds, including fractional and large seeds. Negative and null
+public seeds are invalid; an omitted seed remains unseeded where supported.
+A token selected from a one-candidate distribution still advances the output
+index. Retrying the same index repeats its draw; a new attempt starts at zero.
+The immutable generation settings and their digest retain the original seed.
+
+CPU and GPU selection receive the same effective step seed. Low-level sampling
+primitives still describe a single draw; owners of manual token loops must
+advance their draw input explicitly. Equal numeric seeds do not promise token
+sequence equality with another runtime's PRNG, such as PyTorch. Greedy
+generation does not depend on the draw sequence. Older seeded multi-token
+results used a repeated draw and must not be represented as evidence for this
+corrected sequence behavior.
+
 ## Symbol Notes
 
 ### Construction

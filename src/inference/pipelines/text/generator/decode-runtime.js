@@ -1,4 +1,5 @@
 import { isGPUSamplingAvailable } from '../../../../gpu/kernels/sample.js';
+import { samplingSeedForToken } from '../../../token-sampling.js';
 import { matchesStopSequence } from '../stopping.js';
 import { markWarmed as markKernelCacheWarmed } from '../../../../gpu/kernel-selection-cache.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
@@ -900,7 +901,10 @@ export async function _decodeStep(currentIds, opts) {
       ? (buffer, label, numTokens, expectedDim) =>
         debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim)
       : undefined;
-    return decodeStep(this._state, currentIds, opts, this._getDecodeHelpers(debugCheckBuffer));
+    const sampling = opts.temperature === 0 ? opts : {
+      ...opts, seed: samplingSeedForToken(opts.seed, currentIds.length - opts.promptTokenCount),
+    };
+    return decodeStep(this._state, currentIds, sampling, this._getDecodeHelpers(debugCheckBuffer));
   }
 
 export async function decodeStepLogits(currentIds, options = {}) {

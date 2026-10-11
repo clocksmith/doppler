@@ -3,6 +3,18 @@ function seededRandom(seed) {
   return x - Math.floor(x);
 }
 
+// The first draw retains the existing scalar-seed behavior. Later draws advance
+// within a 32-bit period so even large accepted finite seeds cannot absorb +1.
+export function samplingSeedForToken(seed, tokenIndex) {
+  if (seed === undefined) return undefined;
+  if (!Number.isFinite(seed) || seed < 0 || !Number.isSafeInteger(tokenIndex) || tokenIndex < 0) {
+    throw new Error('[Sampling] Seed and generated token index must be non-negative finite values; index must be a safe integer.');
+  }
+  if (tokenIndex === 0) return seed;
+  const period = 4294967296;
+  return ((seed % period) + (tokenIndex % period)) % period;
+}
+
 let fallbackRandomState = (Date.now() >>> 0) || 0x6d2b79f5;
 
 function unseededRandom() {
