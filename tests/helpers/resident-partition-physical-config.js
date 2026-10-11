@@ -41,7 +41,7 @@ export function resolvePhysicalPartitionConfig(manifest, modelIdentity, config =
       assert.match(config.reference.sha256, DIGEST);
     }
   }
-  const generation = resolveGenerationOptions(config?.generation ?? (chat ? {
+  const generation = resolveGenerationOptions(config !== null ? config.generation : (chat ? {
     maxTokens: 1024, maxSeqLen: 4096, temperature: 0, topK: 1, topP: 1,
     repetitionPenalty: 1, repetitionPenaltyWindow: 0, presencePenalty: 0, useChatTemplate: true,
   } : {
@@ -51,16 +51,16 @@ export function resolvePhysicalPartitionConfig(manifest, modelIdentity, config =
   assert(generation.temperature === 0 || generation.seed !== undefined,
     'Stochastic parity requires an explicit sampling seed');
   const plan = createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
-    splitLayer: config?.splitLayer ?? null,
+    splitLayer: config !== null ? config.splitLayer : null,
     activationDtype: manifest.inference.session.compute.defaults.activationDtype });
   const planId = hashLayerPartitionPlan(plan);
-  const limits = structuredClone(config?.limits ?? { maxTokens: generation.maxTokens, maxPromptTokens: 2048,
+  const limits = structuredClone(config !== null ? config.limits : { maxTokens: generation.maxTokens, maxPromptTokens: 2048,
     maxActivationBytes: 1024 * 1024, maxOutputCharacters: 1024, maxAttempts: 16, maxConcurrentAttempts: 2 });
   resolveResidentPartitionAllocation(manifest, modelIdentity, {
     model: { id: manifest.modelId, identity: modelIdentity }, plan, planId, index: 0, participantId: 'a', limits, generation,
   });
   assert(limits.maxConcurrentAttempts <= limits.maxAttempts, 'Concurrent attempts exceed attempt allocation');
-  const prompts = structuredClone(config?.prompts ?? legacy.prompts ?? (chat ? [
+  const prompts = structuredClone(config !== null ? config.prompts : legacy.prompts ?? (chat ? [
     [{ role: 'user', content: 'Reply with only the word Hello.' }],
     [{ role: 'user', content: 'What is two plus two? Answer briefly.' }],
   ] : ['The color of the sky is', 'The capital of France is']));
@@ -72,7 +72,7 @@ export function resolvePhysicalPartitionConfig(manifest, modelIdentity, config =
   }
   assert(limits.maxAttempts >= prompts.length + 3, 'Attempt allocation must include short, cancelled and denied-output controls');
   return { modelIdentity, plan, planId, generation, limits, prompts, chat,
-    reference: config?.reference ?? null };
+    reference: config !== null ? config.reference : null };
 }
 
 export function bindPhysicalIndependentReference(bytes, source, configuration) {
