@@ -1,8 +1,13 @@
 # Complete frozen-prefix numerical disposition
 
-**The independent diagnostic covers all 55 frozen prefixes. No reference is
-activated and no candidate is numerically qualified.** The tolerance remains
-0.001; the historical fixture and standard 0.6.27 archive are unchanged.
+**The user explicitly approved this independent numerical contract on 2026-10-11.**
+[Approval](approval.json) binds the unchanged proposal and all three contracts.
+Reploid now compares against these F64 values without rounding them to F32; runtime
+precision and 0.001 remain unchanged. Approval grants no candidate a pass.
+
+The following records describe the earlier diagnostic execution, when reference
+authority was still pending. Their original identities and failed results remain
+unchanged, including the historical fixture and standard 0.6.27 archive.
 
 The three contracts were frozen before execution. They supply the exact prompt
 tokens and frozen continuation tokens for sequences of 20, 22 and 234 tokens,
