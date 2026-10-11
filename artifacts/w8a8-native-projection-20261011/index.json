@@ -1,0 +1,38 @@
+{
+  "scope": "Offline independently referenced projection export; no new GPU/native/model/performance qualification",
+  "packageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
+  "archive": {
+    "path": "projection.tar.gz",
+    "sha256": "128bbc084593483c2f4e4c532f8b118e2c25b68d7f7f1b0dd3ee73adec8911af",
+    "sizeBytes": 51487
+  },
+  "manifestSha256": "ec010299625dee594dac5617857e29a4afeee7041d05157f906f611b58843e37",
+  "payloadCount": 17,
+  "allPayloadDigestsVerified": true,
+  "checks": {
+    "test.log": {
+      "sha256": "836088535ed1e96f075ed37fa7903c97a7153fe811559d2fb2eedb401221251a",
+      "sizeBytes": 73
+    },
+    "export.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sizeBytes": 0
+    },
+    "closure.log": {
+      "sha256": "8bc53d37d7acd86afb8441cd9b2f59a6e64dda633dff9c2ddcc81b507e006eb1",
+      "sizeBytes": 154
+    },
+    "style.log": {
+      "sha256": "119895ec66bfcc62845d550dd045aea8f085710108f962c784a25de6ce8ad3a8",
+      "sizeBytes": 346
+    },
+    "architecture.log": {
+      "sha256": "139bf1fe3b44d5b9555ee4bc46b20fbd3e32d56f3187c78637c96ded6c85c21d",
+      "sizeBytes": 280
+    },
+    "map.log": {
+      "sha256": "126371f9fa79b4cbde9a40105303d4414aa1b9c3b065cce987b464c297a43131",
+      "sizeBytes": 183
+    }
+  }
+}
