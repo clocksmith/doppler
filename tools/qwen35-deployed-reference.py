@@ -49,11 +49,13 @@ def compare(actual, encoded):
 
 
 def compare_boundaries(model, capture, input_ids, cache):
-    """Observe the first prefill only; hooks never replace model values."""
+    """Observe the selected prefix; hooks never replace model values."""
     retained = {}
-    for row in capture['observation']['timeline']:
+    timeline = capture['observation']['timeline']
+    start = max(index for index, row in enumerate(timeline) if row['opId'] == 'embed.out')
+    for row in timeline[start:]:
         if (row.get('capture') or {}).get('data') is not None:
-            retained.setdefault(row['opId'], row['capture'])
+            retained[row['opId']] = row['capture']
     modules = {'embed.out': model.model.embed_tokens, 'final_norm.out': model.model.norm}
     for index, layer in enumerate(model.model.layers):
         modules[f'layer.{index}.attn.post_input_norm'] = layer.input_layernorm
@@ -71,12 +73,19 @@ def compare_boundaries(model, capture, input_ids, cache):
         'ffn.out': layer.mlp.down_proj,
     }.items():
         modules['layer.0.' + name] = module
+    attention = model.model.layers[3].self_attn
+    for name in ['q_proj', 'k_proj', 'v_proj', 'q_norm', 'k_norm', 'o_proj']:
+        boundary = 'out' if name == 'o_proj' else name
+        if 'layer.3.attn.' + boundary in retained:
+            modules['layer.3.attn.' + boundary] = getattr(attention, name)
     comparisons, handles = [], []
 
     def observe(name):
         def hook(_module, _inputs, value):
             if isinstance(value, tuple):
                 value = value[0]
+            if name == 'layer.3.attn.q_proj':
+                value = value.reshape(-1, model.config.num_attention_heads, attention.head_dim * 2)[..., :attention.head_dim]
             actual = value.detach().float().cpu().numpy().reshape(-1)
             expected = np.asarray(retained[name]['data'], dtype=np.float32)
             assert actual.shape == expected.shape, name
@@ -88,16 +97,113 @@ def compare_boundaries(model, capture, input_ids, cache):
                                 'actualSha256': hashlib.sha256(actual.tobytes()).hexdigest()})
         return hook
 
+    operands = []
+    def compare_operand(name, input_name, module, kind):
+        x = np.asarray(retained[input_name]['data'], dtype=np.float32).reshape(-1, module.weight.shape[-1])
+        expected = np.asarray(retained[name]['data'], dtype=np.float32).reshape(-1)
+        native = module(torch.from_numpy(x.copy())).detach().float().numpy().reshape(-1)
+        weight = module.weight.detach().float().numpy().astype(np.float64)
+        precise_input = x.astype(np.float64)
+        if kind == 'rmsnorm':
+            precise = precise_input / np.sqrt(np.mean(precise_input ** 2, axis=-1, keepdims=True) + module.eps)
+            precise *= (1 + weight)
+        else:
+            assert module.bias is None
+            precise = precise_input @ weight.T
+        precise = precise.reshape(-1)
+        assert expected.shape == native.shape == precise.shape
+        operands.append({'boundary': name, 'inputBoundary': input_name, 'operation': kind,
+                         'values': int(expected.size),
+                         'gpuVsFloat64': float(np.max(np.abs(expected.astype(np.float64) - precise))),
+                         'sourceF32VsFloat64': float(np.max(np.abs(native.astype(np.float64) - precise))),
+                         'gpuVsSourceF32SameOperands': float(np.max(np.abs(expected - native)))})
+
     try:
         for name, module in modules.items():
-            assert name in retained, name
+            if name not in retained:
+                continue  # Fused decode kernels need not expose unfused FFN intermediates.
             handles.append(module.register_forward_hook(observe(name)))
         output = model(input_ids=input_ids, past_key_values=cache, use_cache=True, logits_to_keep=1)
-        assert len(comparisons) == len(modules)
-        return output, comparisons
+        assert len(comparisons) == len(handles)
+        for handle in handles:
+            handle.remove()
+        handles.clear()
+        for index, layer in enumerate(model.model.layers):
+            compare_operand(f'layer.{index}.attn.post_input_norm',
+                            'embed.out' if index == 0 else f'layer.{index - 1}.layer.out',
+                            layer.input_layernorm, 'rmsnorm')
+        compare_operand('final_norm.out', 'final_norm.pre', model.model.norm, 'rmsnorm')
+        for name in ['qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj']:
+            compare_operand('layer.0.attn.' + name, 'layer.0.attn.post_input_norm',
+                            modules['layer.0.attn.' + name], 'linear')
+        for name in ['gate', 'up']:
+            if 'layer.0.ffn.' + name not in retained:
+                continue
+            compare_operand('layer.0.ffn.' + name, 'layer.0.ffn.in', modules['layer.0.ffn.' + name], 'linear')
+        if 'layer.3.attn.k_rope' in retained:
+            for name in ['k_proj', 'v_proj']:
+                compare_operand('layer.3.attn.' + name, 'layer.3.attn.post_input_norm', getattr(attention, name), 'linear')
+            compare_operand('layer.3.attn.q_norm', 'layer.3.attn.q_proj', attention.q_norm, 'rmsnorm')
+            compare_operand('layer.3.attn.k_norm', 'layer.3.attn.k_proj', attention.k_norm, 'rmsnorm')
+        return output, comparisons, operands, [name for name in modules if name not in retained]
     finally:
         for handle in handles:
             handle.remove()
+
+
+def replay_generation(model, config, manifest, args, report):
+    """Independent greedy replay of an identified deployed generation receipt."""
+    from tokenizers import Tokenizer
+    control = read_json(args.generation_control)
+    assert control['modelIdentity'] == report['modelIdentity']
+    settings = control['input']['generation']
+    assert settings['temperature'] == 0 and settings['topK'] == 1 and settings['topP'] == 1
+    assert settings['presencePenalty'] == 0 and settings['stopSequences'] == []
+    assert settings['suppressTokenIds'] == [] and settings['repetitionPenaltyWindow'] == 0
+    tokenizer = Tokenizer.from_file(str(Path(args.model) / 'tokenizer.json'))
+    prompt = control['result']['tokenIds']
+    assert tokenizer.encode(tokenizer.decode(prompt, skip_special_tokens=False), add_special_tokens=False).ids == prompt
+    expected = control['result']['evidence']['tokenIds']
+    assert len(prompt) + settings['maxTokens'] <= settings['maxSeqLen']
+    report.update({'schema': 'doppler.source-generation-diagnostic/v1',
+                   'generationControlSha256': sha256(args.generation_control),
+                   'tokenization': 'Exact captured IDs; independently round-tripped through deployed tokenizer',
+                   'inputIds': prompt, 'settings': settings, 'eosTokenIds': manifest['eos_token_id'],
+                   'generatedTokenIds': [], 'firstTokenDivergence': None, 'stopReason': None})
+    cache = StoredHalfCache(config=config)
+    history = list(prompt)
+    input_ids = prompt
+    for step in range(settings['maxTokens']):
+        with torch.inference_mode():
+            result = model(input_ids=torch.tensor([input_ids]), past_key_values=cache, use_cache=True, logits_to_keep=1)
+            logits = result.logits[0, -1].float().numpy().copy()
+        assert np.isfinite(logits).all()
+        # Independent scalar expression of the declared full-history repetition penalty.
+        for token in set(history):
+            value = float(logits[token])
+            logits[token] = value / settings['repetitionPenalty'] if value > 0 else value * settings['repetitionPenalty']
+        if config.pad_token_id is not None:
+            logits[config.pad_token_id] = -np.inf
+        token = int(logits.argmax())
+        report['generatedTokenIds'].append(token)
+        if report['firstTokenDivergence'] is None and (step >= len(expected) or token != expected[step]):
+            report['firstTokenDivergence'] = {'step': step, 'sourceToken': token,
+                                              'dopplerToken': expected[step] if step < len(expected) else None}
+        history.append(token)
+        input_ids = [token]
+        if token in manifest['eos_token_id']:
+            report['stopReason'] = 'eos'
+        elif step + 1 == settings['maxTokens']:
+            report['stopReason'] = 'max-tokens'
+        if step % 32 == 0 or report['stopReason']:
+            report['outputText'] = tokenizer.decode(report['generatedTokenIds'], skip_special_tokens=True)
+            Path(args.out).write_text(json.dumps(report) + '\n')
+            print(json.dumps({'step': step, 'token': token, 'stopReason': report['stopReason'],
+                              'firstTokenDivergence': report['firstTokenDivergence'],
+                              'textTail': report['outputText'][-100:]}), flush=True)
+        if report['stopReason']:
+            break
+    return report
 
 
 def run(args):
@@ -177,6 +283,8 @@ def run(args):
               'versions': {name: importlib.metadata.version(name) for name in ['torch', 'transformers', 'gguf', 'numpy']},
               'precision': {'arithmetic': 'float32', 'kvStorage': 'float16', 'weights': 'exact deployed bytes decoded to float32'},
               'results': []}
+    if args.generation_control:
+        return replay_generation(model, config, manifest, args, report)
     reference = read_json(args.reference)
     reference_bytes = Path(args.reference).read_bytes()
     reference_bytes = gzip.decompress(reference_bytes) if reference_bytes[:2] == b'\x1f\x8b' else reference_bytes
@@ -186,9 +294,13 @@ def run(args):
     assert len(targets) == args.prefixes
     boundary_capture = read_json(args.boundary_capture) if args.boundary_capture else None
     if boundary_capture:
-        assert args.prefixes == 1 and targets[0]['step'] == 0
-        assert boundary_capture['results'][0]['inputIds'] == targets[0]['inputIds']
-        assert boundary_capture['results'][0]['logits'] == targets[0]['logits']
+        target = targets[-1]
+        bound = boundary_capture.get('observationTarget', {'index': 0, 'step': 0})
+        assert (target['index'], target['step']) == (bound['index'], bound['step'])
+        matching = [row for row in boundary_capture['results']
+                    if row['index'] == target['index'] and row['step'] == target['step']][-1]
+        assert matching['inputIds'] == target['inputIds']
+        assert matching['logits'] == target['logits']
         report['boundaryCaptureSha256'] = sha256(args.boundary_capture)
         report['boundaryCaptureManifestIdentity'] = boundary_capture['manifestIdentity']
     cache, active_request, next_step = None, None, 0
@@ -202,8 +314,8 @@ def run(args):
         assert active_request == target['index'] and next_step == target['step']
         next_step += 1
         with torch.inference_mode():
-            if boundary_capture:
-                result, report['boundaryComparisons'] = compare_boundaries(
+            if boundary_capture and target is targets[-1]:
+                result, report['boundaryComparisons'], report['operandComparisons'], report['unobservedBoundaries'] = compare_boundaries(
                     model, boundary_capture, torch.tensor([input_ids]), cache)
             else:
                 result = model(input_ids=torch.tensor([input_ids]), past_key_values=cache,
@@ -225,7 +337,8 @@ if __name__ == '__main__':
         parser.add_argument('--' + field, required=True)
     parser.add_argument('--prefixes', type=int, required=True)
     parser.add_argument('--threads', type=int, required=True)
-    parser.add_argument('--boundary-capture', help='Retained first-prefill GPU observations; requires --prefixes 1')
+    parser.add_argument('--generation-control', help='Replay exact deployed greedy generation with independent source equations')
+    parser.add_argument('--boundary-capture', help='Retained GPU observations for the last requested prefix')
     options = parser.parse_args()
     assert options.prefixes > 0 and options.threads > 0
     run(options)
