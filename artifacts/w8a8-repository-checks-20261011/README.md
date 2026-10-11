@@ -1,5 +1,14 @@
 # W8A8 repository checks
 
+The subsequent complete `npm run check:green` invocation **passed** at source
+`e79513e3`: **917 unit files**, including the **36 Capsule files** reused by the
+same invocation. Every recorded implementation and configuration hash remained
+unchanged through completion; concurrent commits contained evidence only.
+`completion-check-green-index.json` binds the full log, source hash inventory,
+and ending audit. This is repository acceptance, not model or release acceptance.
+
+The earlier retained runs below remain historical evidence.
+
 The corrected unit sweep passed **917 test files**. The separate Capsule sweep
 passed **36 files**. All other `check:green` script gates passed except a stale
 generated dependency map; regenerating that map and its check then passed.
