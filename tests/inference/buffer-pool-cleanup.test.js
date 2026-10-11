@@ -126,6 +126,66 @@ async function flushMicrotasks() {
 
 {
   const device = createFakeDevice();
+  const waits = [];
+  device.queue.onSubmittedWorkDone = () => new Promise(resolve => waits.push(resolve));
+  const pool = new BufferPool(false, createSchemaConfig(), device);
+  pool.configure({ enablePooling: false });
+  const first = pool.acquire(64), second = pool.acquire(64), later = pool.acquire(64);
+  const active = pool.acquire(64);
+  pool.release(first); // The background completion covers only this first wave.
+  pool.release(second);
+  const settled = pool.settleDeferredDestruction();
+  pool.release(later); // Not included in the explicit retirement boundary.
+  assert.equal(waits.length, 2);
+  assert.equal(first.destroyed, false);
+  waits[1]();
+  await settled;
+  assert(first.destroyed && second.destroyed);
+  assert.equal(later.destroyed, false);
+  assert.equal(active.destroyed, false);
+  assert.equal(pool.isActiveBuffer(active), true);
+  waits[0]();
+  await flushMicrotasks();
+  waits[2]();
+  await flushMicrotasks();
+  assert.equal(later.destroyed, true);
+  pool.release(active);
+  waits[3]();
+  await flushMicrotasks();
+  assert.equal(pool.getStats().resources.deferredCleanup.count, 0);
+}
+
+{
+  const device = createFakeDevice({ rejectSubmitted: true });
+  const pool = new BufferPool(false, createSchemaConfig(), device);
+  pool.configure({ enablePooling: false });
+  const buffer = pool.acquire(64);
+  pool.release(buffer);
+  await assert.rejects(pool.settleDeferredDestruction(), /device lost/);
+  assert.equal(buffer.destroyed, false, 'An error string does not confirm device loss.');
+  device.queue.onSubmittedWorkDone = async () => {};
+  await pool.settleDeferredDestruction();
+  assert.equal(buffer.destroyCalls, 1);
+}
+
+{
+  const device = createFakeDevice();
+  const pool = new BufferPool(false, createSchemaConfig(), device);
+  pool.configure({ enablePooling: false });
+  const buffer = pool.acquire(64);
+  const destroy = buffer.destroy.bind(buffer);
+  buffer.destroy = () => { throw new Error('injected destroy failure'); };
+  pool.release(buffer);
+  await assert.rejects(pool.settleDeferredDestruction(), /ownership retained for retry/);
+  assert.equal(pool.getStats().resources.deferredCleanup.count, 1);
+  buffer.destroy = destroy;
+  await pool.settleDeferredDestruction();
+  assert.equal(buffer.destroyCalls, 1);
+  assert.equal(pool.getStats().resources.deferredCleanup.count, 0);
+}
+
+{
+  const device = createFakeDevice();
   let finish;
   device.queue.onSubmittedWorkDone = () => new Promise(resolve => { finish = resolve; });
   setDevice(device, { platformConfig: null });

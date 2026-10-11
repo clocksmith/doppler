@@ -49,6 +49,31 @@ test('loader cleanup failure does not skip session or storage cleanup', async ()
   assert.equal(pipeline.isLoaded, false);
 });
 
+test('unload awaits retired buffers without closing a shared pool', async () => {
+  const { pipeline } = fixture();
+  let release, notifyEntered, entered = false, finished = false;
+  const completion = new Promise(resolve => { release = resolve; });
+  const entry = new Promise(resolve => { notifyEntered = resolve; });
+  pipeline.getBufferPool = () => ({ async settleDeferredDestruction() { entered = true; notifyEntered(); await completion; } });
+  const unloading = pipeline.unload().then(() => { finished = true; });
+  await Promise.race([entry, unloading]);
+  assert.equal(entered, true);
+  assert.equal(finished, false);
+  release();
+  await unloading;
+  assert.equal(finished, true);
+});
+
+test('unload preserves retirement failure alongside earlier cleanup failure', async () => {
+  const { pipeline } = fixture();
+  const original = new Error('loader failed'), retirement = new Error('retirement failed');
+  pipeline.ownsDopplerLoader = true;
+  pipeline.dopplerLoader = { async unload() { throw original; } };
+  pipeline.getBufferPool = () => ({ async settleDeferredDestruction() { throw retirement; } });
+  await assert.rejects(pipeline.unload(), error => error instanceof AggregateError
+    && error.errors[0] === original && error.errors[1] === retirement);
+});
+
 test('partial decode allocation failure releases every acquired buffer and permits retry', () => {
   const allocated = [];
   const failure = new Error('injected decode allocation failure');

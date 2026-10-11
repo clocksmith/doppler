@@ -143,6 +143,12 @@ export declare class BufferPool {
    */
   clearPool(): void;
 
+  /** Await and retire buffers already deferred at this call's boundary.
+   * Does not close the pool or release active/reusable allocations.
+   * Unconfirmed completion or destruction failure rejects, retaining ownership.
+   */
+  settleDeferredDestruction(): Promise<void>;
+
   /**
    * Close the pool and retire its buffers after their completion boundary.
    * Confirmed device loss retires buffers without requesting another queue wait.

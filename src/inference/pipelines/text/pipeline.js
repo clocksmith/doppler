@@ -475,6 +475,7 @@ export class InferencePipeline extends PipelineState {
   }
 
   async unload() {
+    const bufferPool = this.getBufferPool();
     const storageContext = this.storageContext;
     this.storageContext = null;
     const emulation = this.emulation;
@@ -503,6 +504,7 @@ export class InferencePipeline extends PipelineState {
     this.lora = null;
     this.revocationIdentity = null;
     await cleanup(() => storageContext?.close?.());
+    await cleanup(() => bufferPool?.settleDeferredDestruction());
     this.currentSeqLen = 0;
     await cleanup(() => restorePipelineContexts(this));
     if (errors.length === 1) throw errors[0];
