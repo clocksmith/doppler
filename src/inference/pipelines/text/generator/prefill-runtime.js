@@ -1,5 +1,5 @@
 import { getDevice, setTrackSubmits } from '../../../../gpu/device.js';
-import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData } from '../../../../memory/buffer-pool.js';
+import { acquireBuffer, releaseBuffer, readBuffer, readBufferSlice, uploadData, getBufferPool } from '../../../../memory/buffer-pool.js';
 import { resetSubmitStats, logSubmitStats } from '../../../../gpu/submit-tracker.js';
 import { createCommandRecorder, createProfilingRecorder, CommandRecorder } from '../../../../gpu/command-recorder.js';
 import { allowReadback } from '../../../../gpu/perf-guards.js';
@@ -193,6 +193,7 @@ export async function _prefill(inputIds, opts) {
     }
 
     const device = getDevice();
+    const bufferPool = device ? getBufferPool(device) : null;
     const useCheckpoints = opts.debugLayers && opts.debugLayers.length > 0;
     const disableCommandBatching = shouldDisablePrefillCommandBatching(
       this._state,
@@ -422,6 +423,8 @@ export async function _prefill(inputIds, opts) {
 
     let currentHiddenBuffer = hiddenStates.buffer;
     let transferred = false;
+    let failed = false;
+    let prefillError;
     try {
       let prefillRecordMs = 0;
       let prefillSubmitWaitMs = 0;
@@ -839,10 +842,23 @@ export async function _prefill(inputIds, opts) {
       }
 
       return lastLogits;
+    } catch (error) {
+      failed = true;
+      prefillError = error;
+      throw error;
     } finally {
       if (!transferred) {
-        releaseBuffer(currentHiddenBuffer);
-        currentRecorder?.abort();
+        const cleanupErrors = [];
+        try { releaseBuffer(currentHiddenBuffer); } catch (error) { cleanupErrors.push(error); }
+        try { await currentRecorder?.abort(); } catch (error) { cleanupErrors.push(error); }
+        if (failed || cleanupErrors.length > 0) {
+          try { await bufferPool?.settleDeferredDestruction(); } catch (error) { cleanupErrors.push(error); }
+        }
+        if (cleanupErrors.length > 0) {
+          const errors = failed ? [prefillError, ...cleanupErrors] : cleanupErrors;
+          if (errors.length === 1) throw errors[0];
+          throw new AggregateError(errors, 'Prefill resource cleanup failed.', { cause: errors[0] });
+        }
       }
     }
   }
