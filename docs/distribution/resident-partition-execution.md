@@ -65,6 +65,41 @@ group. The Capsule root checks this record before constructing a program; the
 model host supplies the pure manifest-bound allocation validator through a
 port, keeping the root independent of the inference executor.
 
+## Signed selective acquisition
+
+An explicitly prepared Capsule may set `program.pieceIndexArtifactId` to an
+artifact with role `piece-index`. Its bytes use the existing
+`doppler.verified-pieces/v1` format and bind the exact signed manifest digest.
+The Capsule signature covers this reference and artifact identity. The existing
+`tools/build-verified-piece-index.js` producer checks complete source shard hashes
+before producing piece hashes; a host cannot supply an unsigned replacement index.
+
+Only resident opening with matching signed partition qualification enables this
+path. The host supplies `artifactStore.readArtifactRange(artifact, offset, length,
+options)` for complete requested pieces. Doppler snapshots and hashes each piece
+before returning any range, checks coverage and signed shard identities, and
+limits piece size by the host's acquisition policy. No unrelated shard-tail probe
+or whole-shard acquisition is required. An absent index, and every ordinary
+nonresident opening, preserve complete artifact verification.
+
+`session.verification.artifactVerificationScope` is `resident-pieces` on this
+path. `artifactReceipts` contains only completely hashed metadata artifacts;
+`pieceVerification` identifies the signed index and authenticated piece ranges
+actually acquired during preparation (`observation: 'resident-opening'`). This
+frozen opening snapshot is not a live execution counter. Every later read still
+authenticates its pieces. These receipts do not claim full weight-shard hashing.
+Incomplete verification is never written to the whole-closure verification cache.
+Storage closure aborts owned reads and settles their wrappers, including when a
+host source ignores cancellation. It does not wait for an uncooperative source.
+
+This is an additive schema field and artifact role, shared by Capsule v2/v3.
+Older consumers reject new records rather than silently ignoring the integrity
+mode. Existing records remain compatible. New signed records are not generated,
+qualified, selected, or published automatically. The
+[synthetic opening controls](../../tests/runtime/resident-piece-acquisition.test.js)
+prove acquisition and rejection contracts; they do not establish physical model
+qualification or release acceptance.
+
 ## Recovery capability contract
 
 `getRecoveryCapabilities()` returns an immutable `ResidentRecoveryCapabilities`

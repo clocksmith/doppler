@@ -28,6 +28,7 @@ client/model-host/source-loading.d.ts
 client/receipt.d.ts
 client/runtime/capsule-artifact-source.d.ts
 client/runtime/capsule-operation-deltas.d.ts
+client/runtime/capsule-piece-reader.d.ts
 client/runtime/capsule-program-adapter.d.ts
 client/runtime/capsule-release-authorization.d.ts
 client/runtime/capsule-session-execution.d.ts

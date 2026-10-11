@@ -1,3 +1,4 @@
+import { createCapsulePieceReader } from './capsule-piece-reader.js';
 import { computeCanonicalSha256 } from '../../formats/canonical-hash.js';
 import { createSha256Hasher } from '../../formats/sha256.js';
 import { assertCapsuleLoadActive, createCapsuleLoadScope, waitForCapsuleRead } from './capsule-acquisition.js';
@@ -62,7 +63,7 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
     metrics.releasedBackingBytes += metrics.backingBytes;
     metrics.retainedBytes = 0; metrics.backingBytes = 0; metrics.backingFiles = 0;
   }
-  let closed = false;
+  let closed = false, pieceReader = null, closing = null, openingPieces = false;
   const metrics = { hashBackend, reservedBackingBytes: 0, peakReservedAndBackingBytes: 0, releasedBackingBytes: 0, sourceBytes: 0, hashedBytes: 0, copiedBytes: 0, retainedBytes: 0, peakRetainedBytes: 0, returnedBytes: 0,
     evictions: 0, sourceReadMs: 0, hashingMs: 0, copyingMs: 0,
     backingBytes: 0, peakBackingBytes: 0, backingFiles: 0, snapshotCopiedBytes: 0,
@@ -224,6 +225,7 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
     const declared = resolveArtifact(artifact);
     if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(length) || offset < 0 || length < 0
       || !Number.isSafeInteger(offset + length) || offset + length > declared.sizeBytes) throw new Error('Capsule artifact range is out of bounds.');
+    if (pieceReader?.hasArtifact(declared)) return pieceReader.readRange(declared, offset, length);
     const snapshot = await verifiedSnapshot(declared);
     assertActive();
     const started = performance.now();
@@ -250,6 +252,19 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
     return result;
   }
   const store = Object.freeze({
+    enableResidentPieces() {
+      return trackRead(async () => {
+        assertActive();
+        if (pieceReader || openingPieces) throw new Error('Resident piece reader already enabled or opening.');
+        openingPieces = true;
+        try {
+          pieceReader = await createCapsulePieceReader(capsule, store, source, options);
+          if (closed) { await pieceReader.close(); throw new Error('Verified Capsule artifact store is closed.'); }
+        } finally { openingPieces = false; }
+      });
+    },
+    getPieceVerification() { return pieceReader?.getReceipt() ?? null; },
+    usesPieceVerification(artifact) { return Boolean(pieceReader?.hasArtifact(resolveArtifact(artifact))); },
     readArtifact(artifact) { return trackRead(() => readArtifactRange(artifact, 0, resolveArtifact(artifact).sizeBytes)); },
     readArtifactRange(artifact, offset, length) { return trackRead(() => readArtifactRange(artifact, offset, length)); },
     hashArtifact(artifact) { return trackRead(async () => {
@@ -264,9 +279,18 @@ export function createVerifiedCapsuleArtifactStore(capsule, source, options = {}
     },
     getMetrics() { return Object.freeze({ ...metrics }); },
     close() {
+      if (closing) return closing;
       closed = true; verified.clear(); pending.clear();
       for (const acquisition of acquisitions) acquisition.abort(new Error('Verified Capsule artifact store is closed.'));
       clearBacking();
+      closing = (async () => {
+        let failure;
+        try { await pieceReader?.close(); } catch (error) { failure = error; }
+        // Abort the owned wrapper first; never wait on a non-cooperative host promise.
+        while (readers.size) await Promise.allSettled([...readers]);
+        if (failure) throw failure;
+      })();
+      return closing;
     },
   });
   verifiedStores.add(store);

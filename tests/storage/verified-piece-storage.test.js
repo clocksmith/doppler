@@ -24,3 +24,49 @@ assert.equal(corrupt.getReceipt().activeReadBytes,0, 'Failed verification releas
 const changed=encode({...index,manifestIdentity:'sha256:'+'0'.repeat(64)});
 await assert.rejects(createVerifiedPieceStorage({manifestBytes,indexBytes:changed,indexIdentity:sha(changed),acquire:async()=>data[0]}),/binding/);
 console.log('verified-piece-storage: selective reads, corruption, binding and close passed');
+
+// A host retains its ArrayBuffer; changing it after hashing cannot change returned bytes.
+const mutable = data[0].slice().buffer;
+const owned = await createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity, acquire: async () => mutable });
+const originalDigest = crypto.subtle.digest;
+crypto.subtle.digest = async function (...arguments_) {
+  const result = await originalDigest.apply(this, arguments_);
+  new Uint8Array(mutable).fill(9);
+  return result;
+};
+try { assert.deepEqual([...new Uint8Array(await owned.storage.loadShardRange(0, 0, 4))], [1, 2, 3, 4]); }
+finally { crypto.subtle.digest = originalDigest; await owned.storage.close(); }
+for (const payload of [[1, 2, 3, 4], new Uint8Array(8), '1234']) {
+  const invalid = await createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity, acquire: async () => payload });
+  await assert.rejects(invalid.storage.loadShardRange(0, 0, 4), /integrity/);
+  await invalid.storage.close();
+}
+
+const mutableIndex = indexBytes.slice(), mutableManifest = manifestBytes.slice();
+crypto.subtle.digest = async function (...arguments_) {
+  const result = await originalDigest.apply(this, arguments_);
+  mutableIndex.fill(32); mutableManifest.fill(32);
+  return result;
+};
+let metadataOwned;
+try {
+  metadataOwned = await createVerifiedPieceStorage({ manifestBytes: mutableManifest, indexBytes: mutableIndex,
+    indexIdentity, acquire: async () => data[0] });
+} finally { crypto.subtle.digest = originalDigest; }
+assert.deepEqual([...new Uint8Array(await metadataOwned.storage.loadShardRange(0, 0, 4))], [1, 2, 3, 4]);
+await metadataOwned.storage.close();
+
+// Closing the public adapter settles owned range wrappers even if a host ignores abort.
+let acquisitionStarted;
+const acquiring = new Promise(resolve => { acquisitionStarted = resolve; });
+const never = await createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity,
+  acquire: async () => { acquisitionStarted(); return new Promise(() => {}); } });
+let readSettled = false;
+const pending = never.storage.loadShardRange(0, 0, 1).then(
+  () => { throw new Error('Uncooperative acquisition must not complete'); },
+  error => { readSettled = true; return error; });
+await acquiring;
+await never.storage.close();
+assert.equal(never.getReceipt().activeReadBytes, 0);
+assert.equal(readSettled, true, 'close resolves only after the public read rejects');
+assert.match((await pending).message, /closed/);

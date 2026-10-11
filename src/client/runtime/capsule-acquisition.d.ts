@@ -13,6 +13,8 @@ export interface CapsuleArtifactStreamOptions extends CapsuleAcquisitionOptions 
 }
 export interface CapsuleArtifactReader {
   readArtifact(artifact: CapsuleV2Artifact, options?: CapsuleAcquisitionOptions): Promise<Uint8Array | ArrayBuffer>;
+  /** Untrusted bounded source range; the resident piece owner authenticates complete pieces. */
+  readArtifactRange?(artifact: CapsuleV2Artifact, offset: number, length: number, options?: CapsuleAcquisitionOptions): Promise<Uint8Array | ArrayBuffer>;
   /** Ordered bytes; honor signal, release on return, and do not mutate until the next pull. */
   streamArtifact?(artifact: CapsuleV2Artifact, options: CapsuleArtifactStreamOptions): AsyncIterable<Uint8Array>;
 }
