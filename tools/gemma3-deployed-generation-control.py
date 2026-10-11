@@ -111,7 +111,10 @@ def run(args):
               'bindingSha256': sha256(args.binding), 'files': binding['files'],
               'versions': {name: importlib.metadata.version(name) for name in ['torch', 'transformers', 'gguf', 'numpy']},
               'precision': {'arithmetic': 'float32', 'kvStorage': 'float16', 'weights': 'identified deployed bytes'}}
-    if args.quality_suite:
+    if args.boundary_probe:
+        from lib.w8a8_model_boundary import replay_w8a8_boundary
+        report = replay_w8a8_boundary(model, config, manifest, args, report)
+    elif args.quality_suite:
         from lib.w8a8_model_quality import evaluate_deployed_quality
         report = evaluate_deployed_quality(model, config, manifest, args, report)
     else:
@@ -135,6 +138,8 @@ if __name__ == '__main__':
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--generation-control')
     mode.add_argument('--quality-suite')
+    mode.add_argument('--boundary-probe')
     parser.add_argument('--source-tokenizer')
+    parser.add_argument('--teacher-forced-mode', choices=['prefill', 'decode'], default='prefill')
     parser.add_argument('--threads', type=int, default=8)
     run(parser.parse_args())

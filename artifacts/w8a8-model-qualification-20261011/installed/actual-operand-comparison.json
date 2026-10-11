@@ -1,0 +1,94 @@
+{
+  "schema": "doppler.w8a8-actual-operand-comparison/v1",
+  "modelIdentity": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+  "gpuSha256": "ca882751457210eb26e89630bca55b13e67979d6134d30ac14a5b295737421c4",
+  "sourceSha256": "2d705ec9b2591138f9d258a95fc6a96e4d4d94dd556398eddbb917d5177fe3cf",
+  "bindingSha256": "13bbb9ac4e048673e8b7ff2d74d486a0a4bc85da826e884482ceaaa50db53450",
+  "toolSha256": "a5096b75ab6f4ef6c7f738ae84d96301386b182ddb65ce937a3fa10ee3df06bc",
+  "referenceSha256": "87f4bbed83bf24d10b36ec8c645aa1a739c8c0964c8d5916dd785cc6a24f1835",
+  "scope": "Actual GPU operands checked independently; source inputs remain a separate inherited-error control",
+  "projections": {
+    "q_proj": {
+      "actualOperandProjection": {
+        "values": 1024,
+        "differentBits": 0,
+        "maxAbs": 0.0,
+        "firstDifference": null
+      },
+      "sourceInput": {
+        "values": 640,
+        "differentBits": 404,
+        "maxAbs": 1.52587890625e-05,
+        "firstDifference": 0
+      },
+      "activationCodesDifferent": 0,
+      "activationScale": {
+        "values": 1,
+        "differentBits": 1,
+        "maxAbs": 1.1920928955078125e-07,
+        "firstDifference": 0
+      },
+      "inheritedInputEffect": {
+        "values": 1024,
+        "differentBits": 779,
+        "maxAbs": 1.52587890625e-05,
+        "firstDifference": 0
+      }
+    },
+    "k_proj": {
+      "actualOperandProjection": {
+        "values": 256,
+        "differentBits": 0,
+        "maxAbs": 0.0,
+        "firstDifference": null
+      },
+      "sourceInput": {
+        "values": 640,
+        "differentBits": 404,
+        "maxAbs": 1.52587890625e-05,
+        "firstDifference": 0
+      },
+      "activationCodesDifferent": 0,
+      "activationScale": {
+        "values": 1,
+        "differentBits": 1,
+        "maxAbs": 1.1920928955078125e-07,
+        "firstDifference": 0
+      },
+      "inheritedInputEffect": {
+        "values": 256,
+        "differentBits": 203,
+        "maxAbs": 7.62939453125e-06,
+        "firstDifference": 0
+      }
+    },
+    "v_proj": {
+      "actualOperandProjection": {
+        "values": 256,
+        "differentBits": 0,
+        "maxAbs": 0.0,
+        "firstDifference": null
+      },
+      "sourceInput": {
+        "values": 640,
+        "differentBits": 404,
+        "maxAbs": 1.52587890625e-05,
+        "firstDifference": 0
+      },
+      "activationCodesDifferent": 0,
+      "activationScale": {
+        "values": 1,
+        "differentBits": 1,
+        "maxAbs": 1.1920928955078125e-07,
+        "firstDifference": 0
+      },
+      "inheritedInputEffect": {
+        "values": 256,
+        "differentBits": 206,
+        "maxAbs": 3.814697265625e-06,
+        "firstDifference": 0
+      }
+    }
+  },
+  "actualOperandProjectionsExact": true
+}

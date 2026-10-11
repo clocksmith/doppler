@@ -30,7 +30,7 @@ def evaluate_deployed_quality(model, config, manifest, args, report):
                    'suiteSha256': hashlib.sha256(suite_path.read_bytes()).hexdigest(),
                    'qualityToolSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                    'sourceTokenizerFiles': {name: hashlib.sha256((source_root / name).read_bytes()).hexdigest() for name in source_files},
-                   'settings': settings, 'eosTokenIds': eos, 'tasks': [], 'teacherForced': []})
+                   'settings': settings, 'eosTokenIds': eos, 'teacherForcedMode': args.teacher_forced_mode, 'tasks': [], 'teacherForced': []})
     out = Path(args.out)
     assert not out.exists(), 'Preserve prior qualification outputs'
 
@@ -73,9 +73,17 @@ def evaluate_deployed_quality(model, config, manifest, args, report):
             assert len(ids) >= suite['teacherForced']['minimumTokensPerDocument']
             cache = StoredHalfCache(config=config)
             with torch.inference_mode():
-                result = model(input_ids=torch.tensor([ids[:-1]]), past_key_values=cache,
-                               use_cache=True, logits_to_keep=0)
-                logits = result.logits[0].float()
+                if args.teacher_forced_mode == 'decode':
+                    collected = []
+                    for token in ids[:-1]:
+                        result = model(input_ids=torch.tensor([[token]]), past_key_values=cache,
+                                       use_cache=True, logits_to_keep=1)
+                        collected.append(result.logits[0, -1].float())
+                    logits = torch.stack(collected)
+                else:
+                    result = model(input_ids=torch.tensor([ids[:-1]]), past_key_values=cache,
+                                   use_cache=True, logits_to_keep=0)
+                    logits = result.logits[0].float()
                 assert torch.isfinite(logits).all(), 'Nonfinite teacher-forced logits'
                 targets = torch.tensor(ids[1:])
                 selected = logits.gather(1, targets[:, None]).squeeze(1).double()

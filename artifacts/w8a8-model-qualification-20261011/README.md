@@ -50,3 +50,46 @@ expected-F16 rounding audits are retained.
 
 GPU installed-model, complete lifecycle and measured performance are separate
 pending checks. Passing operator tests does not close the failed model-quality gate.
+
+## Installed observations and corrected lifecycle
+
+`installed/index.json` retains every initial failed invocation, including two
+harness assumptions (explicit BOS duplicated the runtime's BOS; an empty linear
+state map was mistaken for active recurrent state) and one runner variable error.
+It also preserves the runtime defects these controls exposed: first-token abort
+reporting, incomplete deferred unload settlement, and successful CPU-logits
+readback retaining an unrequested GPU buffer. The owning runtime fixes are
+separate commits; thresholds and model bytes remain unchanged.
+
+`w8a8-installed-model-05` runs the corrected archive
+`79b7c68ceb23d3e156e5e6287d978bfbe218940b832c2460b80efe2472e9b44b` through its declared
+`./compat`, `./tooling/device` and `./partitions` exports. All 12 tasks and 200
+teacher-forced targets execute; three repeated requests, submitted cancellation,
+subsequent generation and settled unload pass. Every pool ownership category is
+zero after unload. The private pool import observes ownership; model work uses
+the installed public handle. Execution success is **not** model qualification.
+
+GPU task quality is 4/12 and source token equality is 7/12. GPU W8A8 NLL is
+4.769074093670992, exceeding the frozen F16 +0.10 approximation limit. Earlier
+same-package F16 and Q4 controls match all 12 source token sequences, with NLL
+4.631039722160251 and 5.153211447267374 respectively; their original cleanup
+failures remain recorded. No gain or standard package promotion is claimed.
+
+The additional independent sequential-decode source control has NLL
+4.694931130174279. It does not replace the frozen full-prefill source report.
+Their phase difference does not explain the GPU mismatch: after input tokens
+`[2,236776]`, both source paths produce the selected logit about 16.68065, versus
+GPU 19.36719. The first BOS-only prediction agrees closely.
+
+At this specific second-token boundary, the installed observer captures layer-0
+normalization and Q/K/V without changing any of the 262,144 baseline logit bits.
+`installed/actual-operand-comparison.json` independently verifies every Q/K/V
+output bit against the **actual** GPU operands and immutable weight bytes.
+Those projections are correct at this boundary. Independently evolved source
+normalization inputs differ by at most 1.52587890625e-5; activation codes agree,
+while the scale differs by one F32 step. This closes that local projection
+hypothesis, not the remaining full-model disagreement.
+
+Fixed-work benchmark code is prepared but no timing campaign or speed advantage
+is established by these records. Further residual localization uses this same
+frozen two-token context; it must preserve the baseline and reference separation.

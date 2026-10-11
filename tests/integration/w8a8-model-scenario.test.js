@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { summarizeLogits } from '../../tools/w8a8-qualification-scenario.js';
+const result = summarizeLogits(new Float32Array([1000, 999, 998]), 1);
+assert.equal(result.top1, 0);
+assert.equal(result.targetLogit, 999);
+assert.equal(result.vocabulary, 3);
+assert(Math.abs(result.nll - (1 + Math.log(1 + Math.exp(-1) + Math.exp(-2)))) < 1e-12);
+assert.throws(() => summarizeLogits(new Float32Array([1, NaN]), 0), /Nonfinite/);
+assert.throws(() => summarizeLogits(new Float32Array([1, Infinity]), 0), /Nonfinite/);
+assert.throws(() => summarizeLogits(new Float32Array([1]), 1), /full vocabulary/);
+assert.throws(() => summarizeLogits([1, 2], 0), /full vocabulary/);
+console.log('W8A8 model observation checks passed.');
