@@ -1,0 +1,169 @@
+{
+  "schema": "doppler.source-generation-diagnostic/v1",
+  "qualified": false,
+  "scope": "Independent source generation using deployed Gemma weights; no numerical or distributed qualification",
+  "modelIdentity": "sha256:f947e3ccac8028c9fcd0eb87cad3deec023102672288c75353d97d3b813e731b",
+  "sourceConfigSha256": "19cb5d28c97778271ba2b3c3df47bf76bdd6706724777a2318b3522230afe91e",
+  "sourceRevision": "dcc83ea841ab6100d6b47a070329e1ba4cf78752",
+  "toolSha256": "5404a7578d73740625f91fd989e0ec984fbc5875cd27a7ec5cbc4f9edc542ec7",
+  "sharedReplaySha256": "7eaca0565143dc3e4e19fc372e0f376b7f6dafb8473f40a9874f557070ca6f32",
+  "bindingSha256": "c7ff1f1d0b9ec2bcf04b05d940fde338eee3e36106841bf98352f951bb8b85df",
+  "files": [
+    {
+      "file": "shard_00000.bin",
+      "sha256": "ae59dfc515325ad66254bc8e0952f9782010beeee8895af2ed24d0a3af85708b"
+    },
+    {
+      "file": "shard_00001.bin",
+      "sha256": "7f2bd116e3bf169cdcd5c2f2b45c3832227995da10d22a0f5e659302ca920d2e"
+    },
+    {
+      "file": "shard_00002.bin",
+      "sha256": "4baf3cf8bba3e8f74e81b2b858feb80bbfbedc7de021bef7392f16e8e7b99baa"
+    },
+    {
+      "file": "shard_00003.bin",
+      "sha256": "edf5eb51366290f304c876c29a166a55d0150d5b69e19e4971415a9f8fd40475"
+    },
+    {
+      "file": "shard_00004.bin",
+      "sha256": "81750dd385bc44e56be423621a23049fc792d3fc2deb3ebed2fe1ab435747bcd"
+    },
+    {
+      "file": "shard_00005.bin",
+      "sha256": "c833b08239e103c8486d3777a2e53f2f3e877be4da853bc45b7eaf96644840cb"
+    },
+    {
+      "file": "shard_00006.bin",
+      "sha256": "8b21d4f1dc25ea1365d319bdaad9c9ae9a54ba0809cfc37a70d745d561479974"
+    },
+    {
+      "file": "shard_00007.bin",
+      "sha256": "0c70519721968578e49c061d11df16e8320e75141490e4d8f0f92bb38040e1cf"
+    },
+    {
+      "file": "shard_00008.bin",
+      "sha256": "f17281795147464b0380d9643f768ef0de6ad56b29e5e7a2fc0a0f9043b5617f"
+    },
+    {
+      "file": "shard_00009.bin",
+      "sha256": "33fc5a11cf2e7a2892dc2884645fe2369d34604529543656486c90bd861527f4"
+    },
+    {
+      "file": "shard_00010.bin",
+      "sha256": "1e62b2b8e1afabf0b18f4e4b80f9aa6e10ab0e3510e7fb55a14c855ba98ed1f5"
+    },
+    {
+      "file": "shard_00011.bin",
+      "sha256": "dab1e05567b9a6334f040ace55c9e9495e24fd387eb9fe835c69b469b59bd2ed"
+    },
+    {
+      "file": "shard_00012.bin",
+      "sha256": "15a621b8623205dec62a525b7fb1242d2db978e445390db6df67a2333612ffe0"
+    },
+    {
+      "file": "shard_00013.bin",
+      "sha256": "9973bc999243fe44c55c519ebb5094fba69b1ef422ba40671065785fd2af57fa"
+    },
+    {
+      "file": "shard_00014.bin",
+      "sha256": "bc007f864b09995f3add6c1058db6d598f03b41daeabbc2215f083659400d4c3"
+    },
+    {
+      "file": "shard_00015.bin",
+      "sha256": "7ce9f77fc4e16726d608a5b22a825b792e7c27bc188c7a0a8515fb13208da839"
+    },
+    {
+      "file": "tokenizer.json",
+      "sha256": "8ef59ebecae680b6ab1ebc65c3855238032d55dea31d27968a6eacf458144ee9"
+    }
+  ],
+  "versions": {
+    "torch": "2.11.0",
+    "transformers": "5.6.2",
+    "gguf": "0.19.0",
+    "numpy": "2.4.4"
+  },
+  "precision": {
+    "arithmetic": "float32",
+    "kvStorage": "float16",
+    "weights": "identified deployed bytes"
+  },
+  "expectedOutputText": "elm\nfir\nfir\nelm\n",
+  "generationControlSha256": "44043fac55471bc48489d15a8d2dc892e696b4e2da5b8bc80dfa3c68cd50f473",
+  "tokenization": "Exact captured IDs; independently round-tripped through deployed tokenizer",
+  "inputIds": [
+    2,
+    105,
+    2364,
+    107,
+    13293,
+    1239,
+    12972,
+    528,
+    1900,
+    236764,
+    886,
+    5346,
+    810,
+    1757,
+    236764,
+    39983,
+    87613,
+    236787,
+    94469,
+    236764,
+    10430,
+    236764,
+    10430,
+    236764,
+    94469,
+    236764,
+    10430,
+    236764,
+    94469,
+    236761,
+    9657,
+    1186,
+    506,
+    12972,
+    236761,
+    106,
+    107,
+    105,
+    4368,
+    107
+  ],
+  "settings": {
+    "maxTokens": 4096,
+    "maxSeqLen": 8192,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1.1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "eosTokenIds": [
+    1,
+    106
+  ],
+  "generatedTokenIds": [
+    64751,
+    107,
+    75112,
+    107,
+    75112,
+    107,
+    64751,
+    107,
+    106
+  ],
+  "firstTokenDivergence": null,
+  "stopReason": "eos",
+  "outputText": "elm\nfir\nfir\nelm\n",
+  "sameTokens": true
+}

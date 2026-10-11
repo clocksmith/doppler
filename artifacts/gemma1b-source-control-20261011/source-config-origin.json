@@ -1,0 +1,5 @@
+{
+  "url": "https://huggingface.co/google/gemma-3-1b-it/resolve/dcc83ea841ab6100d6b47a070329e1ba4cf78752/config.json",
+  "sha256": "19cb5d28c97778271ba2b3c3df47bf76bdd6706724777a2318b3522230afe91e",
+  "acquisition": "Public unauthenticated request returned HTTP 401; existing configured Hugging Face authorization retrieved the pinned source configuration."
+}
