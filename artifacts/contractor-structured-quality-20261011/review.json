@@ -1,0 +1,18 @@
+{
+  "qualified": false,
+  "candidate": "general evidence-first system instruction; other model/policy/budget fields unchanged",
+  "completedCase": "fresh-bathroom-comparison",
+  "seed": 17,
+  "generatedTokens": 2150,
+  "totalTokens": 2773,
+  "naturalCompletion": true,
+  "factualAcceptance": false,
+  "failures": [
+    "States September 12 plus three weeks equals September 29; correct calendar addition is October 3.",
+    "Asserts Linden includes plumbing instead of preserving its contradictory clauses.",
+    "No required passage-ID citations in the final answer.",
+    "Omits sales-tax exclusions and mixes deposit dates in its follow-up questions."
+  ],
+  "disposition": "Rejected on the first completed fresh case. Remaining cases/repetitions stopped; partial correction is not a result. No production instruction, seed, generation, package, reference or model selection changed.",
+  "reviewer": "agent review against frozen criteria, not a human study"
+}

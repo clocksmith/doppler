@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.source-quality-run-binding/v1",
+  "files": [
+    {
+      "path": "tools/source-model-task-quality.py",
+      "sha256": "3e1dd96f7e338a48a0c778e7d9b2b20f0c9c2982ff9a59194d03774ed42da483"
+    },
+    {
+      "path": "tools/lib/source_task_quality.py",
+      "sha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f"
+    },
+    {
+      "path": "artifacts/contractor-structured-quality-20261011/suite.json",
+      "sha256": "89e7d22581b14edf1b5575c303526340deeff6efc00abfaababa977d548bab6a"
+    }
+  ],
+  "host": "x@128.tail995236.ts.net",
+  "runDirectory": "/var/tmp/doppler-structured-source-20261011",
+  "command": "PYTHONPATH=/tmp/doppler-reference-deps OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 python3 -u tools/source-model-task-quality.py --source /var/tmp/doppler-qwen3-17b-source-20261011 --suite artifacts/contractor-structured-quality-20261011/suite.json --out result.json --threads 4",
+  "scope": "One general system instruction candidate, all sampling settings and budgets unchanged; CPU only, not package acceptance"
+}
