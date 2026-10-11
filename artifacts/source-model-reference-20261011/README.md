@@ -170,3 +170,14 @@ tokenizer are checked against the 2B piece index.
 This is a scoped generation control for an already-integrated model. It neither
 replaces the small-model numerical reference nor establishes distributed
 capacity, complete application acceptance or deployment.
+
+## Independent reproduction of the incomplete larger-model answer
+
+`model-2b-counting-source.json` reports the original request to count from one
+to two hundred, using the deployed 2B weights, captured tokenizer inputs and
+unchanged application generation settings. Independent source equations match
+all 372 Doppler output tokens, including EOS after 120. Full source output,
+input control and invocation log are retained compressed. This establishes
+that the incomplete answer reproduces outside Doppler; it does not qualify the
+answer, clear full-model numerical acceptance or justify changing protected
+requirements. No runtime or reference changed.
