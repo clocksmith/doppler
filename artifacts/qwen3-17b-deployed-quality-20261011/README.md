@@ -73,7 +73,9 @@ completed fresh case: `permission-approval`, seed 29, emitted `No.` instead of
 raw UTF-16 characters. The next case was interrupted after one opening token;
 twelve cases were unstarted. The unchanged prior-case regression was not run
 because the fresh gate failed. `format-policy-result.json.gz` and its process
-log preserve the failure; no further instruction variant was evaluated.
+log preserve the failure. At that first-policy checkpoint no further instruction
+variant had been evaluated; the subsequently authorized literal-format screen is
+reported separately below.
 
 The instruction was refined while the first invocation was initializing. Its
 interruption retained one opening marker token but no evaluated answer. A guard
@@ -102,3 +104,14 @@ not change the actual 151,936-token computation. Synthetic controls verify
 same-head agreement, a deliberately changed head, exact RNG replay, mismatched
 prefix rejection and observer cleanup. No model or quantization change follows
 from this negative attribution result.
+
+A subsequently authorized general literal-format instruction was frozen in
+`literal-format-holdout.json` before execution, with eight fresh tasks and seeds
+37 and 89. Five completed cases passed. The sixth emitted `$137.65[S8]` rather
+than the frozen `$137.65 [S8]`, so the unchanged whitespace-token comparator
+rejected it and the fail-fast monitor stopped execution. The prompt did not
+explicitly require that separator. This is a fixture ambiguity, not evidence of
+a wrong amount or citation. The rejected receipt remains unchanged; neither the
+comparison nor the output was rewritten to pass. One following opening token is
+retained as interrupted; nine cases were not started. Raw report, process log and
+`literal-format-review.json` preserve the complete disposition.
