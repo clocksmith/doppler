@@ -1,0 +1,119 @@
+[
+  {
+    "source": "reports/local/w8a8-qualification-20261011/f16-installed-model-01/qualification.json",
+    "retained": "f16-installed-model-01.json.gz",
+    "sha256": "4bc3101df8c65e49a1d0f7b5e8c6d57ddc6559287795114b3c14a3871c259e36",
+    "passed": false,
+    "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
+    "manifestDigest": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+    "error": null,
+    "cleanup": [
+      "Owned temporary buffers did not settle."
+    ]
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/q4-installed-model-01/qualification.json",
+    "retained": "q4-installed-model-01.json.gz",
+    "sha256": "1b20b1e2ee51c4cc95067c3141f5f55c1c81aff8e4ec6f71262da768a71d512b",
+    "passed": false,
+    "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
+    "manifestDigest": "sha256:afecba81640288d0849838c8d4d8c763af80edc1fc22051853ce6700dda4b315",
+    "error": {
+      "message": "comparisonModels is not defined",
+      "stack": "ReferenceError: comparisonModels is not defined\n    at file:///home/x/deco/doppler/tools/qualify-installed-generation.js:107:68"
+    },
+    "cleanup": []
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/q4-installed-model-02/qualification.json",
+    "retained": "q4-installed-model-02.json.gz",
+    "sha256": "f534e683f0f64c0e0a256f75ae9c9d3bd9980af3a74edfa41cd2c4e8519379a2",
+    "passed": false,
+    "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
+    "manifestDigest": "sha256:afecba81640288d0849838c8d4d8c763af80edc1fc22051853ce6700dda4b315",
+    "error": null,
+    "cleanup": [
+      "Owned temporary buffers did not settle."
+    ]
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-boundary-01/qualification.json",
+    "retained": "w8a8-boundary-01.json.gz",
+    "sha256": "ca882751457210eb26e89630bca55b13e67979d6134d30ac14a5b295737421c4",
+    "passed": true,
+    "packageSha256": "79b7c68ceb23d3e156e5e6287d978bfbe218940b832c2460b80efe2472e9b44b",
+    "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+    "error": null,
+    "cleanup": []
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-01/qualification.json",
+    "retained": "w8a8-installed-model-01.json.gz",
+    "sha256": "122f2fac91baa70b337c6bf6bafc9a2c8419396d356545ae2b68d01c0a7b01a3",
+    "passed": false,
+    "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
+    "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+    "error": {
+      "name": "Error",
+      "message": "Teacher-forced initial token differs.",
+      "stack": "Error: Teacher-forced initial token differs.\n    at requireValue (http://127.0.0.1:32825/qualification-tools/w8a8-qualification-scenario.js:3:70)\n    at runW8A8QualificationScenario (http://127.0.0.1:32825/qualification-tools/w8a8-qualification-scenario.js:54:7)\n    at async <anonymous>:316:30"
+    },
+    "cleanup": [
+      "Owned temporary buffers did not settle."
+    ]
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-02/qualification.json",
+    "retained": "w8a8-installed-model-02.json.gz",
+    "sha256": "f0ab20d357b26d98f0919e37f09599b162aff90ee1b96cf3b18f1070e948a1ae",
+    "passed": false,
+    "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
+    "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+    "error": {
+      "name": "Error",
+      "message": "This qualification does not own recurrent snapshot disposal.",
+      "stack": "Error: This qualification does not own recurrent snapshot disposal.\n    at requireValue (http://127.0.0.1:38593/qualification-tools/w8a8-qualification-scenario.js:3:70)\n    at runW8A8QualificationScenario (http://127.0.0.1:38593/qualification-tools/w8a8-qualification-scenario.js:57:7)\n    at async <anonymous>:316:30"
+    },
+    "cleanup": [
+      "Owned temporary buffers did not settle."
+    ]
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-03/qualification.json",
+    "retained": "w8a8-installed-model-03.json.gz",
+    "sha256": "cae7ff838947595bebe31320bdae3abdff93e4cd9a613bafe39755e8524eeafe",
+    "passed": false,
+    "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
+    "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+    "error": {
+      "name": "Error",
+      "message": "Submitted cancellation was not observed.",
+      "stack": "Error: Submitted cancellation was not observed.\n    at requireValue (http://127.0.0.1:44135/qualification-tools/w8a8-qualification-scenario.js:3:70)\n    at runW8A8QualificationScenario (http://127.0.0.1:44135/qualification-tools/w8a8-qualification-scenario.js:75:5)\n    at async <anonymous>:316:30"
+    },
+    "cleanup": [
+      "Owned temporary buffers did not settle."
+    ]
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-04/qualification.json",
+    "retained": "w8a8-installed-model-04.json.gz",
+    "sha256": "68a4d49df27f5f28f7648c5500194beb6fc5965fcf2fc4d3ba2ffb0a435437a1",
+    "passed": false,
+    "packageSha256": "975adf34cd6985b9420bbbf8c4a8736e44a84fc916465fd90158bf73fddef8c5",
+    "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+    "error": null,
+    "cleanup": [
+      "Owned temporary buffers did not settle."
+    ]
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-05/qualification.json",
+    "retained": "w8a8-installed-model-05.json.gz",
+    "sha256": "90be940b3e2be9d90776224a79075c036f9f7abeff359d1d3867c238db483480",
+    "passed": true,
+    "packageSha256": "79b7c68ceb23d3e156e5e6287d978bfbe218940b832c2460b80efe2472e9b44b",
+    "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+    "error": null,
+    "cleanup": []
+  }
+]

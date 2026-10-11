@@ -7,6 +7,8 @@ import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import { createStaticFileServer } from '../src/tooling/node-browser-command-runner.js';
 import { runGenerationQualificationScenario } from './generation-qualification-scenario.js';
+import { runW8A8QualificationScenario } from './w8a8-qualification-scenario.js';
+import { runW8A8BenchmarkScenario } from './w8a8-benchmark-scenario.js';
 import { rendererPids, rendererRss } from './browser-renderer-memory.js';
 
 const hash = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
@@ -23,35 +25,56 @@ const referenceBytes = await fs.readFile(config.reference.path);
 assert.equal(hash(referenceBytes), config.reference.digest);
 assert.equal(hash(await fs.readFile(path.join(config.modelDir, 'manifest.json'))), config.manifestDigest);
 const reference = JSON.parse(referenceBytes.toString('utf8'));
-assert.equal(reference.schema, 'doppler.document-generation-source-reference/v1');
-assert.equal(config.generation.maxTokens, reference.policy.maxNewTokens);
+const w8a8 = reference.schema === 'doppler.w8a8-model-reference/v1';
+const w8Benchmark = w8a8 && config.phase === 'fixed-work-benchmark';
+const w8Boundary = w8a8 && config.phase === 'boundary-diagnostic';
+if (w8Boundary) assert.equal(config.surface, 'browser');
+if (w8Benchmark) {
+  assert.equal(config.comparisonModels.length, 2);
+  for (const model of config.comparisonModels) {
+    assert(path.isAbsolute(model.modelDir));
+    assert.equal(hash(await fs.readFile(path.join(model.modelDir, 'manifest.json'))), model.manifestDigest);
+  }
+}
+if (!w8a8) assert.equal(reference.schema, 'doppler.document-generation-source-reference/v1');
+else {
+  assert([undefined, 'quality', 'fixed-work-benchmark', 'boundary-diagnostic'].includes(config.phase));
+  assert.deepEqual(config.generation, reference.suite.generation);
+}
+assert.equal(config.generation.maxTokens, w8a8 ? reference.suite.generation.maxTokens : reference.policy.maxNewTokens);
 assert.equal(config.generation.temperature, 0); assert.equal(config.generation.topK, 1);
 const installed = await read(path.join(config.packageBundlePath, 'receipt.json'));
 assert(installed.passed);
 assert.equal(hash(await fs.readFile(path.join(config.packageBundlePath, installed.package.filename))), `sha256:${installed.package.sha256}`);
 const installedRoot = path.join(config.packageBundlePath, 'consumer/node_modules/doppler-gpu');
 const moduleUrl = file => pathToFileURL(path.join(installedRoot, file)).href;
-const scenarioPath = new URL('./generation-qualification-scenario.js', import.meta.url);
+const scenarioFilename = w8Boundary ? 'w8a8-boundary-observer.js' : w8Benchmark ? 'w8a8-benchmark-scenario.js' : w8a8 ? 'w8a8-qualification-scenario.js' : 'generation-qualification-scenario.js';
+const scenarioPath = new URL('./' + scenarioFilename, import.meta.url);
+const installedMetadata = await read(path.join(installedRoot, 'package.json'));
+const publicApiTarget = installedMetadata.exports['./compat'].import;
+const publicDeviceTarget = installedMetadata.exports['./tooling/device'].import;
+const publicPartitionsTarget = installedMetadata.exports['./partitions'].import;
 await fs.mkdir(config.outputDir);
 const report = { schema: 'doppler.installed-generation-qualification-result/v1', passed: false, config,
   installedPackage: installed.package, referenceDigest: config.reference.digest, manifestDigest: config.manifestDigest,
   source: reference.source, surface: config.surface, startedAtUtc: new Date().toISOString(),
   qualifierDigest: hash(await fs.readFile(new URL(import.meta.url))), scenarioDigest: hash(await fs.readFile(scenarioPath)),
   stage: 'provider', phases: [], requests: [], logs: [], memorySamples: [], physicalExecution: false,
-  signedCapsule: false, externalAdoption: false, comparisonScope: 'Exact frozen source tokens; no vendor performance comparison.' };
+  signedCapsule: false, externalAdoption: false, comparisonScope: w8a8 ? 'Frozen quantization approximation, task quality and lifecycle; execution success is not quality acceptance.' : 'Exact frozen source tokens; no vendor performance comparison.' };
 let context, server, release, restoreFetch, timer, pendingSample;
 const observe = async phase => {
   report.phases.push(phase); report.stage = phase.stage;
   await fs.writeFile(path.join(config.outputDir, 'progress.json'), JSON.stringify({ stage: report.stage, phases: report.phases }, null, 2));
   console.log(JSON.stringify(phase));
 };
-const scenario = { generation: config.generation, runtimeConfig: config.runtimeConfig,
+const scenario = { generation: config.generation, runtimeConfig: config.runtimeConfig, manifestDigest: config.manifestDigest,
   cancellation: config.cancellation, repeatRuns: config.repeatRuns };
 try {
   if (config.surface === 'browser') {
     server = await createStaticFileServer({ rootDir: installedRoot, host: '127.0.0.1', port: 0,
       staticMounts: [{ urlPrefix: '/model', rootDir: config.modelDir },
-        { urlPrefix: '/qualification-tools', rootDir: import.meta.dirname }] });
+        { urlPrefix: '/qualification-tools', rootDir: import.meta.dirname },
+        ...(w8Benchmark ? config.comparisonModels.map((model, index) => ({ urlPrefix: '/comparison-model/' + index, rootDir: model.modelDir })) : [])] });
     const profile = path.join(config.outputDir, 'profile');
     context = await chromium.launchPersistentContext(profile, { headless: true, args: config.launchArgs,
       timeout: config.timeoutMs, env: { ...process.env, TMPDIR: config.temporaryDirectory } });
@@ -75,21 +98,29 @@ try {
     assert.equal(report.hardware.vendor, config.requiredVendor); assert.equal(report.hardware.isFallbackAdapter, false);
     await page.exposeFunction('retainGenerationPhase', observe);
     const pids = await rendererPids(profile);
-    timer = setInterval(() => {
+    if (w8Benchmark) report.memorySamples.push({ at: performance.now(), rendererRssBytes: await rendererRss(pids) });
+    else timer = setInterval(() => {
       if (pendingSample) return;
       pendingSample = rendererRss(pids).then(bytes => report.memorySamples.push({ at: performance.now(), rendererRssBytes: bytes }))
         .catch(error => { report.memoryError = error.message; }).finally(() => { pendingSample = null; });
     }, config.sampleIntervalMs);
-    report.result = await page.evaluate(async ({ scenario, reference }) => {
-      const { runGenerationQualificationScenario } = await import('/qualification-tools/generation-qualification-scenario.js');
-      return runGenerationQualificationScenario({ ...scenario, modelUrl: location.origin + '/model/',
-        apiModule: '/src/client/doppler-api.browser.js', deviceModule: '/src/gpu/device.js',
+    report.result = await page.evaluate(async ({ scenario, reference, scenarioFilename, w8a8, w8Benchmark, w8Boundary, comparisonModels, publicApiTarget, publicDeviceTarget, publicPartitionsTarget }) => {
+      const owner = await import('/qualification-tools/' + scenarioFilename);
+      const run = w8Boundary ? owner.runW8A8BoundaryScenario : w8Benchmark ? owner.runW8A8BenchmarkScenario : w8a8 ? owner.runW8A8QualificationScenario : owner.runGenerationQualificationScenario;
+      return run({ ...scenario, comparisonModels: comparisonModels?.map((model, index) => ({ ...model, modelUrl: location.origin + '/comparison-model/' + index + '/' })), modelUrl: location.origin + '/model/',
+        apiModule: '/' + publicApiTarget.replace(/^\.\//, ''), deviceModule: w8a8 ? '/' + publicDeviceTarget.replace(/^\.\//, '') : '/src/gpu/device.js',
+        partitionsModule: '/' + publicPartitionsTarget.replace(/^\.\//, ''), poolObservationModule: '/src/memory/buffer-pool.js',
         identityModule: '/src/config/initial-execution-identity.js' }, reference, globalThis.retainGenerationPhase);
-    }, { scenario, reference });
+    }, { scenario, reference, scenarioFilename, w8a8, w8Benchmark, w8Boundary, comparisonModels: config.comparisonModels, publicApiTarget, publicDeviceTarget, publicPartitionsTarget });
     clearInterval(timer); await pendingSample;
-    report.peakRssBytes = Math.max(...report.memorySamples.map(sample => sample.rendererRssBytes));
-    assert(Number.isFinite(report.peakRssBytes) && !report.memoryError);
-    report.memoryDefinition = 'Sampled Linux renderer RSS, including shared mappings, across load, generation, cancellation and recovery.';
+    if (w8Benchmark) {
+      report.memorySamples.push({ at: performance.now(), rendererRssBytes: await rendererRss(pids) });
+      report.memoryDefinition = 'Two renderer RSS observations outside primary timing; no RSS peak claim or periodic sampler during benchmark.';
+    } else {
+      report.peakRssBytes = Math.max(...report.memorySamples.map(sample => sample.rendererRssBytes));
+      assert(Number.isFinite(report.peakRssBytes) && !report.memoryError);
+      report.memoryDefinition = 'Sampled Linux renderer RSS, including shared mappings, across load, generation, cancellation and recovery.';
+    }
   } else {
     const { bootstrapNodeWebGPUProvider, releaseNodeWebGPU } = await import(moduleUrl('src/tooling/node-webgpu.js'));
     release = releaseNodeWebGPU;
@@ -104,13 +135,15 @@ try {
     const { installNodeFileFetchShim } = await import(moduleUrl('src/tooling/node-file-fetch.js'));
     installNodeFileFetchShim();
     report.fileAccess = 'Installed Node file-fetch adapter; non-file acquisition is rejected.';
-    report.result = await runGenerationQualificationScenario({ ...scenario, modelUrl: pathToFileURL(config.modelDir + '/').href,
-      apiModule: moduleUrl('src/client/doppler-api.js'), deviceModule: moduleUrl('src/gpu/device.js'),
+    const runScenario = w8Boundary ? (await import('./w8a8-boundary-observer.js')).runW8A8BoundaryScenario : w8Benchmark ? runW8A8BenchmarkScenario : w8a8 ? runW8A8QualificationScenario : runGenerationQualificationScenario;
+    report.result = await runScenario({ ...scenario, comparisonModels: config.comparisonModels?.map(model => ({ ...model, modelUrl: pathToFileURL(model.modelDir + '/').href })), modelUrl: pathToFileURL(config.modelDir + '/').href,
+      apiModule: moduleUrl(publicApiTarget), deviceModule: moduleUrl(w8a8 ? publicDeviceTarget : 'src/gpu/device.js'),
+      partitionsModule: moduleUrl(publicPartitionsTarget), poolObservationModule: moduleUrl('src/memory/buffer-pool.js'),
       identityModule: moduleUrl('src/config/initial-execution-identity.js') }, reference, observe);
     report.peakRssBytes = process.resourceUsage().maxRSS * 1024;
     report.memoryDefinition = 'Linux fresh-process peak RSS, including shared mappings, across load, generation, cancellation and recovery.';
   }
-  report.passed = report.result.passed; report.physicalExecution = report.result.outputs.length > 0;
+  report.passed = report.result.passed; report.physicalExecution = report.result.outputs.length > 0 || (report.result.pairs?.length ?? 0) > 0;
 } catch (error) { report.error = { message: error.message, stack: error.stack }; }
 finally {
   clearInterval(timer); await pendingSample;
