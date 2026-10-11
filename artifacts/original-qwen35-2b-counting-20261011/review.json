@@ -1,0 +1,43 @@
+{
+  "schema": "doppler.original-weight-counting-review/v1",
+  "diagnosticCompleted": true,
+  "applicationPassed": false,
+  "runtimeQualified": false,
+  "hypothesis": "Deployed Q4K/F16 weight preparation is required for the premature EOS.",
+  "hypothesisSupported": false,
+  "sourceRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "sourceWeightsSha256": "aa33250c4fc64891ddfaba3a314fd9542ea371843c387178b425fbcc5ed680b1",
+  "inputTokenCount": 24,
+  "generatedTokenCount": 372,
+  "allGeneratedTokensMatchDeployed": true,
+  "firstTokenDivergence": null,
+  "stopReason": "eos",
+  "expectedCount": 200,
+  "actualCount": 120,
+  "precision": {
+    "arithmetic": "float32",
+    "kvStorage": "float16",
+    "weights": [
+      "torch.bfloat16",
+      "torch.float32"
+    ],
+    "originalTiedHead": true
+  },
+  "settings": {
+    "maxTokens": 4096,
+    "maxSeqLen": 8192,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1.1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "sourceReportSha256": "6acbbfa0e67cd7fb996b964c075769a550fe648db3efc18c4c584cbf4aa577bc",
+  "sourceToolSha256": "fa9cb70ed25b9cdc35ef5e9377eccd77c444e40afddbd76a8525217a3e02e28e",
+  "generationToolSha256": "53efd11870619ee5aa6c5c24d378269100672ad999a0f0e1c47939c18d63d0a0",
+  "claimBoundary": "Original checkpoint weights under frozen deployed prompt/generation and F16 KV policy; not a claim about other policies or general model capability."
+}
