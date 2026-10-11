@@ -30,7 +30,6 @@ Primary documentation index.
 - [RDRR format](rdrr-format.md) — runtime artifact specification.
 - [Conversion/runtime contract](conversion-runtime-contract.md) — ownership and overrides.
 - [ModelIR v2 and source-truth Rig](model-ir-v2-source-truth-forge.md) — semantics and provenance.
-- [Model roadmap](model-roadmap.md) — editorial needs, separate from support status.
 - [Model promotion](model-promotion-playbook.md) and [registry workflow](registry-workflow.md) — artifact/catalog/hosting synchronization.
 - [Direct-source proof lanes](direct-source-proof-lanes.md) — additional source-format promotion requirements.
 
