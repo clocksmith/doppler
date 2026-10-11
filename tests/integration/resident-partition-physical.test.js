@@ -32,8 +32,10 @@ if (!modelDirectory) {
   const modelIdentity = 'sha256:' + createHash('sha256').update(manifestBytes).digest('hex');
   const configPath = process.env.DOPPLER_PARTITION_CONFIG;
   const configBytes = configPath ? await fs.readFile(configPath) : null;
+  const config = configBytes ? JSON.parse(configBytes) : null;
+  if (configBytes) assert(config !== null, 'Explicit physical config cannot be null');
   const configuration = resolvePhysicalPartitionConfig(manifest, modelIdentity,
-    configBytes ? JSON.parse(configBytes) : null, { chat: process.env.DOPPLER_PARTITION_CHAT === '1',
+    config, { chat: process.env.DOPPLER_PARTITION_CHAT === '1',
       prompts: process.env.DOPPLER_PARTITION_PROMPTS
         ? JSON.parse(await fs.readFile(process.env.DOPPLER_PARTITION_PROMPTS, 'utf8')) : undefined });
   const { plan, planId, generation, limits, prompts, chat } = configuration;

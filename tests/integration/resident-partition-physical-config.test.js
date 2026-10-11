@@ -1,4 +1,8 @@
 import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { resolvePhysicalPartitionConfig, bindPhysicalIndependentReference, physicalInputDigest,
   INDEPENDENT_TOLERANCE } from '../helpers/resident-partition-physical-config.js';
 
@@ -29,12 +33,20 @@ for (const mutate of [
   value => { value.splitLayer = null; },
   value => { value.unrecognized = true; },
   value => { value.generation.unrecognized = true; },
+  value => { value.generation = null; },
+  value => { value.generation = undefined; },
   value => { delete value.generation.seed; },
   value => { value.limits.maxTokens = 1; },
   value => { value.limits.maxConcurrentAttempts = 17; },
   value => { value.limits.maxAttempts = 3; },
   value => { value.limits.maxPromptTokens = 0; },
   value => { value.prompts = []; },
+  value => { value.prompts = null; },
+  value => { value.prompts = undefined; },
+  value => { value.limits = null; },
+  value => { value.limits = undefined; },
+  value => { value.splitLayer = undefined; },
+  value => { value.reference = undefined; },
   value => { value.prompts = [[{ role: 'invalid', content: 'text' }]]; },
   value => { value.reference = { path: 'reference.json', sha256: 'unpinned' }; },
 ]) {
@@ -43,6 +55,17 @@ for (const mutate of [
 }
 assert.throws(() => resolvePhysicalPartitionConfig(manifest, identity, config, { chat: true }), /cannot mix/);
 assert.throws(() => resolvePhysicalPartitionConfig(manifest, identity, config, { prompts: ['other'] }), /cannot mix/);
+const directory = mkdtempSync(join(tmpdir(), 'doppler-physical-config-'));
+try {
+  writeFileSync(join(directory, 'manifest.json'), JSON.stringify(manifest));
+  writeFileSync(join(directory, 'config.json'), 'null');
+  const child = spawnSync(process.execPath, [new URL('./resident-partition-physical.test.js', import.meta.url).pathname], {
+    encoding: 'utf8', env: { ...process.env, DOPPLER_PARTITION_MODEL_DIR: directory,
+      DOPPLER_PARTITION_CONFIG: join(directory, 'config.json') },
+  });
+  assert.equal(child.status, 1);
+  assert.match(child.stderr, /Explicit physical config cannot be null/);
+} finally { rmSync(directory, { recursive: true, force: true }); }
 const logits = Buffer.from(new Float32Array([0.25, -0.25, 0.5, 1]).buffer).toString('base64');
 const reference = { kind: 'independent-source-model', modelIdentity: identity, planId: resolved.planId,
   provenance: { implementation: 'Independent test equations', implementationIdentity: identity },
