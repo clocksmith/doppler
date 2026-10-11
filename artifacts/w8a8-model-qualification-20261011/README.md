@@ -118,3 +118,19 @@ actual GPU operands differs from the corresponding GPU observations by at most
 quantization and learned normalization; they establish no defective projection
 or nonlinear operation at this boundary. They do not establish source equality
 or excuse the failed full-model quality and approximation gates.
+
+
+The separately identified packed-dot graph (`67eee682...`) produced exactly the
+same 12 token sequences, visible texts and all 200 teacher-forced observations
+as the portable graph on archive `79b7c68...`. This is a model-variant control,
+not an improvement in quality. `installed/variant-output-comparison.json` binds
+the two complete reports and the diagnostic derivation retains original source
+and weight identities.
+
+Both initial packed attempts fail the additional submission-time cancellation
+control: cancellation is issued immediately after `queue.submit` returns, before
+awaiting completion. The second receipt retains 13,094,144 deferred bytes in 133
+resources after the public operation rejects and the queue settles; active
+allocation remains unchanged. Final unload does release all resources. This
+exposes a cancellation-settlement defect distinct from the passing first-token
+callback cancellation. Neither failure is removed by the subsequent repair.
