@@ -7,7 +7,7 @@ globalThis.decodeOwnershipProbe = { hidden, logits, released: [], fail: 'readbac
 const modules = {
   '../../../../gpu/device.js': 'export const getDevice = () => null; export const setTrackSubmits = () => {};',
   '../../../../memory/buffer-pool.js': `export const releaseBuffer = buffer => globalThis.decodeOwnershipProbe.released.push(buffer);
-    export const readBuffer = async () => { throw Error('readback failed'); };`,
+    export const readBuffer = async () => { if (globalThis.decodeOwnershipProbe.fail === 'readback') throw Error('readback failed'); return new Float32Array([1, 2, 3, 4]).buffer; };`,
   '../embed.js': 'export const embed = async () => ({ buffer: globalThis.decodeOwnershipProbe.hidden, dtype: "f32", shape: [1, 4] });',
   '../layer.js': 'export const hasConvLayers = () => false; export const processLayer = async () => { if (globalThis.decodeOwnershipProbe.fail === "layer") throw Error("layer failed"); return globalThis.decodeOwnershipProbe.hidden; };',
   '../logits/index.js': `export const computeLogitsGPU = async () => ({ logitsBuffer: globalThis.decodeOwnershipProbe.logits, logitsDtype: 'f32', vocabSize: 4 });
@@ -37,6 +37,11 @@ try {
   const result = await decodeStepLogits(state, [1], { _returnGpuLogits: true }, helpers);
   assert.equal(result.logitsBuffer, logits);
   assert.deepEqual(globalThis.decodeOwnershipProbe.released, [hidden]);
+  globalThis.decodeOwnershipProbe.released.length = 0;
+  const cpuResult = await decodeStepLogits(state, [1], {}, helpers);
+  assert.deepEqual(Array.from(cpuResult.logits), [1, 2, 3, 4]);
+  assert.equal(cpuResult.logitsBuffer, null, 'CPU logits must not transfer an unrequested GPU allocation');
+  assert.deepEqual(globalThis.decodeOwnershipProbe.released, [logits, hidden]);
   state.decodeBuffers.getHiddenBuffer = () => hidden;
   globalThis.decodeOwnershipProbe.released.length = 0;
   await decodeStepLogits(state, [1], { _returnGpuLogits: true }, helpers);
