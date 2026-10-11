@@ -1,0 +1,29 @@
+{
+  "schema": "doppler.contractor-source-run-binding/v1",
+  "sourceCommit": "b83789ec4baeb0c70b48e3cc643d9162dcbb3461",
+  "files": [
+    {
+      "path": "tools/source-model-task-quality.py",
+      "sha256": "826de1918a17492af1d3255c8c33a2c28fd7b1a6ae063c65a4d28d97d1457814"
+    },
+    {
+      "path": "tools/lib/source_task_quality.py",
+      "sha256": "2d06d44d8a279c16f1b0c8b05412eb986826b2ff1e4876c29bd0e1b9d7b018f5"
+    },
+    {
+      "path": "artifacts/contractor-source-quality-20261011/suite.json",
+      "sha256": "ea50e4e539660ff3fc7c697e209a28ffb4a55b7abbee2ed67f9615c90186e39e"
+    }
+  ],
+  "sourceDirectory": "/var/tmp/doppler-qwen3-17b-source-20261011",
+  "isolatedRunDirectory": "/var/tmp/doppler-contractor-source-20261011",
+  "command": "PYTHONPATH=/tmp/doppler-reference-deps OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 python3 tools/source-model-task-quality.py --source /var/tmp/doppler-qwen3-17b-source-20261011 --suite artifacts/contractor-source-quality-20261011/suite.json --out result.json --threads 4",
+  "execution": "CPU source equations; no GPU or application release acceptance",
+  "referenceActivated": false,
+  "limits": {
+    "maxTokens": 4096,
+    "maxSeqLen": 8192,
+    "maxOutputCharacters": 16000
+  },
+  "review": "Criteria frozen before execution in suite.json; prose verdict recorded separately; pending is never passed."
+}
