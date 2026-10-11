@@ -41,7 +41,10 @@ Validation:
 
 - The broad repository sweep passed 903 files. The final shared-reader cleanup
   correction followed that sweep; all 14 affected Capsule/storage/resident and
-  producer files passed afterward at unchanged assertions.
+  producer files passed afterward at unchanged assertions. An additional already
+  running broader sweep subsequently passed 904 files, including the new producer
+  case; the final affected rerun and exact installed snapshot independently bind
+  the final cleanup correction.
 - Source types, reviewed compute boundaries, architecture, runtime closure and
   package closure pass. The core has 76 files and 810,943 source bytes.
 - The exact final archive passes detached installation, all 32 public export

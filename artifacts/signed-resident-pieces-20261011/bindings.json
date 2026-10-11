@@ -36,7 +36,9 @@
       "src/storage/verified-piece-storage.js",
       "src/client/runtime/composition-root.js",
       "src/client/runtime/verified-capsule-artifact-store.js"
-    ]
+    ],
+    "additionalBroadSweepFilesPassed": 904,
+    "additionalBroadSweepScope": "Started before the final generic close correction; final affected rerun and exact installed snapshot separately bind that correction."
   },
   "artifactDigests": {
     "fixture-failure-receipt.tar.gz": "df60ca258b6ebc8d62204ef0c33c47dac368b67e1f42094bdf3c802a4b093905",
@@ -54,6 +56,7 @@
     "pre-settled-close-receipt.tar.gz": "6e89e1ba4a1bf66d15b196e76fa7fdb4d34806ed3ac6598e39f0a4e3778936d8",
     "installed-final.log.gz": "b7b8f4d6971fb7d9051188fdbe0c2601bf755ef6581b0670944f56b3d1a8236c",
     "doppler-gpu-0.6.27-diagnostic.tgz": "307104de5f55e120280cccb4ed84b53170339250c60c3ceee8682ffe3149ed25",
-    "generic-close-after.log.gz": "38251e0e5e4fc01f23813b2f0d38908122e0f9d2c1b0d5a9b424c2f6bdfc38f5"
+    "generic-close-after.log.gz": "38251e0e5e4fc01f23813b2f0d38908122e0f9d2c1b0d5a9b424c2f6bdfc38f5",
+    "unit-additional-sweep.log.gz": "e106ec187ebab4739a4fdcf30d22dc98deb4feba94d8faa3e9078c48dc3daf22"
   }
 }
