@@ -97,3 +97,20 @@ The recurrence extension also passes a scalar two-token closed-form reference
 and rejects incomplete projection history (`diagnostic-checks-linear.json`).
 Reproduce the linear control using the same default command and a separate
 output path; no additional physical capture is required.
+
+
+## All recurrent layers
+
+`all-recurrence.json` extends the actual-operand float64 replay to all 18 recurrent
+layers for the same request 2 / decode step 3 capture. Each replay spans all 187
+tokens from zero state. Maximum local error across the layers is
+0.0000092796421356 (layer 6); the largest final-token error is
+0.0000021167316851 (layer 22). This does not establish a recurrence defect.
+The independent full-model logit discrepancy remains 0.0014121532440185547,
+so item 7 is still open. No numerical reference or runtime arithmetic changed.
+
+Executed source is Doppler `32e7920c`. The hash-bound raw observation and report
+remain in `reports/local/source-model-reference-20261011/all-recurrence/`;
+`all-recurrence-gpu.log.gz` retains physical completion and historical comparison
+failures. Synthetic controls additionally check distinct weights in different
+layers and reject incomplete later-layer histories.
