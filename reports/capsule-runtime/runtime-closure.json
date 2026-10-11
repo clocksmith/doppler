@@ -3,7 +3,7 @@
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
   "fileCount": 74,
-  "sourceBytes": 793857,
+  "sourceBytes": 793915,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -359,8 +359,8 @@
     },
     {
       "path": "src/errors/doppler-error.js",
-      "sizeBytes": 3290,
-      "hash": "sha256:cd88f369dabcac61e4bd44d2276000215f4b544e7a7c240077162001ab5afeb6"
+      "sizeBytes": 3348,
+      "hash": "sha256:4fa480de39b1479399d34b28e1d30f83b8391574cd1c253a84f5871c489b0f46"
     },
     {
       "path": "src/formats/canonical-hash.js",

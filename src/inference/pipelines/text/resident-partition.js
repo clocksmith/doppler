@@ -1,3 +1,4 @@
+import { ERROR_CODES, createDopplerError } from '../../../errors/doppler-error.js';
 import { runPipelineOperation } from '../shader-scoped-pipeline.js';
 import { isDeviceLost } from '../../../gpu/device-state.js';
 import { readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
@@ -148,7 +149,7 @@ export async function createResidentPartitionSession(pipeline, allocation, token
         const stopReason = stoppingReason(tokenId, attempt.step, generation, tokenContract,
           () => attempt.text + decoder.pendingText());
         if (stopReason) { const final = decoder.finish(); delta += final; attempt.text += final; attempt.done = true; }
-        if (attempt.text.length > allocation.limits.maxOutputCharacters) throw new Error('Resident output exceeds its character allocation.');
+        if (attempt.text.length > allocation.limits.maxOutputCharacters) throw createDopplerError(ERROR_CODES.RESIDENT_OUTPUT_LIMIT, 'Resident output exceeds its character allocation.');
         metrics.samplingMs = performance.now() - samplingStarted;
         return { identity: request.identity, step: request.step, tokenPosition: request.tokenPosition,
           tokenId, delta, done: attempt.done, stopReason, continuation: next, logits, metrics };

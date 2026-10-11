@@ -167,7 +167,9 @@ const PACKAGE_CONTENT_LIMITS = Object.freeze({
   // Evidence: artifacts/numerical-20261010/package-audit-026.json.
   // 0.6.27: unchanged inventory; resident declarations, admission and changelog.
   // Evidence: artifacts/partition-contracts-20261010/npm-pack.json.
-  maxUnpackedSize: 13_115_542,
+  // Typed resident output-allocation error: 186 bytes across existing shipped files.
+  // Inventory: artifacts/resident-output-error-20261011/package-inventory.json.
+  maxUnpackedSize: 13_115_728,
 });
 const REQUIRED_PACKAGE_FILES = Object.freeze([
   'README.md',
