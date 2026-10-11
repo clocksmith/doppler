@@ -19,7 +19,7 @@ import torch
 from gguf import GGMLQuantizationType, dequantize
 from transformers.models.qwen3_5.configuration_qwen3_5 import Qwen3_5TextConfig
 from transformers.models.qwen3_5.modeling_qwen3_5 import (
-    DynamicCache, Qwen3_5ForCausalLM, Qwen3_5TextRotaryEmbedding,
+    DynamicCache, Qwen3_5ForCausalLM, Qwen3_5TextRotaryEmbedding, torch_recurrent_gated_delta_rule,
 )
 
 
@@ -48,14 +48,99 @@ def compare(actual, encoded):
             'withinTolerance': bool(error.max() <= 0.001)}
 
 
+def capture_values(capture):
+    if not capture:
+        return None
+    if capture.get('data') is not None:
+        return np.asarray(capture['data'], dtype=np.float32)
+    if capture.get('dataBase64') is not None:
+        assert capture.get('encoding') == 'base64-f32le'
+        return np.frombuffer(base64.b64decode(capture['dataBase64'], validate=True), dtype='<f4')
+    return None
+
+
+def compare_attention_history(model, capture, cache):
+    """Compare observed attention against its actual captured cache operands.
+
+    Reconstruct only history emitted by this capture. Missing tokens or shapes
+    reject the diagnostic rather than substituting independently evolved state.
+    No reconstructed value is fed back into either execution.
+    """
+    timeline = capture['observation']['timeline']
+    layer_indices = sorted({int(row['opId'].split('.')[1]) for row in timeline
+                            if row['opId'].startswith('layer.')
+                            and row['opId'].endswith('.attn.core_out')
+                            and capture_values(row.get('capture')) is not None})
+    comparisons = []
+    for index in layer_indices:
+        attention = model.model.layers[index].self_attn
+        head_dim = attention.head_dim
+        kv_heads = model.config.num_key_value_heads
+        heads = model.config.num_attention_heads
+        prefix = f'layer.{index}.attn.'
+        histories = {'k_rope': [], 'v_proj': []}
+        last = {}
+        for row in timeline:
+            if row['opId'] == 'embed.out':
+                last = {}
+            if not row['opId'].startswith(prefix):
+                continue
+            data = capture_values(row.get('capture'))
+            if data is None:
+                continue
+            name = row['opId'][len(prefix):]
+            values = np.asarray(data, dtype=np.float32)
+            assert np.isfinite(values).all(), row['opId']
+            last[name] = values
+            if name in histories:
+                histories[name].append(values.reshape(-1, kv_heads, head_dim))
+        query = last['q_rope'].reshape(-1, heads, head_dim)
+        # This boundary diagnostic intentionally requires a single decode token.
+        assert query.shape[0] == 1, 'attention history requires a decode capture'
+        actual = last['core_out'].reshape(heads, head_dim).astype(np.float64)
+        stored = {name: np.concatenate(parts).astype(np.float16)
+                  for name, parts in histories.items()}
+        reference_layer = cache.layers[index]
+        cache_rows = []
+        for name, source in [('k_rope', reference_layer.keys), ('v_proj', reference_layer.values)]:
+            source = source.detach().cpu().numpy()[0].transpose(1, 0, 2)
+            observed = stored[name]
+            assert source.dtype == observed.dtype == np.float16
+            assert source.shape == observed.shape, 'capture must include complete cache history'
+            error = np.abs(source.astype(np.float64) - observed.astype(np.float64))
+            cache_rows.append({'boundary': prefix + name, 'tokens': int(source.shape[0]),
+                               'values': int(source.size),
+                               'differentStoredValues': int(np.count_nonzero(source != observed)),
+                               'maxAbsError': float(error.max()),
+                               'rmsError': float(np.sqrt(np.mean(error ** 2))),
+                               'sourceCacheSha256': hashlib.sha256(source.copy().tobytes()).hexdigest(),
+                               'capturedCacheSha256': hashlib.sha256(observed.tobytes()).hexdigest()})
+        keys = np.repeat(stored['k_rope'].astype(np.float64), heads // kv_heads, axis=1)
+        values = np.repeat(stored['v_proj'].astype(np.float64), heads // kv_heads, axis=1)
+        scores = np.einsum('hd,thd->ht', query[0].astype(np.float64), keys) * attention.scaling
+        scores -= scores.max(axis=-1, keepdims=True)
+        probabilities = np.exp(scores)
+        probabilities /= probabilities.sum(axis=-1, keepdims=True)
+        precise = np.einsum('ht,thd->hd', probabilities, values)
+        error = np.abs(actual - precise)
+        comparisons.append({'boundary': prefix + 'core_out',
+                            'scope': 'Captured query and full captured K/V history, F16 storage, float64 reference',
+                            'values': int(actual.size), 'tokens': int(keys.shape[0]),
+                            'maxAbsError': float(error.max()),
+                            'rmsError': float(np.sqrt(np.mean(error ** 2))),
+                            'independentlyEvolvedCache': cache_rows})
+    return comparisons
+
+
 def compare_boundaries(model, capture, input_ids, cache):
     """Observe the selected prefix; hooks never replace model values."""
     retained = {}
     timeline = capture['observation']['timeline']
     start = max(index for index, row in enumerate(timeline) if row['opId'] == 'embed.out')
     for row in timeline[start:]:
-        if (row.get('capture') or {}).get('data') is not None:
-            retained[row['opId']] = row['capture']
+        values = capture_values(row.get('capture'))
+        if values is not None:
+            retained[row['opId']] = {**row['capture'], 'data': values}
     modules = {'embed.out': model.model.embed_tokens, 'final_norm.out': model.model.norm}
     for index, layer in enumerate(model.model.layers):
         modules[f'layer.{index}.attn.post_input_norm'] = layer.input_layernorm
@@ -145,7 +230,8 @@ def compare_boundaries(model, capture, input_ids, cache):
                 compare_operand('layer.3.attn.' + name, 'layer.3.attn.post_input_norm', getattr(attention, name), 'linear')
             compare_operand('layer.3.attn.q_norm', 'layer.3.attn.q_proj', attention.q_norm, 'rmsnorm')
             compare_operand('layer.3.attn.k_norm', 'layer.3.attn.k_proj', attention.k_norm, 'rmsnorm')
-        return output, comparisons, operands, [name for name in modules if name not in retained]
+        history = compare_attention_history(model, capture, cache) if input_ids.shape[-1] == 1 else []
+        return output, comparisons, operands, [name for name in modules if name not in retained], history
     finally:
         for handle in handles:
             handle.remove()
@@ -272,8 +358,15 @@ def run(args):
     model.load_state_dict(weights, strict=True, assign=True)
     del weights
     model.eval()
+    if args.linear_prefill == 'source-recurrent':
+        # Independent source sensitivity control, never a runtime substitution.
+        # Both functions implement the same recurrence with different F32 order.
+        for layer in model.model.layers:
+            if hasattr(layer, 'linear_attn'):
+                layer.linear_attn.chunk_gated_delta_rule = torch_recurrent_gated_delta_rule
     report = {'schema': 'doppler.source-model-reference-diagnostic/v1', 'qualified': False,
               'scope': 'Independent model-equation diagnostic, not reference activation or runtime fallback',
+              'linearPrefillReference': args.linear_prefill,
               'tolerance': 0.001, 'tokenization': 'Exact captured prompt IDs, followed by frozen reference tokens',
               'modelIdentity': observed['manifestIdentity'], 'sourceConfigSha256': sha256(args.source_config),
               'captureSha256': sha256(args.capture), 'pieceIndexIdentity': args.piece_index_identity,
@@ -315,7 +408,7 @@ def run(args):
         next_step += 1
         with torch.inference_mode():
             if boundary_capture and target is targets[-1]:
-                result, report['boundaryComparisons'], report['operandComparisons'], report['unobservedBoundaries'] = compare_boundaries(
+                result, report['boundaryComparisons'], report['operandComparisons'], report['unobservedBoundaries'], report['attentionHistoryComparisons'] = compare_boundaries(
                     model, boundary_capture, torch.tensor([input_ids]), cache)
             else:
                 result = model(input_ids=torch.tensor([input_ids]), past_key_values=cache,
@@ -338,6 +431,8 @@ if __name__ == '__main__':
     parser.add_argument('--prefixes', type=int, required=True)
     parser.add_argument('--threads', type=int, required=True)
     parser.add_argument('--generation-control', help='Replay exact deployed greedy generation with independent source equations')
+    parser.add_argument('--linear-prefill', choices=['source-chunk', 'source-recurrent'], default='source-chunk',
+                        help='Independent source recurrence ordering sensitivity; never reference activation')
     parser.add_argument('--boundary-capture', help='Retained GPU observations for the last requested prefix')
     options = parser.parse_args()
     assert options.prefixes > 0 and options.threads > 0

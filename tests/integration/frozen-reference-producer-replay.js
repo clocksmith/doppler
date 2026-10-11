@@ -101,6 +101,8 @@ try {
   await page.exposeFunction('recordProducerPrefill', recordPrefill);
   page.on('console', event => { if (event.text().startsWith('producer-progress:')) console.log(event.text()); });
   await page.goto(`http://127.0.0.1:${server.address().port}`);
+  const observedTimeline = [];
+  await page.exposeFunction('recordProducerObservation', row => { observedTimeline.push(row); });
   const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, expected, observationTarget, captureDecode }) => {
     // Observe selected native pipelines without rewriting shader arithmetic.
     const moduleSources = new WeakMap(), pipelines = new WeakMap(), normalizationDispatch = [];
@@ -181,8 +183,11 @@ try {
         ...['qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj',
           'linear_core_out', 'out', 'post_attn'].map(op => 'layer.0.attn.' + op),
         ...['in', 'gate', 'up', 'act', 'out'].map(op => 'layer.0.ffn.' + op),
-        ...['q_proj', 'k_proj', 'v_proj', 'q_norm', 'k_norm', 'q_rope', 'k_rope', 'core_out', 'out']
-          .map(op => 'layer.3.attn.' + op),
+        ...manifest.inference.layerPattern.layerTypes.flatMap((type, layer) =>
+          type === 'full_attention'
+            ? ['q_proj', 'k_proj', 'v_proj', 'q_norm', 'k_norm', 'q_rope', 'k_rope', 'core_out', 'out']
+              .map(op => `layer.${layer}.attn.${op}`)
+            : []),
         ...Array.from({ length: manifest.architecture.numLayers }, (_, layer) =>
           [`layer.${layer}.attn.post_input_norm`, `layer.${layer}.layer.out`]).flat()];
       for await (const _chunk of handle.generate(prompts[observationTarget.index], { ...executionOptions,
@@ -191,9 +196,25 @@ try {
         onLogits: values => { observedLogits = Array.from(values); observedSteps.push(observedLogits); },
       })) { if (observedSteps.length > observationTarget.step) break; }
       const { operatorDiagnostics } = handle.advanced.getStats();
+      // Transfer one bounded operator observation at a time. Decimal arrays for
+      // all attention histories can exceed the browser automation IPC limit.
+      for (const row of operatorDiagnostics?.timeline || []) {
+        let capture = row.capture;
+        if (capture?.data) {
+          const values = new Float32Array(capture.data);
+          const bytes = new Uint8Array(values.buffer);
+          let binary = '';
+          for (let offset = 0; offset < bytes.length; offset += 32768) {
+            binary += String.fromCharCode(...bytes.subarray(offset, offset + 32768));
+          }
+          const { data: _data, ...metadata } = capture;
+          capture = { ...metadata, encoding: 'base64-f32le', dataBase64: btoa(binary) };
+        }
+        await window.recordProducerObservation({ ...row, capture });
+      }
       return { runtimeVersion: DOPPLER_VERSION, rows, normalizationDispatch, observation: { logits: observedLogits, observedSteps, target: observationTarget,
         samplingExcludedTokenIds: [handle.advanced.getSpecialTokens().pad, ...executionOptions.suppressTokenIds]
-          .filter(Number.isInteger), timeline: operatorDiagnostics?.timeline || [] } };
+          .filter(Number.isInteger), timeline: [] } };
     } finally {
       await getDevice().queue.onSubmittedWorkDone();
       if (handle) await handle.unload();
@@ -206,6 +227,7 @@ try {
   receipt.normalizationDispatch = result.normalizationDispatch.map(({ source, ...record }) => ({
     ...record, shaderSha256: hash(source) }));
   receipt.observation = result.observation;
+  if (receipt.observation) receipt.observation.timeline = observedTimeline;
   assert.equal(result.runtimeVersion, metadata.version);
   receipt.executionCompleted = true;
   receipt.referenceProducingOwnershipEstablished = false;
