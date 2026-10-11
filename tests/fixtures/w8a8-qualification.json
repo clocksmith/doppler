@@ -1,0 +1,250 @@
+{
+  "schema": "doppler.w8a8-qualification/v1",
+  "scope": "Frozen before W8A8 kernel or model outputs; scoped Gemma 3 270M quantization qualification, not distributed-reference replacement",
+  "sourceModel": "google/gemma-3-270m-it",
+  "sourceRevision": "ac82b4e820549b854eebf28ce6dedaf9fdfa17b3",
+  "generation": {
+    "maxTokens": 96,
+    "maxSeqLen": 2048,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokens": [],
+    "stopSequences": []
+  },
+  "quality": {
+    "minimumCorrect": 10,
+    "requireEveryF16PassingCase": true,
+    "minimumCorrectRelativeToQ4": 0,
+    "requireNaturalStop": true,
+    "comparison": "Exact expected text after stripping outer ASCII whitespace only; punctuation and internal whitespace remain exact",
+    "tasks": [
+      {
+        "id": "copy-code",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Copy exactly the code K7Q-42. Output only that code."
+          }
+        ],
+        "expected": "K7Q-42"
+      },
+      {
+        "id": "owner",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Record: owner=Mira; reviewer=Leon. Output only the owner name."
+          }
+        ],
+        "expected": "Mira"
+      },
+      {
+        "id": "date",
+        "messages": [
+          {
+            "role": "user",
+            "content": "The inspection date is 2027-04-19. Output only the inspection date."
+          }
+        ],
+        "expected": "2027-04-19"
+      },
+      {
+        "id": "amount",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Invoice total: $83.25. Output only the total, including the dollar sign."
+          }
+        ],
+        "expected": "$83.25"
+      },
+      {
+        "id": "negation",
+        "messages": [
+          {
+            "role": "user",
+            "content": "The door is not locked. Is the door locked? Output only No or Yes."
+          }
+        ],
+        "expected": "No"
+      },
+      {
+        "id": "condition",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Access requires a badge. Taro has no badge. May Taro enter? Output only No or Yes."
+          }
+        ],
+        "expected": "No"
+      },
+      {
+        "id": "choice",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Choose the fruit from these words: stone, apple, metal. Output only the fruit."
+          }
+        ],
+        "expected": "apple"
+      },
+      {
+        "id": "addition",
+        "messages": [
+          {
+            "role": "user",
+            "content": "What is 14 + 8? Output only the integer."
+          }
+        ],
+        "expected": "22"
+      },
+      {
+        "id": "subtraction",
+        "messages": [
+          {
+            "role": "user",
+            "content": "What is 31 - 9? Output only the integer."
+          }
+        ],
+        "expected": "22"
+      },
+      {
+        "id": "sort",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Sort 9, 3, 6 in ascending order. Output exactly three integers separated by a comma and one space."
+          }
+        ],
+        "expected": "3, 6, 9"
+      },
+      {
+        "id": "literal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Copy exactly: red-blue. Output only those eight characters."
+          }
+        ],
+        "expected": "red-blue"
+      },
+      {
+        "id": "sequence",
+        "messages": [
+          {
+            "role": "user",
+            "content": "List the integers from 5 through 8 inclusive. Output only the four integers separated by a comma and one space."
+          }
+        ],
+        "expected": "5, 6, 7, 8"
+      }
+    ]
+  },
+  "teacherForced": {
+    "maxTokensPerDocument": 128,
+    "minimumTokensPerDocument": 24,
+    "maxMeanNllAboveF16": 0.1,
+    "maxMeanNllAboveQ4": 0,
+    "requireFiniteLogits": true,
+    "documents": [
+      "A small library opened beside the river. Each morning, its keeper placed returned books on a wooden table and checked their labels. Visitors could borrow two books at a time. When rain began, the keeper closed the windows and continued reading the catalogue.",
+      "A laboratory recorded the temperature of three samples before and after heating. The measurements were stored with the sample names, units, and instrument settings. A second operator repeated the procedure with the same quantities, then compared the records for missing values and unexpected changes.",
+      "Mira ordered twelve blue folders and six green folders for the office. The supplier delivered every blue folder but only four green folders. Mira kept the delivery note and requested the missing two folders. The completed order would contain eighteen folders in total.",
+      "The access policy requires both an active account and a valid badge. An active account alone does not grant access. A visitor without a badge must wait outside while the host checks the request. If either requirement is absent, the system records the refusal and leaves the door closed."
+    ]
+  },
+  "operators": {
+    "M": [
+      1,
+      16,
+      128
+    ],
+    "projections": [
+      {
+        "name": "query",
+        "N": 1024,
+        "K": 640
+      },
+      {
+        "name": "key-value",
+        "N": 256,
+        "K": 640
+      },
+      {
+        "name": "attention-output",
+        "N": 640,
+        "K": 1024
+      },
+      {
+        "name": "gate-up",
+        "N": 2048,
+        "K": 640
+      },
+      {
+        "name": "down",
+        "N": 640,
+        "K": 2048
+      }
+    ],
+    "tails": {
+      "M": 3,
+      "N": 7,
+      "K": 9
+    },
+    "seed": 7331,
+    "requireExactCodes": true,
+    "requireExactI32": true,
+    "rescale": "Exact ordered F32 I32 conversion, activation-scale multiply, materialization, weight-scale multiply; flush each subnormal result to signed zero; reject overflow",
+    "edgeCases": [
+      "positive-negative-ties",
+      "signed-zero",
+      "zero-row",
+      "tail-zero-padding",
+      "mixed-sign-cancellation",
+      "saturation",
+      "accumulator-above-2^24",
+      "I32-bound",
+      "nonfinite-rejection",
+      "source-subnormal-rejection",
+      "scale-subnormal-rejection",
+      "rescale-overflow",
+      "rescale-subnormal-flush"
+    ]
+  },
+  "benchmark": {
+    "prefillTokens": [
+      128,
+      512
+    ],
+    "decodeTokens": [
+      32,
+      128
+    ],
+    "warmupRuns": 2,
+    "pairedRuns": 10,
+    "order": "alternate-baseline-candidate and candidate-baseline",
+    "cacheMode": "warm-resident; fresh attempt state each request",
+    "primaryScope": "Inference through completion, including activation quantization, integer projection, both rescale passes and required readback; loading/upload separately",
+    "requireSameInputTokens": true,
+    "requireSameSampling": true,
+    "instrumentationInPrimarySamples": false,
+    "outlierPolicy": "none"
+  },
+  "lifecycle": {
+    "repeatedRequests": 3,
+    "submittedCancellation": true,
+    "subsequentGeneration": true,
+    "settledCleanup": true,
+    "residentReuse": true,
+    "maxGpuBufferBytes": 1420000000
+  },
+  "historicalDistributedTolerance": {
+    "unchanged": 0.001,
+    "applicableToThisApproximationContract": false
+  }
+}
