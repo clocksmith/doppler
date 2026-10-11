@@ -7,8 +7,7 @@ Repository owner: Doppler
 ## Outcome
 
 Doppler earns independent retained use as a useful JavaScript model-execution
-library. This optional plan preserves an adoption proof sequence;
-[TODO.md](../TODO.md) owns active implementation work. Rig, ModelIR,
+library. This optional plan preserves an adoption proof sequence. Rig, ModelIR,
 TargetPlans, immutable Capsules, the constrained Runtime, application integration,
 and lifecycle support form one product.
 

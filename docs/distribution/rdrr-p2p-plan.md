@@ -2,8 +2,7 @@
 
 Additive distributed execution contract for canonical RDRR artifacts.
 
-This is a design contract, not an implementation queue. Follow
-[TODO.md](../../TODO.md) for work selection and completion.
+This is a design contract, not an implementation queue.
 
 ## Purpose
 

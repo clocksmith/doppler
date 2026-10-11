@@ -44,9 +44,8 @@ not the primary reason developers install Doppler.
 
 ## Current priorities
 
-[TODO.md](TODO.md) links to the canonical implementation sequence and completion
-state shared with Reploid. This section preserves product priorities; other goals
-and campaign pages retain contracts and evidence without competing work queues.
+This section preserves product priorities; other goals and campaign pages retain
+contracts and evidence without competing work queues.
 
 Doppler is one independently useful JavaScript model-execution library. Prioritize
 useful outputs, straightforward installation, fast opening, bounded memory,
