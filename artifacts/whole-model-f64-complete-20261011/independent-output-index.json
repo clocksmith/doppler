@@ -1,0 +1,126 @@
+{
+  "schema": "doppler.f64-diagnostic-output-index/v1",
+  "referenceActivated": false,
+  "shards": [
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-0-steps-0-1.json.gz",
+      "sha256": "5b2b8ade5415fff2f34a482a210ca9f0ac7b4c290d4580b050f8d1913dd1b828",
+      "bytes": 3996195,
+      "index": 0,
+      "steps": [
+        0,
+        1
+      ]
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-1-steps-0-1.json.gz",
+      "sha256": "7a7f20977b984117510ac3b724d151fc9450e57945aabde4cd82558f19d4fa88",
+      "bytes": 3996257,
+      "index": 1,
+      "steps": [
+        0,
+        1
+      ]
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-0-9.json.gz",
+      "sha256": "f73c8c4385ee9cfaa9448ae4c6473400f6c02aa2955ac6d8197cf428e575868d",
+      "bytes": 19956068,
+      "index": 2,
+      "steps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-10-19.json.gz",
+      "sha256": "ce90033538f298d017baa6ce6887fc0351cb0d3fdd66691459931d10238c0f37",
+      "bytes": 19955869,
+      "index": 2,
+      "steps": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-20-29.json.gz",
+      "sha256": "5f254b9f23a305a95cac415f6486db9ac621d9695f11c47fdfbb44f3254719c4",
+      "bytes": 19953111,
+      "index": 2,
+      "steps": [
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29
+      ]
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-30-39.json.gz",
+      "sha256": "a031b4145a168e06400e75ae1d8c61b904d9dc29217bc684cbf757cac4524179",
+      "bytes": 19956595,
+      "index": 2,
+      "steps": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ]
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-40-49.json.gz",
+      "sha256": "a8001a1e771053f7169d725a2b7636a1d817982ecd74f17af087d8ab57abf590",
+      "bytes": 19953846,
+      "index": 2,
+      "steps": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49
+      ]
+    },
+    {
+      "path": "reports/local/whole-model-f64-complete-20261011/independent-vectors/request-2-steps-50-50.json.gz",
+      "sha256": "c45a9c46a1a5d7152e9bb75e070c414743ac32d4fdfaaf8c3ca2c97bd4556d53",
+      "bytes": 1999655,
+      "index": 2,
+      "steps": [
+        50
+      ]
+    }
+  ],
+  "retention": "Complete vector shards preserved locally, excluded from repository history; frozen hashes and all55 comparisons are committed."
+}

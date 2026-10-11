@@ -1,0 +1,110 @@
+{
+  "schema": "doppler.complete-numerical-disposition/v1",
+  "status": "diagnostic-complete-acceptance-open",
+  "referenceActivated": false,
+  "standardArchiveChanged": false,
+  "tolerance": 0.001,
+  "prefixes": 55,
+  "matrix": {
+    "baseline": {
+      "archiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+      "manifestIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "independentF64": {
+        "prefixes": 55,
+        "failedPrefixes": 22,
+        "maximumAbsoluteDifference": 0.002666609627555161,
+        "greedyTokenMatches": 55
+      },
+      "historicalActive": {
+        "prefixes": 55,
+        "failedPrefixes": 28,
+        "maximumAbsoluteDifference": 0.0018568038940429688
+      },
+      "independentF32": {
+        "prefixes": 55,
+        "failedPrefixes": 34,
+        "maximumAbsoluteDifference": 0.0020241737365722656
+      }
+    },
+    "f16-only": {
+      "archiveSha256": "74cb03298e3fe4cdb1126c940553b91d64dc30dc93ea3b4a4bf252e78c028c63",
+      "manifestIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "independentF64": {
+        "prefixes": 55,
+        "failedPrefixes": 21,
+        "maximumAbsoluteDifference": 0.0016046566973928478,
+        "greedyTokenMatches": 55
+      },
+      "historicalActive": {
+        "prefixes": 55,
+        "failedPrefixes": 30,
+        "maximumAbsoluteDifference": 0.0034422874450683594
+      },
+      "independentF32": {
+        "prefixes": 55,
+        "failedPrefixes": 39,
+        "maximumAbsoluteDifference": 0.0030584335327148438
+      }
+    },
+    "combined": {
+      "archiveSha256": "cd50bcc0326a585ea1721f3403c4f6b8ce141d689140969acf7dbdb0a5f68878",
+      "manifestIdentity": "sha256:50923dd5f690153ca720fe80af0368e937cc3d3c8f96ade83c60e9c12bdad66a",
+      "independentF64": {
+        "prefixes": 55,
+        "failedPrefixes": 27,
+        "maximumAbsoluteDifference": 0.0034951507058513798,
+        "greedyTokenMatches": 55
+      },
+      "historicalActive": {
+        "prefixes": 55,
+        "failedPrefixes": 20,
+        "maximumAbsoluteDifference": 0.004337310791015625
+      },
+      "independentF32": {
+        "prefixes": 55,
+        "failedPrefixes": 38,
+        "maximumAbsoluteDifference": 0.004070281982421875
+      }
+    },
+    "repaired": {
+      "archiveSha256": "307104de5f55e120280cccb4ed84b53170339250c60c3ceee8682ffe3149ed25",
+      "manifestIdentity": "sha256:50923dd5f690153ca720fe80af0368e937cc3d3c8f96ade83c60e9c12bdad66a",
+      "independentF64": {
+        "prefixes": 55,
+        "failedPrefixes": 27,
+        "maximumAbsoluteDifference": 0.0034951507058513798,
+        "greedyTokenMatches": 55
+      },
+      "historicalActive": {
+        "prefixes": 55,
+        "failedPrefixes": 20,
+        "maximumAbsoluteDifference": 0.004337310791015625
+      },
+      "independentF32": {
+        "prefixes": 55,
+        "failedPrefixes": 38,
+        "maximumAbsoluteDifference": 0.004070281982421875
+      }
+    }
+  },
+  "equivalence": {
+    "freshStandardEqualsRetainedPreRepairEveryLogit": true,
+    "controlledCombinedEqualsCurrentSourceDiagnosticEveryLogit": true,
+    "reusePrefixCount": 2,
+    "reuseExactlyMatches": true,
+    "initialFourF64VsExtendedCausalMaximumDifference": 4.263256414560601e-14
+  },
+  "conditionalRecommendation": {
+    "allTargets": "Do not promote any tested candidate as numerically qualified. All targets fail somewhere; all55 greedy tokens agree. Preserve active threshold and historical failures.",
+    "independentF64Contract": "If adopted for its intended mathematical meaning, F16-only is the better observed candidate but still fails21/55; reject the Q4 addition as a complete-model improvement for this target because maximum error and failure count increase.",
+    "otherContracts": "Do not select by historical failing-prefix count or F32 label alone. Historical producer used an undeclared entry point; independently implemented F32 evaluation orders differ. Specify evaluation/rounding ownership before acceptance disposition.",
+    "sourceAction": "No source rollback or reference activation performed by this diagnostic; maintainer disposition remains explicit."
+  },
+  "limits": [
+    "One Linux host, Chrome146; no Mac or distributed placement acceptance.",
+    "Existing unsplit numerical harness uses6,000,000,000-byte allowance, not contributor ceiling.",
+    "Legacy manifest BLAKE3 mismatch remains; piece-index SHA verifies retained deployed bytes.",
+    "Full local accuracy repairs do not prove monotonic downstream accuracy across F16 cache rounding.",
+    "F64 evaluation is not proof that nominal F32 execution must match within0.001."
+  ]
+}

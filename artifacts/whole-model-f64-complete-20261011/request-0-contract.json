@@ -1,0 +1,73 @@
+{
+  "schema": "doppler.qwen35-independent-f64-contract/v1",
+  "scope": "Complete frozen-prefix independent diagnostic; proposed evaluation only, not acceptance activation or release qualification",
+  "requestIndex": 0,
+  "steps": [
+    0,
+    1
+  ],
+  "prefixLengths": [
+    19,
+    20
+  ],
+  "inputIds": [
+    248045,
+    846,
+    198,
+    20206,
+    440,
+    1132,
+    279,
+    3299,
+    21251,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271,
+    9419
+  ],
+  "tolerance": 0.001,
+  "equations": {
+    "arithmetic": "NumPy float64 with BLAS float64 dot products; no intermediate F32 rounding",
+    "weights": "Exact deployed Q4_K values independently decoded by gguf to F32, losslessly widened to F64; deployed F16/F32 values losslessly widened",
+    "kvStorage": "IEEE binary16 nearest ties to even immediately after K normalization/RoPE and V projection; widened to F64 on reads",
+    "recurrence": "Sequential gated delta recurrence from zero; causal convolution from zero; no captured state",
+    "normalization": "F64 mean square plus declared epsilon; Qwen offset weight 1+w, gated recurrent norm weight w",
+    "rope": "F64 positions and trigonometry; text positions equal across three MRoPE axes",
+    "attention": "Causal scaled dot product, F64 stable softmax, grouped KV heads, sigmoid output gate",
+    "execution": "One causal full 20-token sequence; report all 2 frozen prefixes; no generated-token feedback",
+    "output": "Full unmasked vocabulary logits; separately quantized deployed LM head; no retied embedding"
+  },
+  "inputs": {
+    "manifest": {
+      "path": "models/local/qwen-3-5-0-8b-q4k-ehaf16/manifest.json",
+      "sha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+    },
+    "sourceConfig": {
+      "path": "artifacts/source-model-reference-20261010/source-config.json",
+      "sha256": "b90b86f35c8e6925ef74ee04d0e758f0a845c83a42089ad82bbaa948de9b4204"
+    },
+    "pieceIndex": {
+      "path": "../reploid/self/config/model-pieces/qwen-0-8b-pieces.json",
+      "sha256": "18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7"
+    },
+    "capture": {
+      "path": "reports/local/frozen-reference-producer/doppler-current026-full-linux.json.gz",
+      "sha256": "28e10ce2535f2d05ecd31d4fdd5a05dc7527a47f6e054e34eccf6f62993a37de"
+    },
+    "historicalReference": {
+      "path": "../reploid/tests/fixtures/distributed-reference.json.gz",
+      "sha256": "f1a2d9a0c153ff96de3cd556bb4e4f133c35ffd7c03553b8969d0878c287e8f7"
+    },
+    "sourceChunk": {
+      "path": "reports/local/source-model-reference-20261010/verified-prefixes.json",
+      "sha256": "09ee581406e735cb327d8b25c6c7830a6cc4d691c77e484903f41cc2ccd7f164"
+    }
+  }
+}

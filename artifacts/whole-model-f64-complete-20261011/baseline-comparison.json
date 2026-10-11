@@ -1,0 +1,3845 @@
+{
+  "schema": "doppler.complete-f64-comparison/v1",
+  "referenceActivated": false,
+  "qualified": false,
+  "tolerance": 0.001,
+  "captureSha256": "c84f120803f5b44cf90f62fec99c36a13f26fff6f6b9055345590c2eba6111d3",
+  "archiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "manifestIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "comparatorSha256": "150df797b4a086efee37cbb93cbef0b5d9af6b4a712ad1aa391474eb70726870",
+  "summary": {
+    "doppler": {
+      "prefixes": 55,
+      "failedPrefixes": 22,
+      "maximumAbsoluteDifference": 0.002666609627555161,
+      "greedyTokenMatches": 55
+    },
+    "historical": {
+      "prefixes": 55,
+      "failedPrefixes": 26,
+      "maximumAbsoluteDifference": 0.0032314833918718477,
+      "greedyTokenMatches": 55
+    },
+    "sourceChunk": {
+      "prefixes": 55,
+      "failedPrefixes": 32,
+      "maximumAbsoluteDifference": 0.002796786171744614,
+      "greedyTokenMatches": 55
+    },
+    "baseline": {
+      "prefixes": 55,
+      "failedPrefixes": 22,
+      "maximumAbsoluteDifference": 0.002666609627555161,
+      "greedyTokenMatches": 55
+    }
+  },
+  "otherTargets": {
+    "historical": {
+      "prefixes": 55,
+      "failedPrefixes": 28,
+      "maximumAbsoluteDifference": 0.0018568038940429688
+    },
+    "sourceF32": {
+      "prefixes": 55,
+      "failedPrefixes": 34,
+      "maximumAbsoluteDifference": 0.0020241737365722656
+    }
+  },
+  "results": [
+    {
+      "index": 0,
+      "step": 0,
+      "greedyToken": 9419,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009114959634366482,
+          "rmsDifference": 0.00017366219685249583,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 108790,
+          "greedyToken": 9419
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009346440197142147,
+          "rmsDifference": 0.00015810092829224683,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 22856,
+          "greedyToken": 9419
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0006315110071604124,
+          "rmsDifference": 0.00011107510273137965,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 18,
+          "greedyToken": 9419
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0009114959634366482,
+          "rmsDifference": 0.00017366219685249583,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 108790,
+          "greedyToken": 9419
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 9419,
+          "independentF64": 22.83027421309716,
+          "baseline": 22.83076286315918
+        },
+        {
+          "tokenId": 108790,
+          "independentF64": -0.3740014216505465,
+          "baseline": -0.37491291761398315
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011718273162841797,
+          "rmsDifference": 0.00022264637922616375,
+          "valuesOverTolerance": 19,
+          "pass": false,
+          "argmaxDifference": 108790,
+          "greedyToken": 9419
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009584426879882812,
+          "rmsDifference": 0.00019497442347463618,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 15,
+          "greedyToken": 9419
+        }
+      }
+    },
+    {
+      "index": 0,
+      "step": 1,
+      "greedyToken": 248046,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010009163826676937,
+          "rmsDifference": 0.0002119600628565207,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 9072,
+          "greedyToken": 248046
+        },
+        "historical": {
+          "maxAbsDifference": 0.0017390169386999332,
+          "rmsDifference": 0.0002286110106963213,
+          "valuesOverTolerance": 11,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 248046
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0007244273227617892,
+          "rmsDifference": 9.489938941925062e-05,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 33159,
+          "greedyToken": 248046
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0010009163826676937,
+          "rmsDifference": 0.0002119600628565207,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 9072,
+          "greedyToken": 248046
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 9072,
+          "independentF64": 0.02746460380255905,
+          "baseline": 0.026463687419891357
+        },
+        {
+          "tokenId": 248046,
+          "independentF64": 21.162097670988665,
+          "baseline": 21.162355422973633
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0018568038940429688,
+          "rmsDifference": 0.0003657739687020549,
+          "valuesOverTolerance": 539,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 248046
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009313821792602539,
+          "rmsDifference": 0.00018914531441999126,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 175267,
+          "greedyToken": 248046
+        }
+      }
+    },
+    {
+      "index": 1,
+      "step": 0,
+      "greedyToken": 19,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009458809535054513,
+          "rmsDifference": 0.0001910394192044463,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 18,
+          "greedyToken": 19
+        },
+        "historical": {
+          "maxAbsDifference": 0.0004044581645521461,
+          "rmsDifference": 7.630967097218878e-05,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 96321,
+          "greedyToken": 19
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0006681906949843608,
+          "rmsDifference": 0.00010825376975037135,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 304,
+          "greedyToken": 19
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0009458809535054513,
+          "rmsDifference": 0.0001910394192044463,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 18,
+          "greedyToken": 19
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 18,
+          "independentF64": 14.86367146676378,
+          "baseline": 14.864617347717285
+        },
+        {
+          "tokenId": 19,
+          "independentF64": 20.292706848348836,
+          "baseline": 20.29343032836914
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009822845458984375,
+          "rmsDifference": 0.00020421770277508091,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 42821,
+          "greedyToken": 19
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009441375732421875,
+          "rmsDifference": 0.0001621342116736788,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 4851,
+          "greedyToken": 19
+        }
+      }
+    },
+    {
+      "index": 1,
+      "step": 1,
+      "greedyToken": 248046,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010772557688696338,
+          "rmsDifference": 0.00016537465748710397,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 373,
+          "greedyToken": 248046
+        },
+        "historical": {
+          "maxAbsDifference": 0.0008887200340756962,
+          "rmsDifference": 0.0001342972250100493,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 73,
+          "greedyToken": 248046
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0006720621041647057,
+          "rmsDifference": 0.00012490033997783793,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 468,
+          "greedyToken": 248046
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0010772557688696338,
+          "rmsDifference": 0.00016537465748710397,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 373,
+          "greedyToken": 248046
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 373,
+          "independentF64": 9.961406150298025,
+          "baseline": 9.962483406066895
+        },
+        {
+          "tokenId": 248046,
+          "independentF64": 21.942109633591812,
+          "baseline": 21.942399978637695
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011701583862304688,
+          "rmsDifference": 0.00017968257499223757,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 373,
+          "greedyToken": 248046
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009927749633789062,
+          "rmsDifference": 0.00016458082069629258,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 373,
+          "greedyToken": 248046
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 0,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007026579256694809,
+          "rmsDifference": 0.00016277484140691858,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 39114,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007418299293044939,
+          "rmsDifference": 0.00015037567472804363,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 103852,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.000925525824886364,
+          "rmsDifference": 0.0002293022990561265,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 21666,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0007026579256694809,
+          "rmsDifference": 0.00016277484140691858,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 39114,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 21.652495717901996,
+          "baseline": 21.652503967285156
+        },
+        {
+          "tokenId": 39114,
+          "independentF64": 2.4856999304171246,
+          "baseline": 2.484997272491455
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0007703304290771484,
+          "rmsDifference": 0.0001111547839572441,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 423,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0008358359336853027,
+          "rmsDifference": 0.00017616359272668247,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 89269,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 1,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009400796513929777,
+          "rmsDifference": 0.0002109475639306601,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 290,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.000895729124561484,
+          "rmsDifference": 0.0002103036260595193,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 78479,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008913064099204115,
+          "rmsDifference": 0.00019687545877183514,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 16069,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0009400796513929777,
+          "rmsDifference": 0.0002109475639306601,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 290,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 17.582124451258068,
+          "baseline": 17.58242416381836
+        },
+        {
+          "tokenId": 290,
+          "independentF64": 4.132779364623509,
+          "baseline": 4.133719444274902
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0007367134094238281,
+          "rmsDifference": 0.0001537323479297488,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 164877,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0006730556488037109,
+          "rmsDifference": 0.000145552015015466,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 160574,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 2,
+      "greedyToken": 17,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009795541261290452,
+          "rmsDifference": 0.00022118495963911777,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 182325,
+          "greedyToken": 17
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009749402504466431,
+          "rmsDifference": 0.00021519301030200285,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 135230,
+          "greedyToken": 17
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008807109446093975,
+          "rmsDifference": 0.0001784548928051016,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 94425,
+          "greedyToken": 17
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0009795541261290452,
+          "rmsDifference": 0.00022118495963911777,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 182325,
+          "greedyToken": 17
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 17,
+          "independentF64": 20.82164784062929,
+          "baseline": 20.821598052978516
+        },
+        {
+          "tokenId": 182325,
+          "independentF64": -2.937747824719086,
+          "baseline": -2.938727378845215
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011072158813476562,
+          "rmsDifference": 0.00023574781909394747,
+          "valuesOverTolerance": 9,
+          "pass": false,
+          "argmaxDifference": 171827,
+          "greedyToken": 17
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0008697509765625,
+          "rmsDifference": 0.0001843865033147905,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 68160,
+          "greedyToken": 17
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 3,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0015289395075539502,
+          "rmsDifference": 0.00030899282079831057,
+          "valuesOverTolerance": 148,
+          "pass": false,
+          "argmaxDifference": 243137,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.001334912061157656,
+          "rmsDifference": 0.000248764390077922,
+          "valuesOverTolerance": 67,
+          "pass": false,
+          "argmaxDifference": 91196,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001220126168123059,
+          "rmsDifference": 0.00022148333404795831,
+          "valuesOverTolerance": 9,
+          "pass": false,
+          "argmaxDifference": 15799,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0015289395075539502,
+          "rmsDifference": 0.00030899282079831057,
+          "valuesOverTolerance": 148,
+          "pass": false,
+          "argmaxDifference": 243137,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 22.640084697230975,
+          "baseline": 22.64083480834961
+        },
+        {
+          "tokenId": 243137,
+          "independentF64": -4.236322680212905,
+          "baseline": -4.237851619720459
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0014564990997314453,
+          "rmsDifference": 0.0002768544758813642,
+          "valuesOverTolerance": 143,
+          "pass": false,
+          "argmaxDifference": 245594,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0014121532440185547,
+          "rmsDifference": 0.00034572385366760447,
+          "valuesOverTolerance": 390,
+          "pass": false,
+          "argmaxDifference": 2159,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 4,
+      "greedyToken": 18,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008252855062327313,
+          "rmsDifference": 0.00017962592259342602,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 237707,
+          "greedyToken": 18
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010333392946477726,
+          "rmsDifference": 0.00021814788150930609,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 181159,
+          "greedyToken": 18
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0010064944263949993,
+          "rmsDifference": 0.0002174000332857075,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 162554,
+          "greedyToken": 18
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008252855062327313,
+          "rmsDifference": 0.00017962592259342602,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 237707,
+          "greedyToken": 18
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 18,
+          "independentF64": 25.63330616428957,
+          "baseline": 25.63332748413086
+        },
+        {
+          "tokenId": 237707,
+          "independentF64": -1.4660645727396169,
+          "baseline": -1.4668898582458496
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0012419819831848145,
+          "rmsDifference": 0.00022278144505945277,
+          "valuesOverTolerance": 9,
+          "pass": false,
+          "argmaxDifference": 30271,
+          "greedyToken": 18
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001276642084121704,
+          "rmsDifference": 0.00022367274510751544,
+          "valuesOverTolerance": 15,
+          "pass": false,
+          "argmaxDifference": 162554,
+          "greedyToken": 18
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 5,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010062773256496182,
+          "rmsDifference": 0.00020680208002718222,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 82575,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.000829551140915985,
+          "rmsDifference": 0.00016142846418122032,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 38383,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.000822448489282479,
+          "rmsDifference": 0.0001773449070451714,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 97228,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0010062773256496182,
+          "rmsDifference": 0.00020680208002718222,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 82575,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 24.967526815898513,
+          "baseline": 24.96778106689453
+        },
+        {
+          "tokenId": 82575,
+          "independentF64": 0.01843384099294698,
+          "baseline": 0.017427563667297363
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0012794733047485352,
+          "rmsDifference": 0.0002426110112372626,
+          "valuesOverTolerance": 25,
+          "pass": false,
+          "argmaxDifference": 82575,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0008525848388671875,
+          "rmsDifference": 0.00018504337893404245,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 15598,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 6,
+      "greedyToken": 19,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0013367968105983952,
+          "rmsDifference": 0.00021813468109369924,
+          "valuesOverTolerance": 16,
+          "pass": false,
+          "argmaxDifference": 82575,
+          "greedyToken": 19
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010142160652906185,
+          "rmsDifference": 0.0002225689401598639,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 234511,
+          "greedyToken": 19
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009200369684785326,
+          "rmsDifference": 0.00018797704865865784,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 111914,
+          "greedyToken": 19
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0013367968105983952,
+          "rmsDifference": 0.00021813468109369924,
+          "valuesOverTolerance": 16,
+          "pass": false,
+          "argmaxDifference": 82575,
+          "greedyToken": 19
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 19,
+          "independentF64": 25.42541635796032,
+          "baseline": 25.425308227539062
+        },
+        {
+          "tokenId": 82575,
+          "independentF64": 0.33734391503569605,
+          "baseline": 0.33600711822509766
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0015711784362792969,
+          "rmsDifference": 0.00030199999351464155,
+          "valuesOverTolerance": 325,
+          "pass": false,
+          "argmaxDifference": 26631,
+          "greedyToken": 19
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0012557506561279297,
+          "rmsDifference": 0.00021951383247023664,
+          "valuesOverTolerance": 14,
+          "pass": false,
+          "argmaxDifference": 26631,
+          "greedyToken": 19
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 7,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0012526790506576235,
+          "rmsDifference": 0.00024572607718656,
+          "valuesOverTolerance": 22,
+          "pass": false,
+          "argmaxDifference": 36630,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010781049583297175,
+          "rmsDifference": 0.00019959140981887374,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 19,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001669881498518322,
+          "rmsDifference": 0.00026779018498504606,
+          "valuesOverTolerance": 97,
+          "pass": false,
+          "argmaxDifference": 21,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0012526790506576235,
+          "rmsDifference": 0.00024572607718656,
+          "valuesOverTolerance": 22,
+          "pass": false,
+          "argmaxDifference": 36630,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 24.559872233462126,
+          "baseline": 24.55999183654785
+        },
+        {
+          "tokenId": 36630,
+          "independentF64": 0.051785109668281204,
+          "baseline": 0.05303778871893883
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.001345992088317871,
+          "rmsDifference": 0.0002663927933308189,
+          "valuesOverTolerance": 76,
+          "pass": false,
+          "argmaxDifference": 2632,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0012125968933105469,
+          "rmsDifference": 0.0001900298238902333,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 21,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 8,
+      "greedyToken": 20,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0011161821057390497,
+          "rmsDifference": 0.0002145969041298809,
+          "valuesOverTolerance": 13,
+          "pass": false,
+          "argmaxDifference": 119646,
+          "greedyToken": 20
+        },
+        "historical": {
+          "maxAbsDifference": 0.0013263775269960476,
+          "rmsDifference": 0.0002331263632645452,
+          "valuesOverTolerance": 34,
+          "pass": false,
+          "argmaxDifference": 71571,
+          "greedyToken": 20
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0017889095704530789,
+          "rmsDifference": 0.00025440485551428264,
+          "valuesOverTolerance": 91,
+          "pass": false,
+          "argmaxDifference": 71571,
+          "greedyToken": 20
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0011161821057390497,
+          "rmsDifference": 0.0002145969041298809,
+          "valuesOverTolerance": 13,
+          "pass": false,
+          "argmaxDifference": 119646,
+          "greedyToken": 20
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 20,
+          "independentF64": 25.351874159032832,
+          "baseline": 25.352169036865234
+        },
+        {
+          "tokenId": 119646,
+          "independentF64": -3.064933870537083,
+          "baseline": -3.0660500526428223
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011973381042480469,
+          "rmsDifference": 0.00023293784290282066,
+          "valuesOverTolerance": 11,
+          "pass": false,
+          "argmaxDifference": 26631,
+          "greedyToken": 20
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0011754035949707031,
+          "rmsDifference": 0.00020843516983988297,
+          "valuesOverTolerance": 5,
+          "pass": false,
+          "argmaxDifference": 117773,
+          "greedyToken": 20
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 9,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0012671976784588423,
+          "rmsDifference": 0.00018113995155086477,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007142508053874508,
+          "rmsDifference": 0.00015363984839601805,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 76098,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012193502150203983,
+          "rmsDifference": 0.0002092598280697951,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 19576,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0012671976784588423,
+          "rmsDifference": 0.00018113995155086477,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.15700326538714,
+          "baseline": 25.157329559326172
+        },
+        {
+          "tokenId": 220,
+          "independentF64": 16.627100709030998,
+          "baseline": 16.62583351135254
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0013256072998046875,
+          "rmsDifference": 0.00021479480231047685,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0008325576782226562,
+          "rmsDifference": 0.0001647156769132144,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 134497,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 10,
+      "greedyToken": 21,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.000887216002133151,
+          "rmsDifference": 0.0001809684317954146,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20318,
+          "greedyToken": 21
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009174035375763001,
+          "rmsDifference": 0.00017448844462448582,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 48497,
+          "greedyToken": 21
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0013776605954340937,
+          "rmsDifference": 0.00028665116456197707,
+          "valuesOverTolerance": 189,
+          "pass": false,
+          "argmaxDifference": 43619,
+          "greedyToken": 21
+        },
+        "baseline": {
+          "maxAbsDifference": 0.000887216002133151,
+          "rmsDifference": 0.0001809684317954146,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20318,
+          "greedyToken": 21
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 21,
+          "independentF64": 25.085649816400206,
+          "baseline": 25.08576011657715
+        },
+        {
+          "tokenId": 20318,
+          "independentF64": -2.294319330781314,
+          "baseline": -2.2952065467834473
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009388923645019531,
+          "rmsDifference": 0.00017031919824764033,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 137876,
+          "greedyToken": 21
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0014929771423339844,
+          "rmsDifference": 0.00027493535150072737,
+          "valuesOverTolerance": 92,
+          "pass": false,
+          "argmaxDifference": 119643,
+          "greedyToken": 21
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 11,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010669810120855772,
+          "rmsDifference": 0.00021597370633341312,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 38535,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010242176156443072,
+          "rmsDifference": 0.00021282278069701684,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 1011,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0007858361874264475,
+          "rmsDifference": 0.0001530320269077606,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 234871,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0010669810120855772,
+          "rmsDifference": 0.00021597370633341312,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 38535,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.201452691300876,
+          "baseline": 25.20182991027832
+        },
+        {
+          "tokenId": 38535,
+          "independentF64": -0.860458312684754,
+          "baseline": -0.8593913316726685
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009636878967285156,
+          "rmsDifference": 0.00016694226754561072,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010328292846679688,
+          "rmsDifference": 0.00020891899843598834,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 189271,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 12,
+      "greedyToken": 22,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0014261244402233864,
+          "rmsDifference": 0.0002665523336480353,
+          "valuesOverTolerance": 92,
+          "pass": false,
+          "argmaxDifference": 11564,
+          "greedyToken": 22
+        },
+        "historical": {
+          "maxAbsDifference": 0.0012434818629807332,
+          "rmsDifference": 0.00025270084091050964,
+          "valuesOverTolerance": 65,
+          "pass": false,
+          "argmaxDifference": 16140,
+          "greedyToken": 22
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0015069270102392451,
+          "rmsDifference": 0.00028805075035979354,
+          "valuesOverTolerance": 117,
+          "pass": false,
+          "argmaxDifference": 2943,
+          "greedyToken": 22
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0014261244402233864,
+          "rmsDifference": 0.0002665523336480353,
+          "valuesOverTolerance": 92,
+          "pass": false,
+          "argmaxDifference": 11564,
+          "greedyToken": 22
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 22,
+          "independentF64": 25.577517665475757,
+          "baseline": 25.577714920043945
+        },
+        {
+          "tokenId": 11564,
+          "independentF64": 2.3029891015424426,
+          "baseline": 2.304415225982666
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0007758140563964844,
+          "rmsDifference": 0.00015698158759266294,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 128018,
+          "greedyToken": 22
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001375436782836914,
+          "rmsDifference": 0.0003050981117399589,
+          "valuesOverTolerance": 165,
+          "pass": false,
+          "argmaxDifference": 180151,
+          "greedyToken": 22
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 13,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008473820535619403,
+          "rmsDifference": 0.00017778144724983993,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 95843,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0008658846160873868,
+          "rmsDifference": 0.00017437099320756431,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 54227,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008203848518482382,
+          "rmsDifference": 0.00015222108715474115,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 31543,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008473820535619403,
+          "rmsDifference": 0.00017778144724983993,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 95843,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 26.042979189678658,
+          "baseline": 26.04303550720215
+        },
+        {
+          "tokenId": 95843,
+          "independentF64": -0.518587095245548,
+          "baseline": -0.5177397131919861
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008196830749511719,
+          "rmsDifference": 0.0001549008048654807,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 22,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009784698486328125,
+          "rmsDifference": 0.00017378501166206062,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 22,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 14,
+      "greedyToken": 23,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010102062874963735,
+          "rmsDifference": 0.00019789521409196482,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 215682,
+          "greedyToken": 23
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009967532335144469,
+          "rmsDifference": 0.00021166289387923438,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 80091,
+          "greedyToken": 23
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0013489510527877613,
+          "rmsDifference": 0.0002622536592014642,
+          "valuesOverTolerance": 39,
+          "pass": false,
+          "argmaxDifference": 357,
+          "greedyToken": 23
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0010102062874963735,
+          "rmsDifference": 0.00019789521409196482,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 215682,
+          "greedyToken": 23
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 23,
+          "independentF64": 25.364847637513815,
+          "baseline": 25.364992141723633
+        },
+        {
+          "tokenId": 215682,
+          "independentF64": -2.0058586329764196,
+          "baseline": -2.006868839263916
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.000675201416015625,
+          "rmsDifference": 0.00013657384491862814,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 158,
+          "greedyToken": 23
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0013689994812011719,
+          "rmsDifference": 0.0003018969672101667,
+          "valuesOverTolerance": 87,
+          "pass": false,
+          "argmaxDifference": 357,
+          "greedyToken": 23
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 15,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007545722618365058,
+          "rmsDifference": 0.00014512487532762711,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 802,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.000885236001177514,
+          "rmsDifference": 0.00015116841007288786,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 55316,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0010926391106735878,
+          "rmsDifference": 0.0001605997847544593,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0007545722618365058,
+          "rmsDifference": 0.00014512487532762711,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 802,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.749969846727943,
+          "baseline": 25.75005340576172
+        },
+        {
+          "tokenId": 802,
+          "independentF64": 0.08902566898915532,
+          "baseline": 0.08978024125099182
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010819435119628906,
+          "rmsDifference": 0.0001478877433211793,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 23,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001262664794921875,
+          "rmsDifference": 0.00016181289715417178,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 16,
+      "greedyToken": 24,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009676321881983974,
+          "rmsDifference": 0.00019798885712495352,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20752,
+          "greedyToken": 24
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007852716211617095,
+          "rmsDifference": 0.00016734760526140074,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 87773,
+          "greedyToken": 24
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001042809790661181,
+          "rmsDifference": 0.00024562790644206165,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 7587,
+          "greedyToken": 24
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0009676321881983974,
+          "rmsDifference": 0.00019798885712495352,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20752,
+          "greedyToken": 24
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 24,
+          "independentF64": 24.665756015177955,
+          "baseline": 24.665878295898438
+        },
+        {
+          "tokenId": 20752,
+          "independentF64": 1.3321967021089818,
+          "baseline": 1.3331643342971802
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010491609573364258,
+          "rmsDifference": 0.00018218069876186878,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 114639,
+          "greedyToken": 24
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010769367218017578,
+          "rmsDifference": 0.00023899349250841153,
+          "valuesOverTolerance": 11,
+          "pass": false,
+          "argmaxDifference": 351,
+          "greedyToken": 24
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 17,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008670774578884988,
+          "rmsDifference": 0.00017186092042674006,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 4784,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009641984019586047,
+          "rmsDifference": 0.00022239959558786497,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 31529,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0011986345741032967,
+          "rmsDifference": 0.00025034190761860577,
+          "valuesOverTolerance": 23,
+          "pass": false,
+          "argmaxDifference": 113402,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008670774578884988,
+          "rmsDifference": 0.00017186092042674006,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 4784,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 23.879838627107908,
+          "baseline": 23.87972640991211
+        },
+        {
+          "tokenId": 4784,
+          "independentF64": -1.5133206335186795,
+          "baseline": -1.512453556060791
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0012493133544921875,
+          "rmsDifference": 0.00023054803648985225,
+          "valuesOverTolerance": 6,
+          "pass": false,
+          "argmaxDifference": 86616,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0013475418090820312,
+          "rmsDifference": 0.000258366110656074,
+          "valuesOverTolerance": 67,
+          "pass": false,
+          "argmaxDifference": 51821,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 18,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008925153738974512,
+          "rmsDifference": 0.00018397793650408242,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 28156,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007416891984690643,
+          "rmsDifference": 0.00015462177767702073,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 47048,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001179487406950841,
+          "rmsDifference": 0.00029800129466803015,
+          "valuesOverTolerance": 62,
+          "pass": false,
+          "argmaxDifference": 20376,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008925153738974512,
+          "rmsDifference": 0.00018397793650408242,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 28156,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 23.70196577954856,
+          "baseline": 23.702083587646484
+        },
+        {
+          "tokenId": 28156,
+          "independentF64": 0.5663332984917642,
+          "baseline": 0.5672258138656616
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009016990661621094,
+          "rmsDifference": 0.00019046403427790855,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 63223,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001199483871459961,
+          "rmsDifference": 0.00027908542827135733,
+          "valuesOverTolerance": 19,
+          "pass": false,
+          "argmaxDifference": 113743,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 19,
+      "greedyToken": 15,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0005936924996845505,
+          "rmsDifference": 0.0001130363127717747,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 2943,
+          "greedyToken": 15
+        },
+        "historical": {
+          "maxAbsDifference": 0.0013316217268570796,
+          "rmsDifference": 0.0002604386783999746,
+          "valuesOverTolerance": 9,
+          "pass": false,
+          "argmaxDifference": 78,
+          "greedyToken": 15
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001533461990198326,
+          "rmsDifference": 0.00031944755170445886,
+          "valuesOverTolerance": 156,
+          "pass": false,
+          "argmaxDifference": 428,
+          "greedyToken": 15
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0005936924996845505,
+          "rmsDifference": 0.0001130363127717747,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 2943,
+          "greedyToken": 15
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 15,
+          "independentF64": 26.217361204430915,
+          "baseline": 26.217403411865234
+        },
+        {
+          "tokenId": 2943,
+          "independentF64": -3.410145551401662,
+          "baseline": -3.4095518589019775
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0014634132385253906,
+          "rmsDifference": 0.00029067749686305724,
+          "valuesOverTolerance": 28,
+          "pass": false,
+          "argmaxDifference": 428,
+          "greedyToken": 15
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0016733407974243164,
+          "rmsDifference": 0.0003639403361434222,
+          "valuesOverTolerance": 660,
+          "pass": false,
+          "argmaxDifference": 428,
+          "greedyToken": 15
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 20,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0005959087628516491,
+          "rmsDifference": 0.00012693095102882216,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 83698,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009686426322033093,
+          "rmsDifference": 0.0001646991086117261,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 12896,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012415551855760043,
+          "rmsDifference": 0.0002123427131223379,
+          "valuesOverTolerance": 20,
+          "pass": false,
+          "argmaxDifference": 1826,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0005959087628516491,
+          "rmsDifference": 0.00012693095102882216,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 83698,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 23.05868788420786,
+          "baseline": 23.05875015258789
+        },
+        {
+          "tokenId": 83698,
+          "independentF64": -0.8592020457964745,
+          "baseline": -0.8597979545593262
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010911822319030762,
+          "rmsDifference": 0.00017627288852951192,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 40617,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0012650489807128906,
+          "rmsDifference": 0.00022734338564329128,
+          "valuesOverTolerance": 22,
+          "pass": false,
+          "argmaxDifference": 4240,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 21,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007732996563438732,
+          "rmsDifference": 0.00018535295412918165,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 41276,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009684300215537789,
+          "rmsDifference": 0.00019088734181344432,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 448,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001233066003721195,
+          "rmsDifference": 0.00023759494437223264,
+          "valuesOverTolerance": 21,
+          "pass": false,
+          "argmaxDifference": 96198,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0007732996563438732,
+          "rmsDifference": 0.00018535295412918165,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 41276,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 23.19428602048204,
+          "baseline": 23.19440460205078
+        },
+        {
+          "tokenId": 41276,
+          "independentF64": 4.107338298283053,
+          "baseline": 4.106564998626709
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010342597961425781,
+          "rmsDifference": 0.00019268338939258968,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 75599,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0012409687042236328,
+          "rmsDifference": 0.0002706346680031936,
+          "valuesOverTolerance": 72,
+          "pass": false,
+          "argmaxDifference": 95915,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 22,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008710758943033525,
+          "rmsDifference": 0.00016615968767589925,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 46236,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0006231933951372781,
+          "rmsDifference": 0.0001101016105024415,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 24,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0011552257935192323,
+          "rmsDifference": 0.0002115046688364575,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 18950,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008710758943033525,
+          "rmsDifference": 0.00016615968767589925,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 46236,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 26.501065455112663,
+          "baseline": 26.50035285949707
+        },
+        {
+          "tokenId": 46236,
+          "independentF64": -5.679125203396745,
+          "baseline": -5.678254127502441
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008993148803710938,
+          "rmsDifference": 0.0001654010477677849,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 222825,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009512901306152344,
+          "rmsDifference": 0.0001917140430237632,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20372,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 23,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007103313956382529,
+          "rmsDifference": 0.00013554600732450307,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 226796,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0006773340741901279,
+          "rmsDifference": 0.00011878910893752606,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 66378,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0007682514983162747,
+          "rmsDifference": 0.0001625111119740975,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 108095,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0007103313956382529,
+          "rmsDifference": 0.00013554600732450307,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 226796,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 24.25711206077623,
+          "baseline": 24.257102966308594
+        },
+        {
+          "tokenId": 226796,
+          "independentF64": -2.958342231317985,
+          "baseline": -2.959052562713623
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008681118488311768,
+          "rmsDifference": 0.00015624869036720023,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 50779,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009126663208007812,
+          "rmsDifference": 0.0001750279333290741,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 64635,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 24,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008892407574441208,
+          "rmsDifference": 0.00019468386050815675,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 136874,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0008930128848607666,
+          "rmsDifference": 0.0001750565410687906,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 19,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009307768097004399,
+          "rmsDifference": 0.0001963910958446877,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 11553,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008892407574441208,
+          "rmsDifference": 0.00019468386050815675,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 136874,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 26.10074632075887,
+          "baseline": 26.100805282592773
+        },
+        {
+          "tokenId": 136874,
+          "independentF64": -1.3338908562503073,
+          "baseline": -1.3347800970077515
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010018348693847656,
+          "rmsDifference": 0.0001934645519794968,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 4904,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0008805990219116211,
+          "rmsDifference": 0.00018947672441466085,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 42470,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 25,
+      "greedyToken": 17,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008043089717444385,
+          "rmsDifference": 0.0001697400159129439,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 72118,
+          "greedyToken": 17
+        },
+        "historical": {
+          "maxAbsDifference": 0.0005642989517031793,
+          "rmsDifference": 0.00011985005907245189,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 22033,
+          "greedyToken": 17
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0007626397969764387,
+          "rmsDifference": 0.0001407176868104616,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 173533,
+          "greedyToken": 17
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008043089717444385,
+          "rmsDifference": 0.0001697400159129439,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 72118,
+          "greedyToken": 17
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 17,
+          "independentF64": 29.088723660376758,
+          "baseline": 29.088359832763672
+        },
+        {
+          "tokenId": 72118,
+          "independentF64": -1.6304456034511146,
+          "baseline": -1.6296412944793701
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010489225387573242,
+          "rmsDifference": 0.0001743740335756226,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 12442,
+          "greedyToken": 17
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010315179824829102,
+          "rmsDifference": 0.0001854139358361,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 662,
+          "greedyToken": 17
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 26,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010244197026221258,
+          "rmsDifference": 0.0001781243175278207,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 99190,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0013201481476752264,
+          "rmsDifference": 0.00020085131888865896,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 99190,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009828156605689031,
+          "rmsDifference": 0.00017785371659403694,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 99190,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0010244197026221258,
+          "rmsDifference": 0.0001781243175278207,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 99190,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.68746363933178,
+          "baseline": 25.687358856201172
+        },
+        {
+          "tokenId": 99190,
+          "independentF64": -0.3099677509442298,
+          "baseline": -0.30894333124160767
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0007116794586181641,
+          "rmsDifference": 0.00015073111423548796,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 37135,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0007534027099609375,
+          "rmsDifference": 0.00014949188089798771,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 41831,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 27,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0018976567168014213,
+          "rmsDifference": 0.00034518224496296785,
+          "valuesOverTolerance": 1209,
+          "pass": false,
+          "argmaxDifference": 2086,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0017305368619930928,
+          "rmsDifference": 0.00035031487556877596,
+          "valuesOverTolerance": 1425,
+          "pass": false,
+          "argmaxDifference": 32290,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0017054848465871686,
+          "rmsDifference": 0.00032897278883088014,
+          "valuesOverTolerance": 922,
+          "pass": false,
+          "argmaxDifference": 83817,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0018976567168014213,
+          "rmsDifference": 0.00034518224496296785,
+          "valuesOverTolerance": 1209,
+          "pass": false,
+          "argmaxDifference": 2086,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 26.87618676026698,
+          "baseline": 26.876140594482422
+        },
+        {
+          "tokenId": 2086,
+          "independentF64": -1.2347751496214645,
+          "baseline": -1.232877492904663
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008234977722167969,
+          "rmsDifference": 0.00016043676968163182,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 244480,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.000874638557434082,
+          "rmsDifference": 0.0001901883880963745,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 27730,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 28,
+      "greedyToken": 18,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.002666609627555161,
+          "rmsDifference": 0.00041180143124459027,
+          "valuesOverTolerance": 4424,
+          "pass": false,
+          "argmaxDifference": 116981,
+          "greedyToken": 18
+        },
+        "historical": {
+          "maxAbsDifference": 0.0032314833918718477,
+          "rmsDifference": 0.0004832513047957658,
+          "valuesOverTolerance": 10106,
+          "pass": false,
+          "argmaxDifference": 106534,
+          "greedyToken": 18
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.002796786171744614,
+          "rmsDifference": 0.00043053462263993554,
+          "valuesOverTolerance": 5714,
+          "pass": false,
+          "argmaxDifference": 116981,
+          "greedyToken": 18
+        },
+        "baseline": {
+          "maxAbsDifference": 0.002666609627555161,
+          "rmsDifference": 0.00041180143124459027,
+          "valuesOverTolerance": 4424,
+          "pass": false,
+          "argmaxDifference": 116981,
+          "greedyToken": 18
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 18,
+          "independentF64": 29.45013371971866,
+          "baseline": 29.449932098388672
+        },
+        {
+          "tokenId": 116981,
+          "independentF64": -6.928251879555534,
+          "baseline": -6.9255852699279785
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008401870727539062,
+          "rmsDifference": 0.00017757547226189004,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 116736,
+          "greedyToken": 18
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0007731914520263672,
+          "rmsDifference": 0.000173244279963675,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 64491,
+          "greedyToken": 18
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 29,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0012207405031809948,
+          "rmsDifference": 0.00024302439263081395,
+          "valuesOverTolerance": 32,
+          "pass": false,
+          "argmaxDifference": 7317,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0014626125146389723,
+          "rmsDifference": 0.00026595917551129996,
+          "valuesOverTolerance": 133,
+          "pass": false,
+          "argmaxDifference": 789,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012830281477520522,
+          "rmsDifference": 0.00024519143556787616,
+          "valuesOverTolerance": 48,
+          "pass": false,
+          "argmaxDifference": 125832,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0012207405031809948,
+          "rmsDifference": 0.00024302439263081395,
+          "valuesOverTolerance": 32,
+          "pass": false,
+          "argmaxDifference": 7317,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 26.184431110846305,
+          "baseline": 26.184261322021484
+        },
+        {
+          "tokenId": 7317,
+          "independentF64": -3.2137134448946605,
+          "baseline": -3.2124927043914795
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009021759033203125,
+          "rmsDifference": 0.00018296181206682154,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 47459,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0007520914077758789,
+          "rmsDifference": 0.00015066932326531076,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 25446,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 30,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0011440295088434027,
+          "rmsDifference": 0.00023486250581907688,
+          "valuesOverTolerance": 19,
+          "pass": false,
+          "argmaxDifference": 121606,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0015479744026745124,
+          "rmsDifference": 0.0003121990321000225,
+          "valuesOverTolerance": 456,
+          "pass": false,
+          "argmaxDifference": 1679,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001419850665675293,
+          "rmsDifference": 0.000295274538835825,
+          "valuesOverTolerance": 256,
+          "pass": false,
+          "argmaxDifference": 34896,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0011440295088434027,
+          "rmsDifference": 0.00023486250581907688,
+          "valuesOverTolerance": 19,
+          "pass": false,
+          "argmaxDifference": 121606,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 27.293314474468303,
+          "baseline": 27.293048858642578
+        },
+        {
+          "tokenId": 121606,
+          "independentF64": -2.3057805520188666,
+          "baseline": -2.30692458152771
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011219978332519531,
+          "rmsDifference": 0.00021033240605167395,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 190616,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010256767272949219,
+          "rmsDifference": 0.00022755244112152666,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 127247,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 31,
+      "greedyToken": 19,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0016211533955164947,
+          "rmsDifference": 0.0002912908318422167,
+          "valuesOverTolerance": 319,
+          "pass": false,
+          "argmaxDifference": 199662,
+          "greedyToken": 19
+        },
+        "historical": {
+          "maxAbsDifference": 0.0029304886272975006,
+          "rmsDifference": 0.0004889499688083935,
+          "valuesOverTolerance": 10717,
+          "pass": false,
+          "argmaxDifference": 199662,
+          "greedyToken": 19
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0026527309826441803,
+          "rmsDifference": 0.00045637766910376214,
+          "valuesOverTolerance": 7682,
+          "pass": false,
+          "argmaxDifference": 199662,
+          "greedyToken": 19
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0016211533955164947,
+          "rmsDifference": 0.0002912908318422167,
+          "valuesOverTolerance": 319,
+          "pass": false,
+          "argmaxDifference": 199662,
+          "greedyToken": 19
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 19,
+          "independentF64": 30.28771804011084,
+          "baseline": 30.28770637512207
+        },
+        {
+          "tokenId": 199662,
+          "independentF64": -0.6129637623241969,
+          "baseline": -0.6113426089286804
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0014429092407226562,
+          "rmsDifference": 0.0002855799252915199,
+          "valuesOverTolerance": 206,
+          "pass": false,
+          "argmaxDifference": 134145,
+          "greedyToken": 19
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0013399124145507812,
+          "rmsDifference": 0.0002589071445334963,
+          "valuesOverTolerance": 75,
+          "pass": false,
+          "argmaxDifference": 96756,
+          "greedyToken": 19
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 32,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.000772510340467214,
+          "rmsDifference": 0.0001498565979258463,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 25730,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0013595922869713561,
+          "rmsDifference": 0.00016377799491494995,
+          "valuesOverTolerance": 5,
+          "pass": false,
+          "argmaxDifference": 17,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009523733538658874,
+          "rmsDifference": 0.0001494003219580998,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 17,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.000772510340467214,
+          "rmsDifference": 0.0001498565979258463,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 25730,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.788024493951024,
+          "baseline": 25.788047790527344
+        },
+        {
+          "tokenId": 25730,
+          "independentF64": 3.42205854816173,
+          "baseline": 3.4228310585021973
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008363723754882812,
+          "rmsDifference": 0.00013243696274590407,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 17,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0007279515266418457,
+          "rmsDifference": 0.00014285833051686018,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 152202,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 33,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008661518842716376,
+          "rmsDifference": 0.0001771394593653205,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 99424,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0011326695078304194,
+          "rmsDifference": 0.0002377897877029044,
+          "valuesOverTolerance": 17,
+          "pass": false,
+          "argmaxDifference": 171527,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012015710277961666,
+          "rmsDifference": 0.0002562118996033293,
+          "valuesOverTolerance": 22,
+          "pass": false,
+          "argmaxDifference": 87474,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008661518842716376,
+          "rmsDifference": 0.0001771394593653205,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 99424,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 26.85475108798395,
+          "baseline": 26.854671478271484
+        },
+        {
+          "tokenId": 99424,
+          "independentF64": -2.50949905021496,
+          "baseline": -2.5086328983306885
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011820793151855469,
+          "rmsDifference": 0.0002283591823554191,
+          "valuesOverTolerance": 7,
+          "pass": false,
+          "argmaxDifference": 98523,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010533332824707031,
+          "rmsDifference": 0.0002467848343267142,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 7494,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 34,
+      "greedyToken": 20,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0011042711685322892,
+          "rmsDifference": 0.00024586347938377776,
+          "valuesOverTolerance": 22,
+          "pass": false,
+          "argmaxDifference": 243765,
+          "greedyToken": 20
+        },
+        "historical": {
+          "maxAbsDifference": 0.0020314691966571985,
+          "rmsDifference": 0.00035000292422077925,
+          "valuesOverTolerance": 1685,
+          "pass": false,
+          "argmaxDifference": 106534,
+          "greedyToken": 20
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0018431185191669641,
+          "rmsDifference": 0.0003354379973721053,
+          "valuesOverTolerance": 1192,
+          "pass": false,
+          "argmaxDifference": 106534,
+          "greedyToken": 20
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0011042711685322892,
+          "rmsDifference": 0.00024586347938377776,
+          "valuesOverTolerance": 22,
+          "pass": false,
+          "argmaxDifference": 243765,
+          "greedyToken": 20
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 20,
+          "independentF64": 29.824002846186595,
+          "baseline": 29.82403564453125
+        },
+        {
+          "tokenId": 243765,
+          "independentF64": -1.62283817505342,
+          "baseline": -1.6217339038848877
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011703968048095703,
+          "rmsDifference": 0.0002378038342495671,
+          "valuesOverTolerance": 30,
+          "pass": false,
+          "argmaxDifference": 5815,
+          "greedyToken": 20
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010221004486083984,
+          "rmsDifference": 0.00021086161013327145,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 212981,
+          "greedyToken": 20
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 35,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0006278930138645666,
+          "rmsDifference": 0.00012476410585287773,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20491,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0008375405272684766,
+          "rmsDifference": 0.00016171155144687106,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 22040,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008896194075918018,
+          "rmsDifference": 0.00018047330697230985,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 14376,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0006278930138645666,
+          "rmsDifference": 0.00012476410585287773,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20491,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.731061312861147,
+          "baseline": 25.730913162231445
+        },
+        {
+          "tokenId": 20491,
+          "independentF64": -1.409884708924204,
+          "baseline": -1.4092568159103394
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0007157325744628906,
+          "rmsDifference": 0.00014401407134405578,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 8788,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0008454322814941406,
+          "rmsDifference": 0.00016708112839827074,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 74536,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 36,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009277871093162915,
+          "rmsDifference": 0.0001865485965714127,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 201539,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.00119369382823864,
+          "rmsDifference": 0.00022250031185888175,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 70500,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012309575173399256,
+          "rmsDifference": 0.0002784136086738098,
+          "valuesOverTolerance": 93,
+          "pass": false,
+          "argmaxDifference": 31702,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0009277871093162915,
+          "rmsDifference": 0.0001865485965714127,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 201539,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 26.24798591477412,
+          "baseline": 26.247753143310547
+        },
+        {
+          "tokenId": 201539,
+          "independentF64": 2.0669475605925927,
+          "baseline": 2.0660197734832764
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008058547973632812,
+          "rmsDifference": 0.00016750567247629514,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 144640,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0011857151985168457,
+          "rmsDifference": 0.00027580784856830296,
+          "valuesOverTolerance": 23,
+          "pass": false,
+          "argmaxDifference": 134229,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 37,
+      "greedyToken": 21,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010106209266025346,
+          "rmsDifference": 0.0001896064314817205,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 104296,
+          "greedyToken": 21
+        },
+        "historical": {
+          "maxAbsDifference": 0.0011910182702550287,
+          "rmsDifference": 0.00023649323745625307,
+          "valuesOverTolerance": 20,
+          "pass": false,
+          "argmaxDifference": 131558,
+          "greedyToken": 21
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0013509168617167333,
+          "rmsDifference": 0.00028035924015394045,
+          "valuesOverTolerance": 161,
+          "pass": false,
+          "argmaxDifference": 19858,
+          "greedyToken": 21
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0010106209266025346,
+          "rmsDifference": 0.0001896064314817205,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 104296,
+          "greedyToken": 21
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 21,
+          "independentF64": 27.855574854790802,
+          "baseline": 27.855419158935547
+        },
+        {
+          "tokenId": 104296,
+          "independentF64": -6.009305750991122,
+          "baseline": -6.010316371917725
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.00086212158203125,
+          "rmsDifference": 0.00015838274625141972,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 138170,
+          "greedyToken": 21
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009982585906982422,
+          "rmsDifference": 0.00018857682581216177,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 72861,
+          "greedyToken": 21
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 38,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009933063789402397,
+          "rmsDifference": 0.00016037082743906815,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 4862,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010276230006489584,
+          "rmsDifference": 0.00015614713603434176,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 21,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0007737202948332467,
+          "rmsDifference": 0.00016115875419718626,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 96752,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0009933063789402397,
+          "rmsDifference": 0.00016037082743906815,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 4862,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.133757843148913,
+          "baseline": 25.133525848388672
+        },
+        {
+          "tokenId": 4862,
+          "independentF64": -0.21686303112945904,
+          "baseline": -0.2158697247505188
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0007615089416503906,
+          "rmsDifference": 0.00015863613113040908,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 31438,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009756684303283691,
+          "rmsDifference": 0.00019834444523071935,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 50776,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 39,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008441220417161333,
+          "rmsDifference": 0.00018692107870768506,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 125545,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0008094156111606576,
+          "rmsDifference": 0.00017927158314621738,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 16140,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009102214565670508,
+          "rmsDifference": 0.00018661087544540755,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 43810,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008441220417161333,
+          "rmsDifference": 0.00018692107870768506,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 125545,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 25.7854897167245,
+          "baseline": 25.785314559936523
+        },
+        {
+          "tokenId": 125545,
+          "independentF64": -1.6811970482959886,
+          "baseline": -1.6803529262542725
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008082389831542969,
+          "rmsDifference": 0.00018356367455573023,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 55952,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001209259033203125,
+          "rmsDifference": 0.00023849031565059946,
+          "valuesOverTolerance": 31,
+          "pass": false,
+          "argmaxDifference": 3418,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 40,
+      "greedyToken": 22,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007590067969482917,
+          "rmsDifference": 0.00015209205271791282,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 57431,
+          "greedyToken": 22
+        },
+        "historical": {
+          "maxAbsDifference": 0.001436184885815539,
+          "rmsDifference": 0.00022807638840838295,
+          "valuesOverTolerance": 96,
+          "pass": false,
+          "argmaxDifference": 106534,
+          "greedyToken": 22
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001434802237727073,
+          "rmsDifference": 0.00024667356929248803,
+          "valuesOverTolerance": 68,
+          "pass": false,
+          "argmaxDifference": 5370,
+          "greedyToken": 22
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0007590067969482917,
+          "rmsDifference": 0.00015209205271791282,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 57431,
+          "greedyToken": 22
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 22,
+          "independentF64": 28.160701587399917,
+          "baseline": 28.160282135009766
+        },
+        {
+          "tokenId": 57431,
+          "independentF64": -4.174655319510571,
+          "baseline": -4.173896312713623
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009748935699462891,
+          "rmsDifference": 0.00018468659632119076,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 118445,
+          "greedyToken": 22
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0013151168823242188,
+          "rmsDifference": 0.0002341393025433343,
+          "valuesOverTolerance": 14,
+          "pass": false,
+          "argmaxDifference": 46529,
+          "greedyToken": 22
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 41,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008734489882904484,
+          "rmsDifference": 0.0001407325950121856,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 78461,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007803139455933028,
+          "rmsDifference": 0.00016244847195879454,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 99045,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0010598887965040937,
+          "rmsDifference": 0.00022854135283526694,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 9428,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008734489882904484,
+          "rmsDifference": 0.0001407325950121856,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 78461,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.235399936225235,
+          "baseline": 25.234920501708984
+        },
+        {
+          "tokenId": 78461,
+          "independentF64": -7.48463285221705,
+          "baseline": -7.48375940322876
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008878707885742188,
+          "rmsDifference": 0.00018395370911543905,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 52406,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0014529228210449219,
+          "rmsDifference": 0.00027239866280533853,
+          "valuesOverTolerance": 122,
+          "pass": false,
+          "argmaxDifference": 78461,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 42,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007138826469359483,
+          "rmsDifference": 0.00013864464505281763,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 224752,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009759087299185953,
+          "rmsDifference": 0.00019563464206920166,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 51561,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0015655267627749936,
+          "rmsDifference": 0.00019539454595944282,
+          "valuesOverTolerance": 6,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0007138826469359483,
+          "rmsDifference": 0.00013864464505281763,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 224752,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 25.350768376970887,
+          "baseline": 25.350507736206055
+        },
+        {
+          "tokenId": 224752,
+          "independentF64": 0.8607031128784242,
+          "baseline": 0.8614169955253601
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010573863983154297,
+          "rmsDifference": 0.00020826999669302666,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 65137,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001979827880859375,
+          "rmsDifference": 0.00022870036225846403,
+          "valuesOverTolerance": 29,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 43,
+      "greedyToken": 23,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010227841333660947,
+          "rmsDifference": 0.00020078598479887652,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 54674,
+          "greedyToken": 23
+        },
+        "historical": {
+          "maxAbsDifference": 0.001536747507104863,
+          "rmsDifference": 0.00030545256873261553,
+          "valuesOverTolerance": 301,
+          "pass": false,
+          "argmaxDifference": 99018,
+          "greedyToken": 23
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0011386837529787641,
+          "rmsDifference": 0.00022027653029288872,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 23
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0010227841333660947,
+          "rmsDifference": 0.00020078598479887652,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 54674,
+          "greedyToken": 23
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 23,
+          "independentF64": 27.22240773820367,
+          "baseline": 27.222049713134766
+        },
+        {
+          "tokenId": 54674,
+          "independentF64": -6.205378977675847,
+          "baseline": -6.2043561935424805
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010559558868408203,
+          "rmsDifference": 0.00021406876579505555,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 99018,
+          "greedyToken": 23
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0015316009521484375,
+          "rmsDifference": 0.0003385271341596069,
+          "valuesOverTolerance": 495,
+          "pass": false,
+          "argmaxDifference": 54674,
+          "greedyToken": 23
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 44,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008244470683367311,
+          "rmsDifference": 0.00013386116978858175,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 21742,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.000741080595752841,
+          "rmsDifference": 0.00015002067170778418,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 36774,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009432175560771805,
+          "rmsDifference": 0.0002377796534639556,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 33358,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008244470683367311,
+          "rmsDifference": 0.00013386116978858175,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 21742,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 24.26054470768123,
+          "baseline": 24.260299682617188
+        },
+        {
+          "tokenId": 21742,
+          "independentF64": 6.64251089533889,
+          "baseline": 6.643335342407227
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008935928344726562,
+          "rmsDifference": 0.00014412449232209453,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 100453,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0015497207641601562,
+          "rmsDifference": 0.000276532597012753,
+          "valuesOverTolerance": 161,
+          "pass": false,
+          "argmaxDifference": 21742,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 45,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0006487643605370685,
+          "rmsDifference": 0.00012680741171393976,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 216308,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.000832909291240469,
+          "rmsDifference": 0.00015713845525077452,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 42690,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012990892953279598,
+          "rmsDifference": 0.00017748847830092402,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 16
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0006487643605370685,
+          "rmsDifference": 0.00012680741171393976,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 216308,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 25.02792632441586,
+          "baseline": 25.02774429321289
+        },
+        {
+          "tokenId": 216308,
+          "independentF64": -2.0455992495900293,
+          "baseline": -2.044950485229492
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0007522106170654297,
+          "rmsDifference": 0.00013455492601800473,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 492,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001461029052734375,
+          "rmsDifference": 0.00021187717865782916,
+          "valuesOverTolerance": 9,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 46,
+      "greedyToken": 24,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008741962455660612,
+          "rmsDifference": 0.0001900874192915324,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 9398,
+          "greedyToken": 24
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010017804772024519,
+          "rmsDifference": 0.0002115097006398128,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 17242,
+          "greedyToken": 24
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008675338523231879,
+          "rmsDifference": 0.00016519159939829887,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 22317,
+          "greedyToken": 24
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008741962455660612,
+          "rmsDifference": 0.0001900874192915324,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 9398,
+          "greedyToken": 24
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 24,
+          "independentF64": 25.47596575012367,
+          "baseline": 25.475799560546875
+        },
+        {
+          "tokenId": 9398,
+          "independentF64": -4.036906872942343,
+          "baseline": -4.036032676696777
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.000776335597038269,
+          "rmsDifference": 0.00014847416814537867,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 408,
+          "greedyToken": 24
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0012712478637695312,
+          "rmsDifference": 0.0002693594636042054,
+          "valuesOverTolerance": 91,
+          "pass": false,
+          "argmaxDifference": 147013,
+          "greedyToken": 24
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 47,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0011225088960038487,
+          "rmsDifference": 0.00022737716543199041,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 99020,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0012676049648243648,
+          "rmsDifference": 0.00016789089587716238,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 9885,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008096286816572373,
+          "rmsDifference": 0.00014947527392684948,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 1245,
+          "greedyToken": 198
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0011225088960038487,
+          "rmsDifference": 0.00022737716543199041,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 99020,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 22.22688879884286,
+          "baseline": 22.226863861083984
+        },
+        {
+          "tokenId": 99020,
+          "independentF64": 0.33124331082166303,
+          "baseline": 0.3301208019256592
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011301040649414062,
+          "rmsDifference": 0.0002295204676761594,
+          "valuesOverTolerance": 8,
+          "pass": false,
+          "argmaxDifference": 135151,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0011286735534667969,
+          "rmsDifference": 0.00023402792923295495,
+          "valuesOverTolerance": 8,
+          "pass": false,
+          "argmaxDifference": 135151,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 48,
+      "greedyToken": 17,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0012519276932110301,
+          "rmsDifference": 0.0001884902268196478,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 16,
+          "greedyToken": 17
+        },
+        "historical": {
+          "maxAbsDifference": 0.000858248011012197,
+          "rmsDifference": 0.00015403260592418126,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 67514,
+          "greedyToken": 17
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0011321660050338522,
+          "rmsDifference": 0.00021297173373022104,
+          "valuesOverTolerance": 11,
+          "pass": false,
+          "argmaxDifference": 110114,
+          "greedyToken": 17
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0012519276932110301,
+          "rmsDifference": 0.0001884902268196478,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 16,
+          "greedyToken": 17
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 13.9878003514603,
+          "baseline": 13.98654842376709
+        },
+        {
+          "tokenId": 17,
+          "independentF64": 23.779471910681423,
+          "baseline": 23.77932357788086
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0012454986572265625,
+          "rmsDifference": 0.00020324691392657553,
+          "valuesOverTolerance": 6,
+          "pass": false,
+          "argmaxDifference": 99190,
+          "greedyToken": 17
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010852813720703125,
+          "rmsDifference": 0.00021325627962222833,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 17
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 49,
+      "greedyToken": 15,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008783958032425598,
+          "rmsDifference": 0.00016950776259896735,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 72102,
+          "greedyToken": 15
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007091769089964117,
+          "rmsDifference": 9.891878936743541e-05,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 42690,
+          "greedyToken": 15
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0006860816014110371,
+          "rmsDifference": 0.00014288731165577884,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 96255,
+          "greedyToken": 15
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0008783958032425598,
+          "rmsDifference": 0.00016950776259896735,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 72102,
+          "greedyToken": 15
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 15,
+          "independentF64": 27.136028939815304,
+          "baseline": 27.136051177978516
+        },
+        {
+          "tokenId": 72102,
+          "independentF64": -1.3963767864629928,
+          "baseline": -1.3972551822662354
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008649826049804688,
+          "rmsDifference": 0.00017324793816062852,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 123813,
+          "greedyToken": 15
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010693073272705078,
+          "rmsDifference": 0.00020779586872199458,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 61717,
+          "greedyToken": 15
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 50,
+      "greedyToken": 248046,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009045740524552537,
+          "rmsDifference": 0.00015759285044740997,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 74137,
+          "greedyToken": 248046
+        },
+        "historical": {
+          "maxAbsDifference": 0.001097667660427959,
+          "rmsDifference": 0.0002410776048055954,
+          "valuesOverTolerance": 15,
+          "pass": false,
+          "argmaxDifference": 26666,
+          "greedyToken": 248046
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0017878140578804214,
+          "rmsDifference": 0.0004455443910885272,
+          "valuesOverTolerance": 3809,
+          "pass": false,
+          "argmaxDifference": 4810,
+          "greedyToken": 248046
+        },
+        "baseline": {
+          "maxAbsDifference": 0.0009045740524552537,
+          "rmsDifference": 0.00015759285044740997,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 74137,
+          "greedyToken": 248046
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 74137,
+          "independentF64": -0.6257277866760514,
+          "baseline": -0.6248232126235962
+        },
+        {
+          "tokenId": 248046,
+          "independentF64": 23.057998256670658,
+          "baseline": 23.058168411254883
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0013436079025268555,
+          "rmsDifference": 0.00028634219553834813,
+          "valuesOverTolerance": 77,
+          "pass": false,
+          "argmaxDifference": 1378,
+          "greedyToken": 248046
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0020241737365722656,
+          "rmsDifference": 0.0004960633057857368,
+          "valuesOverTolerance": 5223,
+          "pass": false,
+          "argmaxDifference": 30153,
+          "greedyToken": 248046
+        }
+      }
+    }
+  ]
+}
