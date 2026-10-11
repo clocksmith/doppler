@@ -48,8 +48,9 @@ expected-F16 rounding audits are retained.
 - Existing Gemma deployed-weight decoding test: five controls.
 - Three CPU full-model evaluations with four threads each; every task and teacher-forced target retained.
 
-Installed portable-model execution and lifecycle results are recorded below.
-Packed-variant qualification and fixed-work timings remain separate checks.
+Installed portable and packed model execution and lifecycle results are recorded
+below. The completed F16 fixed-work comparison and user-stopped remaining
+comparisons are recorded in the final section.
 Passing execution or operator controls does not close the failed model-quality gate.
 
 ## Installed observations and corrected lifecycle
@@ -91,9 +92,9 @@ normalization inputs differ by at most 1.52587890625e-5; activation codes agree,
 while the scale differs by one F32 step. This closes that local projection
 hypothesis, not the remaining full-model disagreement.
 
-Fixed-work benchmark code is prepared but no timing campaign or speed advantage
-is established by these records. Further residual localization uses this same
-frozen two-token context; it must preserve the baseline and reference separation.
+Those initial observations did not establish a timing result. The subsequent
+bounded residual investigation below uses the same frozen two-token context
+and preserves the baseline and independent-reference separation.
 
 
 ## First material residual divergence
@@ -168,3 +169,54 @@ public `stop-token` reason, including initial stop token 106. The earlier
 Peak owned GPU buffer allocation is 668,488,920 bytes for each variant; every
 ownership category is zero after unload. Quality remains rejected at 4/12 and
 NLL 4.76907409. This package remains a diagnostic candidate, not the standard pin.
+
+
+## Fixed-work measurements and user-directed stop
+
+`benchmark/results.json` binds the completed and partial measurements on the
+same final diagnostic archive `7c240dad...`, Linux Chromium WebGPU, AMD RDNA 3,
+with the fallback adapter rejected. These are unqualified resident operation
+observations: the failed model-quality and approximation gates remain open.
+They do not establish a vendor/provider comparison or a production advantage.
+
+The original simultaneous-residency comparison completed the two 128-token
+prefill cases but exceeded the shared 1,420,000,000-byte ceiling during the first
+512-token warmup. Its failed report and partial samples remain separate. The
+prospectively revised policy loads one model at a time, runs two identical-shape
+warmups for each lane of each pair, measures the operation, then awaits unload.
+Pair order alternates. No budget, numerical criterion or work shape changed.
+
+F16 versus packed W8A8 completed ten pairs for each frozen case:
+
+| Prefill / decode tokens | F16 prefill / decode median (ms) | Packed prefill / decode median (ms) | Median paired complete-operation ratio, packed / F16 |
+| --- | ---: | ---: | ---: |
+| 128 / 32 | 98.40 / 464.30 | 132.85 / 1119.15 | 2.159 |
+| 128 / 128 | 100.00 / 1882.20 | 135.20 / 4612.80 | 2.388 |
+| 512 / 32 | 251.20 / 496.00 | 491.20 / 1174.80 | 2.254 |
+| 512 / 128 | 251.20 / 1999.65 | 491.20 / 4603.25 | 2.265 |
+
+Packed W8A8 took longer in every measured case. Required activation quantization,
+integer projection, both rescale passes, status and full-logit readbacks, and
+public prefill snapshot creation/destruction are inside the operation boundary.
+Model acquisition and per-load warmups are outside it and retained separately;
+median load costs were 22,206.65 ms for F16 and 19,928.35 ms for packed W8A8.
+These measurements therefore do not represent startup or complete autoregressive
+generation latency. Predetermined decode tokens are explicitly part of the
+frozen workload. There is no optional numerical tracing or periodic RSS sampler.
+
+Peak tracked GPU buffers were 1,016,431,144 bytes, with no rejected allocations.
+After model unload, 10,840 bytes of device-global cached uniforms and fallback
+buffers remained; model weight ownership was zero. This is distinct from owned
+model resources and from physical VRAM. The two renderer RSS observations bracket
+the run and do not establish peak RSS. Both cleanup error lists are empty.
+
+The user then prioritized the usable Reploid release and requested stopping this
+campaign. Q4 versus packed W8A8 retained five complete 128/32 pairs before an
+explicit controlled stop; it is not a completed comparison. The runner had no
+cancellation port, so the owned progress file was preserved and its path replaced
+with an empty directory. The next existing post-pair observation failed only
+after both model operations and unloads completed. Its ordinary catch/finally
+retained every pair and closed the browser/server without cleanup errors. The
+original progress file was restored. The separate stop receipt records the
+intentional `EISDIR` error; it is not a GPU/runtime failure. Portable versus packed
+was not started. No further benchmarking or kernel campaign was selected.

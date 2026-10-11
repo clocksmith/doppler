@@ -1,0 +1,152 @@
+{
+  "schema": "doppler.w8a8-fixed-work-observation/v1",
+  "scope": "Unqualified resident fixed-prefix operations; failed model quality prevents promotion or performance-win claim.",
+  "report": "serialized-f16-packed.json.gz",
+  "reportUncompressedSha256": "b6e9ccc052e250bd5ce9434971cbe14dea50cdc976922847983e4cad7782d56b",
+  "reportCompressedSha256": "376ce551f64e9fa79091b6c246ba0870de345cd00014021d94aef91241ed4fa4",
+  "localSource": "reports/local/w8a8-qualification-20261011/w8a8-packed-f16-benchmark-03/qualification.json",
+  "passedExecution": true,
+  "hardware": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+  },
+  "residencyPolicy": "serialized-resident",
+  "peakTrackedGpuBufferBytes": 1016431144,
+  "maximumTrackedGpuBufferBytes": 1420000000,
+  "postModelUnloadDeviceGlobalBytes": 10840,
+  "cleanup": [],
+  "rows": [
+    {
+      "prefillTokens": 128,
+      "decodeTokens": 32,
+      "pairedRuns": 10,
+      "prefillMs": {
+        "f16Median": 98.40000009536743,
+        "packedMedian": 132.84999990463257,
+        "packedOverF16MedianPairedRatio": 1.3508226082518395
+      },
+      "decodeMs": {
+        "f16Median": 464.30000019073486,
+        "packedMedian": 1119.1499996185303,
+        "packedOverF16MedianPairedRatio": 2.3323705215686417
+      },
+      "completeOperationMs": {
+        "f16Median": 564.3500003814697,
+        "packedMedian": 1251.6500000953674,
+        "packedOverF16MedianPairedRatio": 2.1586909744364204
+      }
+    },
+    {
+      "prefillTokens": 128,
+      "decodeTokens": 128,
+      "pairedRuns": 10,
+      "prefillMs": {
+        "f16Median": 100.0,
+        "packedMedian": 135.19999980926514,
+        "packedOverF16MedianPairedRatio": 1.3555446786158771
+      },
+      "decodeMs": {
+        "f16Median": 1882.2000002861023,
+        "packedMedian": 4612.800000667572,
+        "packedOverF16MedianPairedRatio": 2.443351091117993
+      },
+      "completeOperationMs": {
+        "f16Median": 1982.2000002861023,
+        "packedMedian": 4749.950000286102,
+        "packedOverF16MedianPairedRatio": 2.3884402781539484
+      }
+    },
+    {
+      "prefillTokens": 512,
+      "decodeTokens": 32,
+      "pairedRuns": 10,
+      "prefillMs": {
+        "f16Median": 251.19999980926514,
+        "packedMedian": 491.19999980926514,
+        "packedOverF16MedianPairedRatio": 1.953742482267928
+      },
+      "decodeMs": {
+        "f16Median": 496.0,
+        "packedMedian": 1174.8000001907349,
+        "packedOverF16MedianPairedRatio": 2.402787529344704
+      },
+      "completeOperationMs": {
+        "f16Median": 749.5500001907349,
+        "packedMedian": 1677.9000000953674,
+        "packedOverF16MedianPairedRatio": 2.2540862474414696
+      }
+    },
+    {
+      "prefillTokens": 512,
+      "decodeTokens": 128,
+      "pairedRuns": 10,
+      "prefillMs": {
+        "f16Median": 251.19999980926514,
+        "packedMedian": 491.19999980926514,
+        "packedOverF16MedianPairedRatio": 1.956568592263774
+      },
+      "decodeMs": {
+        "f16Median": 1999.6500005722046,
+        "packedMedian": 4603.25,
+        "packedOverF16MedianPairedRatio": 2.302954397180205
+      },
+      "completeOperationMs": {
+        "f16Median": 2252.1500000953674,
+        "packedMedian": 5095.449999809265,
+        "packedOverF16MedianPairedRatio": 2.2646826881594455
+      }
+    }
+  ],
+  "installedPackage": {
+    "filename": "doppler-gpu-0.6.27.tgz",
+    "version": "0.6.27",
+    "integrity": "sha512-4tyZx5vt+aefu5lTDlyFkDJTRZaZAUMJep6FZ2Us6S4X9svK5oZ380GBKcT0TsmYVin8WPTKCQ4MSKsXDqVRJQ==",
+    "sizeBytes": 3367098,
+    "source": "local-npm-pack",
+    "sha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d"
+  },
+  "models": [
+    {
+      "id": "f16",
+      "modelDir": "/home/x/deco/doppler/models/local/gemma-3-270m-it-f16-af32",
+      "manifestDigest": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05"
+    },
+    {
+      "id": "w8a8-packed",
+      "modelDir": "/var/tmp/doppler-gemma270-w8a8-packed-diagnostic-20261011",
+      "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e"
+    }
+  ],
+  "memoryObservations": [
+    {
+      "at": 669.652873,
+      "rendererRssBytes": 86315008
+    },
+    {
+      "at": 2258974.883643,
+      "rendererRssBytes": 615407616
+    }
+  ],
+  "memoryDefinition": "Two renderer RSS observations outside primary timing; no RSS peak claim or periodic sampler during benchmark.",
+  "loadAndWarmupOutsideMeasurement": {
+    "f16": {
+      "modelLoads": 40,
+      "loadMsMedian": 22206.650000095367,
+      "loadMsMinimum": 21167.800000190735,
+      "loadMsMaximum": 24451.89999961853,
+      "warmupOperations": 80,
+      "warmupCompleteOperationMsMedianAcrossShapes": 1371.25
+    },
+    "w8a8-packed": {
+      "modelLoads": 40,
+      "loadMsMedian": 19928.35000038147,
+      "loadMsMinimum": 18688,
+      "loadMsMaximum": 22293.5,
+      "warmupOperations": 80,
+      "warmupCompleteOperationMsMedianAcrossShapes": 3067.3499999046326
+    }
+  }
+}

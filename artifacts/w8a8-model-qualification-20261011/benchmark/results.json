@@ -1,0 +1,61 @@
+{
+  "schema": "doppler.w8a8-fixed-work-batch-disposition/v1",
+  "status": "stopped-at-user-priority-change",
+  "installedPackageSha256": "7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d",
+  "quality": "rejected; W8 model remains experimental, standard package unchanged",
+  "f16Packed": {
+    "completed": true,
+    "cases": 4,
+    "pairsPerCase": 10,
+    "summary": "serialized-f16-packed-summary.json"
+  },
+  "q4Packed": {
+    "completed": false,
+    "completedPairs": 5,
+    "case": {
+      "prefillTokens": 128,
+      "decodeTokens": 32
+    },
+    "reason": "user-requested controlled stop after complete pair and model unload",
+    "report": "serialized-q4-packed-partial.json.gz",
+    "stopReceipt": "user-requested-boundary-stop.json.gz",
+    "noRuntimeFailure": true
+  },
+  "portablePacked": {
+    "started": false,
+    "reason": "user-priority change; no further benchmark campaign"
+  },
+  "scope": "Resident fixed-prefix operation costs, not end-to-end startup, autoregressive generation, vendor/provider comparison, or accepted model performance.",
+  "baselineFailure": "paired-resident-f16-budget-failure.json.gz",
+  "allSamplesRetained": true,
+  "files": [
+    {
+      "file": "serialized-f16-packed.json.gz",
+      "localSource": "reports/local/w8a8-qualification-20261011/w8a8-packed-f16-benchmark-03/qualification.json",
+      "uncompressedBytes": 12416210,
+      "uncompressedSha256": "b6e9ccc052e250bd5ce9434971cbe14dea50cdc976922847983e4cad7782d56b",
+      "compressedSha256": "376ce551f64e9fa79091b6c246ba0870de345cd00014021d94aef91241ed4fa4"
+    },
+    {
+      "file": "serialized-q4-packed-partial.json.gz",
+      "localSource": "reports/local/w8a8-qualification-20261011/w8a8-packed-q4-benchmark-03/qualification.json",
+      "uncompressedBytes": 1351605,
+      "uncompressedSha256": "97375df5680cc3d9ef6066b90348e384a79b857b9fc3e469225f3a6e3f8cff03",
+      "compressedSha256": "8bba0c0afc8426e0313fa8769635838c635c896c1672d5492de289f7990ce368"
+    },
+    {
+      "file": "user-requested-boundary-stop.json.gz",
+      "localSource": "reports/local/w8a8-qualification-20261011/w8a8-packed-q4-benchmark-03/user-requested-boundary-stop.json",
+      "uncompressedBytes": 880,
+      "uncompressedSha256": "87b48dbbee1aae7caafce8d87f77654f29ed2063ff970e2449ac9d5f847a020a",
+      "compressedSha256": "90bd8e17ff3bc35ecaa1e76508ed637f05847ea99ded0171ce4110a291e05e13"
+    },
+    {
+      "file": "q4-progress-before-user-stop.json.gz",
+      "localSource": "reports/local/w8a8-qualification-20261011/w8a8-packed-q4-benchmark-03/progress-before-user-stop.json",
+      "uncompressedBytes": 606,
+      "uncompressedSha256": "55366db0cf5b9e9c58d2dcd444438da1fbdab71f64fe0ec3f9a69759a3a9dc88",
+      "compressedSha256": "c7621d84b967e11f695f968153d8dbc29d53cffe83ff6f66cd2cf8bf74f4d889"
+    }
+  ]
+}
