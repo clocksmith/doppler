@@ -5,6 +5,7 @@ import { readBuffer, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { computeCanonicalSha256 } from '../../../formats/canonical-hash.js';
 import { resolveGenerationOptions } from '../../../config/generation-contract.js';
 import { sampleCapsuleLogits, stoppingReason } from '../../generation-step.js';
+import { samplingSeedForToken } from '../../token-sampling.js';
 import { assertPartitionExecutionSupported, executePartitionLayers } from './partition-execution.js';
 import { createPartitionAttempt } from './partition-attempt.js';
 import { assertResidentPartitionIdentity } from './resident-partition-contract.js';
@@ -140,7 +141,8 @@ export async function createResidentPartitionSession(pipeline, allocation, token
         else if (ids.length !== 1 || ids[0] !== attempt.contextTokens.at(-1)) throw new Error('Resident continuation token differs from the selected token.');
         const samplingStarted = performance.now();
         const tokenContract = tokens.getTokenContract();
-        const tokenId = sampleCapsuleLogits(logits, attempt.contextTokens, generation, tokenContract);
+        const tokenId = sampleCapsuleLogits(logits, attempt.contextTokens,
+          { ...generation, seed: samplingSeedForToken(generation.seed, request.step) }, tokenContract);
         attempt.contextTokens.push(tokenId);
         attempt.decoder ??= tokens.createIncrementalDecoder();
         const decoder = attempt.decoder;

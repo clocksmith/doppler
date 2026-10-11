@@ -1,5 +1,7 @@
 import type { ResolvedGenerationOptions } from '../config/generation-contract.js';
 export interface SamplingCandidate { token: number; logit: number; prob: number; }
+/** Derive one existing scalar draw from an immutable seed and generated-token index. */
+export function samplingSeedForToken(seed: number | undefined, tokenIndex: number): number | undefined;
 export type TokenSamplingOptions = Pick<ResolvedGenerationOptions, 'temperature' | 'topP' | 'topK'> & {
   seed?: number;
   padTokenId?: number | null;

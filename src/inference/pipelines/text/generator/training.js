@@ -698,7 +698,7 @@ export async function* generateWithPrefixKV(prefix, prompt, options = {}) {
       const inputIds = this._state.tokenizer.encode(processedPrompt);
       this._assertTokenIdsInRange(inputIds, 'generateWithPrefixKV.encode');
       const generatedIds = [...prefix.tokens, ...inputIds];
-      const promptTokenCount = generatedIds.length;
+      const promptTokenCount = opts.promptTokenCount = generatedIds.length;
       this._state.stats.prefillTokens = inputIds.length;
 
       const prefillStart = performance.now();

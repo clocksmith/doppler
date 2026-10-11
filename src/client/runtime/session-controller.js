@@ -1,5 +1,6 @@
 import { GENERATION_CONTRACT, GenerationError, resolveGenerationOptions, validateGenerationInput } from '../../config/generation-contract.js';
 import { sampleCapsuleLogits, stoppingReason } from '../../inference/generation-step.js';
+import { samplingSeedForToken } from '../../inference/token-sampling.js';
 export { sampleCapsuleLogits } from '../../inference/generation-step.js';
 
 export const requireGenerationOptions = resolveGenerationOptions;
@@ -44,7 +45,8 @@ export function createSessionController(commandExecutor, resourceBinder, program
           if (signal?.aborted) throw new GenerationError('aborted', 'Generation aborted during decode.', { cause: signal.reason });
           resourceBinder.assertDeviceAvailable();
           const tokenId = targetPlan.tokenSelection === undefined
-            ? sampleCapsuleLogits(stepResult?.logits, contextTokens, sampling, tokenContract)
+            ? sampleCapsuleLogits(stepResult?.logits, contextTokens,
+              { ...sampling, seed: samplingSeedForToken(sampling.seed, step) }, tokenContract)
             : stepResult?.tokenId;
           if (targetPlan.tokenSelection !== undefined && (!Number.isInteger(tokenId) || tokenId < 0
             || !Number.isInteger(stepResult?.vocabSize) || tokenId >= stepResult.vocabSize)) {
@@ -68,7 +70,8 @@ export function createSessionController(commandExecutor, resourceBinder, program
             },
           };
           const decode = await commandExecutor.executePhase('decode', targetPlan.phases.decode, {
-            signal, modules, context: { contextTokens, generationOptions: options },
+            signal, modules, context: { contextTokens,
+              generationOptions: { ...options, seed: samplingSeedForToken(sampling.seed, step + 1) } },
           });
           stepResult = decode.results.at(-1);
         }
