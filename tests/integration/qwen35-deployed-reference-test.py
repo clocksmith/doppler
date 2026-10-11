@@ -89,6 +89,49 @@ assert rounding['postStorageMaxAbsError'] == 2 ** -10
 assert rounding['preStorageMaxAbsError'] == 2 ** -22
 assert rounding['amplifiedValues'] == 1
 
+# The same observed crossing has different causes depending on the actual operands.
+inherited = reference.compare_cache_midpoints(np.array([[above]]), np.array([[below]]),
+                                             np.array([[above]]), np.array([[below]]))
+assert inherited['crossingCounts']['inheritedRoundingDifference'] == 1
+assert inherited['crossingCounts']['bothMatchOwnFloat64Rounding'] == 1
+local = reference.compare_cache_midpoints(np.array([[above]]), np.array([[below]]),
+                                         np.array([[below]]), np.array([[below]]))
+assert local['crossingCounts']['sameFloat64Rounding'] == 1
+assert local['crossingCounts']['gpuDiffersFromOwnFloat64Rounding'] == 1
+assert local['crossingCounts']['sourceDiffersFromOwnFloat64Rounding'] == 0
+assert local['samples'][0]['midpoint'] == midpoint
+assert json.loads(json.dumps(local)) == local
+for bad in [np.array([[np.nan]]), np.ones((2, 1))]:
+    try:
+        reference.compare_cache_midpoints(np.array([[above]]), bad, np.array([[below]]), np.array([[below]]))
+        raise RuntimeError('Invalid midpoint operands accepted')
+    except AssertionError:
+        pass
+rotary_input = np.array([[[1., 0., 3., 4.]], [[1., 0., 3., 4.]]])
+rotary = reference.precise_text_rope(rotary_input, 10000, 2)
+np.testing.assert_array_equal(rotary[0], rotary_input[0])
+np.testing.assert_allclose(rotary[1, 0, :2], [np.cos(1), np.sin(1)], rtol=1e-15)
+np.testing.assert_array_equal(rotary[..., 2:], rotary_input[..., 2:])
+np.testing.assert_array_equal(rotary_input[1], [[[1., 0., 3., 4.]]][0])
+
+audit_modules = {name: torch.nn.Identity() for name in ['k_proj', 'v_proj', 'k_norm']}
+audit_norm = torch.nn.Identity()
+audit_model = SimpleNamespace(model=SimpleNamespace(layers=[SimpleNamespace(
+    input_layernorm=audit_norm, self_attn=SimpleNamespace(**audit_modules))]))
+producer = reference.CacheProducerAudit(audit_model)
+try:
+    with producer.observe():
+        source_operand = torch.tensor([[1., 2.]])
+        assert audit_norm(source_operand) is source_operand
+        source_operand[0, 0] = 9
+        raise ValueError('model failure')
+except ValueError:
+    pass
+assert producer.history['post_input_norm'][0][0, 0] == 1
+assert all(len(module._forward_hooks) == 0 for module in producer.modules.values())
+audit_norm(source_operand)
+assert len(producer.history['post_input_norm']) == 1
+
 binary = copy.deepcopy(capture)
 for item in binary['observation']['timeline']:
     if 'capture' in item:
@@ -210,4 +253,6 @@ print(json.dumps({'constantAttentionMean': 'pass', 'binaryCaptureEquivalence': '
                   'cacheInterventionIsolation': 'pass', 'incompleteInterventionRejected': 'pass',
                   'physicalCacheExactRoundTrip': 'pass', 'physicalCacheBitMismatchDetected': 'pass',
                   'physicalCacheMissingRejected': 'pass', 'physicalCachePositionRejected': 'pass',
-                  'physicalCacheReadIdentityRejected': 'pass', 'physicalCacheInstrumentationRejected': 'pass'}, indent=2))
+                  'physicalCacheReadIdentityRejected': 'pass', 'physicalCacheInstrumentationRejected': 'pass',
+                  'midpointInheritedAndLocalSeparation': 'pass', 'midpointInvalidOperandsRejected': 'pass',
+                  'textRopeClosedFormAndPassThrough': 'pass', 'producerObservationFailureCleanup': 'pass'}, indent=2))

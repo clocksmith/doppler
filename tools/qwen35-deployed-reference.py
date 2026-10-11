@@ -7,6 +7,7 @@ KV boundary matches the deployed F16 storage with F32 attention arithmetic.
 """
 import argparse
 import base64
+from contextlib import contextmanager, nullcontext
 import gzip
 import hashlib
 import importlib.metadata
@@ -151,6 +152,137 @@ def capture_values(capture):
         assert capture.get('encoding') == 'base64-f32le'
         return np.frombuffer(base64.b64decode(capture['dataBase64'], validate=True), dtype='<f4')
     return None
+
+
+def compare_cache_midpoints(gpu, source, gpu_precise, source_precise):
+    """Separate local rounding from inherited operands, with independent F64 math.
+
+    Float64 values use each implementation's own incoming operands. A difference
+    between their rounded F64 results is inherited at this operation boundary;
+    this does not decide whether an earlier operation was correct.
+    """
+    arrays = [np.asarray(value, dtype=np.float64) for value in
+              (gpu, source, gpu_precise, source_precise)]
+    gpu, source, gp, sp = arrays
+    assert gpu.size and all(value.shape == gpu.shape and np.isfinite(value).all()
+                            for value in arrays), 'invalid midpoint operands'
+    rounded = [value.astype(np.float16) for value in arrays]
+    assert all(np.isfinite(value).all() for value in rounded), 'nonfinite half result'
+    gh, sh, gph, sph = [value.astype(np.float64) for value in rounded]
+    different = gh != sh
+    inherited = gph != sph
+    gpu_local, source_local = gh != gph, sh != sph
+    coords = np.argwhere(different)
+    # Retain a bounded selection: largest observed cache difference, stable order.
+    order = np.argsort(-np.abs(gh[different] - sh[different]), kind='stable')[:16]
+    samples = []
+    for offset in order:
+        coordinate = tuple(coords[offset])
+        lo, hi = sorted((gh[coordinate], sh[coordinate]))
+        adjacent = bool(float(np.nextafter(np.float16(lo), np.float16(np.inf))) == hi)
+        samples.append({'coordinate': list(map(int, coordinate)),
+                        'gpu': float(gpu[coordinate]), 'source': float(source[coordinate]),
+                        'gpuFloat64': float(gp[coordinate]), 'sourceFloat64': float(sp[coordinate]),
+                        'gpuStored': float(gh[coordinate]), 'sourceStored': float(sh[coordinate]),
+                        'gpuFloat64Stored': float(gph[coordinate]), 'sourceFloat64Stored': float(sph[coordinate]),
+                        'adjacent': adjacent, 'midpoint': float((lo + hi) / 2) if adjacent else None})
+    return {'values': int(gpu.size), 'differentStoredValues': int(different.sum()),
+            'gpuLocalMaxAbsError': float(np.max(np.abs(gpu - gp))),
+            'sourceLocalMaxAbsError': float(np.max(np.abs(source - sp))),
+            'inheritedOperandMaxAbsEffect': float(np.max(np.abs(gp - sp))),
+            'crossingCounts': {
+                'inheritedRoundingDifference': int((different & inherited).sum()),
+                'sameFloat64Rounding': int((different & ~inherited).sum()),
+                'gpuDiffersFromOwnFloat64Rounding': int((different & gpu_local).sum()),
+                'sourceDiffersFromOwnFloat64Rounding': int((different & source_local).sum()),
+                'bothMatchOwnFloat64Rounding': int((different & ~gpu_local & ~source_local).sum())},
+            'samples': samples}
+
+
+def precise_text_rope(value, theta, rotary_dim):
+    """Independent F64 rotate-half equation for contiguous text positions from zero."""
+    x = np.asarray(value, dtype=np.float64)
+    assert x.ndim == 3 and np.isfinite(x).all()
+    assert theta > 0 and 0 < rotary_dim <= x.shape[-1] and rotary_dim % 2 == 0
+    half = rotary_dim // 2
+    angles = np.arange(x.shape[0], dtype=np.float64)[:, None] / (
+        theta ** (np.arange(half, dtype=np.float64) * 2 / rotary_dim))
+    cosine, sine = np.cos(angles)[:, None, :], np.sin(angles)[:, None, :]
+    result = x.copy()
+    result[..., :half] = x[..., :half] * cosine - x[..., half:rotary_dim] * sine
+    result[..., half:rotary_dim] = x[..., half:rotary_dim] * cosine + x[..., :half] * sine
+    return result
+
+
+class CacheProducerAudit:
+    """Read-only first-full-attention history; hooks never replace source outputs."""
+    def __init__(self, model):
+        self.model = model
+        self.index = next(index for index, layer in enumerate(model.model.layers)
+                          if hasattr(layer, 'self_attn'))
+        layer = model.model.layers[self.index]
+        self.modules = {'post_input_norm': layer.input_layernorm,
+                        **{name: getattr(layer.self_attn, name) for name in ['k_proj', 'v_proj', 'k_norm']}}
+        self.history = {name: [] for name in self.modules}
+
+    @contextmanager
+    def observe(self):
+        handles = []
+        def hook(name):
+            def retain(_module, _inputs, output):
+                self.history[name].append(output.detach().float().numpy().copy())
+            return retain
+        try:
+            for name, module in self.modules.items():
+                handles.append(module.register_forward_hook(hook(name)))
+            yield
+        finally:
+            for handle in handles:
+                handle.remove()
+
+    def compare(self, capture, cache):
+        model, index = self.model, self.index
+        attention = model.model.layers[index].self_attn
+        heads, dim = model.config.num_key_value_heads, attention.head_dim
+        def gpu_history(name, width):
+            parts = [capture_values(row.get('capture')) for row in capture['observation']['timeline']
+                     if row['opId'] == f'layer.{index}.attn.{name}']
+            assert parts and all(part is not None for part in parts), 'missing cache producer history'
+            return np.concatenate(parts).reshape(-1, width).astype(np.float64)
+        gpu = {name: gpu_history(name, model.config.hidden_size if name == 'post_input_norm' else heads * dim)
+               for name in [*self.modules, 'k_rope']}
+        source = {name: np.concatenate([part.reshape(-1, gpu[name].shape[-1]) for part in parts])
+                  for name, parts in self.history.items()}
+        source['k_rope'] = np.concatenate(cache.storage_observations[index]['k_rope']).reshape(-1, heads * dim)
+        assert all(source[name].shape == values.shape for name, values in gpu.items()), 'incomplete cache producer history'
+        checks = []
+        for name in ['k_proj', 'v_proj']:
+            module = getattr(attention, name)
+            assert module.bias is None
+            weight = module.weight.detach().float().numpy().astype(np.float64)
+            gp, sp = [values['post_input_norm'] @ weight.T for values in [gpu, source]]
+            checks.append({'boundary': name, 'inputBoundary': 'post_input_norm',
+                           **compare_cache_midpoints(gpu[name], source[name], gp, sp)})
+        def norm(values):
+            x = values['k_proj'].reshape(-1, heads, dim).astype(np.float64)
+            weight = attention.k_norm.weight.detach().float().numpy().astype(np.float64)
+            return (x / np.sqrt(np.mean(x * x, axis=-1, keepdims=True) + attention.k_norm.eps)
+                    * (1 + weight)).reshape(-1, heads * dim)
+        checks.append({'boundary': 'k_norm', 'inputBoundary': 'k_proj',
+                       **compare_cache_midpoints(gpu['k_norm'], source['k_norm'], norm(gpu), norm(source))})
+        params = model.config.rope_parameters
+        assert params['rope_type'] == 'default', 'midpoint audit requires unscaled text RoPE'
+        rotary_dim = int(dim * params['partial_rotary_factor'])
+        gp, sp = [precise_text_rope(values['k_norm'].reshape(-1, heads, dim),
+                                   params['rope_theta'], rotary_dim).reshape(-1, heads * dim)
+                  for values in [gpu, source]]
+        checks.append({'boundary': 'k_rope', 'inputBoundary': 'k_norm',
+                       **compare_cache_midpoints(gpu['k_rope'], source['k_rope'], gp, sp)})
+        return {'layer': index, 'tokens': gpu['k_rope'].shape[0], 'kvHeads': heads, 'headDim': dim,
+                'scope': 'Independent Float64 equations on each implementation\'s own captured operands; no model qualification',
+                'coordinates': '[text position, flattened key/value head coordinate]',
+                'rounding': 'F16 nearest-even; only v_proj and k_rope are actual storage boundaries',
+                'checks': checks}
 
 
 def compare_physical_cache(capture, layers, kv_heads, head_dim):
@@ -387,7 +519,7 @@ def compare_linear_histories(model, capture):
     return [compare_linear_history(model, capture, index) for index in indices]
 
 
-def compare_boundaries(model, capture, input_ids, cache):
+def compare_boundaries(model, capture, input_ids, cache, producer_audit=None):
     """Observe the selected prefix; hooks never replace model values."""
     retained = {}
     timeline = capture['observation']['timeline']
@@ -469,7 +601,8 @@ def compare_boundaries(model, capture, input_ids, cache):
             if name not in retained:
                 continue  # Fused decode kernels need not expose unfused FFN intermediates.
             handles.append(module.register_forward_hook(observe(name)))
-        output = model(input_ids=input_ids, past_key_values=cache, use_cache=True, logits_to_keep=1)
+        with producer_audit.observe() if producer_audit else nullcontext():
+            output = model(input_ids=input_ids, past_key_values=cache, use_cache=True, logits_to_keep=1)
         assert len(comparisons) == len(handles)
         for handle in handles:
             handle.remove()
@@ -693,6 +826,10 @@ def run(args):
         report['scope'] = 'Captured-cache counterfactual; not independent numerical qualification'
         report['observedCacheControl'] = {'requestIndex': targets[-1]['index'],
                                           'layers': sorted(observed_control.history)}
+    producer_audit = None
+    if args.cache_midpoint_audit:
+        assert boundary_capture and not args.observed_cache_control, 'midpoint audit requires independent source state'
+        producer_audit = CacheProducerAudit(model)
     cache, active_request, next_step = None, None, 0
     for target in targets:
         if target['step'] == 0:
@@ -708,13 +845,14 @@ def run(args):
         with torch.inference_mode():
             if boundary_capture and target is targets[-1]:
                 result, report['boundaryComparisons'], report['operandComparisons'], report['unobservedBoundaries'], report['attentionHistoryComparisons'] = compare_boundaries(
-                    model, boundary_capture, torch.tensor([input_ids]), cache)
+                    model, boundary_capture, torch.tensor([input_ids]), cache, producer_audit)
                 report['linearHistoryComparisons'] = compare_linear_histories(model, boundary_capture)
                 report['linearHistoryComparison'] = next((row for row in report['linearHistoryComparisons']
                                                          if row['boundary'] == 'layer.0.attn.linear_core_out'), None)
             else:
-                result = model(input_ids=torch.tensor([input_ids]), past_key_values=cache,
-                               use_cache=True, logits_to_keep=1)
+                with producer_audit.observe() if producer_audit and selected else nullcontext():
+                    result = model(input_ids=torch.tensor([input_ids]), past_key_values=cache,
+                                   use_cache=True, logits_to_keep=1)
             output = result.logits[0, -1].float().numpy().copy()
         row = {'index': target['index'], 'step': target['step'], 'ordinal': target['ordinal'],
                'inputIds': input_ids, 'comparison': compare(output, target['logits']),
@@ -726,6 +864,9 @@ def run(args):
     if observed_control is not None:
         observed_control.assert_consumed()
         report['observedCacheControl']['completeHistoryConsumed'] = True
+        Path(args.out).write_text(json.dumps(report) + '\n')
+    if producer_audit is not None:
+        report['cacheProducerMidpoints'] = producer_audit.compare(boundary_capture, cache)
         Path(args.out).write_text(json.dumps(report) + '\n')
     return report
 
@@ -744,7 +885,10 @@ if __name__ == '__main__':
     parser.add_argument('--boundary-capture', help='Retained GPU observations for the last requested prefix')
     parser.add_argument('--observed-cache-control', action='store_true',
                         help='Offline captured-cache intervention; cannot qualify independent accuracy')
+    parser.add_argument('--cache-midpoint-audit', action='store_true',
+                        help='Offline first-attention cache producer history; separate local and inherited rounding')
     options = parser.parse_args()
     assert options.prefixes > 0 and options.threads > 0
     assert not (options.observed_cache_control and options.generation_control)
+    assert not (options.cache_midpoint_audit and (options.observed_cache_control or options.generation_control))
     run(options)
