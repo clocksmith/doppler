@@ -38,9 +38,48 @@ package budget increased only by the measured one declaration and 4,064 bytes.
 `package-inventory.json` binds the resulting 1,898 entries and 13,119,792 bytes.
 No model weights, new runtime module, release version, or standard archive changed.
 
-Physical whole/subdivided execution against an independent source reference for
-one explicitly opted-in application remains unqualified. Prior generation or
-synthetic embedding evidence cannot close that gate.
+## Physical qualification of the existing document embedding application
+
+The existing `doppler-offline-document-search` application explicitly permits
+subdivision between complete text inputs under its unchanged signed application,
+model, execution, and reference bindings. A unit may contain complete texts in
+their original positions; it must not split a text, alter prompt preparation,
+change pooling, reuse another input's mutable state, or alter numerical policy.
+This allowance covers its embedding operation only, not its reranker or chat.
+
+The retained Qwen3-Embedding-0.6B F16 Capsule passed on AMD Radeon 8060S/RADV
+and Chromium 145.0.7632.6 using the test-only installed archive above. All 18
+frozen texts ran singly, repeatedly, as one complete batch, and as two nine-text
+units in odd/even completion order through signed `executeOperation` calls.
+Every token sequence matched the independent source exactly. Whole/reference and
+split/reference maximum vector error was `0.00007295608520507812`, below the
+unchanged embedding reference tolerance `0.02`. Split/whole vector error was zero.
+The source reference is the retained PyTorch calculation pinned to Qwen source
+revision `97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3`; its canonical digest remains
+`sha256:be4ed910a95a6e7ed26cfe7ce39d539760187698d7f8703a106afbabcdc46772`.
+This embedding policy does not replace the separate chat tolerance `0.001`.
+
+`physical/attempts.json` preserves the initial setup failures: noncanonical ISO
+time, missing v3 checkpoint persistence, and checkout-omitted weight shards.
+The harness now persists verified checkpoints before execution, rejecting forks
+and rollback. The isolated complete Capsule contains 42 size/digest-verified
+artifacts (`physical/capsule-assets.json`); no model bytes were rebuilt.
+
+The first passing run uses the application's existing retained-local decision;
+its receipt explicitly records expired fresh eligibility. That mode rejects
+delegated assignments. Only after current source and subdivision qualification
+passed, the existing publisher appended eligibility event 2 with the maintained
+release-signing API, preserving the complete history and unchanged Capsule,
+application, weights, expiry duration and TargetPlan. `physical/release-renewal.json`
+binds that local, unpublished renewal to the passing report.
+
+`physical/managed.json.gz` retains the subsequent passing managed-eligibility run.
+Its uncompressed SHA256 is
+`c0a8cb541ee6bd65ec6c2d0d66fb544889a097e3546c44fd62d307de396a75ce`.
+All singleton, whole and unit receipts, output vectors, source vectors, host
+identities and cleanup results are retained. Reploid's real signed-job durability
+acceptance remains a separate gate; this run alone does not qualify network
+providers, fresh delivery, other devices, or independent adoption.
 
 Component: `doppler.runtime-source.config`, `doppler.runtime-source.client`,
 `doppler.tests`, `doppler.repository-tooling`.
