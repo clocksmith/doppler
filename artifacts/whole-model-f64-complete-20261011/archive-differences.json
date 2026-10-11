@@ -1,0 +1,290 @@
+[
+  {
+    "beforeArchive": "artifacts/partition-contracts-20261010/doppler-gpu-0.6.27.tgz",
+    "afterArchive": "artifacts/accumulation-repair-20261011/tiled-candidate-diagnostic.tgz",
+    "changedMembers": [
+      {
+        "path": "package/src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl",
+        "before": "569971d79c3ea3ae9e632a06befe43bc9d9a1a657ddd53357368fa24b073cd7d",
+        "after": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5"
+      }
+    ]
+  },
+  {
+    "beforeArchive": "artifacts/accumulation-repair-20261011/tiled-candidate-diagnostic.tgz",
+    "afterArchive": "artifacts/q4-accumulation-repair-20261011/pinned-candidate-diagnostic.tgz",
+    "changedMembers": [
+      {
+        "path": "package/src/gpu/kernels/fused_matmul_q4_widetile.wgsl",
+        "before": "a38c97f826a93929e40ce246ec5abf465bbd5d96863a2556d261dbaa6b325555",
+        "after": "d38300e9c30877e2aec62c5064ac8688cedd454146204d6cc1652a083ba0811c"
+      }
+    ]
+  },
+  {
+    "beforeArchive": "artifacts/q4-accumulation-repair-20261011/pinned-candidate-diagnostic.tgz",
+    "afterArchive": "artifacts/signed-resident-pieces-20261011/doppler-gpu-0.6.27-diagnostic.tgz",
+    "changedMembers": [
+      {
+        "path": "package/src/capsule-runtime.d.ts",
+        "before": "7844b837414bf5b084076a2fe38a898b5d0562298ca0a9652a87196678b4c97c",
+        "after": "3cce865d1c9dcb056ef1381052a1e26a931ec4b0c8288eb0dc6f3a5f31044e0e"
+      },
+      {
+        "path": "package/src/capsule-runtime.js",
+        "before": "9787b5dfabcdc08647bf79a1ffb8d93b836a371b1f1f0316d15c92259bc55119",
+        "after": "3571998d4ee3941101310c8b64bc2c88383aede7b0918778828b581e63d42946"
+      },
+      {
+        "path": "package/src/client/runtime/capsule-acquisition.d.ts",
+        "before": "5a186ce70ea569296e8ca57c94fe013a8c247c45eb6145b9f6e9f64a0f7624a0",
+        "after": "4bf97828ffd6014de75e67b477e98a9a3ae2bd27cbb8b2705a7c7d62d8fd71ea"
+      },
+      {
+        "path": "package/src/client/runtime/capsule-artifact-source.js",
+        "before": "991f7448b009fab7f004d0a677aa8376f5002f28a351867d669686844b59dcd1",
+        "after": "37239c21f5faab498f7c80da285f903d760a27deeb0b0d0c0d6275c1bb161951"
+      },
+      {
+        "path": "package/src/client/runtime/capsule-piece-reader.js",
+        "before": null,
+        "after": "eecafa00489c76d36ec5f4e3b808e3d531c0d076731845c1c67a0b18165abff8"
+      },
+      {
+        "path": "package/src/client/runtime/composition-root.d.ts",
+        "before": "aa14496c8fa5292fd802f4f007f2e426b7e02a83435a42b23ca404862d0c8532",
+        "after": "63b3e5e9618f1a990f233943269f26f2e6bf3e5b65fc5d837a0b449b6e4b3d87"
+      },
+      {
+        "path": "package/src/client/runtime/composition-root.js",
+        "before": "56460350c35eec36189819cccab8e9ea419b53718625888004b63e9d3653b1c6",
+        "after": "1697d50b8efe8282c04690c2101280d3384badf3223b889ce9aaa7b2049acfc7"
+      },
+      {
+        "path": "package/src/client/runtime/session-controller.js",
+        "before": "7eb97bac2814396bb245c2b6f0ae8e9d468d0608d54c08fdc24a693bb42c0fac",
+        "after": "c8b39994e3b025b472911270f224bf70833494692f31c5e9249232acee28acc6"
+      },
+      {
+        "path": "package/src/client/runtime/verified-capsule-artifact-store.d.ts",
+        "before": "7726a6da1ef377e9fd4e1fb092010fbac5f3712f0d643a6c62ee9b19f266c4c3",
+        "after": "6d5a027a0972a704469a2f4e3081a2f56f174407c14bf46e9926baf7e60d3aee"
+      },
+      {
+        "path": "package/src/client/runtime/verified-capsule-artifact-store.js",
+        "before": "7eaca741465368b12f903bbea0f7f48b46e4d93b2481bc0daf65040196c8f0f7",
+        "after": "6a102c8638ebed10c761fef020636ca870997509263924512066409d2998c949"
+      },
+      {
+        "path": "package/src/config/capsule-operation.d.ts",
+        "before": "f162a698884413345ebe5e8c8118874f89d7445b56548f04b1e95cf38cfa2b0a",
+        "after": "95b01e1a912592cb037fe94f92fb8a27af2a2523e6f9f39e88c85bb899265579"
+      },
+      {
+        "path": "package/src/config/capsule-operations.json",
+        "before": "51bda73922f739afdf4344dcc0131eee1e5b2da65f0574d32df019bdef82e535",
+        "after": "7377169b1a4ae16ca03dd5e452cba17fc2097205e3f2cefa87d762a21f9345a8"
+      },
+      {
+        "path": "package/src/config/capsule-v2.d.ts",
+        "before": "a5e46c315e836a82a34c1c2a9ad7650e7225721eddd453199297f2243a5a85f8",
+        "after": "d252203feb4830be8144b581e8318e3c26c1b37760be953d0fc437b84bac9f35"
+      },
+      {
+        "path": "package/src/config/capsule-v2.js",
+        "before": "3f3a577484eff9c1d92c5fcd3be45b52717b8e3f4792cea29829e106bd050ee8",
+        "after": "6121d72a2e99d43d2ac5e0d788e094f2bacb78e220404c6a94c792e44e7ea797"
+      },
+      {
+        "path": "package/src/config/conversion/gemma3/gemma-3-1b-it-f16-af32.json",
+        "before": "3be33af4602f8d9c60270fe7fdf0f133199e5602510501071fd7d136a0cc0745",
+        "after": "339e39bc0e871d5e06a37f5d2d0e582afcb1e9c52475c0bb8105fb81a539c9ed"
+      },
+      {
+        "path": "package/src/config/conversion/gemma3/gemma-3-1b-it-q4k-ehf16-af32.json",
+        "before": "fd22f1d57ed18f298562cb1a13aff226a811f4e872ae9b38ade5be2d9704a27a",
+        "after": "3e44f6f5a6846818478f51c8b0aa9add960fdcb435aeef7a23877253a5f0ed09"
+      },
+      {
+        "path": "package/src/config/conversion/gemma3/gemma-3-270m-it-f16-af32.json",
+        "before": "767d152dfd71e49de66fbc5b9e90031a0a94ec662a93fdb7c840ca4d64148983",
+        "after": "9c1607266855d78e56eb87fe140badc3dd3a3faed75f00d631611c2440eebd1c"
+      },
+      {
+        "path": "package/src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af16.json",
+        "before": "f904b4f773caa231caf7ce1c531c0108f1e9a4c8af255d36f54554e8f3dc0192",
+        "after": "e20d4c2c59b8a8d3630bc615a0a0d24745c38bb4525d0de399fc810a2ab21f66"
+      },
+      {
+        "path": "package/src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
+        "before": "24a78745970e6a8e0a6d78dd20fa5cb885dd3507fbecd5264c33d503ef74967b",
+        "after": "f51ad12fbbee6a86d5796807a415575c6b5222d08689110c42d58169625cc4ac"
+      },
+      {
+        "path": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af16.json",
+        "before": "5cb1711b3e188cc08aab57752bcca41bc8edf979f6939f0de9ed3974702fb7c6",
+        "after": "0bdb4d0384c8664d13c7fb3a5c6309f326a0b364ae9de3def29729839e10b9cc"
+      },
+      {
+        "path": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-af32.json",
+        "before": "c9810706b8ca16ec903903c9ae79e51339610a032941c8fa1a210a654174461f",
+        "after": "669768e13e6b337263442bcdbfe5cfa7fbd3256951c135e224d59acb582e36d9"
+      },
+      {
+        "path": "package/src/config/conversion/gemma4/gemma-4-12b-it-text-q4k-ehf16-hq4k-af16.json",
+        "before": "9ff2d5e1d795903732b77d4fb5920f64b572c0304e9e149cbcf6cac886e06507",
+        "after": "2c8f6f236b6580675e2db7861bd75af5455780635664f0151e660c1a3f4260e6"
+      },
+      {
+        "path": "package/src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af16.json",
+        "before": "67338d3e3f39f3b80e7f356ea8a1d21629b8509e2a2c1e5cd3a61987bdcdc7ed",
+        "after": "f06128bf6bab129c1edc6d3a019e5cfbea6783704b870026540d89a24ff533a8"
+      },
+      {
+        "path": "package/src/config/conversion/gemma4/gemma-4-31b-it-text-q4k-ehf16-af32.json",
+        "before": "5ebd02eb2d06ea075ba4055f0b3c3fe9f0fbda7639a7c0f1e6582a2ac1693ed7",
+        "after": "6830de4a3ff941344594c816f8999899b038bb36f7bc911c059ad8992cbee994"
+      },
+      {
+        "path": "package/src/config/conversion/gemma4/gemma-4-e2b-it-q4k-ehf16-af16-int4ple.json",
+        "before": "91435f7dbd1e8d42a1a1a06077d8c2bc955f31affba5f5282166668c05226354",
+        "after": "b28a07b866899c07c6b762183478515ea8d6bcf10daa8ba8e3a016036af75ed9"
+      },
+      {
+        "path": "package/src/config/conversion/glmocr/glm-ocr-f16-af32.json",
+        "before": "e63088d82c760797a91c6c44d4057a478a20cb035327b676373f4249c933e7ba",
+        "after": "412427dfa38f47b4305459881e6f119db91abcd7dbf4e837f2bc25abbb41079b"
+      },
+      {
+        "path": "package/src/config/conversion/lfm2/lfm2.5-1.2b-instruct-q4k-ehf16-af32.json",
+        "before": "4bceb2825bad1e1644d364b8e0566b00b576a63e6e191e4c5c1ef3a4ce901e2f",
+        "after": "5ccbad1fb90b48e7a43f72867a7d6ea67f8cd03d5373442ba7c0bf440d50d8b9"
+      },
+      {
+        "path": "package/src/config/conversion/qwen3/qwen-3-4b-instruct-2507-q4k-ehf16-af32.json",
+        "before": "0efe4c8629f8122407bbf012d565ed0b0a2eaaa4b6f9de0a01485b03991958b5",
+        "after": "d0a1dda95c385236cd193bcb1ab1e19d0cf01b0579f4b029c885975c80e73c90"
+      },
+      {
+        "path": "package/src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
+        "before": "460b2c5ffe2249856c49a776b7a09613eea992ee671328540296216e6e741aa5",
+        "after": "ca3a81b4b8a35c0d9581f7c5d3e9aeea0b1956e206e39957841fee358db6defc"
+      },
+      {
+        "path": "package/src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
+        "before": "1ab345c7ae0e48c936e3589bcda1406e83bf38d3ac7af29c120aacb537de5e1c",
+        "after": "d2364b50d07e0dfe1366dcf5af2ee3c5420473c680f45ef362190717755ed3da"
+      },
+      {
+        "path": "package/src/config/conversion/qwen3/qwen-3-5-9b-q4k-ehaf16.json",
+        "before": "13b77909ce2d519fbab5b333bb9778b0e5692d90eaefb5d4c839d5a9d4ed482e",
+        "after": "e657033fb23c221026f7fdc9065e0cd6e4c53fc8321d0c5502a9e31425cd2ff9"
+      },
+      {
+        "path": "package/src/config/conversion/qwen3/qwen-3-6-27b-q4k-eaf16.json",
+        "before": "b834bae708638667a52e1293d8c6120d5f400c9ca750cf041a26615d7dedc9e6",
+        "after": "b4ebc656f80c6e752f9d795245fc346e3cf6066b2dcfbeeb5cde272d3fe497dd"
+      },
+      {
+        "path": "package/src/config/conversion/qwen3/qwen-3-6-27b-q4k-ehaf16.json",
+        "before": "c26755f4abc0962ecd71372cf2c9703684be27e437394509ebe46d713a7adc3b",
+        "after": "3c1f4eb403994c314e4868a778ed6c694142ae8ebdd138048b0a5b095997a81a"
+      },
+      {
+        "path": "package/src/config/conversion/qwen3/qwen-3-embedding-0-6b-f16-af32.json",
+        "before": "6838db36f32da72742e4eb1a58c0a1bf27d85388bafe68740ed05a17d03988a7",
+        "after": "d815500d0a3b43151a8bac2c8ac4b36df434163abad6abd61fed2247741b9b94"
+      },
+      {
+        "path": "package/src/config/conversion/qwen3/qwen-3-embedding-0-6b-q4k-ehf16-af32.json",
+        "before": "25261e798c4e5f0ef806556dd734d3eb3dd484dc474109cf29b7e3825c0ee5b2",
+        "after": "e54e51ed8e438bdf3268b11c90a200a34049de38aedddc67f1abe8bf81650c61"
+      },
+      {
+        "path": "package/src/config/conversion/qwen3/qwen-3-reranker-0-6b-q4k-ehf16-af32.json",
+        "before": "6cd4d31f7408eebb1b0f8f39a7ddd812d632158247df348fdf9a2ef9f0f58dc4",
+        "after": "2b30ce247aec5360c77b06b1acf9340d40d4c41c8ca09eebd3a40cfdd6b75428"
+      },
+      {
+        "path": "package/src/config/conversion/qwen3/qwen3.8-27b-text-f16-af32.json",
+        "before": "9b3c30a2308ca789e3e727e9c6fc47de56689f17d7ee718e0446673df53e9fde",
+        "after": "671cef3168f3e61e1ce6fe8a287e5afe44d7a754892346e9eb635a2694b9624f"
+      },
+      {
+        "path": "package/src/config/conversion/qwen3/qwen3.8-27b-text-q4k-ehaf16.json",
+        "before": "b0fdda45e14f44052646c0734db88eccb5bab1836ea4f6fe80be1be93e7eca23",
+        "after": "def35860a456d06693acb7cc78936cd91fa519df97439f625761838ec33f234c"
+      },
+      {
+        "path": "package/src/config/embedding-contract.d.ts",
+        "before": null,
+        "after": "c846f3c9ad9a771c43a9630e9b83cbf55a7028b1bc94b69b9669c99213051584"
+      },
+      {
+        "path": "package/src/config/embedding-contract.js",
+        "before": "23c5dd9d7917d9df824410f3c0cab91d73a04f118c30daec8710b6dbe8a8ecf3",
+        "after": "d51cb415bc9b343f7382d6698a215cbbd3562ca95ee06126500894af22578700"
+      },
+      {
+        "path": "package/src/config/embedding-reference.js",
+        "before": "1990f3be21b19524b5d15aa8585e109a4fa73c40cb4fcdfc7565b94cfb9bf631",
+        "after": "4e83aaef87ea9357bbda68e921b579ecb8443f2dcf1fd75dad9fbf8a04e498f5"
+      },
+      {
+        "path": "package/src/errors/doppler-error.js",
+        "before": "cd88f369dabcac61e4bd44d2276000215f4b544e7a7c240077162001ab5afeb6",
+        "after": "4fa480de39b1479399d34b28e1d30f83b8391574cd1c253a84f5871c489b0f46"
+      },
+      {
+        "path": "package/src/inference/pipelines/text/generator-steps.js",
+        "before": "0ffb305a1b099ded75fbc67e9ef9c3b0ec84f3131fb81a7a8a2365586e29afd8",
+        "after": "1fa11ed3b8dbb8d76b1d7987aad3966ce347a3bb6cbeef1563475a35ded5665b"
+      },
+      {
+        "path": "package/src/inference/pipelines/text/generator.js",
+        "before": "42d7080f04be333ce5e5cf7ad556d0a9510a51d35af2c6e6f7fd6565e1532ed2",
+        "after": "a808e8aaed8a09b5b6eed64c17b8cf064ffaa60e40019ff9e6d96f6257668b93"
+      },
+      {
+        "path": "package/src/inference/pipelines/text/generator/decode-runtime.js",
+        "before": "76ca2636762330fd5e31d8512ea34b145e838a6fc598098f84f66d8a4b566f8a",
+        "after": "f8bfb0420d6c7d8aaebb86e41b9e3391e0db9c310aabf7f21bc183d1cb8eebcb"
+      },
+      {
+        "path": "package/src/inference/pipelines/text/generator/training.js",
+        "before": "31447c0cd3c1bc56002220789472c885c2fd774aabc22ab1ea1c6893c799a946",
+        "after": "617e174227b3ee2a35df4906886ebd8fa310adcd8f7ff43879cfc36a566f2ecb"
+      },
+      {
+        "path": "package/src/inference/pipelines/text/resident-partition.js",
+        "before": "baec053514f92891b54e54bccf3f680282f6ee4e9b0ebb4770c0e4a88ad99bd4",
+        "after": "b4978d250b77047cc108b783cf0d533e1d2a014fc58e2940715a27b26f09a2a7"
+      },
+      {
+        "path": "package/src/inference/token-sampling.js",
+        "before": "c28bf8f1acd78cb2332a8976db1d0c35c548f74783b88fa4423188c90028c0ab",
+        "after": "d10c13067f28af83bddc11f161c5a1eb2f8634056055bad44b5cab2058ace5f8"
+      },
+      {
+        "path": "package/src/storage/verified-piece-reader.d.ts",
+        "before": null,
+        "after": "74015b81002811db8850b444e35877bbbd8a35582ac3bc93550b8caacae0d4b3"
+      },
+      {
+        "path": "package/src/storage/verified-piece-reader.js",
+        "before": null,
+        "after": "d8a72192c6f63272dda2beb483ffbdbfab67bc5248f1352a38582bb12783ee72"
+      },
+      {
+        "path": "package/src/storage/verified-piece-storage.d.ts",
+        "before": "2577332816af9dea036c722ba0b9b8249dd6dd9a1a15731339db71225bff9859",
+        "after": "cde46e493f0e2243e33dffbccacb87ed3e02e3cafefb8c40fe2eb057d3e96aad"
+      },
+      {
+        "path": "package/src/storage/verified-piece-storage.js",
+        "before": "acf61e484a772a0e586c4267f00c88b0e6878f107bc5327c77fe541851e76484",
+        "after": "fb33983cd41e03c215c0094567e17cce86c4372021f2402197b709e72b0112da"
+      }
+    ]
+  }
+]

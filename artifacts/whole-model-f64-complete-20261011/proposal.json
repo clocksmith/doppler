@@ -1,0 +1,38 @@
+{
+  "schema": "doppler.qwen35-complete-f64-proposal/v1",
+  "referenceActivated": false,
+  "qualified": false,
+  "status": "frozen-before-execution",
+  "tolerance": 0.001,
+  "toolSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "contracts": [
+    {
+      "path": "artifacts/whole-model-f64-complete-20261011/request-0-contract.json",
+      "sha256": "ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9",
+      "prefixes": 2,
+      "sequenceLength": 20
+    },
+    {
+      "path": "artifacts/whole-model-f64-complete-20261011/request-1-contract.json",
+      "sha256": "3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2",
+      "prefixes": 2,
+      "sequenceLength": 22
+    },
+    {
+      "path": "artifacts/whole-model-f64-complete-20261011/request-2-contract.json",
+      "sha256": "8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836",
+      "prefixes": 51,
+      "sequenceLength": 234
+    }
+  ],
+  "comparatorScopes": {
+    "doppler": "Retained pre-repair archive e0f558cfd0980eabc6db42496d8fe250e66f3d125e67c9635333e80077f8f7b7; not current repaired shaders",
+    "historical": "Unchanged historical fixture, compressed SHA f1a2d9a0c153ff96de3cd556bb4e4f133c35ffd7c03553b8969d0878c287e8f7; decompressed SHA9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+    "sourceChunk": "Retained complete F32 source diagnostic with explicit F16 cache; old piece-index manifest binding limitation retained, shard bytes equal"
+  },
+  "execution": {
+    "threads": 1,
+    "gpu": false,
+    "observedStateInputs": false
+  }
+}

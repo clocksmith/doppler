@@ -244,7 +244,7 @@ def run(contract_path, output, boundary_capture=None):
     # Observations are loaded only after independent computation has completed.
     observed = read_json(inputs['capture']['path'])
     historical = read_json(inputs['historicalReference']['path'])
-    sources = {key: read_json(inputs[key]['path']) for key in ('sourceChunk', 'sourceRecurrent')}
+    sources = {key: read_json(inputs[key]['path']) for key in ('sourceChunk', 'sourceRecurrent') if key in inputs}
     results = []
     request = contract['requestIndex']
     for step, actual in zip(contract['steps'], logits, strict=True):

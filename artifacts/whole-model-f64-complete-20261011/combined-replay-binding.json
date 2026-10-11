@@ -1,0 +1,15 @@
+{
+  "schema": "doppler.fixed-prefix-diagnostic-binding/v1",
+  "archivePath": "artifacts/q4-accumulation-repair-20261011/pinned-candidate-diagnostic.tgz",
+  "archiveSha256": "cd50bcc0326a585ea1721f3403c4f6b8ce141d689140969acf7dbdb0a5f68878",
+  "manifestSha256": "50923dd5f690153ca720fe80af0368e937cc3d3c8f96ade83c60e9c12bdad66a",
+  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "modelDirectory": "reports/local/whole-model-f64-complete-20261011/diagnostic-model",
+  "unchangedWeights": true,
+  "prefixes": 55,
+  "reusePrefixes": 2,
+  "tolerance": 0.001,
+  "referenceActivated": false,
+  "standardArchiveChanged": false,
+  "command": "DOPPLER_FORENSIC_FULL_PREFIXES=1 node tests/integration/frozen-reference-producer-replay.js artifacts/q4-accumulation-repair-20261011/pinned-candidate-diagnostic.tgz reports/local/whole-model-f64-complete-20261011/diagnostic-model reports/local/whole-model-f64-complete-20261011/combined-prefixes.json current"
+}

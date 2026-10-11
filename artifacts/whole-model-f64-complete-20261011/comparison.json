@@ -1,0 +1,3845 @@
+{
+  "schema": "doppler.complete-f64-comparison/v1",
+  "referenceActivated": false,
+  "qualified": false,
+  "tolerance": 0.001,
+  "captureSha256": "5062e9b9da42651b2bd0cf8d572dc659775ff905b7d5922cfd79a76aae9bdff5",
+  "archiveSha256": "307104de5f55e120280cccb4ed84b53170339250c60c3ceee8682ffe3149ed25",
+  "manifestIdentity": "sha256:50923dd5f690153ca720fe80af0368e937cc3d3c8f96ade83c60e9c12bdad66a",
+  "comparatorSha256": "150df797b4a086efee37cbb93cbef0b5d9af6b4a712ad1aa391474eb70726870",
+  "summary": {
+    "doppler": {
+      "prefixes": 55,
+      "failedPrefixes": 22,
+      "maximumAbsoluteDifference": 0.002666609627555161,
+      "greedyTokenMatches": 55
+    },
+    "historical": {
+      "prefixes": 55,
+      "failedPrefixes": 26,
+      "maximumAbsoluteDifference": 0.0032314833918718477,
+      "greedyTokenMatches": 55
+    },
+    "sourceChunk": {
+      "prefixes": 55,
+      "failedPrefixes": 32,
+      "maximumAbsoluteDifference": 0.002796786171744614,
+      "greedyTokenMatches": 55
+    },
+    "repairedDoppler": {
+      "prefixes": 55,
+      "failedPrefixes": 27,
+      "maximumAbsoluteDifference": 0.0034951507058513798,
+      "greedyTokenMatches": 55
+    }
+  },
+  "otherTargets": {
+    "historical": {
+      "prefixes": 55,
+      "failedPrefixes": 20,
+      "maximumAbsoluteDifference": 0.004337310791015625
+    },
+    "sourceF32": {
+      "prefixes": 55,
+      "failedPrefixes": 38,
+      "maximumAbsoluteDifference": 0.004070281982421875
+    }
+  },
+  "results": [
+    {
+      "index": 0,
+      "step": 0,
+      "greedyToken": 9419,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009114959634366482,
+          "rmsDifference": 0.00017366219685249583,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 108790,
+          "greedyToken": 9419
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009346440197142147,
+          "rmsDifference": 0.00015810092829224683,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 22856,
+          "greedyToken": 9419
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0006315110071604124,
+          "rmsDifference": 0.00011107510273137965,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 18,
+          "greedyToken": 9419
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0005488027261089101,
+          "rmsDifference": 0.000108646218374636,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 41777,
+          "greedyToken": 9419
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 9419,
+          "independentF64": 22.83027421309716,
+          "repairedDoppler": 22.830434799194336
+        },
+        {
+          "tokenId": 41777,
+          "independentF64": 4.051258600838344,
+          "repairedDoppler": 4.051807403564453
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009469985961914062,
+          "rmsDifference": 0.0001635962323806274,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 17981,
+          "greedyToken": 9419
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0006632208824157715,
+          "rmsDifference": 0.00012960801426767704,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 14277,
+          "greedyToken": 9419
+        }
+      }
+    },
+    {
+      "index": 0,
+      "step": 1,
+      "greedyToken": 248046,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010009163826676937,
+          "rmsDifference": 0.0002119600628565207,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 9072,
+          "greedyToken": 248046
+        },
+        "historical": {
+          "maxAbsDifference": 0.0017390169386999332,
+          "rmsDifference": 0.0002286110106963213,
+          "valuesOverTolerance": 11,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 248046
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0007244273227617892,
+          "rmsDifference": 9.489938941925062e-05,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 33159,
+          "greedyToken": 248046
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0004897227031657181,
+          "rmsDifference": 0.00010240649513112064,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 100557,
+          "greedyToken": 248046
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 100557,
+          "independentF64": -3.2049541582805583,
+          "repairedDoppler": -3.2044644355773926
+        },
+        {
+          "tokenId": 248046,
+          "independentF64": 21.162097670988665,
+          "repairedDoppler": 21.16224479675293
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.001773834228515625,
+          "rmsDifference": 0.00018771776299736915,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 248046
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0008010268211364746,
+          "rmsDifference": 0.00013539422509537273,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 26754,
+          "greedyToken": 248046
+        }
+      }
+    },
+    {
+      "index": 1,
+      "step": 0,
+      "greedyToken": 19,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009458809535054513,
+          "rmsDifference": 0.0001910394192044463,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 18,
+          "greedyToken": 19
+        },
+        "historical": {
+          "maxAbsDifference": 0.0004044581645521461,
+          "rmsDifference": 7.630967097218878e-05,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 96321,
+          "greedyToken": 19
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0006681906949843608,
+          "rmsDifference": 0.00010825376975037135,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 304,
+          "greedyToken": 19
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.00038153091146631013,
+          "rmsDifference": 7.561601462008677e-05,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 76938,
+          "greedyToken": 19
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 19,
+          "independentF64": 20.292706848348836,
+          "repairedDoppler": 20.29270362854004
+        },
+        {
+          "tokenId": 76938,
+          "independentF64": 3.5238075868196694,
+          "repairedDoppler": 3.523426055908203
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.00041937828063964844,
+          "rmsDifference": 9.183003471258772e-05,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 96149,
+          "greedyToken": 19
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0006029605865478516,
+          "rmsDifference": 0.00010652682460993688,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 304,
+          "greedyToken": 19
+        }
+      }
+    },
+    {
+      "index": 1,
+      "step": 1,
+      "greedyToken": 248046,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010772557688696338,
+          "rmsDifference": 0.00016537465748710397,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 373,
+          "greedyToken": 248046
+        },
+        "historical": {
+          "maxAbsDifference": 0.0008887200340756962,
+          "rmsDifference": 0.0001342972250100493,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 73,
+          "greedyToken": 248046
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0006720621041647057,
+          "rmsDifference": 0.00012490033997783793,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 468,
+          "greedyToken": 248046
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0006218545628309258,
+          "rmsDifference": 0.00010814138344901194,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 169263,
+          "greedyToken": 248046
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 169263,
+          "independentF64": -2.894658147592616,
+          "repairedDoppler": -2.894036293029785
+        },
+        {
+          "tokenId": 248046,
+          "independentF64": 21.942109633591812,
+          "repairedDoppler": 21.942237854003906
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009168386459350586,
+          "rmsDifference": 0.0001349644957087022,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 169424,
+          "greedyToken": 248046
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0007410049438476562,
+          "rmsDifference": 0.00010974738449080709,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 172857,
+          "greedyToken": 248046
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 0,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007026579256694809,
+          "rmsDifference": 0.00016277484140691858,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 39114,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007418299293044939,
+          "rmsDifference": 0.00015037567472804363,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 103852,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.000925525824886364,
+          "rmsDifference": 0.0002293022990561265,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 21666,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0007045465124986272,
+          "rmsDifference": 0.00016055160030617954,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 362,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 21.652495717901996,
+          "repairedDoppler": 21.652559280395508
+        },
+        {
+          "tokenId": 362,
+          "independentF64": 3.858923454822435,
+          "repairedDoppler": 3.8582189083099365
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0005407333374023438,
+          "rmsDifference": 0.0001126464101254435,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 222606,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0008058547973632812,
+          "rmsDifference": 0.00017888823698656426,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 9026,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 1,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009400796513929777,
+          "rmsDifference": 0.0002109475639306601,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 290,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.000895729124561484,
+          "rmsDifference": 0.0002103036260595193,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 78479,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008913064099204115,
+          "rmsDifference": 0.00019687545877183514,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 16069,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0009503841421754089,
+          "rmsDifference": 0.0001850233194148127,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 83317,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 17.582124451258068,
+          "repairedDoppler": 17.582563400268555
+        },
+        {
+          "tokenId": 83317,
+          "independentF64": -4.32899088859342,
+          "repairedDoppler": -4.329941272735596
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009430646896362305,
+          "rmsDifference": 0.00019426687789080423,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 5672,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0007696151733398438,
+          "rmsDifference": 0.00014601603844992348,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 12,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 2,
+      "greedyToken": 17,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009795541261290452,
+          "rmsDifference": 0.00022118495963911777,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 182325,
+          "greedyToken": 17
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009749402504466431,
+          "rmsDifference": 0.00021519301030200285,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 135230,
+          "greedyToken": 17
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008807109446093975,
+          "rmsDifference": 0.0001784548928051016,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 94425,
+          "greedyToken": 17
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.000874628876696093,
+          "rmsDifference": 0.00019675876930529018,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 47187,
+          "greedyToken": 17
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 17,
+          "independentF64": 20.82164784062929,
+          "repairedDoppler": 20.821666717529297
+        },
+        {
+          "tokenId": 47187,
+          "independentF64": -4.749925503874769,
+          "repairedDoppler": -4.750800132751465
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0005941390991210938,
+          "rmsDifference": 0.00012604165902200873,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 60347,
+          "greedyToken": 17
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.00128936767578125,
+          "rmsDifference": 0.00025294586811716667,
+          "valuesOverTolerance": 52,
+          "pass": false,
+          "argmaxDifference": 21344,
+          "greedyToken": 17
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 3,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0015289395075539502,
+          "rmsDifference": 0.00030899282079831057,
+          "valuesOverTolerance": 148,
+          "pass": false,
+          "argmaxDifference": 243137,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.001334912061157656,
+          "rmsDifference": 0.000248764390077922,
+          "valuesOverTolerance": 67,
+          "pass": false,
+          "argmaxDifference": 91196,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001220126168123059,
+          "rmsDifference": 0.00022148333404795831,
+          "valuesOverTolerance": 9,
+          "pass": false,
+          "argmaxDifference": 15799,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0012218348229229292,
+          "rmsDifference": 0.0002211239102430733,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 18050,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 22.640084697230975,
+          "repairedDoppler": 22.64044189453125
+        },
+        {
+          "tokenId": 18050,
+          "independentF64": 5.772070706680983,
+          "repairedDoppler": 5.773292541503906
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011248588562011719,
+          "rmsDifference": 0.00021089556071085492,
+          "valuesOverTolerance": 10,
+          "pass": false,
+          "argmaxDifference": 47899,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0013098716735839844,
+          "rmsDifference": 0.0002758342486323908,
+          "valuesOverTolerance": 55,
+          "pass": false,
+          "argmaxDifference": 7428,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 4,
+      "greedyToken": 18,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008252855062327313,
+          "rmsDifference": 0.00017962592259342602,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 237707,
+          "greedyToken": 18
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010333392946477726,
+          "rmsDifference": 0.00021814788150930609,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 181159,
+          "greedyToken": 18
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0010064944263949993,
+          "rmsDifference": 0.0002174000332857075,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 162554,
+          "greedyToken": 18
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0009291759612581885,
+          "rmsDifference": 0.0002012542550848912,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 199982,
+          "greedyToken": 18
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 18,
+          "independentF64": 25.63330616428957,
+          "repairedDoppler": 25.633222579956055
+        },
+        {
+          "tokenId": 199982,
+          "independentF64": -2.2241279491302945,
+          "repairedDoppler": -2.2250571250915527
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0014634132385253906,
+          "rmsDifference": 0.00022082593527661862,
+          "valuesOverTolerance": 19,
+          "pass": false,
+          "argmaxDifference": 141749,
+          "greedyToken": 18
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001103222370147705,
+          "rmsDifference": 0.00021124444755656467,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 76888,
+          "greedyToken": 18
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 5,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010062773256496182,
+          "rmsDifference": 0.00020680208002718222,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 82575,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.000829551140915985,
+          "rmsDifference": 0.00016142846418122032,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 38383,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.000822448489282479,
+          "rmsDifference": 0.0001773449070451714,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 97228,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0010074224643119578,
+          "rmsDifference": 0.00017770435325292563,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 91348,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 24.967526815898513,
+          "repairedDoppler": 24.967449188232422
+        },
+        {
+          "tokenId": 91348,
+          "independentF64": -6.0358222570590385,
+          "repairedDoppler": -6.034814834594727
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009779930114746094,
+          "rmsDifference": 0.00018630006722050718,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 4314,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010218620300292969,
+          "rmsDifference": 0.00018967001490108033,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 101649,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 6,
+      "greedyToken": 19,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0013367968105983952,
+          "rmsDifference": 0.00021813468109369924,
+          "valuesOverTolerance": 16,
+          "pass": false,
+          "argmaxDifference": 82575,
+          "greedyToken": 19
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010142160652906185,
+          "rmsDifference": 0.0002225689401598639,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 234511,
+          "greedyToken": 19
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009200369684785326,
+          "rmsDifference": 0.00018797704865865784,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 111914,
+          "greedyToken": 19
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0008553656772734008,
+          "rmsDifference": 0.0001895380797445234,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 221590,
+          "greedyToken": 19
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 19,
+          "independentF64": 25.42541635796032,
+          "repairedDoppler": 25.42530632019043
+        },
+        {
+          "tokenId": 221590,
+          "independentF64": 1.0234821232990385,
+          "repairedDoppler": 1.0226267576217651
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009801387786865234,
+          "rmsDifference": 0.00016770487093909826,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 17915,
+          "greedyToken": 19
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010700225830078125,
+          "rmsDifference": 0.00024738674386618837,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 19
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 7,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0012526790506576235,
+          "rmsDifference": 0.00024572607718656,
+          "valuesOverTolerance": 22,
+          "pass": false,
+          "argmaxDifference": 36630,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010781049583297175,
+          "rmsDifference": 0.00019959140981887374,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 19,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001669881498518322,
+          "rmsDifference": 0.00026779018498504606,
+          "valuesOverTolerance": 97,
+          "pass": false,
+          "argmaxDifference": 21,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0016050100181441707,
+          "rmsDifference": 0.0002810316130649738,
+          "valuesOverTolerance": 235,
+          "pass": false,
+          "argmaxDifference": 19,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 19,
+          "independentF64": 6.169849848732744,
+          "repairedDoppler": 6.1682448387146
+        },
+        {
+          "tokenId": 198,
+          "independentF64": 24.559872233462126,
+          "repairedDoppler": 24.559839248657227
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0015249252319335938,
+          "rmsDifference": 0.00021592641892979197,
+          "valuesOverTolerance": 42,
+          "pass": false,
+          "argmaxDifference": 304,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001112222671508789,
+          "rmsDifference": 0.0002111610845150009,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 40550,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 8,
+      "greedyToken": 20,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0011161821057390497,
+          "rmsDifference": 0.0002145969041298809,
+          "valuesOverTolerance": 13,
+          "pass": false,
+          "argmaxDifference": 119646,
+          "greedyToken": 20
+        },
+        "historical": {
+          "maxAbsDifference": 0.0013263775269960476,
+          "rmsDifference": 0.0002331263632645452,
+          "valuesOverTolerance": 34,
+          "pass": false,
+          "argmaxDifference": 71571,
+          "greedyToken": 20
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0017889095704530789,
+          "rmsDifference": 0.00025440485551428264,
+          "valuesOverTolerance": 91,
+          "pass": false,
+          "argmaxDifference": 71571,
+          "greedyToken": 20
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.001128586798007536,
+          "rmsDifference": 0.00022490066970435647,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 164617,
+          "greedyToken": 20
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 20,
+          "independentF64": 25.351874159032832,
+          "repairedDoppler": 25.35197639465332
+        },
+        {
+          "tokenId": 164617,
+          "independentF64": -3.2464466962525296,
+          "repairedDoppler": -3.247575283050537
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008375644683837891,
+          "rmsDifference": 0.00014142170958479882,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 54173,
+          "greedyToken": 20
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0011701583862304688,
+          "rmsDifference": 0.00018381126790418728,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 20
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 9,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0012671976784588423,
+          "rmsDifference": 0.00018113995155086477,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007142508053874508,
+          "rmsDifference": 0.00015363984839601805,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 76098,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012193502150203983,
+          "rmsDifference": 0.0002092598280697951,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 19576,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0013949900368572798,
+          "rmsDifference": 0.00016799440030281526,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.15700326538714,
+          "repairedDoppler": 25.156932830810547
+        },
+        {
+          "tokenId": 220,
+          "independentF64": 16.627100709030998,
+          "repairedDoppler": 16.62570571899414
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.001453399658203125,
+          "rmsDifference": 0.00019943032596630346,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010322481393814087,
+          "rmsDifference": 0.00020258320772277184,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 19576,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 10,
+      "greedyToken": 21,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.000887216002133151,
+          "rmsDifference": 0.0001809684317954146,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20318,
+          "greedyToken": 21
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009174035375763001,
+          "rmsDifference": 0.00017448844462448582,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 48497,
+          "greedyToken": 21
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0013776605954340937,
+          "rmsDifference": 0.00028665116456197707,
+          "valuesOverTolerance": 189,
+          "pass": false,
+          "argmaxDifference": 43619,
+          "greedyToken": 21
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0008699663913529498,
+          "rmsDifference": 0.00018801979316593882,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 244803,
+          "greedyToken": 21
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 21,
+          "independentF64": 25.085649816400206,
+          "repairedDoppler": 25.085481643676758
+        },
+        {
+          "tokenId": 244803,
+          "independentF64": -3.5327172509395797,
+          "repairedDoppler": -3.5335872173309326
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011959075927734375,
+          "rmsDifference": 0.0001519080765583359,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 21
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0013790130615234375,
+          "rmsDifference": 0.0002881786880090119,
+          "valuesOverTolerance": 65,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 21
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 11,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010669810120855772,
+          "rmsDifference": 0.00021597370633341312,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 38535,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010242176156443072,
+          "rmsDifference": 0.00021282278069701684,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 1011,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0007858361874264475,
+          "rmsDifference": 0.0001530320269077606,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 234871,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0012521076714966384,
+          "rmsDifference": 0.0002489859817950565,
+          "valuesOverTolerance": 39,
+          "pass": false,
+          "argmaxDifference": 31287,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.201452691300876,
+          "repairedDoppler": 25.201555252075195
+        },
+        {
+          "tokenId": 31287,
+          "independentF64": 0.8701170157873657,
+          "repairedDoppler": 0.8713691234588623
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0007921457290649414,
+          "rmsDifference": 0.00017099247965021678,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 163780,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0011632442474365234,
+          "rmsDifference": 0.00024334792486965952,
+          "valuesOverTolerance": 17,
+          "pass": false,
+          "argmaxDifference": 14333,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 12,
+      "greedyToken": 22,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0014261244402233864,
+          "rmsDifference": 0.0002665523336480353,
+          "valuesOverTolerance": 92,
+          "pass": false,
+          "argmaxDifference": 11564,
+          "greedyToken": 22
+        },
+        "historical": {
+          "maxAbsDifference": 0.0012434818629807332,
+          "rmsDifference": 0.00025270084091050964,
+          "valuesOverTolerance": 65,
+          "pass": false,
+          "argmaxDifference": 16140,
+          "greedyToken": 22
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0015069270102392451,
+          "rmsDifference": 0.00028805075035979354,
+          "valuesOverTolerance": 117,
+          "pass": false,
+          "argmaxDifference": 2943,
+          "greedyToken": 22
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0016727544986774312,
+          "rmsDifference": 0.00031873058922094057,
+          "valuesOverTolerance": 571,
+          "pass": false,
+          "argmaxDifference": 6299,
+          "greedyToken": 22
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 22,
+          "independentF64": 25.577517665475757,
+          "repairedDoppler": 25.57753562927246
+        },
+        {
+          "tokenId": 6299,
+          "independentF64": -2.049298296185689,
+          "repairedDoppler": -2.0476255416870117
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008762478828430176,
+          "rmsDifference": 0.00017294369430038235,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 21804,
+          "greedyToken": 22
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0014300346374511719,
+          "rmsDifference": 0.00029562780895689005,
+          "valuesOverTolerance": 240,
+          "pass": false,
+          "argmaxDifference": 33914,
+          "greedyToken": 22
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 13,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008473820535619403,
+          "rmsDifference": 0.00017778144724983993,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 95843,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0008658846160873868,
+          "rmsDifference": 0.00017437099320756431,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 54227,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008203848518482382,
+          "rmsDifference": 0.00015222108715474115,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 31543,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0011684873689841169,
+          "rmsDifference": 0.00023034320255952423,
+          "valuesOverTolerance": 5,
+          "pass": false,
+          "argmaxDifference": 22,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 22,
+          "independentF64": 7.208772895633144,
+          "repairedDoppler": 7.20760440826416
+        },
+        {
+          "tokenId": 198,
+          "independentF64": 26.042979189678658,
+          "repairedDoppler": 26.0428466796875
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008124113082885742,
+          "rmsDifference": 0.00016346634184622743,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 27238,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0010089874267578125,
+          "rmsDifference": 0.00020276836557206267,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 146295,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 14,
+      "greedyToken": 23,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010102062874963735,
+          "rmsDifference": 0.00019789521409196482,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 215682,
+          "greedyToken": 23
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009967532335144469,
+          "rmsDifference": 0.00021166289387923438,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 80091,
+          "greedyToken": 23
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0013489510527877613,
+          "rmsDifference": 0.0002622536592014642,
+          "valuesOverTolerance": 39,
+          "pass": false,
+          "argmaxDifference": 357,
+          "greedyToken": 23
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0013319037369317055,
+          "rmsDifference": 0.000263272259775252,
+          "valuesOverTolerance": 62,
+          "pass": false,
+          "argmaxDifference": 43138,
+          "greedyToken": 23
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 23,
+          "independentF64": 25.364847637513815,
+          "repairedDoppler": 25.364818572998047
+        },
+        {
+          "tokenId": 43138,
+          "independentF64": -1.4576052643844062,
+          "repairedDoppler": -1.458937168121338
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009031295776367188,
+          "rmsDifference": 0.00015349032120627666,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 248044,
+          "greedyToken": 23
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0015645027160644531,
+          "rmsDifference": 0.0003376637296961282,
+          "valuesOverTolerance": 308,
+          "pass": false,
+          "argmaxDifference": 313,
+          "greedyToken": 23
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 15,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007545722618365058,
+          "rmsDifference": 0.00014512487532762711,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 802,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.000885236001177514,
+          "rmsDifference": 0.00015116841007288786,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 55316,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0010926391106735878,
+          "rmsDifference": 0.0001605997847544593,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 220,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0034951507058513798,
+          "rmsDifference": 0.00034723486090044076,
+          "valuesOverTolerance": 1306,
+          "pass": false,
+          "argmaxDifference": 23,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 23,
+          "independentF64": 7.923812931874715,
+          "repairedDoppler": 7.927308082580566
+        },
+        {
+          "tokenId": 198,
+          "independentF64": 25.749969846727943,
+          "repairedDoppler": 25.750120162963867
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.004337310791015625,
+          "rmsDifference": 0.00038156561865311604,
+          "valuesOverTolerance": 2609,
+          "pass": false,
+          "argmaxDifference": 23,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.004070281982421875,
+          "rmsDifference": 0.00036594417248393836,
+          "valuesOverTolerance": 1922,
+          "pass": false,
+          "argmaxDifference": 23,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 16,
+      "greedyToken": 24,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009676321881983974,
+          "rmsDifference": 0.00019798885712495352,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20752,
+          "greedyToken": 24
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007852716211617095,
+          "rmsDifference": 0.00016734760526140074,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 87773,
+          "greedyToken": 24
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001042809790661181,
+          "rmsDifference": 0.00024562790644206165,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 7587,
+          "greedyToken": 24
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.002632727920642175,
+          "rmsDifference": 0.000448523519518771,
+          "valuesOverTolerance": 7008,
+          "pass": false,
+          "argmaxDifference": 30425,
+          "greedyToken": 24
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 24,
+          "independentF64": 24.665756015177955,
+          "repairedDoppler": 24.66549301147461
+        },
+        {
+          "tokenId": 30425,
+          "independentF64": 3.986890682876477,
+          "repairedDoppler": 3.989523410797119
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.002864629030227661,
+          "rmsDifference": 0.0004298281309927358,
+          "valuesOverTolerance": 5370,
+          "pass": false,
+          "argmaxDifference": 100946,
+          "greedyToken": 24
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0027283430099487305,
+          "rmsDifference": 0.0003896784375273399,
+          "valuesOverTolerance": 3240,
+          "pass": false,
+          "argmaxDifference": 5963,
+          "greedyToken": 24
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 17,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008670774578884988,
+          "rmsDifference": 0.00017186092042674006,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 4784,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009641984019586047,
+          "rmsDifference": 0.00022239959558786497,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 31529,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0011986345741032967,
+          "rmsDifference": 0.00025034190761860577,
+          "valuesOverTolerance": 23,
+          "pass": false,
+          "argmaxDifference": 113402,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0017313005149155458,
+          "rmsDifference": 0.0003248254491772991,
+          "valuesOverTolerance": 738,
+          "pass": false,
+          "argmaxDifference": 106267,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 23.879838627107908,
+          "repairedDoppler": 23.879589080810547
+        },
+        {
+          "tokenId": 106267,
+          "independentF64": -5.811122322243431,
+          "repairedDoppler": -5.809391021728516
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0016913414001464844,
+          "rmsDifference": 0.00031589240669956337,
+          "valuesOverTolerance": 609,
+          "pass": false,
+          "argmaxDifference": 100946,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0020079612731933594,
+          "rmsDifference": 0.0003834062139020402,
+          "valuesOverTolerance": 2897,
+          "pass": false,
+          "argmaxDifference": 40053,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 18,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008925153738974512,
+          "rmsDifference": 0.00018397793650408242,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 28156,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007416891984690643,
+          "rmsDifference": 0.00015462177767702073,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 47048,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001179487406950841,
+          "rmsDifference": 0.00029800129466803015,
+          "valuesOverTolerance": 62,
+          "pass": false,
+          "argmaxDifference": 20376,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0014719822522586412,
+          "rmsDifference": 0.0002573862554074916,
+          "valuesOverTolerance": 107,
+          "pass": false,
+          "argmaxDifference": 23,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 23.70196577954856,
+          "repairedDoppler": 23.702043533325195
+        },
+        {
+          "tokenId": 23,
+          "independentF64": 12.102868571031433,
+          "repairedDoppler": 12.104340553283691
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0014476776123046875,
+          "rmsDifference": 0.00022040376771344743,
+          "valuesOverTolerance": 38,
+          "pass": false,
+          "argmaxDifference": 23,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0015764236450195312,
+          "rmsDifference": 0.00032300696706954166,
+          "valuesOverTolerance": 408,
+          "pass": false,
+          "argmaxDifference": 48718,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 19,
+      "greedyToken": 15,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0005936924996845505,
+          "rmsDifference": 0.0001130363127717747,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 2943,
+          "greedyToken": 15
+        },
+        "historical": {
+          "maxAbsDifference": 0.0013316217268570796,
+          "rmsDifference": 0.0002604386783999746,
+          "valuesOverTolerance": 9,
+          "pass": false,
+          "argmaxDifference": 78,
+          "greedyToken": 15
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001533461990198326,
+          "rmsDifference": 0.00031944755170445886,
+          "valuesOverTolerance": 156,
+          "pass": false,
+          "argmaxDifference": 428,
+          "greedyToken": 15
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0009948375116621833,
+          "rmsDifference": 0.0002010279868091553,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 193120,
+          "greedyToken": 15
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 15,
+          "independentF64": 26.217361204430915,
+          "repairedDoppler": 26.216896057128906
+        },
+        {
+          "tokenId": 193120,
+          "independentF64": -7.7201635005365645,
+          "repairedDoppler": -7.719168663024902
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.001310110092163086,
+          "rmsDifference": 0.0001920860330220601,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 428,
+          "greedyToken": 15
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0015200376510620117,
+          "rmsDifference": 0.0002729150560979906,
+          "valuesOverTolerance": 71,
+          "pass": false,
+          "argmaxDifference": 428,
+          "greedyToken": 15
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 20,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0005959087628516491,
+          "rmsDifference": 0.00012693095102882216,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 83698,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009686426322033093,
+          "rmsDifference": 0.0001646991086117261,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 12896,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012415551855760043,
+          "rmsDifference": 0.0002123427131223379,
+          "valuesOverTolerance": 20,
+          "pass": false,
+          "argmaxDifference": 1826,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0008592278058827674,
+          "rmsDifference": 0.00015920562486077967,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 119983,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 23.05868788420786,
+          "repairedDoppler": 23.05865478515625
+        },
+        {
+          "tokenId": 119983,
+          "independentF64": -3.4876918465192617,
+          "repairedDoppler": -3.486832618713379
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0012491345405578613,
+          "rmsDifference": 0.00020589857471930864,
+          "valuesOverTolerance": 19,
+          "pass": false,
+          "argmaxDifference": 49403,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0013470649719238281,
+          "rmsDifference": 0.00024556519441216583,
+          "valuesOverTolerance": 56,
+          "pass": false,
+          "argmaxDifference": 1826,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 21,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007732996563438732,
+          "rmsDifference": 0.00018535295412918165,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 41276,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009684300215537789,
+          "rmsDifference": 0.00019088734181344432,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 448,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001233066003721195,
+          "rmsDifference": 0.00023759494437223264,
+          "valuesOverTolerance": 21,
+          "pass": false,
+          "argmaxDifference": 96198,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.00114682049126702,
+          "rmsDifference": 0.0002147825081544634,
+          "valuesOverTolerance": 8,
+          "pass": false,
+          "argmaxDifference": 76917,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 23.19428602048204,
+          "repairedDoppler": 23.194101333618164
+        },
+        {
+          "tokenId": 76917,
+          "independentF64": -1.3763782706799976,
+          "repairedDoppler": -1.3775250911712646
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011969804763793945,
+          "rmsDifference": 0.00021856218744817815,
+          "valuesOverTolerance": 9,
+          "pass": false,
+          "argmaxDifference": 31749,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.00133514404296875,
+          "rmsDifference": 0.0002728805162298273,
+          "valuesOverTolerance": 105,
+          "pass": false,
+          "argmaxDifference": 9771,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 22,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008710758943033525,
+          "rmsDifference": 0.00016615968767589925,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 46236,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0006231933951372781,
+          "rmsDifference": 0.0001101016105024415,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 24,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0011552257935192323,
+          "rmsDifference": 0.0002115046688364575,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 18950,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0014038471613346815,
+          "rmsDifference": 0.00023852643157526158,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 15,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 15,
+          "independentF64": 17.379182854119342,
+          "repairedDoppler": 17.377779006958008
+        },
+        {
+          "tokenId": 16,
+          "independentF64": 26.501065455112663,
+          "repairedDoppler": 26.500051498413086
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010833740234375,
+          "rmsDifference": 0.0002488417117348671,
+          "valuesOverTolerance": 5,
+          "pass": false,
+          "argmaxDifference": 203710,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0013332366943359375,
+          "rmsDifference": 0.00023247552428167208,
+          "valuesOverTolerance": 13,
+          "pass": false,
+          "argmaxDifference": 15,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 23,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007103313956382529,
+          "rmsDifference": 0.00013554600732450307,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 226796,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0006773340741901279,
+          "rmsDifference": 0.00011878910893752606,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 66378,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0007682514983162747,
+          "rmsDifference": 0.0001625111119740975,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 108095,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0007546564400962019,
+          "rmsDifference": 0.00015324872609372148,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 28788,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 24.25711206077623,
+          "repairedDoppler": 24.256977081298828
+        },
+        {
+          "tokenId": 28788,
+          "independentF64": -3.0791597982705405,
+          "repairedDoppler": -3.0784051418304443
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0007755756378173828,
+          "rmsDifference": 0.0001603272427576545,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 181784,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009510517120361328,
+          "rmsDifference": 0.00020338735039080995,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 242759,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 24,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008892407574441208,
+          "rmsDifference": 0.00019468386050815675,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 136874,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0008930128848607666,
+          "rmsDifference": 0.0001750565410687906,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 19,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009307768097004399,
+          "rmsDifference": 0.0001963910958446877,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 11553,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0008952914360844666,
+          "rmsDifference": 0.0001689821161470374,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 57087,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 26.10074632075887,
+          "repairedDoppler": 26.100543975830078
+        },
+        {
+          "tokenId": 57087,
+          "independentF64": 3.0923688114997065,
+          "repairedDoppler": 3.093264102935791
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0011053085327148438,
+          "rmsDifference": 0.00021335463481370273,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 145291,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001123666763305664,
+          "rmsDifference": 0.00022294156951144461,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 53251,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 25,
+      "greedyToken": 17,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008043089717444385,
+          "rmsDifference": 0.0001697400159129439,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 72118,
+          "greedyToken": 17
+        },
+        "historical": {
+          "maxAbsDifference": 0.0005642989517031793,
+          "rmsDifference": 0.00011985005907245189,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 22033,
+          "greedyToken": 17
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0007626397969764387,
+          "rmsDifference": 0.0001407176868104616,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 173533,
+          "greedyToken": 17
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0008576013131431637,
+          "rmsDifference": 0.00016441437983835404,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 15,
+          "greedyToken": 17
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 15,
+          "independentF64": 17.505475292353182,
+          "repairedDoppler": 17.50461769104004
+        },
+        {
+          "tokenId": 17,
+          "independentF64": 29.088723660376758,
+          "repairedDoppler": 29.088363647460938
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.00091552734375,
+          "rmsDifference": 0.00019975514133896107,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 21,
+          "greedyToken": 17
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0011386871337890625,
+          "rmsDifference": 0.00019375726465038694,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 15,
+          "greedyToken": 17
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 26,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010244197026221258,
+          "rmsDifference": 0.0001781243175278207,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 99190,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0013201481476752264,
+          "rmsDifference": 0.00020085131888865896,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 99190,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009828156605689031,
+          "rmsDifference": 0.00017785371659403694,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 99190,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.000940365352354533,
+          "rmsDifference": 0.00015874082986193136,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 66887,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.68746363933178,
+          "repairedDoppler": 25.687314987182617
+        },
+        {
+          "tokenId": 66887,
+          "independentF64": 5.014289813480653,
+          "repairedDoppler": 5.015230178833008
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008658766746520996,
+          "rmsDifference": 0.0001511066776507894,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 12183,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0007898211479187012,
+          "rmsDifference": 0.00014514312645172827,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 12183,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 27,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0018976567168014213,
+          "rmsDifference": 0.00034518224496296785,
+          "valuesOverTolerance": 1209,
+          "pass": false,
+          "argmaxDifference": 2086,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0017305368619930928,
+          "rmsDifference": 0.00035031487556877596,
+          "valuesOverTolerance": 1425,
+          "pass": false,
+          "argmaxDifference": 32290,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0017054848465871686,
+          "rmsDifference": 0.00032897278883088014,
+          "valuesOverTolerance": 922,
+          "pass": false,
+          "argmaxDifference": 83817,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0015674119321396063,
+          "rmsDifference": 0.0002872939236846404,
+          "valuesOverTolerance": 200,
+          "pass": false,
+          "argmaxDifference": 98175,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 26.87618676026698,
+          "repairedDoppler": 26.876102447509766
+        },
+        {
+          "tokenId": 98175,
+          "independentF64": 4.594872426477284,
+          "repairedDoppler": 4.596439838409424
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009696781635284424,
+          "rmsDifference": 0.00018918032726203936,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 132891,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009672641754150391,
+          "rmsDifference": 0.00019129564601101916,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 5963,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 28,
+      "greedyToken": 18,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.002666609627555161,
+          "rmsDifference": 0.00041180143124459027,
+          "valuesOverTolerance": 4424,
+          "pass": false,
+          "argmaxDifference": 116981,
+          "greedyToken": 18
+        },
+        "historical": {
+          "maxAbsDifference": 0.0032314833918718477,
+          "rmsDifference": 0.0004832513047957658,
+          "valuesOverTolerance": 10106,
+          "pass": false,
+          "argmaxDifference": 106534,
+          "greedyToken": 18
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.002796786171744614,
+          "rmsDifference": 0.00043053462263993554,
+          "valuesOverTolerance": 5714,
+          "pass": false,
+          "argmaxDifference": 116981,
+          "greedyToken": 18
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0029949721614030977,
+          "rmsDifference": 0.0004686205407194203,
+          "valuesOverTolerance": 8571,
+          "pass": false,
+          "argmaxDifference": 106534,
+          "greedyToken": 18
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 18,
+          "independentF64": 29.45013371971866,
+          "repairedDoppler": 29.450071334838867
+        },
+        {
+          "tokenId": 106534,
+          "independentF64": -6.302488761834255,
+          "repairedDoppler": -6.299493789672852
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.000789642333984375,
+          "rmsDifference": 0.00015975374064481794,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 15975,
+          "greedyToken": 18
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009870529174804688,
+          "rmsDifference": 0.00014781618040498194,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 15,
+          "greedyToken": 18
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 29,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0012207405031809948,
+          "rmsDifference": 0.00024302439263081395,
+          "valuesOverTolerance": 32,
+          "pass": false,
+          "argmaxDifference": 7317,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0014626125146389723,
+          "rmsDifference": 0.00026595917551129996,
+          "valuesOverTolerance": 133,
+          "pass": false,
+          "argmaxDifference": 789,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012830281477520522,
+          "rmsDifference": 0.00024519143556787616,
+          "valuesOverTolerance": 48,
+          "pass": false,
+          "argmaxDifference": 125832,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0011165999654408898,
+          "rmsDifference": 0.00021997922718565538,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 33436,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 26.184431110846305,
+          "repairedDoppler": 26.184297561645508
+        },
+        {
+          "tokenId": 33436,
+          "independentF64": 0.4934461451288584,
+          "repairedDoppler": 0.4945627450942993
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009341239929199219,
+          "rmsDifference": 0.0001666961955412622,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 51214,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0008130073547363281,
+          "rmsDifference": 0.00016000014966905714,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 15207,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 30,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0011440295088434027,
+          "rmsDifference": 0.00023486250581907688,
+          "valuesOverTolerance": 19,
+          "pass": false,
+          "argmaxDifference": 121606,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0015479744026745124,
+          "rmsDifference": 0.0003121990321000225,
+          "valuesOverTolerance": 456,
+          "pass": false,
+          "argmaxDifference": 1679,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001419850665675293,
+          "rmsDifference": 0.000295274538835825,
+          "valuesOverTolerance": 256,
+          "pass": false,
+          "argmaxDifference": 34896,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0012766540596569342,
+          "rmsDifference": 0.0002690641659346596,
+          "valuesOverTolerance": 91,
+          "pass": false,
+          "argmaxDifference": 1679,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 27.293314474468303,
+          "repairedDoppler": 27.293315887451172
+        },
+        {
+          "tokenId": 1679,
+          "independentF64": 4.974722701256505,
+          "repairedDoppler": 4.975999355316162
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010287761688232422,
+          "rmsDifference": 0.00017159148151454066,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 145291,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009214878082275391,
+          "rmsDifference": 0.0002001079961534517,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 46644,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 31,
+      "greedyToken": 19,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0016211533955164947,
+          "rmsDifference": 0.0002912908318422167,
+          "valuesOverTolerance": 319,
+          "pass": false,
+          "argmaxDifference": 199662,
+          "greedyToken": 19
+        },
+        "historical": {
+          "maxAbsDifference": 0.0029304886272975006,
+          "rmsDifference": 0.0004889499688083935,
+          "valuesOverTolerance": 10717,
+          "pass": false,
+          "argmaxDifference": 199662,
+          "greedyToken": 19
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0026527309826441803,
+          "rmsDifference": 0.00045637766910376214,
+          "valuesOverTolerance": 7682,
+          "pass": false,
+          "argmaxDifference": 199662,
+          "greedyToken": 19
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0025398793345914328,
+          "rmsDifference": 0.0004188253029933213,
+          "valuesOverTolerance": 4937,
+          "pass": false,
+          "argmaxDifference": 113325,
+          "greedyToken": 19
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 19,
+          "independentF64": 30.28771804011084,
+          "repairedDoppler": 30.287622451782227
+        },
+        {
+          "tokenId": 113325,
+          "independentF64": -3.3933999600535856,
+          "repairedDoppler": -3.390860080718994
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010576248168945312,
+          "rmsDifference": 0.0001949192081289373,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 5815,
+          "greedyToken": 19
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001552581787109375,
+          "rmsDifference": 0.00015478877728779134,
+          "valuesOverTolerance": 5,
+          "pass": false,
+          "argmaxDifference": 15,
+          "greedyToken": 19
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 32,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.000772510340467214,
+          "rmsDifference": 0.0001498565979258463,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 25730,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0013595922869713561,
+          "rmsDifference": 0.00016377799491494995,
+          "valuesOverTolerance": 5,
+          "pass": false,
+          "argmaxDifference": 17,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009523733538658874,
+          "rmsDifference": 0.0001494003219580998,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 17,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0012680395525963561,
+          "rmsDifference": 0.00016054144590771317,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 17,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 17,
+          "independentF64": 4.528085102232072,
+          "repairedDoppler": 4.529353141784668
+        },
+        {
+          "tokenId": 198,
+          "independentF64": 25.788024493951024,
+          "repairedDoppler": 25.787965774536133
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0005249977111816406,
+          "rmsDifference": 0.0001094362164470581,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 189360,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0006022453308105469,
+          "rmsDifference": 0.00012257365747992945,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 179636,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 33,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008661518842716376,
+          "rmsDifference": 0.0001771394593653205,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 99424,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0011326695078304194,
+          "rmsDifference": 0.0002377897877029044,
+          "valuesOverTolerance": 17,
+          "pass": false,
+          "argmaxDifference": 171527,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012015710277961666,
+          "rmsDifference": 0.0002562118996033293,
+          "valuesOverTolerance": 22,
+          "pass": false,
+          "argmaxDifference": 87474,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0012627405895366817,
+          "rmsDifference": 0.00022171060256368676,
+          "valuesOverTolerance": 6,
+          "pass": false,
+          "argmaxDifference": 105918,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 26.85475108798395,
+          "repairedDoppler": 26.854778289794922
+        },
+        {
+          "tokenId": 105918,
+          "independentF64": 0.06886713077887152,
+          "repairedDoppler": 0.0701298713684082
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0007464885711669922,
+          "rmsDifference": 0.00015638561267582271,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 51334,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.00084686279296875,
+          "rmsDifference": 0.00020450213324300548,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 81913,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 34,
+      "greedyToken": 20,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0011042711685322892,
+          "rmsDifference": 0.00024586347938377776,
+          "valuesOverTolerance": 22,
+          "pass": false,
+          "argmaxDifference": 243765,
+          "greedyToken": 20
+        },
+        "historical": {
+          "maxAbsDifference": 0.0020314691966571985,
+          "rmsDifference": 0.00035000292422077925,
+          "valuesOverTolerance": 1685,
+          "pass": false,
+          "argmaxDifference": 106534,
+          "greedyToken": 20
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0018431185191669641,
+          "rmsDifference": 0.0003354379973721053,
+          "valuesOverTolerance": 1192,
+          "pass": false,
+          "argmaxDifference": 106534,
+          "greedyToken": 20
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.002037322277846254,
+          "rmsDifference": 0.0003380000332169177,
+          "valuesOverTolerance": 1242,
+          "pass": false,
+          "argmaxDifference": 243765,
+          "greedyToken": 20
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 20,
+          "independentF64": 29.824002846186595,
+          "repairedDoppler": 29.824127197265625
+        },
+        {
+          "tokenId": 243765,
+          "independentF64": -1.62283817505342,
+          "repairedDoppler": -1.6208008527755737
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008981227874755859,
+          "rmsDifference": 0.00016475054463353702,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 96389,
+          "greedyToken": 20
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.00091552734375,
+          "rmsDifference": 0.00011661577499856392,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 15,
+          "greedyToken": 20
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 35,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0006278930138645666,
+          "rmsDifference": 0.00012476410585287773,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20491,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0008375405272684766,
+          "rmsDifference": 0.00016171155144687106,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 22040,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008896194075918018,
+          "rmsDifference": 0.00018047330697230985,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 14376,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0009723353038059157,
+          "rmsDifference": 0.00018898453021237778,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 5314,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.731061312861147,
+          "repairedDoppler": 25.73089027404785
+        },
+        {
+          "tokenId": 5314,
+          "independentF64": -0.3968475508342014,
+          "repairedDoppler": -0.3958752155303955
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0007103681564331055,
+          "rmsDifference": 0.0001461584068264839,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 4863,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.000873565673828125,
+          "rmsDifference": 0.00018289061965814013,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 52828,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 36,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009277871093162915,
+          "rmsDifference": 0.0001865485965714127,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 201539,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.00119369382823864,
+          "rmsDifference": 0.00022250031185888175,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 70500,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012309575173399256,
+          "rmsDifference": 0.0002784136086738098,
+          "valuesOverTolerance": 93,
+          "pass": false,
+          "argmaxDifference": 31702,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0007994120298850937,
+          "rmsDifference": 0.00017142902427323825,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 20491,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 26.24798591477412,
+          "repairedDoppler": 26.247600555419922
+        },
+        {
+          "tokenId": 20491,
+          "independentF64": 1.8051009232820046,
+          "repairedDoppler": 1.8059003353118896
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008771419525146484,
+          "rmsDifference": 0.0001842234828381312,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 131913,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0011362135410308838,
+          "rmsDifference": 0.00023527203518970002,
+          "valuesOverTolerance": 5,
+          "pass": false,
+          "argmaxDifference": 7196,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 37,
+      "greedyToken": 21,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010106209266025346,
+          "rmsDifference": 0.0001896064314817205,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 104296,
+          "greedyToken": 21
+        },
+        "historical": {
+          "maxAbsDifference": 0.0011910182702550287,
+          "rmsDifference": 0.00023649323745625307,
+          "valuesOverTolerance": 20,
+          "pass": false,
+          "argmaxDifference": 131558,
+          "greedyToken": 21
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0013509168617167333,
+          "rmsDifference": 0.00028035924015394045,
+          "valuesOverTolerance": 161,
+          "pass": false,
+          "argmaxDifference": 19858,
+          "greedyToken": 21
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0012005550134190912,
+          "rmsDifference": 0.0001921265379122832,
+          "valuesOverTolerance": 4,
+          "pass": false,
+          "argmaxDifference": 131558,
+          "greedyToken": 21
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 21,
+          "independentF64": 27.855574854790802,
+          "repairedDoppler": 27.855403900146484
+        },
+        {
+          "tokenId": 131558,
+          "independentF64": -7.777606843160392,
+          "repairedDoppler": -7.776406288146973
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008642077445983887,
+          "rmsDifference": 0.00017539009728522034,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 21535,
+          "greedyToken": 21
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.00110626220703125,
+          "rmsDifference": 0.00021446562297425432,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 86891,
+          "greedyToken": 21
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 38,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009933063789402397,
+          "rmsDifference": 0.00016037082743906815,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 4862,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010276230006489584,
+          "rmsDifference": 0.00015614713603434176,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 21,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0007737202948332467,
+          "rmsDifference": 0.00016115875419718626,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 96752,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0007937472024854841,
+          "rmsDifference": 0.00014768329161811132,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 45,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 45,
+          "independentF64": 4.286822982533843,
+          "repairedDoppler": 4.287616729736328
+        },
+        {
+          "tokenId": 198,
+          "independentF64": 25.133757843148913,
+          "repairedDoppler": 25.13374137878418
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008854866027832031,
+          "rmsDifference": 0.00014363284312020718,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 31438,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0011334419250488281,
+          "rmsDifference": 0.00017399650275101881,
+          "valuesOverTolerance": 5,
+          "pass": false,
+          "argmaxDifference": 69285,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 39,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008441220417161333,
+          "rmsDifference": 0.00018692107870768506,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 125545,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0008094156111606576,
+          "rmsDifference": 0.00017927158314621738,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 16140,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009102214565670508,
+          "rmsDifference": 0.00018661087544540755,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 43810,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.00090041467053803,
+          "rmsDifference": 0.00017169645389641166,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 72255,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 25.7854897167245,
+          "repairedDoppler": 25.78554344177246
+        },
+        {
+          "tokenId": 72255,
+          "independentF64": -2.3784457176079044,
+          "repairedDoppler": -2.3793461322784424
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008766651153564453,
+          "rmsDifference": 0.00016088097478681124,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 117038,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0011298656463623047,
+          "rmsDifference": 0.00023207322251611706,
+          "valuesOverTolerance": 15,
+          "pass": false,
+          "argmaxDifference": 3346,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 40,
+      "greedyToken": 22,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007590067969482917,
+          "rmsDifference": 0.00015209205271791282,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 57431,
+          "greedyToken": 22
+        },
+        "historical": {
+          "maxAbsDifference": 0.001436184885815539,
+          "rmsDifference": 0.00022807638840838295,
+          "valuesOverTolerance": 96,
+          "pass": false,
+          "argmaxDifference": 106534,
+          "greedyToken": 22
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.001434802237727073,
+          "rmsDifference": 0.00024667356929248803,
+          "valuesOverTolerance": 68,
+          "pass": false,
+          "argmaxDifference": 5370,
+          "greedyToken": 22
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0011548509624756953,
+          "rmsDifference": 0.0001871426481680736,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 106534,
+          "greedyToken": 22
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 22,
+          "independentF64": 28.160701587399917,
+          "repairedDoppler": 28.160552978515625
+        },
+        {
+          "tokenId": 106534,
+          "independentF64": -3.2742485513714112,
+          "repairedDoppler": -3.2730937004089355
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009496212005615234,
+          "rmsDifference": 0.0001872801771243313,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 65280,
+          "greedyToken": 22
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0011577606201171875,
+          "rmsDifference": 0.0002428307573327715,
+          "valuesOverTolerance": 22,
+          "pass": false,
+          "argmaxDifference": 5463,
+          "greedyToken": 22
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 41,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008734489882904484,
+          "rmsDifference": 0.0001407325950121856,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 78461,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007803139455933028,
+          "rmsDifference": 0.00016244847195879454,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 99045,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0010598887965040937,
+          "rmsDifference": 0.00022854135283526694,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 9428,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0007725627678629721,
+          "rmsDifference": 0.00013862587586693963,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 18807,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 25.235399936225235,
+          "repairedDoppler": 25.235177993774414
+        },
+        {
+          "tokenId": 18807,
+          "independentF64": -2.8157931239861247,
+          "repairedDoppler": -2.8150205612182617
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008703470230102539,
+          "rmsDifference": 0.0001860198273220843,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 49575,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0014262199401855469,
+          "rmsDifference": 0.0002666401340870769,
+          "valuesOverTolerance": 104,
+          "pass": false,
+          "argmaxDifference": 4558,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 42,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0007138826469359483,
+          "rmsDifference": 0.00013864464505281763,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 224752,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.0009759087299185953,
+          "rmsDifference": 0.00019563464206920166,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 51561,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0015655267627749936,
+          "rmsDifference": 0.00019539454595944282,
+          "valuesOverTolerance": 6,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0010188522212866147,
+          "rmsDifference": 0.00023914857580868094,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 90325,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 25.350768376970887,
+          "repairedDoppler": 25.350566864013672
+        },
+        {
+          "tokenId": 90325,
+          "independentF64": 2.828958839403904,
+          "repairedDoppler": 2.827939987182617
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.00128936767578125,
+          "rmsDifference": 0.0002924781339519598,
+          "valuesOverTolerance": 143,
+          "pass": false,
+          "argmaxDifference": 21071,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0017681121826171875,
+          "rmsDifference": 0.0002456117435385654,
+          "valuesOverTolerance": 29,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 43,
+      "greedyToken": 23,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0010227841333660947,
+          "rmsDifference": 0.00020078598479887652,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 54674,
+          "greedyToken": 23
+        },
+        "historical": {
+          "maxAbsDifference": 0.001536747507104863,
+          "rmsDifference": 0.00030545256873261553,
+          "valuesOverTolerance": 301,
+          "pass": false,
+          "argmaxDifference": 99018,
+          "greedyToken": 23
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0011386837529787641,
+          "rmsDifference": 0.00022027653029288872,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 23
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0008982977191729358,
+          "rmsDifference": 0.00015478763533181277,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 895,
+          "greedyToken": 23
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 23,
+          "independentF64": 27.22240773820367,
+          "repairedDoppler": 27.222000122070312
+        },
+        {
+          "tokenId": 895,
+          "independentF64": 0.21443449349004795,
+          "repairedDoppler": 0.2153327912092209
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0013699531555175781,
+          "rmsDifference": 0.0002952000657414872,
+          "valuesOverTolerance": 160,
+          "pass": false,
+          "argmaxDifference": 147216,
+          "greedyToken": 23
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0015020370483398438,
+          "rmsDifference": 0.00022212919283989984,
+          "valuesOverTolerance": 13,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 23
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 44,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008244470683367311,
+          "rmsDifference": 0.00013386116978858175,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 21742,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.000741080595752841,
+          "rmsDifference": 0.00015002067170778418,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 36774,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0009432175560771805,
+          "rmsDifference": 0.0002377796534639556,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 33358,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0006256748844046811,
+          "rmsDifference": 0.00012533371808417027,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 9411,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 24.26054470768123,
+          "repairedDoppler": 24.260435104370117
+        },
+        {
+          "tokenId": 9411,
+          "independentF64": 4.169765407879267,
+          "repairedDoppler": 4.170391082763672
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009262561798095703,
+          "rmsDifference": 0.00015653841302130776,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 21441,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.00139617919921875,
+          "rmsDifference": 0.0002526359944125062,
+          "valuesOverTolerance": 58,
+          "pass": false,
+          "argmaxDifference": 18050,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 45,
+      "greedyToken": 16,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0006487643605370685,
+          "rmsDifference": 0.00012680741171393976,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 216308,
+          "greedyToken": 16
+        },
+        "historical": {
+          "maxAbsDifference": 0.000832909291240469,
+          "rmsDifference": 0.00015713845525077452,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 42690,
+          "greedyToken": 16
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0012990892953279598,
+          "rmsDifference": 0.00017748847830092402,
+          "valuesOverTolerance": 3,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 16
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0008433216705414637,
+          "rmsDifference": 0.0001585310712386322,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 117252,
+          "greedyToken": 16
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 16,
+          "independentF64": 25.02792632441586,
+          "repairedDoppler": 25.02785873413086
+        },
+        {
+          "tokenId": 117252,
+          "independentF64": -4.38262919126893,
+          "repairedDoppler": -4.381785869598389
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009176731109619141,
+          "rmsDifference": 0.0001498357751655768,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 492,
+          "greedyToken": 16
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001522064208984375,
+          "rmsDifference": 0.00023770536712099517,
+          "valuesOverTolerance": 11,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 16
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 46,
+      "greedyToken": 24,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008741962455660612,
+          "rmsDifference": 0.0001900874192915324,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 9398,
+          "greedyToken": 24
+        },
+        "historical": {
+          "maxAbsDifference": 0.0010017804772024519,
+          "rmsDifference": 0.0002115097006398128,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 17242,
+          "greedyToken": 24
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008675338523231879,
+          "rmsDifference": 0.00016519159939829887,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 22317,
+          "greedyToken": 24
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0009707933326028595,
+          "rmsDifference": 0.00019281608754735696,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 30425,
+          "greedyToken": 24
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 24,
+          "independentF64": 25.47596575012367,
+          "repairedDoppler": 25.475820541381836
+        },
+        {
+          "tokenId": 30425,
+          "independentF64": -2.4602126603980325,
+          "repairedDoppler": -2.4592418670654297
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0010614395141601562,
+          "rmsDifference": 0.00022610391837955422,
+          "valuesOverTolerance": 5,
+          "pass": false,
+          "argmaxDifference": 91862,
+          "greedyToken": 24
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.00130462646484375,
+          "rmsDifference": 0.00025345134623438017,
+          "valuesOverTolerance": 14,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 24
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 47,
+      "greedyToken": 198,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0011225088960038487,
+          "rmsDifference": 0.00022737716543199041,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 99020,
+          "greedyToken": 198
+        },
+        "historical": {
+          "maxAbsDifference": 0.0012676049648243648,
+          "rmsDifference": 0.00016789089587716238,
+          "valuesOverTolerance": 1,
+          "pass": false,
+          "argmaxDifference": 9885,
+          "greedyToken": 198
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0008096286816572373,
+          "rmsDifference": 0.00014947527392684948,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 1245,
+          "greedyToken": 198
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.000791556510757907,
+          "rmsDifference": 0.00016059587936410725,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 40012,
+          "greedyToken": 198
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 198,
+          "independentF64": 22.22688879884286,
+          "repairedDoppler": 22.22659683227539
+        },
+        {
+          "tokenId": 40012,
+          "independentF64": -3.759105675544906,
+          "repairedDoppler": -3.759897232055664
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009114742279052734,
+          "rmsDifference": 0.00017460451727662564,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 78,
+          "greedyToken": 198
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0009717941284179688,
+          "rmsDifference": 0.00019099824208879322,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 54080,
+          "greedyToken": 198
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 48,
+      "greedyToken": 17,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0012519276932110301,
+          "rmsDifference": 0.0001884902268196478,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 16,
+          "greedyToken": 17
+        },
+        "historical": {
+          "maxAbsDifference": 0.000858248011012197,
+          "rmsDifference": 0.00015403260592418126,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 67514,
+          "greedyToken": 17
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0011321660050338522,
+          "rmsDifference": 0.00021297173373022104,
+          "valuesOverTolerance": 11,
+          "pass": false,
+          "argmaxDifference": 110114,
+          "greedyToken": 17
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.0007414438361301734,
+          "rmsDifference": 0.00014358684066114184,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 23517,
+          "greedyToken": 17
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 17,
+          "independentF64": 23.779471910681423,
+          "repairedDoppler": 23.77936363220215
+        },
+        {
+          "tokenId": 23517,
+          "independentF64": -4.908267059124075,
+          "repairedDoppler": -4.909008502960205
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0006875991821289062,
+          "rmsDifference": 0.0001371500732589959,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 46881,
+          "greedyToken": 17
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0012364387512207031,
+          "rmsDifference": 0.00022886810686755324,
+          "valuesOverTolerance": 9,
+          "pass": false,
+          "argmaxDifference": 120747,
+          "greedyToken": 17
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 49,
+      "greedyToken": 15,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0008783958032425598,
+          "rmsDifference": 0.00016950776259896735,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 72102,
+          "greedyToken": 15
+        },
+        "historical": {
+          "maxAbsDifference": 0.0007091769089964117,
+          "rmsDifference": 9.891878936743541e-05,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 42690,
+          "greedyToken": 15
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0006860816014110371,
+          "rmsDifference": 0.00014288731165577884,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 96255,
+          "greedyToken": 15
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.000746095359572152,
+          "rmsDifference": 0.00016543165272981747,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 54866,
+          "greedyToken": 15
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 15,
+          "independentF64": 27.136028939815304,
+          "repairedDoppler": 27.13608169555664
+        },
+        {
+          "tokenId": 54866,
+          "independentF64": -3.862341249168166,
+          "repairedDoppler": -3.8615951538085938
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0009813308715820312,
+          "rmsDifference": 0.00016828499657911862,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 248044,
+          "greedyToken": 15
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.001140594482421875,
+          "rmsDifference": 0.00015798670233808595,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 248044,
+          "greedyToken": 15
+        }
+      }
+    },
+    {
+      "index": 2,
+      "step": 50,
+      "greedyToken": 248046,
+      "comparisons": {
+        "doppler": {
+          "maxAbsDifference": 0.0009045740524552537,
+          "rmsDifference": 0.00015759285044740997,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 74137,
+          "greedyToken": 248046
+        },
+        "historical": {
+          "maxAbsDifference": 0.001097667660427959,
+          "rmsDifference": 0.0002410776048055954,
+          "valuesOverTolerance": 15,
+          "pass": false,
+          "argmaxDifference": 26666,
+          "greedyToken": 248046
+        },
+        "sourceChunk": {
+          "maxAbsDifference": 0.0017878140578804214,
+          "rmsDifference": 0.0004455443910885272,
+          "valuesOverTolerance": 3809,
+          "pass": false,
+          "argmaxDifference": 4810,
+          "greedyToken": 248046
+        },
+        "repairedDoppler": {
+          "maxAbsDifference": 0.001117481843592949,
+          "rmsDifference": 0.00022587589790726945,
+          "valuesOverTolerance": 2,
+          "pass": false,
+          "argmaxDifference": 74137,
+          "greedyToken": 248046
+        }
+      },
+      "selectedValues": [
+        {
+          "tokenId": 74137,
+          "independentF64": -0.6257277866760514,
+          "repairedDoppler": -0.6246103048324585
+        },
+        {
+          "tokenId": 248046,
+          "independentF64": 23.057998256670658,
+          "repairedDoppler": 23.05754852294922
+        }
+      ],
+      "otherTargets": {
+        "historical": {
+          "maxAbsDifference": 0.0008640289306640625,
+          "rmsDifference": 0.00013105054410458313,
+          "valuesOverTolerance": 0,
+          "pass": true,
+          "argmaxDifference": 17,
+          "greedyToken": 248046
+        },
+        "sourceF32": {
+          "maxAbsDifference": 0.0018372535705566406,
+          "rmsDifference": 0.0003471265008538427,
+          "valuesOverTolerance": 629,
+          "pass": false,
+          "argmaxDifference": 9235,
+          "greedyToken": 248046
+        }
+      }
+    }
+  ]
+}

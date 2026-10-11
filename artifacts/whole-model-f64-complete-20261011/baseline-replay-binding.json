@@ -1,0 +1,15 @@
+{
+  "schema": "doppler.fixed-prefix-diagnostic-binding/v1",
+  "archivePath": "artifacts/partition-contracts-20261010/doppler-gpu-0.6.27.tgz",
+  "archiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "manifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "modelDirectory": "models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "unchangedWeights": true,
+  "prefixes": 55,
+  "reusePrefixes": 2,
+  "tolerance": 0.001,
+  "referenceActivated": false,
+  "standardArchiveChanged": false,
+  "command": "DOPPLER_FORENSIC_FULL_PREFIXES=1 node tests/integration/frozen-reference-producer-replay.js artifacts/partition-contracts-20261010/doppler-gpu-0.6.27.tgz models/local/qwen-3-5-0-8b-q4k-ehaf16 reports/local/whole-model-f64-complete-20261011/baseline-prefixes.json current"
+}
