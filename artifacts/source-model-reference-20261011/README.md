@@ -131,3 +131,23 @@ The first offline comparison rejected metadata-only recurrence observations;
 now selects only captured recurrence outputs, with a synthetic regression.
 `qwen35-all-ffn-reference.py.gz` preserves the executed corrected source; the
 receipt binds the complete raw report and GPU observation by SHA-256.
+
+## Cache rounding sensitivity
+
+`cache-rounding.json` retains independent source values immediately before F16
+cache storage and compares them with captured GPU pre-storage values. In the
+first full-attention layer, maximum value-projection difference grows from
+0.0000052452087402 before storage to 0.0009765625 after rounding. Of 661 different
+stored values, 611 are adjacent F16 numbers. Maximum key difference grows from
+0.0000316575169563 to 0.001953125.
+
+Holding each captured query fixed, substituting the independently evolved cache
+changes float64 attention output by up to 0.0001005140493 in layer 3 and
+0.0019243072713 in layer 23. This is an offline counterfactual; no observed value
+is fed into either model execution. It demonstrates amplification through cache
+rounding, not a complete attribution of the final logit difference or a qualified
+reference replacement. Complete-model error remains 0.0014121532440185547.
+
+Eleven synthetic checks include an exact F16-midpoint crossing and constant-query
+cache substitution with a known output difference. No runtime, model precision,
+acceptance tolerance or protected fixture changed.

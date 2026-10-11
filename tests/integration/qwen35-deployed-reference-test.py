@@ -35,6 +35,22 @@ capture = {'observation': {'timeline': [
 expected = reference.compare_attention_history(model, capture, cache)
 assert expected[0]['maxAbsError'] == 0
 assert all(item['differentStoredValues'] == 0 for item in expected[0]['independentlyEvolvedCache'])
+assert expected[0]['cacheOnlyOutputMaxAbsDifference'] == 0
+changed_cache = copy.deepcopy(cache)
+changed_cache.layers[0].values += 2
+changed = reference.compare_attention_history(model, capture, changed_cache)
+assert changed[0]['maxAbsError'] == 0
+assert changed[0]['cacheOnlyOutputMaxAbsDifference'] == 2
+
+# Two F32 values straddle the midpoint between adjacent F16 values near one.
+midpoint = np.float32(1 + 2 ** -11)
+below = np.nextafter(midpoint, np.float32(-np.inf))
+above = np.nextafter(midpoint, np.float32(np.inf))
+rounding = reference.compare_storage_rounding(np.array([below]), np.array([above]))
+assert rounding['differentStoredValues'] == rounding['adjacentStoredValues'] == 1
+assert rounding['postStorageMaxAbsError'] == 2 ** -10
+assert rounding['preStorageMaxAbsError'] == 2 ** -22
+assert rounding['amplifiedValues'] == 1
 
 binary = copy.deepcopy(capture)
 for item in binary['observation']['timeline']:
@@ -115,4 +131,5 @@ print(json.dumps({'constantAttentionMean': 'pass', 'binaryCaptureEquivalence': '
                   'missingHistoryRejected': 'pass', 'nonfiniteCaptureRejected': 'pass',
                   'scalarRecurrenceClosedForm': 'pass', 'missingRecurrenceHistoryRejected': 'pass',
                   'distinctLayerWeights': 'pass', 'missingLaterLayerHistoryRejected': 'pass',
-                  'uncapturedOperatorsNotCompared': 'pass'}, indent=2))
+                  'uncapturedOperatorsNotCompared': 'pass',
+                  'cacheOperandIsolation': 'pass', 'halfRoundingAmplification': 'pass'}, indent=2))

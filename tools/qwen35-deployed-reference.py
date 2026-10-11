@@ -33,9 +33,37 @@ def sha256(path):
 
 
 class StoredHalfCache(DynamicCache):
+    def __init__(self, *args, observe_storage=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.storage_observations = {} if observe_storage else None
+
     def update(self, key_states, value_states, layer_idx, *args, **kwargs):
+        if self.storage_observations is not None:
+            history = self.storage_observations.setdefault(layer_idx, {'k_rope': [], 'v_proj': []})
+            for name, value in [('k_rope', key_states), ('v_proj', value_states)]:
+                history[name].append(value.detach().cpu().numpy()[0].transpose(1, 0, 2).copy())
         keys, values = super().update(key_states.half(), value_states.half(), layer_idx, *args, **kwargs)
         return keys.float(), values.float()
+
+
+def compare_storage_rounding(source, observed):
+    """Separate pre-storage differences from F16 rounding amplification."""
+    assert source.shape == observed.shape and source.size
+    assert np.isfinite(source).all() and np.isfinite(observed).all()
+    source_half, observed_half = source.astype(np.float16), observed.astype(np.float16)
+    assert np.isfinite(source_half).all() and np.isfinite(observed_half).all()
+    before = np.abs(source.astype(np.float64) - observed.astype(np.float64))
+    after = np.abs(source_half.astype(np.float64) - observed_half.astype(np.float64))
+    changed = source_half != observed_half
+    lower = np.minimum(source_half, observed_half)
+    upper = np.maximum(source_half, observed_half)
+    adjacent = changed & (np.nextafter(lower, np.float16(np.inf)) == upper)
+    return {'values': int(source.size), 'differentStoredValues': int(changed.sum()),
+            'adjacentStoredValues': int(adjacent.sum()),
+            'preStorageMaxAbsError': float(before.max()),
+            'postStorageMaxAbsError': float(after.max()),
+            'amplifiedValues': int(np.count_nonzero(after > before)),
+            'maxAddedAbsoluteError': float(np.maximum(after - before, 0).max())}
 
 
 def compare(actual, encoded):
@@ -102,8 +130,10 @@ def compare_attention_history(model, capture, cache):
                   for name, parts in histories.items()}
         reference_layer = cache.layers[index]
         cache_rows = []
+        source_stored = {}
         for name, source in [('k_rope', reference_layer.keys), ('v_proj', reference_layer.values)]:
             source = source.detach().cpu().numpy()[0].transpose(1, 0, 2)
+            source_stored[name] = source.astype(np.float64)
             observed = stored[name]
             assert source.dtype == observed.dtype == np.float16
             assert source.shape == observed.shape, 'capture must include complete cache history'
@@ -115,6 +145,10 @@ def compare_attention_history(model, capture, cache):
                                'rmsError': float(np.sqrt(np.mean(error ** 2))),
                                'sourceCacheSha256': hashlib.sha256(source.copy().tobytes()).hexdigest(),
                                'capturedCacheSha256': hashlib.sha256(observed.tobytes()).hexdigest()})
+            observations = getattr(cache, 'storage_observations', None)
+            if observations is not None:
+                before = np.concatenate(observations[index][name])
+                cache_rows[-1]['rounding'] = compare_storage_rounding(before, np.concatenate(histories[name]))
         keys = np.repeat(stored['k_rope'].astype(np.float64), heads // kv_heads, axis=1)
         values = np.repeat(stored['v_proj'].astype(np.float64), heads // kv_heads, axis=1)
         scores = np.einsum('hd,thd->ht', query[0].astype(np.float64), keys) * attention.scaling
@@ -122,12 +156,22 @@ def compare_attention_history(model, capture, cache):
         probabilities = np.exp(scores)
         probabilities /= probabilities.sum(axis=-1, keepdims=True)
         precise = np.einsum('ht,thd->hd', probabilities, values)
+        # Counterfactual diagnostic: hold the observed query fixed and substitute
+        # independently evolved cache operands. Nothing feeds either execution.
+        source_keys = np.repeat(source_stored['k_rope'], heads // kv_heads, axis=1)
+        source_values = np.repeat(source_stored['v_proj'], heads // kv_heads, axis=1)
+        source_scores = np.einsum('hd,thd->ht', query[0].astype(np.float64), source_keys) * attention.scaling
+        source_scores -= source_scores.max(axis=-1, keepdims=True)
+        source_probabilities = np.exp(source_scores)
+        source_probabilities /= source_probabilities.sum(axis=-1, keepdims=True)
+        source_precise = np.einsum('ht,thd->hd', source_probabilities, source_values)
         error = np.abs(actual - precise)
         comparisons.append({'boundary': prefix + 'core_out',
                             'scope': 'Captured query and full captured K/V history, F16 storage, float64 reference',
                             'values': int(actual.size), 'tokens': int(keys.shape[0]),
                             'maxAbsError': float(error.max()),
                             'rmsError': float(np.sqrt(np.mean(error ** 2))),
+                            'cacheOnlyOutputMaxAbsDifference': float(np.abs(source_precise - precise).max()),
                             'independentlyEvolvedCache': cache_rows})
     return comparisons
 
@@ -506,7 +550,8 @@ def run(args):
     for target in targets:
         if target['step'] == 0:
             active_request, next_step = target['index'], 0
-            cache = StoredHalfCache(config=config)
+            cache = StoredHalfCache(config=config, observe_storage=bool(
+                boundary_capture and target['index'] == targets[-1]['index']))
             input_ids = target['inputIds']
         else:
             input_ids = [reference['expected'][target['index']]['steps'][target['step'] - 1]['tokenId']]
