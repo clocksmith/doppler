@@ -84,5 +84,6 @@
       "compressedSha256": "1a9db2536bf8ffccd09cc4b26182d6bb88efbb3de60a76248f561cdc16d8a338"
     }
   },
-  "postToolsDependencyHead": "9dc4832f0d05766373003c002ffdccf220762b5b"
+  "postToolsDependencyHead": "9dc4832f0d05766373003c002ffdccf220762b5b",
+  "subsequentFrozenCheck": "completion-check-green-index.json"
 }

@@ -1,0 +1,33 @@
+{
+  "command": "npm run check:green",
+  "passed": true,
+  "unitFilesPassed": 917,
+  "capsuleFilesCoveredWithinSameInvocation": 36,
+  "sourceFileHashesChecked": 6302,
+  "result": {
+    "exitCode": 0,
+    "startCommit": "e79513e3d59745fb9d54a5caba56bf18ccd2b801",
+    "endCommit": "292be9e83e5e94b82ee1f89ceeddf2a0afdcb1b5",
+    "changedCoveredSource": [],
+    "endStatus": " M artifacts/first-token-stopping-20261011/README.md\n M artifacts/w8a8-package-20261011/README.md\n"
+  },
+  "startStatus": "?? artifacts/w8a8-model-qualification-20261011/benchmark/\n",
+  "files": {
+    "completion-check-green.log.gz": {
+      "sourceSha256": "8588b0541b7acfedc5862a34f3490ee424c25f5a503d4acf2bc69595b63a43f1",
+      "sourceBytes": 476662,
+      "compressedSha256": "344a0cd1bd3c9f64ab794cd35699d315f6243877a5cbd9b468be26067d5d0739"
+    },
+    "completion-check-green-source.json.gz": {
+      "sourceSha256": "40bfb18fb08e76176d8783afd4d534f4d2411b3b925122641333c1636f7aeeb6",
+      "sourceBytes": 820185,
+      "compressedSha256": "e1e9e808596455556a3016638e4d5473895e9e77d145b45f8af6a73dce879f4a"
+    },
+    "completion-check-green-result.json.gz": {
+      "sourceSha256": "cddaf65d31c701c0c3a76319964ae3789ce81dcbc4bfc47bec95cf9183b0e63f",
+      "sourceBytes": 289,
+      "compressedSha256": "bac3886a9a02c051766231dfff24969f20720bafc55ffa1a8b79015802d337fe"
+    }
+  },
+  "scope": "Complete repository gate invocation with unchanged tracked implementation/configuration hashes. Concurrent changes were evidence/documentation only. Does not establish model quality, physical performance, distributed numerical acceptance, or standard archive promotion."
+}
