@@ -481,11 +481,12 @@ console.log('generate-token-ids-behavioral-parity.test: ok');
 
 // A callback cancellation after the first emitted token outranks a simultaneous
 // EOS/stop-token disposition and never enters another decode step.
-for (const surface of ['generate', 'generateTokenIds']) {
+for (const surface of ['generate', 'generateTokenIds', 'generateWithPrefixKV']) {
   for (const firstToken of [10, EOS_TOKEN]) {
     const state = createMinimalState({ maxTokens: 4 });
     const generator = new PipelineGenerator(state);
     stubGenerator(generator, [firstToken, 11, EOS_TOKEN]);
+    generator._prefill = async () => makeLogitsForToken(firstToken);
     let decoded = 0, callbacks = 0;
     const decode = generator._decodeNextTokenViaLogits.bind(generator);
     generator._decodeNextTokenViaLogits = (...args) => { decoded++; return decode(...args); };
@@ -494,6 +495,9 @@ for (const surface of ['generate', 'generateTokenIds']) {
       onToken() { callbacks++; controller.abort(); } };
     if (surface === 'generate') {
       for await (const _ of generator.generate('test', options)) { void _; }
+    } else if (surface === 'generateWithPrefixKV') {
+      const prefix = { cache: { clone: () => ({}) }, seqLen: 0, tokens: [] };
+      for await (const value of generator.generateWithPrefixKV(prefix, 'test', options)) void value;
     } else await generator.generateTokenIds('test', options);
     assert.equal(callbacks, 1);
     assert.equal(decoded, 0);
@@ -506,3 +510,33 @@ for (const surface of ['generate', 'generateTokenIds']) {
   }
 }
 console.log('  ok: first-token callback cancellation disposition and reuse');
+
+// First-token termination must expose the same public disposition as a later
+// token. A token stop takes precedence when its decoded text also matches.
+for (const surface of ['generate', 'generateTokenIds', 'generateWithPrefixKV']) {
+  for (const row of [
+    { token: EOS_TOKEN, stopTokenIds: [], stopSequences: [], reason: 'stop-token' },
+    { token: 9, stopTokenIds: [9], stopSequences: [], reason: 'stop-token' },
+    { token: 10, stopTokenIds: [], stopSequences: ['[10]'], reason: 'stop-sequence' },
+    { token: 9, stopTokenIds: [9], stopSequences: ['[9]'], reason: 'stop-token' },
+  ]) {
+    const state = createMinimalState({ stopTokenIds: row.stopTokenIds });
+    const generator = new PipelineGenerator(state);
+    stubGenerator(generator, [row.token]);
+    generator._prefill = async () => makeLogitsForToken(row.token);
+    generator._runDecodeLoop = async function* () { throw Error('Unexpected decode after initial stop'); };
+    const options = { useChatTemplate: false, stopSequences: row.stopSequences };
+    if (surface === 'generateTokenIds') await generator.generateTokenIds('test', options);
+    else {
+      const stream = surface === 'generate'
+        ? generator.generate('test', options)
+        : generator.generateWithPrefixKV({ cache: { clone: () => ({}) }, seqLen: 0, tokens: [] }, 'test', options);
+      for await (const value of stream) void value;
+    }
+    assert.equal(state.stats.stopReason, row.reason, `${surface} first token ${row.token}`);
+    assert.equal(state.stats.stopTokenId, row.token);
+    assert.equal(state.stats.tokensGenerated, 1);
+    assert.equal(state.isGenerating, false);
+  }
+}
+console.log('  ok: first-token public stopping classification across generation surfaces');

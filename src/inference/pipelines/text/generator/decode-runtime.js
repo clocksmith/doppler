@@ -275,7 +275,8 @@ export async function* _generateTokensInternal(prompt, options = {}, mode = 'tex
       yield* emitToken(this, firstToken, decodeToken);
 
       if (options.signal?.aborted || this._shouldStopAfterAppendedToken(generatedIds, firstToken, opts, decodeRuntime)) {
-        this._recordStopReason(options.signal?.aborted ? 'aborted' : 'stop-token-or-sequence',
+        this._recordStopReason(options.signal?.aborted ? 'aborted'
+          : isStopToken(firstToken, decodeRuntime.stopTokenIds, decodeRuntime.eosToken) ? 'stop-token' : 'stop-sequence',
           options.signal?.aborted ? null : firstToken);
         this._state.stats.decodeTimeMs = 0;
         this._state.stats.tokensGenerated = 1;
@@ -443,7 +444,8 @@ export async function generateTokenIds(prompt, options = {}) {
           tokenIds.push(tokenId);
         }
       } else {
-        this._recordStopReason(options.signal?.aborted ? 'aborted' : 'stop-token-or-sequence',
+        this._recordStopReason(options.signal?.aborted ? 'aborted'
+          : isStopToken(firstToken, decodeRuntime.stopTokenIds, decodeRuntime.eosToken) ? 'stop-token' : 'stop-sequence',
           options.signal?.aborted ? null : firstToken);
         this._state.stats.decodeTimeMs = 0;
         this._state.stats.tokensGenerated = 1;

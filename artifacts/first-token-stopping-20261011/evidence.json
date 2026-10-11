@@ -1,0 +1,19 @@
+{
+  "before": {
+    "sha256": "ba27c9345296f203670591220da1d51b916065ca19ae1a4cd0a04331ebf9a27d"
+  },
+  "after": {
+    "sha256": "4b886259c4a497c722d9b6374353e5c67a3ed73d6b38abdf7d7a4233398022d4"
+  },
+  "physicalBefore": {
+    "archiveSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
+    "report": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-06/qualification.json",
+    "reportSha256": "a7737d48a74495252bda957cbbcb4a3553a733b63010e75dc720145496878ecb",
+    "task": "copy-code",
+    "tokenIds": [
+      106
+    ],
+    "stopReason": "stop-token-or-sequence",
+    "stopTokenId": 106
+  }
+}
