@@ -46,9 +46,10 @@ reserved for each. It does not mean two full 8,192-token reservations fit.
 Longer concurrent prompts require their actual reservations and may correctly
 reject under the unchanged limit; repeated 1,588-token controls are separate.
 
-No deployed-quality invocation, GPU execution or model promotion is recorded at
-this preparation boundary. Original-source success is a prerequisite for the
-next invocation. Measured partition memory, exact deployed-weight quality,
+Original-source quality completed 14 of 14 cases before the first deployed
+invocation. That independent deployed-weight run now uses the exact frozen suite
+and manifest; its result remains pending. No GPU execution or model promotion
+is recorded here. Measured partition memory, exact deployed-weight quality,
 numerical comparison and model-owned final-answer decoding remain separate gates.
 The standard 0.6.27 archive, catalog and signed records are unchanged.
 
