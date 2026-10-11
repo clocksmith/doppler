@@ -1,0 +1,30 @@
+{
+  "source": "LiquidAI/LFM2.5-1.2B-Instruct",
+  "revision": "0f604ada3f766f9f257460c4c9f0b5d6f69d431b",
+  "files": [
+    {
+      "path": "config.json",
+      "url": "https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct/resolve/0f604ada3f766f9f257460c4c9f0b5d6f69d431b/config.json",
+      "sha256": "15d6157fb6df3f8272e2fe90e18f57727ccf02a125c94469198b0f3281510185",
+      "bytes": 1224
+    },
+    {
+      "path": "tokenizer_config.json",
+      "url": "https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct/resolve/0f604ada3f766f9f257460c4c9f0b5d6f69d431b/tokenizer_config.json",
+      "sha256": "2a52ec012d3df831ba434b081bef3726a6ee22501f062ad8353c557a0cfa0d01",
+      "bytes": 92225
+    },
+    {
+      "path": "tokenizer.json",
+      "url": "https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct/resolve/0f604ada3f766f9f257460c4c9f0b5d6f69d431b/tokenizer.json",
+      "sha256": "df1d8d5ec5d091b460562ffd545e4a5e91d17d4a0db7ebe733be34ed374377bd",
+      "bytes": 4733389
+    },
+    {
+      "path": "chat_template.jinja",
+      "url": "https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct/resolve/0f604ada3f766f9f257460c4c9f0b5d6f69d431b/chat_template.jinja",
+      "sha256": "ba551d58630afa3190b1be3602e28301f3d2e9bbac978dfc49d6d825171648b6",
+      "bytes": 5487
+    }
+  ]
+}
