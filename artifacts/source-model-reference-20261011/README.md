@@ -157,3 +157,16 @@ with each other by 0.0010614395141601562 at the selected decode prefix
 (`source-order-difference.json`). They use the same weights, tokens and F16 cache
 policy. This demonstrates reference-order sensitivity; it does not authorize
 relaxing 0.001 or treating either implementation as an approved replacement.
+
+## Existing 2B model task-quality control
+
+`model-2b-source-generation.json` independently replays the fresh 208-through-219
+counting task after the existing 2B model passed Reploid's six-case quality suite.
+All 48 generated token IDs match the physical unsplit browser result, including
+EOS. The source configuration comes from the source revision pinned in that
+model's `origin.json`; its URL and SHA-256 are retained. Deployed weights and
+tokenizer are checked against the 2B piece index.
+
+This is a scoped generation control for an already-integrated model. It neither
+replaces the small-model numerical reference nor establishes distributed
+capacity, complete application acceptance or deployment.
