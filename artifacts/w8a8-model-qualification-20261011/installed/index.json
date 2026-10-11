@@ -187,5 +187,25 @@
       }
     },
     "cleanup": []
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-packed-installed-model-03/qualification.json",
+    "retained": "w8a8-packed-installed-model-03.json.gz",
+    "sha256": "b39117a3fe3cbeebf2873b120f59a2e34e9743490e73e8a37543ce6ad11937f1",
+    "passed": true,
+    "packageSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
+    "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
+    "error": null,
+    "cleanup": []
+  },
+  {
+    "source": "reports/local/w8a8-qualification-20261011/w8a8-installed-model-06/qualification.json",
+    "retained": "w8a8-installed-model-06.json.gz",
+    "sha256": "a7737d48a74495252bda957cbbcb4a3553a733b63010e75dc720145496878ecb",
+    "passed": true,
+    "packageSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
+    "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+    "error": null,
+    "cleanup": []
   }
 ]

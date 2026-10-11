@@ -1,0 +1,287 @@
+{
+  "schema": "doppler.w8a8-model-qualification-disposition/v1",
+  "scope": "Frozen task/approximation gates; CPU source and browser GPU remain separate, historical packages preserved",
+  "suiteSha256": "890a28e543ef614bcfb0fa60de195c189d30c1216f29804559a2b2de7b8edd5a",
+  "sourceQualified": false,
+  "models": {
+    "f16": {
+      "reportSha256": "4bc3101df8c65e49a1d0f7b5e8c6d57ddc6559287795114b3c14a3871c259e36",
+      "manifestDigest": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+      "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
+      "passed": false,
+      "tasksPassed": [
+        "owner",
+        "date",
+        "amount",
+        "literal",
+        "sequence"
+      ],
+      "meanNll": 4.631039722160252,
+      "summary": {
+        "correctTasks": 5,
+        "taskCount": 12,
+        "sourceTokenMatches": 12,
+        "meanNll": 4.631039722160251,
+        "qualityAccepted": false,
+        "lifecyclePassed": true
+      },
+      "actualSubmittedCancellation": null,
+      "peakOwnedBufferBytes": 948259544,
+      "afterUnloadResources": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 205520896,
+          "count": 196
+        },
+        "reusable": {
+          "bytes": 0,
+          "count": 0
+        },
+        "deferredCleanup": {
+          "bytes": 611209472,
+          "count": 304
+        }
+      }
+    },
+    "q4": {
+      "reportSha256": "f534e683f0f64c0e0a256f75ae9c9d3bd9980af3a74edfa41cd2c4e8519379a2",
+      "manifestDigest": "sha256:afecba81640288d0849838c8d4d8c763af80edc1fc22051853ce6700dda4b315",
+      "packageSha256": "ba9919bf1cc18bbb48102a8aba4598b6125d3c14c5492d973724419a710284c8",
+      "passed": false,
+      "tasksPassed": [
+        "date",
+        "amount"
+      ],
+      "meanNll": 5.153211447267376,
+      "summary": {
+        "correctTasks": 2,
+        "taskCount": 12,
+        "sourceTokenMatches": 12,
+        "meanNll": 5.153211447267374,
+        "qualityAccepted": false,
+        "lifecyclePassed": true
+      },
+      "actualSubmittedCancellation": null,
+      "peakOwnedBufferBytes": 949857496,
+      "afterUnloadResources": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 205520896,
+          "count": 196
+        },
+        "reusable": {
+          "bytes": 0,
+          "count": 0
+        },
+        "deferredCleanup": {
+          "bytes": 612652032,
+          "count": 304
+        }
+      }
+    },
+    "portable": {
+      "reportSha256": "a7737d48a74495252bda957cbbcb4a3553a733b63010e75dc720145496878ecb",
+      "manifestDigest": "sha256:6bd380101b72d79aa05c23d51783a9faab9505808d63c4bd86520e95d255c03c",
+      "packageSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
+      "passed": true,
+      "tasksPassed": [
+        "owner",
+        "date",
+        "amount",
+        "sequence"
+      ],
+      "meanNll": 4.7690740936709926,
+      "summary": {
+        "correctTasks": 4,
+        "taskCount": 12,
+        "sourceTokenMatches": 7,
+        "meanNll": 4.769074093670992,
+        "qualityAccepted": false,
+        "lifecyclePassed": true
+      },
+      "actualSubmittedCancellation": {
+        "passed": true,
+        "submissions": 2,
+        "before": {
+          "retainedModel": {
+            "bytes": 443060224,
+            "count": 236
+          },
+          "active": {
+            "bytes": 67108864,
+            "count": 4
+          },
+          "reusable": {
+            "bytes": 6868224,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "after": {
+          "retainedModel": {
+            "bytes": 443060224,
+            "count": 236
+          },
+          "active": {
+            "bytes": 67108864,
+            "count": 4
+          },
+          "reusable": {
+            "bytes": 6475264,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "stopReason": null,
+        "rejection": {
+          "name": "AbortError",
+          "message": "Doppler: prefill aborted"
+        }
+      },
+      "peakOwnedBufferBytes": 668488920,
+      "afterUnloadResources": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 0,
+          "count": 0
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "acceptance": {
+        "minimum10of12": false,
+        "preservesEveryF16Pass": false,
+        "atLeastQ4PassCount": true,
+        "nllWithinF16PlusPoint10": false,
+        "nllNoWorseThanQ4": true,
+        "lostF16Passes": [
+          "literal"
+        ]
+      },
+      "qualityAccepted": false
+    },
+    "packed": {
+      "reportSha256": "b39117a3fe3cbeebf2873b120f59a2e34e9743490e73e8a37543ce6ad11937f1",
+      "manifestDigest": "sha256:67eee682dea361346ca1ae16026e53f4162b4e43f45dc9c53e4b30919b79065e",
+      "packageSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
+      "passed": true,
+      "tasksPassed": [
+        "owner",
+        "date",
+        "amount",
+        "sequence"
+      ],
+      "meanNll": 4.7690740936709926,
+      "summary": {
+        "correctTasks": 4,
+        "taskCount": 12,
+        "sourceTokenMatches": 7,
+        "meanNll": 4.769074093670992,
+        "qualityAccepted": false,
+        "lifecyclePassed": true
+      },
+      "actualSubmittedCancellation": {
+        "passed": true,
+        "submissions": 2,
+        "before": {
+          "retainedModel": {
+            "bytes": 443060224,
+            "count": 236
+          },
+          "active": {
+            "bytes": 67108864,
+            "count": 4
+          },
+          "reusable": {
+            "bytes": 6868224,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "after": {
+          "retainedModel": {
+            "bytes": 443060224,
+            "count": 236
+          },
+          "active": {
+            "bytes": 67108864,
+            "count": 4
+          },
+          "reusable": {
+            "bytes": 6475264,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "stopReason": null,
+        "rejection": {
+          "name": "AbortError",
+          "message": "Doppler: prefill aborted"
+        }
+      },
+      "peakOwnedBufferBytes": 668488920,
+      "afterUnloadResources": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 0,
+          "count": 0
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "acceptance": {
+        "minimum10of12": false,
+        "preservesEveryF16Pass": false,
+        "atLeastQ4PassCount": true,
+        "nllWithinF16PlusPoint10": false,
+        "nllNoWorseThanQ4": true,
+        "lostF16Passes": [
+          "literal"
+        ]
+      },
+      "qualityAccepted": false
+    }
+  },
+  "sameCandidatePortablePacked": {
+    "packageSha256": "47d7d18fb51a0852b6b0c35b0590e306b460c743eefe2d36b6615839c8651edc",
+    "all12TaskTokensEqual": true,
+    "all200TeacherForcedObservationsEqual": true,
+    "allNumericalObservationsUnchangedFromPriorCandidate": true
+  }
+}
