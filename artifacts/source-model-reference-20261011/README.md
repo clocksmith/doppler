@@ -151,3 +151,9 @@ reference replacement. Complete-model error remains 0.0014121532440185547.
 Eleven synthetic checks include an exact F16-midpoint crossing and constant-query
 cache substitution with a known output difference. No runtime, model precision,
 acceptance tolerance or protected fixture changed.
+
+The two retained independent F32 source recurrence implementations also disagree
+with each other by 0.0010614395141601562 at the selected decode prefix
+(`source-order-difference.json`). They use the same weights, tokens and F16 cache
+policy. This demonstrates reference-order sensitivity; it does not authorize
+relaxing 0.001 or treating either implementation as an approved replacement.
