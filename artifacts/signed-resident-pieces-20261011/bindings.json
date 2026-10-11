@@ -1,0 +1,59 @@
+{
+  "scope": "synthetic signed selective resident opening, integrity, lifecycle and installed contract; no physical inference",
+  "standardArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "diagnosticArchive": {
+    "filename": "doppler-gpu-0.6.27.tgz",
+    "version": "0.6.27",
+    "integrity": "sha512-QzYzMTPzEEZxJn1Br7SSD6rRsdrRuQMiExTPt2u3axQOSkQ7NSALt8pFutOqj0/ipegAqA2+clLPKyMmhaHUaA==",
+    "sizeBytes": 3349851,
+    "source": "local-npm-pack",
+    "sha256": "307104de5f55e120280cccb4ed84b53170339250c60c3ceee8682ffe3149ed25"
+  },
+  "sourceHead": "89c2ce299b689ae089f367158b59fcb06d3cedec",
+  "sourceFiles": {
+    "src/client/runtime/capsule-piece-reader.d.ts": "ac623ab0e01cc42ac0b09bcd0fcf8fd5ea8f38179fbdcc58fe6dbb694e137c8b",
+    "src/client/runtime/capsule-piece-reader.js": "eecafa00489c76d36ec5f4e3b808e3d531c0d076731845c1c67a0b18165abff8",
+    "src/storage/verified-piece-reader.d.ts": "74015b81002811db8850b444e35877bbbd8a35582ac3bc93550b8caacae0d4b3",
+    "src/storage/verified-piece-reader.js": "d8a72192c6f63272dda2beb483ffbdbfab67bc5248f1352a38582bb12783ee72",
+    "src/storage/verified-piece-storage.js": "fb33983cd41e03c215c0094567e17cce86c4372021f2402197b709e72b0112da",
+    "src/client/runtime/composition-root.js": "1697d50b8efe8282c04690c2101280d3384badf3223b889ce9aaa7b2049acfc7",
+    "src/client/runtime/verified-capsule-artifact-store.js": "6a102c8638ebed10c761fef020636ca870997509263924512066409d2998c949",
+    "tools/check-packed-package.js": "6caf1c9c8ad75094fc1840277b4a2260664a079008afcb695b63c9130d353fde",
+    "tests/runtime/resident-piece-acquisition.test.js": "78552af2b0275c7e534ab7f22db5a8013886aafd4e54ddd338619400b256101e",
+    "tests/storage/verified-piece-storage.test.js": "d844c6ed0927c74eb7fa237633766979e1c2d710cc5ebefbacfbc320ff73d560",
+    "tests/tooling/build-verified-piece-index.test.js": "63fa82e056b858157e4f5ad6ad7899b3d75a68c045d5dd731513aec71124cf8c"
+  },
+  "checks": {
+    "broadBaselineFilesPassed": 903,
+    "finalAffectedFilesPassed": 14,
+    "installedPassed": true,
+    "runtimeCoreFiles": 76,
+    "runtimeCoreSourceBytes": 810943,
+    "recordedPackagedOwnerHashMatches": [
+      "src/client/runtime/capsule-piece-reader.js",
+      "src/storage/verified-piece-reader.d.ts",
+      "src/storage/verified-piece-reader.js",
+      "src/storage/verified-piece-storage.js",
+      "src/client/runtime/composition-root.js",
+      "src/client/runtime/verified-capsule-artifact-store.js"
+    ]
+  },
+  "artifactDigests": {
+    "fixture-failure-receipt.tar.gz": "df60ca258b6ebc8d62204ef0c33c47dac368b67e1f42094bdf3c802a4b093905",
+    "generic-close-before.log.gz": "9926d2e4452b13f7b49da259c86916d193f8284bacf37dc24a6dd47448f49b57",
+    "source-boundaries.log.gz": "42be6840bb99a1030e601b0d5ebbc9a702eea670df5dcfac4376add941a1161b",
+    "commands.json.gz": "869b0e003debec05ed80ac1e89ba779b17d5452e181f0437caa5e91c6ecdb9c4",
+    "pre-extraction-receipt.tar.gz": "04d9a9f38cf768b0ed9f907d761d223517e26b96ea472758367fcdfaa9aaccb3",
+    "installed-fixtures.tar.gz": "1ba40536494e5f867c9af1cbd0768a7c3decf37c59ecc66dfbe247f6e636a57d",
+    "unit-baseline.log.gz": "430f084554c80dc74fc7bd6ce58c6e0b070ed3fc5a9ccb30e73d6035eeb5cdf2",
+    "source-state.json.gz": "32ac69581cf3530a7f928d72bc0e2ec972103ed2bb40d79cf43a3dc0d290bc11",
+    "installed-fixture-failure.log.gz": "c5c728c3bf45a1592fe796b990df4482979c5cabc6a64f51e98d836802501667",
+    "unit-initial-failure.log.gz": "ba42e8692011cf8ed67e6504023fa1364a0ce63e94b8232235b6e69598fedea4",
+    "receipt.json.gz": "d0069a0b578723f1cc4ad3b0ec87eb25763254c128e72dc2c417c13662efe059",
+    "affected-final.log.gz": "b15c79c809ad8c90533adb33554e6d1a6038b1ced0c052f327dd5f898e8b9bcc",
+    "pre-settled-close-receipt.tar.gz": "6e89e1ba4a1bf66d15b196e76fa7fdb4d34806ed3ac6598e39f0a4e3778936d8",
+    "installed-final.log.gz": "b7b8f4d6971fb7d9051188fdbe0c2601bf755ef6581b0670944f56b3d1a8236c",
+    "doppler-gpu-0.6.27-diagnostic.tgz": "307104de5f55e120280cccb4ed84b53170339250c60c3ceee8682ffe3149ed25",
+    "generic-close-after.log.gz": "38251e0e5e4fc01f23813b2f0d38908122e0f9d2c1b0d5a9b424c2f6bdfc38f5"
+  }
+}

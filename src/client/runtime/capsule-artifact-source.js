@@ -28,7 +28,9 @@ export async function createCapsuleArtifactSource(capsule, artifactStore) {
     && shards.every(shard => shard.hashAlgorithm === 'sha256');
   if (hashesTrusted) {
     for (const shard of shards) {
-      const receipt = await artifactStore.hashArtifact(resolveArtifact(shard.path));
+      const artifact = resolveArtifact(shard.path);
+      if (artifactStore.usesPieceVerification(artifact)) continue;
+      const receipt = await artifactStore.hashArtifact(artifact);
       if (receipt.hash !== `sha256:${shard.hash}` || receipt.sizeBytes !== shard.size) {
         throw new Error(`Capsule manifest shard hash or size mismatch for "${shard.path}".`);
       }
@@ -54,6 +56,13 @@ export async function createCapsuleArtifactSource(capsule, artifactStore) {
     async readText(path) { return new TextDecoder('utf-8', { fatal: true }).decode(await read(path)); },
     async readBinary(path) { return (await read(path)).buffer; },
   });
+  if (hashesTrusted && artifactStore.getPieceVerification()) {
+    // Signed index coverage is checked before opening; probing unrelated shard tails
+    // would acquire another partition's pieces. Actual reads still authenticate bytes.
+    storageContext.preflight = async () => {
+      await artifactStore.readArtifactRange(resolveArtifact(shards[0].path), 0, 0);
+    };
+  }
   const sources = new Map();
   for (const module of capsule.wgslModules ?? []) {
     const artifact = capsule.artifacts.find((entry) => entry.artifactId === module.sourceArtifactId);

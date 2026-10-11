@@ -8,6 +8,10 @@ export declare function createCapsuleArtifactBacking(): CapsuleArtifactBacking;
 /** Only factory-created, immutable store interfaces authenticate owned snapshot receipts. */
 export declare function isVerifiedCapsuleArtifactStore(store: unknown): store is ReturnType<typeof createVerifiedCapsuleArtifactStore>;
 export declare function createVerifiedCapsuleArtifactStore(capsule: DopplerCapsule, source: CapsuleArtifactReader, options?: CapsuleAcquisitionOptions, backing?: CapsuleArtifactBacking): Readonly<{
+  /** Called by resident composition only after signed allocation qualification. */
+  enableResidentPieces(): Promise<void>;
+  getPieceVerification(): (import('../../storage/verified-piece-storage.js').VerifiedPieceReceipt & { mode: 'signed-piece-index'; indexArtifactId: string; declaredWeightArtifactIds: string[] }) | null;
+  usesPieceVerification(artifact: CapsuleV2Artifact): boolean;
   readArtifact(artifact: CapsuleV2Artifact): Promise<Uint8Array>;
   readArtifactRange(artifact: CapsuleV2Artifact, offset: number, length: number): Promise<Uint8Array>;
   hashArtifact(artifact: CapsuleV2Artifact): Promise<{ hash: string; sizeBytes: number }>;
@@ -19,5 +23,5 @@ export declare function createVerifiedCapsuleArtifactStore(capsule: DopplerCapsu
     backingBytes: number; peakBackingBytes: number; backingFiles: number; snapshotCopiedBytes: number;
     sharedBackingBytes: number; peakSnapshotBlockBytes: number;
     peakSourceChunkBytes: number; streamedSourceBytes: number; verificationYields: number }>;
-  close(): void;
+  close(): void | Promise<void>;
 }>;

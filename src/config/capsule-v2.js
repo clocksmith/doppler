@@ -15,6 +15,7 @@ const SHA256_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const ARTIFACT_ROLES = new Set([
   'manifest',
   'weight-shard',
+  'piece-index',
   'tokenizer',
   'conversion-config',
   'runtime-config',
@@ -180,7 +181,7 @@ function validateProgram(capsule, artifacts, errors) {
   }
   requireExactKeys(program, new Set([
     'schema', 'programBundleHash', 'programBundleArtifactId', 'executionGraphHash',
-    'manifestArtifactId', 'modelIREvidenceArtifactId', 'tokenizerArtifactIds',
+    'manifestArtifactId', 'modelIREvidenceArtifactId', 'pieceIndexArtifactId', 'tokenizerArtifactIds',
     'weightArtifactIds', 'execution', 'referenceTranscript',
   ]), 'program', errors);
   if (program.schema !== CAPSULE_V2_PROGRAM_SCHEMA_ID) {
@@ -202,6 +203,10 @@ function validateProgram(capsule, artifacts, errors) {
   if (program.modelIREvidenceArtifactId !== undefined
     && artifacts.get(program.modelIREvidenceArtifactId)?.role !== 'source-truth-evidence') {
     errors.push('program.modelIREvidenceArtifactId must reference source-truth evidence.');
+  }
+  if (program.pieceIndexArtifactId !== undefined
+    && artifacts.get(program.pieceIndexArtifactId)?.role !== 'piece-index') {
+    errors.push('program.pieceIndexArtifactId must reference a signed piece-index artifact.');
   }
   for (const [field, role] of [['tokenizerArtifactIds', 'tokenizer'], ['weightArtifactIds', 'weight-shard']]) {
     const numericForecast = field === 'tokenizerArtifactIds'

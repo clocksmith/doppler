@@ -71,7 +71,10 @@ export interface DopplerRunSession {
   selectedPlan: TargetPlan;
   observedInitialExecutionIdentity: InitialExecutionIdentity | null;
   deviceProfile: DeviceProfile;
-  verification: Awaited<ReturnType<typeof verifyCapsule>>;
+  verification: Awaited<ReturnType<typeof verifyCapsule>> & {
+    artifactVerificationScope?: 'resident-pieces';
+    pieceVerification?: NonNullable<ReturnType<ReturnType<typeof import('./verified-capsule-artifact-store.js').createVerifiedCapsuleArtifactStore>['getPieceVerification']>> & { observation: 'resident-opening' };
+  };
   generate(options: GenerationRunOptions): AsyncGenerator<number, GenerationResult, void>;
   generateText(options: GenerationRunOptions): Promise<GenerationOutput & { modelId: string }>;
   rerank(request: CapsuleRerankRequest): Promise<CapsuleRerankReceipt>;

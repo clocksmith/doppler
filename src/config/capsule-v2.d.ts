@@ -43,6 +43,7 @@ export interface DopplerCapsuleV2 {
     executionGraphHash: `sha256:${string}`;
     manifestArtifactId: string;
     modelIREvidenceArtifactId?: string;
+    pieceIndexArtifactId?: string;
     tokenizerArtifactIds: string[];
     weightArtifactIds: string[];
   };

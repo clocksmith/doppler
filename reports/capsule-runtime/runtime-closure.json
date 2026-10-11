@@ -2,8 +2,8 @@
   "schema": "doppler.capsule-runtime-closure/v1",
   "entrypoint": "src/capsule-runtime.js",
   "scope": "injected-capsule-core; excludes host-supplied program executors",
-  "fileCount": 74,
-  "sourceBytes": 795632,
+  "fileCount": 76,
+  "sourceBytes": 810943,
   "forbiddenPatterns": [
     "/src/converter/",
     "/src/training/",
@@ -83,6 +83,11 @@
       "hash": "sha256:7a346de8789fece43e375ade36bcfb77740c7a8e97d5a6101f6f3f4f53a85901"
     },
     {
+      "path": "src/client/runtime/capsule-piece-reader.js",
+      "sizeBytes": 4958,
+      "hash": "sha256:eecafa00489c76d36ec5f4e3b808e3d531c0d076731845c1c67a0b18165abff8"
+    },
+    {
       "path": "src/client/runtime/capsule-release-authorization.js",
       "sizeBytes": 1099,
       "hash": "sha256:d20d0533206abeb65da83298e72015d4b08f7a928023c7b8d50c0c34f9c471fb"
@@ -104,8 +109,8 @@
     },
     {
       "path": "src/client/runtime/composition-root.js",
-      "sizeBytes": 26525,
-      "hash": "sha256:56460350c35eec36189819cccab8e9ea419b53718625888004b63e9d3653b1c6"
+      "sizeBytes": 27804,
+      "hash": "sha256:1697d50b8efe8282c04690c2101280d3384badf3223b889ce9aaa7b2049acfc7"
     },
     {
       "path": "src/client/runtime/fetch-capsule-artifact-store.js",
@@ -124,8 +129,8 @@
     },
     {
       "path": "src/client/runtime/verified-capsule-artifact-store.js",
-      "sizeBytes": 14608,
-      "hash": "sha256:7eaca741465368b12f903bbea0f7f48b46e4d93b2481bc0daf65040196c8f0f7"
+      "sizeBytes": 15927,
+      "hash": "sha256:6a102c8638ebed10c761fef020636ca870997509263924512066409d2998c949"
     },
     {
       "path": "src/config/capsule-adapter-policy.js",
@@ -194,8 +199,8 @@
     },
     {
       "path": "src/config/capsule-v2.js",
-      "sizeBytes": 20230,
-      "hash": "sha256:3f3a577484eff9c1d92c5fcd3be45b52717b8e3f4792cea29829e106bd050ee8"
+      "sizeBytes": 20497,
+      "hash": "sha256:6121d72a2e99d43d2ac5e0d788e094f2bacb78e220404c6a94c792e44e7ea797"
     },
     {
       "path": "src/config/capsule-v3.js",
@@ -396,6 +401,11 @@
       "path": "src/inference/token-sampling.js",
       "sizeBytes": 9421,
       "hash": "sha256:d10c13067f28af83bddc11f161c5a1eb2f8634056055bad44b5cab2058ace5f8"
+    },
+    {
+      "path": "src/storage/verified-piece-reader.js",
+      "sizeBytes": 7488,
+      "hash": "sha256:d8a72192c6f63272dda2beb483ffbdbfab67bc5248f1352a38582bb12783ee72"
     },
     {
       "path": "src/version.js",

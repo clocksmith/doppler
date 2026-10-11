@@ -118,15 +118,40 @@ export function createDopplerRun(ports) {
         const targetPlanDigest = hashTargetPlan(selectedPlan);
         emit(observer, { type: 'target-selected', capsuleId: capsule.capsuleId, targetId: selectedPlan.targetId, targetPlanDigest });
         verifiedStore = createVerifiedCapsuleArtifactStore(capsule, artifactStore, options, ports.artifactBacking);
-        const artifactReceipts = await verifyCapsuleV2Artifacts(capsule, verifiedStore);
+        const manifestArtifact = capsule.artifacts.find((artifact) => artifact.artifactId === capsule.program.manifestArtifactId);
+        const readManifest = async () => {
+          const value = freezeCapsuleV2(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await verifiedStore.readArtifact(manifestArtifact))));
+          if (value.modelId !== capsule.modelId) throw new Error('Signed manifest model identity mismatch.');
+          return value;
+        };
+        let manifest, residentAllocation = null;
+        if (options.residentPartition !== undefined) {
+          manifest = await readManifest();
+          if (typeof resolveResidentPartitionAllocation !== 'function') {
+            throw new Error('Resident partition opening requires an allocation validator port.');
+          }
+          residentAllocation = resolveResidentPartitionAllocation(manifest, manifestArtifact.hash, options.residentPartition);
+          releaseAuthorization.assertAssignment(residentAllocation);
+          assertQualifiedResidentPartition(selectedPlan, deviceProfile.surface, residentAllocation);
+          if (selectedPlan.tokenSelection !== undefined) throw new Error('Resident partitions require the declared CPU sampling contract.');
+          options = { ...options, residentPartition: residentAllocation };
+        }
+        const selectivePieces = Boolean(residentAllocation && capsule.program.pieceIndexArtifactId !== undefined);
+        if (selectivePieces) await verifiedStore.enableResidentPieces();
+        const verifiedClosure = selectivePieces
+          ? { ...capsule, artifacts: capsule.artifacts.filter(artifact => artifact.role !== 'weight-shard') }
+          : capsule;
+        const artifactReceipts = await verifyCapsuleV2Artifacts(verifiedClosure, verifiedStore);
         assertDeviceAvailable();
-        verification = freezeCapsuleV2({ ...verification, artifactReceipts });
-        await cache?.set?.(capsule.semanticRoot, {
+        verification = freezeCapsuleV2({ ...verification, artifactReceipts,
+          ...(selectivePieces ? { artifactVerificationScope: 'resident-pieces' } : {}) });
+        if (!selectivePieces) await cache?.set?.(capsule.semanticRoot, {
           schema: 'doppler.capsule-verification-cache/v1', semanticRoot: capsule.semanticRoot, artifactReceipts,
         });
         assertCapsuleLoadActive(options.signal);
         emit(observer, { type: 'capsule-validation-complete', capsuleId: capsule.capsuleId, semanticRoot: capsule.semanticRoot,
-          artifactMetrics: verifiedStore.getMetrics() });
+          artifactMetrics: verifiedStore.getMetrics(),
+          artifactVerificationScope: selectivePieces ? 'resident-pieces' : 'whole-closure' });
         const modules = await loadModuleSources(capsule, verifiedStore);
         for (const ref of selectedPlan.kernelClosure) {
           const module = modules.get(ref.moduleId);
@@ -135,22 +160,7 @@ export function createDopplerRun(ports) {
             `WGSL module "${module.id}" outside TargetPlan "${selectedPlan.targetId}" language declarations`);
           assertWgslFeaturesSupported(required, deviceProfile.wgslLanguageFeatures, `WGSL module "${module.id}"`);
         }
-        const manifestArtifact = capsule.artifacts.find((artifact) => artifact.artifactId === capsule.program.manifestArtifactId);
-        const manifest = freezeCapsuleV2(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await verifiedStore.readArtifact(manifestArtifact))));
-        if (manifest.modelId !== capsule.modelId) throw new Error('Signed manifest model identity mismatch.');
-        const residentAllocation = options.residentPartition === undefined ? null
-          : (() => {
-            if (typeof resolveResidentPartitionAllocation !== 'function') {
-              throw new Error('Resident partition opening requires an allocation validator port.');
-            }
-            return resolveResidentPartitionAllocation(manifest, manifestArtifact.hash, options.residentPartition);
-          })();
-        if (residentAllocation) {
-          releaseAuthorization.assertAssignment(residentAllocation);
-          assertQualifiedResidentPartition(selectedPlan, deviceProfile.surface, residentAllocation);
-          if (selectedPlan.tokenSelection !== undefined) throw new Error('Resident partitions require the declared CPU sampling contract.');
-          options = { ...options, residentPartition: residentAllocation };
-        }
+        if (manifest === undefined) manifest = await readManifest();
         let observedInitialExecutionIdentity = null;
         program = await programFactory({ capsule, targetPlan: selectedPlan, artifactStore: verifiedStore, deviceProfile, options, registries, observer });
         assertCapsuleLoadActive(options.signal);
@@ -187,6 +197,8 @@ export function createDopplerRun(ports) {
           }
         }
 
+        if (selectivePieces) verification = freezeCapsuleV2({ ...verification,
+          pieceVerification: { ...verifiedStore.getPieceVerification(), observation: 'resident-opening' } });
         const session = {
           get generationContract() { return GENERATION_CONTRACT; },
           modelId: capsule.modelId,
@@ -330,14 +342,14 @@ export function createDopplerRun(ports) {
           close() {
             closed = true;
             return execution.close(async () => {
-              try {
-                await sessionController.close();
-              } finally {
-                commandExecutor.clearPipelineCache();
-                verifiedStore.close();
-              }
+              const failures = [];
+              try { await sessionController.close(); } catch (error) { failures.push(error); }
+              try { commandExecutor.clearPipelineCache(); } catch (error) { failures.push(error); }
+              try { await verifiedStore.close(); } catch (error) { failures.push(error); }
               emit(observer, { type: 'capsule-session-closed', capsuleId: capsule.capsuleId, targetPlanDigest,
                 artifactMetrics: verifiedStore.getMetrics() });
+              if (failures.length === 1) throw failures[0];
+              if (failures.length) throw new AggregateError(failures, 'Capsule session cleanup failed');
             });
           },
         };
@@ -430,11 +442,12 @@ export function createDopplerRun(ports) {
         });
       } catch (error) {
         acquisition.abort(error);
-        try { await program?.close?.(); } catch (cleanupError) {
-          throw new AggregateError([error, cleanupError], 'Capsule loading failed and program cleanup failed.', { cause: error });
-        }
+        const failures = [error];
+        try { await program?.close?.(); } catch (cleanupError) { failures.push(cleanupError); }
+        try { await verifiedStore?.close(); } catch (cleanupError) { failures.push(cleanupError); }
+        if (failures.length > 1) throw new AggregateError(failures, 'Capsule loading and cleanup failed.', { cause: error });
         throw error;
-      } finally { acquisition.close(); if (acquisition.options.signal.aborted) verifiedStore?.close(); }
+      } finally { acquisition.close(); }
     },
   };
 }
