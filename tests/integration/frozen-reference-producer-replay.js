@@ -35,6 +35,11 @@ const referenceBytes = gunzipSync(await readFile(new URL('distributed-reference.
 assert.equal(hash(referenceBytes), '9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd');
 const reference = JSON.parse(referenceBytes);
 const prefixesOnly = validatePrefixOnlyTarget(observationTarget, reference);
+assert(observationTarget.ropeTable === undefined || typeof observationTarget.ropeTable === 'boolean');
+if (observationTarget.ropeTable === true) {
+  assert(!prefixesOnly && !physicalCache && !fullPrefixes && !observationTarget.opIds,
+    'Table-only observation cannot claim a prefix or generation replay');
+}
 const frozenManifestBytes = gunzipSync(await readFile(new URL('distributed-reference-manifest.json.gz', fixtureRoot)));
 assert.equal('sha256:' + hash(frozenManifestBytes), reference.modelIdentity);
 const manifestBytes = manifestMode === 'current'
@@ -119,6 +124,28 @@ try {
   const observedTimeline = [];
   await page.exposeFunction('recordProducerObservation', row => { observedTimeline.push(row); });
   const result = await page.evaluate(async ({ compatEntry, partitionsEntry, generation, prompts, policy, fullPrefixes, prefixesOnly, expected, observationTarget, captureDecode }) => {
+    const ropeBindings = [], uniformWrites = new WeakMap();
+    if (observationTarget.ropeTable === true) {
+      const writeBuffer = GPUQueue.prototype.writeBuffer;
+      GPUQueue.prototype.writeBuffer = function (buffer, offset, data, dataOffset = 0, size) {
+        if ((buffer.usage & GPUBufferUsage.UNIFORM) && offset === 0) {
+          const unit = ArrayBuffer.isView(data) ? data.BYTES_PER_ELEMENT ?? 1 : 1;
+          const bytes = ArrayBuffer.isView(data)
+            ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength) : new Uint8Array(data);
+          uniformWrites.set(buffer, Array.from(bytes.slice(dataOffset * unit,
+            size === undefined ? undefined : (dataOffset + size) * unit)));
+        }
+        return writeBuffer.call(this, buffer, offset, data, dataOffset, size);
+      };
+      const createBindGroup = GPUDevice.prototype.createBindGroup;
+      GPUDevice.prototype.createBindGroup = function (descriptor) {
+        const entry = binding => descriptor.entries.find(row => row.binding === binding)?.resource?.buffer;
+        if (entry(2)?.label.startsWith('rope_cos_') && entry(3)?.label.startsWith('rope_sin_')) {
+          ropeBindings.push({ device: this, uniform: uniformWrites.get(entry(0)), cos: entry(2), sin: entry(3) });
+        }
+        return createBindGroup.call(this, descriptor);
+      };
+    }
     // Observe selected native pipelines without rewriting shader arithmetic.
     const moduleSources = new WeakMap(), pipelines = new WeakMap(), normalizationDispatch = [], qkNormalizationDispatch = [], projectionDispatch = [], quantizedDispatch = [], passPipelines = new WeakMap();
     let dispatchOrdinal = 0;
@@ -194,6 +221,29 @@ try {
         runtimeConfig: { shared: { bufferPool: policy.bufferPool }, inference: { session: {
           kvcache: { maxSeqLen: generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
           prefillTokenChunkSize: policy.prefillTokenChunkSize } } } });
+      if (observationTarget.ropeTable === true) {
+        if (!ropeBindings.length) throw Error('No actual RoPE precompute binding observed');
+        const ropeTables = [];
+        for (const { device, uniform, cos, sin } of ropeBindings) {
+          if (!uniform || uniform.length < 64) throw Error('Missing actual RoPE uniforms');
+          const bytes = Uint8Array.from(uniform), view = new DataView(bytes.buffer);
+          const rows = Math.min(view.getUint32(0, true), 256), width = view.getUint32(4, true) / 2;
+          const size = rows * width * 4;
+          const staging = device.createBuffer({ size: size * 2, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+          try {
+            const encoder = device.createCommandEncoder();
+            encoder.copyBufferToBuffer(cos, 0, staging, 0, size);
+            encoder.copyBufferToBuffer(sin, 0, staging, size, size);
+            device.queue.submit([encoder.finish()]); await staging.mapAsync(GPUMapMode.READ);
+            ropeTables.push({ uniform, rows, width, values: Array.from(new Float32Array(staging.getMappedRange().slice(0))) });
+          } finally {
+            if (staging.mapState === 'mapped') staging.unmap();
+            await device.queue.onSubmittedWorkDone(); staging.destroy();
+          }
+        }
+        return { runtimeVersion: DOPPLER_VERSION, rows, ropeTables, observation: null,
+          normalizationDispatch, qkNormalizationDispatch, projectionDispatch, quantizedDispatch };
+      }
       const { maxSeqLen: _contextLength, ...executionOptions } = generation;
       const physicalCache = observationTarget.physicalCache === true;
       for (const index of physicalCache || prefixesOnly ? [observationTarget.index] : [...prompts.keys(), 0]) {
@@ -302,6 +352,7 @@ try {
   receipt.quantizedDispatch = result.quantizedDispatch.map(({ source, ...record }) => ({
     ...record, shaderSha256: hash(source) }));
   receipt.observation = result.observation;
+  if (result.ropeTables) receipt.ropeTables = result.ropeTables;
   if (receipt.observation) receipt.observation.timeline = observedTimeline;
   assert.equal(result.runtimeVersion, metadata.version);
   receipt.executionCompleted = true;
