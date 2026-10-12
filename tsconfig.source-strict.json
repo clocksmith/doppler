@@ -82,6 +82,7 @@
     "src/inference/resident-output-state.js",
     "src/inference/resident-block-contract.js",
     "src/inference/resident-target-state.js",
-    "src/inference/kv-cache/copy-state.js"
+    "src/inference/kv-cache/copy-state.js",
+    "src/inference/resident-publication-contract.js"
   ]
 }
