@@ -16,7 +16,7 @@ metadata, and distillation export hooks.
   - [`transcriptRoot`](transcript-root.md)
   - [`peer identity`](peer-identity-contract.md)
   - [`p2p control plane`](p2p-control-plane-extensions.md)
-  - [`RDRR P2P execution plan`](rdrr-p2p-plan.md)
+  - [`RDRR P2P execution plan`](execution-contract.md)
   - `doppler-gpu/orchestration` experimental exports for routers, pipeline pools,
     KV cache helpers, and logit merge helpers
 

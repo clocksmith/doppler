@@ -66,6 +66,29 @@ The retained standalone reference episode is an Electron document-search applica
 upgrading to `qwen-3-reranker-0-6b-q4k-ehf16-af32`. It is a checked-in acceptance
 fixture, not evidence of external demand.
 
+## Independent adoption acceptance
+
+This is an optional external-integration acceptance contract. It does not select
+mainline engineering work. Free voluntary adoption and commercial release proof
+are separate outcomes. The application's owner controls adoption and rollback.
+
+| Gate | Required work | Exit evidence | Does not prove |
+| --- | --- | --- | --- |
+| D0: adopter contract | Name one unrelated JavaScript application, owner, pinned revision, workload, source model, incumbent, acceptance suite, supported hosts, and activation authority. | Customer-authorized, versioned integration contract with no synthetic ownership fields. | Runtime correctness or demand. |
+| D1: source-to-Capsule closure | Acquire attributable source facts, forge ModelIR, produce at least one qualified TargetPlan, and seal every required artifact into one signed Capsule. | Capsule validation, source lineage, packaged qualification evidence, and retained rejected candidates. | Application acceptance. |
+| D2: unchanged acceptance | Run the application's existing acceptance semantics against its incumbent and Doppler. Change only the declared provider or integration seam required to invoke Doppler. | Comparable application-level results, explicit exclusions, and no hidden fallback. | A material advantage or adoption. |
+| D3: material advantage | Predeclare and measure one adopter-valued advantage such as supported capability, installation simplicity, end-to-end latency, memory, offline custody, diagnostic depth, or correction speed. | Evidence showing the advantage without weakening correctness, reliability, or workload scope. | Production use. |
+| D4: voluntary adoption | The application owner chooses Doppler, distributes or activates the integration, and retains rollback authority. | Owner-attributed adoption record plus the exact shipped application, Capsule, execution, and acceptance identities. | Recurring demand. |
+| D5: repeated dependence | Requalify a later model, Capsule, application, browser, driver, or device change through Doppler. | A second owner-authorized release or upgrade using the same product contract. | Broad market adoption. |
+
+Gates remain ordered. A later gate cannot repair missing evidence from an
+earlier gate.
+
+The [prior adoption record](https://github.com/clocksmith/doppler/blob/e0b217e646eb0da5bc83f4ca7ec18932cbe6c086/docs/executable-model-adoption-plan.md)
+retains the original workstreams, stop conditions, and historical checkpoints.
+Current implementation and lifecycle requirements belong in the public API,
+Capsule, provider, and application contracts, not another adoption queue.
+
 ## Internal evidence and external proof
 
 Reploid generation, Dream embedding retrieval, and Columbo reranking are:
