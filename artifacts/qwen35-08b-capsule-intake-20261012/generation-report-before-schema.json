@@ -1,0 +1,157 @@
+{
+  "schema": "doppler.retained-split-generation-report/v1",
+  "scope": "Observed first request in a two-physical-browser split run; short source-token parity only",
+  "surface": "browser",
+  "output": "Hello",
+  "deviceInfo": [
+    {
+      "index": 0,
+      "host": "mac.lan"
+    },
+    {
+      "index": 1,
+      "host": "x@128.tail995236.ts.net"
+    }
+  ],
+  "metrics": {
+    "promptInput": {
+      "tokenIds": [
+        248045,
+        846,
+        198,
+        20206,
+        440,
+        1132,
+        279,
+        3299,
+        21251,
+        13,
+        248046,
+        198,
+        248045,
+        74455,
+        198,
+        248068,
+        271,
+        248069,
+        271
+      ]
+    },
+    "generationConfig": {
+      "maxTokens": 1024,
+      "maxSeqLen": 4096,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 0,
+      "presencePenalty": 0,
+      "useChatTemplate": true,
+      "suppressTokenIds": [],
+      "stopSequences": []
+    },
+    "tokensGenerated": 2,
+    "stopReason": "eos-token",
+    "sourceParity": {
+      "schema": "doppler.source-token-parity/v1",
+      "status": "passed",
+      "sourceModel": "Qwen/Qwen3.5-0.8B",
+      "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "prompt": {
+        "passed": true,
+        "tokenIds": [
+          248045,
+          846,
+          198,
+          20206,
+          440,
+          1132,
+          279,
+          3299,
+          21251,
+          13,
+          248046,
+          198,
+          248045,
+          74455,
+          198,
+          248068,
+          271,
+          248069,
+          271
+        ],
+        "count": 19,
+        "mode": "Exact captured IDs; independently round-tripped through deployed tokenizer"
+      },
+      "generation": {
+        "passed": true,
+        "sourceTokens": [
+          9419,
+          248046
+        ],
+        "runtimeTokens": [
+          9419,
+          248046
+        ],
+        "sourceStop": "eos",
+        "scope": "Frozen first19-token request only; not document quality or full-model numerical qualification"
+      },
+      "provenance": {
+        "controlSha256": "d819c04e88fd7507c560f70ee7731ee183ed72793e1007a75d2b38658eeafce0",
+        "resultSha256": "b62fab0b64d300cbfa1c51fd233a8c73377cf5872da7d831c5d992eb7aa9d74a",
+        "physicalCaptureSha256": "203989ea71e32688258fad9ac67d1ef9b2c78ba6ae273c127b1b68157ce1218e",
+        "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+        "cpuAffinity": "0-3",
+        "threads": 4,
+        "commandEnvironment": "PYTHONPATH=/tmp/doppler-reference-deps; /usr/bin/python3; taskset -c 0-3; nice -n 10",
+        "dependencyFailure": "First invocation lacked retained blake3 module path; failed before inference. No model/control changes or dependency installation."
+      }
+    },
+    "referenceTranscript": {
+      "surface": "browser-webgpu",
+      "generationConfig": {
+        "maxTokens": 1024,
+        "maxSeqLen": 4096,
+        "temperature": 0,
+        "topP": 1,
+        "topK": 1,
+        "repetitionPenalty": 1,
+        "repetitionPenaltyWindow": 0,
+        "presencePenalty": 0,
+        "useChatTemplate": true,
+        "suppressTokenIds": [],
+        "stopSequences": []
+      },
+      "prompt": {
+        "tokenCount": 19
+      },
+      "tokens": {
+        "ids": [
+          9419,
+          248046
+        ],
+        "coverage": {
+          "mode": "complete",
+          "omitted": 0
+        }
+      },
+      "output": {
+        "tokensGenerated": 2,
+        "stopReason": "eos-token",
+        "stopTokenId": 248046
+      }
+    }
+  },
+  "provenance": {
+    "captureSha256": "203989ea71e32688258fad9ac67d1ef9b2c78ba6ae273c127b1b68157ce1218e",
+    "controlSha256": "d819c04e88fd7507c560f70ee7731ee183ed72793e1007a75d2b38658eeafce0",
+    "sourceResultSha256": "b62fab0b64d300cbfa1c51fd233a8c73377cf5872da7d831c5d992eb7aa9d74a",
+    "paritySha256": "f825a839164dd27e5649b062d134806cc4f13d3ee1100a252119a15ddfa94e83",
+    "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+    "rawCapture": "artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0.json.gz",
+    "independentAccuracy": "Separate resident qualification reports compare all55 full-vocabulary vectors with the approved F64 target",
+    "applicationQualification": false,
+    "signedOpening": false,
+    "documentQuality": false
+  }
+}

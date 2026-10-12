@@ -81,3 +81,37 @@ environment. The first invocation failed before inference because the existing
 Adding `/tmp/doppler-reference-deps` to the environment allowed the unchanged
 control and evaluator to run. No dependency or model was downloaded, and no
 GPU workload was launched. Both logs are retained as compressed original bytes.
+
+## Program and piece preparation
+
+`derive-generation-report.js` projects the actual first split request into Rig's
+existing generation transcript. It binds source/control/capture/model identities,
+checks every supplied token and sampled successor, and retains the source output
+without rewriting it. Independent review confirmed the sampled-token assertion
+runs before the numerical fixture advances its retained continuation. The source
+evaluator independently advances its own argmax. Prompt parity covers original
+tokenizer round-tripping of captured IDs; it does not claim template equivalence.
+
+The first transcript projection omitted the explicit nullable seed required by
+Program Bundle schema. `generation-report-before-schema.json` preserves it. The
+corrected projection records `seed: null` for the observed greedy run and fills
+the existing exact-count source-parity fields; it changes neither generation nor
+the source result. Archived 0.6.28 tooling then builds the closed program with 46
+artifacts. `program-bundle-preparation.json` binds this local output and the
+verified 19-file, 537-piece index; model bytes stay outside Git.
+
+Actual Rig construction then rejected the unchanged BLAKE3 manifest solely
+because `loadCapsulePieceIndex` required SHA-256 shards. The repaired owner now
+accepts the two already supported shard hash algorithms and verifies the complete
+shard using its declared algorithm while retaining SHA-256 checks for each piece.
+The regression also found that individually valid SHA-256 pieces could previously
+be accepted with an incorrect whole-shard hash. Seven controls now cover both
+algorithms, that mismatch, corrupted source pieces and unsupported algorithms.
+The original physical-input rejection and failing regression are retained.
+
+Signed tooling controls, source types, style and architecture checks pass. The
+first type command named a nonexistent script, and the first correct type run
+found a missing TypeScript narrowing; both failures remain alongside the final
+passing log. These are preparation-source repairs, not changes to the frozen
+runtime archive. Signed opening, native full qualification, demanding lifecycle
+and document usefulness still require their own evidence.

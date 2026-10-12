@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { createVerifiedPieceReader } from '../storage/verified-piece-reader.js';
+import { createStreamingHasher } from '../storage/shard-manager.js';
 
 /** Verify the original index and each declared range before signing its bytes.
  * @type {import('./model-capsule-pieces.js').loadCapsulePieceIndex} */
@@ -12,7 +13,8 @@ export async function loadCapsulePieceIndex(indexPath, manifestRaw, modelDirecto
   const index = JSON.parse(bytes.toString('utf8'));
   /** @type {import('../formats/rdrr/index.js').RDRRManifest} */
   const manifest = JSON.parse(manifestRaw);
-  if (manifest.hashAlgorithm !== 'sha256') throw new Error('Signed pieces require SHA-256 manifest shards.');
+  if (!['sha256', 'blake3'].includes(manifest.hashAlgorithm)) throw new Error('Unsupported manifest shard hash algorithm.');
+  const shards = new Map(manifest.shards.map(shard => [shard.filename, shard]));
   const allowed = /** @type {Map<string, number | null>} */ (new Map(manifest.shards.map(shard => [shard.filename, shard.size])));
   if (manifest.tokenizer?.file) allowed.set(manifest.tokenizer.file, null);
   const reader = await createVerifiedPieceReader({ manifestBytes: new TextEncoder().encode(manifestRaw), indexBytes: bytes,
@@ -30,7 +32,15 @@ export async function loadCapsulePieceIndex(indexPath, manifestRaw, modelDirecto
         throw new Error('Piece index names an undeclared model artifact.');
       }
       if ((await fs.stat(path.resolve(modelDirectory, file.path))).size !== file.size) throw new Error('Piece source size mismatch.');
-      for (const piece of file.pieces) await reader.readRange(file.path, piece.offset, piece.size);
+      const shard = shards.get(file.path);
+      const hasher = shard ? await createStreamingHasher(manifest.hashAlgorithm) : null;
+      for (const piece of file.pieces) {
+        const verified = await reader.readRange(file.path, piece.offset, piece.size);
+        hasher?.update(new Uint8Array(verified));
+      }
+      if (shard && hasher && Buffer.from(await hasher.finalize()).toString('hex') !== shard.hash) {
+        throw new Error('Piece source shard hash mismatch.');
+      }
     }
   } finally { await reader.close(); }
   return { sourcePath, hash, sizeBytes: bytes.length, path: 'artifacts/model/' + path.basename(sourcePath) };
