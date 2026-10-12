@@ -62,7 +62,17 @@ export interface TensorInspectOptions {
   checkNaN?: boolean;
 }
 
-export interface TensorSnapshot {
+export interface TensorRepresentation {
+  precision?: 'two-f32';
+  components?: 2;
+  elementStrideBytes?: 8;
+}
+
+export function snapshotElementBytes(dtype: string, options?: TensorRepresentation): number;
+/** Observation only: reconstructs logical values; never a runtime compute input. */
+export function decodeSnapshotData(data: ArrayBuffer, dtype: string, options?: TensorRepresentation): Float32Array | Float64Array;
+
+export interface TensorSnapshot extends TensorRepresentation {
   ok: boolean;
   error: string | null;
   shape: number[];
@@ -77,12 +87,14 @@ export interface TensorSnapshot {
   sample: number[];
   sampleCoordinates: number[][];
   fullTensorDigest: string | null;
+  storageDigest?: string;
+  storageComponents?: number[];
   data?: number[];
   hasNaN: boolean;
   hasInf: boolean;
 }
 
-export interface TensorSnapshotOptions {
+export interface TensorSnapshotOptions extends TensorRepresentation {
   includeData?: boolean;
 }
 
@@ -127,7 +139,7 @@ export declare function snapshotTensor(
 ): Promise<TensorSnapshot>;
 
 export declare function snapshotFromArray(
-  arr: Float32Array,
+  arr: Float32Array | Float64Array,
   shape: number[],
   dtype?: string,
   options?: TensorSnapshotOptions

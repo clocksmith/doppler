@@ -56,7 +56,7 @@ export async function doRMSNorm(input, weight, eps, options, recorder) {
   if (kernelTrace.enabled && !recorder) {
     const layer = options.layerIdx ?? -1;
     const label = options.label ?? 'rmsnorm';
-    await traceStep('rmsnorm', label, layer, result.buffer, [options.batchSize, options.hiddenSize]);
+    await traceStep('rmsnorm', label, layer, result.buffer, [options.batchSize, options.hiddenSize], result);
   }
 
   return result;
@@ -70,7 +70,7 @@ export async function doLayerNorm(input, weight, bias, eps, options, recorder) {
   if (kernelTrace.enabled && !recorder) {
     const layer = options.layerIdx ?? -1;
     const label = options.label ?? 'layernorm';
-    await traceStep('layernorm', label, layer, result.buffer, [options.batchSize, options.hiddenSize]);
+    await traceStep('layernorm', label, layer, result.buffer, [options.batchSize, options.hiddenSize], result);
   }
   return result;
 }
@@ -106,8 +106,8 @@ export async function doSandwichRMSNormPair(input, residual, postWeight, preWeig
   if (kernelTrace.enabled && !recorder) {
     const layer = options.layerIdx ?? -1;
     const label = options.label ?? 'rmsnorm_pair';
-    await traceStep('rmsnorm_pair.post_attn', label, layer, result.postAttn.buffer, [options.batchSize, options.hiddenSize]);
-    await traceStep('rmsnorm_pair.pre_ffn', label, layer, result.ffnInput.buffer, [options.batchSize, options.hiddenSize]);
+    await traceStep('rmsnorm_pair.post_attn', label, layer, result.postAttn.buffer, [options.batchSize, options.hiddenSize], result.postAttn);
+    await traceStep('rmsnorm_pair.pre_ffn', label, layer, result.ffnInput.buffer, [options.batchSize, options.hiddenSize], result.ffnInput);
   }
 
   return result;
@@ -121,8 +121,8 @@ export async function doResidualNextRMSNormPair(input, residual, normWeight, eps
   if (kernelTrace.enabled && !recorder) {
     const layer = options.layerIdx ?? -1;
     const label = options.label ?? 'residual_rmsnorm_pair';
-    await traceStep('residual_rmsnorm_pair.residual', label, layer, result.residual.buffer, [options.batchSize, options.hiddenSize]);
-    await traceStep('residual_rmsnorm_pair.next_input', label, layer, result.nextInput.buffer, [options.batchSize, options.hiddenSize]);
+    await traceStep('residual_rmsnorm_pair.residual', label, layer, result.residual.buffer, [options.batchSize, options.hiddenSize], result.residual);
+    await traceStep('residual_rmsnorm_pair.next_input', label, layer, result.nextInput.buffer, [options.batchSize, options.hiddenSize], result.nextInput);
   }
 
   return result;
@@ -145,7 +145,7 @@ export async function doResidualAdd(a, b, size, recorder, traceOptions) {
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder && traceOptions) {
-    await traceStep('residual_add', traceOptions.label ?? 'residual', traceOptions.layerIdx ?? -1, result.buffer, [size]);
+    await traceStep('residual_add', traceOptions.label ?? 'residual', traceOptions.layerIdx ?? -1, result.buffer, [size], result);
   }
 
   return result;
@@ -161,7 +161,7 @@ export async function doMatmul(A, B, M, N, K, options = {}, recorder) {
   if (kernelTrace.enabled && !recorder) {
     const layer = options.layerIdx ?? -1;
     const label = options.label ?? 'matmul';
-    await traceStep('matmul', label, layer, result.buffer, [M, N]);
+    await traceStep('matmul', label, layer, result.buffer, [M, N], result);
   }
 
   return result;
@@ -175,7 +175,7 @@ export async function doSiLU(input, options = {}, recorder) {
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder && options.size) {
-    await traceStep('silu', options.label ?? 'silu', options.layerIdx ?? -1, result.buffer, [options.size]);
+    await traceStep('silu', options.label ?? 'silu', options.layerIdx ?? -1, result.buffer, [options.size], result);
   }
 
   return result;
@@ -189,7 +189,7 @@ export async function doGeLU(input, options = {}, recorder) {
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder && options.size) {
-    await traceStep('gelu', options.label ?? 'gelu', options.layerIdx ?? -1, result.buffer, [options.size]);
+    await traceStep('gelu', options.label ?? 'gelu', options.layerIdx ?? -1, result.buffer, [options.size], result);
   }
 
   return result;
@@ -203,7 +203,7 @@ export async function doSiLURowSplit(input, options, recorder) {
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder) {
-    await traceStep('silu_row_split', options.label ?? 'ffn_activation', options.layerIdx ?? -1, result.buffer, [options.numTokens, options.dim]);
+    await traceStep('silu_row_split', options.label ?? 'ffn_activation', options.layerIdx ?? -1, result.buffer, [options.numTokens, options.dim], result);
   }
 
   return result;
@@ -228,7 +228,7 @@ export async function doMatmulRMSNormFused(input, weight, normWeight, options, r
 
   // Trace the kernel output
   if (kernelTrace.enabled && !recorder) {
-    await traceStep('fused_matmul_rmsnorm', options.label ?? 'fused_matmul_rmsnorm', options.layerIdx ?? -1, resultTensor.buffer, [1, options.N]);
+    await traceStep('fused_matmul_rmsnorm', options.label ?? 'fused_matmul_rmsnorm', options.layerIdx ?? -1, resultTensor.buffer, [1, options.N], resultTensor);
   }
 
   return resultTensor;
@@ -352,7 +352,7 @@ export async function doConv(
     convOut = null;
 
     if (kernelTrace.enabled && !recorder) {
-      await traceStep('conv', label, layerIdx, outProj.buffer, [numTokens, hiddenSize]);
+      await traceStep('conv', label, layerIdx, outProj.buffer, [numTokens, hiddenSize], outProj);
     }
     return outProj;
   } catch (error) {

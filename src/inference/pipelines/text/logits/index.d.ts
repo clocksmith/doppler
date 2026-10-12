@@ -70,7 +70,7 @@ export function computeLogits(
   useGPU: boolean,
   debugFlags?: LogitsDebugFlags,
   getNormWeightBuffer?: (weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer,
-  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
+  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number, representation?: import('../../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }) => Promise<void>,
   debugProbes?: ProbeConfigSchema[] | null,
   options?: ComputeLogitsOptions & { returnGpuBuffer?: false },
   operatorDiagnostics?: unknown
@@ -80,7 +80,7 @@ export function computeLogits(
   hiddenStates: GPUBuffer | Float32Array, numTokens: number, weights: LogitsWeights,
   config: LogitsConfig, useGPU: boolean, debugFlags: LogitsDebugFlags | undefined,
   getNormWeightBuffer: ((weight: GPUBuffer | Float32Array | ArrayBuffer, label: string) => GPUBuffer) | undefined,
-  debugCheckBuffer: ((buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>) | undefined,
+  debugCheckBuffer: ((buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number, representation?: import('../../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }) => Promise<void>) | undefined,
   debugProbes: ProbeConfigSchema[] | null | undefined,
   options: ComputeLogitsOptions & { returnGpuBuffer: true }, operatorDiagnostics?: unknown
 ): Promise<import('../generator/token-selection.js').GpuLogitsResult & { rawVocabSize: number }>;

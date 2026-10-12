@@ -31,6 +31,8 @@ import {
 } from './plan.js';
 import {
   coerceTensorDtype,
+  createLogitsInputTensor,
+  resolveLogitsNormWeight,
   recordGreedyLmHeadArgmaxGPU,
   recordLogitsGPU,
   resolveFinalNormGpuBuffer,
@@ -341,6 +343,7 @@ export async function computeChunkedLogitsTensorGPU(
       role: lmHeadRole,
       kernelPath,
       outputDtype: lmHeadOutputDtype,
+      ...(matmulInput.precision === 'two-f32' ? { outputPrecision: 'f32' } : {}),
       executionPolicies,
     });
 
@@ -445,6 +448,7 @@ export async function computeSplitLogitsTensorGPU(
         role: lmHeadRole,
         kernelPath,
         outputDtype: lmHeadOutputDtype,
+        ...(matmulInput.precision === 'two-f32' ? { outputPrecision: 'f32' } : {}),
         executionPolicies,
       });
 
@@ -569,7 +573,7 @@ export async function computeLogitsGPU(
     normWeightBufferOwned = resolvedFinalNorm.owned;
 
     const inputDtype = isGpuBufferInstance(hiddenStates) ? activationDtype : 'f32';
-    const inputTensor = createTensor(inputBuffer, inputDtype, [numTokens, hiddenSize], 'logits_input');
+    const inputTensor = createLogitsInputTensor(inputBuffer, inputDtype, numTokens, config);
     const phase = numTokens === 1 ? 'decode' : 'prefill';
     const kernelPath = config.kernelPath ?? null;
     const finalNormPrecision = getKernelPathStepPrecision('final_norm', 'postLayer', phase, 0, kernelPath);
@@ -580,6 +584,9 @@ export async function computeLogitsGPU(
       probes: config.debugProbes ?? null,
       operatorDiagnostics,
       dtype: inputDtype,
+      precision: config.activationPrecision,
+      components: config.activationComponents,
+      elementStrideBytes: config.activationElementStrideBytes,
     });
     const forceStableF32Logits = !hasExplicitFinalNormPrecision && shouldForceStableF32Logits(config, inputDtype);
     const stableKernelPath = forceStableF32Logits
@@ -607,7 +614,8 @@ export async function computeLogitsGPU(
         : inputTensor;
       normInputOwned = normInputTensor !== inputTensor;
     }
-    normedTensor = await runRMSNorm(normInputTensor, normWeightBuffer, rmsNormEps, {
+    normedTensor = await runRMSNorm(normInputTensor,
+      resolveLogitsNormWeight(finalNorm, normWeightBuffer, normInputTensor), rmsNormEps, {
       kernelPath: stableKernelPath, phase, layerIdx: 0, role: 'final_norm', section: 'postLayer',
       batchSize: numTokens,
       hiddenSize,
@@ -640,6 +648,9 @@ export async function computeLogitsGPU(
       probes: config.debugProbes ?? null,
       operatorDiagnostics,
       dtype: finalNormTensor.dtype,
+      precision: finalNormTensor.precision,
+      components: finalNormTensor.components,
+      elementStrideBytes: finalNormTensor.elementStrideBytes,
     });
     if (normInputOwned) {
       releaseBuffer(normInputTensor.buffer);
@@ -690,6 +701,7 @@ export async function computeLogitsGPU(
       role: lmHeadRole,
       kernelPath: stableKernelPath,
       outputDtype: lmHeadOutputDtype,
+      ...(lmHeadInputTensor.precision === 'two-f32' ? { outputPrecision: 'f32' } : {}),
       executionPolicies: config.executionPolicies ?? null,
     });
     logitsTensor = await finalizeLogitOutputTensor(logitsTensor, config, {
@@ -720,7 +732,7 @@ export async function computeLogitsGPU(
     if (lmHeadInputOwned && lmHeadInputTensor) releaseBuffer(lmHeadInputTensor.buffer);
     if (logitInputOwned && logitInputTensor) releaseBuffer(logitInputTensor.buffer);
     if (finalNormTensor) releaseBuffer(finalNormTensor.buffer);
-    if (normedTensor) releaseBuffer(normedTensor.buffer);
+    if (normedTensor && normedTensor !== finalNormTensor) releaseBuffer(normedTensor.buffer);
     if (normWeightBufferOwned && normWeightBuffer) releaseBuffer(normWeightBuffer);
     if (lmHeadBufferOwned && lmHeadBuffer) releaseBuffer(isWeightBuffer(lmHeadBuffer) ? lmHeadBuffer.buffer : lmHeadBuffer);
   }

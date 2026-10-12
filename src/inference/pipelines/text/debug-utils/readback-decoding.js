@@ -1,8 +1,12 @@
+import { decodeSnapshotData } from '../../../../debug/tensor.js';
 import { f16ToF32 } from '../../../../loader/dtype-utils.js';
 
 export { f16ToF32 };
 
-export function decodeReadback(buffer, dtype) {
+export function decodeReadback(buffer, dtype, representation = {}) {
+  if (representation.precision !== undefined || representation.components !== undefined || representation.elementStrideBytes !== undefined) {
+    return decodeSnapshotData(buffer, dtype, representation);
+  }
   if (dtype === 'f32') {
     return new Float32Array(buffer);
   }

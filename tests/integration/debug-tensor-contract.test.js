@@ -78,6 +78,22 @@ assert.equal(f16Result.sample[2], -1);
 assert.equal(f16Result.sample[3], 0);
 assert.equal(f16Result.hasNaN, true);
 
+const pairedBuffer = new FakeBuffer(16);
+new Float32Array(pairedBuffer.data.buffer).set([1, 2 ** -25, -2, -(2 ** -24)]);
+const representation = { precision: 'two-f32', components: 2, elementStrideBytes: 8, includeData: true };
+const paired = await snapshotTensor(pairedBuffer, [2], 'f32', representation);
+assert.deepEqual(paired.data, [1 + 2 ** -25, -2 - 2 ** -24]);
+assert.deepEqual(paired.storageComponents, [1, 2 ** -25, -2, -(2 ** -24)]);
+assert.equal(paired.elementStrideBytes, 8);
+assert.equal((await snapshotTensor(pairedBuffer, [3], 'f32', representation)).ok, false);
+let stagingDestroyed = false;
+fakeDevice.createBuffer = () => ({ mapAsync() { throw new Error('injected map failure'); }, destroy() { stagingDestroyed = true; } });
+fakeDevice.queue.submit = () => {};
+const failure = await snapshotTensor(pairedBuffer, [2], 'f32', representation);
+assert.equal(failure.ok, false);
+assert.match(failure.error, /injected map failure/);
+assert.equal(stagingDestroyed, true, 'failed immediate capture destroys its staging allocation');
+
 setGPUDevice(null);
 
 console.log('debug-tensor-contract.test: ok');

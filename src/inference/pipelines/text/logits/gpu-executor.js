@@ -15,6 +15,7 @@ import {
   isGpuBufferInstance,
   isSplitWeightBuffer,
   isWeightBuffer,
+  requireWeightDtype,
 } from '../../../../gpu/weight-buffer.js';
 import {
   getKernelPathMatmulPrecision,
@@ -52,9 +53,31 @@ export function resolveLmHeadMatmulRole(phase) {
   return phase === 'prefill' ? 'lm_head_prefill' : 'lm_head';
 }
 
+export function createLogitsInputTensor(buffer, dtype, numTokens, config) {
+  const representation = {
+    precision: config.activationPrecision,
+    components: config.activationComponents,
+    elementStrideBytes: config.activationElementStrideBytes,
+  };
+  const tensor = createTensor(buffer, dtype, [numTokens, config.hiddenSize], 'logits_input', representation);
+  if (tensor.precision === 'two-f32' && config.normalizationType !== 'rmsnorm') {
+    throw new Error('[Logits] Paired activations require the declared RMSNorm path.');
+  }
+  return tensor;
+}
+
+export function resolveLogitsNormWeight(weight, buffer, input) {
+  return input.precision === 'two-f32'
+    ? createTensor(buffer, requireWeightDtype(weight, 'paired final norm'), [input.shape[1]], 'final_norm_weight')
+    : buffer;
+}
+
 export async function coerceTensorDtype(tensor, targetDtype, recorder = null, options = {}) {
   if (!targetDtype || tensor.dtype === targetDtype) {
     return tensor;
+  }
+  if (tensor.precision === 'two-f32') {
+    throw new Error('[Logits] Paired hidden activations must remain paired through LM-head projection.');
   }
   assertImplicitDtypeTransitionAllowed({
     executionPolicies: options.executionPolicies ?? null,
@@ -119,6 +142,15 @@ async function recordLogitsTailGPU(
     throw new Error('[recordLogitsGPU] CPU-resident or split LM head not supported in recorded path');
   }
 
+  const inputTensor = createLogitsInputTensor(hiddenStates, activationDtype, numTokens, config);
+  const temporary = new Set();
+  const track = buffer => {
+    if (!temporary.has(buffer)) {
+      temporary.add(buffer);
+      recorder.trackTemporaryBuffer(buffer);
+    }
+  };
+  // Validate the input representation before acquiring norm resources.
   // Get norm weight buffer
   
   let normWeightBuffer;
@@ -126,11 +158,11 @@ async function recordLogitsTailGPU(
   const resolvedFinalNorm = resolveFinalNormGpuBuffer(finalNorm, recorder.device.queue, 'final_norm_w');
   normWeightBuffer = resolvedFinalNorm.buffer;
   normWeightOwned = resolvedFinalNorm.owned;
+  if (normWeightOwned) track(normWeightBuffer);
 
   
   const inputDtype = activationDtype;
   // Wrap input buffer as Tensor for RMSNorm
-  const inputTensor = createTensor(hiddenStates, inputDtype, [numTokens, hiddenSize], 'logits_input');
   const phase = numTokens === 1 ? 'decode' : 'prefill';
   const kernelPath = config.kernelPath ?? null;
   const finalNormPrecision = getKernelPathStepPrecision('final_norm', 'postLayer', phase, 0, kernelPath);
@@ -141,6 +173,9 @@ async function recordLogitsTailGPU(
     recorder,
     operatorDiagnostics,
     dtype: inputDtype,
+    precision: inputTensor.precision,
+    components: inputTensor.components,
+    elementStrideBytes: inputTensor.elementStrideBytes,
   });
   const forceStableF32Logits = !hasExplicitFinalNormPrecision && shouldForceStableF32Logits(config, inputDtype);
   const stableKernelPath = forceStableF32Logits
@@ -169,14 +204,17 @@ async function recordLogitsTailGPU(
       : inputTensor;
     normInputOwned = normInputTensor !== inputTensor;
   }
+  if (normInputOwned) track(normInputTensor.buffer);
   // Record RMSNorm (no submit)
-  const normedTensor = await recordRMSNorm(recorder, normInputTensor, normWeightBuffer, rmsNormEps, {
+  const normedTensor = await recordRMSNorm(recorder, normInputTensor,
+    resolveLogitsNormWeight(finalNorm, normWeightBuffer, normInputTensor), rmsNormEps, {
     kernelPath: stableKernelPath, phase, layerIdx: 0, role: 'final_norm', section: 'postLayer',
     batchSize: numTokens,
     hiddenSize,
     rmsNormWeightOffset: config.rmsNormWeightOffset,
     label: 'final_norm',
   });
+  track(normedTensor.buffer);
   let finalNormTensor = normedTensor;
   if (!forceStableF32Logits) {
     const finalNormOutputDtype = resolvePostLayerStepDtype(
@@ -194,12 +232,16 @@ async function recordLogitsTailGPU(
       })
       : normedTensor;
   }
+  track(finalNormTensor.buffer);
   await runProbes('final_norm', finalNormTensor.buffer, {
     numTokens,
     hiddenSize,
     recorder,
     operatorDiagnostics,
     dtype: finalNormTensor.dtype,
+    precision: finalNormTensor.precision,
+    components: finalNormTensor.components,
+    elementStrideBytes: finalNormTensor.elementStrideBytes,
   });
   const logitInputScale = resolveLogitInputScale(config);
   let logitInputTensor = finalNormTensor;
@@ -209,6 +251,7 @@ async function recordLogitsTailGPU(
       count: numTokens * hiddenSize,
     });
     logitInputOwned = true;
+    track(logitInputTensor.buffer);
   }
   const lmHeadRole = resolveLmHeadMatmulRole(phase);
   const lmHeadInputDtype = forceStableF32Logits
@@ -224,6 +267,7 @@ async function recordLogitsTailGPU(
       transitionDeclaredBy: 'step_precision',
     })
     : logitInputTensor;
+  if (lmHeadInputTensor !== logitInputTensor) track(lmHeadInputTensor.buffer);
 
   // Get LM head buffer
   
@@ -235,6 +279,7 @@ async function recordLogitsTailGPU(
     lmHeadBuffer = lmHead;
   } else {
     const rawBuffer = acquireBuffer( (lmHead).byteLength, undefined, 'lm_head_w');
+    track(rawBuffer);
     recorder.device.queue.writeBuffer(rawBuffer, 0,  (lmHead));
     lmHeadBuffer = rawBuffer;
     lmHeadBufferOwned = true;
@@ -263,36 +308,6 @@ async function recordLogitsTailGPU(
   };
 }
 
-function trackRecordedLogitsTail(recorder, tail) {
-  const trackedTempBuffers = new Set();
-  const trackTempBufferOnce = (buffer) => {
-    if (!buffer || trackedTempBuffers.has(buffer)) {
-      return;
-    }
-    trackedTempBuffers.add(buffer);
-    recorder.trackTemporaryBuffer(buffer);
-  };
-  if (tail.finalNormTensor !== tail.normedTensor) {
-    trackTempBufferOnce(tail.normedTensor.buffer);
-  }
-  trackTempBufferOnce(tail.finalNormTensor.buffer);
-  if (tail.logitInputOwned) {
-    trackTempBufferOnce(tail.logitInputTensor.buffer);
-  }
-  if (tail.lmHeadInputTensor !== tail.logitInputTensor) {
-    trackTempBufferOnce(tail.lmHeadInputTensor.buffer);
-  }
-  if (tail.normWeightOwned) {
-    recorder.trackTemporaryBuffer(tail.normWeightBuffer);
-  }
-  if (tail.normInputOwned) {
-    recorder.trackTemporaryBuffer(tail.normInputTensor.buffer);
-  }
-  if (tail.lmHeadBufferOwned) {
-    recorder.trackTemporaryBuffer(isWeightBuffer(tail.lmHeadBuffer) ? tail.lmHeadBuffer.buffer : tail.lmHeadBuffer);
-  }
-}
-
 export async function recordLogitsGPU(
   recorder,
   hiddenStates,
@@ -316,6 +331,7 @@ export async function recordLogitsGPU(
     role: tail.lmHeadRole,
     kernelPath: tail.stableKernelPath,
     outputDtype: tail.lmHeadOutputDtype,
+    ...(tail.lmHeadInputTensor.precision === 'two-f32' ? { outputPrecision: 'f32' } : {}),
     executionPolicies: config.executionPolicies ?? null,
   });
   logitsTensor = await finalizeLogitOutputTensor(logitsTensor, config, {
@@ -327,8 +343,6 @@ export async function recordLogitsGPU(
     applySoftcap: options?.applySoftcap === true,
     operatorDiagnostics,
   });
-
-  trackRecordedLogitsTail(recorder, tail);
 
   return { logitsBuffer: logitsTensor.buffer, vocabSize: tail.targetVocabSize, logitsDtype: logitsTensor.dtype };
 }
@@ -344,6 +358,10 @@ export async function recordGreedyLmHeadArgmaxGPU(
 ) {
   if (numTokens !== 1) {
     throw new Error(`[recordGreedyLmHeadArgmaxGPU] expected numTokens=1, got ${numTokens}.`);
+  }
+  if (config.activationPrecision !== undefined || config.activationComponents !== undefined
+    || config.activationElementStrideBytes !== undefined) {
+    throw new Error('[recordGreedyLmHeadArgmaxGPU] Paired activations require the full recorded logits path.');
   }
   const tail = await recordLogitsTailGPU(
     recorder,
@@ -364,6 +382,5 @@ export async function recordGreedyLmHeadArgmaxGPU(
     outputBuffer: options.outputBuffer,
     outputIndex: options.outputIndex,
   });
-  trackRecordedLogitsTail(recorder, tail);
   return outputBuffer;
 }

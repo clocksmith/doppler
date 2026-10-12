@@ -2,7 +2,8 @@
 
 import { trace } from '../../../debug/index.js';
 import { resolveCapturePolicy } from '../../../debug/capture-policy.js';
-import { snapshotTensor, snapshotFromArray } from '../../../debug/tensor.js';
+import { snapshotTensor, snapshotFromArray, decodeSnapshotData, snapshotElementBytes } from '../../../debug/tensor.js';
+import { sha256BytesHex } from '../../../formats/sha256.js';
 import { computeArrayStats } from '../../../debug/stats.js';
 import { getDevice } from '../../../gpu/device.js';
 import { allowReadback } from '../../../gpu/perf-guards.js';
@@ -142,11 +143,12 @@ function alignUp4(value) {
   return Math.ceil(value / 4) * 4;
 }
 
-async function readGpuScalar(buffer, elementOffset, dtype, bytesPerElement) {
+async function readGpuScalar(buffer, elementOffset, dtype, bytesPerElement, representation) {
   const byteOffset = elementOffset * bytesPerElement;
   const alignedOffset = Math.floor(byteOffset / 4) * 4;
   const offsetWithinRead = byteOffset - alignedOffset;
-  const readback = await readBufferSlice(buffer, alignedOffset, 4);
+  const readback = await readBufferSlice(buffer, alignedOffset, Math.max(4, bytesPerElement));
+  if (bytesPerElement === 8) return decodeSnapshotData(readback, dtype, representation)[0];
   if (dtype === 'f16') {
     const u16Array = new Uint16Array(readback);
     return f16ToF32(u16Array[offsetWithinRead / 2]);
@@ -154,20 +156,21 @@ async function readGpuScalar(buffer, elementOffset, dtype, bytesPerElement) {
   return new Float32Array(readback, offsetWithinRead, 1)[0];
 }
 
-async function readTokenRow(buffer, tokenIdx, hiddenSize, dtype, isCpuBuffer) {
+async function readTokenRow(buffer, tokenIdx, hiddenSize, dtype, isCpuBuffer, representation) {
   if (isCpuBuffer) {
     const start = tokenIdx * hiddenSize;
     const end = start + hiddenSize;
     return buffer.slice(start, end);
   }
 
-  const bytesPerElement = dtype === 'f16' ? 2 : 4;
+  const bytesPerElement = snapshotElementBytes(dtype, representation);
   const byteOffset = tokenIdx * hiddenSize * bytesPerElement;
   const rowBytes = hiddenSize * bytesPerElement;
   const alignedOffset = Math.floor(byteOffset / 4) * 4;
   const offsetWithinRead = byteOffset - alignedOffset;
   const readSize = alignUp4(offsetWithinRead + rowBytes);
   const readback = await readBufferSlice(buffer, alignedOffset, readSize);
+  if (bytesPerElement === 8) return decodeSnapshotData(readback, dtype, representation);
   const values = new Float32Array(hiddenSize);
 
   if (dtype === 'f16') {
@@ -206,13 +209,25 @@ function formatProbeStats(stats, firstNonFiniteIndex = -1) {
 export async function runProbes(stage, buffer, options) {
   const { layerIdx, numTokens, hiddenSize, probes, recorder, dtype = 'f32' } = options;
   if (!buffer) return;
+  const representation = { precision: options.precision, components: options.components,
+    elementStrideBytes: options.elementStrideBytes };
+  const elementBytes = snapshotElementBytes(dtype, representation);
+  if (elementBytes === 8 && buffer.size !== undefined && buffer.size < numTokens * hiddenSize * elementBytes) {
+    throw new Error('Paired probe buffer is smaller than its declared logical shape.');
+  }
   // Skip when a recorder is in flight unless operatorDiagnostics is
   // actively capturing (diagnose mode emitter or tsirFixture writer).
   if (recorder
     && !options.operatorDiagnostics?.enabled
     && !options.operatorDiagnostics?.tsirFixture?.dir) return;
 
-  const isCpuBuffer = buffer instanceof Float32Array;
+  const isCpuBuffer = buffer instanceof Float32Array || buffer instanceof Float64Array;
+  const storedCpuComponents = isCpuBuffer && elementBytes === 8 ? buffer : null;
+  if (storedCpuComponents) {
+    if (!(storedCpuComponents instanceof Float32Array)) throw new Error('Paired CPU probes require stored F32 components.');
+    buffer = decodeSnapshotData(storedCpuComponents.buffer.slice(storedCpuComponents.byteOffset,
+      storedCpuComponents.byteOffset + storedCpuComponents.byteLength), dtype, representation);
+  }
   const device = isCpuBuffer ? null : getDevice();
   if (!isCpuBuffer && !device) return;
 
@@ -223,6 +238,7 @@ export async function runProbes(stage, buffer, options) {
   // <dir>/layer_<layerIdx>/<tsirStage>.npy for Doe validators and
   // splice receipts.
   if (diagnostics?.tsirFixture?.dir) {
+    if (elementBytes === 8) throw new Error('Scalar TSIR fixture export does not support paired storage; use full operator captures.');
     const tsirRecord = await maybeWriteFixtureSnapshot(stage, buffer, {
       tsirFixture: diagnostics.tsirFixture,
       layerIdx,
@@ -243,10 +259,16 @@ export async function runProbes(stage, buffer, options) {
     const captureLevel = resolveCapturePolicy(opId, diagnostics.captureConfig);
     const capture = await buildDiagnosticCapture(captureLevel, buffer, {
       isCpuBuffer,
+      ...representation,
       shape: [numTokens, hiddenSize],
       dtype,
       recorder,
     });
+    if (capture && storedCpuComponents) {
+      capture.storageDigest = `sha256:${sha256BytesHex(new Uint8Array(storedCpuComponents.buffer,
+        storedCpuComponents.byteOffset, storedCpuComponents.byteLength))}`;
+      if (captureLevel === 'full') capture.storageComponents = Array.from(storedCpuComponents);
+    }
     if (capture && options.storageLayout) {
       capture.storageLayout = { ...options.storageLayout };
     }
@@ -271,7 +293,7 @@ export async function runProbes(stage, buffer, options) {
   if (stageProbes.length === 0) return;
   if (!isCpuBuffer && !allowReadback(`probe.${stage}`)) return;
 
-  const bytesPerElement = dtype === 'f16' ? 2 : 4;
+  const bytesPerElement = snapshotElementBytes(dtype, representation);
 
   for (const probe of stageProbes) {
     if (!matchesLayer(probe.layers, layerIdx)) continue;
@@ -293,7 +315,7 @@ export async function runProbes(stage, buffer, options) {
 
       let statsText = null;
       if (includeStats) {
-        const row = await readTokenRow(buffer, tokenIdx, hiddenSize, dtype, isCpuBuffer);
+        const row = await readTokenRow(buffer, tokenIdx, hiddenSize, dtype, isCpuBuffer, representation);
         const firstNonFiniteIndex = row.findIndex((value) => !Number.isFinite(value));
         statsText = formatProbeStats(computeArrayStats(row), firstNonFiniteIndex);
       }
@@ -311,7 +333,7 @@ export async function runProbes(stage, buffer, options) {
           continue;
         }
         const elementOffset = tokenIdx * hiddenSize + dimIdx;
-        const value = await readGpuScalar(buffer, elementOffset, dtype, bytesPerElement);
+        const value = await readGpuScalar(buffer, elementOffset, dtype, bytesPerElement, representation);
         values.push(`${dimIdx}=${formatProbeNumber(value)}`);
       }
 
@@ -339,14 +361,15 @@ async function buildDiagnosticCapture(level, buffer, options) {
   const includeData = level === 'full';
   if (!isCpuBuffer && recorder) {
     return createDeferredDiagnosticCapture(level, buffer, {
+      ...options,
       recorder,
       shape,
       dtype,
     });
   }
   const snapshot = isCpuBuffer
-    ? snapshotFromArray(buffer, shape, dtype, { includeData })
-    : await snapshotTensor(buffer, shape, dtype, { includeData });
+    ? snapshotFromArray(buffer, shape, dtype, { ...options, includeData })
+    : await snapshotTensor(buffer, shape, dtype, { ...options, includeData });
   if (!snapshot?.ok) {
     return {
       level,
@@ -359,6 +382,7 @@ async function buildDiagnosticCapture(level, buffer, options) {
   }
 
   return {
+    ...snapshot,
     level,
     shape: snapshot.shape,
     dtype: snapshot.dtype,
@@ -376,16 +400,14 @@ async function buildDiagnosticCapture(level, buffer, options) {
 
 function createDeferredDiagnosticCapture(level, buffer, options) {
   const { recorder, shape, dtype } = options;
-  const elementSize = dtype === 'f16' ? 2 : 4;
+  const elementSize = snapshotElementBytes(dtype, options);
   const numElements = (shape ?? []).reduce((a, b) => a * b, 1);
   const readSize = numElements > 0
     ? Math.min(buffer.size, numElements * elementSize)
     : buffer.size;
-  const staging = recorder.device.createBuffer({
-    label: `${recorder.label}_diagnostic_capture`,
-    size: readSize,
-    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-  });
+  const staging = recorder.createTempBuffer(
+    readSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ, 'diagnostic_capture'
+  );
   recorder.getEncoder().copyBufferToBuffer(buffer, 0, staging, 0, readSize);
 
   const capture = {
@@ -405,12 +427,20 @@ function createDeferredDiagnosticCapture(level, buffer, options) {
     try {
       await staging.mapAsync(GPUMapMode.READ);
       mapped = true;
+      const storedBytes = staging.getMappedRange().slice(0);
       const snapshot = snapshotFromArray(
-        decodeSnapshotBytes(staging.getMappedRange().slice(0), dtype),
+        decodeSnapshotBytes(storedBytes, dtype, options),
         shape,
         dtype,
-        { includeData: level === 'full' }
+        { ...options, includeData: level === 'full' }
       );
+      if (options.precision === 'two-f32') {
+        capture.precision = options.precision;
+        capture.components = 2;
+        capture.elementStrideBytes = 8;
+        capture.storageDigest = `sha256:${sha256BytesHex(new Uint8Array(storedBytes))}`;
+        if (level === 'full') capture.storageComponents = Array.from(new Float32Array(storedBytes));
+      }
       capture.shape = snapshot.shape;
       capture.dtype = snapshot.dtype;
       capture.sample = Array.isArray(snapshot.sample) ? snapshot.sample : null;
@@ -430,14 +460,15 @@ function createDeferredDiagnosticCapture(level, buffer, options) {
       if (mapped) {
         staging.unmap();
       }
-      staging.destroy();
+      // Recorder owns destruction on successful completion, failed submission, or abort.
     }
   });
 
   return capture;
 }
 
-function decodeSnapshotBytes(data, dtype) {
+function decodeSnapshotBytes(data, dtype, options) {
+  if (options.precision === 'two-f32') return decodeSnapshotData(data, dtype, options);
   if (dtype === 'f16') {
     const src = new Uint16Array(data);
     const decoded = new Float32Array(src.length);

@@ -1,3 +1,4 @@
+import type { TensorRepresentation } from '../../../debug/tensor.js';
 /**
  * Kernel Pipeline Tracer - systematic debugging for GPU inference.
  *
@@ -112,7 +113,9 @@ export function traceStep(
   layer: number,
   outputBuffer: GPUBuffer,
   outputShape: number[],
-  options?: {
+  options?: TensorRepresentation & {
+    dtype?: string;
+    inputRepresentations?: (TensorRepresentation & { dtype?: string })[];
     inputs?: GPUBuffer[];
     inputShapes?: number[][];
     variant?: string;

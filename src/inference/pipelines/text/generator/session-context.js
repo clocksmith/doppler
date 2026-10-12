@@ -1,3 +1,4 @@
+import { snapshotElementBytes } from '../../../../debug/tensor.js';
 import { mergeRuntimeValues } from '../../../../config/runtime-merge.js';
 import {
   assertBundledAdapterAuthorized,
@@ -22,11 +23,13 @@ export function resolvePerLayerInputsSession(manifestSession, runtimeSession) {
   return mergeRuntimeValues(manifestSession, runtimeSession);
 }
 
-export async function debugCheckBuffer(state, buffer, label, numTokens, expectedDim) {
+export async function debugCheckBuffer(state, buffer, label, numTokens, expectedDim, representation = null) {
   if (!allowReadback(`pipeline.debug.${label}`)) return;
   const expectedElements = expectedDim ? numTokens * expectedDim : 0;
   let bytesPerElement = 4;
-  if (expectedElements > 0) {
+  if (representation) {
+    bytesPerElement = snapshotElementBytes(representation.dtype, representation);
+  } else if (expectedElements > 0) {
     const f16Bytes = expectedElements * 2;
     const f32Bytes = expectedElements * 4;
     if (buffer.size >= f32Bytes) {
@@ -51,8 +54,8 @@ export async function debugCheckBuffer(state, buffer, label, numTokens, expected
   const readBytes = Math.min(buffer.size, maxElements * bytesPerElement);
   const data = await readBuffer(buffer, readBytes);
   if (data.byteLength === 0) return;
-  const dtype = selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
-  const values = decodeReadback(data, dtype);
+  const dtype = representation?.dtype ?? selectRuleValue('inference', 'dtype', 'f16OrF32FromBytes', { bytesPerElement });
+  const values = decodeReadback(data, dtype, representation ?? {});
   let min = Infinity;
   let max = -Infinity;
   let nanCount = 0;

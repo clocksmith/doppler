@@ -213,8 +213,8 @@ export async function _prefill(inputIds, opts) {
     };
     const recorder = createRecorder('prefill');
     const debugCheckBuffer = this._state.debug
-      ? (buffer, label, numTokens, expectedDim) =>
-        debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim)
+      ? (buffer, label, numTokens, expectedDim, representation) =>
+        debugCheckBufferHelper(this._state, buffer, label, numTokens, expectedDim, representation)
       : undefined;
     const context = buildLayerContext(
       this._state,

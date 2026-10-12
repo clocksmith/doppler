@@ -17,29 +17,34 @@ export async function finalizeLogitOutputTensor(tensor, config, options) {
     operatorDiagnostics = null,
   } = options;
   const transform = recorder ? recordFinalizeLogitsTensor : runFinalizeLogitsTensor;
-  const output = recorder
-    ? await transform(recorder, tensor, {
-      rowCount: numTokens,
-      sourceColumns: vocabSize,
-      targetColumns: targetVocabSize,
-      bias,
-      outputScale: resolveLogitOutputScale(config),
-      softcap: applySoftcap && config.finalLogitSoftcapping != null
-        ? Number(config.finalLogitSoftcapping)
-        : 0,
-    })
-    : await transform(tensor, {
-      rowCount: numTokens,
-      sourceColumns: vocabSize,
-      targetColumns: targetVocabSize,
-      bias,
-      outputScale: resolveLogitOutputScale(config),
-      softcap: applySoftcap && config.finalLogitSoftcapping != null
-        ? Number(config.finalLogitSoftcapping)
-        : 0,
-    });
-  if (recorder) recorder.trackTemporaryBuffer(tensor.buffer);
-  else releaseBuffer(tensor.buffer);
+  let output;
+  try {
+    output = recorder
+      ? await transform(recorder, tensor, {
+        rowCount: numTokens,
+        sourceColumns: vocabSize,
+        targetColumns: targetVocabSize,
+        bias,
+        outputScale: resolveLogitOutputScale(config),
+        softcap: applySoftcap && config.finalLogitSoftcapping != null
+          ? Number(config.finalLogitSoftcapping)
+          : 0,
+      })
+      : await transform(tensor, {
+        rowCount: numTokens,
+        sourceColumns: vocabSize,
+        targetColumns: targetVocabSize,
+        bias,
+        outputScale: resolveLogitOutputScale(config),
+        softcap: applySoftcap && config.finalLogitSoftcapping != null
+          ? Number(config.finalLogitSoftcapping)
+          : 0,
+      });
+  } finally {
+    // The finalizer consumes its input even when validation or dispatch fails.
+    if (recorder) recorder.trackTemporaryBuffer(tensor.buffer);
+    else releaseBuffer(tensor.buffer);
+  }
   try {
     await runProbes('logits', output.buffer, {
       numTokens, hiddenSize: targetVocabSize, recorder, operatorDiagnostics, dtype: output.dtype,

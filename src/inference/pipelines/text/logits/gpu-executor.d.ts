@@ -2,6 +2,11 @@ import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
 import type { Tensor } from '../../../../gpu/tensor.js';
 import type { LogitsConfig, LogitsWeights } from './types.js';
 
+export declare function createLogitsInputTensor(
+  buffer: GPUBuffer, dtype: 'f16' | 'f32', numTokens: number, config: LogitsConfig
+): Tensor;
+export declare function resolveLogitsNormWeight(weight: unknown, buffer: GPUBuffer, input: Tensor): GPUBuffer | Tensor;
+
 export declare function resolvePrecisionFieldDtype(
   precision: Record<string, unknown> | null | undefined,
   fallback: string | null | undefined,

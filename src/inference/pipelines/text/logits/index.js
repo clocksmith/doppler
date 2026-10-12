@@ -15,7 +15,8 @@ export { readBufferWithCleanup } from './readback.js';
 import { getDevice } from '../../../../gpu/device.js';
 import { acquireBuffer, releaseBuffer, readBuffer } from '../../../../memory/buffer-pool.js';
 import { runLayerNorm, runMatmul, runRMSNorm, runScale, castF16ToF32, castF32ToF16, runLmHeadSelectLogitsF16 } from '../../../../gpu/kernel-selector.js';
-import { createTensor } from '../../../../gpu/tensor.js';
+import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
+import { createLogitsInputTensor, resolveLogitsNormWeight } from './gpu-executor.js';
 import { isWeightBuffer, isCpuWeightBuffer, isGpuBufferInstance, isSplitWeightBuffer, getWeightDtype, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { kernelTrace, traceStep } from '../kernel-trace.js';
 import { log, trace, isTraceEnabled } from '../../../../debug/index.js';
@@ -85,6 +86,9 @@ async function coerceTensorDtype(tensor, targetDtype, options = {}) {
   if (!targetDtype || tensor.dtype === targetDtype) {
     return tensor;
   }
+  if (tensor.precision === 'two-f32') {
+    throw new Error('[Logits] Paired hidden activations must remain paired through LM-head projection.');
+  }
   assertImplicitDtypeTransitionAllowed({
     executionPolicies: options.executionPolicies ?? null,
     fromDtype: tensor.dtype,
@@ -111,9 +115,14 @@ async function traceTensorHealth(label, tensor, elementCount) {
   if (!buffer || (dtype !== 'f16' && dtype !== 'f32')) {
     return;
   }
-  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
+  const bytesPerElement = tensorElementBytes(dtype, tensor);
   const data = await readBuffer(buffer, elementCount * bytesPerElement);
-  const values = dtype === 'f16' ? f16BufferToF32(data) : new Float32Array(data);
+  let values = dtype === 'f16' ? f16BufferToF32(data) : new Float32Array(data);
+  if (tensor.precision === 'two-f32') {
+    // Observation only: reconstruction never feeds values back into execution.
+    const components = values;
+    values = Float64Array.from({ length: elementCount }, (_, i) => components[2 * i] + components[2 * i + 1]);
+  }
   trace.logits(label, getLogitsHealth(values));
 }
 
@@ -244,6 +253,9 @@ export async function computeLogits(
   if (selectedTokenIds && (isCpuWeightBuffer(lmHead) || isSplitWeightBuffer(lmHead))) {
     throw new Error('[Logits] selectedTokenIds requires a single GPU-resident LM head weight buffer.');
   }
+  if (selectedTokenIds && config.activationPrecision === 'two-f32') {
+    throw new Error('[Logits] Paired activations require the complete vocabulary projection.');
+  }
   if (!device || !useGPU) {
     throw new Error('[Logits] WebGPU execution is required; CPU logits fallback is not a production path.');
   }
@@ -275,6 +287,9 @@ export async function computeLogits(
       probes: debugProbes,
       operatorDiagnostics,
       dtype: inputDtype,
+      precision: config.activationPrecision,
+      components: config.activationComponents,
+      elementStrideBytes: config.activationElementStrideBytes,
     });
 
     // 2. Apply the manifest-owned final normalization.
@@ -290,15 +305,17 @@ export async function computeLogits(
       if (normWeightBufferOwned) resources.register(normWeightBuffer, 'final_norm_w');
     }
 
+    const inputTensor = createLogitsInputTensor(inputBuffer, inputDtype, numTokens, config);
+
     // Debug: Check hidden state before final norm
     if (!debugFlags.finalNormDebugDone && debugCheckBuffer) {
       debugFlags.finalNormDebugDone = true;
-      await debugCheckBuffer(inputBuffer, 'Before final norm', numTokens, hiddenSize);
-      await debugCheckBuffer(normWeightBuffer, 'Final norm weights', 1, hiddenSize);
+      await debugCheckBuffer(inputBuffer, 'Before final norm', numTokens, hiddenSize, inputTensor);
+      await debugCheckBuffer(normWeightBuffer, 'Final norm weights', 1, hiddenSize, config.activationPrecision === 'two-f32'
+        ? { dtype: requireWeightDtype(finalNorm, 'paired final norm observation') } : undefined);
     }
 
     // Wrap input buffer as Tensor for RMSNorm
-    const inputTensor = createTensor(inputBuffer, inputDtype, [numTokens, hiddenSize], 'logits_input');
     await traceTensorHealth('LOGITS_INPUT_HEALTH', inputTensor, numTokens * hiddenSize);
     const phase = numTokens === 1 ? 'decode' : 'prefill';
     const kernelPath = config.kernelPath ?? null;
@@ -364,7 +381,8 @@ export async function computeLogits(
         }
       ));
     } else {
-      normedTensor = await ownTensor(runRMSNorm(normInputTensor, normWeightBuffer, rmsNormEps, {
+      normedTensor = await ownTensor(runRMSNorm(normInputTensor,
+        resolveLogitsNormWeight(finalNorm, normWeightBuffer, normInputTensor), rmsNormEps, {
         kernelPath: stableKernelPath, phase, layerIdx: 0, role: 'final_norm', section: 'postLayer',
         batchSize: numTokens,
         hiddenSize,
@@ -402,18 +420,21 @@ export async function computeLogits(
       probes: debugProbes,
       operatorDiagnostics,
       dtype: finalNormTensor.dtype,
+      precision: finalNormTensor.precision,
+      components: finalNormTensor.components,
+      elementStrideBytes: finalNormTensor.elementStrideBytes,
     });
     await traceTensorHealth('FINAL_NORM_HEALTH', finalNormTensor, numTokens * hiddenSize);
 
     // Trace final norm output
     if (kernelTrace.enabled) {
-      await traceStep(config.normalizationType, 'final_norm', -1, finalNormTensor.buffer, [numTokens, hiddenSize]);
+      await traceStep(config.normalizationType, 'final_norm', -1, finalNormTensor.buffer, [numTokens, hiddenSize], finalNormTensor);
     }
 
     // Debug: Check hidden state after final norm
     if (!debugFlags.afterFinalNormDebugDone && debugCheckBuffer) {
       debugFlags.afterFinalNormDebugDone = true;
-      await debugCheckBuffer(finalNormTensor.buffer, 'After final norm', numTokens, hiddenSize);
+      await debugCheckBuffer(finalNormTensor.buffer, 'After final norm', numTokens, hiddenSize, finalNormTensor);
     }
 
     const logitInputScale = resolveLogitInputScale(config);
@@ -434,14 +455,14 @@ export async function computeLogits(
     let matmulInputTensor = finalNormTensor;
     let matmulInputOwned = false;
     if (lastPositionOnly) {
-      const inputBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: finalNormTensor.dtype });
+      const inputBytes = tensorElementBytes(finalNormTensor.dtype, finalNormTensor);
       const rowSize = hiddenSize * inputBytes;
       const rowOffset = (numTokens - 1) * rowSize;
       const lastInputBuffer = acquire(rowSize, undefined, 'logits_input_last');
       const encoder = device.createCommandEncoder();
       encoder.copyBufferToBuffer(finalNormTensor.buffer, rowOffset, lastInputBuffer, 0, rowSize);
       device.queue.submit([encoder.finish()]);
-      matmulInputTensor = createTensor(lastInputBuffer, finalNormTensor.dtype, [1, hiddenSize], 'logits_input_last');
+      matmulInputTensor = createTensor(lastInputBuffer, finalNormTensor.dtype, [1, hiddenSize], 'logits_input_last', finalNormTensor);
       matmulInputOwned = true;
     }
 
@@ -593,6 +614,7 @@ export async function computeLogits(
       phaseOverride: matmulPhaseOverride,
       kernelPath: stableKernelPath,
       outputDtype: lmHeadOutputDtype,
+      ...(matmulInputTensor.precision === 'two-f32' ? { outputPrecision: 'f32' } : {}),
       executionPolicies: config.executionPolicies ?? null,
     }));
     await runProbes('logits', logitsTensor.buffer, {
