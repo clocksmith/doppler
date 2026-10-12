@@ -16,8 +16,8 @@ F32 component data plus its digest for full captures. These observations never
 feed values back into model execution. Scalar TSIR fixture output rejects this
 representation explicitly.
 
-`representation-before.log` retains the original missing-plan-field failure.
-`finalization-before.log` retains a physical invalid-bias failure that left four
+`representation-before.txt` retains the original missing-plan-field failure.
+`finalization-before.txt` retains a physical invalid-bias failure that left four
 pool-owned buffers instead of the three borrowed inputs. Finalization now
 releases or records its consumed input even when validation/dispatch throws.
 
@@ -28,9 +28,9 @@ Acceptance evidence:
   compatibility.
 - `node tests/inference/logits-paired-physical.test.js`: nine Mac Metal/Dawn
   controls. All rows, last-row copying, immediate/direct/recorded output and
-  failure ownership. `mac-controls-with-observation.log` adds a physical paired snapshot and retains exact operands, independent
+  failure ownership. `mac-controls-with-observation.txt` adds a physical paired snapshot and retains exact operands, independent
   Number/F64 equations rounded to F32, outputs, tolerance and provider receipt.
-- `mac-scalar-ownership.log`: existing physical scalar ownership regression.
+- `mac-scalar-ownership.txt`: existing physical scalar ownership regression.
 - Focused last-position, softcap, final-norm weight, utility cleanup,
   selected-logits diagnostic and output-transform tests also pass.
 
