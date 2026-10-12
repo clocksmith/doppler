@@ -133,6 +133,17 @@ export function write_matmul_q4_fused_rmsnorm_widetile(view, values, kernel) {
   view.setUint32(28, 0, true);
 }
 
+export function write_matmul_paired_f32(view, values, kernel) {
+  writeU32(view, 0, values["M"], kernel, "M");
+  writeU32(view, 4, values["N"], kernel, "N");
+  writeU32(view, 8, values["K"], kernel, "K");
+  writeU32(view, 12, values["grid_width"], kernel, "grid_width");
+  writeF32(view, 16, values["alpha_hi"], kernel, "alpha_hi");
+  writeF32(view, 20, values["alpha_lo"], kernel, "alpha_lo");
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
 export function write_fused_ffn_default(view, values, kernel) {
   writeU32(view, 0, values["M"], kernel, "M");
   writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
@@ -492,6 +503,17 @@ export function write_rmsnorm_default(view, values, kernel) {
   view.setUint32(28, 0, true);
 }
 
+export function write_rmsnorm_paired(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
+  writeF32(view, 8, values["eps_hi"], kernel, "eps_hi");
+  writeF32(view, 12, values["eps_lo"], kernel, "eps_lo");
+  writeU32(view, 16, values["token_stride"], kernel, "token_stride");
+  writeF32(view, 20, values["scale_hi"], kernel, "scale_hi");
+  writeF32(view, 24, values["scale_lo"], kernel, "scale_lo");
+  view.setUint32(28, 0, true);
+}
+
 export function write_rmsnorm_pair_default(view, values, kernel) {
   writeU32(view, 0, values["size"], kernel, "size");
   writeU32(view, 4, values["num_tokens"], kernel, "num_tokens");
@@ -570,30 +592,4 @@ export function write_soft_embedding_logits_norm_stats(view, values, kernel) {
   writeF32(view, 20, values["temperature"], kernel, "temperature");
   view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);
-}
-
-export function write_diffusion_gemma_sampling_entropy_stats(view, values, kernel) {
-  writeU32(view, 0, values["vocab_size"], kernel, "vocab_size");
-  writeU32(view, 4, values["canvas_length"], kernel, "canvas_length");
-  writeU32(view, 8, values["pad_token_id"], kernel, "pad_token_id");
-  view.setUint32(12, 0, true);
-  writeF32(view, 16, values["temperature"], kernel, "temperature");
-  writeF32(view, 20, values["logit_softcap"], kernel, "logit_softcap");
-  view.setUint32(24, 0, true);
-  view.setUint32(28, 0, true);
-}
-
-export function write_rope_default(view, values, kernel) {
-  writeU32(view, 0, values["seq_len"], kernel, "seq_len");
-  writeU32(view, 4, values["num_heads"], kernel, "num_heads");
-  writeU32(view, 8, values["head_dim"], kernel, "head_dim");
-  writeU32(view, 12, values["start_pos"], kernel, "start_pos");
-  writeF32(view, 16, values["rope_base"], kernel, "rope_base");
-  writeF32(view, 20, values["rope_scale"], kernel, "rope_scale");
-  writeU32(view, 24, values["rotary_dim"], kernel, "rotary_dim");
-  writeU32(view, 28, values["interleaved"], kernel, "interleaved");
-  writeU32(view, 32, values["pair_span_dim"], kernel, "pair_span_dim");
-  view.setUint32(36, 0, true);
-  view.setUint32(40, 0, true);
-  view.setUint32(44, 0, true);
 }

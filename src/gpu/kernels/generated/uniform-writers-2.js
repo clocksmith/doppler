@@ -2,6 +2,28 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_modulate_default(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
+  writeU32(view, 8, values["scale_offset"], kernel, "scale_offset");
+  writeU32(view, 12, values["shift_offset"], kernel, "shift_offset");
+  writeU32(view, 16, values["gate_offset"], kernel, "gate_offset");
+  writeU32(view, 20, values["has_gate"], kernel, "has_gate");
+  writeU32(view, 24, values["add_one"], kernel, "add_one");
+  view.setUint32(28, 0, true);
+}
+
+export function write_pixel_shuffle_default(view, values, kernel) {
+  writeU32(view, 0, values["out_channels"], kernel, "out_channels");
+  writeU32(view, 4, values["out_height"], kernel, "out_height");
+  writeU32(view, 8, values["out_width"], kernel, "out_width");
+  writeU32(view, 12, values["grid_width"], kernel, "grid_width");
+  writeU32(view, 16, values["grid_height"], kernel, "grid_height");
+  writeU32(view, 20, values["patch_size"], kernel, "patch_size");
+  writeU32(view, 24, values["patch_channels"], kernel, "patch_channels");
+  view.setUint32(28, 0, true);
+}
+
 export function write_cross_entropy_backward_default(view, values, kernel) {
   writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
   writeU32(view, 4, values["vocab_size"], kernel, "vocab_size");
@@ -237,4 +259,11 @@ export function write_forecast_output_f32(view, values, kernel) {
 export function write_logit_suppress_f32(view, values, kernel) {
   writeU32(view, 0, values["vocab_size"], kernel, "vocab_size");
   writeU32(view, 4, values["token_count"], kernel, "token_count");
+}
+
+export function write_paired_pointwise_add(view, values, kernel) {
+  writeU32(view, 0, values["size"], kernel, "size");
+  writeF32(view, 4, values["scale_hi"], kernel, "scale_hi");
+  writeF32(view, 8, values["scale_lo"], kernel, "scale_lo");
+  view.setUint32(12, 0, true);
 }

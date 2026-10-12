@@ -1,0 +1,53 @@
+{
+  "schema": "doppler-paired-matmul-physical-v1",
+  "shaderSha256": "11560959ed63bda0dac6937a486dc1544bfed457142fccfb168da7782e10f6ca",
+  "fixtureSha256": "43543c9cb10b2ebcd89501df11789094589218200d2db6e0726e4d5f5001e4e1",
+  "seed": 624901,
+  "tolerance": 2e-12,
+  "scope": "Independent F64 dot products of exact represented inputs/weights; Q4K fixture built from independent scales/minima/quants, fixed source F32 weight materialization. Public scalar output must match nearest F32 bits.",
+  "cases": [
+    {
+      "dtype": "f32",
+      "scalar": false,
+      "maxError": 1.787459069646502e-14,
+      "failures": 0
+    },
+    {
+      "dtype": "f32",
+      "scalar": true,
+      "maxError": 5.411028888603908e-8,
+      "failures": 0
+    },
+    {
+      "dtype": "f16",
+      "scalar": false,
+      "maxError": 2.9976021664879227e-14,
+      "failures": 0
+    },
+    {
+      "dtype": "f16",
+      "scalar": true,
+      "maxError": 4.552362963143269e-8,
+      "failures": 0
+    },
+    {
+      "dtype": "q4k",
+      "scalar": false,
+      "maxError": 2.747753953615065e-14,
+      "failures": 0
+    },
+    {
+      "dtype": "q4k",
+      "scalar": true,
+      "maxError": 4.9654360470898826e-8,
+      "failures": 0
+    }
+  ],
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3"
+  },
+  "browser": "146.0.7680.177",
+  "errors": [],
+  "passed": true
+}

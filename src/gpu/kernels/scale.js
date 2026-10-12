@@ -1,3 +1,4 @@
+import { executePairedScale } from './paired-activation.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
 import { WORKGROUP_SIZES } from './constants.js';
@@ -10,6 +11,10 @@ export function selectScaleKernel(options = {}, isF16 = false) {
 }
 
 async function _scale(target, input, scale, options = {}) {
+  if (input.precision !== undefined || input.components !== undefined || input.elementStrideBytes !== undefined) {
+    const count = options.count ?? input.shape.reduce((total, size) => total * size, 1);
+    return executePairedScale(target, input, scale, count, options);
+  }
   const { count, outputBuffer = null, inplace = false } = options;
   const ownsOutput = !inplace && outputBuffer == null;
 
