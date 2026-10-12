@@ -236,6 +236,7 @@ export async function applyDenseProjectionBias(
 }
 
 export async function runDenseUngatedFFNGPU(layerIdx, inputTensor, numTokens, context, layerWeights) {
+  if (inputTensor.precision !== undefined) throw new Error('[FFN] Paired execution requires the declared gated split program.');
   const { config, recorder } = context;
   const { hiddenSize, hiddenActivation } = config;
   const intermediateSize = resolveLayerIntermediateSize(config, layerIdx);
@@ -403,6 +404,9 @@ export async function runDenseFFNWithFusedPostNormGPU(
   transposeB,
   outputBuffer
 ) {
+  if (inputTensor.precision !== undefined || residualTensor?.precision !== undefined) {
+    throw new Error('[FFN] Paired execution cannot use scalar fused post-normalization.');
+  }
   const device = getDevice();
   if (!device) throw new Error('No GPU device');
 

@@ -29,6 +29,8 @@ import type {
 } from './attention/index.js';
 import type { LayerWeights } from './types.js';
 import type { LoRAAdapter } from './lora.js';
+import type { MatmulOptions } from '../../../gpu/kernels/matmul.js';
+import type { SiLUOptions } from '../../../gpu/kernels/silu.js';
 
 export function releaseOrTrack(
   recorder: CommandRecorder | undefined,
@@ -144,14 +146,7 @@ export function doMatmul(
   M: number,
   N: number,
   K: number,
-  options?: {
-    transposeB?: boolean | 'auto';
-    label?: string;
-    layerIdx?: number;
-    outputDtype?: 'f16' | 'f32';
-    role?: string;
-    executionPolicies?: ExecutionV1PoliciesSchema | null;
-  },
+  options?: MatmulOptions & { label?: string },
   recorder?: CommandRecorder
 ): Promise<Tensor>;
 
@@ -161,7 +156,7 @@ export function doMatmul(
  */
 export function doSiLU(
   input: Tensor,
-  options?: { size?: number; gate?: Tensor | null; label?: string; layerIdx?: number },
+  options?: SiLUOptions & { label?: string; layerIdx?: number },
   recorder?: CommandRecorder
 ): Promise<Tensor>;
 
@@ -254,7 +249,7 @@ export function doAttention(
   debugFlags: AttentionDebugFlags,
   getWeightBufferFn: (weight: GPUBuffer | WeightBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer, label: string) => GPUBuffer | WeightBuffer,
   getNormWeightBufferFn: (weight: GPUBuffer | Float32Array | ArrayBuffer | CpuWeightBuffer, label: string) => GPUBuffer,
-  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number) => Promise<void>,
+  debugCheckBuffer?: (buffer: GPUBuffer, label: string, numTokens: number, expectedDim?: number, representation?: import('../../../debug/tensor.js').TensorRepresentation & { dtype: 'f16' | 'f32' | 'bf16' }) => Promise<void>,
   recorder?: CommandRecorder,
   lora?: LoRAAdapter | null
 ): Promise<AttentionResult>;

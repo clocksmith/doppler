@@ -39,9 +39,9 @@ import { resolveLayerIntermediateSize } from '../config.js';
 import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
 import { canFuseSplitPrefillF16GateUpPath, hasQ4KMaterialization, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';
 import { coerceTensorDtype, dispatchActivation, dispatchFusedGateUp, requireFusedWeightDtype, resolveActivationOp, resolveMatmulStepDtype, runDenseUngatedFFNGPU } from './dense-executor.js';
+import { runPairedFFNGPU } from './paired.js';
 export { canUseNativeF16FusedGateUp, runDenseFFNWithFusedPostNormGPU } from './dense-executor.js';
 export { canFuseSplitPrefillF16GateUpPath, resolveDenseFFNFusedPathDtypes, resolveDenseFFNMatmulStepDtype, resolveFusedGateUpPipelineConstants, resolveFusedGateUpVariant, resolveFusedGateUpWeights, resolveGateUpPathMode } from './dense-plan.js';
-
 async function captureTrainingActivation(context, layerIdx, tensor, numTokens, hiddenSize) {
   const capture = context.trainingCapture;
   if (!capture || capture.layerIdx !== layerIdx || capture.stage !== 'ffn_act') return;
@@ -54,7 +54,6 @@ async function captureTrainingActivation(context, layerIdx, tensor, numTokens, h
     recorder: context.recorder ?? null,
   });
 }
-
 function enqueueRecordedDenseHealth(context, layerIdx, label, tensor, elementCount) {
   const recorder = context.recorder ?? null;
   if (!recorder || !isTraceEnabled('logits') || !shouldDebugLayerOutput(layerIdx, context.debugLayers)) {
@@ -70,13 +69,11 @@ function enqueueRecordedDenseHealth(context, layerIdx, label, tensor, elementCou
     trace.logits(`L${layerIdx}.${label}_HEALTH`, getLogitsHealth(decodeReadback(data, dtype)));
   });
 }
-
 function isWideTileQ4KPhaseEnabled(session, phase) {
   return phase === 'decode'
     ? session?.useWideTileQ4KDecode === true
     : session?.useWideTileQ4KPrefill === true;
 }
-
 function shouldMarkWideTileResidualFused(session, phase) {
   return getKernelCapabilities().hasF16 === true
     && session?.useWideTileResidualFusion === true
@@ -91,6 +88,9 @@ export async function runDenseFFNGPU(
   context,
   layerWeights
 ) {
+  if (inputTensor.precision !== undefined) {
+    return runPairedFFNGPU(layerIdx, inputTensor, numTokens, context, layerWeights);
+  }
   const device = getDevice();
   if (!device) throw new Error('No GPU device');
 
