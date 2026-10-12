@@ -1,0 +1,30 @@
+{
+  "schema": "doppler.frozen-document-batch/v1",
+  "pid": 128837,
+  "cases": [
+    {
+      "id": "fresh-bathroom-correction",
+      "pid": 128842,
+      "status": "running",
+      "controlSha256": "14ce081b031d76a3cb2157c93b3de6c4bd6d360cf7c0fbe731000dff749c0a2f",
+      "command": [
+        "python3",
+        "-u",
+        "tools/qwen35-original-weight-generation.py",
+        "--source",
+        "/var/tmp/doppler-qwen35-2b-source-20261011",
+        "--revision",
+        "15852e8c16360a2fea060d615a32b45270f8a8fc",
+        "--deployed",
+        "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+        "--control",
+        "/var/tmp/doppler-repetition-source-20261011/document-fresh-bathroom-correction.json",
+        "--out",
+        "/var/tmp/doppler-repetition-source-20261011/document-fresh-bathroom-correction-result.json",
+        "--threads",
+        "8"
+      ]
+    }
+  ],
+  "purpose": "Complete the other three frozen cases; the first case remains rejected"
+}

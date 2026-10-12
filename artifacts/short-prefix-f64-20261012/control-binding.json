@@ -1,0 +1,9 @@
+{
+  "archiveSha256": "d6d007d2ab24274ea1751b6ccdbdee1fd2b039b4e2ddccbb376bb59eb5e61868",
+  "manifestSha256": "4dfc6fba79f7dcb023c33d721ba39a015c6d1eb18b91c333982eaaf609ce8c27",
+  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "unchangedWeights": true,
+  "tolerance": 0.001,
+  "sourceBaseline": "c67badcd",
+  "candidate": "control"
+}

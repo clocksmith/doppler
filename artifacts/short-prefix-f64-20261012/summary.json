@@ -1,0 +1,71 @@
+{
+  "schema": "doppler.short-prefix-investigation/v1",
+  "qualified": false,
+  "reference": "approved independent F64; unchanged 0.001",
+  "platform": "AMD/RDNA3 Chrome 146.0.7680.177",
+  "sourceBaseline": "c67badcd",
+  "freshGpuRuns": true,
+  "rawRetention": "Exact raw receipts and archives retained in reports/local on both Mac and Linux; compressed traces and full error distributions committed here.",
+  "candidates": [
+    {
+      "name": "control",
+      "failedPrefixes": 27,
+      "maximum": 0.0034951507058513798,
+      "rms": 0.0002264350312916529,
+      "overTolerance": 25151,
+      "shortPrefixMaximum": 0.0004897227031657181,
+      "rawReceipt": {
+        "path": "reports/local/short-prefix-f64-20261012/control-prefixes.json.gz",
+        "sha256": "1dfda8b8d1d092bade6bdb63e80fa08ffd11f8c4b1ee9026784fed20a8293343",
+        "uncompressedSha256": "efd93041b355c5b7cc496d317e6d51ff339834338058098de5159b60a1ed8d45",
+        "sizeBytes": 56567926
+      },
+      "archive": {
+        "path": "reports/local/short-prefix-f64-20261012/control.tgz",
+        "sha256": "d6d007d2ab24274ea1751b6ccdbdee1fd2b039b4e2ddccbb376bb59eb5e61868"
+      },
+      "remoteRoot": "x@128.tail995236.ts.net:/home/x/deco/doppler",
+      "disposition": "unchanged-source control"
+    },
+    {
+      "name": "candidate",
+      "failedPrefixes": 16,
+      "maximum": 0.0019281137055449094,
+      "rms": 0.00017878884072567233,
+      "overTolerance": 2162,
+      "shortPrefixMaximum": 0.000740141743961642,
+      "rawReceipt": {
+        "path": "reports/local/short-prefix-f64-20261012/candidate-prefixes.json.gz",
+        "sha256": "04cf442cc4197768aeb810a591f62d21de0b893e9b71fa6e4397787ee82d7707",
+        "uncompressedSha256": "67ece4ccf26e396fb1c310f62fc530463d2f2763222210590bff9efbefb27a77",
+        "sizeBytes": 56567435
+      },
+      "archive": {
+        "path": "reports/local/short-prefix-f64-20261012/candidate.tgz",
+        "sha256": "a722d4e3f05f794d157d5b4f1cb7b72835e1fcbce151f22e231924ed4e4029ba"
+      },
+      "remoteRoot": "x@128.tail995236.ts.net:/home/x/deco/doppler",
+      "disposition": "rejected; runtime source restored"
+    },
+    {
+      "name": "pair-tree",
+      "failedPrefixes": 25,
+      "maximum": 0.002715723854850083,
+      "rms": 0.00021371013269318441,
+      "overTolerance": 13294,
+      "shortPrefixMaximum": 0.0008098407489498527,
+      "rawReceipt": {
+        "path": "reports/local/short-prefix-f64-20261012/pair-tree-prefixes.json.gz",
+        "sha256": "1c8927d7f2e5ee54a2c22a7ed5e63f83f0f452d81f44b09b49aa58ee7aaf5580",
+        "uncompressedSha256": "6aa4456314ee1e340f3b4df363aa952200ded581d14eb89b8a616cab0ef6a8f4",
+        "sizeBytes": 56568049
+      },
+      "archive": {
+        "path": "reports/local/short-prefix-f64-20261012/pair-tree.tgz",
+        "sha256": "c7f749a608364ce717486308338507f2cea121fbba84b6a27a3fd6aeabd6dbbd"
+      },
+      "remoteRoot": "x@128.tail995236.ts.net:/home/x/deco/doppler",
+      "disposition": "rejected; runtime source restored"
+    }
+  ]
+}
