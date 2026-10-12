@@ -16,7 +16,9 @@
   },
   "include": [],
   "files": [
+    "src/inference/pipelines/text/generator/activation-storage.js",
     "src/gpu/kernels/paired-matmul.js",
+    "src/gpu/kernels/paired-linear-attention.js",
     "src/gpu/kernels/paired-cast.js",
     "src/gpu/kernels/paired-rmsnorm.js",
     "src/converter/resident-qualification.js",
@@ -63,7 +65,14 @@
     "src/gpu/kernels/codegen/attention-decode-online-variant.js",
     "src/inference/pipelines/text/linear-attention/state-layout.js",
     "src/inference/pipelines/text/ffn/paired.js",
+    "src/inference/pipelines/text/paired-execution.js",
     "src/gpu/kernels/paired-activation.js",
-    "src/inference/pipelines/text/ffn/paired.js"
+    "src/gpu/kernels/paired-split.js",
+    "src/gpu/kernels/paired-rope.js",
+    "src/gpu/kernels/paired-attention.js",
+    "src/gpu/kernels/rope-dispatch.js",
+    "src/gpu/kernels/split-dispatch.js",
+    "src/inference/pipelines/text/attention/paired-contract.js",
+    "src/inference/pipelines/text/attention/cache-cast.js"
   ]
 }

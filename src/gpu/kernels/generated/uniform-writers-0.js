@@ -333,6 +333,21 @@ export function write_attention_decode_subgroup(view, values, kernel) {
   view.setUint32(56, 0, true);
 }
 
+export function write_attention_paired(view, values, kernel) {
+  writeU32(view, 0, values["seq_len"], kernel, "seq_len");
+  writeU32(view, 4, values["kv_len"], kernel, "kv_len");
+  writeU32(view, 8, values["num_heads"], kernel, "num_heads");
+  writeU32(view, 12, values["num_kv_heads"], kernel, "num_kv_heads");
+  writeU32(view, 16, values["head_dim"], kernel, "head_dim");
+  writeU32(view, 20, values["start_pos"], kernel, "start_pos");
+  writeU32(view, 24, values["kv_start"], kernel, "kv_start");
+  writeU32(view, 28, values["sliding_window"], kernel, "sliding_window");
+  writeF32(view, 32, values["scale_hi"], kernel, "scale_hi");
+  writeF32(view, 36, values["scale_lo"], kernel, "scale_lo");
+  writeU32(view, 40, values["causal"], kernel, "causal");
+  view.setUint32(44, 0, true);
+}
+
 export function write_attention_tiered_decode_tiered_f16(view, values, kernel) {
   writeU32(view, 0, values["num_heads"], kernel, "num_heads");
   writeU32(view, 4, values["num_kv_heads"], kernel, "num_kv_heads");
@@ -579,17 +594,6 @@ export function write_soft_embedding_split_f16(view, values, kernel) {
   writeU32(view, 12, values["row_start"], kernel, "row_start");
   writeU32(view, 16, values["row_count"], kernel, "row_count");
   writeU32(view, 20, values["output_mode"], kernel, "output_mode");
-  view.setUint32(24, 0, true);
-  view.setUint32(28, 0, true);
-}
-
-export function write_soft_embedding_logits_norm_stats(view, values, kernel) {
-  writeU32(view, 0, values["canvas_length"], kernel, "canvas_length");
-  writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
-  writeU32(view, 8, values["vocab_size"], kernel, "vocab_size");
-  writeU32(view, 12, values["row_start"], kernel, "row_start");
-  writeU32(view, 16, values["row_count"], kernel, "row_count");
-  writeF32(view, 20, values["temperature"], kernel, "temperature");
   view.setUint32(24, 0, true);
   view.setUint32(28, 0, true);
 }

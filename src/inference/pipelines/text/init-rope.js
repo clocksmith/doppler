@@ -20,7 +20,8 @@ async function computeRoPEFreqsForTheta(
   ropeScalingType,
   ropeScaling,
   inverseFrequencies,
-  positionCount
+  positionCount,
+  intermediatePrecision
 ) {
   return runRoPEPrecompute({
     theta,
@@ -28,6 +29,7 @@ async function computeRoPEFreqsForTheta(
     frequencyBaseDim,
     maxSeqLen,
     positionCount,
+    intermediatePrecision,
     ropeScale,
     scalingType: ropeScalingType,
     scaling: ropeScaling,
@@ -97,6 +99,7 @@ function hasLiveCachedGpuRopeBuffers(buffers) {
 
 function buildRoPECacheKey(config) {
   return JSON.stringify({
+    intermediatePrecision: config.intermediatePrecision ?? 'f32',
     localTablesRequired: !Array.isArray(config.layerTypes) || config.layerTypes.some(isSlidingLayerType),
     headDim: config.headDim,
     localHeadDim: config.localHeadDim ?? null,
@@ -265,7 +268,8 @@ export async function initRoPEFrequencies(config, useGPU) {
     ropeScalingType,
     ropeScaling,
     ropeInverseFrequencies,
-    positionCount
+    positionCount,
+    config.intermediatePrecision
   );
 
   // Compute local (sliding_attention) frequencies if different from global.
@@ -296,7 +300,8 @@ export async function initRoPEFrequencies(config, useGPU) {
       resolvedLocalScalingType,
       resolvedLocalScaling,
       null,
-      positionCount
+      positionCount,
+      config.intermediatePrecision
       );
     } catch (error) {
       releaseRoPEBuffers(globalFreqs);
@@ -361,6 +366,7 @@ export async function _initRoPE() {
     // context that selects LongRoPE factors and magnitude.
     const positionCount = Math.min(maxSeqLen, sessionMaxSeqLen);
     const ropeBuffers = await initRoPEFrequencies({
+      intermediatePrecision: this.runtimeConfig.inference.session.intermediatePrecision,
       layerTypes: config.layerTypes,
       headDim: config.globalHeadDim ?? config.headDim,
       localHeadDim: config.headDim,

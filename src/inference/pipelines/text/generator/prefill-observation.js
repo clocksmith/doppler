@@ -25,5 +25,8 @@ export async function probePrefillEmbedding(stage, tensor, options) {
     recorder,
     operatorDiagnostics: state.operatorDiagnostics,
     dtype: tensor.dtype,
+    precision: tensor.precision,
+    components: tensor.components,
+    elementStrideBytes: tensor.elementStrideBytes,
   });
 }

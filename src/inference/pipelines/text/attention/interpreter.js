@@ -1,3 +1,5 @@
+import { assertPairedAttentionExecution } from './paired-contract.js';
+import { recordAttentionCacheCast } from './cache-cast.js';
 import { isGpuBufferInstance, isWeightBuffer, getWeightDtype, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { getKernelCapabilities } from '../../../../gpu/device.js';
 import { acquireBuffer } from '../../../../memory/buffer-pool.js';
@@ -9,11 +11,6 @@ import {
   recordRoPE,
   canUseRoPEQK,
   recordRoPEQK,
-  recordAttention,
-  recordAttentionTiered,
-  recordAttentionTieredQuant,
-  recordAttentionContiguousQuant,
-  recordAttentionBDPA,
   recordSiLU,
   recordCastF16ToF32,
   recordCastF32ToF16,
@@ -117,6 +114,7 @@ export async function interpretAttentionWithRecorder(
   const phase = isPrefill ? 'prefill' : 'decode';
   const resolvedQueryScale = resolveQueryScale(queryScale);
   const runtimeSession = resolveAttentionRuntimeSession(state);
+  assertPairedAttentionExecution(input, config, state, runtimeSession, layerWeights);
   const resourceScope = createRecordedResourceScope(recorder);
   const attentionPrecisionContract = resolveAttentionPrecisionContract(config, state);
   const attentionActivationDtype = selectRuleValue('shared', 'dtype', 'f16OrF32FromDtype', {
@@ -194,7 +192,7 @@ export async function interpretAttentionWithRecorder(
     layerWeights,
     sharedKVSourceLayerIdx != null
   );
-  const canFuseInputNormProjRec = rmsNormFusionFlagRec
+  const canFuseInputNormProjRec = input.precision !== 'two-f32' && rmsNormFusionFlagRec
     && config.normalizationType === 'rmsnorm'
     && canSelectFusedRmsNormProjectionRec
     && !skipInputNorm
@@ -327,7 +325,7 @@ export async function interpretAttentionWithRecorder(
   const qkNormFusionFlag = runtimeSession?.useFusedQKVSplitQKNorm === true;
   const qkNormRoPEFusionFlag = runtimeSession?.useFusedQKVSplitQKNormRoPE === true;
   const skipKVCacheWrites = state.skipKVCacheWrites === true;
-  const directF16KVCacheWrite = skipKVCacheWrites
+  const directF16KVCacheWrite = skipKVCacheWrites || input.precision === 'two-f32'
     ? null
     : resolveDirectF16KVCacheWrite({
       state,
@@ -551,6 +549,7 @@ export async function interpretAttentionWithRecorder(
   if (attentionInputTemp) resourceScope.release(attentionInput.buffer);
   if (!ropeApplied && !disableRoPE && state.ropeFreqsCos && state.ropeFreqsSin) {
     const ropeOptions = {
+      frequencyPrecision: runtimeSession.intermediatePrecision,
       headDim,
       rotaryDim: config.ropeRotaryDim,
       pairSpanDim: config.ropeFrequencyBaseDim ?? config.ropeRotaryDim,
@@ -624,7 +623,7 @@ export async function interpretAttentionWithRecorder(
       if (vTensor.dtype !== 'f16' && !hasExplicitF16KvContract) {
         assertAttentionDtypeTransitionAllowed(state, vTensor.dtype, 'f16', 'V would be narrowed implicitly for KV cache storage.');
       }
-      const canWriteDirectF32ToF16 = kTensor.dtype === 'f32'
+      const canWriteDirectF32ToF16 = kTensor.precision !== 'two-f32' && vTensor.precision !== 'two-f32' && kTensor.dtype === 'f32'
         && vTensor.dtype === 'f32'
         && typeof state.kvCache.recordUpdateF32ToF16FromGPU === 'function';
       if (canWriteDirectF32ToF16) {
@@ -638,8 +637,8 @@ export async function interpretAttentionWithRecorder(
           tokenIds
         );
       } else {
-        const kCasted = kTensor.dtype === 'f16' ? kTensor : await recordCastF32ToF16(recorder, kTensor);
-        const vCasted = vTensor.dtype === 'f16' ? vTensor : await recordCastF32ToF16(recorder, vTensor);
+        const kCasted = await recordAttentionCacheCast(recorder, kTensor, resourceScope, 'cache-key-cast');
+        const vCasted = await recordAttentionCacheCast(recorder, vTensor, resourceScope, 'cache-value-cast');
 
         await state.kvCache.recordUpdateFromGPU(recorder, layerIdx, kCasted.buffer, vCasted.buffer, currentSeqLen, numTokens, tokenIds);
 

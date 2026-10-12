@@ -1,4 +1,5 @@
 export interface RoPEPrecomputeOptions {
+  intermediatePrecision?: 'f32' | 'two-f32';
   theta: number;
   rotaryDim: number;
   frequencyBaseDim: number;

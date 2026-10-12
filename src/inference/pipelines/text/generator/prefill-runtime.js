@@ -23,7 +23,8 @@ import { drainPendingTsirReads } from '../tsir-fixture-writer.js';
 import { resolvePrefillRecorderChunkLayers } from '../execution-plan.js';
 import { hasLinearAttentionLayers, resetLinearAttentionRuntime } from '../linear-attention.js';
 import { preparePerLayerInputs } from '../per-layer-inputs.js';
-import { createTensor } from '../../../../gpu/tensor.js';
+import { getActivationRepresentation } from './activation-storage.js';
+import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
 import { releasePerLayerInputBuffer, shouldDisablePrefillCommandBatching } from './prefill-policy.js';
 import { probePrefillEmbedding, tracePrefillEmbeddingIds } from './prefill-observation.js';
 import {
@@ -283,7 +284,11 @@ export async function _prefill(inputIds, opts) {
     };
 
     const activationDtype = opts.executionPlan?.activationDtype ?? this._getEffectiveActivationDtype();
-    const activationBytes = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: activationDtype });
+    const representation = getActivationRepresentation(this._state, opts.executionPlan);
+    const activationBytes = tensorElementBytes(activationDtype, representation);
+    if (representation.precision && embeddingOverride) {
+      throw new Error('[Pipeline] Paired activations do not support prefix embedding overrides.');
+    }
     if (tracePrefillEnabled) {
       trace.perf('Prefill phase start', {
         numTokens,
@@ -305,6 +310,7 @@ export async function _prefill(inputIds, opts) {
       debugProbes: this._state.runtimeConfig.shared.debug.probes,
       operatorDiagnostics: this._state.operatorDiagnostics,
       activationDtype,
+      intermediatePrecision: representation.precision,
       embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embedDtype }),
       embeddingStorageEncoding: embedMetadata?.storageEncoding ?? null,
       executionPolicies: this._state.executionV1State?.policies ?? null,
@@ -315,16 +321,16 @@ export async function _prefill(inputIds, opts) {
         elapsedMs: performance.now() - embedTraceStart,
       });
     }
-    await probePrefillEmbedding('prefill_base_embedding_out', baseEmbeddings, {
-      numTokens,
-      hiddenSize: config.hiddenSize,
-      state: this._state,
-      recorder,
-    });
     let hiddenStates = baseEmbeddings;
     let perLayerInputs = null;
     const perLayerInputsTraceStart = tracePrefillEnabled ? performance.now() : 0;
     try {
+      await probePrefillEmbedding('prefill_base_embedding_out', baseEmbeddings, {
+        numTokens,
+        hiddenSize: config.hiddenSize,
+        state: this._state,
+        recorder,
+      });
       hiddenStates = await applyPrefixEmbeddingOverride(
         baseEmbeddings,
         embeddingOverride,
@@ -365,6 +371,10 @@ export async function _prefill(inputIds, opts) {
         baseEmbeddings = null;
       }
       hiddenStates = null;
+      const cleanupErrors = [];
+      try { await recorder?.abort(); } catch (cleanupError) { cleanupErrors.push(cleanupError); }
+      try { await bufferPool?.settleDeferredDestruction(); } catch (cleanupError) { cleanupErrors.push(cleanupError); }
+      if (cleanupErrors.length) throw new AggregateError([error, ...cleanupErrors], 'Prefill preparation cleanup failed.', { cause: error });
       throw error;
     } finally {
       if (hiddenStates !== baseEmbeddings && isGpuBufferInstance(baseEmbeddings?.buffer)) {
@@ -373,31 +383,7 @@ export async function _prefill(inputIds, opts) {
       baseEmbeddings = null;
     }
 
-    if (opts.debug && isGpuBufferInstance(hiddenStates)) {
-      if (recorder) {
-        hiddenStates = createTensor(
-          preserveBufferAcrossRecorderSubmit(hiddenStates.buffer, recorder, 'prefill_embed_carry'),
-          hiddenStates.dtype,
-          hiddenStates.shape,
-          hiddenStates.label
-        );
-        recordPrefillRecorderStats(this._state, recorder);
-        await recorder.submitAndWait();
-        await recordProfile(recorder);
-      }
-      const debugReadbackSize = this._state.runtimeConfig.shared.debug.pipeline.readbackSampleSize;
-      const sample = await readBuffer(hiddenStates, Math.min(debugReadbackSize, hiddenStates.size));
-      const f32 = decodeReadback(sample, activationDtype);
-      const nanCount = f32.filter(x => !Number.isFinite(x)).length;
-      let maxAbs = 0;
-      for (let i = 0; i < f32.length; i++) {
-        const abs = Math.abs(f32[i]);
-        if (abs > maxAbs) maxAbs = abs;
-      }
-      const first8 = Array.from(f32).slice(0, 8).map(x => x.toFixed(4)).join(', ');
-      log.debug('Pipeline', `After embed: buffer.label=${hiddenStates.label}, buffer.size=${hiddenStates.size}, maxAbs=${maxAbs.toFixed(4)}`);
-      log.debug('Pipeline', `After embed first8=[${first8}], nan=${nanCount}/${f32.length}`);
-    }
+
 
     if (opts.debug) {
       log.debug('Pipeline', `LAYER_LOOP_START: numLayers=${config.numLayers}, useGPU=${context.useGPU}`);
@@ -431,6 +417,34 @@ export async function _prefill(inputIds, opts) {
       const layerLoopTraceStart = tracePrefillEnabled ? performance.now() : 0;
       const traceLayerHealthEnabled = isTraceEnabled('logits');
       try {
+        if (opts.debug && isGpuBufferInstance(hiddenStates?.buffer)) {
+          if (recorder) {
+            hiddenStates = createTensor(
+              preserveBufferAcrossRecorderSubmit(hiddenStates.buffer, recorder, 'prefill_embed_carry'),
+              hiddenStates.dtype,
+              hiddenStates.shape,
+              hiddenStates.label,
+              hiddenStates
+            );
+            currentHiddenBuffer = hiddenStates.buffer;
+            recordPrefillRecorderStats(this._state, recorder);
+            await recorder.submitAndWait();
+            await recordProfile(recorder);
+          }
+          const debugReadbackSize = this._state.runtimeConfig.shared.debug.pipeline.readbackSampleSize;
+          const sampleSize = Math.floor(Math.min(debugReadbackSize, hiddenStates.buffer.size) / activationBytes) * activationBytes;
+          const sample = await readBuffer(hiddenStates.buffer, sampleSize);
+          const f32 = decodeReadback(sample, activationDtype, representation);
+          const nanCount = f32.filter(x => !Number.isFinite(x)).length;
+          let maxAbs = 0;
+          for (let i = 0; i < f32.length; i++) {
+            const abs = Math.abs(f32[i]);
+            if (abs > maxAbs) maxAbs = abs;
+          }
+          const first8 = Array.from(f32).slice(0, 8).map(x => x.toFixed(4)).join(', ');
+          log.debug('Pipeline', `After embed: buffer.label=${hiddenStates.label}, buffer.size=${hiddenStates.buffer.size}, maxAbs=${maxAbs.toFixed(4)}`);
+          log.debug('Pipeline', `After embed first8=[${first8}], nan=${nanCount}/${f32.length}`);
+        }
         for (let l = 0; l < config.numLayers; l++) {
           // Per-layer hard cancellation: when the caller's AbortSignal aborts,
           // exit the prefill loop between layer dispatches rather than
@@ -498,7 +512,7 @@ export async function _prefill(inputIds, opts) {
               `PREFILL_LAYER_${l}_HEALTH`,
               currentHiddenBuffer,
               activationDtype,
-              numTokens * config.hiddenSize
+              numTokens * config.hiddenSize, representation
             );
             currentRecorder = l < config.numLayers - 1
               ? createRecorder('prefill-trace')
@@ -514,7 +528,7 @@ export async function _prefill(inputIds, opts) {
                   const sampleSize = config.hiddenSize * activationBytes;
                   const lastTokenOffset = (numTokens - 1) * config.hiddenSize * activationBytes;
                   const readback = await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize);
-                  const data = decodeReadback(readback, activationDtype);
+                  const data = decodeReadback(readback, activationDtype, representation);
                   let min = Infinity;
                   let max = -Infinity;
                   let maxAbs = 0;
@@ -576,7 +590,7 @@ export async function _prefill(inputIds, opts) {
               `PREFILL_LAYER_${l}_HEALTH`,
               currentHiddenBuffer,
               activationDtype,
-              numTokens * config.hiddenSize
+              numTokens * config.hiddenSize, representation
             );
             if (tracePrefillEnabled) {
               trace.perf('Prefill chunk submitted', {
@@ -663,7 +677,7 @@ export async function _prefill(inputIds, opts) {
           const sampleSize = config.hiddenSize * activationBytes;
           const data = decodeReadback(
             await readBufferSlice(currentHiddenBuffer, lastTokenOffset, sampleSize),
-            activationDtype
+            activationDtype, representation
           );
           const nanCount = Array.from(data).filter(x => !Number.isFinite(x)).length;
           const nonZero = Array.from(data).filter(x => Number.isFinite(x) && x !== 0).slice(0, 5);
@@ -690,6 +704,7 @@ export async function _prefill(inputIds, opts) {
           startPos,
           activationDtype,
           activationBytes,
+          representation,
           currentRecorder,
           recordProfile,
           debugCheckBuffer,

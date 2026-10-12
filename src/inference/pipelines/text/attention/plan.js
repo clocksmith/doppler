@@ -45,6 +45,7 @@ function resolveAttentionImplementation(input) {
 }
 
 function resolveOutputResidualMode(input) {
+  if (input.session.intermediatePrecision === 'two-f32') return 'separate';
   const hasResidual = input.outputProjection.hasResidual === true;
   const residualMatches = input.outputProjection.residualDtype === input.dtypes.outputProjectionInput;
   const standardFused = selectRuleValue('inference', 'attention', 'useFusedOProjResidual', {
@@ -82,7 +83,7 @@ function resolveOutputGateMode(input) {
     return 'none';
   }
   const kernelPathSupportsFusion = input.outputGate.kernelPathSupportsFusion === true;
-  const fused = input.phase === 'decode'
+  const fused = input.session.intermediatePrecision !== 'two-f32' && input.phase === 'decode'
     && input.geometry.numTokens === 1
     && input.geometry.headDim === 256
     && input.dtypes.cachedK === 'f16'
@@ -203,10 +204,10 @@ export function resolveAttentionPlan(input = {}) {
     },
     attention: {
       implementation,
-      flashPrefill: normalized.phase === 'prefill'
+      flashPrefill: normalized.session.intermediatePrecision !== 'two-f32' && normalized.phase === 'prefill'
         && normalized.diffusionGemmaDecoder !== true
         && normalized.session.useFlashPrefillAttention === true,
-      ortFlashPrefill: normalized.phase === 'prefill'
+      ortFlashPrefill: normalized.session.intermediatePrecision !== 'two-f32' && normalized.phase === 'prefill'
         && normalized.diffusionGemmaDecoder !== true
         && normalized.session.useOrtFlashPrefillAttention === true,
     },

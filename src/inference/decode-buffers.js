@@ -1,7 +1,7 @@
 
 
 import { getDevice } from '../gpu/device.js';
-import { selectRuleValue } from '../rules/rule-registry.js';
+import { tensorElementBytes } from '../gpu/tensor.js';
 import { padToQ4KBlock } from '../config/schema/index.js';
 
 export class DecodeBufferManager {
@@ -16,16 +16,24 @@ export class DecodeBufferManager {
     if (config.enablePingPong == null) {
       throw new Error('DecodeBufferManager requires enablePingPong in config.');
     }
-    if (config.activationDtype == null) {
-      throw new Error('DecodeBufferManager requires activationDtype in config.');
+    if (config.activationDtype !== 'f16' && config.activationDtype !== 'f32') {
+      throw new Error('DecodeBufferManager requires activationDtype f16 or f32 in config.');
     }
     const normalizedConfig = { ...config };
+    const bytesPerElement = tensorElementBytes(normalizedConfig.activationDtype, {
+      precision: normalizedConfig.activationPrecision,
+      components: normalizedConfig.activationComponents,
+      elementStrideBytes: normalizedConfig.activationElementStrideBytes,
+    });
 
     // Check if we already have matching buffers
     if (this.buffers && this.config &&
         this.config.hiddenSize === normalizedConfig.hiddenSize &&
         this.config.intermediateSize === normalizedConfig.intermediateSize &&
         this.config.activationDtype === normalizedConfig.activationDtype &&
+        this.config.activationPrecision === normalizedConfig.activationPrecision &&
+        this.config.activationComponents === normalizedConfig.activationComponents &&
+        this.config.activationElementStrideBytes === normalizedConfig.activationElementStrideBytes &&
         this.config.enablePingPong === normalizedConfig.enablePingPong) {
       return this.buffers;
     }
@@ -42,10 +50,7 @@ export class DecodeBufferManager {
 
     // Allocate buffers
     // For decode, we process 1 token at a time (M=1)
-    // F16 activations use 2 bytes per element, F32 uses 4 bytes
-    const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', {
-      dtype: normalizedConfig.activationDtype,
-    });
+    // Storage size comes from the declared local activation representation.
 
     // Pad dimensions to Q4K super-block alignment for fused kernels.
     // Q4K kernels process 256 elements per block and read out of bounds
@@ -145,11 +150,8 @@ export class DecodeBufferManager {
 
   getStats() {
     if (!this.config) return null;
-    const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', {
-      dtype: this.config.activationDtype,
-    });
-    const hiddenBytes = this.config.hiddenSize * bytesPerElement;
-    const intermediateBytes = this.config.intermediateSize * bytesPerElement;
+    const hiddenBytes = this.buffers.hidden.size;
+    const intermediateBytes = this.buffers.ffnIntermediate.size;
     const bufferCount = this.buffers?.hiddenAlt ? 4 : 3;
     const totalBytes = hiddenBytes * (bufferCount - 1) + intermediateBytes;
     return { hiddenBytes, intermediateBytes, totalBytes, activationDtype: this.config.activationDtype };

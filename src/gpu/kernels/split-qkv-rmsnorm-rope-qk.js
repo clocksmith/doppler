@@ -89,7 +89,7 @@ function assertSupportedRoPE(options) {
 }
 
 export function canUseSplitQKVRMSNormRoPEQK(qkvTensor, options = {}) {
-  if (!qkvTensor || qkvTensor.dtype !== 'f32') {
+  if (!qkvTensor || qkvTensor.dtype !== 'f32' || qkvTensor.precision !== undefined || qkvTensor.components !== undefined || qkvTensor.elementStrideBytes !== undefined) {
     return false;
   }
   if (options.reusesSharedKV === true || options.skipKNorm === true || options.allowUnitQKNorm === true) {

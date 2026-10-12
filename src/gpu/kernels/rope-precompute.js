@@ -1,33 +1,12 @@
+import { planRoPEPrecomputeDispatch } from './rope-dispatch.js';
+import { runPairedRoPEPrecompute } from './paired-rope.js';
 import { validateRoPEInverseFrequencies } from '../../config/rope-frequencies.js';
 import { DEFAULT_MANIFEST_INFERENCE } from '../../config/schema/manifest.schema.js';
 import { getDevice } from '../device.js';
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 
-const WORKGROUP_SIZE = 256;
-
-export function planRoPEPrecomputeDispatch(device, count) {
-  if (!Number.isSafeInteger(count) || count <= 0) {
-    throw new Error(`[RoPE] frequency element count must be a positive safe integer; got "${count}".`);
-  }
-  const declaredLimit = device?.limits?.maxComputeWorkgroupsPerDimension;
-  const maxPerDimension = Number.isFinite(declaredLimit) && declaredLimit > 0
-    ? Math.floor(declaredLimit)
-    : 65535;
-  const totalWorkgroups = Math.ceil(count / WORKGROUP_SIZE);
-  const y = Math.ceil(totalWorkgroups / maxPerDimension);
-  if (y > maxPerDimension) {
-    throw new Error(
-      `[RoPE] frequency precompute requires ${totalWorkgroups} workgroups, exceeding ` +
-      `the device's ${maxPerDimension} x ${maxPerDimension} dispatch capacity.`
-    );
-  }
-  const x = Math.ceil(totalWorkgroups / y);
-  return {
-    dispatchStride: x * WORKGROUP_SIZE,
-    workgroups: [x, y, 1],
-  };
-}
+export { planRoPEPrecomputeDispatch } from './rope-dispatch.js';
 
 export function buildRoPEPrecomputeAuxiliaryData(options, halfDim) {
   if (options.positionPlan != null || options.mropeSection != null) {
@@ -113,6 +92,8 @@ export function buildRoPEPrecomputeAuxiliaryData(options, halfDim) {
 }
 
 export async function runRoPEPrecompute(options) {
+  if (options.intermediatePrecision === 'two-f32') return runPairedRoPEPrecompute(options);
+  if (options.intermediatePrecision != null && options.intermediatePrecision !== 'f32') throw new Error('[RoPE] Unsupported intermediate precision.');
   const device = getDevice();
   if (!device) throw new Error('[RoPE] GPU device is required for frequency precomputation.');
   const positionCount = options.positionCount ?? options.maxSeqLen;

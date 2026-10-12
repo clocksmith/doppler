@@ -1,26 +1,17 @@
+import { executePairedSplitQKV } from './paired-split.js';
 
 import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
 import { createTensor, dtypeBytes } from '../tensor.js';
-import { GPU_LIMITS, WORKGROUP_SIZES } from './constants.js';
+import { planSplitQKVDispatch } from './split-dispatch.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
 
-export function planSplitQKVDispatch(totalElements) {
-  if (!Number.isSafeInteger(totalElements) || totalElements <= 0) {
-    throw new Error(`split_qkv requires a positive safe integer element count, got ${totalElements}.`);
-  }
-  const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
-  const x = Math.min(workgroups, GPU_LIMITS.MAX_WORKGROUPS);
-  const y = Math.ceil(workgroups / x);
-  if (y > GPU_LIMITS.MAX_WORKGROUPS) {
-    throw new Error(
-      `split_qkv requires ${workgroups} workgroups, exceeding the two-axis WebGPU capacity.`
-    );
-  }
-  return [x, y, 1];
-}
+export { planSplitQKVDispatch } from './split-dispatch.js';
 
 async function _splitQKV(target, qkvTensor, options) {
+  if (qkvTensor.precision !== undefined || qkvTensor.components !== undefined || qkvTensor.elementStrideBytes !== undefined) {
+    return executePairedSplitQKV(target, qkvTensor, options);
+  }
   const { numTokens, qSize, kSize, vSize, qTensor = null, kTensor = null, vTensor = null } = options;
   const ownsQ = qTensor == null;
   const ownsK = kTensor == null;

@@ -1,5 +1,6 @@
 import { selectRuleValue } from '../../../rules/rule-registry.js';
 import { log } from '../../../debug/index.js';
+import { getKernelPathStepConfig } from '../../../config/kernel-path-loader.js';
 
 // =============================================================================
 // Shared execution helpers used by the v1 execution runtime.
@@ -150,6 +151,14 @@ export function assertKernelPathSessionCompatibility(path, session) {
       ? normalizeDtype(step.precision.kvDtype, `step[${step.op}].precision.kvDtype`)
       : kvDtype;
 
+    const declared = getKernelPathStepConfig('attention', step);
+    if (declared?.variantMetadata?.inputPrecision === 'two-f32') {
+      if (session.intermediatePrecision !== 'two-f32' || stepActivationDtype !== 'f32'
+        || stepKvDtype !== declared.variantMetadata.kvDtype) {
+        throw new Error('[Execution] Paired attention requires its declared component and KV representation.');
+      }
+      continue;
+    }
     if (kernel.includes('_f16kv')) {
       if (stepActivationDtype !== 'f32' || stepKvDtype !== 'f16') {
         throw new Error(

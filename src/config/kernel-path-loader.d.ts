@@ -222,3 +222,9 @@ export function getKernelPathStats(path: KernelPathSchema): {
   uniqueKernels: number;
   hasLayerOverrides: boolean;
 };
+
+export function getKernelPathStepConfig(
+  operation: string,
+  step: Pick<KernelStepSchema, 'kernel' | 'entry' | 'constants'> | null | undefined,
+  phase?: 'prefill' | 'decode' | null
+): import('./kernel-registry-contract.js').KernelConfig | null;

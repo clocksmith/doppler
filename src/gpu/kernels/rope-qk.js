@@ -1,4 +1,5 @@
 import { createTensor, dtypeBytes } from '../tensor.js';
+import { planSplitQKVDispatch } from './split_qkv.js';
 import { WORKGROUP_SIZES } from './constants.js';
 import { unifiedKernelWrapper } from './kernel-execution.js';
 import { selectRuleValue } from './rule-registry.js';
@@ -50,8 +51,8 @@ function assertBufferCapacity(buffer, requiredBytes, label) {
   }
 }
 
-function selectRoPEQKVariant(dtype) {
-  return selectRuleValue('ropeQk', 'variant', { useF16: dtype === 'f16' });
+function selectRoPEQKVariant(dtype, precision) {
+  return selectRuleValue('ropeQk', 'variant', { useF16: dtype === 'f16', precision });
 }
 
 export function canUseRoPEQK(qTensor, kTensor, options = {}) {
@@ -86,26 +87,39 @@ async function _ropeQK(target, qTensor, kTensor, freqsCos, freqsSin, seqLen, opt
   if (qTensor.dtype !== 'f32' && qTensor.dtype !== 'f16') {
     throw new Error(`RoPE QK requires f32 or f16 tensors, got ${qTensor.dtype}.`);
   }
+  const hasMetadata = value => value.precision !== undefined || value.components !== undefined || value.elementStrideBytes !== undefined;
+  const paired = hasMetadata(qTensor) || hasMetadata(kTensor);
+  if (paired) {
+    for (const tensor of [qTensor, kTensor]) {
+      if (tensor.dtype !== 'f32' || tensor.precision !== 'two-f32' || tensor.components !== 2 || tensor.elementStrideBytes !== 8) {
+        throw new Error('[PairedRoPE] Matching explicit interleaved two-F32 Q/K required.');
+      }
+    }
+    if (options.frequencyPrecision !== 'two-f32') throw new Error('[PairedRoPE] Paired frequency table identity required.');
+    if (qTensor.buffer === kTensor.buffer || [qTensor.buffer, kTensor.buffer].includes(bufferOf(freqsCos))
+      || [qTensor.buffer, kTensor.buffer].includes(bufferOf(freqsSin))) throw new Error('[PairedRoPE] Q/K/frequency buffers may not alias.');
+  } else if (options.frequencyPrecision === 'two-f32') throw new Error('[RoPE] Scalar inputs cannot consume paired frequencies.');
+  const representation = paired ? { precision: 'two-f32', components: 2, elementStrideBytes: 8 } : undefined;
   if (seqLen === 0) {
     return {
-      q: createTensor(qTensor.buffer, qTensor.dtype, [...qTensor.shape], 'rope_q_output'),
-      k: createTensor(kTensor.buffer, kTensor.dtype, [...kTensor.shape], 'rope_k_output'),
+      q: createTensor(qTensor.buffer, qTensor.dtype, [...qTensor.shape], 'rope_q_output', representation),
+      k: createTensor(kTensor.buffer, kTensor.dtype, [...kTensor.shape], 'rope_k_output', representation),
     };
   }
 
-  const bytesPerElement = dtypeBytes(qTensor.dtype);
+  const bytesPerElement = paired ? 8 : dtypeBytes(qTensor.dtype);
   const qElementCount = seqLen * numQHeads * headDim;
   const kElementCount = seqLen * numKVHeads * headDim;
   const halfDim = rotaryDim / 2;
   const freqElementCount = (startPos + seqLen) * halfDim;
   assertBufferCapacity(qTensor.buffer, qElementCount * bytesPerElement, 'Q input');
   assertBufferCapacity(kTensor.buffer, kElementCount * bytesPerElement, 'K input');
-  assertBufferCapacity(bufferOf(freqsCos), freqElementCount * 4, 'cos frequencies');
-  assertBufferCapacity(bufferOf(freqsSin), freqElementCount * 4, 'sin frequencies');
+  assertBufferCapacity(bufferOf(freqsCos), freqElementCount * (paired ? 8 : 4), 'cos frequencies');
+  assertBufferCapacity(bufferOf(freqsSin), freqElementCount * (paired ? 8 : 4), 'sin frequencies');
 
-  const variant = selectRoPEQKVariant(qTensor.dtype);
+  const variant = selectRoPEQKVariant(qTensor.dtype, qTensor.precision);
   const totalPairs = seqLen * (numQHeads + numKVHeads) * halfDim;
-  const workgroups = Math.ceil(totalPairs / WORKGROUP_SIZES.DEFAULT);
+  const workgroups = paired ? planSplitQKVDispatch(totalPairs) : Math.ceil(totalPairs / WORKGROUP_SIZES.DEFAULT);
 
   await unifiedKernelWrapper(
     'rope_qk',
@@ -129,8 +143,8 @@ async function _ropeQK(target, qTensor, kTensor, freqsCos, freqsSin, seqLen, opt
   );
 
   return {
-    q: createTensor(qTensor.buffer, qTensor.dtype, [...qTensor.shape], 'rope_q_output'),
-    k: createTensor(kTensor.buffer, kTensor.dtype, [...kTensor.shape], 'rope_k_output'),
+    q: createTensor(qTensor.buffer, qTensor.dtype, [...qTensor.shape], 'rope_q_output', representation),
+    k: createTensor(kTensor.buffer, kTensor.dtype, [...kTensor.shape], 'rope_k_output', representation),
   };
 }
 

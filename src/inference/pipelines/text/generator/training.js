@@ -339,6 +339,7 @@ export async function prefillWithEmbedding(prompt, options = {}) {
         startPos,
         activationDtype,
         activationBytes,
+        representation,
         currentRecorder,
         recordProfile,
         currentHiddenBuffer,
@@ -397,6 +398,7 @@ export async function prefillWithEmbedding(prompt, options = {}) {
         const extracted = await extractEmbeddingFromHiddenGPU({
           hiddenBuffer: currentHiddenBuffer,
           activationDtype,
+          representation,
           numTokens,
           hiddenSize,
           embeddingMode: opts.embeddingMode,

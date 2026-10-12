@@ -131,6 +131,9 @@ async function applyEmbeddingPostprocessor(input, postprocessor, config) {
 }
 
 export async function extractEmbeddingFromHiddenGPU(options) {
+  if (options.representation?.precision) {
+    throw new Error('[Pipeline] Embedding extraction does not support paired activations.');
+  }
   const device = getDevice();
   if (!device) throw new Error('[Pipeline] GPU device is required for embedding extraction.');
   const {

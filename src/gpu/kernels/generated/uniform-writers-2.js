@@ -2,6 +2,17 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_upsample2d_default(view, values, kernel) {
+  writeU32(view, 0, values["channels"], kernel, "channels");
+  writeU32(view, 4, values["in_height"], kernel, "in_height");
+  writeU32(view, 8, values["in_width"], kernel, "in_width");
+  writeU32(view, 12, values["out_height"], kernel, "out_height");
+  writeU32(view, 16, values["out_width"], kernel, "out_width");
+  writeU32(view, 20, values["scale"], kernel, "scale");
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
 export function write_modulate_default(view, values, kernel) {
   writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
   writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
@@ -66,6 +77,29 @@ export function write_gated_delta_conv_default(view, values, kernel) {
   writeF32(view, 52, values["qk_l2norm_eps"], kernel, "qk_l2norm_eps");
   writeU32(view, 56, values["packed_flags"], kernel, "packed_flags");
   writeU32(view, 60, values["b_proj_offset_elements"], kernel, "b_proj_offset_elements");
+}
+
+export function write_gated_delta_conv_paired(view, values, kernel) {
+  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
+  writeU32(view, 4, values["conv_dim"], kernel, "conv_dim");
+  writeU32(view, 8, values["conv_kernel_size"], kernel, "conv_kernel_size");
+  writeU32(view, 12, values["num_v_heads"], kernel, "num_v_heads");
+  writeU32(view, 16, values["num_k_heads"], kernel, "num_k_heads");
+  writeU32(view, 20, values["head_k_dim"], kernel, "head_k_dim");
+  writeU32(view, 24, values["head_v_dim"], kernel, "head_v_dim");
+  writeU32(view, 28, values["q_size"], kernel, "q_size");
+  writeU32(view, 32, values["k_size"], kernel, "k_size");
+  writeU32(view, 36, values["value_dim"], kernel, "value_dim");
+  writeU32(view, 40, values["q_rep"], kernel, "q_rep");
+  writeU32(view, 44, values["norm_mode"], kernel, "norm_mode");
+  writeF32(view, 48, values["rms_eps_hi"], kernel, "rms_eps_hi");
+  writeF32(view, 52, values["rms_eps_lo"], kernel, "rms_eps_lo");
+  writeF32(view, 56, values["qk_eps_hi"], kernel, "qk_eps_hi");
+  writeF32(view, 60, values["qk_eps_lo"], kernel, "qk_eps_lo");
+  writeU32(view, 64, values["packed_flags"], kernel, "packed_flags");
+  writeU32(view, 68, values["b_offset"], kernel, "b_offset");
+  writeU32(view, 72, values["norm_weight_offset"], kernel, "norm_weight_offset");
+  view.setUint32(76, 0, true);
 }
 
 export function write_gated_delta_recurrent_default(view, values, kernel) {
@@ -247,6 +281,21 @@ export function write_rope_precompute_f32(view, values, kernel) {
   writeU32(view, 52, values["mrope_section_w"], kernel, "mrope_section_w");
   writeU32(view, 56, values["frequency_offset"], kernel, "frequency_offset");
   writeU32(view, 60, values["position_count"], kernel, "position_count");
+}
+
+export function write_rope_precompute_paired(view, values, kernel) {
+  writeU32(view, 0, values["position_count"], kernel, "position_count");
+  writeU32(view, 4, values["rotary_dim"], kernel, "rotary_dim");
+  writeU32(view, 8, values["frequency_base_dim"], kernel, "frequency_base_dim");
+  writeU32(view, 12, values["dispatch_stride"], kernel, "dispatch_stride");
+  writeF32(view, 16, values["theta_hi"], kernel, "theta_hi");
+  writeF32(view, 20, values["theta_lo"], kernel, "theta_lo");
+  writeF32(view, 24, values["scale_hi"], kernel, "scale_hi");
+  writeF32(view, 28, values["scale_lo"], kernel, "scale_lo");
+  writeU32(view, 32, values["inverse_supplied"], kernel, "inverse_supplied");
+  view.setUint32(36, 0, true);
+  view.setUint32(40, 0, true);
+  view.setUint32(44, 0, true);
 }
 
 export function write_forecast_output_f32(view, values, kernel) {

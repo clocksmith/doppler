@@ -159,7 +159,7 @@
   },
   {
    "path": "kernels/rope-qk.rules.json",
-   "digest": "sha256:a8eba10370f282536e6b741895ea481f0c8ae33a7379e03a4f40812f26652f08"
+   "digest": "sha256:6a65ee51e5a9f54e86adcb63a7b4fdeacc0c735311054778289674231782e37e"
   },
   {
    "path": "kernels/rope.rules.json",
@@ -183,11 +183,11 @@
   },
   {
    "path": "kernels/split-qg.rules.json",
-   "digest": "sha256:d05077d4fc6cd001b956ca3fa8cc060c9e58ad4525d4db1e8c06860277e0d748"
+   "digest": "sha256:ce44a93d37d84c72f7f81359f788da92badb0b9a1180fa62c76181c04cb10a7a"
   },
   {
    "path": "kernels/split-qkv.rules.json",
-   "digest": "sha256:d05077d4fc6cd001b956ca3fa8cc060c9e58ad4525d4db1e8c06860277e0d748"
+   "digest": "sha256:ce44a93d37d84c72f7f81359f788da92badb0b9a1180fa62c76181c04cb10a7a"
   },
   {
    "path": "kernels/upsample2d.rules.json",
@@ -3593,6 +3593,12 @@
    "variant": [
     {
      "match": {
+      "precision": "two-f32"
+     },
+     "value": "paired"
+    },
+    {
+     "match": {
       "useF16": true
      },
      "value": "default_f16"
@@ -3863,6 +3869,12 @@
    "variant": [
     {
      "match": {
+      "precision": "two-f32"
+     },
+     "value": "paired"
+    },
+    {
+     "match": {
       "outputDtype": "f16"
      },
      "value": "f16"
@@ -3875,6 +3887,12 @@
   },
   "kernels/split-qkv.rules.json": {
    "variant": [
+    {
+     "match": {
+      "precision": "two-f32"
+     },
+     "value": "paired"
+    },
     {
      "match": {
       "outputDtype": "f16"

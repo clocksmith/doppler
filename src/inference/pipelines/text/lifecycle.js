@@ -511,6 +511,9 @@ export async function _loadWeights() {
           hiddenSize: this.modelConfig.hiddenSize,
           intermediateSize: this.modelConfig.maxIntermediateSize,
           activationDtype: activeExecutionPlan.activationDtype,
+          activationPrecision: activeExecutionPlan.activationPrecision,
+          activationComponents: activeExecutionPlan.activationComponents,
+          activationElementStrideBytes: activeExecutionPlan.activationElementStrideBytes,
           enablePingPong: true,
         });
 
