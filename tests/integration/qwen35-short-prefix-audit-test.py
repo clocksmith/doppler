@@ -25,6 +25,71 @@ def row(name, count, value):
 
 
 class Pairing(unittest.TestCase):
+    def paired_item(self):
+        pairs = np.array([[1., 2. ** -30], [0., -0.]], dtype='<f4')
+        raw = pairs.tobytes()
+        logical = pairs.astype(np.float64).sum(axis=1).astype('<f4')
+        return {'encoding': 'base64-f32le', 'dtype': 'f32', 'precision': 'two-f32',
+            'components': 2, 'elementStrideBytes': 8, 'shape': [1, 2],
+            'storageEncoding': 'base64-f32le', 'storageDataBase64': base64.b64encode(raw).decode(),
+            'storageDigest': 'sha256:' + hashlib.sha256(raw).hexdigest(),
+            'dataBase64': base64.b64encode(logical.tobytes()).decode()}
+
+    def test_paired_capture_preserves_residual_and_validates_raw_identity(self):
+        item = self.paired_item()
+        result = audit.decode_capture_values(item)
+        self.assertEqual(result[0, 0], 1. + 2. ** -30)
+        self.assertNotEqual(result[0, 0], np.frombuffer(base64.b64decode(item['dataBase64']), dtype='<f4')[0])
+        for field, value in [('storageDigest', 'sha256:wrong'), ('components', 1),
+                             ('elementStrideBytes', 4), ('dtype', 'f16'), ('precision', 'f32'),
+                             ('storageDataBase64', base64.b64encode(bytes(8)).decode()),
+                             ('dataBase64', base64.b64encode(np.ones(2, dtype='<f4').tobytes()).decode())]:
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                audit.decode_capture_values({**item, field: value})
+
+    def test_paired_legacy_array_requires_exact_digest_including_signed_zero(self):
+        item = self.paired_item()
+        item['storageComponents'] = np.frombuffer(base64.b64decode(item.pop('storageDataBase64')), dtype='<f4').tolist()
+        audit.decode_capture_values(item)
+        item['storageComponents'][-1] = 0.
+        with self.assertRaisesRegex(AssertionError, 'storage digest'):
+            audit.decode_capture_values(item)
+        del item['storageComponents']
+        with self.assertRaises(KeyError):
+            audit.decode_capture_values(item)
+
+    def test_paired_nonfinite_storage_rejects_even_with_matching_digest(self):
+        item = self.paired_item()
+        raw = np.array([1., np.inf, 0., 0.], dtype='<f4').tobytes()
+        item.update(storageDataBase64=base64.b64encode(raw).decode(),
+                    storageDigest='sha256:' + hashlib.sha256(raw).hexdigest())
+        with self.assertRaises(AssertionError):
+            audit.decode_capture_values(item)
+
+    def test_paired_duplicate_cannot_hide_different_tiny_residuals(self):
+        item = self.paired_item()
+        raw = np.array([[1., 0.], [0., 0.]], dtype='<f4')
+        def encoded(value):
+            return {**item, 'level': 'full', 'dataBase64': base64.b64encode(np.array([1., 0.], dtype='<f4').tobytes()).decode(),
+                'storageDataBase64': base64.b64encode(value.tobytes()).decode(),
+                'storageDigest': 'sha256:' + hashlib.sha256(value.tobytes()).hexdigest()}
+        first = encoded(raw)
+        raw[0, 1] = np.nextafter(np.float32(0), np.float32(1))
+        second = encoded(raw)
+        np.testing.assert_array_equal(audit.decode_capture_values(first), audit.decode_capture_values(second))
+        capture = {'observation': {'timeline': [{'opId': 'embed.out', 'capture': first},
+            {'opId': 'layer.0.layer.out', 'capture': first}, {'opId': 'layer.0.layer.out', 'capture': second}]}}
+        with self.assertRaises(AssertionError):
+            audit.read_capture(capture, prefill=1, decode_steps=0)
+
+    def test_detailed_layer_selection_is_explicit_and_validated(self):
+        self.assertEqual(audit.selected_audit_layers(None, 24), list(range(24)))
+        self.assertEqual(audit.selected_audit_layers([0], 24), [0])
+        self.assertEqual(audit.selected_audit_layers([3, 0], 24), [0, 3])
+        for invalid in [[], [24], [-1], [True], [0, 0], [0.5]]:
+            with self.subTest(layers=invalid), self.assertRaises(AssertionError):
+                audit.selected_audit_layers(invalid, 24)
+
     def test_scalar_intervention_is_explicit_and_separate_from_tensor_stores(self):
         epsilon = 1e-6
         selection = audit.StoreIntervention([], 24, 3, [2, 3, 4], ['rms-epsilon'])
