@@ -1,0 +1,20 @@
+{
+  "qualified": false,
+  "records": [
+    {
+      "path": "reports/local/recurrent-two-f32-20261012/q4-candidate/doppler-gpu-0.6.27.tgz",
+      "bytes": 3368417,
+      "sha256": "91b7c94d858f6fa44bb4b5208f5e48b0a95fb51f79806a802cf15f7b975e92bd"
+    },
+    {
+      "path": "reports/local/recurrent-two-f32-20261012/q4-mac-full55.json",
+      "bytes": 78578148,
+      "sha256": "b270caf46245f4f2c9d4aeb04301143443fccdbc51fb5a65656f0402e5e48740"
+    },
+    {
+      "path": "reports/local/recurrent-two-f32-20261012/q4-prefill-local-mac.json",
+      "bytes": 22288078,
+      "sha256": "cd12017ee858d9e17277f1b17d33cfaa411008e6d4a849f044e4632edf391903"
+    }
+  ]
+}
