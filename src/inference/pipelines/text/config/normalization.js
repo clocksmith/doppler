@@ -245,6 +245,10 @@ export function resolveSessionSettings(inferenceConfig, modelId) {
   if (linearAttentionFusedDecodeCore !== undefined && linearAttentionFusedDecodeCore !== null && typeof linearAttentionFusedDecodeCore !== 'boolean') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.useLinearAttentionFusedDecodeCore "${String(linearAttentionFusedDecodeCore)}"; expected boolean.`);
   }
+  const intermediatePrecision = session?.intermediatePrecision;
+  if (intermediatePrecision != null && intermediatePrecision !== 'f32' && intermediatePrecision !== 'two-f32') {
+    throw new Error(`Manifest "${modelId}" has invalid inference.session.intermediatePrecision; expected f32 or two-f32.`);
+  }
   const linearRecurrentStatePrecision = session?.linearRecurrentStatePrecision;
   if (linearRecurrentStatePrecision != null && linearRecurrentStatePrecision !== 'f32' && linearRecurrentStatePrecision !== 'two-f32') {
     throw new Error(`Manifest "${modelId}" has invalid inference.session.linearRecurrentStatePrecision; expected f32 or two-f32.`);
@@ -338,6 +342,7 @@ export function resolveSessionSettings(inferenceConfig, modelId) {
     useLinearAttentionQKVZProjectionFusion: linearAttentionQKVZProjectionFusion ?? null,
     useLinearAttentionFusedDecodeCore: linearAttentionFusedDecodeCore ?? null,
     linearRecurrentStatePrecision: linearRecurrentStatePrecision ?? null,
+    intermediatePrecision: intermediatePrecision ?? null,
     useWideTileResidualFusion: wideTileResidualFusion ?? null,
     useFusedRmsnormWideTile: fusedRmsnormWideTile ?? null,
     useFusedQKVSplitQKNorm: fusedQKVSplitQKNorm ?? null,

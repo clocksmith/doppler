@@ -1,3 +1,4 @@
+import { executePairedRMSNorm } from './paired-rmsnorm.js';
 
 
 import { getKernelCapabilities } from '../device.js';
@@ -184,6 +185,13 @@ export async function runRMSNorm(
   const resolvedOutputScale = resolveRMSNormOutputScale(outputScale);
   const isF16 = input.dtype === 'f16';
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
+  if (input.precision === 'two-f32') {
+    const declared = getKernelPathRMSNormSpec(options.role, options.section, options.phase, options.layerIdx, options.kernelPath);
+    if (declared && declared.variant !== 'paired') {
+      throw new Error('[RMSNorm] Paired input disagrees with the declared scalar kernel.');
+    }
+    return executePairedRMSNorm(null, input, weight, eps, { ...options, batchSize, hiddenSize: inferredHiddenSize });
+  }
   const variant = selectRMSNormKernel({ ...options, hiddenSize: inferredHiddenSize }, isF16);
   const normWeightBuffer = getBuffer(weight);
   assertRMSNormWeightBuffer(weight, normWeightBuffer, inferredHiddenSize);
@@ -259,6 +267,13 @@ export async function recordRMSNorm(
   const resolvedOutputScale = resolveRMSNormOutputScale(outputScale);
   const isF16 = input.dtype === 'f16';
   const inferredHiddenSize = inferHiddenSize(input, hiddenSize);
+  if (input.precision === 'two-f32') {
+    const declared = getKernelPathRMSNormSpec(options.role, options.section, options.phase, options.layerIdx, options.kernelPath);
+    if (declared && declared.variant !== 'paired') {
+      throw new Error('[RMSNorm] Paired input disagrees with the declared scalar kernel.');
+    }
+    return executePairedRMSNorm(recorder, input, weight, eps, { ...options, batchSize, hiddenSize: inferredHiddenSize });
+  }
   const variant = selectRMSNormKernel({ ...options, hiddenSize: inferredHiddenSize }, isF16);
   const normWeightBuffer = getBuffer(weight);
   assertRMSNormWeightBuffer(weight, normWeightBuffer, inferredHiddenSize);

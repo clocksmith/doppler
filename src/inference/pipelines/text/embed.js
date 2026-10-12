@@ -1,3 +1,4 @@
+import { expandF32ToPaired, recordExpandF32ToPaired } from '../../../gpu/kernels/paired-cast.js';
 
 
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
@@ -200,7 +201,14 @@ export async function embed(tokenIds, embedBuffer, config) {
   const device = getDevice();
   const resolvedEmbeddingScale = resolveEmbeddingScale({ scaleEmbeddings, embeddingScale }, hiddenSize);
   const resolvedEmbeddingNormalization = resolveEmbeddingNormalization(embeddingNormalization);
-  const intermediateOutputBuffer = resolvedEmbeddingNormalization ? null : preAllocatedOutput;
+  const pairedOutput = config.intermediatePrecision === 'two-f32';
+  if (config.intermediatePrecision != null && config.intermediatePrecision !== 'f32' && !pairedOutput) {
+    throw new Error('[Embed] Unknown intermediate precision.');
+  }
+  if (pairedOutput && (activationDtype !== 'f32' || resolvedEmbeddingNormalization || resolvedEmbeddingScale !== 1)) {
+    throw new Error('[Embed] Paired gather currently requires unscaled, unnormalized F32 embeddings.');
+  }
+  const intermediateOutputBuffer = resolvedEmbeddingNormalization || pairedOutput ? null : preAllocatedOutput;
   const tokenBufferInput = isGpuBufferInstance(tokenIds);
   let tokenIdArray = tokenBufferInput ? null :  (tokenIds);
   const numTokens = tokenBufferInput
@@ -324,6 +332,17 @@ export async function embed(tokenIds, embedBuffer, config) {
           releaseBuffer(tokenIdBuffer);
         }
       }
+    }
+  }
+
+  if (pairedOutput) {
+    try {
+      return recorder
+        ? await recordExpandF32ToPaired(recorder, gatherOutput, { outputBuffer: preAllocatedOutput })
+        : await expandF32ToPaired(gatherOutput, { outputBuffer: preAllocatedOutput });
+    } finally {
+      if (recorder) recorder.trackTemporaryBuffer(gatherOutput.buffer);
+      else releaseBuffer(gatherOutput.buffer);
     }
   }
 

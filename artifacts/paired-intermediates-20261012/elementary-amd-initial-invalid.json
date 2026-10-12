@@ -1,0 +1,10 @@
+{
+  "schema": "doppler-failed-control-v1",
+  "status": "invalid-no-arithmetic-outcome-retained",
+  "command": "node tests/kernels/paired-elementary-physical.js artifacts/paired-intermediates-20261012/elementary-amd.json",
+  "shaderSha256": "f92a43ea3a2b2155b2047943b5733aa61394be97fffb8cc0c4f49d7dc0083f44",
+  "failure": "Receipt destination parent directory did not exist. finally writeFile raised ENOENT, masking the prior outcome.",
+  "observed": "During the run the owned Chrome GPU process spent several minutes at one CPU core. Node later exited 1; its isolated Chrome GPU process was absent at read-only ps verification.",
+  "disposition": "No correctness or performance claim. Harness now creates and validates destination directory before browser launch. Repeat control required.",
+  "background": "Public browser/native contributors resident and idle; public file sharing active. Correctness window only, never a benchmark."
+}

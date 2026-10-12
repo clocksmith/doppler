@@ -1,44 +1,195 @@
 {
   "litertInt4FusedVariant": [
-    { "match": { "activationDtype": "f16", "outputDtype": "f16", "transposeB": true }, "value": "litert_int4_multicol_f16a" },
-    { "match": { "activationDtype": "f16", "outputDtype": "f32", "transposeB": true }, "value": "litert_int4_multicol_f16a_f32out" },
-    { "match": { "activationDtype": "f32", "outputDtype": "f32", "transposeB": true }, "value": "litert_int4_multicol_f32a_f32out" },
-    { "match": {}, "value": null }
+    {
+      "match": {
+        "activationDtype": "f16",
+        "outputDtype": "f16",
+        "transposeB": true
+      },
+      "value": "litert_int4_multicol_f16a"
+    },
+    {
+      "match": {
+        "activationDtype": "f16",
+        "outputDtype": "f32",
+        "transposeB": true
+      },
+      "value": "litert_int4_multicol_f16a_f32out"
+    },
+    {
+      "match": {
+        "activationDtype": "f32",
+        "outputDtype": "f32",
+        "transposeB": true
+      },
+      "value": "litert_int4_multicol_f32a_f32out"
+    },
+    {
+      "match": {},
+      "value": null
+    }
   ],
   "w4a16FusedVariant": [
-    { "match": { "activationDtype": "f16", "outputDtype": "f16", "transposeB": true, "isPrefill": true }, "value": "w4a16_batched_f16a" },
-    { "match": { "activationDtype": "f16", "outputDtype": "f32", "transposeB": true, "isPrefill": true }, "value": "w4a16_batched_f16a_f32out" },
-    { "match": { "activationDtype": "f16", "outputDtype": "f16", "transposeB": true }, "value": "w4a16_multicol_f16a" },
-    { "match": { "activationDtype": "f16", "outputDtype": "f32", "transposeB": true }, "value": "w4a16_multicol_f16a_f32out" },
-    { "match": {}, "value": null }
+    {
+      "match": {
+        "activationDtype": "f16",
+        "outputDtype": "f16",
+        "transposeB": true,
+        "isPrefill": true
+      },
+      "value": "w4a16_batched_f16a"
+    },
+    {
+      "match": {
+        "activationDtype": "f16",
+        "outputDtype": "f32",
+        "transposeB": true,
+        "isPrefill": true
+      },
+      "value": "w4a16_batched_f16a_f32out"
+    },
+    {
+      "match": {
+        "activationDtype": "f16",
+        "outputDtype": "f16",
+        "transposeB": true
+      },
+      "value": "w4a16_multicol_f16a"
+    },
+    {
+      "match": {
+        "activationDtype": "f16",
+        "outputDtype": "f32",
+        "transposeB": true
+      },
+      "value": "w4a16_multicol_f16a_f32out"
+    },
+    {
+      "match": {},
+      "value": null
+    }
   ],
   "q4kFusedVariant": [
-    { "match": { "useF16A": true, "isM1": true }, "value": "q4_fused_multicol_f16a" },
-    { "match": { "useF16A": true }, "value": "q4_fused_batched_f16a" },
-    { "match": { "useF16Out": true, "isM1": true }, "value": "q4_fused_multicol_f16" },
-    { "match": { "useF16Out": true }, "value": "q4_fused_batched_f16" },
-    { "match": { "isM1": true }, "value": "q4_fused_multicol" },
-    { "match": {}, "value": "q4_fused_batched" }
+    {
+      "match": {
+        "useF16A": true,
+        "isM1": true
+      },
+      "value": "q4_fused_multicol_f16a"
+    },
+    {
+      "match": {
+        "useF16A": true
+      },
+      "value": "q4_fused_batched_f16a"
+    },
+    {
+      "match": {
+        "useF16Out": true,
+        "isM1": true
+      },
+      "value": "q4_fused_multicol_f16"
+    },
+    {
+      "match": {
+        "useF16Out": true
+      },
+      "value": "q4_fused_batched_f16"
+    },
+    {
+      "match": {
+        "isM1": true
+      },
+      "value": "q4_fused_multicol"
+    },
+    {
+      "match": {},
+      "value": "q4_fused_batched"
+    }
   ],
   "matmulKernel": [
-    { "match": { "useF16Matmul": true, "useTiled": true }, "value": "f16_tiled" },
-    { "match": { "useF16Matmul": true, "useVec4": true }, "value": "f16_vec4" },
-    { "match": { "useF16Matmul": true }, "value": "f16" },
-    { "match": { "useF16wF32a": true, "useF16wF32aTiled": true }, "value": "f16w_f32a_tiled" },
-    { "match": { "useF16wF32a": true }, "value": "f16w_f32a" },
-    { "match": {}, "value": "f32" }
+    {
+      "match": {
+        "useF16Matmul": true,
+        "useTiled": true
+      },
+      "value": "f16_tiled"
+    },
+    {
+      "match": {
+        "useF16Matmul": true,
+        "useVec4": true
+      },
+      "value": "f16_vec4"
+    },
+    {
+      "match": {
+        "useF16Matmul": true
+      },
+      "value": "f16"
+    },
+    {
+      "match": {
+        "useF16wF32a": true,
+        "useF16wF32aTiled": true
+      },
+      "value": "f16w_f32a_tiled"
+    },
+    {
+      "match": {
+        "useF16wF32a": true
+      },
+      "value": "f16w_f32a"
+    },
+    {
+      "match": {},
+      "value": "f32"
+    }
   ],
   "gemvPathVariant": [
-    { "match": { "useF16GemvPath": true, "useMulticol": true }, "value": "gemv_subgroup_multicol_f16a" },
-    { "match": { "useF16GemvPath": true }, "value": "gemv_subgroup_f16a" },
-    { "match": { "useF32GemvPath": true, "useMulticol": true }, "value": "gemv_subgroup_multicol" },
-    { "match": { "useF32GemvPath": true }, "value": "gemv_subgroup" },
-    { "match": {}, "value": { "context": "pathVariant" } }
+    {
+      "match": {
+        "useF16GemvPath": true,
+        "useMulticol": true
+      },
+      "value": "gemv_subgroup_multicol_f16a"
+    },
+    {
+      "match": {
+        "useF16GemvPath": true
+      },
+      "value": "gemv_subgroup_f16a"
+    },
+    {
+      "match": {
+        "useF32GemvPath": true,
+        "useMulticol": true
+      },
+      "value": "gemv_subgroup_multicol"
+    },
+    {
+      "match": {
+        "useF32GemvPath": true
+      },
+      "value": "gemv_subgroup"
+    },
+    {
+      "match": {},
+      "value": {
+        "context": "pathVariant"
+      }
+    }
   ],
   "gemvVariant": [
     {
       "match": {
-        "platformId": { "in": ["apple-m2", "apple-m3", "amd-rdna3"] },
+        "platformId": {
+          "in": [
+            "apple-m2",
+            "apple-m3",
+            "amd-rdna3"
+          ]
+        },
         "hasSubgroups": true,
         "useF16Gemv": true
       },
@@ -46,50 +197,294 @@
     },
     {
       "match": {
-        "platformId": { "in": ["apple-m2", "apple-m3", "amd-rdna3"] },
+        "platformId": {
+          "in": [
+            "apple-m2",
+            "apple-m3",
+            "amd-rdna3"
+          ]
+        },
         "hasSubgroups": true,
         "useF32Gemv": true
       },
       "value": "gemv_subgroup"
     },
-    { "match": { "hasSubgroups": true, "useF16Gemv": true, "useVec4": true, "useMulticol": false }, "value": "gemv_subgroup_vec4_f16a" },
-    { "match": { "hasSubgroups": true, "useF32Gemv": true, "useVec4": true, "useMulticol": false }, "value": "gemv_subgroup_vec4" },
-    { "match": { "hasSubgroups": true, "useF16Gemv": true, "useMulticol": true }, "value": "gemv_subgroup_multicol_f16a" },
-    { "match": { "hasSubgroups": true, "useF16Gemv": true }, "value": "gemv_subgroup_f16a" },
-    { "match": { "hasSubgroups": true, "useF32Gemv": true, "useMulticol": true }, "value": "gemv_subgroup_multicol" },
-    { "match": { "hasSubgroups": true, "useF32Gemv": true }, "value": "gemv_subgroup" },
-    { "match": { "useF16Gemv": true }, "value": "gemv_f16a" },
-    { "match": { "useF32Gemv": true }, "value": "gemv" },
-    { "match": {}, "value": "f32" }
+    {
+      "match": {
+        "hasSubgroups": true,
+        "useF16Gemv": true,
+        "useVec4": true,
+        "useMulticol": false
+      },
+      "value": "gemv_subgroup_vec4_f16a"
+    },
+    {
+      "match": {
+        "hasSubgroups": true,
+        "useF32Gemv": true,
+        "useVec4": true,
+        "useMulticol": false
+      },
+      "value": "gemv_subgroup_vec4"
+    },
+    {
+      "match": {
+        "hasSubgroups": true,
+        "useF16Gemv": true,
+        "useMulticol": true
+      },
+      "value": "gemv_subgroup_multicol_f16a"
+    },
+    {
+      "match": {
+        "hasSubgroups": true,
+        "useF16Gemv": true
+      },
+      "value": "gemv_subgroup_f16a"
+    },
+    {
+      "match": {
+        "hasSubgroups": true,
+        "useF32Gemv": true,
+        "useMulticol": true
+      },
+      "value": "gemv_subgroup_multicol"
+    },
+    {
+      "match": {
+        "hasSubgroups": true,
+        "useF32Gemv": true
+      },
+      "value": "gemv_subgroup"
+    },
+    {
+      "match": {
+        "useF16Gemv": true
+      },
+      "value": "gemv_f16a"
+    },
+    {
+      "match": {
+        "useF32Gemv": true
+      },
+      "value": "gemv"
+    },
+    {
+      "match": {},
+      "value": "f32"
+    }
   ],
   "matmulSelection": [
-    { "match": { "useLiteRTInt4Fused": true }, "value": { "variant": { "context": "litertInt4Variant" }, "useQ4KFused": false, "useGemv": false, "useLiteRTInt4Fused": true } },
-    { "match": { "useW4A16Fused": true }, "value": { "variant": { "context": "w4a16Variant" }, "useQ4KFused": false, "useGemv": false, "useLiteRTInt4Fused": false, "useW4A16Fused": true } },
-    { "match": { "isQ4K": true, "hasSubgroups": true, "fusedAllowed": true }, "value": { "variant": { "context": "q4kVariant" }, "useQ4KFused": true, "useGemv": false } },
-    { "match": { "useGemv": true }, "value": { "variant": { "context": "gemvVariant" }, "useQ4KFused": false, "useGemv": true } },
-    { "match": {}, "value": { "variant": { "context": "matmulVariant" }, "useQ4KFused": false, "useGemv": false } }
+    {
+      "match": {
+        "useLiteRTInt4Fused": true
+      },
+      "value": {
+        "variant": {
+          "context": "litertInt4Variant"
+        },
+        "useQ4KFused": false,
+        "useGemv": false,
+        "useLiteRTInt4Fused": true
+      }
+    },
+    {
+      "match": {
+        "useW4A16Fused": true
+      },
+      "value": {
+        "variant": {
+          "context": "w4a16Variant"
+        },
+        "useQ4KFused": false,
+        "useGemv": false,
+        "useLiteRTInt4Fused": false,
+        "useW4A16Fused": true
+      }
+    },
+    {
+      "match": {
+        "isQ4K": true,
+        "hasSubgroups": true,
+        "fusedAllowed": true
+      },
+      "value": {
+        "variant": {
+          "context": "q4kVariant"
+        },
+        "useQ4KFused": true,
+        "useGemv": false
+      }
+    },
+    {
+      "match": {
+        "useGemv": true
+      },
+      "value": {
+        "variant": {
+          "context": "gemvVariant"
+        },
+        "useQ4KFused": false,
+        "useGemv": true
+      }
+    },
+    {
+      "match": {},
+      "value": {
+        "variant": {
+          "context": "matmulVariant"
+        },
+        "useQ4KFused": false,
+        "useGemv": false
+      }
+    }
   ],
   "preferredWeightDtype": [
-    { "match": { "variantWeightDtype": "f16", "hasQ4KMaterialization": true, "hasSubgroups": true }, "value": "q4k" },
-    { "match": {}, "value": { "context": "variantWeightDtype" } }
+    {
+      "match": {
+        "variantWeightDtype": "f16",
+        "hasQ4KMaterialization": true,
+        "hasSubgroups": true
+      },
+      "value": "q4k"
+    },
+    {
+      "match": {},
+      "value": {
+        "context": "variantWeightDtype"
+      }
+    }
   ],
   "weightDtypeMismatchPolicy": [
-    { "match": { "actualWeightDtype": "f16", "requiredWeightDtype": "q4k" }, "value": "fallthrough" },
-    { "match": { "actualWeightDtype": "q4k", "requiredWeightDtype": "f16", "hasSubgroups": true }, "value": "fallthrough" },
-    { "match": { "actualWeightDtype": "q4k", "requiredWeightDtype": "f32", "hasSubgroups": true }, "value": "fallthrough" },
-    { "match": { "actualWeightDtype": "litert_int4", "requiredWeightDtype": "f16" }, "value": "fallthrough" },
-    { "match": { "actualWeightDtype": "litert_int4", "requiredWeightDtype": "f32" }, "value": "fallthrough" },
-    { "match": { "actualWeightDtype": "w4a16", "requiredWeightDtype": "f16" }, "value": "fallthrough" },
-    { "match": { "actualWeightDtype": "w4a16", "requiredWeightDtype": "f32" }, "value": "fallthrough" },
-    { "match": {}, "value": "reject" }
+    {
+      "match": {
+        "actualWeightDtype": "f16",
+        "requiredWeightDtype": "q4k"
+      },
+      "value": "fallthrough"
+    },
+    {
+      "match": {
+        "actualWeightDtype": "q4k",
+        "requiredWeightDtype": "f16",
+        "hasSubgroups": true
+      },
+      "value": "fallthrough"
+    },
+    {
+      "match": {
+        "actualWeightDtype": "q4k",
+        "requiredWeightDtype": "f32",
+        "hasSubgroups": true
+      },
+      "value": "fallthrough"
+    },
+    {
+      "match": {
+        "actualWeightDtype": "litert_int4",
+        "requiredWeightDtype": "f16"
+      },
+      "value": "fallthrough"
+    },
+    {
+      "match": {
+        "actualWeightDtype": "litert_int4",
+        "requiredWeightDtype": "f32"
+      },
+      "value": "fallthrough"
+    },
+    {
+      "match": {
+        "actualWeightDtype": "w4a16",
+        "requiredWeightDtype": "f16"
+      },
+      "value": "fallthrough"
+    },
+    {
+      "match": {
+        "actualWeightDtype": "w4a16",
+        "requiredWeightDtype": "f32"
+      },
+      "value": "fallthrough"
+    },
+    {
+      "match": {},
+      "value": "reject"
+    }
   ],
   "q4kMaterializationMode": [
-    { "match": { "hasFusedProjections": true, "hasDenseProjections": true }, "value": "mixed" },
-    { "match": { "hasFusedProjections": true }, "value": "fused" },
-    { "match": {}, "value": "dense" }
+    {
+      "match": {
+        "hasFusedProjections": true,
+        "hasDenseProjections": true
+      },
+      "value": "mixed"
+    },
+    {
+      "match": {
+        "hasFusedProjections": true
+      },
+      "value": "fused"
+    },
+    {
+      "match": {},
+      "value": "dense"
+    }
   ],
   "phase": [
-    { "match": { "isDecode": true }, "value": "decode" },
-    { "match": {}, "value": "prefill" }
+    {
+      "match": {
+        "isDecode": true
+      },
+      "value": "decode"
+    },
+    {
+      "match": {},
+      "value": "prefill"
+    }
+  ],
+  "pairedVariant": [
+    {
+      "match": {
+        "weightDtype": "f32",
+        "scalarOutput": false
+      },
+      "value": "paired_f32"
+    },
+    {
+      "match": {
+        "weightDtype": "f32",
+        "scalarOutput": true
+      },
+      "value": "paired_f32_scalar"
+    },
+    {
+      "match": {
+        "weightDtype": "f16",
+        "scalarOutput": false
+      },
+      "value": "paired_f16"
+    },
+    {
+      "match": {
+        "weightDtype": "f16",
+        "scalarOutput": true
+      },
+      "value": "paired_f16_scalar"
+    },
+    {
+      "match": {
+        "weightDtype": "q4k",
+        "scalarOutput": false
+      },
+      "value": "paired_q4k"
+    },
+    {
+      "match": {
+        "weightDtype": "q4k",
+        "scalarOutput": true
+      },
+      "value": "paired_q4k_scalar"
+    }
   ]
 }

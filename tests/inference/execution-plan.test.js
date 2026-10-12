@@ -586,3 +586,9 @@ const container = { executionPlanState: planState };
 }
 
 console.log('execution-plan.test: ok');
+
+{
+  const runtimeConfig = createDopplerConfig().runtime;
+  runtimeConfig.inference.session.intermediatePrecision = 'two-f32';
+  assert.throws(() => compileExecutionPlanState({ runtimeConfig }), /complete bound paired graph/);
+}

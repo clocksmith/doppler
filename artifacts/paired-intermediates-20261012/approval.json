@@ -1,0 +1,12 @@
+{
+  "schema": "doppler.paired-intermediate-implementation-authorization/v1",
+  "status": "implementation-authorized-qualification-pending",
+  "approval": "User explicitly approved broader implementation and qualification of the reviewed inactive proposal and memory inventory; parent relayed this approval on 2026-10-12.",
+  "proposalRevision": "f02579de",
+  "proposal": "../selective-materialization-20261012/inactive-precision-proposal.json",
+  "memoryReview": "../selective-materialization-20261012/memory-review.md",
+  "unchanged": ["approved independent F64 reference", "0.001 tolerance", "exact weights", "F16 KV storage", "1420000000 allocated bytes per executor", "accepted Reploid runtime pin pending qualification"],
+  "layoutDecision": "Interleaved high/low F32 components are permitted as a routine implementation layout choice after recalculating allocation deltas; this avoids doubling storage binding count. Logical tensor shape remains unchanged and precision/components are explicit.",
+  "required": ["independent operator controls", "source epsilon preserved", "direct nearest-even paired-to-F16 rounding", "one standard archive", "all55 prefixes on both GPUs and placements", "actual allocation/lifecycle evidence", "separate task quality and signed application acceptance"],
+  "limits": ["No captured reference injection", "No CPU runtime arithmetic fallback", "No automatic promotion or deployment", "Earlier memory inventory is a conditional calculation, not an observed concurrent peak; independent review was pending at approval."]
+}

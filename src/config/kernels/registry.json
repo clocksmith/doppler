@@ -5258,6 +5258,585 @@
       "dispatchGeometry": "matrix-workgroup",
       "colsPerThread": 1
      }
+    },
+    "paired_f32": {
+     "wgsl": "matmul_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "weightDtype": "f32",
+     "constants": {
+      "WEIGHT_F16": false,
+      "WEIGHT_Q4K": false
+     },
+     "bindings": [
+      {
+       "name": "uniforms",
+       "type": "uniform",
+       "index": 0
+      },
+      {
+       "name": "input",
+       "type": "read-only-storage",
+       "index": 1
+      },
+      {
+       "name": "weight",
+       "type": "read-only-storage",
+       "index": 2
+      },
+      {
+       "name": "output",
+       "type": "storage",
+       "index": 3
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "grid_width",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "alpha_hi",
+        "type": "f32",
+        "offset": 16
+       },
+       {
+        "name": "alpha_lo",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32",
+      "dispatchGeometry": "pairedReduction"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["matmul.rules.json#pairedVariant"],
+      "wgslOnDisk": true
+     },
+     "wgslOverrides": {
+      "WEIGHT_F16": false,
+      "WEIGHT_Q4K": false,
+      "SCALAR_OUTPUT": false
+     }
+    },
+    "paired_f16": {
+     "wgsl": "matmul_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "weightDtype": "f16",
+     "constants": {
+      "WEIGHT_F16": true,
+      "WEIGHT_Q4K": false
+     },
+     "bindings": [
+      {
+       "name": "uniforms",
+       "type": "uniform",
+       "index": 0
+      },
+      {
+       "name": "input",
+       "type": "read-only-storage",
+       "index": 1
+      },
+      {
+       "name": "weight",
+       "type": "read-only-storage",
+       "index": 2
+      },
+      {
+       "name": "output",
+       "type": "storage",
+       "index": 3
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "grid_width",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "alpha_hi",
+        "type": "f32",
+        "offset": 16
+       },
+       {
+        "name": "alpha_lo",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32",
+      "dispatchGeometry": "pairedReduction"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["matmul.rules.json#pairedVariant"],
+      "wgslOnDisk": true
+     },
+     "wgslOverrides": {
+      "WEIGHT_F16": true,
+      "WEIGHT_Q4K": false,
+      "SCALAR_OUTPUT": false
+     }
+    },
+    "paired_q4k": {
+     "wgsl": "matmul_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "weightDtype": "q4k",
+     "constants": {
+      "WEIGHT_F16": false,
+      "WEIGHT_Q4K": true
+     },
+     "bindings": [
+      {
+       "name": "uniforms",
+       "type": "uniform",
+       "index": 0
+      },
+      {
+       "name": "input",
+       "type": "read-only-storage",
+       "index": 1
+      },
+      {
+       "name": "weight",
+       "type": "read-only-storage",
+       "index": 2
+      },
+      {
+       "name": "output",
+       "type": "storage",
+       "index": 3
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "grid_width",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "alpha_hi",
+        "type": "f32",
+        "offset": 16
+       },
+       {
+        "name": "alpha_lo",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32",
+      "dispatchGeometry": "pairedReduction"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["matmul.rules.json#pairedVariant"],
+      "wgslOnDisk": true
+     },
+     "wgslOverrides": {
+      "WEIGHT_F16": false,
+      "WEIGHT_Q4K": true,
+      "SCALAR_OUTPUT": false
+     }
+    },
+    "paired_f32_scalar": {
+     "wgsl": "matmul_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "weightDtype": "f32",
+     "constants": {
+      "WEIGHT_F16": false,
+      "WEIGHT_Q4K": false,
+      "SCALAR_OUTPUT": true
+     },
+     "bindings": [
+      {
+       "name": "uniforms",
+       "type": "uniform",
+       "index": 0
+      },
+      {
+       "name": "input",
+       "type": "read-only-storage",
+       "index": 1
+      },
+      {
+       "name": "weight",
+       "type": "read-only-storage",
+       "index": 2
+      },
+      {
+       "name": "output",
+       "type": "storage",
+       "index": 3
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "grid_width",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "alpha_hi",
+        "type": "f32",
+        "offset": 16
+       },
+       {
+        "name": "alpha_lo",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "f32",
+      "dispatchGeometry": "pairedReduction"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["matmul.rules.json#pairedVariant"],
+      "wgslOnDisk": true
+     },
+     "wgslOverrides": {
+      "WEIGHT_F16": false,
+      "WEIGHT_Q4K": false,
+      "SCALAR_OUTPUT": true
+     }
+    },
+    "paired_f16_scalar": {
+     "wgsl": "matmul_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "weightDtype": "f16",
+     "constants": {
+      "WEIGHT_F16": true,
+      "WEIGHT_Q4K": false,
+      "SCALAR_OUTPUT": true
+     },
+     "bindings": [
+      {
+       "name": "uniforms",
+       "type": "uniform",
+       "index": 0
+      },
+      {
+       "name": "input",
+       "type": "read-only-storage",
+       "index": 1
+      },
+      {
+       "name": "weight",
+       "type": "read-only-storage",
+       "index": 2
+      },
+      {
+       "name": "output",
+       "type": "storage",
+       "index": 3
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "grid_width",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "alpha_hi",
+        "type": "f32",
+        "offset": 16
+       },
+       {
+        "name": "alpha_lo",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "f32",
+      "dispatchGeometry": "pairedReduction"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["matmul.rules.json#pairedVariant"],
+      "wgslOnDisk": true
+     },
+     "wgslOverrides": {
+      "WEIGHT_F16": true,
+      "WEIGHT_Q4K": false,
+      "SCALAR_OUTPUT": true
+     }
+    },
+    "paired_q4k_scalar": {
+     "wgsl": "matmul_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "weightDtype": "q4k",
+     "constants": {
+      "WEIGHT_F16": false,
+      "WEIGHT_Q4K": true,
+      "SCALAR_OUTPUT": true
+     },
+     "bindings": [
+      {
+       "name": "uniforms",
+       "type": "uniform",
+       "index": 0
+      },
+      {
+       "name": "input",
+       "type": "read-only-storage",
+       "index": 1
+      },
+      {
+       "name": "weight",
+       "type": "read-only-storage",
+       "index": 2
+      },
+      {
+       "name": "output",
+       "type": "storage",
+       "index": 3
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "M",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "N",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "K",
+        "type": "u32",
+        "offset": 8
+       },
+       {
+        "name": "grid_width",
+        "type": "u32",
+        "offset": 12
+       },
+       {
+        "name": "alpha_hi",
+        "type": "f32",
+        "offset": 16
+       },
+       {
+        "name": "alpha_lo",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 24,
+        "padding": true
+       },
+       {
+        "name": "_pad1",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "f32",
+      "dispatchGeometry": "pairedReduction"
+     },
+     "reachability": {
+      "status": "model-selectable",
+      "inlineConfigs": [],
+      "ruleChains": ["matmul.rules.json#pairedVariant"],
+      "wgslOnDisk": true
+     },
+     "wgslOverrides": {
+      "WEIGHT_F16": false,
+      "WEIGHT_Q4K": true,
+      "SCALAR_OUTPUT": true
+     }
     }
    }
   },
@@ -10456,6 +11035,100 @@
       "ruleChains": ["rmsnorm.rules.json#variant"],
       "wgslOnDisk": true
      }
+    },
+    "paired": {
+     "wgsl": "rmsnorm_paired.wgsl",
+     "entryPoint": "main",
+     "workgroup": [64,1,1],
+     "requires": [],
+     "bindings": [
+      {
+       "name": "uniforms",
+       "type": "uniform",
+       "index": 0
+      },
+      {
+       "name": "input",
+       "type": "read-only-storage",
+       "index": 1
+      },
+      {
+       "name": "weight",
+       "type": "read-only-storage",
+       "index": 2
+      },
+      {
+       "name": "output",
+       "type": "storage",
+       "index": 3
+      },
+      {
+       "name": "residual",
+       "type": "read-only-storage",
+       "index": 4
+      },
+      {
+       "name": "prenorm",
+       "type": "storage",
+       "index": 5
+      }
+     ],
+     "uniformsOverride": {
+      "size": 32,
+      "fields": [
+       {
+        "name": "size",
+        "type": "u32",
+        "offset": 0
+       },
+       {
+        "name": "num_tokens",
+        "type": "u32",
+        "offset": 4
+       },
+       {
+        "name": "eps_hi",
+        "type": "f32",
+        "offset": 8
+       },
+       {
+        "name": "eps_lo",
+        "type": "f32",
+        "offset": 12
+       },
+       {
+        "name": "token_stride",
+        "type": "u32",
+        "offset": 16
+       },
+       {
+        "name": "scale_hi",
+        "type": "f32",
+        "offset": 20
+       },
+       {
+        "name": "scale_lo",
+        "type": "f32",
+        "offset": 24
+       },
+       {
+        "name": "_pad0",
+        "type": "u32",
+        "offset": 28,
+        "padding": true
+       }
+      ]
+     },
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "two-f32"
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
     }
    }
   },
@@ -15023,6 +15696,38 @@
         "padding": true
        }
       ]
+     }
+    },
+    "f32_to_two_f32": {
+     "wgsl": "cast_f32_to_two_f32.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "variantMetadata": {
+      "inputPrecision": "f32",
+      "outputPrecision": "two-f32"
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "two_f32_to_f16": {
+     "wgsl": "cast_two_f32_to_f16.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "variantMetadata": {
+      "inputPrecision": "two-f32",
+      "outputPrecision": "f16"
+     },
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
      }
     }
    }
@@ -21873,6 +22578,189 @@
       "ruleChains": [],
       "wgslOnDisk": true
      }
+    }
+   }
+  },
+  "paired_pointwise": {
+   "description": "Explicit paired pointwise activation and residual operations",
+   "baseBindings": [
+    {
+     "index": 0,
+     "name": "uniforms",
+     "type": "uniform"
+    },
+    {
+     "index": 1,
+     "name": "a",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 2,
+     "name": "b",
+     "type": "read-only-storage"
+    },
+    {
+     "index": 3,
+     "name": "output",
+     "type": "storage"
+    }
+   ],
+   "baseUniforms": {
+    "size": 16,
+    "fields": [
+     {
+      "name": "size",
+      "type": "u32",
+      "offset": 0
+     },
+     {
+      "name": "scale_hi",
+      "type": "f32",
+      "offset": 4
+     },
+     {
+      "name": "scale_lo",
+      "type": "f32",
+      "offset": 8
+     },
+     {
+      "name": "_pad",
+      "type": "u32",
+      "offset": 12,
+      "padding": true
+     }
+    ]
+   },
+   "variants": {
+    "add": {
+     "wgsl": "paired_add.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "scale": {
+     "wgsl": "paired_scale.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "a",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ]
+    },
+    "multiply": {
+     "wgsl": "paired_multiply.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "silu": {
+     "wgsl": "paired_silu.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "sigmoid": {
+     "wgsl": "paired_sigmoid.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     }
+    },
+    "scale_inplace": {
+     "wgsl": "paired_scale_inplace.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "output",
+       "type": "storage"
+      }
+     ]
+    },
+    "silu_unary": {
+     "wgsl": "paired_silu_unary.wgsl",
+     "entryPoint": "main",
+     "workgroup": [256,1,1],
+     "requires": [],
+     "reachability": {
+      "status": "unused",
+      "inlineConfigs": [],
+      "ruleChains": [],
+      "wgslOnDisk": true
+     },
+     "bindings": [
+      {
+       "index": 0,
+       "name": "uniforms",
+       "type": "uniform"
+      },
+      {
+       "index": 1,
+       "name": "a",
+       "type": "read-only-storage"
+      },
+      {
+       "index": 3,
+       "name": "output",
+       "type": "storage"
+      }
+     ]
     }
    }
   }

@@ -414,3 +414,7 @@ export {
 
 // Re-export profiling utilities
 export { recordSuppressLogits } from './logit-suppress.js';
+
+export { expandF32ToPaired, recordExpandF32ToPaired, castPairedToF16, recordCastPairedToF16 } from './paired-cast.js';
+
+export { executePairedAdd, executePairedScale, executePairedMultiply, executePairedSiLU } from './paired-activation.js';

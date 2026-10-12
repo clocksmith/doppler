@@ -16,6 +16,9 @@
   },
   "include": [],
   "files": [
+    "src/gpu/kernels/paired-matmul.js",
+    "src/gpu/kernels/paired-cast.js",
+    "src/gpu/kernels/paired-rmsnorm.js",
     "src/converter/resident-qualification.js",
     "src/tooling/model-capsule-pieces.js",
     "src/config/schema/w8a8.schema.js",
@@ -58,6 +61,9 @@
     "src/storage/verified-piece-reader.js",
     "src/memory/device-budget.js",
     "src/gpu/kernels/codegen/attention-decode-online-variant.js",
-    "src/inference/pipelines/text/linear-attention/state-layout.js"
+    "src/inference/pipelines/text/linear-attention/state-layout.js",
+    "src/inference/pipelines/text/ffn/paired.js",
+    "src/gpu/kernels/paired-activation.js",
+    "src/inference/pipelines/text/ffn/paired.js"
   ]
 }

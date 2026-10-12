@@ -2,6 +2,32 @@
 // Do not edit; npm run kernels:uniforms:sync.
 import { writeU32, writeI32, writeF32 } from '../uniform-encoding.js';
 
+export function write_diffusion_gemma_sampling_entropy_stats(view, values, kernel) {
+  writeU32(view, 0, values["vocab_size"], kernel, "vocab_size");
+  writeU32(view, 4, values["canvas_length"], kernel, "canvas_length");
+  writeU32(view, 8, values["pad_token_id"], kernel, "pad_token_id");
+  view.setUint32(12, 0, true);
+  writeF32(view, 16, values["temperature"], kernel, "temperature");
+  writeF32(view, 20, values["logit_softcap"], kernel, "logit_softcap");
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+}
+
+export function write_rope_default(view, values, kernel) {
+  writeU32(view, 0, values["seq_len"], kernel, "seq_len");
+  writeU32(view, 4, values["num_heads"], kernel, "num_heads");
+  writeU32(view, 8, values["head_dim"], kernel, "head_dim");
+  writeU32(view, 12, values["start_pos"], kernel, "start_pos");
+  writeF32(view, 16, values["rope_base"], kernel, "rope_base");
+  writeF32(view, 20, values["rope_scale"], kernel, "rope_scale");
+  writeU32(view, 24, values["rotary_dim"], kernel, "rotary_dim");
+  writeU32(view, 28, values["interleaved"], kernel, "interleaved");
+  writeU32(view, 32, values["pair_span_dim"], kernel, "pair_span_dim");
+  view.setUint32(36, 0, true);
+  view.setUint32(40, 0, true);
+  view.setUint32(44, 0, true);
+}
+
 export function write_rope_qk_default(view, values, kernel) {
   writeU32(view, 0, values["seq_len"], kernel, "seq_len");
   writeU32(view, 4, values["num_q_heads"], kernel, "num_q_heads");
@@ -573,27 +599,5 @@ export function write_upsample2d_default(view, values, kernel) {
   writeU32(view, 16, values["out_width"], kernel, "out_width");
   writeU32(view, 20, values["scale"], kernel, "scale");
   view.setUint32(24, 0, true);
-  view.setUint32(28, 0, true);
-}
-
-export function write_modulate_default(view, values, kernel) {
-  writeU32(view, 0, values["num_tokens"], kernel, "num_tokens");
-  writeU32(view, 4, values["hidden_size"], kernel, "hidden_size");
-  writeU32(view, 8, values["scale_offset"], kernel, "scale_offset");
-  writeU32(view, 12, values["shift_offset"], kernel, "shift_offset");
-  writeU32(view, 16, values["gate_offset"], kernel, "gate_offset");
-  writeU32(view, 20, values["has_gate"], kernel, "has_gate");
-  writeU32(view, 24, values["add_one"], kernel, "add_one");
-  view.setUint32(28, 0, true);
-}
-
-export function write_pixel_shuffle_default(view, values, kernel) {
-  writeU32(view, 0, values["out_channels"], kernel, "out_channels");
-  writeU32(view, 4, values["out_height"], kernel, "out_height");
-  writeU32(view, 8, values["out_width"], kernel, "out_width");
-  writeU32(view, 12, values["grid_width"], kernel, "grid_width");
-  writeU32(view, 16, values["grid_height"], kernel, "grid_height");
-  writeU32(view, 20, values["patch_size"], kernel, "patch_size");
-  writeU32(view, 24, values["patch_channels"], kernel, "patch_channels");
   view.setUint32(28, 0, true);
 }

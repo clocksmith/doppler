@@ -219,6 +219,12 @@ export function compileExecutionPlanState(options) {
     );
   }
   const sessionConfig = inferenceConfig.session ?? {};
+  if (sessionConfig.intermediatePrecision === 'two-f32') {
+    throw new Error(
+      '[ExecutionPlan] two-f32 intermediate execution requires a complete bound paired graph; ' +
+      'standalone operators do not qualify a model execution plan.'
+    );
+  }
   const decodeLoopConfig = sessionConfig.decodeLoop;
   if (!decodeLoopConfig || typeof decodeLoopConfig !== 'object') {
     throw new Error('[ExecutionPlan] runtimeConfig.inference.session.decodeLoop is required.');
