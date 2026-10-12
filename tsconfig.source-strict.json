@@ -74,6 +74,9 @@
     "src/gpu/kernels/rope-dispatch.js",
     "src/gpu/kernels/split-dispatch.js",
     "src/inference/pipelines/text/attention/paired-contract.js",
-    "src/inference/pipelines/text/attention/cache-cast.js"
+    "src/inference/pipelines/text/attention/cache-cast.js",
+    "src/config/canonical-contract-codec.js",
+    "src/config/canonical-generation-policy.js",
+    "src/inference/resident-state-contract.js"
   ]
 }

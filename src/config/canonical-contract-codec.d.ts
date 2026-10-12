@@ -1,0 +1,10 @@
+export function contractAssert(ok: unknown, message: string): asserts ok;
+export function count(value: unknown, label: string, maximum?: number): number;
+export function hash(value: unknown, label: string): string;
+export function scalarString(value: unknown): string;
+export function exactRecord<T>(value: T, keys: readonly PropertyKey[]): T;
+export function canonicalMetadata(value: unknown): string;
+export function metadataDigest(schema: string, body: unknown): string;
+export function admitTokens(tokens: unknown, vocabSize: number, maxTokens: number): readonly number[];
+export function tokenDigest(tokens: readonly number[], vocabSize: number, maxTokens: number): string;
+export function immutableRecord<T>(value: T): Readonly<T>;
