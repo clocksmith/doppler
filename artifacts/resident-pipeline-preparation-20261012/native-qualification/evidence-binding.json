@@ -1,0 +1,61 @@
+{
+  "schema": "doppler.native-resident-qualification-evidence/v1",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "producer": {
+    "path": "artifacts/signed-resident-producer-20261012/produce-physical-reports.js",
+    "sha256": "d9855a94b1f4e5a30f67bfd85ab866f0f6a016f78a89be660f3a0addddc0e7c4"
+  },
+  "reploidSummarySha256": "2d8691cce009eae665e389381380dd52ceb82d4b43bbc73c01d6fcdd7527bb3b",
+  "records": [
+    {
+      "direction": 0,
+      "producerExitCode": 0,
+      "configSha256": "f172b26c0940a557431ab05ba001c2bd4ae7192c19457e012c7cd1181ff33699",
+      "rawCaptureSha256": "sha256:8e0611c8a71bfebc862a1451a77cbec5ca4d260991468c7484162ecac191a174",
+      "retainedCapture": {
+        "repository": "reploid",
+        "commit": "f06a5582",
+        "path": "artifacts/resident-readiness-qualification-20261012/results/native-direction-0.json.gz",
+        "sha256": "3183858a56ee2e0e7866914294e0f40b3145e20346b849325ae8fe1f57c98b05"
+      },
+      "expectationsSha256": "33ed62af9496d128c8008d629789fccb6f71782b33d35f9859de2c5a5fdd06fa",
+      "reports": [
+        {
+          "path": "direction-0/partition-0.json",
+          "sha256": "e16597824bda94ec8a1720698a65ce0859b7ed97f543a92aa5b06b4b8121b35c"
+        },
+        {
+          "path": "direction-0/partition-1.json",
+          "sha256": "4b8bcf0b8e53d0377d80cee24314e364661ac64e733908e152f5acbdc39e2326"
+        }
+      ],
+      "comparedSteps": 55,
+      "maxAbsoluteError": 9.520044947919359e-7
+    },
+    {
+      "direction": 1,
+      "producerExitCode": 0,
+      "configSha256": "bf9fdc9ac51b57caa4a413fe98728c9639acb9162b77d17941ca0abdf5635944",
+      "rawCaptureSha256": "sha256:44a8f6e1db4ea66749761f1bab136717cb7dd0665d7df4490e1d33c48e8f84f6",
+      "retainedCapture": {
+        "repository": "reploid",
+        "commit": "f06a5582",
+        "path": "artifacts/resident-readiness-qualification-20261012/results/native-direction-1.json.gz",
+        "sha256": "a28f62934dca11a19b5b1b79b201241235dd845e9e8a46377c43a6ba058b2195"
+      },
+      "expectationsSha256": "889450443ea4b5f83d9f326a373314aea8da912b71ce5587afdc61e34f118ef2",
+      "reports": [
+        {
+          "path": "direction-1/partition-0.json",
+          "sha256": "57d3e39a127f94c2dd24c95e811b033028835848214f837e5d1d246a6e30f0fe"
+        },
+        {
+          "path": "direction-1/partition-1.json",
+          "sha256": "f474c738f63e5d10354c35809b7547a7bb7c17594e84997c057a7f0c5fd629d4"
+        }
+      ],
+      "comparedSteps": 55,
+      "maxAbsoluteError": 9.520044947919359e-7
+    }
+  ]
+}
