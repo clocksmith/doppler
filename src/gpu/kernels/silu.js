@@ -1,3 +1,4 @@
+import { executePairedSiLU } from './paired-activation.js';
 
 
 import { getDevice } from '../device.js';
@@ -97,6 +98,14 @@ export async function runSiLU(
   input,
   options = {}
 ) {
+  if (input.precision !== undefined || input.components !== undefined || input.elementStrideBytes !== undefined
+    || options.gate?.precision !== undefined || options.gate?.components !== undefined || options.gate?.elementStrideBytes !== undefined) {
+    return executePairedSiLU(null, input, options.size ?? input.shape.reduce((total, size) => total * size, 1), {
+      ...options, gateActivation: options.gateActivation ?? 'silu',
+      inputActivation: resolveInputActivation(options.inputActivation, Boolean(options.gate)),
+    });
+  }
+
   const device = getDevice();
   const {
     size,
@@ -176,6 +185,7 @@ export async function runSwiGLURowsplitBias(
   dim,
   options = {}
 ) {
+  if (input.precision !== undefined) throw new Error('[SiLU] Paired row-split execution requires a declared paired kernel.');
   const device = getDevice();
   const { outputBuffer = null, biasOffset = 0, swigluLimit } = options;
   const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SwiGLU row-split');
@@ -232,6 +242,7 @@ export async function runSiLURowSplit(
   input,
   options
 ) {
+  if (input.precision !== undefined) throw new Error('[SiLU] Paired row-split execution requires a declared paired kernel.');
   const device = getDevice();
   const { numTokens, dim, activation = 'silu', outputBuffer = null, swigluLimit } = options;
   const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SiLU row-split');
@@ -293,6 +304,7 @@ export async function recordSiLURowSplit(
   input,
   options
 ) {
+  if (input.precision !== undefined) throw new Error('[SiLU] Paired row-split execution requires a declared paired kernel.');
   const device = recorder.device;
   const { numTokens, dim, activation = 'silu', outputBuffer = null, swigluLimit } = options;
   const resolvedSwigluLimit = resolveSwigluLimit(swigluLimit, 'SiLU row-split');
@@ -352,6 +364,14 @@ export async function recordSiLU(
   input,
   options = {}
 ) {
+  if (input.precision !== undefined || input.components !== undefined || input.elementStrideBytes !== undefined
+    || options.gate?.precision !== undefined || options.gate?.components !== undefined || options.gate?.elementStrideBytes !== undefined) {
+    return executePairedSiLU(recorder, input, options.size ?? input.shape.reduce((total, size) => total * size, 1), {
+      ...options, gateActivation: options.gateActivation ?? 'silu',
+      inputActivation: resolveInputActivation(options.inputActivation, Boolean(options.gate)),
+    });
+  }
+
   const device = recorder.device;
   const {
     size,
