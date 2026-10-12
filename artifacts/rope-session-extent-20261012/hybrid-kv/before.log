@@ -1,0 +1,24 @@
+[149.5ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=16, layout=contiguous, modelMaxSeqLen=16, requestedKvDtype=f32, requestedMaxSeqLen=16
+[149.8ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=16, layout=contiguous, modelMaxSeqLen=16, requestedKvDtype=f32, requestedMaxSeqLen=16
+[149.9ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=16, layout=contiguous, modelMaxSeqLen=16, requestedKvDtype=f32, requestedMaxSeqLen=16
+[150.6ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=4, layout=contiguous, modelMaxSeqLen=16, requestedKvDtype=f32, requestedMaxSeqLen=16
+[150.6ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=16, layout=contiguous, modelMaxSeqLen=16, requestedKvDtype=f32, requestedMaxSeqLen=16
+[150.7ms][Pipeline] KV cache allocated: kvDtype=f32, maxSeqLen=16, layout=contiguous, modelMaxSeqLen=16, requestedKvDtype=f32, requestedMaxSeqLen=16
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Linear recurrence layers own no attention KV allocation
+
+4 !== 2
+
+    at file:///Users/xyz/deco/doppler/tests/inference/partition-kv-cache.test.js:51:12 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 4,
+  expected: 2,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

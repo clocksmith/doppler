@@ -1,5 +1,5 @@
 import { getDevice, getDeviceLimits, getKernelCapabilities } from '../../../gpu/device.js';
-import { scopeKVCacheLayerRange, resolveKVCacheLayerCount } from '../../kv-cache/layer-range.js';
+import { scopeKVCacheLayerRange, scopeKVCacheLayerIndices, resolveKVCacheLayerCount } from '../../kv-cache/layer-range.js';
 import {
   KVCache,
   SlidingWindowKVCache,
@@ -28,6 +28,7 @@ import {
 
 // Extracted standalone modules
 import { initRoPEFrequencies, isGPURoPEBuffers } from './init-rope.js';
+import { hasLinearAttentionLayers } from './linear-attention.js';
 import {
   applyChatTemplate,
   applyGemmaChatTemplate,
@@ -333,7 +334,7 @@ function assertQuantizedKVKernelSupport(modelConfig, cacheLayout, cacheMaxSeqLen
 // ============================================================================
 
 export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig, layerRange = null) {
-  const allocatedLayerCount = resolveKVCacheLayerCount(modelConfig.numLayers, layerRange);
+  let allocatedLayerCount = resolveKVCacheLayerCount(modelConfig.numLayers, layerRange);
   if (modelConfig?.decodeStrategy === 'replay_prefill') {
     throw new Error(
       'Live KV cache creation is not supported for models that require replay-prefill decode. ' +
@@ -344,6 +345,19 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig,
   const requiresMixedGeometryKVCache = usesMixedGeometryKVCache(modelConfig);
   if (layerRange !== null && requiresMixedGeometryKVCache) {
     throw new Error('Resident partition KV cache does not support mixed geometry or shared KV layers.');
+  }
+  // Linear attention owns recurrent state, not per-token attention keys/values.
+  // Keep mixed geometry/shared-KV ownership unchanged; its source-layer mapping
+  // is a separate cache contract.
+  let allocatedLayerIndices = null;
+  if (!requiresMixedGeometryKVCache && hasLinearAttentionLayers(modelConfig.layerTypes)) {
+    if (modelConfig.layerTypes.length !== modelConfig.numLayers) {
+      throw new Error('Hybrid KV allocation requires explicit types for every model layer.');
+    }
+    const firstLayer = layerRange === null ? 0 : layerRange[0];
+    allocatedLayerIndices = Array.from({ length: allocatedLayerCount }, (_, index) => firstLayer + index)
+      .filter(layer => !hasLinearAttentionLayers([modelConfig.layerTypes[layer]]));
+    allocatedLayerCount = allocatedLayerIndices.length;
   }
   const contiguousKVPolicy = resolveContiguousKVPolicy(modelConfig);
   const forceContiguousKVCache = contiguousKVPolicy.forceContiguousKVCache;
@@ -599,6 +613,7 @@ export function createKVCache(modelConfig, useGPU, debug = false, runtimeConfig,
     log.debug('Pipeline', `KV cache: type=${kvCache?.constructor?.name || 'unknown'}, kvDtype=${kvCache.kvDtype}, layout=${kvCache.layout}, maxSeqLen=${kvCache.maxSeqLen}, windowSize=${isSliding ? kvCache.windowSize : null}`);
   }
 
+  if (allocatedLayerIndices !== null) return scopeKVCacheLayerIndices(kvCache, allocatedLayerIndices);
   return layerRange === null ? kvCache : scopeKVCacheLayerRange(kvCache, layerRange[0]);
 }
 

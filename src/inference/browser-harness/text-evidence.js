@@ -293,7 +293,8 @@ export async function captureKvCacheByteProof(pipeline, enabled) {
   }
   const layers = [];
   for (let layerIdx = 0; layerIdx < kvCache.layers.length; layerIdx += 1) {
-    layers.push(await digestKvLayerBytes(kvCache.layers[layerIdx], layerIdx, kvCache));
+    const modelLayerIdx = kvCache.layerIndices?.[layerIdx] ?? layerIdx;
+    layers.push(await digestKvLayerBytes(kvCache.layers[layerIdx], modelLayerIdx, kvCache));
   }
   const canonicalBytes = new TextEncoder().encode(JSON.stringify({
     mode: 'sha256-layer-kv-bytes',
