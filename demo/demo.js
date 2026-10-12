@@ -19,10 +19,6 @@ function refreshRuntimeNotice() {
   const wordQualityEnabled = $('set-word-quality')?.checked === true;
   const tokenInspectorActive = state.tokenInspectorActive;
 
-  const xraySummary = $('xray-summary-state');
-  if (xraySummary) {
-    xraySummary.textContent = xrayEnabled ? 'Timing, tokens, execution' : 'Disabled';
-  }
   if (xrayEnabled) {
     const inspectionWorkspace = $('inspection-workspace');
     if (inspectionWorkspace) inspectionWorkspace.open = true;
