@@ -156,6 +156,8 @@ def run(args):
             retain(prefix + 'out', local['update'])
             if local['kind'] == 'linear_attention':
                 retain(prefix + 'linear_core_out', local['core'])
+            else:
+                retain(prefix + 'core_out', ref.causal_attention(local['query'], local['key'], local['value']))
         elif line == 144:
             retain(f'layer.{local["index"]}.layer.out', local['x'])
         elif line == 149:
@@ -185,6 +187,10 @@ def run(args):
     expected = np.stack([np.frombuffer(base64.b64decode(row['logitsF64']), dtype='<f8')
                          for row in approved_rows])
     assert np.array_equal(logits, expected), 'Observation must exactly reproduce approved vectors'
+    approved_cache_targets = [ref.half_cache(independent[f'layer.{layer}.attn.{name}']).reshape(
+        len(contract['inputIds']), config['num_key_value_heads'], config['head_dim'])
+        for layer, kind in enumerate(config['layer_types']) if kind == 'full_attention'
+        for name in ('k_rope', 'v_proj')]
     for name in independent:
         independent[name] = independent[name][:steps if name == 'final_norm.out' else observed_tokens]
     logits = logits[:steps]
@@ -245,13 +251,13 @@ def run(args):
         query = gpu[prefix + 'q_rope'][:prefill].reshape(-1, nh, width)
         key = ref.half_cache(gpu[prefix + 'k_rope'][:prefill].reshape(-1, nk, width))
         value = ref.half_cache(gpu[prefix + 'v_proj'][:prefill].reshape(-1, nk, width))
-        expected = ref.causal_attention(query, key, value)
+        attention_expected = ref.causal_attention(query, key, value)
         attention_fixture = {'scope': 'Same captured operands; independent local attention counterfactual only',
             'captureSha256': ref.digest(Path(args.capture).read_bytes()), 'evaluatorSha256': EVALUATOR_SHA256,
             'layer': layer, 'headDim': width, 'numHeads': nh, 'numKVHeads': nk, 'seqLen': prefill,
             'startPos': 0, 'isCausal': True, 'scale': width ** -0.5,
             'q': query.reshape(-1).tolist(), 'k': key.reshape(-1).tolist(), 'v': value.reshape(-1).tolist(),
-            'float64Expected': expected.reshape(-1).tolist(),
+            'float64Expected': attention_expected.reshape(-1).tolist(),
             'observedF32': gpu[prefix + 'core_out'][:prefill].reshape(-1).tolist()}
         (directory / 'attention-layer15.json.gz').write_bytes(gzip.compress(
             json.dumps(attention_fixture).encode(), mtime=0))
@@ -427,23 +433,98 @@ def run(args):
         original_source = inspect.getsource(original_delta)
         boundary = '        state += key[:, :, None] * delta[:, None, :]'
         assert original_source.count(boundary) == 1
-        controlled_source = original_source.replace(boundary, boundary +
-            '\n        state = state.astype(np.float32).astype(np.float64)')
+        store = '\n        state = state.astype(np.float32).astype(np.float64)'
+        if args.recurrent_storage_precision == 'two-f32':
+            store = ('\n        state_high = state.astype(np.float32).astype(np.float64)'
+                     '\n        state_low = (state - state_high).astype(np.float32).astype(np.float64)'
+                     '\n        state = state_high + state_low')
+        controlled_source = original_source.replace(boundary, boundary + store)
         namespace = dict(ref.__dict__)
         exec(compile(controlled_source, '<diagnostic-f32-recurrent-storage>', 'exec'), namespace)
+        original_independent = independent
+        original_half_cache = ref.half_cache
+        cache_calls = 0
+        def frozen_approved_cache(value):
+            nonlocal cache_calls
+            target = approved_cache_targets[cache_calls]
+            cache_calls += 1
+            assert value.shape == target.shape
+            return target.copy()
+        if args.recurrent_attribution_step is not None:
+            assert 0 <= args.recurrent_attribution_step < steps
+            independent = {}
+            assert sys.gettrace() is None
+            sys.settrace(trace)
         try:
             ref.delta_history = namespace['delta_history']
-            staged_logits, _ = ref.evaluate(contract['inputIds'], weights, config,
-                np.array(contract['prefixLengths']) - 1)
+            if args.recurrent_approved_cache_control:
+                ref.half_cache = frozen_approved_cache
+            staged_logits, staged_caches = ref.evaluate(contract['inputIds'], weights, config,
+                np.array(contract['prefixLengths']) - 1,
+                observe_cache=observe_cache if args.recurrent_attribution_step is not None else None)
         finally:
+            if args.recurrent_attribution_step is not None:
+                sys.settrace(None)
+            staged_independent = independent
+            independent = original_independent
             ref.delta_history = original_delta
+            ref.half_cache = original_half_cache
+        if args.recurrent_approved_cache_control:
+            assert cache_calls == len(approved_cache_targets)
         per_step = np.max(np.abs(staged_logits - expected), axis=1)
         report['recurrentMaterializationControl'] = {
-            'scope': 'F64 equations with nearest-F32 recurrent-state storage after each update; diagnostic only',
+            'scope': 'F64 equations with declared recurrent-state storage after each update; diagnostic only',
+            'storagePrecision': args.recurrent_storage_precision,
+            'cacheIdentities': staged_caches,
+            'cacheIdentitiesMatchApproved': staged_caches == caches,
             'referenceUnchanged': True, 'controlledSourceSha256': ref.digest(controlled_source.encode()),
+            'approvedCacheIntervention': args.recurrent_approved_cache_control,
+            'cacheInterventionScope': 'Diagnostic fixed independently evolved F16 K/V; inadmissible for qualification'
+                if args.recurrent_approved_cache_control else None,
             'comparison': error(staged_logits, expected),
             'prefixesOverTolerance': int(np.count_nonzero(per_step > 0.001)),
             'perPrefixMaximum': list(map(float, per_step))}
+        if args.recurrent_attribution_step is not None:
+            position = prefill + args.recurrent_attribution_step - 1
+            attribution = []
+            for layer, kind in enumerate(config['layer_types']):
+                prefix = f'layer.{layer}.attn.'
+                w = lambda name: weights[f'layers.{layer}.' + name]
+                before = gpu['embed.out' if layer == 0 else f'layer.{layer - 1}.layer.out']
+                local_norm = ref.rms_norm(before, w('input_layernorm.weight'), config['rms_norm_eps'])
+                checkpoints = [('post_input_norm', local_norm)]
+                if kind == 'linear_attention':
+                    local_core = namespace['delta_history'](*[gpu[prefix + name] for name in
+                        ('qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj')],
+                        w('linear_attn.conv1d.weight').squeeze(1), w('linear_attn.A_log'),
+                        w('linear_attn.dt_bias'), w('linear_attn.norm.weight'), config)
+                    checkpoints.append(('linear_core_out', local_core))
+                else:
+                    nh, nk, width = config['num_attention_heads'], config['num_key_value_heads'], config['head_dim']
+                    local_core = ref.causal_attention(gpu[prefix + 'q_rope'].reshape(-1, nh, width),
+                        ref.half_cache(gpu[prefix + 'k_rope'].reshape(-1, nk, width)),
+                        ref.half_cache(gpu[prefix + 'v_proj'].reshape(-1, nk, width)))
+                    checkpoints.append(('core_out', local_core.reshape(len(before), -1)))
+                for suffix, local in checkpoints:
+                    name = prefix + suffix
+                    actual, controlled = gpu[name][position:position + 1], staged_independent[name][position:position + 1]
+                    introduced = local[position:position + 1]
+                    attribution.append({'operation': name, 'actualVsStorageControl': error(actual, controlled),
+                        'sameInputLocal': error(actual, introduced), 'inherited': error(introduced, controlled)})
+                name = f'layer.{layer}.layer.out'
+                attribution.append({'operation': name, 'actualVsStorageControl': error(
+                    gpu[name][position:position + 1], staged_independent[name][position:position + 1])})
+                if kind == 'full_attention':
+                    for suffix in ('k_rope', 'v_proj'):
+                        name = prefix + suffix
+                        actual = ref.half_cache(gpu[name][:position + 1])
+                        controlled = ref.half_cache(staged_independent[name][:position + 1])
+                        differences = np.argwhere(actual != controlled)
+                        attribution.append({'operation': name + '.stored', 'differentValues': len(differences),
+                            'firstDifference': list(map(int, differences[0])) if len(differences) else None,
+                            'actualVsStorageControl': error(actual, controlled)})
+            report['recurrentMaterializationControl']['selectedPrefixAttribution'] = {
+                'step': args.recurrent_attribution_step, 'tokenPosition': position, 'operations': attribution}
         if args.recurrent_runtime:
             runtime = ref.read_json(args.recurrent_runtime)
             binding = ref.read_json(args.binding)
@@ -471,10 +552,20 @@ if __name__ == '__main__':
     parser.add_argument('--binding', help='Exact archive/source manifest binding when the runtime shader identities changed')
     parser.add_argument('--out', required=True)
     parser.add_argument('--recurrent-materialization-control', action='store_true')
+    parser.add_argument('--recurrent-storage-precision', choices=['f32', 'two-f32'], default='f32',
+                        help='Independent diagnostic storage only; never changes runtime precision')
     parser.add_argument('--recurrent-runtime', help='Same-archive full-prefix output for signed-error attribution')
+    parser.add_argument('--recurrent-attribution-step', type=int, help='Observe storage-control intermediates at one retained prefix')
+    parser.add_argument('--recurrent-approved-cache-control', action='store_true',
+                        help='Diagnostic only: replace K/V cache with independently evolved approved values')
     parser.add_argument('--cache-materialization-control', action='store_true')
     parser.add_argument('--cache-materialization-kind', choices=['both', 'key', 'value'], default='both')
     parser.add_argument('--fixture-directory', help='Export captured prefill projections for the existing physical replay')
     parser.add_argument('--normalization-fixture', help='Exact captured layer-3 fixture for local K comparisons')
     parser.add_argument('--normalization-replay', action='append', help='Physical same-input Q/K receipt; diagnostic only')
-    run(parser.parse_args())
+    args = parser.parse_args()
+    if (args.recurrent_runtime or args.recurrent_attribution_step is not None
+        or args.recurrent_approved_cache_control or args.recurrent_storage_precision != 'f32'):
+        if not args.recurrent_materialization_control:
+            parser.error('Recurrent diagnostic options require --recurrent-materialization-control')
+    run(args)
