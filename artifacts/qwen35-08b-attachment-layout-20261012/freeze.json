@@ -1,0 +1,27 @@
+{
+  "schema": "doppler.attachment-layout-freeze/v1",
+  "frozenBeforeExecution": true,
+  "caseCountPerLane": 7,
+  "lanes": [
+    {
+      "path": "question-before.json",
+      "sha256": "6806f062ea99f6fb4a6109ebbc7be74dc45f19f210732a8ac6169559c56f77d7"
+    },
+    {
+      "path": "question-after.json",
+      "sha256": "4bf432357fdf5b65c0c6806e896095470c34c62b3396c4a9b5d16ee6f2d3bf93"
+    }
+  ],
+  "unchanged": [
+    "All quoted JSON bytes and passage identities",
+    "Generation policy/model precision/deployed model identity",
+    "Within-case retained assistant history",
+    "Frozen source factual and citation requirements"
+  ],
+  "newCases": [
+    "fresh-excluded-tax",
+    "fresh-conditional-release",
+    "fresh-deadline"
+  ],
+  "notAuthorized": "No model artifact/precision/reference/publication change."
+}

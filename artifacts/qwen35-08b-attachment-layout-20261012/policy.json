@@ -1,0 +1,26 @@
+{
+  "schema": "doppler.deployed-layout-control/v1",
+  "allowedSuiteHashes": [
+    "6806f062ea99f6fb4a6109ebbc7be74dc45f19f210732a8ac6169559c56f77d7",
+    "4bf432357fdf5b65c0c6806e896095470c34c62b3396c4a9b5d16ee6f2d3bf93"
+  ],
+  "sourceTokenizer": "/var/tmp/doppler-qwen35-08b-source-20261012",
+  "sourceTokenizerSha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+  "sourceTemplateSha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+  "referenceArguments": {
+    "model": "models/local/qwen-3-5-0-8b-q4k-ehaf16",
+    "source_config": "/var/tmp/doppler-qwen35-08b-source-20261012/config.json",
+    "capture": "/tmp/deployed-input-binding.json",
+    "reference": "reports/local/qwen35-08b-attachment-source-20261012/source.json",
+    "piece_index": "../reploid/self/config/model-pieces/qwen-0-8b-pieces.json",
+    "piece_index_identity": "sha256:18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7",
+    "prefixes": 1,
+    "threads": 4,
+    "generation_control": "/tmp/deployed-control-attached-three.json",
+    "linear_prefill": "source-chunk",
+    "normalization": "source",
+    "boundary_capture": null,
+    "observed_cache_control": false,
+    "cache_midpoint_audit": false
+  }
+}
