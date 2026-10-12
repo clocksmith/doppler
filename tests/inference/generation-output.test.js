@@ -20,6 +20,17 @@ const bytes = text => [...new TextEncoder().encode(text)];
 const ids = [256, ...bytes('private 🧑🏽‍💻'), 257, ...bytes('Yes 🌍'), 258];
 const decoder = () => createGenerationOutputDecoder(tokenizer, contract, [258]);
 const expected = 'Yes 🌍';
+// Same-policy forks preserve hidden reasoning, partial bytes and counters.
+const forkParent = decoder();
+for (const token of [256, ...bytes('private'), 257, 0xe2, 0x82]) forkParent.push(token);
+const forkSnapshot = forkParent.snapshot();
+const forkChild = forkParent.clone();
+assert.equal(forkChild.push(0xac), '€');
+assert.deepEqual(forkParent.snapshot(), forkSnapshot);
+assert.equal(forkParent.push(0xac), '€');
+assert.deepEqual(forkParent.snapshot(), forkChild.snapshot());
+assert.equal(forkChild.finish({ stopReason: 'max-tokens' }), '');
+assert.equal(forkParent.finish({ stopReason: 'max-tokens' }), '');
 assert.equal(decodeGenerationOutput(tokenizer, contract, [258], ids), expected);
 assert.equal(matchesStopSequence(tokenizer, [256, ...bytes('secretSTOP')], 0, ['STOP'], contract), false);
 assert.equal(matchesStopSequence(tokenizer, [256, 65, 257, ...bytes('finalSTOP')], 0, ['STOP'], contract), true);

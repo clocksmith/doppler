@@ -78,6 +78,7 @@
     "src/config/canonical-contract-codec.js",
     "src/config/canonical-generation-policy.js",
     "src/inference/resident-state-contract.js",
-    "src/inference/sampling-rng.js"
+    "src/inference/sampling-rng.js",
+    "src/inference/resident-output-state.js"
   ]
 }

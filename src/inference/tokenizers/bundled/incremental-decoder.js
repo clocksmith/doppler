@@ -20,9 +20,14 @@ function incompleteStart(bytes) {
   return bytes.length;
 }
 
-function createUtf8Decoder() {
+function createUtf8Decoder(snapshot = null) {
   let decoder = new TextDecoder('utf-8', { fatal: false });
-  let pending = new Uint8Array();
+  let pending = snapshot ? Uint8Array.from(snapshot.pending) : new Uint8Array();
+  let started = snapshot?.started === true;
+  // Recreate only the finite decoder control state, never the full token history.
+  // A harmless prefix consumes the BOM flag before reinstating incomplete bytes.
+  if (started) decoder.decode(Uint8Array.of(0x20), { stream: true });
+  if (pending.length) decoder.decode(pending, { stream: true });
   return {
     push(bytes) {
       const combined = new Uint8Array(pending.length + bytes.length);
@@ -30,12 +35,16 @@ function createUtf8Decoder() {
       combined.set(bytes, pending.length);
       const end = incompleteStart(combined);
       pending = combined.slice(end);
-      return decoder.decode(Uint8Array.from(bytes), { stream: true });
+      const text = decoder.decode(Uint8Array.from(bytes), { stream: true });
+      started ||= end > 0;
+      return text;
     },
+    snapshot() { return { pending: [...pending], started }; },
     pendingText() { return pending.length ? '\ufffd' : ''; },
     finish() {
       const text = decoder.decode();
       pending = new Uint8Array();
+      started = false;
       decoder = new TextDecoder('utf-8', { fatal: false });
       return text;
     },
@@ -43,12 +52,19 @@ function createUtf8Decoder() {
 }
 
 // Every call owns its state; cached vocabularies never own stream state.
-export function createBundledIncrementalDecoder({ tokenForId, byteLevel, byteDecoder, wordPiece, splitEveryCharacter, wordPiecePrefix }) {
-  const utf8 = createUtf8Decoder();
-  let hasText = false;
-  let closed = false;
+export function createBundledIncrementalDecoder(options) {
+  return createDecoder(options, null);
+}
+
+function createDecoder(options, snapshot) {
+  const { tokenForId, byteLevel, byteDecoder, wordPiece, splitEveryCharacter, wordPiecePrefix } = options;
+  const utf8 = createUtf8Decoder(snapshot?.utf8);
+  let hasText = snapshot?.hasText === true;
+  let closed = snapshot?.closed === true;
   const markers = value => value.replace(/▁/g, ' ').replace(/Ġ/g, ' ').replace(/Ċ/g, '\n');
   return {
+    snapshot() { return { schema: 'doppler.bundled-decoder-state/v1', utf8: utf8.snapshot(), hasText, closed }; },
+    clone() { return createDecoder(options, this.snapshot()); },
     push(tokenId) {
       if (closed) throw new Error('Incremental tokenizer decoder is closed.');
       const token = tokenForId(tokenId);
