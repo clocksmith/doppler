@@ -1,0 +1,62 @@
+[
+  {
+    "path": "deco/doppler/package.json",
+    "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+  },
+  {
+    "path": "deco/doppler/tests/helpers/frozen-prefix-receipt.js",
+    "sha256": "221908589d2af9330a9ff8bf5cd12b9e5201f6c7f93d81c0db448a8a951ca628"
+  },
+  {
+    "path": "deco/doppler/tests/helpers/frozen-prefix-resources.js",
+    "sha256": "c39dd10122487545b5388e8f8a368ad38c8118c02f0a4814ddc1f9b7206bfc6b"
+  },
+  {
+    "path": "deco/doppler/tests/helpers/frozen-prefix-scope.js",
+    "sha256": "195cded97b78c81e6e8bb47738623b1ea0d2cf28b8c814a71c7175fb30a8310a"
+  },
+  {
+    "path": "deco/doppler/tests/helpers/paired-model-binding.js",
+    "sha256": "3e076cd4424ea348d508f78856d3abfaaf09e6497fbd927f004add85eb4d02e9"
+  },
+  {
+    "path": "deco/doppler/tests/helpers/physical-kv-cache-observer.js",
+    "sha256": "5bd67ec6593f321eca3b927b988e8c3dd3735b0eea86e1f4bab913d63023572f"
+  },
+  {
+    "path": "deco/doppler/tests/integration/frozen-reference-producer-replay.js",
+    "sha256": "246f4bd08f48460870591a8b4d3ba34abc242f278c1d100c8bd594b64c122260"
+  },
+  {
+    "path": "deco/reploid/package.json",
+    "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+  },
+  {
+    "path": "deco/reploid/self/config/partition-policy.json",
+    "sha256": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235"
+  },
+  {
+    "path": "deco/reploid/tests/fixtures/distributed-reference-manifest.json.gz",
+    "sha256": "6101c21b8e709c3ccc559ce34b4ea03cb94582488f718fec25c0c2f8861a13ff"
+  },
+  {
+    "path": "deco/reploid/tests/fixtures/distributed-reference-model.js",
+    "sha256": "3d40003544c93ea2982c8801ab77e2cf14c79485bf01895f4491070105b679e0"
+  },
+  {
+    "path": "deco/reploid/tests/fixtures/distributed-reference.json.gz",
+    "sha256": "f1a2d9a0c153ff96de3cd556bb4e4f133c35ffd7c03553b8969d0878c287e8f7"
+  },
+  {
+    "path": "archive.tgz",
+    "sha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7"
+  },
+  {
+    "path": "execution.json",
+    "sha256": "36b7799edce21590e5846909ddaeea99be05cccaf87b65264d7281b2497fb0f3"
+  },
+  {
+    "path": "target.json",
+    "sha256": "1d89b988ad18f0d9228fb57100fa9b7d04aba851521d30a81d3b2a89c1c3d9ed"
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "scope": "Exact 0.6.28 public unsplit first request, prefill and one decode; not all55 or signed qualification",
+  "captureSha256": "e28039161d699851fe124137a87bd129e8836e6333ef2cbe702596e08586a4f9",
+  "approvedReferenceSha256": "ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "comparatorSha256": "5ffa96e1523b630707e50584d6736a867391144588f202a35fe8abb898fad845",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "tolerance": 0.001,
+  "rows": [
+    {
+      "index": 0,
+      "step": 0,
+      "values": 248320,
+      "maximum": 8.399647413170896e-7,
+      "rms": 6.405475309719644e-8,
+      "overTolerance": 0,
+      "worstVocabulary": 38493
+    },
+    {
+      "index": 0,
+      "step": 1,
+      "values": 248320,
+      "maximum": 6.15752007604442e-7,
+      "rms": 7.987956970869859e-8,
+      "overTolerance": 0,
+      "worstVocabulary": 11
+    }
+  ],
+  "passed": true
+}
