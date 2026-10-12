@@ -1,0 +1,214 @@
+{
+  "schema": "doppler.source-document-suite-review/v1",
+  "suiteSha256": "bedb6724c8c71d4f8c7083bb1a2122be5f3959c2b10710dd626f6fb1dbc33fd9",
+  "qualified": false,
+  "completedCases": 4,
+  "qualifiedCases": 0,
+  "scope": "Original checkpoint weights in CPU F32 equations with F16 KV and frozen greedy policy. No converted, installed-package, GPU or distributed qualification.",
+  "reviewMethod": "Manual claim-by-claim review of final answer after the sole closing thinking boundary, against unchanged suite criteria. Internal thinking is retained but cannot substitute for a delivered answer.",
+  "cases": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "qualified": false,
+      "disposition": "rejected",
+      "result": "document-fresh-bathroom-comparison-result.json.gz",
+      "resultSha256": "43b5f5cbe39290c4f28c11d4d079d5756672ebb519413f8b05579496a72cfee8",
+      "generatedTokens": 4096,
+      "inputTokens": 486,
+      "totalTokens": 4582,
+      "outputUtf16Units": 14208,
+      "finalAnswerUtf16Units": 1717,
+      "stopReason": "max-tokens",
+      "naturalCompletion": false,
+      "thinkingBoundaryCount": 1,
+      "withinLimits": true,
+      "factualReview": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Table labels Birch plumbing excluded and the included Quarry electrical allowance excluded. Budget remainders are absent."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Birch and Quarry conditions are retained. Linden stops mid-bullet without identifying completion after September 25."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Treats Linden plumbing as excluded without preserving both conflicting clauses or asking for clarification."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Schedule claims cite D1:P3/D2:P3; cost table and unsupported exclusion claims lack exact supporting passage IDs."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": true,
+          "observation": "Only deposit percentages and their bases are stated; no incorrect optional dollar calculation."
+        }
+      ]
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "qualified": false,
+      "disposition": "rejected",
+      "result": "document-fresh-bathroom-correction-result.json.gz",
+      "resultSha256": "cac8a74b820e16dd117974b42b1ed20de63f902b4bab1fbc344bb2b2223a2151",
+      "generatedTokens": 4096,
+      "inputTokens": 601,
+      "totalTokens": 4697,
+      "outputUtf16Units": 14785,
+      "finalAnswerUtf16Units": 1389,
+      "stopReason": "max-tokens",
+      "naturalCompletion": false,
+      "thinkingBoundaryCount": 1,
+      "withinLimits": true,
+      "factualReview": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Corrects Linden subtotal to $8,350 but incorrectly says sales tax is excluded for all three. Birch/Quarry correction and budget remainders are absent."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Claims September 12 plus 21 days is approximately September 23 and meets the deadline; it is October 3."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Does not reach the conflicting plumbing clauses or clarification questions before truncation."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "D3:P1 supports the subtotal. D3:P3 does not support the claimed September 23 completion; no passage supports excluding Quarry tax."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": true,
+          "observation": "No optional deposit arithmetic is stated."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Corrects the Linden subtotal and recognizes September 12 as a start, but gives another wrong completion date and does not correct Quarry allowance/condition or Birch inclusions."
+        }
+      ]
+    },
+    {
+      "id": "contractor-comparison",
+      "qualified": false,
+      "disposition": "rejected",
+      "result": "document-contractor-comparison-result.json.gz",
+      "resultSha256": "1f9ae9044e7eea840f8404e19850269a4d6f4d0c1d5ff02fdd2f609ef34cfff0",
+      "generatedTokens": 3973,
+      "inputTokens": 492,
+      "totalTokens": 4465,
+      "outputUtf16Units": 14398,
+      "finalAnswerUtf16Units": 5330,
+      "stopReason": "eos",
+      "naturalCompletion": true,
+      "thinkingBoundaryCount": 1,
+      "withinLimits": true,
+      "factualReview": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "The exclusions section mostly preserves terms, but the recommendation invents a Harbor plumbing allowance. Maple electrical is weakened to unspecified despite explicit exclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Cedar subtotal $10,550 is correct. Required remaining budgets are absent, all three are declared within budget without extras, and Cedar is claimed to save approximately $1,000 versus Maple rather than $250 in known subtotals."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Says all three promise completion well before June 1. Cedar start May 20 plus three weeks extends past June 1; the later table does not correct the false assurance."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": true,
+          "observation": "Explicitly quotes the two conflicting Cedar plumbing clauses and asks for clarification without unconditionally choosing one."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "Existing passage IDs appear, but the deadline assurance and Harbor plumbing allowance are unsupported, and claimed tax-inclusive Harbor final-bill increase is not established by D2:P1."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Asks useful plumbing/change-order/material questions, but recommendations omit Cedar missing the deadline and rely on invented Harbor plumbing allowance."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": true,
+          "observation": "Only percentages are stated; no optional deposit-dollar arithmetic."
+        }
+      ]
+    },
+    {
+      "id": "contractor-retained-correction",
+      "qualified": false,
+      "disposition": "rejected",
+      "result": "document-contractor-retained-correction-result.json.gz",
+      "resultSha256": "906c1e6396820026e3c4681dd3eb2461ce1138e785a32b62364e75ef8593c85a",
+      "generatedTokens": 4096,
+      "inputTokens": 1586,
+      "totalTokens": 5682,
+      "outputUtf16Units": 15314,
+      "finalAnswerUtf16Units": 131,
+      "stopReason": "max-tokens",
+      "naturalCompletion": false,
+      "thinkingBoundaryCount": 1,
+      "withinLimits": true,
+      "factualReview": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "No completed factual comparison after the thinking boundary."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "No completed financial calculation after the thinking boundary."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "No completed schedule analysis after the thinking boundary."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "No completed contradiction analysis after the thinking boundary."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "No supporting passage citations in the final-answer fragment."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "No completed uncertainty or questions section."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": false,
+          "observation": "Does not deliver corrections to the retained wrong answer."
+        },
+        {
+          "criterionIndex": 7,
+          "pass": true,
+          "observation": "No optional deposit arithmetic in the final-answer fragment."
+        }
+      ]
+    }
+  ],
+  "conclusion": "Three cases exhaust the output-token budget; the one naturally completed answer still fails factual criteria. Completion alone and source counting success do not qualify this document configuration. No runtime or application configuration is promoted."
+}
