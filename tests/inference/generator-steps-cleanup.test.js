@@ -79,6 +79,13 @@ function createStagingBuffer(words, options = {}) {
   };
 }
 
+{
+  const staging = createStagingBuffer([42]);
+  const result = await readSampledTokenFromStagingBuffer(staging, { hasFinitenessBuffer: false });
+  assert.equal(result.nextToken, 42);
+  assert.equal(result.finitenessStatus.triggered, false, 'token IDs are not finiteness flags when no status buffer exists');
+}
+
 for (const batched of [false, true]) {
   const failure = new Error('Required GPU validation failed');
   const staging = createStagingBuffer([42]);
