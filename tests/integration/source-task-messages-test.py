@@ -10,6 +10,26 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools'))
 from lib.source_task_quality import task_messages, compare_task_answer, write_quality_report
 
+original = runpy.run_path('tools/qwen35-original-weight-generation.py')
+validate_identity = original['validate_source_identity']
+revision = '0123456789abcdef' * 2 + '01234567'
+for model_id in ['Qwen/Qwen3.5-0.8B', 'Qwen/Qwen3.5-2B']:
+    receipt = {'repository': model_id, 'revision': revision}
+    manifest = {'artifactIdentity': {'sourceCheckpointId': model_id}}
+    validate_identity(receipt, revision, manifest)
+    for invalid_receipt, invalid_revision, invalid_manifest in [
+        ({**receipt, 'repository': 'Qwen/Unreviewed'}, revision, manifest),
+        (receipt, 'f' * 40, manifest),
+        ({**receipt, 'revision': 'z' * 40}, 'z' * 40, manifest),
+        (receipt, revision, {'artifactIdentity': {'sourceCheckpointId': 'another-model'}}),
+    ]:
+        try:
+            validate_identity(invalid_receipt, invalid_revision, invalid_manifest)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError('Original source identity mismatch accepted')
+
 with tempfile.TemporaryDirectory() as directory:
     output = Path(directory) / 'result.json'
     write_quality_report(output, {'completed': 1})

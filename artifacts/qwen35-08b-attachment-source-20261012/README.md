@@ -1,0 +1,11 @@
+# Original 0.8B control for the actual attachment failure
+
+Component: doppler.tools. Intent: preserved. Boundary effects: test-only source evaluator and exact Reploid input evidence; no runtime, shader, package, or application change.
+
+The distributed application answered the three-ticket question and its four-ticket follow-up with the same unit-price restatement, omitting both totals and the requested citation. This suite freezes those exact ordered messages, including the retained incorrect assistant response, from Reploid `1db09d20`. It preserves greedy decoding, repetition penalty 1.1, and 4,096 generated / 8,192 context limits. The existing source safety cap is 16,000 raw UTF-16 units. No additional instruction or seed is selected.
+
+The original Qwen3.5-0.8B checkpoint at `2fc06364715b967f1860aea9cf38778875588b17` was obtained with only weights, tokenizer, configuration, index, template, and README. `download-receipt.json` binds every local file to its upstream LFS SHA-256 or Git blob identity. Original and deployed tokenizer vocabularies match across 248,070 entries.
+
+`template-comparison.json` establishes that the first official-template input has exactly the same 127 token IDs as the actual accepted-runtime diagnostic. This excludes template/tokenization mismatch for that input. The runtime rejected its prefill allocation before generation; its receipt is not a model-quality result. A second runtime input-token comparison remains unmeasured.
+
+The original-weight tool now accepts an explicitly frozen ordered-message suite, reusing the existing task evaluator and F32 source equations with F16 KV storage. Original source weights and tied output head remain independent of deployed quantization. Pure identity regressions and the existing source-task messages test pass on Linux. Source generation is pending; this freeze establishes no passing quality claim.
