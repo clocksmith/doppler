@@ -1,0 +1,66 @@
+resident preparation: readiness, rejection, abort settlement and assigned-layer scope passed
+paired pipeline preparation: exact variants/constants/device, rejection and cancellation settlement passed
+TAP version 13
+# Subtest: explicit devices retain provider WGSL requirements and reject missing features
+ok 1 - explicit devices retain provider WGSL requirements and reject missing features
+  ---
+  duration_ms: 1.657791
+  type: 'test'
+  ...
+# Subtest: layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+ok 2 - layout identity uses descriptors, including WebGPU defaults, and ordered layout objects
+  ---
+  duration_ms: 0.486083
+  type: 'test'
+  ...
+# Subtest: compute cache distinguishes actual layouts and shader bytes
+ok 3 - compute cache distinguishes actual layouts and shader bytes
+  ---
+  duration_ms: 0.458583
+  type: 'test'
+  ...
+[92.7ms][GPU] Device lost: injected loss, Reason: unknown
+# Subtest: concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+ok 4 - concurrent compilation is shared, failures retry, and sync lookup never returns a promise
+  ---
+  duration_ms: 3.615084
+  type: 'test'
+  ...
+# Subtest: device loss during compilation rejects the result and cannot populate the cache
+ok 5 - device loss during compilation rejects the result and cannot populate the cache
+  ---
+  duration_ms: 0.914875
+  type: 'test'
+  ...
+# Subtest: device replacement while shader diagnostics are pending cannot compile a pipeline
+ok 6 - device replacement while shader diagnostics are pending cannot compile a pipeline
+  ---
+  duration_ms: 0.24325
+  type: 'test'
+  ...
+# Subtest: clearing caches during compilation prevents late cache publication
+ok 7 - clearing caches during compilation prevents late cache publication
+  ---
+  duration_ms: 0.25
+  type: 'test'
+  ...
+# Subtest: explicit device preparation survives unrelated default-device replacement
+ok 8 - explicit device preparation survives unrelated default-device replacement
+  ---
+  duration_ms: 0.193125
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10.543
+pipeline-shader-scope.test: ok (contract doubles)
+synthetic signed paired opening preserves both partition policies and rejects scalar/stride substitution
+paired linear: explicit layouts, epsilons, aliases, limits, allocation and both dispatch rollback passed
+scalar and paired linear normalization preserve direct source weights independently of surrounding norm offset
+manifest and signed factories: aborted preparation settles before owned unload

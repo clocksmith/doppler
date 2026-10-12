@@ -13,4 +13,4 @@ export interface ResidentAttempt {
 /** Takes ownership of the loaded pipeline through the supplied close port. */
 export function createResidentPartitionSession(pipeline: PartitionExecutionState,
   allocation: ResidentPartitionAllocation, tokens: ResidentPartitionTokenPorts,
-  closeProgram: () => Promise<void>): Promise<ResidentPartitionSession>;
+  closeProgram: () => Promise<void>, signal?: AbortSignal): Promise<ResidentPartitionSession>;

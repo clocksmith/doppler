@@ -85,7 +85,7 @@ export function createManifestResidentPartitionFactory({ manifest, manifestIdent
         };
         return await createResidentPartitionSession(pipeline, allocation, tokens, async () => {
           try { await opened.unload(); } finally { await storage.close?.(); }
-        });
+        }, signal);
       } catch (error) {
         try { await handle?.unload(); } finally { await storage.close?.(); }
         throw error;

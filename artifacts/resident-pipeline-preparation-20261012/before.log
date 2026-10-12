@@ -1,0 +1,18 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: resident must not advertise ready while its recurrent pipeline is pending
+
+true !== false
+
+    at file:///Users/xyz/deco/doppler/tests/inference/resident-kernel-preparation.test.js:40:12 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: true,
+  expected: false,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
