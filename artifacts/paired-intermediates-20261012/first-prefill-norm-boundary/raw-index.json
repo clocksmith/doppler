@@ -1,0 +1,20 @@
+[
+  {
+    "path": "sixth-prefill.json.gz",
+    "uncompressedBytes": 1399156,
+    "sha256": "ddea7ee0e2932ac69f7fb3f5140e29c33ac5753072ffad5bda736cfd37050fb1",
+    "gzipSha256": "65f7287997435a7d7c4a0ea0cf8ed55349e1daf8a8f33f4ba73ee99a03130fdf"
+  },
+  {
+    "path": "first-capture.json.gz",
+    "uncompressedBytes": 60692761,
+    "sha256": "748a97ad868951bdc9909b621068b739bbe09fcb88125748f9bd3ab768f2f456",
+    "gzipSha256": "9c6310b4cb03699ce4c3e82c5b1d7742d76c7383093ecb75f06b9cfd052bb258"
+  },
+  {
+    "path": "second-capture.json.gz",
+    "uncompressedBytes": 35517747,
+    "sha256": "83fb7ef4e7f9bab03fbd5e5cd1f1c56276a47d4e5258f4864c2f354c67a5829e",
+    "gzipSha256": "80dc0b502fa4df909678b2c60fac25c4903f0484a46fc51c51ae95e5eb4038bd"
+  }
+]
