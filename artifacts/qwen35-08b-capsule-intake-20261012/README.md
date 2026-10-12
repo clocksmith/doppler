@@ -64,3 +64,20 @@ not an independent expected answer. No successful source-token parity or signed
 Capsule follows until the independently executed source result passes the
 existing requirements. Document quality remains a separate failed/unresolved
 application gate.
+
+## Executed original-source token comparison
+
+`source-token-result.json` retains the original checkpoint evaluator output.
+The exact 19 input IDs round-trip through the deployed tokenizer; independent
+original-weight execution generates `[9419, 248046]` (`Hello`, then EOS), matching
+the frozen physical result without consuming runtime logits or cache state.
+`source-token-parity.json` binds both results and records this bounded pass.
+The evaluator's broader `qualified: false` remains unchanged: this is one short
+source-token control, not document quality or whole-model qualification.
+
+Execution used CPU cores 0–3 on x@128, four threads, and the retained Python
+environment. The first invocation failed before inference because the existing
+`blake3` dependency directory was absent from `PYTHONPATH`; its log is preserved.
+Adding `/tmp/doppler-reference-deps` to the environment allowed the unchanged
+control and evaluator to run. No dependency or model was downloaded, and no
+GPU workload was launched. Both logs are retained as compressed original bytes.
