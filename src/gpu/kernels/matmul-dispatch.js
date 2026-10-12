@@ -46,6 +46,10 @@ export function calculateMatmulDispatch(variant, useQ4KFused, useGemv, useLiteRT
   };
   let x, y, uniformWorkgroupsX;
   switch (geometry) {
+    case 'pairedReduction':
+      // Each group reduces one output; shader grid_width unfolds the second axis.
+      x = Math.min(M * N, maxWorkgroups); y = Math.ceil(M * N / x);
+      break;
     case 'linear-output-workgroup':
       x = Math.ceil(M * N / config.workgroupSize[0]); y = 1;
       break;
