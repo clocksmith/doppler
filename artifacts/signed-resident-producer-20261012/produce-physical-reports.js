@@ -112,6 +112,8 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
   same(new Set(expected.placements.map(row => row.platform)).size, 2, 'Two distinct predeclared physical hosts required');
   const contract = { schema: 'doppler.resident-qualification-contract/v1', referenceHash: expected.referenceHash,
     evaluatorHash: expected.evaluatorHash, tolerance: 0.001, comparedSteps: 55 };
+  const nativeDescriptors = capture.descriptors.filter(row => row.surface === 'node-webgpu');
+  assert(nativeDescriptors.length <= 1, 'This fixture supports one native and one browser participant');
   const reports = capture.descriptors.map((descriptor, slot) => {
     const observed = descriptor.openingObservation, partitionIndex = descriptor.descriptor.index;
     assert([0, 1].includes(partitionIndex));
@@ -125,8 +127,41 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
     same(observed.sources.identity.sha256, expected.identityHelperSha256);
     assert(expected.providers[descriptor.platform], 'Provider was not declared before observation');
     same(descriptor.observedProvider, expected.providers[descriptor.platform], 'Provider differs');
-    assert.equal(typeof descriptor.browser, 'string'); assert(descriptor.browser.length);
-    same(descriptor.browser, expected.browserVersions[descriptor.platform], 'Browser version differs from pre-run observation');
+    const surface = expected.surfaces?.[descriptor.platform] ?? 'browser-webgpu';
+    assert(['browser-webgpu', 'node-webgpu'].includes(surface), 'Unknown declared provider surface');
+    // Old browser captures predate the explicit surface field. No native fallback.
+    same(descriptor.surface ?? 'browser-webgpu', surface, 'Provider surface differs');
+    if (surface === 'node-webgpu') {
+      const native = expected.nativeHosts?.[descriptor.platform];
+      assert(native, 'Native host must be frozen before execution');
+      same(descriptor.node, native.node, 'Node version differs');
+      same(descriptor.nativeHost?.schema, 'reploid.native-partition-fixture/v1');
+      same(descriptor.nativeHost?.nativeDeliverySha256, native.nativeDeliverySha256, 'Native application differs');
+      same(descriptor.nativeHost?.testDelivery?.archiveSha256, expected.archiveHash.slice(7));
+      same(descriptor.nativeHost?.testDelivery?.installedFiles, expected.installedFiles);
+      same(descriptor.nativeHost?.testDelivery?.testDeliveryHash, native.testDeliveryHash, 'Native fixture delivery differs');
+      assert.match(native.testDeliveryHash, /^sha256:[a-f0-9]{64}$/);
+      assert.equal(typeof native.node, 'string'); assert(native.node.length);
+      assert.match(native.nativeDeliverySha256, /^[a-f0-9]{64}$/);
+      same(native.provider?.module, 'webgpu');
+      for (const key of ['entrySha256', 'packageSha256']) assert.match(native.provider[key], /^[a-f0-9]{64}$/);
+      same(descriptor.nativeProvider, native.provider, 'Actual mapped native provider differs');
+      assert(native.provider?.libraries?.some(library => library.path.endsWith('.node') && library.path.includes('webgpu')),
+        'Native WebGPU binary is missing');
+      for (const library of native.provider.libraries) {
+        assert.match(library.sha256, /^[a-f0-9]{64}$/);
+        assert(Number.isSafeInteger(library.bytes) && library.bytes > 0);
+      }
+      assert(Number.isSafeInteger(descriptor.nativePid) && descriptor.nativePid > 0, 'Observed native process identity is missing');
+      same(capture.nativeHostSettlement?.pid, descriptor.nativePid, 'Cleanup belongs to another native process');
+      same(capture.nativeHostSettlement.closed, true);
+      same(capture.nativeHostSettlement.providerOpened, true);
+      same(capture.nativeHostSettlement.ownedProviderReleased, true);
+      assert(!capture.nativeHostSettlement.error, 'Native provider cleanup failed');
+    } else {
+      assert.equal(typeof descriptor.browser, 'string'); assert(descriptor.browser.length);
+      same(descriptor.browser, expected.browserVersions[descriptor.platform], 'Browser version differs from pre-run observation');
+    }
     const session = observed.resolvedRuntimeSession.runtime.session;
     same(session.intermediatePrecision, 'two-f32'); same(session.linearRecurrentStatePrecision, 'two-f32');
     const identity = observeInitialExecutionIdentity(observed.resolvedRuntimeSession);
@@ -139,14 +174,15 @@ export function producePhysicalReports({ expected, captureBytes, referenceBytes,
     assert(snapshot.device.peakBytes <= 1420000000 && snapshot.device.lost === false);
     same(snapshot.gpuValidationErrors, []);
     return { schema: 'doppler.resident-partition-qualification/v1', operation: 'residentPartition', status: 'passed',
-      modelId: manifest.modelId, manifestIdentity: expected.manifestHash, surface: 'browser-webgpu',
+      modelId: manifest.modelId, manifestIdentity: expected.manifestHash, surface,
       executionGraphHash: identity.executionGraphHash, initialExecutionIdentity: identity,
       partitionPlan: descriptor.plan, partitionPlanHash: descriptor.planId, partitionIndex,
       comparison: { contractHash: computeCanonicalSha256(contract), referenceHash: expected.referenceHash,
         captureHash: sha256(captureBytes), evaluatorHash: expected.evaluatorHash, tolerance: 0.001, complete: true, steps },
       provenance: { ...(runBytes ? { controllerHash: sha256(runBytes), applicationBundleHash: expected.applicationBundleHash }
           : { testDeliveryHash: expected.testDeliveryHash, applicationQualification: false }), archiveHash: expected.archiveHash, provider: descriptor.observedProvider,
-        browserVersion: descriptor.browser, pairedProviders: capture.descriptors.map(x => x.observedProvider),
+        ...(surface === 'node-webgpu' ? { nodeVersion: descriptor.node, nativeDeliverySha256: descriptor.nativeHost.nativeDeliverySha256, nativeProvider: descriptor.nativeProvider }
+          : { browserVersion: descriptor.browser }), pairedProviders: capture.descriptors.map(x => x.observedProvider),
         scope: 'This resident participates in the captured cooperative pair. Neither isolated-partition accuracy, signed opening, source answer quality nor deployment is established.' } };
   });
   same(reports.map(row => row.partitionIndex).sort(), [0, 1]);

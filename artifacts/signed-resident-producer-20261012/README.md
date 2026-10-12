@@ -135,3 +135,21 @@ the bound Doppler package does; raw observations remain unchanged. There are
 independent read-only review accepted the direct-mode change before execution;
 the earlier `review.json` continues to bind its earlier exact source, not these
 later bytes. Actual split results remain required.
+
+Native report preparation is separately declared per host. `surfaces[host]` must
+be `node-webgpu`, and `nativeHosts[host]` freezes Node version, native application
+delivery SHA, numerical fixture delivery hash and the observed provider object
+(including actual mapped native library hashes). The observed descriptor must
+match each value and the installed archive. Final native host settlement must
+show provider opening and successful release for the exact observed native PID.
+The supported fixture contains one native and one browser participant. Browser-only historical
+expectations retain their existing interpretation; native descriptors cannot be
+relabelled as browser evidence. Direct fixture reports still set
+`applicationQualification: false`.
+
+`physical-producer-tests-native.log` contains 45 synthetic CPU controls, including
+missing/changed native binary, installation, runtime, fixture delivery, Node
+version and failed/missing provider cleanup. No native physical capture has been
+qualified by this extension. Pre-run native provider observations and complete
+both-placement outputs remain required; the CPU-only installed preflight is
+insufficient for either.

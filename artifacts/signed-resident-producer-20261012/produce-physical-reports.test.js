@@ -115,3 +115,41 @@ for (const field of ['testDeliveryHash', 'archiveSha256', 'snapshotFiles', 'inst
 test('direct fixture rejects an extraneous application envelope', () => {
   const f = directFixture(); f.input.runBytes = bytes(f.run); assert.throws(() => producePhysicalReports(f.input));
 });
+
+function nativeFixture() {
+  const f = directFixture();
+  const provider = { module: 'webgpu', version: 'synthetic', entrySha256: 'a'.repeat(64), packageSha256: 'b'.repeat(64),
+    observation: 'Actual process.report sharedObjects after resident preparation',
+    libraries: [{ path: '/synthetic/node_modules/webgpu/linux.node', bytes: 42, sha256: 'c'.repeat(64) }] };
+  f.input.expected.surfaces = { first: 'node-webgpu', second: 'browser-webgpu' };
+  f.input.expected.nativeHosts = { first: { node: 'v22.synthetic', nativeDeliverySha256: 'd'.repeat(64), testDeliveryHash: 'sha256:' + 'e'.repeat(64), provider } };
+  const d = f.capture.descriptors[0]; delete d.browser;
+  Object.assign(d, { surface: 'node-webgpu', nativePid: 123, node: 'v22.synthetic', nativeProvider: structuredClone(provider),
+    nativeHost: { schema: 'reploid.native-partition-fixture/v1', nativeDeliverySha256: 'd'.repeat(64),
+      testDelivery: { archiveSha256: f.input.expected.archiveHash.slice(7), installedFiles: 1, testDeliveryHash: 'sha256:' + 'e'.repeat(64) } } });
+  f.capture.nativeHostSettlement = { pid: 123, closed: true, providerOpened: true, ownedProviderReleased: true };
+  f.input.captureBytes = bytes(f.capture); return f;
+}
+test('native surface requires its independently declared installed host and mapped library observations', () => {
+  const f = nativeFixture(), { reports } = producePhysicalReports(f.input);
+  assert.deepEqual(reports.map(report => report.surface), ['node-webgpu', 'browser-webgpu']);
+  assert.equal(reports[0].provenance.nodeVersion, 'v22.synthetic');
+  assert.equal(reports[0].provenance.browserVersion, undefined);
+});
+for (const [name, mutate] of Object.entries({
+  'undeclared native surface': f => { delete f.input.expected.surfaces; },
+  'missing native binary': f => { f.capture.descriptors[0].nativeProvider.libraries = []; },
+  'changed native binary': f => { f.capture.descriptors[0].nativeProvider.libraries[0].sha256 = 'f'.repeat(64); },
+  'different native installation': f => { f.capture.descriptors[0].nativeHost.nativeDeliverySha256 = 'f'.repeat(64); },
+  'wrong installed archive': f => { f.capture.descriptors[0].nativeHost.testDelivery.archiveSha256 = 'f'.repeat(64); },
+  'failed native cleanup': f => { f.capture.nativeHostSettlement.ownedProviderReleased = false; },
+  'missing native cleanup': f => { delete f.capture.nativeHostSettlement; },
+  'different native fixture delivery': f => { f.capture.descriptors[0].nativeHost.testDelivery.testDeliveryHash = 'sha256:' + 'f'.repeat(64); },
+  'other native process cleanup': f => { f.capture.nativeHostSettlement.pid = 456; },
+  'missing observed native PID': f => { delete f.capture.descriptors[0].nativePid; },
+  'second native participant': f => { f.capture.descriptors[1].surface = 'node-webgpu'; },
+  'different Node': f => { f.capture.descriptors[0].node = 'other'; },
+})) test(`rejects ${name}`, () => {
+  const f = nativeFixture(); mutate(f); f.input.captureBytes = bytes(f.capture);
+  assert.throws(() => producePhysicalReports(f.input));
+});
