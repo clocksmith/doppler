@@ -1,0 +1,428 @@
+[
+  {
+    "path": "reports/local/source-prefix-correction-20261012/atomic-materialized-projection.json",
+    "sha256": "8dcceaf2904898b905354fe9993aa91b5c282383b6ac7c78708aff7b316b06c0",
+    "bytes": 22281308,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "b74838afe70cdd54baf6ddcdf6cc2dc1679eba7c085fa5147b45c2dffe760868",
+    "shaderSha256": "cc5d4b0bf05ef3960310f4679610a452627591edfabe5174a82519f8fda07ce8",
+    "geometry": {
+      "M": 184,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 2.606868662269335e-06,
+      "rmsError": 1.2424127670968367e-07,
+      "worstIndex": 1111973
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.8898568338320274e-06,
+      "rmsError": 1.2954988522765847e-07,
+      "worstIndex": 42917
+    },
+    "valuesSha256": "945d373ab539920d6bcc5f191b51daf726e853b96d453a189aaf096e34a19d5c",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  },
+  {
+    "path": "reports/local/source-prefix-correction-20261012/compensated-projection.json",
+    "sha256": "d6cfc4be852a4a647f90b02c586e7253bd7a738dad4b293b4397aa0584da8c5f",
+    "bytes": 22283841,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "b74838afe70cdd54baf6ddcdf6cc2dc1679eba7c085fa5147b45c2dffe760868",
+    "shaderSha256": "02a476e209fa0bf589ac968e73ad8476351b4392758278e55cf1a8f2197d4255",
+    "geometry": {
+      "M": 184,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 2.606868662269335e-06,
+      "rmsError": 1.3584036198812367e-07,
+      "worstIndex": 1111973
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.8898568338320274e-06,
+      "rmsError": 1.2954988522765847e-07,
+      "worstIndex": 42917
+    },
+    "valuesSha256": "fc52a54ee7b9d81fae1c2a127744e57506fb5604f791e201332c1c381f82f937",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  },
+  {
+    "path": "reports/local/source-prefix-correction-20261012/compensated-tree-projection.json",
+    "sha256": "4b614571af420b6bab210b660e40d608a79a774de54a6731225ddbe0916be9f5",
+    "bytes": 22281308,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "b74838afe70cdd54baf6ddcdf6cc2dc1679eba7c085fa5147b45c2dffe760868",
+    "shaderSha256": "cfce15fe6fa13df8cb7b0ffaf2aa3ac0f0f23c1e6748366babfa7026b7d3d931",
+    "geometry": {
+      "M": 184,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 2.606868662269335e-06,
+      "rmsError": 1.2424127670968367e-07,
+      "worstIndex": 1111973
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.8898568338320274e-06,
+      "rmsError": 1.2954988522765847e-07,
+      "worstIndex": 42917
+    },
+    "valuesSha256": "945d373ab539920d6bcc5f191b51daf726e853b96d453a189aaf096e34a19d5c",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  },
+  {
+    "path": "reports/local/source-prefix-correction-20261012/integer-residual-projection.json",
+    "sha256": "9f9128130e6cbeb5ecfd2ce2782e28be25f70a454601fe3a30f3725e46040066",
+    "bytes": 22285526,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "b74838afe70cdd54baf6ddcdf6cc2dc1679eba7c085fa5147b45c2dffe760868",
+    "shaderSha256": "fa0ea01069ec277cd48fa06ffae3bac81358443d4e305daf3274e9dd4f0a5343",
+    "geometry": {
+      "M": 184,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "strictMathDeveloperDiagnostic": false,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "strictMathRead": false,
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 6.646886330230473e-06,
+      "rmsError": 2.6577085388820537e-07,
+      "worstIndex": 42917
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.8898568338320274e-06,
+      "rmsError": 1.2954988522765847e-07,
+      "worstIndex": 42917
+    },
+    "valuesSha256": "36488ea1f804b646a6d14b3817750636dd44a77a4f1ae0be0c63c378b232ce37",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  },
+  {
+    "path": "reports/local/source-prefix-correction-20261012/integer-sign-projection.json",
+    "sha256": "0459fb663871b716b4c5d34a292367184e021839145dbc2924e62fc4eabda76f",
+    "bytes": 121432,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "cee1bc761788d6db92f91d7fd62b4f96184a70a8463f34d684306d259c3c6d0d",
+    "shaderSha256": "4d2310acd81a2e51fac3f4096afdd092ccc9c7275c68607e9f2433b928bab7b7",
+    "geometry": {
+      "M": 1,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 3.115177236168165e-06,
+      "rmsError": 2.69121796888183e-07,
+      "worstIndex": 6053
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.606868662269335e-06,
+      "rmsError": 1.304194249331548e-07,
+      "worstIndex": 6053
+    },
+    "valuesSha256": "a18c5643169304cf25497f0add25afa26db0f7dcb4dc505d3c34940c7f5ff364",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  },
+  {
+    "path": "reports/local/source-prefix-correction-20261012/materialized-projection.json",
+    "sha256": "6a3cc7fbbb24ac3e3ab22cd55f36830d1924a86c7bfb2270ade7dca2fd14a19f",
+    "bytes": 22281308,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "b74838afe70cdd54baf6ddcdf6cc2dc1679eba7c085fa5147b45c2dffe760868",
+    "shaderSha256": "62373643945c72c4181fac2389761f6a26f104b5ef374465c3cce7efa16cb345",
+    "geometry": {
+      "M": 184,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 2.606868662269335e-06,
+      "rmsError": 1.2424127670968367e-07,
+      "worstIndex": 1111973
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.8898568338320274e-06,
+      "rmsError": 1.2954988522765847e-07,
+      "worstIndex": 42917
+    },
+    "valuesSha256": "945d373ab539920d6bcc5f191b51daf726e853b96d453a189aaf096e34a19d5c",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  },
+  {
+    "path": "reports/local/source-prefix-correction-20261012/observed-compensated-tree-projection.json",
+    "sha256": "eac392b85af8bc91f6b4e163bc2bc70cc72123cf7b60661ca0aa3b3d76ad7084",
+    "bytes": 260803762,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "b74838afe70cdd54baf6ddcdf6cc2dc1679eba7c085fa5147b45c2dffe760868",
+    "shaderSha256": "10a44bb48b236dd5182acb3c5c791dbeba2504ff0cc74ad1b3a9b8f16a473cb5",
+    "geometry": {
+      "M": 184,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 2.606868662269335e-06,
+      "rmsError": 1.2424127670968367e-07,
+      "worstIndex": 1111973
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.8898568338320274e-06,
+      "rmsError": 1.2954988522765847e-07,
+      "worstIndex": 42917
+    },
+    "valuesSha256": "945d373ab539920d6bcc5f191b51daf726e853b96d453a189aaf096e34a19d5c",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  },
+  {
+    "path": "reports/local/source-prefix-correction-20261012/observed-products-projection.json",
+    "sha256": "1e83fafb7ba7302181fe3dcab7a6af532d8108364de35fe012bd659b77b455ea",
+    "bytes": 398227,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "cee1bc761788d6db92f91d7fd62b4f96184a70a8463f34d684306d259c3c6d0d",
+    "shaderSha256": "0fcd860e56189a9669bcf2852bb5193b7a8b8fa3d3ce4b7a9a0f99e73bcee72d",
+    "geometry": {
+      "M": 1,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 2.606868662269335e-06,
+      "rmsError": 1.296746042330905e-07,
+      "worstIndex": 6053
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.606868662269335e-06,
+      "rmsError": 1.304194249331548e-07,
+      "worstIndex": 6053
+    },
+    "valuesSha256": "688751d9e2a6c60ca4198330956f9e7d5735f9d73da0318e36ce1623e1b8c51e",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  },
+  {
+    "path": "reports/local/source-prefix-correction-20261012/observed-weight-projection.json",
+    "sha256": "adf08d95424e13ceb3e7f48c75e70e88874875394ff037dbd6aff8167735fce6",
+    "bytes": 44910172,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "b74838afe70cdd54baf6ddcdf6cc2dc1679eba7c085fa5147b45c2dffe760868",
+    "shaderSha256": "8f0ebc972d916d80834fa760eb71ebf543bdec4b558b278c1cbed60e0e6f8825",
+    "geometry": {
+      "M": 184,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 2.606868662269335e-06,
+      "rmsError": 1.2424127670968367e-07,
+      "worstIndex": 1111973
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.8898568338320274e-06,
+      "rmsError": 1.2954988522765847e-07,
+      "worstIndex": 42917
+    },
+    "valuesSha256": "945d373ab539920d6bcc5f191b51daf726e853b96d453a189aaf096e34a19d5c",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  },
+  {
+    "path": "reports/local/source-prefix-correction-20261012/represented-projection.json",
+    "sha256": "d58c4c0a8dddf0097f71439bf18b1dad33674dec92fc2b033001e3cf58b45d66",
+    "bytes": 22285526,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "b74838afe70cdd54baf6ddcdf6cc2dc1679eba7c085fa5147b45c2dffe760868",
+    "shaderSha256": "bf0795f62f01a6513b28cb3cce0356a24966b20b7c3df8680d8b0b7b0166e5b0",
+    "geometry": {
+      "M": 184,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "strictMathDeveloperDiagnostic": false,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "strictMathRead": false,
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 6.646886330230473e-06,
+      "rmsError": 2.6577085388820537e-07,
+      "worstIndex": 42917
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.8898568338320274e-06,
+      "rmsError": 1.2954988522765847e-07,
+      "worstIndex": 42917
+    },
+    "valuesSha256": "36488ea1f804b646a6d14b3817750636dd44a77a4f1ae0be0c63c378b232ce37",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  },
+  {
+    "path": "reports/local/source-prefix-correction-20261012/selected-neumaier-projection.json",
+    "sha256": "8115d54609a4374a565c6fc14c5788532fc4bf3a4d6747aa47a9c5c0188c2e13",
+    "bytes": 22285465,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "b74838afe70cdd54baf6ddcdf6cc2dc1679eba7c085fa5147b45c2dffe760868",
+    "shaderSha256": "5c912f25c4438ce75a1e8f41d157662e0ea06db2940d997dc0628f840207684c",
+    "geometry": {
+      "M": 184,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 6.646886330230473e-06,
+      "rmsError": 2.6577085388820537e-07,
+      "worstIndex": 42917
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.8898568338320274e-06,
+      "rmsError": 1.2954988522765847e-07,
+      "worstIndex": 42917
+    },
+    "valuesSha256": "36488ea1f804b646a6d14b3817750636dd44a77a4f1ae0be0c63c378b232ce37",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  },
+  {
+    "path": "reports/local/source-prefix-correction-20261012/strict-projection.json",
+    "sha256": "224750ab7a2df22031f034282d25e9b165e6f7b958338eee43e6e6e8704f4d65",
+    "bytes": 22281367,
+    "scope": "Identical captured F32/Q4_K operands against an independent Float64 projection",
+    "host": "linux",
+    "fixtureSha256": "b74838afe70cdd54baf6ddcdf6cc2dc1679eba7c085fa5147b45c2dffe760868",
+    "shaderSha256": "cfce15fe6fa13df8cb7b0ffaf2aa3ac0f0f23c1e6748366babfa7026b7d3d931",
+    "geometry": {
+      "M": 184,
+      "N": 6144,
+      "K": 1024
+    },
+    "maximumAllowedError": 2e-06,
+    "requiredPeakErrorReduction": 2,
+    "strictMathDeveloperDiagnostic": true,
+    "browser": "146.0.7680.177",
+    "errors": [],
+    "strictMathRead": true,
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "comparison": {
+      "maxAbsoluteError": 2.606868662269335e-06,
+      "rmsError": 1.2424127670968367e-07,
+      "worstIndex": 1111973
+    },
+    "baseline": {
+      "maxAbsoluteError": 2.8898568338320274e-06,
+      "rmsError": 1.2954988522765847e-07,
+      "worstIndex": 42917
+    },
+    "valuesSha256": "945d373ab539920d6bcc5f191b51daf726e853b96d453a189aaf096e34a19d5c",
+    "passed": false,
+    "failure": "The expression evaluated to a falsy value:\n\n  assert(receipt.comparison.maxAbsoluteError <= receipt.maximumAllowedError)\n"
+  }
+]
