@@ -207,10 +207,6 @@
       </div>
       <div class="app-header-end">
         <button id="install-btn" class="btn btn-ghost" hidden>Install</button>
-        <div id="status" class="status-chip">
-          <span id="status-dot" class="status-dot"></span>
-          <span id="status-text">Select model</span>
-        </div>
       </div>
     </header>
 
@@ -280,16 +276,20 @@
     </main>
 
     <details id="advanced-settings" class="advanced-settings">
-      <summary id="settings-toggle">Advanced</summary>
+      <summary id="settings-toggle">Settings</summary>
 <div id="settings-panel" class="settings-panel demo-panel demo-panel--inset demo-stack">
 <details id="model-picker" class="model-picker flow-card demo-panel demo-stack" >
-<summary>Model and downloads</summary>
+<summary>Models</summary>
 <div class="demo-stack">
 <div class="model-picker-heading demo-row">
         <div>
-          <label id="model-picker-label" class="flow-title" for="model-select">Model</label>
+          <label id="model-picker-label" class="sr-only" for="model-select">Model</label>
         </div>
-        <span id="model-select-status" class="model-select-status" aria-live="polite">Loading catalog...</span>
+        <div id="status" class="status-chip">
+          <span id="status-dot" class="status-dot"></span>
+          <span id="status-text">Select model</span>
+        </div>
+        <span id="model-select-status" class="model-select-status" role="status" aria-live="polite">Loading catalog...</span>
       </div>
       <div class="model-select-row">
         <select id="model-select" disabled>
@@ -366,7 +366,7 @@
         <fieldset class="settings-group">
           <legend>Runtime</legend>
           <div class="setting-field">
-            <label for="set-profile">Runtime profile</label>
+            <label for="set-profile">Profile</label>
             <select id="set-profile" aria-describedby="profile-help">
               <option value="profiles/default">Default</option>
               <option value="profiles/throughput">Throughput</option>
@@ -375,9 +375,11 @@
               <option value="profiles/low-memory">Low memory</option>
               <option value="profiles/trace-layers">Trace layers</option>
             </select>
-            <small id="profile-help">Changing profile reloads the active model. Values below are set by the profile.</small>
+            <small id="profile-help">Changing profile reloads the model.</small>
           </div>
           <div id="settings-error" class="runtime-notice" role="alert" hidden></div>
+          <details class="profile-details">
+          <summary>Profile values</summary>
           <div class="settings-grid profile-values">
             <div class="setting-field">
               <label for="set-batch-max-tokens">Batch tokens</label>
@@ -410,8 +412,9 @@
             </div>
           </div>
           <label class="checkbox-label checkbox-label--inline">
-            <input id="set-trace" type="checkbox" disabled> Trace (profile controlled)
+            <input id="set-trace" type="checkbox" disabled> Trace
           </label>
+          </details>
         </fieldset>
       </div>
     </details>
@@ -420,8 +423,7 @@
 <div class="inspection-workspace-body demo-stack">
 <section id="xray-shell" class="xray-shell demo-panel demo-stack" aria-labelledby="xray-heading" hidden>
 <header class="xray-heading demo-row">
-          <h2 id="xray-heading">Inference X-Ray</h2>
-          <span id="xray-summary-state" class="xray-summary-state">Timing, tokens, execution</span>
+          <h2 id="xray-heading">X-Ray</h2>
         </header>
         <div id="xray-container" hidden></div>
       </section>
@@ -431,9 +433,6 @@
 <summary>Run details</summary>
 <p class="run-measurements">Inspection adds overhead. <span id="output-toks" class="output-toks"></span></p>
 <div class="report-bar demo-row">
-      <div class="report-intro">
-        <strong>Run receipt</strong>
-      </div>
       <div class="report-actions">
         <button id="export-btn" class="btn btn-ghost" disabled>Export receipt</button>
         <button id="import-btn" class="btn btn-ghost" type="button">Open receipt</button>
@@ -447,21 +446,20 @@
     <section class="precision-replay-area demo-panel demo-stack" aria-label="Stored precision comparison">
       <div class="precision-replay-heading demo-row">
         <button id="precision-replay-toggle" class="btn btn-ghost precision-replay-toggle" type="button" aria-expanded="false" aria-controls="precision-replay-panel" title="Compare recorded results">Compare precision</button>
-        <span id="precision-replay-status" class="precision-replay-status">Recorded comparison</span>
       </div>
       <div id="precision-replay-panel" class="precision-replay-panel" hidden>
+        <p id="precision-replay-status" class="precision-replay-status" role="status"></p>
 <p class="precision-replay-note">Same model. Different number precision. Precomputed results.</p>
 
         <div class="precision-replay-controls">
           <div class="setting-field">
-            <label for="precision-replay-prompt-select">Prompt</label>
+            <label for="precision-replay-prompt-select">Example</label>
             <select id="precision-replay-prompt-select"></select>
           </div>
           <button id="precision-replay-use-prompt" class="btn btn-ghost" type="button">Try this prompt</button>
         </div>
         <div class="precision-replay-layout">
           <article class="precision-replay-card">
-            <div class="type-label">Prompt</div>
             <p id="precision-replay-prompt" class="precision-replay-prompt"></p>
           </article>
           <div id="precision-replay-winners" class="precision-replay-winners"></div>
