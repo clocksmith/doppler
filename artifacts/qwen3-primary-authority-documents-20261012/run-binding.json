@@ -1,5 +1,5 @@
 {
-  "status": "running",
+  "status": "completed-reviewed-rejected",
   "children": [
     {
       "seed": 17,
@@ -37,5 +37,10 @@
       ],
       "suiteSha256": "2a38a3b257937b9046b73a6792cd80457b49566588d38f33baf99d3f3baa5783"
     }
-  ]
+  ],
+  "exitCodes": {
+    "17": 0,
+    "53": 0
+  },
+  "completedCases": 12
 }

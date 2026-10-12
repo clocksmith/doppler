@@ -1,0 +1,444 @@
+{
+  "schema": "doppler.primary-authority-document-review/v1",
+  "reviewer": "Codex manual final-answer review; not unfamiliar-user validation",
+  "qualified": false,
+  "disposition": "rejected-factual-and-citation-failures",
+  "completedCases": 12,
+  "passedCases": 6,
+  "shortFactualConclusions": {
+    "correct": 7,
+    "total": 8
+  },
+  "naturalCompletions": 12,
+  "sourceReports": [
+    {
+      "seed": 17,
+      "sha256": "72f629c6a3a8ad4e7c338735608620c010cc0f739c7099065a7aae4abda8cff3",
+      "path": "source-seed-17.json.gz"
+    },
+    {
+      "seed": 53,
+      "sha256": "1ac85847e2019f9aa18d4ace0e85d9be9972c6e342ad2aa038d95f5f3cbd6220",
+      "path": "source-seed-53.json.gz"
+    }
+  ],
+  "maximumGeneratedTokens": 2461,
+  "maximumTotalTokens": 4190,
+  "maximumRawUtf16Units": 9717,
+  "cases": [
+    {
+      "id": "superseded-invoice",
+      "seed": 17,
+      "qualified": true,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 391,
+      "totalTokens": 642,
+      "rawUtf16Units": 1277,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or condition."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions and uncertainty."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "Required record identities support the answer."
+        }
+      ]
+    },
+    {
+      "id": "conditional-dispatch",
+      "seed": 17,
+      "qualified": true,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 241,
+      "totalTokens": 488,
+      "rawUtf16Units": 1067,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or condition."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions and uncertainty."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "Required record identities support the answer."
+        }
+      ]
+    },
+    {
+      "id": "deadline-duration",
+      "seed": 17,
+      "qualified": true,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 397,
+      "totalTokens": 634,
+      "rawUtf16Units": 1589,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or condition."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions and uncertainty."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "Required record identities support the answer."
+        }
+      ]
+    },
+    {
+      "id": "retained-subtotal-correction",
+      "seed": 17,
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 212,
+      "totalTokens": 493,
+      "rawUtf16Units": 891,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Calls known subtotal160 rather than185; explicitly misclassifies stated disposal25 as unknown."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Keeps excluded tax amount unknown."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "R8/R9 attached to incorrect known-versus-unknown attribution; earlier all-in claim not correctly repaired."
+        }
+      ]
+    },
+    {
+      "id": "contractor-comparison",
+      "seed": 17,
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 2161,
+      "totalTokens": 2816,
+      "rawUtf16Units": 8360,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "After correct initial prices, says no explicit tax mention for Maple/Cedar and no electrical scope details for Cedar despite explicit exclusions."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Correct10550, but required budget remainders absent; falsely says1200 savings between10800 and11600 and invents10800 Cedar tax total."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Omits Maple material condition and required Cedar completion beyondJune1 assessment."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": true,
+          "observation": "Identifies conflicting Cedar plumbing statements without choosing a binding clause."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "Unsupported price/scope claims have no supporting exact passage citations."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Mostly asks already answered questions and omits required budget/deadline consequences."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": true,
+          "observation": "No optional deposit dollar arithmetic."
+        }
+      ]
+    },
+    {
+      "id": "contractor-retained-correction",
+      "seed": 17,
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 2461,
+      "totalTokens": 4190,
+      "rawUtf16Units": 9717,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Repeats Maple removal exclusion and Cedar includedremoval; describes Harbor included800 electrical as excluded."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "No10550 or required budget remainders."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Explicitly denies Harbor deposit condition despite quoting it; noCedarJune1 assessment."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Calls explicit Cedar conflicting clauses an unsupported assumption and doesnot resolve earlier unsupported plumbingpreference."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "Wrong electrical exclusion citesD2:P2; other incorrect removal claims unsupported."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Questions repeat source statements and invent uncertainty over explicit Harbor condition."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": false,
+          "observation": "Retains removal reversal and endorses previouscostcomparison rather than correct it."
+        },
+        {
+          "criterionIndex": 7,
+          "pass": false,
+          "observation": "Cedar4950 computed on9900 without disclosing ambiguousdepositbasis."
+        }
+      ]
+    },
+    {
+      "id": "superseded-invoice",
+      "seed": 53,
+      "qualified": true,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 369,
+      "totalTokens": 620,
+      "rawUtf16Units": 1212,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or condition."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions and uncertainty."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "Required record identities support the answer."
+        }
+      ]
+    },
+    {
+      "id": "conditional-dispatch",
+      "seed": 53,
+      "qualified": true,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 255,
+      "totalTokens": 502,
+      "rawUtf16Units": 1136,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or condition."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions and uncertainty."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "Required record identities support the answer."
+        }
+      ]
+    },
+    {
+      "id": "deadline-duration",
+      "seed": 53,
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 258,
+      "totalTokens": 495,
+      "rawUtf16Units": 1048,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or condition."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions and uncertainty."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Correct conclusion, but required R7 citation for customer deadline omitted."
+        }
+      ]
+    },
+    {
+      "id": "retained-subtotal-correction",
+      "seed": 53,
+      "qualified": true,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 228,
+      "totalTokens": 509,
+      "rawUtf16Units": 927,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or condition."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions and uncertainty."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "Required record identities support the answer."
+        }
+      ]
+    },
+    {
+      "id": "contractor-comparison",
+      "seed": 53,
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 2169,
+      "totalTokens": 2824,
+      "rawUtf16Units": 8327,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Calls excluded Maple tax included; places Harbor electrical allowance among exclusions and imports Cedar plumbing clause into Harbor."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Correct10550 but no budget remainders; calls bothMaple/Cedar lowest."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Concludes allquotes meetbeforeJune1 althoughCedarMay20plus3weeksdoesnot."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": true,
+          "observation": "Preserves Cedar plumbing conflict as unresolved."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "Document-level passage ranges do not supply required exact claim citations; several claims contradict passages."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "RecommendsCedar without stating unmetdeadline and repeats questions answered by sources."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": false,
+          "observation": "Cedar5275 deposit offered without disclosing ambiguity of whether650 removal is in deposit basis."
+        }
+      ]
+    },
+    {
+      "id": "contractor-retained-correction",
+      "seed": 53,
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 2300,
+      "totalTokens": 4029,
+      "rawUtf16Units": 9534,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Correct basicpriceinclusions but omits Maple electrical/plumbing exclusions and required writtenapprovalaboveHarborallowance; describes explicit exclusions as notstated."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "No10550 or required budget remainders."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Quotes dates but doesnot identifyCedar completionpastJune1; calls explicitstartdate unconfirmed."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": true,
+          "observation": "Keeps conflicting Cedar clauses unresolved ratherthanchoosingone."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "Harbor electrical claim citesD2:P1 instead ofD2:P2; conflictsectionattachesHarborclaimtoD3:P2."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Questions repeat quotedfacts; missingcost/deadline questions not developed."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": false,
+          "observation": "Doesnot identify and correct retainedremoval reversal or unsupportedCedarpreference."
+        },
+        {
+          "criterionIndex": 7,
+          "pass": true,
+          "observation": "No optionaldepositdollar arithmetic in finalanswer."
+        }
+      ]
+    }
+  ]
+}

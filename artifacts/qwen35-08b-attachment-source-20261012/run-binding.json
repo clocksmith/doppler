@@ -1,0 +1,24 @@
+{
+  "status": "process-completed",
+  "pid": 3197039,
+  "command": [
+    "python3",
+    "-u",
+    "tools/qwen35-original-weight-generation.py",
+    "--source",
+    "/var/tmp/doppler-qwen35-08b-source-20261012",
+    "--revision",
+    "2fc06364715b967f1860aea9cf38778875588b17",
+    "--deployed",
+    "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+    "--suite",
+    "/tmp/qwen35-08b-attachment-suite.json",
+    "--out",
+    "reports/local/qwen35-08b-attachment-source-20261012/source.json",
+    "--threads",
+    "4"
+  ],
+  "toolSha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
+  "suiteSha256": "da9d82c8dc25686c3c2af703d136c5fc6fbd96c6443796fea6148bb6e68d6083",
+  "exitCode": 0
+}
