@@ -1,0 +1,40 @@
+{
+  "schema": "doppler.non-thinking-policy-freeze/v1",
+  "createdAtUtc": "2026-10-12T03:22:55.973547+00:00",
+  "suiteSha256": "6f097c4b36282267b778734fe28fb99b949bd58f56e300fb5c2e3626e954b8ca",
+  "caseCount": 6,
+  "seedCount": 2,
+  "status": "frozen-before-execution",
+  "executionDependency": "Start only after qwen3-citation-policy-20261012 CPU run settles.",
+  "changes": {
+    "enableThinking": {
+      "from": true,
+      "to": false
+    },
+    "temperature": {
+      "from": 0.6,
+      "to": 0.7
+    },
+    "topP": {
+      "from": 0.95,
+      "to": 0.8
+    },
+    "answerBoundary": "Official nonthinking input includes empty thinking block; forbid generated thinking markers instead of requiring generated closing boundary."
+  },
+  "unchanged": [
+    "Original source revision and arithmetic",
+    "All user/assistant task messages",
+    "All factual and citation criteria",
+    "Seeds 17 and 53",
+    "Output 4096 / context 8192 / UTF-16 limit 16000",
+    "TopK 20 / minP 0 / penalty 1 / presence 0",
+    "No system instruction"
+  ],
+  "primarySource": {
+    "url": "https://huggingface.co/Qwen/Qwen3-1.7B/blob/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/README.md",
+    "readmeSha256": "257e52c419dac2258852643f18af6c974f21f8c6c1b6f371b6cca6201cf29091",
+    "generationConfigSha256": "2325da0f15bb848e018c5ae071b7943332e9f871d6b60e2ed22ca97d4cb993d2",
+    "repetitionPenalty": "No source repetition_penalty override. Installed Transformers GenerationConfig resolves None (disabled), mathematically equivalent to multiplier1.0.",
+    "mode": "Nonthinking recommendation at pinned README lines 151 and 276: enable_thinking=false, temperature=0.7, topP=0.8, topK=20, minP=0. The model card larger suggested token allowance is not adopted."
+  }
+}
