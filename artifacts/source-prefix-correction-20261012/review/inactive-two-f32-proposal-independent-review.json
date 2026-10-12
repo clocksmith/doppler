@@ -1,0 +1,31 @@
+{
+  "kind": "Independent CPU/read-only review of inactive precision proposal; no GPU run or production change",
+  "bindings": {
+    "inactive-recurrent-state-precision-proposal.json": "74f027966ce5debcbf8d7b352432ea6f90ea765f359f92c7935de65fb2deb1a6",
+    "two-f32-state-control.json.gz": "62b852644ca80d6d6f286bbf99851570541b774100eb4b7c67fb0c26b57beb3e",
+    "two-f32-state-control-contract.json": "cd846acf827fc6a47705e035f1acb3f6cd1a4d50d20efb19e1b03a36d151a955",
+    "recurrent-approved-cache-control.json.gz": "8f6a8d12c826222270db64c573f705145fe622259c9a8be470ab2effd55d3305"
+  },
+  "auditToolSha256": "d1c14429240d9d72179953462e2c82772573232174df6a5f540e42589ac2c2c9",
+  "cost": {
+    "elementsPerLayer": 262144,
+    "extraBytesPerPartitionPerAttempt": 9437184,
+    "extraBytesTwoAttempts": 18874368,
+    "checkedAgainstProposal": true
+  },
+  "observations": [
+    "Approved evaluator vectors are reproduced exactly before diagnostic intervention; historical runtime outputs are not the reference.",
+    "Approved-cache targets are taken from independently evolved full K/V tensors before observation truncation; ordered shape/count checks and finally restoration are present.",
+    "Two-F32 storage control does not substitute approved K/V when approvedCacheIntervention is false. Matching six cache pairs is an observed result of this control.",
+    "Two-F32 control represents high=nearestF32(state), low=nearestF32(state-high) after the final update and reconstructs their sum in F64 before current-token output. Other arithmetic remains ideal F64.",
+    "Control covers request2 step0 and50decode prefixes, not all55 and not actual GPU implementation.",
+    "Actual kernels also store decayed state. The proposed candidate must preserve residuals across decay, reduction, update and output; simply adding a low buffer to rounded arithmetic is insufficient."
+  ],
+  "limits": [
+    "No general impossibility result for one-F32 algorithms.",
+    "No GPU numerical, speed, model-quality, concurrent-memory or release qualification.",
+    "Long-prompt measured allocation is from browser Mac/AMD control; it is not native Node evidence or guaranteed fit for new precision.",
+    "Explicit user approval required before production precision implementation."
+  ],
+  "disposition": "Cost and narrowed scope are internally consistent. Independent storage feasibility is supported within the diagnostic scope; implementation remains inactive."
+}
