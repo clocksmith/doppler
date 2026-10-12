@@ -90,7 +90,7 @@ if (!modelDirectory) {
       inputIds = [tokenId];
     }
     const activeBuffers = () => a.getBufferPool().getStats().activeBuffers;
-    const beforeFailures = activeBuffers();
+    let beforeFailures = activeBuffers();
     await assert.rejects(runPipelineOperation(a, state => executePartitionLayers(state,
       { numTokens: 1, tokenIds: [-1] }, signal)), /vocabulary/);
     await assert.rejects(runPipelineOperation(b, state => executePartitionLayers(state,
@@ -116,6 +116,11 @@ if (!modelDirectory) {
     } finally { device.createCommandEncoder = createEncoder; }
     assert.equal(activeBuffers(), beforeFailures, 'Recording failure releases all temporary pooled buffers');
 
+    // A failed recorded operation may invalidate recurrent state. Each later
+    // failure injection starts a new attempt instead of replaying lost state.
+    a.reset();
+    beforeFailures = activeBuffers();
+
     const pool = a.getBufferPool();
     const acquire = pool.acquire;
     const release = pool.release;
@@ -131,7 +136,9 @@ if (!modelDirectory) {
       await assert.rejects(runPipelineOperation(a, state => executePartitionLayers(state,
         { numTokens: 1, tokenIds: inputIds }, signal)), /injected-output-allocation-failure/);
     } finally { pool.acquire = acquire; pool.release = release; }
-    assert.equal(activeBuffers(), beforeFailures, 'Allocation failure releases recorded intermediates');
+    a.reset();
+    assert.equal(activeBuffers(), beforeFailures, 'Allocation failure and attempt reset release intermediates and recurrent state');
+    beforeFailures = activeBuffers();
 
     const duringReadback = new AbortController();
     const mapAsync = GPUBuffer.prototype.mapAsync;
@@ -144,7 +151,16 @@ if (!modelDirectory) {
       await assert.rejects(runPipelineOperation(a, state => executePartitionLayers(state,
         { numTokens: 1, tokenIds: inputIds }, duringReadback.signal)), /cancel-during-readback/);
     } finally { GPUBuffer.prototype.mapAsync = mapAsync; }
-    assert.equal(activeBuffers(), beforeFailures, 'Readback cancellation releases mapped staging and output');
+    a.reset();
+    assert.equal(activeBuffers(), beforeFailures, 'Readback cancellation and attempt reset release staging, output and recurrent state');
+    beforeFailures = activeBuffers();
+
+    // Establish a valid incremental state before counting the decode submission;
+    // initial prefill also submits recurrent-state initialization work.
+    await runPipelineOperation(a, async state => {
+      await executePartitionLayers(state, { numTokens: 1, tokenIds: inputIds }, signal);
+      state.currentSeqLen += 1;
+    });
 
     const afterSubmit = new AbortController();
     const submit = device.queue.submit;
@@ -160,7 +176,8 @@ if (!modelDirectory) {
         { numTokens: 1, tokenIds: inputIds }, afterSubmit.signal)), /cancel-after-submit/);
     } finally { device.queue.submit = submit; }
     assert.equal(submitted, 1);
-    assert.equal(activeBuffers(), beforeFailures, 'Submitted cancellation settles and releases temporary pooled buffers');
+    a.reset();
+    assert.equal(activeBuffers(), beforeFailures, 'Submitted cancellation settles and attempt reset releases retained state');
     report.failureChecks = ['invalid-token', 'activation-length', 'cancel-before-dispatch', 'recording-failure',
       'output-allocation-failure', 'cancel-during-readback', 'cancel-after-submit'];
     console.log(JSON.stringify(report));

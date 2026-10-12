@@ -1,0 +1,97 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+[362.6ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[362.8ms][Config] Using manifest-first config (source of truth)
+[366.1ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[366.3ms][Pipeline] Vision capable: imageTokenId=248056
+[367.2ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[367.5ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[367.9ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[548.6ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[797.2ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[797.7ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[798.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=128
+[799.4ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[830.6ms][ShardCache] Custom shard loader configured
+[830.8ms][Loader] Initializing...
+[846.6ms][HeapManager] Allocated segment 0: 1024MB
+[846.8ms][HeapManager] Segmented heap: 1GB per segment
+[846.8ms][HeapManager] Initialized with strategy: SEGMENTED
+[846.9ms][Loader] Initialized (f16, subgroups)
+[847.5ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[849.1ms][Loader] [0.0s] Memory (start): | RSS=301.43 MB (heap=117.01 MB/160.01 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[849.7ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1020.6ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1021.0ms][Loader] Layers: 0-23
+[1213.5ms][Loader] Layers: 24 complete (0.19s)
+[1266.2ms][Loader] Complete: 890.16 MB in 0.41s (2.10 GB/s)
+[1267.5ms][Loader] [0.4s] Memory (complete): | RSS=281.18 MB (heap=68.79 MB/102.43 MB, external=1.01 GB, arrayBuffers=1.01 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1278.4ms][Pipeline] Model loaded successfully (919ms)
+[1282.4ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[1282.5ms][Config] Using manifest-first config (source of truth)
+[1283.2ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[1283.3ms][Pipeline] Vision capable: imageTokenId=248056
+[1283.4ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[1283.4ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1283.5ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1283.5ms][Tokenizer] Bundled tokenizer cache hit: tokenizer.json
+[1283.5ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[1284.1ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=128
+[1284.4ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1310.0ms][ShardCache] Custom shard loader configured
+[1310.1ms][Loader] Initializing...
+[1312.7ms][Loader] Initialized (f16, subgroups)
+[1312.9ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[1313.4ms][Loader] [0.0s] Memory (start): | RSS=296.95 MB (heap=90.20 MB/116.99 MB, external=2.02 GB, arrayBuffers=2.01 GB) | GPU=893.14 MB (347 active, 1 pooled, peak=893.14 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1313.7ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1482.2ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1482.4ms][Loader] Layers: 0-11
+[1589.5ms][Loader] Layers: 12 complete (0.11s)
+[1589.6ms][Loader] Complete: 619.38 MB in 0.28s (2.20 GB/s)
+[1590.3ms][Loader] [0.3s] Memory (complete): | RSS=265.38 MB (heap=65.56 MB/102.68 MB, external=1.02 GB, arrayBuffers=1.02 GB) | GPU=1.48 GB (519 active, 0 pooled, peak=1.48 GB) | ShardCache=0 B (0 shards) | Layers=12, GPUBuffers=172
+[1591.3ms][Pipeline] Model loaded successfully (310ms)
+[1596.2ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[1596.3ms][Config] Using manifest-first config (source of truth)
+[1597.0ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[1597.1ms][Pipeline] Vision capable: imageTokenId=248056
+[1597.2ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[1597.2ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1597.2ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[1597.3ms][Tokenizer] Bundled tokenizer cache hit: tokenizer.json
+[1597.3ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[1597.5ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=128
+[1597.6ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1631.1ms][ShardCache] Custom shard loader configured
+[1631.2ms][Loader] Initializing...
+[1633.9ms][Loader] Initialized (f16, subgroups)
+[1634.0ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[1634.5ms][Loader] [0.0s] Memory (start): | RSS=278.88 MB (heap=89.68 MB/116.24 MB, external=2.02 GB, arrayBuffers=2.02 GB) | GPU=1.48 GB (519 active, 0 pooled, peak=1.48 GB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1634.8ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1635.7ms][Loader] Layers: 12-23
+[1750.5ms][Loader] Layers: 12 complete (0.11s)
+[1798.9ms][Loader] Complete: 270.78 MB in 0.16s (1.61 GB/s)
+[1799.8ms][Loader] [0.2s] Memory (complete): | RSS=302.79 MB (heap=64.04 MB/101.43 MB, external=1.05 GB, arrayBuffers=1.05 GB) | GPU=1.74 GB (692 active, 0 pooled, peak=1.74 GB) | ShardCache=0 B (0 shards) | Layers=12, GPUBuffers=173
+[1800.4ms][Pipeline] Model loaded successfully (205ms)
+[1803.6ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=128
+[1803.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=128, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=128
+[1832.4ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[1839.8ms][KernelSelect] matmul variant=f16w_f32a reason=default
+[1907.2ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[2028.3ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+[2078.3ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[2111.9ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[2131.7ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+[2486.9ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=9, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=9
+[2541.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=9, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=9
+[2601.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=8, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=8
+[2647.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=8, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=8
+[2908.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=7, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=7
+[2954.5ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=7, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=7
+{"kind":"same-device-resident-partition-diagnostic","modelIdentity":"sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9","planId":"sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0","generation":{"maxTokens":3,"maxSeqLen":128,"temperature":0,"topP":1,"topK":0,"repetitionPenalty":1.1,"repetitionPenaltyWindow":0,"presencePenalty":0.1,"useChatTemplate":false,"suppressTokenIds":[],"stopSequences":[]},"actualModelInference":true,"publicCapsuleAcquisition":false,"steps":[{"thread":0,"step":0,"tokenId":264,"stopReason":null,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":1,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":248320}},{"thread":1,"step":0,"tokenId":11751,"stopReason":null,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":1,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":248320}},{"thread":0,"step":1,"tokenId":1067,"stopReason":null,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":1,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":248320}},{"thread":1,"step":1,"tokenId":13,"stopReason":null,"comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":1,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":248320}},{"thread":0,"step":2,"tokenId":314,"stopReason":"max-tokens","comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":0.9999999999999999,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":248320}},{"thread":1,"step":2,"tokenId":198,"stopReason":"max-tokens","comparison":{"schema":"doppler.partition-comparison-contract/v1","matches":true,"maxDiff":0,"mse":0,"cosineSimilarity":1,"tolerance":0.0001,"minCosineSimilarity":0.9999,"length":248320}}],"provider":{"schema":"doe.webgpu-provider-receipt/v1","contract":"doe.webgpu-provider/v1","implementation":"doppler","providers":[{"id":"webgpu","kind":"module","module":"webgpu","gpu":{"kind":"factory","path":"create","args":[["backend=vulkan"]]},"globals":{"GPUBufferUsage":"globals.GPUBufferUsage","GPUShaderStage":"globals.GPUShaderStage","GPUMapMode":"globals.GPUMapMode","GPUTextureUsage":"globals.GPUTextureUsage"}}],"providerOrder":["webgpu"],"adapterOptions":null,"globals":{"mode":"replace","installed":["GPUBufferUsage","GPUShaderStage","GPUMapMode","GPUTextureUsage","navigator.gpu"],"restored":false},"attempts":[{"providerId":"webgpu","kind":"module","module":"webgpu","ok":true,"stage":"complete","code":null,"detail":null}],"selectedProviderId":"webgpu","ok":true},"descriptors":[{"schema":"doppler.resident-partition/v1","ready":true,"modelId":"qwen-3-5-0-8b-q4k-ehaf16","modelIdentity":"sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9","planId":"sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0","index":0,"layerRange":[0,11],"residentWeightBytes":650989568,"generationDigest":"sha256:50599ef56b513db2592c97d65a2a37681674f4698100499fd706bbe2b5ae3393"},{"schema":"doppler.resident-partition/v1","ready":true,"modelId":"qwen-3-5-0-8b-q4k-ehaf16","modelIdentity":"sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9","planId":"sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0","index":1,"layerRange":[12,23],"residentWeightBytes":285497344,"generationDigest":"sha256:50599ef56b513db2592c97d65a2a37681674f4698100499fd706bbe2b5ae3393"}],"texts":[" a result of"," Paris.\n"],"checks":["isolated-recurrent-buffer-cleanup","interleaved-attempts","full-logit-parity","sampling-penalties","text-parity","length-finalization","closed-replay","cancel-before-submit"]}
+[3049.6ms][ExpertCache] Cache cleared
+[3050.6ms][Pipeline] Unloaded
+[3052.2ms][ExpertCache] Cache cleared
+[3052.6ms][Pipeline] Unloaded
+[3054.1ms][ExpertCache] Cache cleared
+[3055.3ms][Pipeline] Unloaded
