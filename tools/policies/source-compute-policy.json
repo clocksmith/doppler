@@ -1208,11 +1208,6 @@
       "id": "src/inference/pipelines/text/linear-attention/plan.js#ensureLayerRuntimeGpuBuffers",
       "category": "gpu-orchestration",
       "reason": "Allocates and uploads declared immutable weights and zero/state bytes; indexed writes assign or clear GPU ownership fields only. Partial failure releases only newly acquired resources and preserves existing resident buffers."
-    },
-    {
-      "id": "src/inference/kv-cache/base.js#KVCache.copyFrom",
-      "category": "gpu-orchestration",
-      "reason": "Copies admitted cache buffers on the GPU and restores their CPU page-table metadata after queue settlement; no host tensor arithmetic."
     }
   ]
 }
