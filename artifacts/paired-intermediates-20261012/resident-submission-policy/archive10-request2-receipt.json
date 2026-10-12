@@ -1,0 +1,63 @@
+{
+  "archiveSha256": "85ee2795186061a1af8a513d1ddaaf307dea2acd8766357cf8222f5bfd6c378b",
+  "testDelivery": {
+    "schema": "reploid.numerical-test-delivery/v1",
+    "testDeliveryHash": "sha256:d9f18df505806810c963c926431795347005637485e2a3db2a6470e5a27bc0d9",
+    "archiveSha256": "85ee2795186061a1af8a513d1ddaaf307dea2acd8766357cf8222f5bfd6c378b",
+    "snapshotFiles": 2006,
+    "installedFiles": 1976,
+    "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+    "applicationQualification": false
+  },
+  "rawCaptureSha256": "1d2d8b8374f46e81aa2645c909b278f047a967dcf631d3c7a546e5b2cfddeb15",
+  "rawCaptureBytes": 109650623,
+  "phase": "reference",
+  "inputTokens": 184,
+  "prefixCount": 51,
+  "failedPrefixes": 0,
+  "maxAbsoluteError": 9.520044947919359e-07,
+  "completed": true,
+  "stopReason": "eos-token",
+  "failure": null,
+  "cleanupFailure": null,
+  "hosts": [
+    {
+      "index": 0,
+      "confirmedBarriers": 1,
+      "device": {
+        "liveBytes": 70823440,
+        "peakBytes": 756061984,
+        "rejected": 0
+      },
+      "pool": {
+        "activeBuffers": 0,
+        "pooledBuffers": 64
+      },
+      "deviceEvents": [],
+      "observationErrors": []
+    },
+    {
+      "index": 1,
+      "confirmedBarriers": 1,
+      "device": {
+        "liveBytes": 72424928,
+        "peakBytes": 392195664,
+        "rejected": 0
+      },
+      "pool": {
+        "activeBuffers": 0,
+        "pooledBuffers": 64
+      },
+      "deviceEvents": [],
+      "observationErrors": []
+    }
+  ],
+  "qualificationScope": "Only original request2, Macinput/AMDoutput; no55-prefix or reverse-placement or signedopening claim",
+  "controller": {
+    "pid": 70538,
+    "exitCode": 0,
+    "amdLauncherPid": 1132550,
+    "sigtermThenNaturalExit": true,
+    "publicProcessesModified": false
+  }
+}

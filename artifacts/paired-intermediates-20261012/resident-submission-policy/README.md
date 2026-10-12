@@ -8,5 +8,11 @@ The existing partition-prefill-lifetime test fails before the routing repair and
 
 Component: doppler.runtime-source.inference.pipelines.text
 Intent: preserved
-Acceptance evidence: retained focused test, source type/style/architecture logs; bounded physical replay still pending.
+Acceptance evidence: retained focused test, source type/style/architecture logs; bounded physical replay below passes its declared scope.
 Boundary effects: resident partition submission now consumes the existing whole-model prefill batching policy; no transport or admission change.
+
+## Bounded physical result
+
+Ordinary archive10 (85ee2795…) from eba47897 completes the identical184-token request across Mac input and AMD output: all51 retained prefixes pass0.001, maximum9.520044947919359e-7, natural EOS. Both resident closes and queue barriers complete, both pools report0active/64reusable buffers. Device peaks are756,061,984 and392,195,664bytes; remaining reusable device bytes70,823,440 and72,424,928 are not zero-residency claims. No device-loss or cleanup error occurred, and the bounded kernel journal records no reset. Owned processes exited naturally.
+
+The standard archive also contains intervening committed RD additions (partition replay module and COPY_SRC usage on paged KV tables), inventoried in archive10-package-binding.json. This contiguous-cache legacy route does not use the new replay entry or paged tables. No shader bytes changed. The result supports the submission-policy repair, not a claim that a particular arithmetic kernel was wrong or that watchdog duration alone was proven. Final version0.6.28 and complete55-prefix/both-placement qualification remain separate work.
