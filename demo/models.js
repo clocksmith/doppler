@@ -35,7 +35,6 @@ function setProgress(event) {
   const row = $('model-select-progress-row');
   const bar = $('model-select-progress');
   const fill = bar?.querySelector('.model-card-progress-fill');
-  const label = $('model-select-progress-label');
   if (row) row.hidden = !event;
   // The public API's percentages are milestones across unlike phases, not a
   // measured total. Show activity and the reported work without a false 0-100%.
@@ -46,9 +45,11 @@ function setProgress(event) {
     bar.setAttribute('aria-valuetext', message || 'Loading model');
   }
   if (fill) fill.style.width = event ? '35%' : '0%';
-  if (label) label.textContent = event ? 'Loading' : '';
   const detail = $('model-select-detail');
-  if (detail && event) detail.textContent = message || 'Loading model...';
+  if (detail && event) {
+    detail.textContent = message || 'Loading model...';
+    detail.hidden = false;
+  }
   onProgress?.(event);
 }
 
@@ -74,7 +75,8 @@ export function syncModelControls() {
     remove.disabled = busy;
   }
   if (detail) {
-    detail.textContent = entry ? buildModelCardDetail(entry, status) : '';
+    detail.textContent = entry ? buildModelCardDetail(entry) : '';
+    detail.hidden = !detail.textContent;
   }
   const select = $('model-select');
   if (select) select.disabled = !catalog.length || busy;
@@ -218,11 +220,9 @@ export function canRemoveModelStatus(status) {
   return status === 'stored' || status === 'loaded';
 }
 
-export function buildModelCardDetail(entry, status) {
-  const label = status === 'loaded'
-    ? 'Loaded'
-    : (status === 'stored' ? 'Downloaded' : 'Available');
-  return `${label} · ${entry?.modelId ?? 'unknown'}`;
+export function buildModelCardDetail(entry) {
+  const identity = entry?.modelId ?? '';
+  return modelLabel(entry) === identity ? '' : identity;
 }
 
 export function setModelCallbacks(callbacks = {}) {
@@ -294,8 +294,9 @@ export function renderModelCards() {
   const count = $('model-browser-count');
   if (count) count.textContent = `${catalog.length} models`;
   const status = $('model-select-status');
-  if (status) status.textContent = catalog.length
-    ? ''
-    : 'No supported models';
+  if (status) {
+    status.textContent = catalog.length ? '' : 'No supported models';
+    status.hidden = catalog.length > 0;
+  }
   syncModelControls();
 }

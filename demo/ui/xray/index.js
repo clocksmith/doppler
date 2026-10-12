@@ -126,7 +126,6 @@ function addTiming(container, receipt) {
   const metrics = element('dl', 'xray-overview');
   metric(metrics, 'Output tokens', Array.isArray(receipt.generatedTokenIds)
     ? String(receipt.generatedTokenIds.length) : 'Not captured');
-  metric(metrics, 'Total elapsed', milliseconds(total));
   metric(metrics, 'Reported decode rate', number(stats.tokensPerSecond) === null
     ? 'Not captured' : stats.tokensPerSecond.toFixed(1) + ' tokens/s');
   section.append(metrics);
@@ -142,10 +141,6 @@ function addTiming(container, receipt) {
   if (total !== null && prefill !== null && decode !== null && prefill + decode > total) {
     section.append(element('p', 'xray-diagnostic',
       'Phase timers exceed total elapsed time. They cannot be treated as an additive breakdown.'));
-  } else if (prefill !== null && decode !== null && prefill !== decode) {
-    section.append(element('p', 'xray-diagnostic', decode > prefill
-      ? 'Writing the answer took longer than reading the prompt.'
-      : 'Reading the prompt took longer than writing the answer.'));
   }
   container.append(section);
 }
@@ -267,9 +262,6 @@ function addIdentity(container, receipt) {
   metric(facts, 'Observation policy', fact(receipt.policy?.label ?? receipt.policy?.id));
   section.append(facts);
   const notes = element('ul', 'xray-diagnostics');
-  if (receipt.policy?.modifiesExecution === true) {
-    notes.append(element('li', '', 'Inspection changed execution. Do not treat these timings as normal chat speed.'));
-  }
   notes.append(element('li', '', 'Kernel-level bottlenecks and GPU utilization cannot be inferred from phase totals.'));
   notes.append(element('li', '', receipt.fingerprint?.qualityDigest
     ? 'A quality fingerprint is recorded. Comparison still requires a matching receipt.'
