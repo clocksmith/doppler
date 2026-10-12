@@ -19,7 +19,7 @@ import {
 } from '../config/capsule-v2.js';
 import { sha256Hex } from '../formats/sha256.js';
 import { stableSortObject } from '../formats/stable-sort-object.js';
-import { buildQualificationRecords, promoteQualifiedModelIRV2 } from './forge-qualification.js';
+import { buildQualificationRecords, promoteQualifiedModelIRV2, normalizeQualificationEvidence } from './forge-qualification.js';
 import { resolveCapsuleEmbeddingContract } from '../config/embedding-contract.js';
 import { evaluateForgeCandidates } from './forge-candidate-evaluation.js';
 
@@ -138,50 +138,6 @@ function normalizeCapsuleArtifact(artifact, input) {
   };
 }
 
-function normalizeQualificationEvidence(evidence) {
-  requireObject(evidence, 'qualification evidence');
-  if (![undefined, 'generate', 'rerank', 'encodeSequence', 'embed', 'scoreChoices'].includes(evidence.operation)) {
-    throw new Error(`Rig does not support qualification operation "${evidence.operation}".`);
-  }
-  const surface = requireString(evidence.surface, 'qualificationEvidence.surface');
-  const evidenceHash = requireString(evidence.evidenceHash, 'qualificationEvidence.evidenceHash');
-  const sourcePath = path.resolve(requireString(evidence.sourcePath, 'qualificationEvidence.sourcePath'));
-  const sizeBytes = requirePositiveInteger(evidence.sizeBytes, 'qualificationEvidence.sizeBytes');
-  const counts = evidence.operation === 'rerank'
-    ? { operation: 'rerank', rerankedDocuments: requirePositiveInteger(evidence.rerankedDocuments, 'qualificationEvidence.rerankedDocuments') }
-    : evidence.operation === 'encodeSequence'
-    ? { operation: 'encodeSequence', encodedSequences: requirePositiveInteger(evidence.encodedSequences, 'qualificationEvidence.encodedSequences') }
-    : evidence.operation === 'embed'
-    ? { operation: 'embed', embeddedTexts: requirePositiveInteger(evidence.embeddedTexts, 'qualificationEvidence.embeddedTexts') }
-    : evidence.operation === 'scoreChoices'
-    ? { operation: 'scoreChoices', scoredChoices: requirePositiveInteger(evidence.scoredChoices, 'qualificationEvidence.scoredChoices') }
-    : { generatedTokens: requirePositiveInteger(evidence.generatedTokens, 'qualificationEvidence.generatedTokens') };
-  const transcriptHash = requireString(evidence.transcriptHash, 'qualificationEvidence.transcriptHash');
-  if (evidence.status !== 'passed') throw new Error('Rig only packages passed qualification evidence.');
-  const capsulePath = toPosix(path.join(
-    'artifacts',
-    'evidence',
-    `qualification-${surface.replace(/[^a-zA-Z0-9._-]+/g, '-')}-${evidenceHash.slice('sha256:'.length, 'sha256:'.length + 12)}.json`
-  ));
-  const artifact = {
-    artifactId: artifactId('qualification-evidence', capsulePath, evidenceHash),
-    role: 'qualification-evidence',
-    path: capsulePath,
-    hash: evidenceHash,
-    sizeBytes,
-    sourcePath,
-  };
-  return {
-    surface,
-    status: 'passed',
-    evidenceArtifactId: artifact.artifactId,
-    evidenceHash,
-    transcriptHash,
-    ...counts,
-    artifact,
-  };
-}
-
 function stripRigOnlyArtifactFields(artifact) {
   const { sourcePath: ignoredSourcePath, ...capsuleArtifact } = artifact;
   void ignoredSourcePath;
@@ -218,6 +174,8 @@ export async function stageInspect(input) {
       programBundlePath,
       outputPath,
       qualificationEvidence: Array.isArray(input.qualificationEvidence) ? input.qualificationEvidence : [],
+      pieceIndex: input.pieceIndex ?? null,
+      residentContract: input.residentContract ?? null,
       modelIR: input.modelIR ?? null,
       modelIREvidence: input.modelIREvidence ?? null,
       initialExecutionIdentity: input.initialExecutionIdentity ?? null,
@@ -241,6 +199,18 @@ export function stageNormalize(inspected) {
   const artifacts = bundle.artifacts.map((artifact) => normalizeCapsuleArtifact(artifact, input));
   const qualificationEvidence = input.qualificationEvidence.map(normalizeQualificationEvidence);
   artifacts.push(...qualificationEvidence.map((evidence) => evidence.artifact));
+  if (input.residentContract) {
+    const contract = input.residentContract;
+    artifacts.push({ ...contract, artifactId: artifactId('qualification-evidence', contract.path, contract.hash), role: 'qualification-evidence' });
+  }
+  let pieceIndexArtifactId = null;
+  if (input.pieceIndex) {
+    const piece = input.pieceIndex;
+    pieceIndexArtifactId = artifactId('piece-index', piece.path, piece.hash);
+    artifacts.push({ ...piece, artifactId: pieceIndexArtifactId, role: 'piece-index' });
+  }
+  if (qualificationEvidence.some(row => row.operation === 'residentPartition')
+    && (!pieceIndexArtifactId || !input.initialExecutionIdentity || !input.residentContract)) throw new Error('Resident qualification requires signed pieces and observed initial identity.');
   let modelIREvidenceArtifactId = null;
   if (input.modelIREvidence !== null) {
     const evidence = requireObject(input.modelIREvidence, 'ModelIR evidence');
@@ -286,6 +256,7 @@ export function stageNormalize(inspected) {
     artifacts,
     qualificationEvidence,
     modelIREvidenceArtifactId,
+    pieceIndexArtifactId,
     programBundleArtifactId: programBundleArtifact.artifactId,
   };
 }
@@ -772,6 +743,7 @@ export function stagePackage(qualified) {
       programBundleArtifactId: normalized.programBundleArtifactId,
       executionGraphHash: normalized.programBundle.execution.graphHash,
       manifestArtifactId: findIds('manifest')[0],
+      ...(normalized.pieceIndexArtifactId ? { pieceIndexArtifactId: normalized.pieceIndexArtifactId } : {}),
       ...(normalized.modelIREvidenceArtifactId
         ? { modelIREvidenceArtifactId: normalized.modelIREvidenceArtifactId }
         : {}),
