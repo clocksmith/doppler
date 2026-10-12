@@ -6,5 +6,10 @@
   "report": "/home/x/deco/doppler/reports/local/qwen3-short-documents-20261012/source.json",
   "log": "/home/x/deco/doppler/reports/local/qwen3-short-documents-20261012/source.log",
   "producerSha256": "3e1dd96f7e338a48a0c778e7d9b2b20f0c9c2982ff9a59194d03774ed42da483",
-  "evaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f"
+  "evaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "exitCode": 0,
+  "status": "completed",
+  "reportSha256": "20cda9ff20d91567176c348e9a64d61706f859d7254da4b311c6a3fa0356a233",
+  "logSha256": "c85a6b212d9af02421329f5556fd889d81f5712a3c3a7909b9e4ad63fb712aab",
+  "observedCompletedAtUtc": "2026-10-12T02:50:21.692433+00:00"
 }

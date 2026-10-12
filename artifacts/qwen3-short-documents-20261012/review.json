@@ -1,0 +1,245 @@
+{
+  "schema": "doppler.short-document-source-review/v1",
+  "reviewer": "Codex manual final-answer review; not unfamiliar-user validation",
+  "suiteSha256": "395f4d9c8a84d500345b9b5158656d730bb42aecd5a5cebf2e61f77adff8a1bf",
+  "reportSha256": "20cda9ff20d91567176c348e9a64d61706f859d7254da4b311c6a3fa0356a233",
+  "qualified": false,
+  "disposition": "rejected-incomplete-citations",
+  "completedCases": 8,
+  "passedCases": 5,
+  "failedCases": 3,
+  "factuallyCorrectConclusions": 8,
+  "naturalCompletions": 8,
+  "maximumGeneratedTokens": 612,
+  "maximumTotalTokens": 694,
+  "maximumRawUtf16Units": 2020,
+  "cases": [
+    {
+      "id": "superseded-invoice",
+      "seed": 17,
+      "qualified": true,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 523,
+      "totalTokens": 605,
+      "rawUtf16Units": 1699,
+      "factualConclusionsCorrect": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or conditional conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions, uncertainty and governing condition."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "All required supporting record identities are present."
+        }
+      ]
+    },
+    {
+      "id": "conditional-dispatch",
+      "seed": 17,
+      "qualified": true,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 237,
+      "totalTokens": 315,
+      "rawUtf16Units": 1023,
+      "factualConclusionsCorrect": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or conditional conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions, uncertainty and governing condition."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "All required supporting record identities are present."
+        }
+      ]
+    },
+    {
+      "id": "deadline-duration",
+      "seed": 17,
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 349,
+      "totalTokens": 417,
+      "rawUtf16Units": 1396,
+      "factualConclusionsCorrect": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or conditional conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions, uncertainty and governing condition."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Missing supporting R7 citation in final answer."
+        }
+      ]
+    },
+    {
+      "id": "retained-subtotal-correction",
+      "seed": 17,
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 315,
+      "totalTokens": 427,
+      "rawUtf16Units": 1256,
+      "factualConclusionsCorrect": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or conditional conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions, uncertainty and governing condition."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Missing supporting R9 citation in final answer."
+        }
+      ]
+    },
+    {
+      "id": "superseded-invoice",
+      "seed": 53,
+      "qualified": true,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 612,
+      "totalTokens": 694,
+      "rawUtf16Units": 2020,
+      "factualConclusionsCorrect": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or conditional conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions, uncertainty and governing condition."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "All required supporting record identities are present."
+        }
+      ]
+    },
+    {
+      "id": "conditional-dispatch",
+      "seed": 53,
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 246,
+      "totalTokens": 324,
+      "rawUtf16Units": 1111,
+      "factualConclusionsCorrect": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or conditional conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions, uncertainty and governing condition."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Missing supporting R5 citation in final answer."
+        }
+      ]
+    },
+    {
+      "id": "deadline-duration",
+      "seed": 53,
+      "qualified": true,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 290,
+      "totalTokens": 358,
+      "rawUtf16Units": 1147,
+      "factualConclusionsCorrect": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or conditional conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions, uncertainty and governing condition."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "All required supporting record identities are present."
+        }
+      ]
+    },
+    {
+      "id": "retained-subtotal-correction",
+      "seed": 53,
+      "qualified": true,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "generatedTokens": 290,
+      "totalTokens": 402,
+      "rawUtf16Units": 1144,
+      "factualConclusionsCorrect": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct requested arithmetic or conditional conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves exclusions, uncertainty and governing condition."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "All required supporting record identities are present."
+        }
+      ]
+    }
+  ],
+  "conclusion": "The original authorized Qwen3-1.7B recommended thinking policy gives useful bounded factual answers and corrects retained mistakes on this screen. Three required citations are omitted, so full screen acceptance fails. This is narrower source capability evidence, not a repair or replacement of failed contractor/literal gates. No converted-weight or physical promotion.",
+  "scope": "CPU original source weights/F32 equations/F16 cache; no GPU/distribution acceptance.",
+  "runtimeChanges": false
+}
