@@ -1,0 +1,21 @@
+{"prepared":0,"bytes":653140240}
+{"prepared":1,"bytes":287648016}
+{"attempt":0,"inputTokens":19,"step":0,"done":false}
+{"attempt":0,"inputTokens":19,"step":1,"done":true}
+{"attempt":1,"inputTokens":21,"step":0,"done":false}
+{"attempt":1,"inputTokens":21,"step":1,"done":true}
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Resident cleanup observation failed
+    at file:///private/var/tmp/reploid-paired-split-archive9-20261012/tests/fixtures/browser-partition-memory-completion.js:258:7 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

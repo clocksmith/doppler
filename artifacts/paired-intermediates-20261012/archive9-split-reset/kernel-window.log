@@ -1,0 +1,9 @@
+Oct 12 17:07:48 128 kernel: amdgpu 0000:c2:00.0: Dumping IP State
+Oct 12 17:07:48 128 kernel: amdgpu 0000:c2:00.0: Dumping IP State Completed
+Oct 12 17:07:48 128 kernel: amdgpu 0000:c2:00.0: [drm] AMDGPU device coredump file has been created
+Oct 12 17:07:48 128 kernel: amdgpu 0000:c2:00.0: [drm] Check your /sys/class/drm/card1/device/devcoredump/data
+Oct 12 17:07:48 128 kernel: amdgpu 0000:c2:00.0: ring gfx_0.0.0 timeout, signaled seq=22108725, emitted seq=22108727
+Oct 12 17:07:48 128 kernel: amdgpu 0000:c2:00.0:  Process chrome pid 798293 thread chrome pid 798293
+Oct 12 17:07:48 128 kernel: amdgpu 0000:c2:00.0: Starting gfx_0.0.0 ring reset
+Oct 12 17:07:48 128 kernel: amdgpu 0000:c2:00.0: Ring gfx_0.0.0 reset succeeded
+Oct 12 17:07:48 128 kernel: amdgpu 0000:c2:00.0: [drm] device wedged, but recovered through reset
