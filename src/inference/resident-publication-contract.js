@@ -3,6 +3,34 @@ import { contractAssert as assert, exactRecord, canonicalMetadata, metadataDiges
 import { validateResidentAttemptIdentity, residentAttemptDigest } from './resident-block-contract.js';
 import { validateResidentCursor } from './resident-state-contract.js';
 import { GENERATION_CONTRACT } from '../config/generation-contract.js';
+import { validateCanonicalGenerationPolicy } from '../config/canonical-generation-policy.js';
+
+/** The explicit no-execution case has neither acknowledgments nor a cursor.
+ * @type {import('./resident-publication-contract.js').validateAdmissionPublication} */
+export function validateAdmissionPublication(input, attempt, policy, vocabSize) {
+  canonicalMetadata(input);
+  const value = /** @type {import('./resident-publication-contract.js').AdmissionPublication} */ (exactRecord(input,
+    ['schema', 'publicationDigest', 'attemptId', 'coordinatorEpoch', 'attemptDigest', 'sequence', 'expectedRevision',
+      'previousPublicationDigest', 'result']));
+  attempt = validateResidentAttemptIdentity(attempt);
+  policy = validateCanonicalGenerationPolicy(policy, vocabSize);
+  assert(value.schema === 'doppler.admission-publication/v1' && value.attemptDigest === residentAttemptDigest(attempt)
+    && value.attemptId === attempt.attemptId && value.coordinatorEpoch === attempt.coordinatorEpoch
+    && value.sequence === 0 && value.expectedRevision === null, 'Admission publication binding mismatch.');
+  if (value.previousPublicationDigest !== null) hash(value.previousPublicationDigest, 'previous publication');
+  const result = exactRecord(value.result,
+    ['schema', 'generationId', 'promptTokenCount', 'promptDigest', 'acceptedTokenIds', 'stopReason']);
+  count(result.promptTokenCount, 'admitted prompt', Math.min(policy.materializedInputCapacity, policy.totalAcceptedTokenLimit));
+  hash(result.promptDigest, 'effective prompt digest');
+  admitTokens(result.acceptedTokenIds, vocabSize, 0);
+  assert(result.schema === 'doppler.admission-only/v1' && result.generationId === attempt.generationId
+    && result.promptTokenCount > 0 && (policy.maxGeneratedTokens === 0 || result.promptTokenCount === policy.totalAcceptedTokenLimit)
+    && result.stopReason === (policy.maxGeneratedTokens === 0 ? 'max-tokens' : 'context-limit'),
+  'Invalid admission-only stopping outcome.');
+  const { publicationDigest, ...body } = value;
+  assert(publicationDigest === metadataDigest(body.schema, body), 'Admission publication digest mismatch.');
+  return immutableRecord(value);
+}
 
 /** @type {import('./resident-publication-contract.js').residentPublicationDecisionDigest} */
 export function residentPublicationDecisionDigest(input) {

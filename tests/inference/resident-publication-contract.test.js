@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { bootstrapResidentCursor, decideResidentBlock } from '../../src/inference/resident-state-contract.js';
+import { bootstrapResidentCursor, decideResidentBlock, admitResidentPrompt } from '../../src/inference/resident-state-contract.js';
 import { residentAttemptDigest } from '../../src/inference/resident-block-contract.js';
 import { metadataDigest } from '../../src/config/canonical-contract-codec.js';
-import { residentPublicationDecisionDigest, validateExecutionPublication } from '../../src/inference/resident-publication-contract.js';
+import { residentPublicationDecisionDigest, validateExecutionPublication, validateAdmissionPublication } from '../../src/inference/resident-publication-contract.js';
 const policy = JSON.parse(readFileSync(new URL('../fixtures/canonical-generation-policy.json', import.meta.url)));
 const hash = 'sha256:' + 'a'.repeat(64), other = 'sha256:' + 'b'.repeat(64), epoch = '0'.repeat(32);
 const stage = { stageId: hash, participantId: 'p', participantEpoch: epoch, deviceEpoch: epoch, residentId: 'r', partitionIndex: 0, executionId: hash };
@@ -59,4 +59,13 @@ for (const attempt of [whole, split]) {
     }
   }
 }
-console.log('publication contracts: exact one/two-stage acknowledgment sets, epochs, decisions, cursor and contiguous ranges passed');
+for (const p of [{ ...policy, maxGeneratedTokens: 0 }, { ...policy, totalAcceptedTokenLimit: 2 }]) {
+  const value = seal({ schema: 'doppler.admission-publication/v1', attemptId: whole.attemptId, coordinatorEpoch: epoch,
+    attemptDigest: residentAttemptDigest(whole), sequence: 0, expectedRevision: null, previousPublicationDigest: null,
+    result: admitResidentPrompt([1, 2], p, 100, hash) });
+  assert(Object.isFrozen(validateAdmissionPublication(value, whole, p, 100)));
+  assert.throws(() => validateAdmissionPublication(seal({ ...value, acknowledgments: [] }), whole, p, 100));
+  assert.throws(() => validateAdmissionPublication(seal({ ...value, successor: bootstrap }), whole, p, 100));
+  assert.throws(() => validateAdmissionPublication(seal({ ...value, result: { ...value.result, acceptedTokenIds: [3] } }), whole, p, 100));
+}
+console.log('publication contracts: exact one/two-stage commits, admission-only results, epochs, decisions and contiguous ranges passed');
