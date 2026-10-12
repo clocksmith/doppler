@@ -19,10 +19,11 @@ import { runScale, recordScale } from '../../../../gpu/kernel-selector.js';
 import { isGpuBufferInstance, isWeightBuffer, requireWeightDtype } from '../../../../gpu/weight-buffer.js';
 import { shouldDebugLayerOutput, decodeReadback, getLogitsHealth } from '../debug-utils/index.js';
 import { trace, isTraceEnabled } from '../../../../debug/index.js';
-import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { getRuntimeConfig } from '../../../../config/runtime.js';
+import { createTensor, tensorElementBytes } from '../../../../gpu/tensor.js';
 
 function shouldUsePostAttnNormFusedGateUpPrelude({ session, postAttn, fusedResidualInput, numTokens, context }) {
+  if (postAttn.precision !== undefined || fusedResidualInput?.precision !== undefined) return false;
   if (context.config.normalizationType !== 'rmsnorm') return false;
   if (session?.usePostAttnNormFusedGateUp !== true) return false;
   if (numTokens !== 1) return false;
@@ -37,7 +38,7 @@ async function debugFFNBuffer(context, layerIdx, label, tensor, numTokens, hidde
   if (!context.debugCheckBuffer) return;
   if (!isGpuBufferInstance(tensor?.buffer)) return;
   if (!shouldDebugLayerOutput(layerIdx, context.debugLayers)) return;
-  await context.debugCheckBuffer(tensor.buffer, `L${layerIdx} ${label} (GPU)`, numTokens, hiddenSize);
+  await context.debugCheckBuffer(tensor.buffer, `L${layerIdx} ${label} (GPU)`, numTokens, hiddenSize, tensor);
 }
 
 function enqueueRecordedFFNHealth(context, layerIdx, label, tensor, elementCount) {
@@ -49,10 +50,10 @@ function enqueueRecordedFFNHealth(context, layerIdx, label, tensor, elementCount
     return;
   }
   const dtype = tensor.dtype;
-  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
+  const bytesPerElement = tensorElementBytes(dtype, tensor);
   recorder.enqueueCompletionTask(async () => {
     const data = await readBuffer(tensor.buffer, elementCount * bytesPerElement);
-    trace.logits(`L${layerIdx}.${label}_HEALTH`, getLogitsHealth(decodeReadback(data, dtype)));
+    trace.logits(`L${layerIdx}.${label}_HEALTH`, getLogitsHealth(decodeReadback(data, dtype, tensor)));
   });
 }
 
@@ -140,7 +141,7 @@ export async function processFFNStandard(
         if (normBiasOwned) releaseOrTrack(recorder, normBiasTensor.buffer, decodeBuffers);
       }
     } else if (fusedResidualInput) {
-      const bytesPerElement = postAttn.dtype === 'f16' ? 2 : 4;
+      const bytesPerElement = tensorElementBytes(postAttn.dtype, postAttn);
       prenormSumBuffer = acquireBuffer(size * bytesPerElement, undefined, 'fused_prenorm_sum');
       if (shouldUsePostAttnNormFusedGateUpPrelude({ session, postAttn, fusedResidualInput, numTokens, context })) {
         postAttnNormStats = await doRMSNormStats(postAttn, fusedResidualInput, rmsNormEps, {
@@ -183,6 +184,8 @@ export async function processFFNStandard(
       recorder,
       operatorDiagnostics: context.operatorDiagnostics,
       dtype: normedTensor.dtype,
+      precision: normedTensor.precision, components: normedTensor.components,
+      elementStrideBytes: normedTensor.elementStrideBytes,
     });
     await debugFFNBuffer(context, layerIdx, 'FFN input', normedTensor, numTokens, hiddenSize);
     enqueueRecordedFFNHealth(context, layerIdx, 'ffn_in', normedTensor, numTokens * hiddenSize);
@@ -197,7 +200,7 @@ export async function processFFNStandard(
   // buffer directly — it IS the correct residual for ffn_residual because
   // ffn_residual adds to the pre-rmsnorm tensor.
   const pendingResidualForFfn = prenormSumBuffer
-    ? { buffer: prenormSumBuffer, dtype: postAttn.dtype, shape: postAttn.shape }
+    ? createTensor(prenormSumBuffer, postAttn.dtype, postAttn.shape, 'ffn_prenorm_sum', postAttn)
     : postAttn;
   context.__pendingFfnResidualTensor = requestedResidualBranchScale === 1
     ? pendingResidualForFfn
@@ -236,6 +239,8 @@ export async function processFFNStandard(
     recorder,
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: ffnOutput.dtype,
+    precision: ffnOutput.precision, components: ffnOutput.components,
+    elementStrideBytes: ffnOutput.elementStrideBytes,
   });
   await debugFFNBuffer(context, layerIdx, 'FFN output', ffnOutput, numTokens, hiddenSize);
   enqueueRecordedFFNHealth(context, layerIdx, 'ffn_out', ffnOutput, numTokens * hiddenSize);
@@ -250,7 +255,7 @@ export async function processFFNStandard(
     output = ffnOutput;
   } else {
     const residualTensor = prenormSumBuffer
-      ? { buffer: prenormSumBuffer, dtype: postAttn.dtype, shape: postAttn.shape }
+      ? createTensor(prenormSumBuffer, postAttn.dtype, postAttn.shape, 'ffn_prenorm_sum', postAttn)
       : postAttn;
     residualInputOwned = ffnOutput.dtype !== residualTensor.dtype;
     if (residualInputOwned) {
@@ -276,6 +281,8 @@ export async function processFFNStandard(
     if (
       nextInputNormFusion
       && config.normalizationType === 'rmsnorm'
+      && residualInput.precision === undefined
+      && residualTensor.precision === undefined
       && residualInput.dtype === 'f32'
       && residualTensor.dtype === 'f32'
     ) {
@@ -330,6 +337,8 @@ export async function processFFNStandard(
     recorder,
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: output.dtype,
+    precision: output.precision, components: output.components,
+    elementStrideBytes: output.elementStrideBytes,
   });
   await debugFFNBuffer(context, layerIdx, 'layer output', output, numTokens, hiddenSize);
   enqueueRecordedFFNHealth(context, layerIdx, 'layer_out', output, numTokens * hiddenSize);
