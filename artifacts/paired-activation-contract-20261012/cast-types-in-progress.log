@@ -1,0 +1,24 @@
+
+> doppler-gpu@0.6.27 typecheck:source
+> tsc -p tsconfig.declarations.json --noEmit && node tools/check-source-types.js
+
+[96msrc/gpu/kernels/paired-matmul.js[0m:[93m12[0m:[93m77[0m - [91merror[0m[90m TS2322: [0mType '{}' is not assignable to type 'MatmulOptions & { outputPrecision?: "two-f32" | "f32" | undefined; }'.
+  Property 'outputDtype' is missing in type '{}' but required in type 'MatmulOptions'.
+
+[7m12[0m export async function executePairedMatmul(recorder, input, weight, M, N, K, options = {}) {
+[7m  [0m [91m                                                                            ~~~~~~~~~~~~[0m
+
+  [96msrc/gpu/kernels/types.d.ts[0m:[93m16[0m:[93m3[0m
+    [7m16[0m   outputDtype: 'f16' | 'f32';
+    [7m  [0m [96m  ~~~~~~~~~~~[0m
+    'outputDtype' is declared here.
+[96msrc/gpu/kernels/paired-matmul.js[0m:[93m21[0m:[93m39[0m - [91merror[0m[90m TS2345: [0mArgument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+
+[7m21[0m   if (!['f32', 'f16', 'q4k'].includes(dtype) || !buffer || !('size' in buffer)) {
+[7m  [0m [91m                                      ~~~~~[0m
+[96msrc/gpu/kernels/paired-matmul.js[0m:[93m51[0m:[93m37[0m - [91merror[0m[90m TS18047: [0m'device' is possibly 'null'.
+
+[7m51[0m   const gridWidth = Math.min(M * N, device.limits.maxComputeWorkgroupsPerDimension);
+[7m  [0m [91m                                    ~~~~~~[0m
+

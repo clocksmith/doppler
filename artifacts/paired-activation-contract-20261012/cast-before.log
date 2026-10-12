@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: malformed or explicit non-scalar metadata must reject before GPU allocation
+    at async file:///Users/xyz/deco/doppler/tests/gpu/paired-cast-wrapper.test.js:9:3 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: Error: BufferPool requires a live GPU device.
+      at getBufferPool (file:///Users/xyz/deco/doppler/src/memory/buffer-pool.js:762:46)
+      at acquireBuffer (file:///Users/xyz/deco/doppler/src/memory/buffer-pool.js:792:3)
+      at execute (file:///Users/xyz/deco/doppler/src/gpu/kernels/paired-cast.js:45:30)
+      at expandF32ToPaired (file:///Users/xyz/deco/doppler/src/gpu/kernels/paired-cast.js:63:10)
+      at file:///Users/xyz/deco/doppler/tests/gpu/paired-cast-wrapper.test.js:9:24,
+  expected: /scalar F32 input/,
+  operator: 'rejects',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
