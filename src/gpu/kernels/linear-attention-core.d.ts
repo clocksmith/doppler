@@ -20,6 +20,9 @@ export interface LinearAttentionCoreLayerState {
   aLogGPU: GPUBuffer;
   normWeightGPU: GPUBuffer;
   convStateGPU: GPUBuffer;
+  convStatePrecision?: 'f32' | 'two-f32';
+  convStateComponents?: 1 | 2;
+  normWeightOffset?: boolean;
   recurrentStateGPU: GPUBuffer;
   recurrentStatePrecision: 'f32' | 'two-f32';
   recurrentStateComponents: 1 | 2;

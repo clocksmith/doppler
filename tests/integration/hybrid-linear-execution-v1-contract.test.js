@@ -132,4 +132,15 @@ const isolatedHybridExecution = {
 
 assert.doesNotThrow(() => compileHybridExecution(isolatedHybridExecution));
 
+const pairedHybrid = structuredClone(unsafeHybridExecution);
+for (const key of ['dense_decode', 'dense_prefill']) pairedHybrid.kernels[key] = {
+  kernel: 'matmul_paired.wgsl', entry: 'main', digest: DIGEST,
+  constants: { WEIGHT_F16: false, WEIGHT_Q4K: true, SCALAR_OUTPUT: false },
+};
+assert.doesNotThrow(() => compileHybridExecution(pairedHybrid, 'q4k'),
+  'Declared paired Q4 reads the same retained Q4 weight encoding.');
+const scalarWeightHybrid = structuredClone(pairedHybrid);
+scalarWeightHybrid.kernels.dense_decode.constants.WEIGHT_Q4K = false;
+assert.throws(() => compileHybridExecution(scalarWeightHybrid, 'q4k'), /global non-Q4/,
+  'The same shader with F32 weight constants must not count as Q4 coverage.');
 console.log('hybrid-linear-execution-v1-contract.test: ok');

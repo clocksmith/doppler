@@ -1198,6 +1198,11 @@
       "id": "src/storage/artifact-storage-context.js#readRange",
       "category": "non-tensor-data",
       "reason": "This storage method assembles immutable artifact byte ranges and does not interpret or transform model tensor values."
+    },
+    {
+      "id": "src/inference/pipelines/text/linear-attention/plan.js#ensureLayerRuntimeGpuBuffers",
+      "category": "gpu-orchestration",
+      "reason": "Allocates and uploads declared immutable weights and zero/state bytes; indexed writes assign or clear GPU ownership fields only. Partial failure releases only newly acquired resources and preserves existing resident buffers."
     }
   ]
 }

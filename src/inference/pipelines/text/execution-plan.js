@@ -412,6 +412,11 @@ export function resolveExecutionSessionPlan(container, options = {}) {
     kernelPath: activePlan.kernelPath,
     kernelPathId: activePlan.kernelPathId,
     activationDtype: activePlan.activationDtype,
+    ...(activePlan.activationPrecision === 'two-f32' ? {
+      activationPrecision: activePlan.activationPrecision,
+      activationComponents: activePlan.activationComponents,
+      activationElementStrideBytes: activePlan.activationElementStrideBytes,
+    } : {}),
     finitenessGuardEnabled: activePlan.finitenessGuardEnabled,
     finitenessOnTrigger: activePlan.finitenessOnTrigger,
     finitenessAbsThreshold: activePlan.finitenessAbsThreshold,

@@ -1,3 +1,4 @@
+import { executePairedLinearAttention } from './paired-linear-attention.js';
 import { getDevice } from '../device.js';
 import { getShaderScopeCacheKey } from './shader-source-scope.js';
 import { WORKGROUP_SIZES } from './constants.js';
@@ -207,6 +208,7 @@ function canUseFusedDecodeCore(layerState, numTokens, options, aTensor, bTensor)
 }
 
 export async function runLinearAttentionCoreGPU(qkvTensor, zTensor, aTensor, bTensor, layerState, options = {}) {
+  if (qkvTensor?.precision === 'two-f32') return executePairedLinearAttention(qkvTensor, zTensor, aTensor, bTensor, layerState, options);
   const device = getDevice();
   if (!device) {
     throw new Error('No GPU device available for linear_attention core.');

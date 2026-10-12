@@ -14,6 +14,7 @@ const state = Object.fromEntries(fields.flatMap((field, index) => [
   [field, new Float32Array(index + 1).fill(index + 1)],
   [`${field}GPU`, { id: field, size: 256 }],
 ]));
+state.convStatePrecision = 'f32';
 state.recurrentStatePrecision = 'two-f32';
 state.recurrentStateComponents = 2;
 for (const recorder of [null, { id: 'recorder' }]) {
@@ -27,7 +28,7 @@ for (const recorder of [null, { id: 'recorder' }]) {
       calls.push(stage);
       assert.equal(stage, `linear_state_${names[index]}`);
       assert.equal(buffer, state[`${fields[index]}GPU`]);
-      assert.equal(config.hiddenSize, index + 1, 'Use logical elements, not pooled buffer capacity');
+      assert.equal(config.hiddenSize, index === 5 ? (index + 1) / 2 : index + 1, 'Use logical elements, not pooled buffer capacity');
       assert.equal(config.numTokens, 1);
       assert.equal(config.dtype, 'f32');
       assert.deepEqual(config.storageLayout, index === 5
@@ -47,7 +48,7 @@ for (const recorder of [null, { id: 'recorder' }]) {
     }
   }
 }
-assert.match(source, /try \{\s*if \(options\.debugProbes\?\.some\([\s\S]*?await observeLinearAttentionState\(layerState, options\);/);
+assert.match(source, /try \{[\s\S]*?if \(options\.debugProbes\?\.some\([\s\S]*?await observeLinearAttentionState\(layerState, options\);/);
 const guardStart = source.indexOf('    if (options.debugProbes?.some(');
 const guardEnd = source.indexOf("    for (const [stage, tensor, width]", guardStart);
 assert(guardStart > 0 && guardEnd > guardStart);

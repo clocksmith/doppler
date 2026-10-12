@@ -29,3 +29,16 @@ export function assertRecurrentStateLayout(state) {
   }
   return components;
 }
+
+/** @param {import('../linear-attention.js').LinearLayerRuntimeState} state */
+export function assertConvolutionStateLayout(state) {
+  const components = recurrentStateComponents(state.convStatePrecision);
+  const count = state.convDim * state.convKernelSize;
+  if (![state.convDim, state.convKernelSize].every(v => Number.isSafeInteger(v) && v > 0)
+    || !Number.isSafeInteger(count) || state.convStateComponents !== components
+    || !(state.convState instanceof Float32Array) || state.convState.length !== count * components
+    || typeof state.normWeightOffset !== 'boolean') {
+    throw new Error('Linear convolution state storage does not match its declared precision and geometry.');
+  }
+  return components;
+}

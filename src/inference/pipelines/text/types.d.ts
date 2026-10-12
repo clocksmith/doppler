@@ -166,6 +166,9 @@ export interface LayerContext {
   };
   /** Activation dtype for hidden states (default: 'f32', experimental: 'f16') */
   activationDtype?: 'f16' | 'f32';
+  activationPrecision?: 'two-f32';
+  activationComponents?: 2;
+  activationElementStrideBytes?: 8;
   /** Execution-v1 fused-FFN step precision propagated from the active layer-pipeline step. */
   ffnStepPrecision?: {
     inputDtype?: 'f16' | 'f32' | null;

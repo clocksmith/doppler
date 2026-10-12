@@ -45,6 +45,9 @@ export interface ExecutionSessionPlan {
   kernelPath: KernelPathSchema | null;
   kernelPathId: string | null;
   activationDtype: 'f16' | 'f32';
+  activationPrecision?: 'two-f32';
+  activationComponents?: 2;
+  activationElementStrideBytes?: 8;
   finitenessGuardEnabled: boolean;
   finitenessOnTrigger: 'error' | 'fallback-plan';
   finitenessAbsThreshold: number;

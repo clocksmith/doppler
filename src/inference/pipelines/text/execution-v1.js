@@ -17,6 +17,7 @@ import {
 } from '../../../config/transforms/capability-transform-resolver.js';
 import { composeTransforms } from '../../../converter/execution-graph-transforms.js';
 import { log } from '../../../debug/index.js';
+import { kernelPathRequiresWeightDtype } from '../../../config/kernel-path-loader.js';
 import { resolveRangeAwareSelectiveWideningConfig } from './finiteness-policy.js';
 import { applyExecutionPatch } from './execution-v1/validation.js';
 import {
@@ -197,9 +198,10 @@ function isFullAttentionExecutionLayerType(layerType) {
     || normalized === 'standard';
 }
 
-function isFusedQ4ProjectionKernel(kernelEntry) {
-  return typeof kernelEntry?.kernel === 'string'
-    && kernelEntry.kernel.startsWith('fused_matmul_q4');
+function isQ4ProjectionKernel(kernelEntry) {
+  return kernelEntry != null && kernelPathRequiresWeightDtype(
+    { decode: { steps: [kernelEntry] } }, 'q4k', 'matmul'
+  );
 }
 
 function collectPhaseOpEntries(phaseEntries, kernels, ops) {
@@ -306,7 +308,7 @@ function assertHybridLinearProjectionIsolation(execution, layerTypes, modelId, w
     }
 
     const hasUnsafeGlobalEntry = entries.some(
-      (entry) => entry.layers === 'all' && !isFusedQ4ProjectionKernel(entry.kernelEntry)
+      (entry) => entry.layers === 'all' && !isQ4ProjectionKernel(entry.kernelEntry)
     );
     if (!hasUnsafeGlobalEntry) {
       continue;
@@ -315,7 +317,7 @@ function assertHybridLinearProjectionIsolation(execution, layerTypes, modelId, w
     const coveredLinearLayers = collectCoveredLayers(
       entries,
       linearLayers,
-      (kernelEntry) => isFusedQ4ProjectionKernel(kernelEntry)
+      (kernelEntry) => isQ4ProjectionKernel(kernelEntry)
     );
     const missingLinearLayers = linearLayers.filter((layerIdx) => !coveredLinearLayers.has(layerIdx));
     if (missingLinearLayers.length === 0) {
@@ -325,13 +327,11 @@ function assertHybridLinearProjectionIsolation(execution, layerTypes, modelId, w
     throw new Error(
       `[ExecutionV1] Hybrid linear-attention model "${modelId}" cannot apply a global non-Q4 ` +
       `${guard.phase} ${guard.label} kernel because linear-attention layers alias that role. ` +
-      `Missing fused Q4 coverage for linear layers [${missingLinearLayers.join(', ')}]. ` +
-      'Keep the linear-attention path on fused_matmul_q4* or isolate those layers with explicit execution-v1 overrides.'
+      `Missing declared Q4 coverage for linear layers [${missingLinearLayers.join(', ')}]. ` +
+      'Keep the linear-attention path on registered Q4 weight kernels or isolate those layers with explicit execution-v1 overrides.'
     );
   }
 }
-
-
 function expandV1ToResolvedSteps(execution, options = {}) {
   const expanded = expandExecutionV1(execution, options);
   return expanded.map((step, index) => {

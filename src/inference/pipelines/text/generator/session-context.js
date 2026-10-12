@@ -102,7 +102,11 @@ export function buildLayerContext(
 ) {
   assertKnownResolutionNotRevoked(state.revocationIdentity);
   assertBundledAdapterAuthorized(state.lora);
-  const config = state.modelConfig;
+  const numericSession = state.resolvedRuntimeSession?.runtime?.session ?? state.runtimeConfig.inference.session;
+  const config = { ...state.modelConfig, sessionSettings: { ...state.modelConfig.sessionSettings,
+    intermediatePrecision: numericSession.intermediatePrecision,
+    linearRecurrentStatePrecision: numericSession.linearRecurrentStatePrecision,
+  } };
   const computeConfig = state.runtimeConfig.inference.compute;
   const activeExecutionPlan = executionPlan ?? resolveActiveExecutionPlan(state);
   const activeKernelPath = activeExecutionPlan.kernelPath ?? state.resolvedKernelPath ?? null;
@@ -162,6 +166,9 @@ export function buildLayerContext(
     decodeBuffers: isDecodeMode && state.decodeBuffers?.hasBuffers() ? state.decodeBuffers : null,
     runtimeComputeConfig: effectiveComputeConfig,
     activationDtype: effectiveActivationDtype,
+    activationPrecision: activeExecutionPlan.activationPrecision,
+    activationComponents: activeExecutionPlan.activationComponents,
+    activationElementStrideBytes: activeExecutionPlan.activationElementStrideBytes,
     kernelPath: activeKernelPath,
     resolvedRuntimeSession: state.resolvedRuntimeSession,
     observationContext: state.observationContext,
