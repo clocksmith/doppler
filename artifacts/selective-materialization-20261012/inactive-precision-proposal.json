@@ -38,14 +38,18 @@
     "acceptedReploidPin": "unchanged until applicable exact-package gates pass"
   },
   "memory": {
-    "additionalBytes": "must be calculated from each declared live buffer and charged before allocation; not yet measured",
+    "additionalBytes": "Calculated conditional envelope in memory-calculation.json; hardware peak remains unmeasured.",
     "limitAction": "reject before exceeding the existing ceiling",
     "requiredChecks": [
       "prefill and decode peak",
       "simultaneous attempts",
       "allocation rejection",
       "cancellation and settled reuse"
-    ]
+    ],
+    "review": "memory-review.md",
+    "inventory": "memory-inventory.json",
+    "calculation": "memory-calculation.json",
+    "approvalPrerequisite": "Review proposed buffer/lifetime inventory and explicit paired activation payload compatibility change; no implementation or allocation qualification is authorized by this calculation."
   },
   "acceptance": [
     "Independent high/low arithmetic and nearest-even F16 controls, including midpoint values and subnormals",

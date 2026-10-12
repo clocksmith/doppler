@@ -79,3 +79,7 @@ Validation: `python3 tests/integration/qwen35-short-prefix-audit-test.py`, Pytho
 compilation and `git diff --check` pass. The first remote launch failed before
 computation because its Python path omitted `gguf`; `missing-gguf.log` preserves
 that failure. No new dependency installation was needed.
+
+## Inactive proposal memory review
+
+The [source-bound memory inventory and review](memory-review.md) calculates a separate-low-buffer design for two 1,588-token attempts. The [result](memory-calculation.json) separates active and reusable storage, the already approved recurrent-state cost, unchanged F16 KV, and host activation payloads. It is not a measured concurrent peak or permission to implement broader precision. Regenerate and verify with `node artifacts/selective-materialization-20261012/calculate-memory.js --check`.

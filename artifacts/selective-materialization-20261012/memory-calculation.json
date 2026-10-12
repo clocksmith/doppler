@@ -1,0 +1,1094 @@
+{
+  "schema": "doppler.inactive-paired-intermediate-memory-calculation/v1",
+  "qualified": false,
+  "inventorySha256": "40f96cc8edf43ecedc60f0156402ace365fb9ebf4a56979891d8447422f4f599",
+  "calculatorSha256": "5128ce548ff5312f9155962e13ee314e28ef26e940fac5333aece416b0f07c51",
+  "budget": 1420000000,
+  "allocationScope": "Additional GPUBuffer sidecars in the declared calculation design; not process RAM, hardware residency, or a complete new-runtime peak.",
+  "chunkRows": [
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    52
+  ],
+  "cases": {
+    "prefill-256": {
+      "linear": {
+        "rows": [
+          {
+            "id": "incoming-hidden",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "input-normalization",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "attention-output-projection",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "post-attention-normalization",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "post-attention-residual",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "ffn-gate",
+            "shape": [
+              256,
+              3584
+            ],
+            "logicalBytes": 3670016,
+            "bucketedBytes": 3670016
+          },
+          {
+            "id": "ffn-up",
+            "shape": [
+              256,
+              3584
+            ],
+            "logicalBytes": 3670016,
+            "bucketedBytes": 3670016
+          },
+          {
+            "id": "ffn-activated-product",
+            "shape": [
+              256,
+              3584
+            ],
+            "logicalBytes": 3670016,
+            "bucketedBytes": 3670016
+          },
+          {
+            "id": "ffn-down",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "layer-residual-output",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "linear-qkv",
+            "shape": [
+              256,
+              6144
+            ],
+            "logicalBytes": 6291456,
+            "bucketedBytes": 6291456
+          },
+          {
+            "id": "linear-z",
+            "shape": [
+              256,
+              2048
+            ],
+            "logicalBytes": 2097152,
+            "bucketedBytes": 2097152
+          },
+          {
+            "id": "linear-a",
+            "shape": [
+              256,
+              16
+            ],
+            "logicalBytes": 16384,
+            "bucketedBytes": 16384
+          },
+          {
+            "id": "linear-b",
+            "shape": [
+              256,
+              16
+            ],
+            "logicalBytes": 16384,
+            "bucketedBytes": 16384
+          },
+          {
+            "id": "linear-convolution-output",
+            "shape": [
+              256,
+              6144
+            ],
+            "logicalBytes": 6291456,
+            "bucketedBytes": 6291456
+          },
+          {
+            "id": "linear-readout-and-gated-output",
+            "shape": [
+              256,
+              2048
+            ],
+            "logicalBytes": 2097152,
+            "bucketedBytes": 2097152
+          }
+        ],
+        "logicalBytes": 35160064,
+        "bucketedBytes": 35160320,
+        "epsilonBytes": 256
+      },
+      "full": {
+        "rows": [
+          {
+            "id": "incoming-hidden",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "input-normalization",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "attention-output-projection",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "post-attention-normalization",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "post-attention-residual",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "ffn-gate",
+            "shape": [
+              256,
+              3584
+            ],
+            "logicalBytes": 3670016,
+            "bucketedBytes": 3670016
+          },
+          {
+            "id": "ffn-up",
+            "shape": [
+              256,
+              3584
+            ],
+            "logicalBytes": 3670016,
+            "bucketedBytes": 3670016
+          },
+          {
+            "id": "ffn-activated-product",
+            "shape": [
+              256,
+              3584
+            ],
+            "logicalBytes": 3670016,
+            "bucketedBytes": 3670016
+          },
+          {
+            "id": "ffn-down",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "layer-residual-output",
+            "shape": [
+              256,
+              1024
+            ],
+            "logicalBytes": 1048576,
+            "bucketedBytes": 1048576
+          },
+          {
+            "id": "full-query-gate-projection",
+            "shape": [
+              256,
+              4096
+            ],
+            "logicalBytes": 4194304,
+            "bucketedBytes": 4194304
+          },
+          {
+            "id": "full-split-query",
+            "shape": [
+              256,
+              2048
+            ],
+            "logicalBytes": 2097152,
+            "bucketedBytes": 2097152
+          },
+          {
+            "id": "full-split-gate",
+            "shape": [
+              256,
+              2048
+            ],
+            "logicalBytes": 2097152,
+            "bucketedBytes": 2097152
+          },
+          {
+            "id": "full-key-projection",
+            "shape": [
+              256,
+              512
+            ],
+            "logicalBytes": 524288,
+            "bucketedBytes": 524288
+          },
+          {
+            "id": "full-value-projection",
+            "shape": [
+              256,
+              512
+            ],
+            "logicalBytes": 524288,
+            "bucketedBytes": 524288
+          },
+          {
+            "id": "full-query-normalization-and-rope",
+            "shape": [
+              256,
+              2048
+            ],
+            "logicalBytes": 2097152,
+            "bucketedBytes": 2097152
+          },
+          {
+            "id": "full-key-normalization-and-rope",
+            "shape": [
+              256,
+              512
+            ],
+            "logicalBytes": 524288,
+            "bucketedBytes": 524288
+          },
+          {
+            "id": "full-attention-output",
+            "shape": [
+              256,
+              2048
+            ],
+            "logicalBytes": 2097152,
+            "bucketedBytes": 2097152
+          },
+          {
+            "id": "full-gated-attention-output",
+            "shape": [
+              256,
+              2048
+            ],
+            "logicalBytes": 2097152,
+            "bucketedBytes": 2097152
+          }
+        ],
+        "logicalBytes": 34603008,
+        "bucketedBytes": 34603008,
+        "epsilonBytes": 0
+      },
+      "boundaryReserve": 3145728,
+      "oneAttemptMappedScratchBound": 38306048,
+      "twoAttemptMappedScratchBound": 76612096
+    },
+    "prefill-52": {
+      "linear": {
+        "rows": [
+          {
+            "id": "incoming-hidden",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "input-normalization",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "attention-output-projection",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "post-attention-normalization",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "post-attention-residual",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "ffn-gate",
+            "shape": [
+              52,
+              3584
+            ],
+            "logicalBytes": 745472,
+            "bucketedBytes": 786432
+          },
+          {
+            "id": "ffn-up",
+            "shape": [
+              52,
+              3584
+            ],
+            "logicalBytes": 745472,
+            "bucketedBytes": 786432
+          },
+          {
+            "id": "ffn-activated-product",
+            "shape": [
+              52,
+              3584
+            ],
+            "logicalBytes": 745472,
+            "bucketedBytes": 786432
+          },
+          {
+            "id": "ffn-down",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "layer-residual-output",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "linear-qkv",
+            "shape": [
+              52,
+              6144
+            ],
+            "logicalBytes": 1277952,
+            "bucketedBytes": 1310720
+          },
+          {
+            "id": "linear-z",
+            "shape": [
+              52,
+              2048
+            ],
+            "logicalBytes": 425984,
+            "bucketedBytes": 458752
+          },
+          {
+            "id": "linear-a",
+            "shape": [
+              52,
+              16
+            ],
+            "logicalBytes": 3328,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "linear-b",
+            "shape": [
+              52,
+              16
+            ],
+            "logicalBytes": 3328,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "linear-convolution-output",
+            "shape": [
+              52,
+              6144
+            ],
+            "logicalBytes": 1277952,
+            "bucketedBytes": 1310720
+          },
+          {
+            "id": "linear-readout-and-gated-output",
+            "shape": [
+              52,
+              2048
+            ],
+            "logicalBytes": 425984,
+            "bucketedBytes": 458752
+          }
+        ],
+        "logicalBytes": 7141888,
+        "bucketedBytes": 7741696,
+        "epsilonBytes": 256
+      },
+      "full": {
+        "rows": [
+          {
+            "id": "incoming-hidden",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "input-normalization",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "attention-output-projection",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "post-attention-normalization",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "post-attention-residual",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "ffn-gate",
+            "shape": [
+              52,
+              3584
+            ],
+            "logicalBytes": 745472,
+            "bucketedBytes": 786432
+          },
+          {
+            "id": "ffn-up",
+            "shape": [
+              52,
+              3584
+            ],
+            "logicalBytes": 745472,
+            "bucketedBytes": 786432
+          },
+          {
+            "id": "ffn-activated-product",
+            "shape": [
+              52,
+              3584
+            ],
+            "logicalBytes": 745472,
+            "bucketedBytes": 786432
+          },
+          {
+            "id": "ffn-down",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "layer-residual-output",
+            "shape": [
+              52,
+              1024
+            ],
+            "logicalBytes": 212992,
+            "bucketedBytes": 262144
+          },
+          {
+            "id": "full-query-gate-projection",
+            "shape": [
+              52,
+              4096
+            ],
+            "logicalBytes": 851968,
+            "bucketedBytes": 851968
+          },
+          {
+            "id": "full-split-query",
+            "shape": [
+              52,
+              2048
+            ],
+            "logicalBytes": 425984,
+            "bucketedBytes": 458752
+          },
+          {
+            "id": "full-split-gate",
+            "shape": [
+              52,
+              2048
+            ],
+            "logicalBytes": 425984,
+            "bucketedBytes": 458752
+          },
+          {
+            "id": "full-key-projection",
+            "shape": [
+              52,
+              512
+            ],
+            "logicalBytes": 106496,
+            "bucketedBytes": 131072
+          },
+          {
+            "id": "full-value-projection",
+            "shape": [
+              52,
+              512
+            ],
+            "logicalBytes": 106496,
+            "bucketedBytes": 131072
+          },
+          {
+            "id": "full-query-normalization-and-rope",
+            "shape": [
+              52,
+              2048
+            ],
+            "logicalBytes": 425984,
+            "bucketedBytes": 458752
+          },
+          {
+            "id": "full-key-normalization-and-rope",
+            "shape": [
+              52,
+              512
+            ],
+            "logicalBytes": 106496,
+            "bucketedBytes": 131072
+          },
+          {
+            "id": "full-attention-output",
+            "shape": [
+              52,
+              2048
+            ],
+            "logicalBytes": 425984,
+            "bucketedBytes": 458752
+          },
+          {
+            "id": "full-gated-attention-output",
+            "shape": [
+              52,
+              2048
+            ],
+            "logicalBytes": 425984,
+            "bucketedBytes": 458752
+          }
+        ],
+        "logicalBytes": 7028736,
+        "bucketedBytes": 7733248,
+        "epsilonBytes": 0
+      },
+      "boundaryReserve": 786432,
+      "oneAttemptMappedScratchBound": 8528128,
+      "twoAttemptMappedScratchBound": 17056256
+    },
+    "decode-1": {
+      "linear": {
+        "rows": [
+          {
+            "id": "incoming-hidden",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "input-normalization",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "attention-output-projection",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "post-attention-normalization",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "post-attention-residual",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "ffn-activated-product",
+            "shape": [
+              1,
+              3584
+            ],
+            "logicalBytes": 14336,
+            "bucketedBytes": 16384
+          },
+          {
+            "id": "ffn-down",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "layer-residual-output",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "linear-qkv",
+            "shape": [
+              1,
+              6144
+            ],
+            "logicalBytes": 24576,
+            "bucketedBytes": 32768
+          },
+          {
+            "id": "linear-z",
+            "shape": [
+              1,
+              2048
+            ],
+            "logicalBytes": 8192,
+            "bucketedBytes": 8192
+          },
+          {
+            "id": "linear-a",
+            "shape": [
+              1,
+              16
+            ],
+            "logicalBytes": 64,
+            "bucketedBytes": 256
+          },
+          {
+            "id": "linear-b",
+            "shape": [
+              1,
+              16
+            ],
+            "logicalBytes": 64,
+            "bucketedBytes": 256
+          },
+          {
+            "id": "linear-readout-and-gated-output",
+            "shape": [
+              1,
+              2048
+            ],
+            "logicalBytes": 8192,
+            "bucketedBytes": 8192
+          }
+        ],
+        "logicalBytes": 84096,
+        "bucketedBytes": 94976,
+        "epsilonBytes": 256
+      },
+      "full": {
+        "rows": [
+          {
+            "id": "incoming-hidden",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "input-normalization",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "attention-output-projection",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "post-attention-normalization",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "post-attention-residual",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "ffn-activated-product",
+            "shape": [
+              1,
+              3584
+            ],
+            "logicalBytes": 14336,
+            "bucketedBytes": 16384
+          },
+          {
+            "id": "ffn-down",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "layer-residual-output",
+            "shape": [
+              1,
+              1024
+            ],
+            "logicalBytes": 4096,
+            "bucketedBytes": 4096
+          },
+          {
+            "id": "full-query-gate-projection",
+            "shape": [
+              1,
+              4096
+            ],
+            "logicalBytes": 16384,
+            "bucketedBytes": 16384
+          },
+          {
+            "id": "full-split-query",
+            "shape": [
+              1,
+              2048
+            ],
+            "logicalBytes": 8192,
+            "bucketedBytes": 8192
+          },
+          {
+            "id": "full-split-gate",
+            "shape": [
+              1,
+              2048
+            ],
+            "logicalBytes": 8192,
+            "bucketedBytes": 8192
+          },
+          {
+            "id": "full-key-projection",
+            "shape": [
+              1,
+              512
+            ],
+            "logicalBytes": 2048,
+            "bucketedBytes": 2048
+          },
+          {
+            "id": "full-value-projection",
+            "shape": [
+              1,
+              512
+            ],
+            "logicalBytes": 2048,
+            "bucketedBytes": 2048
+          },
+          {
+            "id": "full-query-normalization-and-rope",
+            "shape": [
+              1,
+              2048
+            ],
+            "logicalBytes": 8192,
+            "bucketedBytes": 8192
+          },
+          {
+            "id": "full-key-normalization-and-rope",
+            "shape": [
+              1,
+              512
+            ],
+            "logicalBytes": 2048,
+            "bucketedBytes": 2048
+          },
+          {
+            "id": "full-attention-output",
+            "shape": [
+              1,
+              2048
+            ],
+            "logicalBytes": 8192,
+            "bucketedBytes": 8192
+          },
+          {
+            "id": "full-gated-attention-output",
+            "shape": [
+              1,
+              2048
+            ],
+            "logicalBytes": 8192,
+            "bucketedBytes": 8192
+          }
+        ],
+        "logicalBytes": 106496,
+        "bucketedBytes": 108544,
+        "epsilonBytes": 0
+      },
+      "boundaryReserve": 12288,
+      "oneAttemptMappedScratchBound": 1192704,
+      "twoAttemptMappedScratchBound": 2385408
+    }
+  },
+  "persistent": {
+    "convolutionLowLogicalPerAttempt": 884736,
+    "convolutionLowBucketedPerAttempt": 1179648,
+    "convolutionLowTwoAttempts": 2359296,
+    "sharedRotaryLowTables": 2097152,
+    "setupResidualAndParamsReserve": 512,
+    "newBroadPersistentTwoAttempts": 4456448,
+    "alreadyApprovedRecurrentExtraPerAttempt": 9437184,
+    "alreadyApprovedRecurrentExtraTwoAttempts": 18874368
+  },
+  "bounds": {
+    "twoAttemptActiveBroadSidecars": 81069056,
+    "additionalIdlePoolInventoriedSizes": 164102144,
+    "twoAttemptBroadPlusInventoriedIdlePool": 245171200,
+    "includingPreviouslyApprovedStateLowsComparedWithHistoricalF32": 264045568,
+    "qualification": "Conditional envelope for listed sizes/lifetimes and settled submissions only. No bound on unbounded deferred destruction, unseen workspace, allocator implementation changes, or device-internal allocations."
+  },
+  "unchangedKv": {
+    "reservedPositionsPerAttempt": 5684,
+    "bytesPerPartitionPerAttempt": 34922496,
+    "bytesPerPartitionTwoAttempts": 69844992,
+    "upperPrepared8192PositionsPerAttempt": 50331648,
+    "note": "F16 K/V remains unchanged; each attempt reserves prompt+maximum output, not observed1627 output length."
+  },
+  "transport": {
+    "extraHostPayloadPer1588Tokens": 6504448,
+    "pairedHostPayloadPer1588Tokens": 13008896,
+    "twoPayloadExtraLogicalBytes": 13008896,
+    "extraDecodePayloadBytes": 4096,
+    "note": "CPU payload bytes, not GPU budget. Structured clones, network copies and host staging multiplicity are not bounded here. GPU chunks/readback sidecars are charged above."
+  },
+  "observed": {
+    "source": "https://github.com/clocksmith/reploid/blob/main/artifacts/allocation-memory-20261012/summary.json",
+    "sourceSha256": "a876d592e19b1fb459d10924effaa73703bd3d3b4b1fa81dc4e941cf1ff9b976",
+    "archiveSha256": "7449618b1e3cf2b96ec18a2f30aa14ddf56c787ce9b871e535df7a9b107b367a",
+    "scope": "Historical sequential/repeated attempts and reverse cancellation; F32 state and intermediates. Not concurrent two-attempt proof or proposed-precision measurements.",
+    "hosts": [
+      {
+        "phase": "repetition",
+        "host": "mac",
+        "partitionIndex": 0,
+        "weightBytes": 650989568,
+        "peakBytes": 809459080
+      },
+      {
+        "phase": "repetition",
+        "host": "linux",
+        "partitionIndex": 1,
+        "weightBytes": 285497344,
+        "peakBytes": 446967976
+      },
+      {
+        "phase": "cancellation",
+        "host": "mac",
+        "partitionIndex": 1,
+        "weightBytes": 285497344,
+        "peakBytes": 395753096
+      },
+      {
+        "phase": "cancellation",
+        "host": "linux",
+        "partitionIndex": 0,
+        "weightBytes": 650989568,
+        "peakBytes": 761521208
+      }
+    ]
+  },
+  "historicalPeakSensitivityOnly": [
+    {
+      "phase": "repetition",
+      "host": "mac",
+      "partitionIndex": 0,
+      "weightBytes": 650989568,
+      "peakBytes": 809459080,
+      "duplicatedNonweightPeak": 967928592,
+      "sumWithProposal": 1231974160,
+      "remainingToCap": 188025840,
+      "caveat": "Arithmetic sensitivity, not measured concurrent peak or proof of a total upper bound. Historical nonweight peak includes reusable buffers; duplication and new idle envelope deliberately overcount some bytes, and can miss new workspaces."
+    },
+    {
+      "phase": "repetition",
+      "host": "linux",
+      "partitionIndex": 1,
+      "weightBytes": 285497344,
+      "peakBytes": 446967976,
+      "duplicatedNonweightPeak": 608438608,
+      "sumWithProposal": 872484176,
+      "remainingToCap": 547515824,
+      "caveat": "Arithmetic sensitivity, not measured concurrent peak or proof of a total upper bound. Historical nonweight peak includes reusable buffers; duplication and new idle envelope deliberately overcount some bytes, and can miss new workspaces."
+    },
+    {
+      "phase": "cancellation",
+      "host": "mac",
+      "partitionIndex": 1,
+      "weightBytes": 285497344,
+      "peakBytes": 395753096,
+      "duplicatedNonweightPeak": 506008848,
+      "sumWithProposal": 770054416,
+      "remainingToCap": 649945584,
+      "caveat": "Arithmetic sensitivity, not measured concurrent peak or proof of a total upper bound. Historical nonweight peak includes reusable buffers; duplication and new idle envelope deliberately overcount some bytes, and can miss new workspaces."
+    },
+    {
+      "phase": "cancellation",
+      "host": "linux",
+      "partitionIndex": 0,
+      "weightBytes": 650989568,
+      "peakBytes": 761521208,
+      "duplicatedNonweightPeak": 872052848,
+      "sumWithProposal": 1136098416,
+      "remainingToCap": 283901584,
+      "caveat": "Arithmetic sensitivity, not measured concurrent peak or proof of a total upper bound. Historical nonweight peak includes reusable buffers; duplication and new idle envelope deliberately overcount some bytes, and can miss new workspaces."
+    }
+  ],
+  "checks": {
+    "sourceHashes": 18,
+    "exactIntegerArithmetic": true,
+    "noRuntimeOrGpuExecution": true
+  }
+}
