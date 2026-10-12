@@ -1,0 +1,7 @@
+
+> doppler-gpu@0.6.27 source:style:check
+> node tools/check-source-style.js
+
+[source:style:check] 2 source style violation(s):
+  src/converter/resident-qualification.js: [declaration-files-own-api-types] implementation JSDoc at lines 7
+  src/tooling/model-capsule-pieces.js: [declaration-files-own-api-types] implementation JSDoc at lines 6

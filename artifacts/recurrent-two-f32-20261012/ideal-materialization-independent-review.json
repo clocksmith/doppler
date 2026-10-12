@@ -1,0 +1,72 @@
+{
+  "schema": "doppler.ideal-global-materialization-independent-review/v1",
+  "reviewer": "native_participation",
+  "date": "2026-10-12",
+  "qualified": false,
+  "scope": "Independent source and diagnostic-hook review before model control execution. No GPU/model run or canonical source edits by reviewer.",
+  "archiveSha256": "91b7c94d858f6fa44bb4b5208f5e48b0a95fb51f79806a802cf15f7b975e92bd",
+  "request": {
+    "index": 2,
+    "prefillTokens": 184,
+    "lastDecodeStep": 7
+  },
+  "bindings": {
+    "artifacts/recurrent-two-f32-20261012/ideal-materialization-map.json": "2ce504dbd9eece4b7d38f7073a7e1b7f33e7957861b1f4e5fb5abfcc9be771de",
+    "artifacts/recurrent-two-f32-20261012/ideal-materialization-dispatch-binding.json": "f424c8f4cf06a6e1663a32d29cc275ca20d0121a77777f8a68d624ed1d2ca6ca",
+    "tools/qwen35-short-prefix-audit.py": "b9cb1acf90dc236680156b9a1bb941deee94071e0eaa889815cb4654d8593273",
+    "tools/qwen35-f64-reference.py": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+    "src/gpu/kernels/gated_delta_recurrent.wgsl": "d3db1d0c3988579a6cc71c7eddb8936ca2708107b2bbafb39acc52c649121911",
+    "src/gpu/kernels/gated_delta_fused_decode.wgsl": "fd811f031df1a3f291356cfb9d97af699e5b5a14656b7c2124c710e5b40800a1",
+    "src/gpu/kernels/rmsnorm.wgsl": "a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f",
+    "src/gpu/kernels/fused_ffn_q4k.wgsl": "2d688b8d643e70db1f81acda6273e44995076ec9e895b282b456725296bbab2e",
+    "src/inference/pipelines/text/ffn/dense.js": "966bc6b88a10c7aa73f343003bf9905d6879b77cc7cfcdacab363b0aae437877",
+    "src/inference/pipelines/text/ffn/dense-executor.js": "c1d7508ec13ea6e41d031a4cecaebc10dfc32cd1711681298129982db16d5302",
+    "src/inference/pipelines/text/ffn/standard.js": "d89fff901d84238485592b77e0c042c8b401b1c2deb898ca56ca026b0c0b68b0",
+    "src/inference/pipelines/text/attention/plan.js": "cdfb65b6eaad911f7a900673f6d2940e502369a2bf068ff54cd5e527adf43467",
+    "src/inference/pipelines/text/attention/interpreter/recorded.js": "1af3c041866ce2c24277a6675ddf273908dcbea9407168c247f59268e0fdb5a7",
+    "src/inference/pipelines/text/attention/projection-plan.js": "b78867065a267d8320d6213d1c2d2b156c6dd1850b168bb50d5b6a76d93e9517"
+  },
+  "findings": [
+    {
+      "boundary": "FFN gate/up/activation",
+      "result": "Selected fused_ffn_q4k decode has one global activated gate-times-up output; no intermediate gate/up store is invented. Separate prefill projections retain their global F32 stores.",
+      "evidence": "fused_ffn_q4k.wgsl225–252 and361–367; dense.js; actual quantized dispatch binding."
+    },
+    {
+      "boundary": "Full attention",
+      "result": "Capture identifies separate Q/K normalization, RoPE, F16 cache write, ungated attention core and sigmoid-gated output. No fused gated-attention shader is claimed. Uniform epsilon and theta are materialized as F32; internal arithmetic remains ideal.",
+      "evidence": "Actual served/dispatch hashes; attention/plan.js81–97 and interpreter/recorded.js384–396."
+    },
+    {
+      "boundary": "Post-attention residual and RMSNorm",
+      "initialGap": "A single rounded conceptual residual would falsely make the normalization consume a buffer reread.",
+      "resolved": "Hook retains ideal norm_input while independently rounding residual stream. Selected PRE_RESIDUAL=1/OUTPUT_PRENORM=1 kernel normalizes internal sum and writes a separate prenorm output.",
+      "evidence": "rmsnorm.wgsl90–103 and main output; normalizationDispatch384 selections."
+    },
+    {
+      "boundary": "Prefill recurrent readout and norm",
+      "initialGap": "Rounding raw readout before both numerator and denominator would invent a normalization buffer reread.",
+      "resolved": "Hook retains ideal output_unrounded for denominator; numerator reads F32 materialized raw output, then final gated output materializes F32. Fused decode has no intermediate global raw-output store.",
+      "evidence": "gated_delta_recurrent.wgsl453–477 and gated_delta_fused_decode.wgsl468–484."
+    },
+    {
+      "boundary": "Persistent recurrence and convolution",
+      "result": "Both decayed and updated recurrent state store nearest F32 high plus nearest residual low. Convolution history receives already materialized QKV inputs and exact shifts. Prefill conv_out materializes F32; decode internal mixed/query/key remain ideal."
+    },
+    {
+      "boundary": "Reference authority and isolation",
+      "result": "Independent approved evaluator remains SHA90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7. Diagnostic functions are compiled in copied namespaces, no monkeypatch of authoritative globals. Inactive copy must reproduce all51 request2 vectors exactly before enabled evaluation of first8 prefixes. F16 cache arises from controlled state, not injected approved cache."
+    },
+    {
+      "boundary": "Identity guards",
+      "initialGap": "Draft checked reviewed flag/evaluator/request without binding map parent and dispatch to supplied capture.",
+      "resolved": "Helper now rejects archive mismatch, dispatch bytes hash mismatch and capture archive/hash mismatch. Source substitutions require exactly one match except intentionally two Q/K epsilon occurrences."
+    }
+  ],
+  "limits": [
+    "Global-buffer sensitivity only; omits workgroup/private F32 arithmetic and scratch stores.",
+    "Not an attainable GPU oracle, error floor, impossibility proof, new acceptance reference or precision permission.",
+    "Review found no remaining source-map blocker; independent controls and actual model execution results are not asserted by this receipt.",
+    "Only request2 prefill184 through decode7 is in the enabled control, not all55 qualification prefixes."
+  ]
+}

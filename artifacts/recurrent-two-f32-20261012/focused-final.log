@@ -1,0 +1,75 @@
+TAP version 13
+# session-flags-merge.test: ok
+# Subtest: tests/config/session-flags-merge.test.js
+ok 1 - tests/config/session-flags-merge.test.js
+  ---
+  duration_ms: 37.180792
+  type: 'test'
+  ...
+# linear-attention-allocation-cleanup: passed
+# Subtest: tests/gpu/linear-attention-allocation-cleanup.test.js
+ok 2 - tests/gpu/linear-attention-allocation-cleanup.test.js
+  ---
+  duration_ms: 124.276
+  type: 'test'
+  ...
+#   ok: generateTokenIds diagnostics
+# [213.6ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (2 tokens @ 67415.0 tok/s)
+#   ok: EOS stop parity
+# [214.2ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+#   ok: immediate EOS first-token parity
+# [215.3ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (4 tokens @ 125000.0 tok/s)
+#   ok: maxTokens cap parity
+# [215.9ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (2 tokens @ 52230.2 tok/s)
+#   ok: abort signal parity
+# [216.4ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (2 tokens @ 34808.0 tok/s)
+#   ok: stop sequence parity
+#   ok: stats fields
+#   ok: self-speculation burst honors configured tokens
+#   ok: cleanup on success and throw
+#   ok: double-generation guard
+# generate-token-ids-behavioral-parity.test: ok
+# [217.5ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+# [217.7ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+#   ok: first-token callback cancellation disposition and reuse
+# [218.8ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+# [219.2ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+# [219.4ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+# [219.5ms][Perf] TTFT: 0ms | Prefill: 0ms | Decode: 0ms (0 tokens @ 0.0 tok/s)
+#   ok: first-token public stopping classification across generation surfaces
+# Subtest: tests/inference/generate-token-ids-behavioral-parity.test.js
+ok 3 - tests/inference/generate-token-ids-behavioral-parity.test.js
+  ---
+  duration_ms: 232.417791
+  type: 'test'
+  ...
+# linear-attention-state-probes.test: ok
+# Subtest: tests/inference/linear-attention-state-probes.test.js
+ok 4 - tests/inference/linear-attention-state-probes.test.js
+  ---
+  duration_ms: 32.660959
+  type: 'test'
+  ...
+# linear-recurrent-layout: passed
+# Subtest: tests/inference/linear-recurrent-layout.test.js
+ok 5 - tests/inference/linear-recurrent-layout.test.js
+  ---
+  duration_ms: 174.837959
+  type: 'test'
+  ...
+# Physical cache observer: queued snapshot isolation, mapping-failure cleanup and geometry rejection passed (mock GPU).
+# Subtest: tests/integration/physical-kv-cache-observer.test.js
+ok 6 - tests/integration/physical-kv-cache-observer.test.js
+  ---
+  duration_ms: 32.767042
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 239.106542

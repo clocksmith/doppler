@@ -1,0 +1,137 @@
+{
+  "scope": "Retained corrected frequency shader with position_count ABI, same parent model; eight-prefix diagnostic, not qualification",
+  "qualified": false,
+  "parentSha256": "16783e8822736f8271a7ff734a1a4de65ff5e9d8cc9109a582dc597d8844260d",
+  "interventionSha256": "b722e74bdc7a6deba4df54ee93fcc46dd24e8ef4ad3bdec7de420ee2d68e5b38",
+  "approvalSha256": "065a6f065e551995743d183151b500a68761b15f612497b7933551f6c4ae2fb5",
+  "rows": [
+    {
+      "step": 0,
+      "parent": {
+        "maximum": 0.0004278254607363863,
+        "rms": 0.00007868035089994373,
+        "overTolerance": 0,
+        "worstVocabulary": 56142
+      },
+      "correctedFrequencyTable": {
+        "maximum": 0.00039496780744840976,
+        "rms": 0.00008289354812279931,
+        "overTolerance": 0,
+        "worstVocabulary": 130333
+      },
+      "changedLogits": 247946
+    },
+    {
+      "step": 1,
+      "parent": {
+        "maximum": 0.0006583665064643363,
+        "rms": 0.00011680571024335614,
+        "overTolerance": 0,
+        "worstVocabulary": 2928
+      },
+      "correctedFrequencyTable": {
+        "maximum": 0.0006812475075039792,
+        "rms": 0.00013021908374635747,
+        "overTolerance": 0,
+        "worstVocabulary": 118
+      },
+      "changedLogits": 247909
+    },
+    {
+      "step": 2,
+      "parent": {
+        "maximum": 0.0007479493939888116,
+        "rms": 0.00014922676081665417,
+        "overTolerance": 0,
+        "worstVocabulary": 5936
+      },
+      "correctedFrequencyTable": {
+        "maximum": 0.0008167230582243334,
+        "rms": 0.00016200225209616172,
+        "overTolerance": 0,
+        "worstVocabulary": 6942
+      },
+      "changedLogits": 248019
+    },
+    {
+      "step": 3,
+      "parent": {
+        "maximum": 0.0009013880016812692,
+        "rms": 0.0001764435105094129,
+        "overTolerance": 0,
+        "worstVocabulary": 63084
+      },
+      "correctedFrequencyTable": {
+        "maximum": 0.0010817825149249671,
+        "rms": 0.00017246568932515423,
+        "overTolerance": 2,
+        "worstVocabulary": 33
+      },
+      "changedLogits": 248147
+    },
+    {
+      "step": 4,
+      "parent": {
+        "maximum": 0.0008839739349237874,
+        "rms": 0.00016222366411787692,
+        "overTolerance": 0,
+        "worstVocabulary": 219085
+      },
+      "correctedFrequencyTable": {
+        "maximum": 0.0009420061038891703,
+        "rms": 0.00015989613807022415,
+        "overTolerance": 0,
+        "worstVocabulary": 853
+      },
+      "changedLogits": 248218
+    },
+    {
+      "step": 5,
+      "parent": {
+        "maximum": 0.0007797962510814882,
+        "rms": 0.000162596089522469,
+        "overTolerance": 0,
+        "worstVocabulary": 36339
+      },
+      "correctedFrequencyTable": {
+        "maximum": 0.0011926550136109881,
+        "rms": 0.00013428276355256387,
+        "overTolerance": 1,
+        "worstVocabulary": 12
+      },
+      "changedLogits": 248073
+    },
+    {
+      "step": 6,
+      "parent": {
+        "maximum": 0.0007018223205244034,
+        "rms": 0.00014319741718226743,
+        "overTolerance": 0,
+        "worstVocabulary": 51216
+      },
+      "correctedFrequencyTable": {
+        "maximum": 0.0005836417079918554,
+        "rms": 0.00012128303238468036,
+        "overTolerance": 0,
+        "worstVocabulary": 208142
+      },
+      "changedLogits": 248186
+    },
+    {
+      "step": 7,
+      "parent": {
+        "maximum": 0.001040836900171982,
+        "rms": 0.00019802565237517542,
+        "overTolerance": 1,
+        "worstVocabulary": 52771
+      },
+      "correctedFrequencyTable": {
+        "maximum": 0.0011838536198478522,
+        "rms": 0.00015243024673254222,
+        "overTolerance": 3,
+        "worstVocabulary": 22
+      },
+      "changedLogits": 248167
+    }
+  ]
+}

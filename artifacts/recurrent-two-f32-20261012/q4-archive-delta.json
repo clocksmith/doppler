@@ -1,0 +1,9 @@
+{
+  "files": 1918,
+  "changed": [
+    "package/src/gpu/kernels/fused_matmul_q4_widetile.wgsl"
+  ],
+  "oldSha256": "d38300e9c30877e2aec62c5064ac8688cedd454146204d6cc1652a083ba0811c",
+  "newSha256": "5f54bbf28895cc3e489e3da43c7add98538fd6a6269dc2a5cdcde48843a569cb",
+  "scope": "Exact package byte comparison, not qualification"
+}

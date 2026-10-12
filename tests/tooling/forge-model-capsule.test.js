@@ -57,7 +57,7 @@ await fs.writeFile(manifestPath, `${JSON.stringify({
     sourceRevision: 'fixture-revision',
   },
   architecture: {
-    numLayers: 1,
+    numLayers: 2,
     hiddenSize: 4,
     intermediateSize: 8,
     numAttentionHeads: 1,
@@ -385,3 +385,66 @@ const otherPath = path.join(reportDir, 'embedding-other.json');
 await fs.writeFile(otherPath, JSON.stringify(other));
 await assert.rejects(forgeModelCapsule({ ...embeddingOptions, qualificationReportPaths: [otherPath] }), /same model, source reference, and request/);
 console.log('forge-model-capsule: embedding qualification passed (synthetic reference)');
+
+// Entirely synthetic producer wiring. These records do not qualify a physical model.
+const partitionContract = await import('../../src/inference/pipelines/text/layer-partition-contract.js');
+const physicalManifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+const partitionPlan = partitionContract.createLayerPartitionPlan({ modelId: physicalManifest.modelId,
+  ...physicalManifest.architecture, splitLayer: 1, activationDtype: 'f32' });
+const manifestHash = 'sha256:' + createHash('sha256').update(await fs.readFile(manifestPath)).digest('hex');
+const indexPath = path.join(modelDir, 'pieces.json');
+const pieceIndex = { schema: 'doppler.verified-pieces/v1', manifestIdentity: manifestHash, maxPieceBytes: 16,
+  files: [{ path: 'shard_00000.bin', size: 16, pieces: [{ offset: 0, size: 16, identity: 'sha256:' + shardHash }] }] };
+await fs.writeFile(indexPath, JSON.stringify(pieceIndex));
+const residentContract = { schema: 'doppler.resident-qualification-contract/v1', referenceHash: promptTokenDigest,
+  evaluatorHash: kvByteDigest, tolerance: 0.001, comparedSteps: 1 };
+const residentContractPath = path.join(reportDir, 'resident-contract.json');
+await fs.writeFile(residentContractPath, JSON.stringify(residentContract));
+const residentReport = { schema: 'doppler.resident-partition-qualification/v1', operation: 'residentPartition',
+  modelId: physicalManifest.modelId, manifestIdentity: manifestHash, surface: 'node-webgpu', status: 'passed',
+  executionGraphHash: writtenCapsule.program.executionGraphHash, initialExecutionIdentity,
+  partitionPlan, partitionPlanHash: partitionContract.hashLayerPartitionPlan(partitionPlan), partitionIndex: 0,
+  comparison: { contractHash: computeCanonicalSha256(residentContract), referenceHash: promptTokenDigest, captureHash: logitsDigest, evaluatorHash: kvByteDigest,
+    tolerance: 0.001, steps: [{ index: 0, maxAbsoluteError: 0.0002 }], complete: true },
+};
+const residentReportPath = path.join(reportDir, 'resident.json');
+await fs.writeFile(residentReportPath, JSON.stringify(residentReport));
+const residentOptions = { ...options, programBundlePath: receipt.programBundlePath, modelIRReceiptPath,
+  initialExecutionIdentityPath: identityPath, residentQualificationContractPath: residentContractPath, pieceIndexPath: indexPath,
+  qualificationReportPaths: [residentReportPath], outputPath: path.join(tmpRoot, 'resident', 'capsule.json') };
+await forgeModelCapsule(residentOptions);
+const residentCapsule = JSON.parse(await fs.readFile(residentOptions.outputPath, 'utf8'));
+const signedIndex = residentCapsule.artifacts.find(row => row.artifactId === residentCapsule.program.pieceIndexArtifactId);
+assert.equal(signedIndex.role, 'piece-index');
+assert.equal(await fs.readFile(path.join(path.dirname(residentOptions.outputPath), signedIndex.path), 'utf8'), JSON.stringify(pieceIndex));
+const residentRecord = residentCapsule.targetPlans[0].qualification.find(row => row.operation === 'residentPartition');
+assert.equal(residentRecord.partitionIndex, 0);
+assert.equal(residentRecord.comparedSteps, 1);
+assert.equal(residentRecord.partitionPlanHash, residentReport.partitionPlanHash);
+const reverseReport = { ...residentReport, surface: 'browser-webgpu', partitionIndex: 1 };
+const reversePath = path.join(reportDir, 'resident-reverse.json');
+await fs.writeFile(reversePath, JSON.stringify(reverseReport));
+await forgeModelCapsule({ ...residentOptions, qualificationReportPaths: [residentReportPath, reversePath] });
+const bothPlacements = JSON.parse(await fs.readFile(residentOptions.outputPath, 'utf8')).targetPlans[0]
+  .qualification.filter(row => row.operation === 'residentPartition');
+assert.deepEqual(bothPlacements.map(row => [row.surface, row.partitionIndex]), [['node-webgpu', 0], ['browser-webgpu', 1]]);
+assert.equal(bothPlacements.length, 2);
+
+for (const mutate of [
+  row => { delete row.partitionPlanHash; }, row => { delete row.partitionPlan; },
+  row => { row.partitionPlan.hiddenSize += 1; }, row => { row.executionGraphHash = logitsDigest; }, row => { row.partitionIndex = 2; },
+  row => { row.comparison.steps = []; }, row => { row.comparison.steps[0].maxAbsoluteError = 0.00101; },
+  row => { row.status = 'failed'; }, row => { row.comparison.tolerance = 0.01; },
+  row => { row.comparison.referenceHash = logitsDigest; }, row => { row.comparison.complete = false; }, row => { row.manifestIdentity = promptTokenDigest; },
+  row => { row.initialExecutionIdentity.programLoadPolicy.runtimeConfig.inference.session.linearRecurrentStatePrecision = 'two-f32'; },
+]) {
+  const invalid = structuredClone(residentReport); mutate(invalid);
+  await fs.writeFile(residentReportPath, JSON.stringify(invalid));
+  await assert.rejects(forgeModelCapsule(residentOptions), /resident|Resident|qualification|identity|comparison|Partition/);
+}
+await fs.writeFile(residentReportPath, JSON.stringify(residentReport));
+await assert.rejects(forgeModelCapsule({ ...residentOptions, pieceIndexPath: null }), /piece/i);
+const badPieces = structuredClone(pieceIndex); badPieces.files[0].pieces[0].identity = promptTokenDigest;
+await fs.writeFile(indexPath, JSON.stringify(badPieces));
+await assert.rejects(forgeModelCapsule(residentOptions), /integrity|piece/i);
+console.log('forge-model-capsule: signed resident producer passed (synthetic evidence only)');

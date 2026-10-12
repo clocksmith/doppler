@@ -303,7 +303,6 @@
         <div id="model-select-progress" class="model-card-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <div class="model-card-progress-fill"></div>
         </div>
-        <span id="model-select-progress-label" class="model-card-progress-percent">0%</span>
       </div>
       <details id="model-browser" class="model-browser">
         <summary><span>Browse models</span><span id="model-browser-count" class="model-browser-count"></span></summary>
@@ -335,12 +334,12 @@
             <div class="setting-field">
               <label for="set-top-k">Top K</label>
               <input id="set-top-k" type="number" min="1" step="1" value="50" aria-describedby="top-k-help">
-              <small id="top-k-help">Number of candidate tokens to consider.</small>
+              <small id="top-k-help">Candidate token count.</small>
             </div>
             <div class="setting-field">
               <label for="set-top-p">Top P</label>
               <input id="set-top-p" type="number" min="0" max="1" step="0.05" value="0.95" aria-describedby="top-p-help">
-              <small id="top-p-help">Candidate probability cutoff; 1 keeps all.</small>
+              <small id="top-p-help">Probability cutoff; 1 keeps all.</small>
             </div>
           </div>
         </fieldset>
@@ -350,7 +349,7 @@
           <div class="settings-grid">
             <label class="inspection-setting" for="token-inspector-toggle">
               <input id="token-inspector-toggle" type="checkbox" checked>
-              <span><strong>Tokens</strong><small>Inspect token probabilities below the answer.</small></span>
+              <span><strong>Tokens</strong><small>Show token probabilities.</small></span>
             </label>
             <label class="inspection-setting" for="set-word-quality">
               <input id="set-word-quality" type="checkbox">
@@ -358,7 +357,7 @@
             </label>
             <label class="inspection-setting" for="xray-toggle-all">
               <input id="xray-toggle-all" type="checkbox">
-              <span><strong>X-Ray</strong><small>Capture execution details and diagnostic timings.</small></span>
+              <span><strong>X-Ray</strong><small>Show execution details and timings.</small></span>
             </label>
           </div>
         </fieldset>
@@ -375,7 +374,7 @@
               <option value="profiles/low-memory">Low memory</option>
               <option value="profiles/trace-layers">Trace layers</option>
             </select>
-            <small id="profile-help">Changing profile reloads the model.</small>
+            <small id="profile-help">Reloads the active model.</small>
           </div>
           <div id="settings-error" class="runtime-notice" role="alert" hidden></div>
           <details class="profile-details">
@@ -431,7 +430,7 @@
     <!-- Report -->
 <details id="run-details" class="demo-panel">
 <summary>Run details</summary>
-<p class="run-measurements">Inspection adds overhead. <span id="output-toks" class="output-toks"></span></p>
+<p class="run-measurements"><span id="output-toks" class="output-toks"></span></p>
 <div class="report-bar demo-row">
       <div class="report-actions">
         <button id="export-btn" class="btn btn-ghost" disabled>Export receipt</button>
@@ -449,7 +448,7 @@
       </div>
       <div id="precision-replay-panel" class="precision-replay-panel" hidden>
         <p id="precision-replay-status" class="precision-replay-status" role="status"></p>
-<p class="precision-replay-note">Same model. Different number precision. Precomputed results.</p>
+<p class="precision-replay-note">Recorded 32-bit and 16-bit results for one model.</p>
 
         <div class="precision-replay-controls">
           <div class="setting-field">
