@@ -1,0 +1,9 @@
+# Intel compatibility preparation
+
+The exact archive8 first-prefix test failed before producing logits on Suby's observed Intel gen-12lp adapter using system Chrome136.0.7103.59. All24 layers and final weights loaded, then the GPU device was lost while the paired RoPE precompute was the only model shader served. The final resource snapshot threw `BufferPool requires a live GPU device` and masked the originating error; the original receipt/log are retained. This does not identify an arithmetic failure or establish Intel incompatibility.
+
+Observed owned Chrome GPU-process RSS was 2,226,723 pages (about8.5GiB) during preparation, separate from the fixed1,420,000,000-byte runtime device-buffer cap. The process exited1 and its owned browser/GPU processes terminated. Public browser8241 and native4187994 were not changed. Native reported ready, zero attempts and unsettled owners, but consumed CPU; this was correctness testing with shared-machine activity, not a performance measurement.
+
+All18 copied standalone model shards (1,146,048,704bytes) match their declared BLAKE3 hashes; SHA256 copy identities are also retained. An initial verifier mistakenly compared SHA256 to the declared BLAKE3 field; it was corrected to honor the manifest algorithm. No model bytes were changed. These SSH copies do not use or alter Reploid's public file-supply allowance or caches.
+
+The diagnostic controller now retains primary failure and device-lost events and attempts every cleanup step even when a snapshot cannot read a lost device. Focused failure controls verify it cannot replace the primary model error with the snapshot failure. Browser selection is explicit; the default remains system Chrome. Runtime/archive/shader bytes are unchanged. Bundled Chromium preparation remains a separate pending control.

@@ -1,0 +1,114 @@
+{
+  "algorithm": "blake3",
+  "shards": [
+    {
+      "file": "shard_00000.bin",
+      "bytes": 67108864,
+      "blake3": "4dd461bea0d6cc891f78a7fe4dc744c0d269ea685b5a5a5de74c07d5422e4a3e",
+      "sha256": "96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f"
+    },
+    {
+      "file": "shard_00001.bin",
+      "bytes": 67108864,
+      "blake3": "627234b5f84ede2314d044d0eb479068766b0cd5f936a29bd6373d9397ac7614",
+      "sha256": "c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e"
+    },
+    {
+      "file": "shard_00002.bin",
+      "bytes": 67108864,
+      "blake3": "772a45a3111f9f0b826600a7950cc77991b65d6c3650df5ad6e882015522c600",
+      "sha256": "8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec"
+    },
+    {
+      "file": "shard_00003.bin",
+      "bytes": 67108864,
+      "blake3": "a201dbf89e6ff7d6898e452bed94de20b02c9080aaa8efb6c52581069b6b80f9",
+      "sha256": "735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29"
+    },
+    {
+      "file": "shard_00004.bin",
+      "bytes": 67108864,
+      "blake3": "1b7a6b6cb47286a640ac67692a160f3292e46bd496c7fe467ab932851bce054b",
+      "sha256": "3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69"
+    },
+    {
+      "file": "shard_00005.bin",
+      "bytes": 67108864,
+      "blake3": "de1383a9cb1bf810079f0aefe923846d8e827257416b41b0740343d497ad4c36",
+      "sha256": "e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4"
+    },
+    {
+      "file": "shard_00006.bin",
+      "bytes": 67108864,
+      "blake3": "d5143b6dea2e1d072041d933b174c6e3974ea5d434fa00149cc0ef9883bc8194",
+      "sha256": "70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313"
+    },
+    {
+      "file": "shard_00007.bin",
+      "bytes": 67108864,
+      "blake3": "9c059d5f25fbf63dc3d43809b18864d23db3d737988783a1cc905568076e96ca",
+      "sha256": "e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4"
+    },
+    {
+      "file": "shard_00008.bin",
+      "bytes": 67108864,
+      "blake3": "a58d96d7b4dd46f527c8cab0d3f88a8400f977ced510e047a246b64d0ea30d7e",
+      "sha256": "82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55"
+    },
+    {
+      "file": "shard_00009.bin",
+      "bytes": 67108864,
+      "blake3": "9e3dfd8dafd142a7075d5596a3c14ce5fe450b7559915c4dfafcef5979ce7e7d",
+      "sha256": "294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b"
+    },
+    {
+      "file": "shard_00010.bin",
+      "bytes": 67108864,
+      "blake3": "c53a446230d5fa3ea6f4291770484befb92ac3b8cf866c299a2375902f0141eb",
+      "sha256": "1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e"
+    },
+    {
+      "file": "shard_00011.bin",
+      "bytes": 67108864,
+      "blake3": "21bd0db18c8da3b98ee7bc48427b6b7d0a4dedf314fb36f59b5d2979703d6070",
+      "sha256": "4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387"
+    },
+    {
+      "file": "shard_00012.bin",
+      "bytes": 67108864,
+      "blake3": "b84051c7d492efe08a444e1bec385dd5ec181f74c94a415b8a62e4fa923143a4",
+      "sha256": "93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668"
+    },
+    {
+      "file": "shard_00013.bin",
+      "bytes": 67108864,
+      "blake3": "e01ff5a0e6a93892a07ca34b4e5ee66c8cda8c39b21f5160d2170c3871acb0be",
+      "sha256": "a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690"
+    },
+    {
+      "file": "shard_00014.bin",
+      "bytes": 67108864,
+      "blake3": "393c6068148c6225bc44a6271b9542e3992d8d6e7c59fe91adc28ff985650025",
+      "sha256": "b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8"
+    },
+    {
+      "file": "shard_00015.bin",
+      "bytes": 67108864,
+      "blake3": "174b4177b49dbb8ac2bef25034d1c4ee8afa501e0b84f4e0b520485463864648",
+      "sha256": "8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455"
+    },
+    {
+      "file": "shard_00016.bin",
+      "bytes": 67108864,
+      "blake3": "3e6de75e7637d3b238a7b82ef563eaf08a1a2a0d1f48b2525e2471df61fd0d71",
+      "sha256": "914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266"
+    },
+    {
+      "file": "shard_00017.bin",
+      "bytes": 5198016,
+      "blake3": "327c92a0a817f9936880c6051f3f33d0f1fb7096ead14bcb06d5dc777550ca3f",
+      "sha256": "d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78"
+    }
+  ],
+  "scope": "Exact source fixture bytes verified, standalone SSH copy; no Reploid file-supply claim"
+}

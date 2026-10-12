@@ -1,0 +1,8 @@
+{
+  "scope": "Standalone exact verified copy by SSH, not peer acquisition or ledger accounting",
+  "manifestSha256": "ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+  "controllerParentSha256": "594c8151fc6b44cc3645931932700060fef5bca01276aba7db335e56320bf13c",
+  "controllerSha256": "f7fe09d0b73121ae972838e85d9522f63ada0adb299444e5e9e938a07889aa8c",
+  "controllerDelta": "Observation-only actual runtime adapter info exposed into receipt; no package or model mutation",
+  "setupFailureRetained": "Initial preflight compared a declared BLAKE3 shard hash with SHA256; corrected verifier honors manifest.hashAlgorithm. No file was changed to match a hash."
+}
