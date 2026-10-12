@@ -1,0 +1,20 @@
+[
+  {
+    "path": "unit.log.gz",
+    "sha256": "41ed10b95308b9cc413335065ffb7fa199a412bf4103ed9fb01061147a0e528c",
+    "uncompressedSha256": "00cb244ac5ef5665c5becfb8029621427448c83c3998f72df28c42222b0d6d92",
+    "uncompressedBytes": 472985
+  },
+  {
+    "path": "synthetic-provider-rerun.log.gz",
+    "sha256": "8d392a7049397720be36e3110284ef4e88ccb3c380504c81d2687b186c35acb3",
+    "uncompressedSha256": "0a101f0e66a8f383e0545a684e64aa1b84f24c311afa29f6817d73a4492b5b89",
+    "uncompressedBytes": 435
+  },
+  {
+    "path": "tracked-before.json.gz",
+    "sha256": "12ddf17f112689997c1c96e6195950c703471f18aac73ce7e11bbfb22694677c",
+    "uncompressedSha256": "df414e609703b3ebba08f559ebdc53d35125fbe93a8288423efea467a5fa1a67",
+    "uncompressedBytes": 1392797
+  }
+]

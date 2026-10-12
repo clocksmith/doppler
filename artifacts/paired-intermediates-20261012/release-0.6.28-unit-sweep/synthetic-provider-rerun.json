@@ -1,0 +1,18 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-3",
+    "nice",
+    "-n",
+    "10",
+    "node",
+    "tools/run-node-tests.js",
+    "tests/integration/node-provider-standalone.test.js"
+  ],
+  "cwd": "/var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler",
+  "startedAt": "2026-10-12T21:51:10.661224+00:00",
+  "environmentDelta": "Removed only unavailable-provider override; byte-identical fixture installs synthetic GPU, no physical GPU.",
+  "exitCode": 0,
+  "finishedAt": "2026-10-12T21:51:11.153039+00:00"
+}

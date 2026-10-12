@@ -1,0 +1,29 @@
+{
+  "scope": "Frozen-source complete CPU unit sweep; optional GPU unavailable, no inference or physical acceptance.",
+  "sourceCommit": "5c2b31888f3d98d7cb5fc9284b47df4cb0c18a9d",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "selectedFiles": 963,
+  "recordedFiles": 963,
+  "allSelectedFilesRepresented": true,
+  "finalSuccessfulFiles": 963,
+  "finalFailedFiles": [],
+  "filesWithExplicitSkippedCases": 46,
+  "trials": [
+    {
+      "log": "unit.log",
+      "passedFiles": 962,
+      "failedFiles": [
+        "tests/integration/node-provider-standalone.test.js"
+      ]
+    },
+    {
+      "log": "synthetic-provider-rerun.log",
+      "passedFiles": 1,
+      "failedFiles": []
+    }
+  ],
+  "sourceAndArchiveAfterMatch": true,
+  "pendingFilesExcluded": [
+    "tests/integration/doppler-public-logits-api-contract.pending.test.js"
+  ]
+}

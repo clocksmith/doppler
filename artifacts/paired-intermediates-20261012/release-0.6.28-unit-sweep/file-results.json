@@ -1,0 +1,5883 @@
+[
+  {
+    "file": "tests/benchmarks/benchmark-schema-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/benchmarks/compare-chart-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/benchmarks/compute-evidence-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/benchmarks/qwen35-transformersjs-runner-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/benchmarks/stage-tjs-model-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/benchmarks/transformersjs-bench-warm-prime-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/benchmarks/transformersjs-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/benchmarks/transformersjs-runner-greedy-capsule-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/benchmarks/transformersjs-runner-warm-prime-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/benchmarks/workload-prompt-local-model-path-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/capsule/capsule-retained-local-use.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/capsule/capsule-v2.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/capsule/capsule-v3.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/capsule-host.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/document-search-controller.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/document-search-node-store.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/document-search-server.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/document-search-ui.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/document-search.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/electron-capsule-runtime.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/electron-ipc-authority.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/electron-release-adapter.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/electron-release-episode.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/electron-release-storage.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/inspection-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/client/model-host-boundaries.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/activation-kernel-path.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/amplify-120m-conversion-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/attention-f16kv-precision-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/backward-registry-loader.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/browser-opfs-smoke-capability-skip.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/browser-suite-metrics-schema.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/buffer-pool-defaults-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/bun-product-qualification.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/capability-retain-q4k-policy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/capability-transform-policy-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/capsule-naming-migration.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/capsule-release-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/capsule-token-selection.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/catalog-availability-truthfulness.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/catscan-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/check-contract-artifacts.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/check-hf-registry-cli.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/checkpoint-browser-store-close.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/checkpoint-node-store.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/checkpoint-watch-recursive.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/choice-scoring-reference.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/ci-workflow-local-model-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/claimed-text-models-failfast-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/columbo-diagnostic-adapter-handoff-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/columbo-local-model-manifests.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/compare-engines-cli-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/config-merge.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/conversion-report-schema.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/conversion-session-defaults.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/diffusion-gpu-contract-docs.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/diffusion-kernel-wiring.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/diffusiongemma-runtime-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/distill-artifacts-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/distill-stage-a-objective.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/distill-stage-b-objective.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/distill-studio-diagnostics.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/distill-studio-mvp.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/distill-studio-quality-gate.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/document-search-dequant-selection.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/doppler-schema-kernel-path-null.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/electron-design-partner-prospects.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/embedding-batch-semantics.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/embedding-compare-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/embedding-reference.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/embeddinggemma-execution-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/excluded-inference-smoke-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/execution-contract-check.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/execution-mechanism-closure.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/execution-rules-contract-check.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/execution-v1-schema.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/ffn-fused-gateup-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma3-270m-af16-conversion-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma3-browser-diagnose-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma3-debug-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma3-hybrid-attention-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma3-q4k-fused-path-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-12b-conversion-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-12b-f16-variant-identity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-12b-litert-source-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-12b-q4-head-conversion-config.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-12b-runtime-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-26b-a4b-target-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-31b-f16-variant-identity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-31b-q4-fused-path-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-compare-lane-promotion-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-conversion-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-e2b-blog-prompt-capsule-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-e2b-conversion-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-e2b-greedy-compare-data-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-e2b-int4ple-f16-variant-identity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-e2b-runtime-profiles-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-e2b-verify-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-e4b-litert-source-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-family-metadata-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-moe-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-target-matrix-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/gemma4-tier-profiles-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/github-release-action.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/glmocr-conversion-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/goal-completion-matrix.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/hf-registry-utils.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/hf-reranker-bench-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/kernel-language-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/kernel-path-loader-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/kernel-ref-digests.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/kernel-registry-loader.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/kernel-thresholds-state-isolation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/layer-pattern-contract-check.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/lean-execution-contract-config-sweep.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/lean-execution-contract-sweep.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/lfm2-local-manifest-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/lfm2-runtime-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/load-json.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/local-gemma-tokenizer-vocab-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/local-gpu-challenger-matrix-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/local-model-fixture-integrity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/manifest-schema-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/merge-contract-check.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/merge-helpers.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/model-competition-lifecycle-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/model-ir-v2.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/model-ir.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/model-lanes-bootstrap-hf.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/model-release-platform.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/model-support-inventory-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/model-type-taxonomy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/models-manifest-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/nativekd2-trainer-handoff-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/node-coverage-pending-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/onboarding-tooling-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/paired-kernel-weight-identity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/platform-loader-detection.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/prefill-chunk-submit-mode-default.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/product-integration-qualification.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/product-portfolio-coherence.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/production-release.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/program-bundle-schema.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/provider-conformance.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/public-version-exports.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/publish-hf-registry-model.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/quantization-contract-check.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/quickstart-registry-models.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/quickstart-registry-sync.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/quickstart-storage-registry-sync.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/qwen-compare-lane-promotion-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/qwen3-embedding-onboarding-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/qwen35-9b-conversion-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/qwen35-9b-metal-correctness-profile.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/qwen35-9b-q4k-conversion-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/qwen35-browser-diagnose-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/qwen35-chat-template-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/qwen35-manifest-fast-path-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/qwen36-f16-variant-identity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/qwen38-source-parity-profile.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/readme-evidence-chart-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/refresh-converted-manifest-tokenizer.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/refresh-converted-manifest.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/registry-instances.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/release-claim-policy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/required-inference-fields-contract-check.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/rerank-compare-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/rerank-reference.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/resource-telemetry-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/revocation-policy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/rope-inverse-frequencies.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/rule-registry.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/runtime-kvcache-session-mirror-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/runtime-large-weights-defaults-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/runtime-override-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/runtime-ownership-decisions.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/session-flags-merge.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/signed-revocation-authority-qualification.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/signed-revocation-updates.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/speculation-self-schema.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/summarize-conversion-reports.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/support-matrix-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/target-plan.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/tracked-benchmark-evidence-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/training-defaults-isolation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/training-freeze-enforcement.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# training-freeze-enforcement.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/config/training-metrics-schema.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/training-report-id-publication.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/training-telemetry-alerts.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# training-telemetry-alerts.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/config/training-telemetry-config-merge.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/training-workload-capsules.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/training-workload-loader-v2.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/translategemma-conversion-config.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/translategemma-nativekd2-runtime-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/translation-artifact-competition-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/turboquant-profile-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/ul-artifacts-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/ul-noise-schedule.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/ul-stage1-determinism.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# ul-stage1-determinism.test: skipped (no WebGPU runtime)"
+    ]
+  },
+  {
+    "file": "tests/config/ul-stage1-objective.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/ul-stage2-objective.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/ul-training-schema.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/vendor-bench-cli-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/verify-training-provenance.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/wgsl-language-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/wgsl-repair-v13-confirmation-materialization-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/wgsl-repair-v13-seed-confirmation-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/wgsl-repair-v13-seed-selection-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/wgsl-repair-v13-semantic-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/wgsl-writer-v1-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/wgsl-writer-v1-diagnostic-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/wgsl-writer-v1-diagnostic-result.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/config/wgsl-writer-v1-reference-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/bf16-artifact-decoding.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/bundled-tokenizer-vocab-size.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/classification-linear-attn-roles.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/conversion-plan.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-bf16-f16-conversion.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-bundled-tokenizer-flags.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-extract-architecture.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-gemma4-int4-ple-streaming.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-gemma4-int4-ple.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-gemma4-unsupported-architecture.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-large-tensor-streaming.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-manifest-converted-at.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-manifest-generation-config-eos.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-manifest-lfm2-intermediate.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-manifest-multimodal-token-ids.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-mixed-quantization.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-moe-manifest.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-q4k-safetensors-quantization.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/core-text-only-filter.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/diffusion-parser.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/execution-candidate-forge.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/forge-candidate-evaluation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/forge-qualification.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/forge-stages.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/gguf-parser.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/layer-pattern-every-n.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/lineage-lowering-forge.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/manifest-conversion-postflight.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/manifest-conversion-preflight.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# manifest-conversion-preflight.test: skipped (source weight index unavailable at models/source/glimmer-30b/model.safetensors.index.json)"
+    ]
+  },
+  {
+    "file": "tests/converter/qat-quantization-info.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/quantizer.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/release-to-javascript-receipt.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/rope-config.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/rope-local-scaling-parse.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/safetensors-header-evidence.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/semantic-manifest-lowering.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/shard-packer-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/source-acquisition.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/source-rotary-frequencies.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/source-tensor-rules.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/source-tokenizer.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/source-truth-forge.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/tensor-role-closure.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/tokenizer-utils.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/transformer-parser-embedding-postprocessor.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/converter/w8a8-quantizer.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/demo/conversation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/demo/default-model.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/demo/demo-models.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/demo/demo-ui-controls.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/demo/input.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/demo/report.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/demo/xray-runtime-notice.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/litert-types.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/rdrr-distributed-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/rdrr-integrity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/rdrr-lowerings.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/rdrr-merkle.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/rdrr-parsing-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/rdrr-slice-compiler.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/rdrr-tensor-config-validator-aliases.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/rdrr-validation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/rdrr/classification-gemma4-per-layer-embed.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/sha256-incremental.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/formats/tflite-types.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/adam-logical-shape-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/attention-online-constants.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/cast-large-dispatch-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/check-stop-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/command-recorder-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/cross-entropy-ignore-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/dequant-numeric.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/device-buffer-pool-epoch.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/device-feature-retry.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/device-gpubuffer-constructor.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/device-ownership-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/dispatch-device-loss-context.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/energy-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/gather-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/kernel-binding-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/kernel-contract-regressions.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/kernel-language-selection.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/kernel-uniform-writers.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/kernel-wrapper-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/linear-attention-allocation-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/lm-head-argmax-recorder.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/logit-merge-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/matmul-backward-transpose-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/matmul-config-immutability.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/matmul-dispatch-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/paired-attention-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/paired-cast-wrapper.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/paired-linear-ownership.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/paired-matmul-ownership.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/paired-pointwise-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/paired-rmsnorm-ownership.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/paired-split-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/paired-tensor-metadata.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/pipeline-cache-hot-path.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/pipeline-cache-identity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/readback-utils.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/rep-penalty-rules.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/rmsnorm-execution-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/rmsnorm-recorded-binding-lifetime.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/rmsnorm-stats-ownership.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/rope-precompute-dispatch-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/rule-matcher.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/runtime-infra-regressions.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/sample-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/shader-source-scope.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/unified-wrapper-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/uniform-array-buffer.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/gpu/weight-buffer-provider-buffer.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/attention-kv-precision-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/attention-kv-precision-source.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/attention-output-projection.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/attention-plan.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/attention-projection-dtype.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/attention-projection-offsets.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/attention-projections-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/attention-quant-options.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/attention-run-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/attention-softmax-stability.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/bdpa-steamroller.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/bf16-weight-kernels-gpu-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# bf16-weight-kernels-gpu-regression.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/buffer-pool-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/canonical-sampling.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/choice-scoring.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/config-lfm2-intermediate-runtime.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/decode-buffer-representation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/decode-output-ownership.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/decode-ring.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/decode-sampling-ownership.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/decode-step-settlement.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/device-concurrent-init.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/diffusion-gemma-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/diffusion-gemma-sampling.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/dream-energy-head-pipeline.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/dream-structured-pipeline.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/dtype-contract-step-precision.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/embed-cpu-f16-gather.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/embedding-normalization-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/embedding-semantic-details.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/embedding-semantic-fixtures-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/embedding-state-reset.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/embedding-without-eos.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/execution-inline-kernel-path-phase-overrides.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/execution-plan.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/ffn-execution-v1-precision-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/ffn-mixed-q4k-materialization-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/finiteness-guard-status.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/finiteness-overflow-gate.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/finiteness-policy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/first-load-composition.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/fused-ffn-gelu-gpu-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# fused-ffn-gelu-gpu-regression.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/fused-ffn-q4-metal-simd16-gpu-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# fused-ffn-q4-metal-simd16-gpu-regression.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/fused-matmul-q4-metal-simd16-gpu-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# fused-matmul-q4-metal-simd16-gpu-regression.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/fused-normed-ffn-gpu-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# fused-normed-ffn-gpu-regression.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/gelu-erf-gpu-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# gelu-erf-gpu-regression.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/gemma3-1b-head256-prefill-path.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma3-1b-streaming-prefill-path.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma3-270m-head256-decode-path.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma3-nan-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# [NaN Regression] skipped: local fixture missing at /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/models/local/gemma-3-1b-it-f16-af32/manifest.json"
+    ]
+  },
+  {
+    "file": "tests/inference/gemma4-12b-encoder-free.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma4-double-wide-mlp-runtime.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma4-e2b-head512-decode-path.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma4-e2b-q4k-apple-retain-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# gemma4-e2b-q4k-apple-retain-regression.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/gemma4-finiteness-fallback-kvcache-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma4-hot-vocab-ple-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma4-multimodal-f16-override-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma4-multimodal-prefill-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma4-per-layer-prefix-override-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma4-pipeline-registration.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma4-ple-projection-norm-cache.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma4-vision-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/gemma4-vision-weight-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generate-token-ids-behavioral-parity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generate-token-ids-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generation-constraints.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generation-output.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generation-prompt-state-reset.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generation-request.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-abort-delivery.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-activation-representation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-batch-delivery-errors.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-finiteness-fallback.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-helpers.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-hot-vocab-batch-continuation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-paired-storage.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-prefill-submit-mode.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-runtime.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-steps-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-stop-token-parity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/generator-token-id-hint-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/glmocr-chat-format-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/glmocr-image-preprocess-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/glmocr-mrope-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/glmocr-vision-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/glmocr-vision-weight-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/heterogeneous-attention-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/image-transcription-node-url.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/image-transcription-resource-scope.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/json-grammar-mask.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/kv-cache-direct-write.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/kv-cache-sync.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/kvcache-layout-policy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/layer-dispatch-routing.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/layer-partition-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/layer-plan-layernorm.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# layer-plan-layernorm.test: skipped physical checks (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/layer-plan-paired-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/layer-plan-paired-physical.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# {\"passed\":false,\"skipped\":\"No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js\"}"
+    ]
+  },
+  {
+    "file": "tests/inference/layer-scalar-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/layernorm-bias-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/lfm2-conv-kernel-init.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# lfm2-conv-kernel-init.test: skipped (no WebGPU runtime)"
+    ]
+  },
+  {
+    "file": "tests/inference/lfm2-layer-plan-conv-state.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# lfm2-layer-plan-conv-state.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/linear-attention-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/linear-attention-core-gpu-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# linear-attention-core-gpu-regression.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/linear-attention-lora-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/linear-attention-norm-mode.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/linear-attention-state-probes.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/linear-recurrent-layout.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/linear-state-upload-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/load-errors.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/local-multimodal-manifest-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/logit-output-probes.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/logit-output-transform.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/logits-bias.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# logits-bias.test: ok (GPU assertions skipped: No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/logits-large-weight-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/logits-last-position-phase-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/logits-output-ownership.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# logits-output-ownership: skipped: No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js"
+    ]
+  },
+  {
+    "file": "tests/inference/logits-paired-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/logits-paired-physical.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# {\"schema\":\"doppler.paired-logits-control/v1\",\"passed\":false,\"skipped\":\"No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js\"}"
+    ]
+  },
+  {
+    "file": "tests/inference/logits-softcap-f32-tail-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/logits-utils-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/logits-weight-buffer-final-norm.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/lora-runtime-matmul-layout-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/manifest-compute-lane-binding.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/manifest-unsupported-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/matmul-kernel-path-weight-dtype-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/mixed-geometry-kvcache.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/mixed-geometry-prefill-with-embedding.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/model-checkpoint-evidence.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/model-load-batching-defaults.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/model-load-kernel-path-dtype-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/model-load-large-weights-runtime-override.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/moe-active-expert-schedule.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/moe-cache-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/moe-dtype-contract-source.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/moe-mixtral-runtime-wiring.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/moe-ops-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/moe-router-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/moe-routing-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/multimodal-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/multimodal-generation-options.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/multimodal-lazy-weight-load.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/multimodal-prefill-command-batching.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/multimodal-sequence-capacity-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/node-file-shard-storage-context.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/operator-diagnostics-forwarding-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/operator-diffing.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/paired-cache-cast-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/paired-embedding-probe.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/paired-execution-plan.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/paired-ffn-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/paired-ffn-physical.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# {\"passed\":false,\"skipped\":\"No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js\"}"
+    ]
+  },
+  {
+    "file": "tests/inference/paired-linear-norm-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/paired-linear-projection-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/paired-model-binding.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/paired-partition-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/paired-resident-admission.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/paired-weight-materialization.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/partition-attempt-allocation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/partition-attempt-clone.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/partition-kv-cache.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/partition-load-session-order.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/partition-prefill-lifetime.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/partition-recurrent-continuation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/pipeline-buffer-write-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/pipeline-context-restoration.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/pipeline-embedding-fast-path.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/pipeline-operation-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/pipeline-registry-isolation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/pipeline-session-config.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/pipeline-session-interleaving.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/pipeline-shader-scope.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/pipeline-unload-resources.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/postnorm-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/prefill-output-ownership.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/presence-penalty.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/probes-readback.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/q4k-loader-kernel-path-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/qk-norm-buffer-cache-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/qk-norm-weight-shape.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/qwen-linear-norm-offset.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/qwen-manifest-completeness.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/qwen-output-gate-recorder-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/qwen-q4k-eos-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/qwen-rmsnorm-offset-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/qwen-rope-runtime-config.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# qwen-rope-runtime-config.test: ok (GPU assertions skipped: No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/qwen-vision-config-runtime-override.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/refactor-receipt.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/rerank-scoring-details.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/resident-block-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/resident-output-state.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/resident-partition-lifecycle.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/resident-publication-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/resident-reasoning-output.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/resident-state-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/resident-target-state.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/resolved-runtime-session.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/resource-scope.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/rmsnorm-cache-bypass.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/rmsnorm-fusion-gate.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/rope-frequency-cache-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/rope-source-frequencies-gpu.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# rope-source-frequencies-gpu.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/inference/runtime-contract-regressions.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/sampling-config.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/sampling-nan-guard.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/sampling-topk-fast-path.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/sd3-transformer-plan.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/seeded-batch-generation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/seeded-generation-sequence.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/selected-logits-diagnostics.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/sequence-encoding-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/sequence-state.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/soft-embedding-split-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/speculative-decoding.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/stopping.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/test-harness-storage-context.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tiered-turboquant-clone.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/token-sampling-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/token-selection-lifecycle.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tokenizer-bundled-added-tokens.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tokenizer-bundled-flags.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tokenizer-bundled-hot-token-ranking.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tokenizer-bundled-split-pretokenizer.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tokenizer-bundled-unicode-decode.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tokenizer-bundled-wordpiece.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tokenizer-incremental-decode.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tokenizer-load-timing.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tokenizer-reload-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tokenizer.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tsir-fixture-writer.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/tsv-grammar-mask.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/turboquant-config-merge.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/vision-pipeline-capability.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/inference/weight-buffer-runtime-dtype.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/adapter-artifact-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/adapter-evaluation-fixture.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/adapter-registry-browser-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/bridge-extension-client-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/bridge-source-runtime.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-convert-command-surface.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-converter-file-picker-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-file-picker-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-harness-batching-metrics.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-harness-debug-snapshot.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-harness-dispatch-map.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-harness-generation-diagnostics.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-harness-image-transcription.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-harness-local-source-model-url.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-harness-reference-transcript.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-harness-runtime-input-composition.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-harness-suite-routing.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-remote-tensor-source-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/browser-shard-io-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/capsule-serve.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/cli-runtime-profiles.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/cli-surface-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/command-api.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/command-envelope.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/command-runner-shared.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/debug-config-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/debug-signals-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/debug-tensor-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/demo-surface-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/descriptor-transport-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/diagnostics-controller-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/diffusion-command-smoke.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/diffusion-image-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/diffusion-runtime-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/diffusion-tokenizer-loader.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/direct-source-opfs-cache-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/distill-command-threading-parity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/distribution-shard-delivery.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-browser-api-parity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-bundle-capture-precondition.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-bundle-cli.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-bundle-parity-emit.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-cli-external-model-resolution.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-generation-evidence.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-model-session-reset.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-provider-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-provider-generation-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-quickstart-api.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-quickstart-cli.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-rerank-evidence.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-resolution-policy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-scoped-session.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-serve-args.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/doppler-serve-handler.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/downloader-external-signal-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/downloader-persistence-policy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/downloader-resume-admission-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/downloader-tokenizer-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/dream-provider-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/ecosystem-runtime-schema.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/execution-graph-transforms.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/execution-v1-capability-policy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/failure-taxonomy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/fault-injection.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/frozen-prefix-receipt.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/frozen-prefix-resources.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/frozen-prefix-scope.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/functional-tensor.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/gemma4-12b-f16-activations.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/gemma4-31b-f16-activations.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/gemma4-chat-template.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/generation-surface-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/harness-page-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/hotswap-intent-bundle-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/hotswap-manifest-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/hotswap-rollout.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/hybrid-linear-execution-v1-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/index-browser-export-surface.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/installed-capability-lifecycle.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/installed-capability-memory.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/litert-gemma4-task-ple-scale.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# litert-gemma4-task-ple-scale.test: skipped (source artifact not available at /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/models/source/litert/gemma-4-e2b-it/gemma-4-E2B-it-web.task)"
+    ]
+  },
+  {
+    "file": "tests/integration/lora-activation-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/lora-loader-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/lora-session-ownership.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/model-manager-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-browser-command-relay-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-command-runtime-gating.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-convert-command-surface.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-convert-worker-pool.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-converter-atomicity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-converter-large-tensor-batching.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-converter-success-paths.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-converter-surface-errors.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-diagnose-command-surface.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-file-fetch-shim.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-provider-standalone.test.js",
+    "status": "fail",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-quickstart-cache.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-webgpu-bootstrap.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/opfs-cache-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/opfs-cached-source-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/opfs-store-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/p2p-control-plane-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/p2p-control-plane.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/p2p-delivery-observability-script.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/p2p-observability.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/p2p-resilience-drill.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/p2p-transport-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/p2p-webrtc-browser.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/partition-layers-physical.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# partition-layers-physical: skipped; set DOPPLER_PARTITION_MODEL_DIR to a local RDRR generation model"
+    ]
+  },
+  {
+    "file": "tests/integration/physical-kv-cache-observer.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/provider-receipt-v1.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/qwen-chat-template.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/qwen-execution-v1-gemv-diagnostic-transforms.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/qwen-execution-v1-linear-decode-f16.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/qwen-harness-explicit-prompt.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/qwen-linear-attention-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# qwen-linear-attention-regression.test: skipped (set DOPPLER_QWEN35_LINEAR_MODEL_DIR)"
+    ]
+  },
+  {
+    "file": "tests/integration/readback-mode-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/reports-indexeddb-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/reports-node-fallback.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/resident-partition-physical-config.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/resident-partition-physical.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# resident-partition-physical: skipped; set DOPPLER_PARTITION_MODEL_DIR"
+    ]
+  },
+  {
+    "file": "tests/integration/rmsnorm-dispatch-physical.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# rmsnorm-dispatch-physical: SKIP (DOPPLER_RMS_CAPTURE not supplied)"
+    ]
+  },
+  {
+    "file": "tests/integration/root-opfs-cache-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/runtime-embedding-limit-preflight.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/runtime-input-composition.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/runtime-model-source-file-url.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/safetensors-parser-browser-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/seeded-batch-physical.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# seeded-batch-physical: SKIP (explicit result path required)"
+    ]
+  },
+  {
+    "file": "tests/integration/shader-cache-node-file-url.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/shard-manager-existence-check-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/source-runtime-parity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# source-runtime-parity.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/integration/storage-registry-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/stored-source-artifact-synthesis-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/tensor-source-http-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/tooling-browser-export-surface.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/training-command-malformed-surface.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/training-force-resume-lineage.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# training-force-resume-lineage.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/integration/training-intent-split.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# training-intent-split.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/integration/training-operator-command-api.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/training-report-lineage.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# training-report-lineage.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/integration/translategemma-harness-explicit-prompt.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/translategemma-q4k-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# translategemma-q4k-regression.test: skipped (legacy TranslateGemma Q4K is outside the current Gemma 4/Qwen 3.5 release focus)"
+    ]
+  },
+  {
+    "file": "tests/integration/ul-command-threading-parity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/ul-stage-workflow-regression.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# ul-stage-workflow-regression.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/integration/w8a8-benchmark-scenario.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/w8a8-model-scenario.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/w8a8-physical.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# w8a8-physical: SKIP (explicit result path required)"
+    ]
+  },
+  {
+    "file": "tests/loader/doppler-loader-gpu-tensor-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/dtype-utils.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/embedding-loader-limit.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/expert-loader-gemma4.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/final-norm-selection.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/functional-descriptor-loader.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/gguf-types-safe-int.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/glmocr-layer-norm-aliases.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/layer-consumer-materialization.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/layer-loader-affine-norm.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# layer-loader-affine-norm.test: skipped (No authorized Node WebGPU provider succeeded: /var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js: Cannot find module '/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js' imported from /var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler/src/tooling/provider-v1-contract.js)"
+    ]
+  },
+  {
+    "file": "tests/loader/layer-loader-conv-precision.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# layer-loader-conv-precision.test: skipped (no WebGPU runtime)"
+    ]
+  },
+  {
+    "file": "tests/loader/layer-loader-gemma4-ple-projection-stability.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# layer-loader-gemma4-ple-projection-stability.test: skipped (no WebGPU runtime)"
+    ]
+  },
+  {
+    "file": "tests/loader/layer-loader-qk-norm-shape.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/layer-partition-loading.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/manifest-config.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/memory-monitor.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/multi-model-loader-lifecycle.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/parallel-weight-load-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/per-layer-input-loader.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/rdrr-tensor-map-reader.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/runtime-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/shard-cache-fallbacks.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/should-stream-large-weight-overrides.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/source-transform-contract-matrix.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/tensor-loader-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/tensor-loader-q4k-parity-probe-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/tensor-loader-q4k-reference-path.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/tensor-loader-weight-ownership.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/tensor-source-transform.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/loader/w8a8-loader.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/memory/buffer-pool-device-budget.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/memory/device-budget.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/memory/heap-manager.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/memory/unified-detect-node-safe.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/production-release/electron-document-search-acceptance.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/canonical-ordinary-generation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-adapter-execution.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-artifact-allocation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-artifact-retention.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-artifact-source.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-artifact-stream.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-artifact-verification-reuse.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-backing-budget.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-choice-scoring.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-embedding.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-forecast.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-gpu-token-selection.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-http-stream.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-incremental-stream.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-load-options.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-loading-http.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-loading.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-operation-document-search.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-operation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-rerank.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-runtime-entrypoint.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-session-execution.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-shared-device.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/capsule-wgsl-language.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/command-executor-cancellation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/initial-execution-identity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/paired-resident-opening.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/plan-bind-execute.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/resident-partition-opening.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/resident-piece-acquisition.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/runtime/target-selector.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/storage/artifact-storage-context.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/storage/blake3.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/storage/capsule-file-stream.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/storage/document-model-installation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/storage/model-read-session.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/storage/shard-manager-tensor-range-integrity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/storage/verified-piece-storage.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/artifact-identity-inventory-cli.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/audit-model-ir-lowerability.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/boundary-evidence.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/browser-import-graph.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/browser-protein-opfs-qualification.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/build-verified-piece-index.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/capsule-http-declarations.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/capsule-retention-experiment.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/close-installed-capsule.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/command-api-refresh-integrity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/command-api-release.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/command-surface-style.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/conversion-config-materializer.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/conversion-digest-selection.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/conversion-run-timing.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/create-release-to-javascript-receipt.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/custom-runtime-facts.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/debug-playbook-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/demo-hardware-smoke.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/document-search-build.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/document-search-evaluation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/document-search-installed-build.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/document-search-sources.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/electron-reranker-probe.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/embedding-qualification-lifecycle.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/embedding-reference-materialization.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/embedding-subdivision-plan.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/evidence-json-contracts.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/execution-cost-ledger.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/execution-routing-audit.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/export-v11-grpo-adapter.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/export-w8a8-projection.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/forge-model-capsule.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/forge-source-truth.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/gemma4-preflight-receipts.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/generation-qualification-scenario.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/glimmer-hf-reference-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# glimmer-hf-reference-contract.test: skipped (boundary artifacts unavailable at reports/model-ir-v2/glimmer-30b.hf-boundaries)"
+    ]
+  },
+  {
+    "file": "tests/tooling/heterogeneous-source-truth.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/independent-check-reporting.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/inspect-prefill-logits-receipt.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/installed-gpu-observation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/javascript-dependency-graph.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/kernel-negative-results.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/kernel-review-lint.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/kernel-uniform-generation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/lean-execution-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/litert-package-runtime.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/materialize-source-manifest.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/model-family-intake.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/model-onboarding-execution.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/model-onboarding.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/model-revision-discovery.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/module-dependencies.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/node-convert-worker-pool.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/node-source-runtime.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/node-test-discovery.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/node-test-runners-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/package-source-closure.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/packed-package-options.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/precision-replay-math.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/product-integration-evidence.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/product-readiness-report.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/production-release.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/program-bundle-exporter.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/program-bundle-parity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/program-bundle-reference-preflight.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/program-bundle-source-identity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/q4k-projection-reference.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/qualify-capsule-v0-node.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/qualify-sequence-capsule.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/quickstart-registry-sync-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/qwen-q4k-independent-blocks.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/rdrr-integrity-refresh.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/record-bun-product-qualification.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/record-product-integration-evaluation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/record-provider-conformance.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/record-runtime-ownership-evaluation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/record-runtime-promotion-monitoring.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/record-signed-revocation-authority-evaluation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/registered-variant-calibration-job.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/registered-variant-calibration.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/registry-verify-workload.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/release-claim-policy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/rerank-program-bundle.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/reranker-evaluation-preflight.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/reranker-kernel-closure.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/reranker-lifecycle-observation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/reranker-observed-fairness.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/reranker-reference-pair-audit.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/reranker-reference-schedule.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/restore-capsule-baseline.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/retained-release-checkpoint.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/run-node-tests-isolation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/runtime-closure-graph.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/runtime-optimization-index.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/runtime-optimization.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/runtime-ownership-execution-evidence.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/runtime-promotion-monitoring.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/search-abstention.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/sequence-full-reference-coverage.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/sequence-model-qualification.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/sequence-reference-transcript.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/shader-cache-scopes.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/source-architecture-debt.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/source-artifact-adapter.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/source-boundary-comparison.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "ok 1 - retained Glimmer boundary captures reproduce the historical rejected comparison # SKIP Local boundary capture unavailable: reports/model-ir-v2/glimmer-30b.node-candidate-11-tsir/generation_step_7",
+      "# skipped 1"
+    ]
+  },
+  {
+    "file": "tests/tooling/source-intake.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/source-runtime-bundle.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/source-runtime-converter-config.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/source-truth-input-files.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/supported-manifest-kernels-cli.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/tools-cli-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/trainer-artifact-handoff.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/training-bench-wrapper-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/translation-artifact-competition.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/verify-agent-freshness.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/verify-agent-parity-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/wgsl-author-browser-executor.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/wgsl-author-execution-plan.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/wgsl-author-package.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/wgsl-author-reference.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/wgsl-interface.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/wgsl-language-export.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/wgsl-repair-adapter-parity.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/wgsl-repair-semantic-gate.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/wgsl-v12-adapter-preservation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/wgsl-writer-semantic-harness.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/tooling/workflow-surface-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/agent-heldout-eval.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/attention-backward-gqa.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/cross-entropy-autograd.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/distill-sft-lora-bridge.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/distill-suite-data.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/gamma-wgsl-trainer-bridge.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/gepa-frontier-dataset.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/host-teacher-qualification.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/host-teacher-workspace-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/lora-causal-lm-preflight.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/lora-causal-lm-provider-runner.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/lora-export-safetensors.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/lora-matmul-layout-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/lora-runner-compatibility.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/loss-clip-workloads.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/qwen-full-attention-reference.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/qwen-full-decoder-reference.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/qwen-gated-delta-reference.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/qwen-linear-attention-reference.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/qwen-linear-decoder-reference.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/qwen-peft-adapter-import.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/qwen-sft-backend-parity-fixture.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/runner-state-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/runtime-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/silu-gated-autograd-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/student-code-experiment.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "ok 1 - retained teacher labels reproduce the historical training dataset # SKIP Local evidence unavailable: reports/training/teacher-qualification/doppler-js-wgsl-2026-07-11-v4",
+      "# skipped 1"
+    ]
+  },
+  {
+    "file": "tests/training/suite-artifact-dir-cleanup.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "# suite-artifact-dir-cleanup.test: skipped (no WebGPU runtime)"
+    ]
+  },
+  {
+    "file": "tests/training/teacher-trace-dataset.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/text-pairs.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-browser-verifier-timeout.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-experiment-signal-gates.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-family-distill-export.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-length-strata.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-repair-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-repair-v10-policy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "ok 1 - retained V10 token-budget derivation bytes match their frozen digest # SKIP Local evidence unavailable: reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1/train-anchor.jsonl",
+      "# skipped 1"
+    ]
+  },
+  {
+    "file": "tests/training/wgsl-repair-v11-policy.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "ok 1 - retained V11 corpus has frozen hashes and disjoint families # SKIP Local evidence unavailable: reports/training/wgsl-repair/doppler-wgsl-repair-v9/corpus-v1",
+      "# skipped 1"
+    ]
+  },
+  {
+    "file": "tests/training/wgsl-rollout-comparison.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-rollout-verifier.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-sequence-kd-materialization.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-source-catalog-v2.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-stratified-comparison.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-v12-evaluation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-v12-final-results.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-v12-lane-decision.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-v12-seed-workloads.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-writer-family-distillation-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": [
+      "ok 1 - retained family-distillation transport and adapter byte custody # SKIP Local evidence unavailable: reports/training/wgsl-writer/family-distillation-v1/transport/0-8b-v2/transport-request.json",
+      "# skipped 1"
+    ]
+  },
+  {
+    "file": "tests/training/wgsl-writer-v2-corpus.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-writer-v2-evaluation-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-writer-v2-result.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-writer-v2-training-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-writer-v3-confirmation-finiteness.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-writer-v3-contract.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/training/wgsl-writer-v3-reconciliation.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/utils/sha256.test.js",
+    "status": "ok",
+    "log": "unit.log",
+    "skipObservations": []
+  },
+  {
+    "file": "tests/integration/node-provider-standalone.test.js",
+    "status": "ok",
+    "log": "synthetic-provider-rerun.log",
+    "skipObservations": []
+  }
+]

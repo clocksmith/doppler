@@ -1,0 +1,45 @@
+{
+  "sourceCommit": "5c2b31888f3d98d7cb5fc9284b47df4cb0c18a9d",
+  "snapshot": "/var/tmp/doppler-0.6.28-unit-o77vbuou/workspace/doppler",
+  "evidence": "/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence",
+  "archive": "/var/tmp/doppler-0.6.28-unit-o77vbuou/archive-0.6.28.tgz",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "sourceExportSha256": "3caeb21f48bdb9c8bd6fe554d382c08369080daf261d25c3fa5abd58052ac93e",
+  "archiveFileCount": 1976,
+  "archiveDifferences": [],
+  "trackedFileCount": 10476,
+  "snapshotPackageLockSha256": "f203c3356c5002374dace5456e60ab907acc660400177ead3aaeb07088073d67",
+  "dependencyDirectory": "/home/x/deco/doppler/node_modules",
+  "installedDependencyLockSha256": "d56962e52ddc6e9b3e90d4d29a941e0d7295d6c5b8e0a2d63458e3d9451ae2b3",
+  "node": "v22.22.1",
+  "privateGitDirectory": "/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/git-metadata",
+  "gitObjectAlternate": "/home/x/deco/.git/modules/doppler/objects",
+  "noInheritedGitVariables": true,
+  "affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "nice": 10,
+  "env": {
+    "DOPPLER_NODE_WEBGPU_MODULE": "/var/tmp/doppler-0.6.28-unit-o77vbuou/evidence/intentionally-absent-webgpu.js",
+    "OMP_NUM_THREADS": "4",
+    "OPENBLAS_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4"
+  },
+  "command": [
+    "taskset",
+    "-c",
+    "0-3",
+    "nice",
+    "-n",
+    "10",
+    "node",
+    "tools/run-node-tests.js",
+    "--suite",
+    "unit"
+  ],
+  "runnerFileConcurrency": 1,
+  "scope": "Frozen-source complete CPU unit sweep; optional GPU unavailable, no inference or physical acceptance."
+}
