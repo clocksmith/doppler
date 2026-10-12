@@ -24,7 +24,7 @@ assert.match(modelsSource, /from 'doppler-gpu\/compat'/);
 assert.equal((html.match(/id="xray-toggle-all"/g) ?? []).length, 1);
 assert.match(html, /<label class="inspection-setting" for="xray-toggle-all">/);
 assert.match(html, /<label class="inspection-setting" for="set-word-quality">/);
-assert.match(html, /id="xray-summary-state"[^>]*>Timing, tokens, execution/);
+assert.match(html, /<h2 id="xray-heading">X-Ray<\/h2>/);
 assert.doesNotMatch(html, /capture-transcript|export-transcript|set-token-press/);
 assert.match(xraySource, /GPU timestamp queries/);
 assert.match(xraySource, /Timings are diagnostic/);

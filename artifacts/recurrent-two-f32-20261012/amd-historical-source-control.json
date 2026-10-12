@@ -1,0 +1,339 @@
+{
+  "oldArchive": "d6d007d2ab24274ea1751b6ccdbdee1fd2b039b4e2ddccbb376bb59eb5e61868",
+  "newArchive": "d0d53e8f6d72ef7de63433d5935b2e89a717d3b4d6e8d890bd19add499e5e85e",
+  "oldReceiptSha256": "1dfda8b8d1d092bade6bdb63e80fa08ffd11f8c4b1ee9026784fed20a8293343",
+  "newReceiptSha256": "8feb8d981820789f911b868a583986cb782cc11e922817efda2d93da764fd256",
+  "prefixes": [
+    {
+      "index": 0,
+      "step": 0,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 0,
+      "step": 1,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 1,
+      "step": 0,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 1,
+      "step": 1,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 0,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 1,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 2,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 3,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 4,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 5,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 6,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 7,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 8,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 9,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 10,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 11,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 12,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 13,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 14,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 15,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 16,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 17,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 18,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 19,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 20,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 21,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 22,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 23,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 24,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 25,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 26,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 27,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 28,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 29,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 30,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 31,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 32,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 33,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 34,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 35,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 36,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 37,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 38,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 39,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 40,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 41,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 42,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 43,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 44,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 45,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 46,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 47,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 48,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 49,
+      "sameInput": true,
+      "sameLogits": true
+    },
+    {
+      "index": 2,
+      "step": 50,
+      "sameInput": true,
+      "sameLogits": true
+    }
+  ],
+  "allEqual": true
+}

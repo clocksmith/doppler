@@ -25,6 +25,7 @@ import { selectRuleValue } from '../../../../rules/rule-registry.js';
 import { assertImplicitDtypeTransitionAllowed } from '../dtype-contract.js';
 import { applyLoRA } from '../lora-apply.js';
 import { getLoRAModule } from '../lora.js';
+import { resolveRecurrentStateLayout } from './state-layout.js';
 
 export function isGpuBuffer(value) {
   return isGpuBufferInstance(value);
@@ -392,8 +393,9 @@ export async function createLayerRuntimeState(
   const runtimeNorm = applyLinearNormWeightOffset(norm, config.rmsNormWeightOffset === true);
 
   const convState = new Float32Array(projectionLayout.convDim * convKernelSize);
+  const stateLayout = resolveRecurrentStateLayout(config.sessionSettings);
   const recurrentState = new Float32Array(
-    projectionLayout.numVHeads * projectionLayout.headKDim * projectionLayout.headVDim
+    projectionLayout.numVHeads * projectionLayout.headKDim * projectionLayout.headVDim * stateLayout.components
   );
   const rmsNormEps = Number(config.rmsNormEps);
   if (!Number.isFinite(rmsNormEps) || rmsNormEps <= 0) {
@@ -424,6 +426,8 @@ export async function createLayerRuntimeState(
     normWeight: runtimeNorm,
     convState,
     recurrentState,
+    recurrentStatePrecision: stateLayout.precision,
+    recurrentStateComponents: stateLayout.components,
     convWeightGPU: null,
     dtBiasGPU: null,
     aLogGPU: null,

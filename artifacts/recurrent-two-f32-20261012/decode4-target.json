@@ -1,0 +1,6 @@
+{
+  "index": 2,
+  "step": 4,
+  "physicalCache": true,
+  "sparseAttentionCache": true
+}

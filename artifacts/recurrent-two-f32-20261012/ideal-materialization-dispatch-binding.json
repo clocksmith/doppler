@@ -1,0 +1,888 @@
+{
+  "archiveSha256": "91b7c94d858f6fa44bb4b5208f5e48b0a95fb51f79806a802cf15f7b975e92bd",
+  "manifestIdentity": "sha256:418e19965c86c9d4117d09c9f536041c720b03a40be8485f9c4d4d2865f9f474",
+  "servedShaders": {
+    "/runtime/src/gpu/kernels/probe_shader_f16.wgsl": "85d26934e7253dc9a4e88c19098d57745f8d9723d4f03ecb81b2f70302a9b748",
+    "/runtime/src/gpu/kernels/submit_probe.wgsl": "b6001e7264cff565d8a29faa2e53e693a5c931d51d169ab5bbfe2392b672c9fb",
+    "/runtime/src/gpu/kernels/rope_precompute.wgsl": "5a8cd9b06791bfcb47b4160e3c1cc6f93576aeaaa663c2b0d644375963e14e4d",
+    "/runtime/src/gpu/kernels/gather_f16_vec4.wgsl": "a500eb8ca2a1ff7d6f19344a4d3ec0c9619ca15455f029aa601921d1917971f3",
+    "/runtime/src/gpu/kernels/rmsnorm.wgsl": "a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f",
+    "/runtime/src/gpu/kernels/fused_matmul_q4_widetile.wgsl": "5f54bbf28895cc3e489e3da43c7add98538fd6a6269dc2a5cdcde48843a569cb",
+    "/runtime/src/gpu/kernels/matmul_f16w_f32a_tiled.wgsl": "31b2f8d9623d77df223f12da61eb5a178209fa1ce43199fe94357d7791c2b3b5",
+    "/runtime/src/gpu/kernels/gated_delta_conv.wgsl": "01ca2e74eb28b716af65bdd86c84654622623714757fafdab7217e704e60879f",
+    "/runtime/src/gpu/kernels/gated_delta_recurrent.wgsl": "d3db1d0c3988579a6cc71c7eddb8936ca2708107b2bbafb39acc52c649121911",
+    "/runtime/src/gpu/kernels/gated_delta_fused_decode.wgsl": "fd811f031df1a3f291356cfb9d97af699e5b5a14656b7c2124c710e5b40800a1",
+    "/runtime/src/gpu/kernels/silu.wgsl": "38f7209006ccacb8654f82fc5cf5b17a9c2f9647c9a2b07f933c2c2420d8ebe5",
+    "/runtime/src/gpu/kernels/residual_vec4.wgsl": "04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb",
+    "/runtime/src/gpu/kernels/split_qg.wgsl": "61708ae7fe9d2502758fd5f1d9fdaee6d43e1cd12d4bfa9ad39c66af2610d027",
+    "/runtime/src/gpu/kernels/rmsnorm_qk.wgsl": "44629a6d94587955df8eac41776a6cefe78fc3ee8a3346c9c9c368f0858ca70c",
+    "/runtime/src/gpu/kernels/rope_qk.wgsl": "8b4d60b823a54159debb7aff3208480497b02fdae99f4644c1e00bb71902ff38",
+    "/runtime/src/gpu/kernels/kv_cache_write_f32_to_f16.wgsl": "fdba1f04c135d44d67fdc160b59e5a243abd0d47e54fa928c7cc115ed2f15afd",
+    "/runtime/src/gpu/kernels/attention_head256_f16kv.wgsl": "2f06e4d568f9c9f523a1b6e7bdebb8d02125f657865414b116be74d2ded9ba7d",
+    "/runtime/src/gpu/kernels/fused_matmul_q4_batched_multicol_shared.wgsl": "6f1e5bf35b68e81070568f7be35a6f763617ecc304678cf8f808a85f34d4f2b3",
+    "/runtime/src/gpu/kernels/logit_finalize_f32.wgsl": "b20df676b5813f258a5e32eb11cb34ce4e5c2aafc7e4b1e469c07bb861e7522f",
+    "/runtime/src/gpu/kernels/fused_matmul_q4.wgsl": "9c4d919d5ad5eadd225f34938c47b9c604e8a1fa05ec73c5eccfb882395bd935",
+    "/runtime/src/gpu/kernels/matmul_gemv_subgroup.wgsl": "04db4c712bc4f88ccd07588d68f852acd65f7db705c3b1f4217bf67eff8082ed",
+    "/runtime/src/gpu/kernels/fused_ffn_q4k.wgsl": "2d688b8d643e70db1f81acda6273e44995076ec9e895b282b456725296bbab2e",
+    "/runtime/src/gpu/kernels/attention_decode_online_f16kv.wgsl": "e433b9865c2734178a0f588612d5b2f88c1377c1f360140e2292177385d87c24"
+  },
+  "normalizationDispatch": [
+    {
+      "entry": "main",
+      "constants": {
+        "RMS_NORM_OFFSET": 1,
+        "WEIGHT_IS_F16": 1,
+        "PRE_RESIDUAL": 0,
+        "OUTPUT_PRENORM": 0
+      },
+      "selections": 400,
+      "shaderSha256": "a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f"
+    },
+    {
+      "entry": "main",
+      "constants": {
+        "RMS_NORM_OFFSET": 1,
+        "WEIGHT_IS_F16": 1,
+        "PRE_RESIDUAL": 1,
+        "OUTPUT_PRENORM": 1
+      },
+      "selections": 384,
+      "shaderSha256": "a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f"
+    }
+  ],
+  "qkNormalizationDispatch": [
+    {
+      "entry": "main",
+      "constants": {
+        "RMS_NORM_OFFSET": 1,
+        "Q_WEIGHT_IS_F16": 1,
+        "K_WEIGHT_IS_F16": 1
+      },
+      "selections": 96,
+      "shaderSha256": "44629a6d94587955df8eac41776a6cefe78fc3ee8a3346c9c9c368f0858ca70c"
+    }
+  ],
+  "quantizedDispatch": [
+    {
+      "entry": "main",
+      "selections": 300,
+      "dispatches": [
+        {
+          "ordinal": 4,
+          "dimensions": [
+            24,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 5,
+          "dimensions": [
+            8,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 10,
+          "dimensions": [
+            4,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 12,
+          "dimensions": [
+            14,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 13,
+          "dimensions": [
+            14,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 15,
+          "dimensions": [
+            4,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 18,
+          "dimensions": [
+            24,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 19,
+          "dimensions": [
+            8,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 24,
+          "dimensions": [
+            4,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 26,
+          "dimensions": [
+            14,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 27,
+          "dimensions": [
+            14,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 29,
+          "dimensions": [
+            4,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 32,
+          "dimensions": [
+            24,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 33,
+          "dimensions": [
+            8,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 38,
+          "dimensions": [
+            4,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 40,
+          "dimensions": [
+            14,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 41,
+          "dimensions": [
+            14,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 43,
+          "dimensions": [
+            4,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 46,
+          "dimensions": [
+            16,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 48,
+          "dimensions": [
+            2,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 49,
+          "dimensions": [
+            2,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 55,
+          "dimensions": [
+            4,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 57,
+          "dimensions": [
+            14,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 58,
+          "dimensions": [
+            14,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 60,
+          "dimensions": [
+            4,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 63,
+          "dimensions": [
+            24,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 64,
+          "dimensions": [
+            8,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 69,
+          "dimensions": [
+            4,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 71,
+          "dimensions": [
+            14,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 72,
+          "dimensions": [
+            14,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 74,
+          "dimensions": [
+            4,
+            46,
+            1
+          ]
+        },
+        {
+          "ordinal": 77,
+          "dimensions": [
+            24,
+            46,
+            1
+          ]
+        }
+      ],
+      "shaderSha256": "5f54bbf28895cc3e489e3da43c7add98538fd6a6269dc2a5cdcde48843a569cb"
+    },
+    {
+      "entry": "main",
+      "selections": 2,
+      "dispatches": [
+        {
+          "ordinal": 358,
+          "dimensions": [
+            31040,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 2886,
+          "dimensions": [
+            31040,
+            1,
+            1
+          ]
+        }
+      ],
+      "shaderSha256": "6f1e5bf35b68e81070568f7be35a6f763617ecc304678cf8f808a85f34d4f2b3"
+    },
+    {
+      "entry": "main_gemv",
+      "constants": {
+        "COLS_PER_WG": 64,
+        "THREADS_PER_COL_GEMV": 4
+      },
+      "selections": 1442,
+      "dispatches": [
+        {
+          "ordinal": 362,
+          "dimensions": [
+            96,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 363,
+          "dimensions": [
+            32,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 368,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 371,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 374,
+          "dimensions": [
+            96,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 375,
+          "dimensions": [
+            32,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 380,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 383,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 386,
+          "dimensions": [
+            96,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 387,
+          "dimensions": [
+            32,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 392,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 395,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 398,
+          "dimensions": [
+            64,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 400,
+          "dimensions": [
+            8,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 401,
+          "dimensions": [
+            8,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 407,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 410,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 413,
+          "dimensions": [
+            96,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 414,
+          "dimensions": [
+            32,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 419,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 422,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 425,
+          "dimensions": [
+            96,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 426,
+          "dimensions": [
+            32,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 431,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 434,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 437,
+          "dimensions": [
+            96,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 438,
+          "dimensions": [
+            32,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 443,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 446,
+          "dimensions": [
+            16,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 449,
+          "dimensions": [
+            64,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 451,
+          "dimensions": [
+            8,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 452,
+          "dimensions": [
+            8,
+            1,
+            1
+          ]
+        }
+      ],
+      "shaderSha256": "9c4d919d5ad5eadd225f34938c47b9c604e8a1fa05ec73c5eccfb882395bd935"
+    },
+    {
+      "entry": "main",
+      "constants": {
+        "COLS_PER_WG": 64,
+        "THREADS_PER_COL": 4
+      },
+      "selections": 336,
+      "dispatches": [
+        {
+          "ordinal": 370,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 382,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 394,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 409,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 421,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 433,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 445,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 460,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 472,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 484,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 496,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 511,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 523,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 535,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 547,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 562,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 574,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 586,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 598,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 613,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 625,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 637,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 649,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 664,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 680,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 692,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 704,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 719,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 731,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 743,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 755,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        },
+        {
+          "ordinal": 770,
+          "dimensions": [
+            56,
+            1,
+            1
+          ]
+        }
+      ],
+      "shaderSha256": "2d688b8d643e70db1f81acda6273e44995076ec9e895b282b456725296bbab2e"
+    }
+  ],
+  "captureSha256": "bd4ac8041baecdc734600934a4d7f6ecd2e6f101fae5fbb4d71ccd76ca28bdc5"
+}

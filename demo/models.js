@@ -2,6 +2,7 @@ import { dr } from 'doppler-gpu/compat';
 import { state } from './ui/state.js';
 import { clearConversationHistory, syncSendButton } from './input.js';
 import { setExportEnabled } from './report.js';
+import { setPhase } from './output.js';
 
 export const DEFAULT_DEMO_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32';
 
@@ -26,6 +27,7 @@ function setStatus(text, busy = false) {
   dot?.classList.toggle('is-ready', !busy);
   dot?.classList.toggle('is-busy', busy);
   if (label) label.textContent = text;
+  if (/^(Load|Remove) failed/.test(text)) setPhase(text);
 }
 
 function setProgress(event) {
@@ -140,7 +142,7 @@ async function loadSelectedModel({ entry = selectedEntry(), runtimeProfile = sta
 export async function ensurePromptModel() {
   if (state.model) return state.model;
   const entry = selectedEntry();
-  if (!entry) throw new Error('The default model is unavailable. Choose a model in Advanced.');
+  if (!entry) throw new Error('The default model is unavailable. Choose a model in Settings.');
   await loadSelectedModel({ entry });
   if (!state.model) throw new Error('Model loading is already in progress. Try again when ready.');
   return state.model;
@@ -293,7 +295,7 @@ export function renderModelCards() {
   if (count) count.textContent = `${catalog.length} models`;
   const status = $('model-select-status');
   if (status) status.textContent = catalog.length
-    ? `${catalog.length} supported`
+    ? ''
     : 'No supported models';
   syncModelControls();
 }

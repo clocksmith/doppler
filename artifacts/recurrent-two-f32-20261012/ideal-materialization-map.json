@@ -1,0 +1,157 @@
+{
+  "schema": "doppler.ideal-global-materialization-diagnostic/v1",
+  "qualified": false,
+  "scope": "Ideal F64 arithmetic between explicitly mapped global tensor-buffer stores; workgroup/private F32 arithmetic and scratch stores deliberately omitted. This is not an attainable GPU oracle, lower bound, replacement reference or precision permission.",
+  "parentArchiveSha256": "91b7c94d858f6fa44bb4b5208f5e48b0a95fb51f79806a802cf15f7b975e92bd",
+  "evaluatorSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "request": {
+    "index": 2,
+    "prefillTokens": 184,
+    "lastDecodeStep": 7
+  },
+  "rounding": "nearest-even via independently checked NumPy F64-to-F32 conversion; two-F32 nearest high plus nearest residual low",
+  "stores": [
+    {
+      "operation": "embedding",
+      "phase": "both",
+      "representation": "F32"
+    },
+    {
+      "operation": "input/post-attention/final RMSNorm",
+      "phase": "both",
+      "representation": "F32",
+      "parameters": "epsilon nearest F32 uniform",
+      "branch": "Post-attention PRE_RESIDUAL computes normalization from ideal internal input+residual, independently storing nearest-F32 residual stream; do not normalize the rounded residual readback."
+    },
+    {
+      "operation": "linear QKV/Z/A/B and full-attention Q/K/V projections",
+      "phase": "both",
+      "representation": "F32"
+    },
+    {
+      "operation": "convolution history",
+      "phase": "both",
+      "representation": "F32 projected inputs, shifts exact"
+    },
+    {
+      "operation": "activated convolution output",
+      "phase": "prefill only",
+      "representation": "F32 global conv_out; fused decode remains ideal internally"
+    },
+    {
+      "operation": "recurrent state",
+      "phase": "both",
+      "representation": "two-F32 after decay and after update"
+    },
+    {
+      "operation": "raw recurrent readout",
+      "phase": "prefill only",
+      "representation": "F32 before read-modify-write norm/gate",
+      "branch": "Prefill normalization denominator uses ideal raw readout; numerator reads nearest-F32 global output. Decode has no intermediate global raw-output store."
+    },
+    {
+      "operation": "normalized gated recurrent output",
+      "phase": "both",
+      "representation": "F32"
+    },
+    {
+      "operation": "Q/K head RMSNorm",
+      "phase": "both",
+      "representation": "F32"
+    },
+    {
+      "operation": "RoPE cosine/sine tables",
+      "phase": "both",
+      "representation": "F32; ideal mathematical frequency/angle before each table store"
+    },
+    {
+      "operation": "rotated Q/K",
+      "phase": "both",
+      "representation": "F32"
+    },
+    {
+      "operation": "K/V cache",
+      "phase": "both",
+      "representation": "nearest-even F16 at actual cache store from materialized producer; no approved-cache injection"
+    },
+    {
+      "operation": "attention output before gate",
+      "phase": "both",
+      "representation": "F32"
+    },
+    {
+      "operation": "gated attention output",
+      "phase": "both",
+      "representation": "F32"
+    },
+    {
+      "operation": "linear/full-attention output projection",
+      "phase": "both",
+      "representation": "F32"
+    },
+    {
+      "operation": "residual streams",
+      "phase": "both",
+      "representation": "F32"
+    },
+    {
+      "operation": "FFN gate/up projections",
+      "phase": "prefill only",
+      "representation": "F32; fused decode intermediates remain ideal"
+    },
+    {
+      "operation": "FFN activated gate-times-up",
+      "phase": "both",
+      "representation": "F32"
+    },
+    {
+      "operation": "FFN down projection",
+      "phase": "both",
+      "representation": "F32"
+    },
+    {
+      "operation": "final logits",
+      "phase": "both",
+      "representation": "F32"
+    }
+  ],
+  "sourceIdentities": [
+    {
+      "path": "src/gpu/kernels/gated_delta_recurrent.wgsl",
+      "sha256": "d3db1d0c3988579a6cc71c7eddb8936ca2708107b2bbafb39acc52c649121911"
+    },
+    {
+      "path": "src/gpu/kernels/gated_delta_fused_decode.wgsl",
+      "sha256": "fd811f031df1a3f291356cfb9d97af699e5b5a14656b7c2124c710e5b40800a1"
+    },
+    {
+      "path": "src/gpu/kernels/linear-attention-core.js",
+      "sha256": "f4b25e77ab453b931320d1719b7430c1344cc69f576e26eaea451f5de9a30d3e"
+    },
+    {
+      "path": "src/inference/pipelines/text/linear-attention.js",
+      "sha256": "65e0ad68e672cfeeab7093cd1f50a9e21022e783ba3a21a5220c6faaf901f383"
+    },
+    {
+      "path": "src/gpu/kernels/rope_precompute.wgsl",
+      "sha256": "5a8cd9b06791bfcb47b4160e3c1cc6f93576aeaaa663c2b0d644375963e14e4d"
+    },
+    {
+      "path": "src/gpu/kernels/rmsnorm.wgsl",
+      "sha256": "a1986477198de29aa97205475bdc5bf3c79039917dd26ba16c9d9e6e687e0f4f"
+    },
+    {
+      "path": "src/gpu/kernels/fused_ffn_q4k.wgsl",
+      "sha256": "2d688b8d643e70db1f81acda6273e44995076ec9e895b282b456725296bbab2e"
+    },
+    {
+      "path": "src/inference/pipelines/text/attention/plan.js",
+      "sha256": "cdfb65b6eaad911f7a900673f6d2940e502369a2bf068ff54cd5e527adf43467"
+    }
+  ],
+  "reviewStatus": "reviewed",
+  "dispatchBinding": {
+    "path": "artifacts/recurrent-two-f32-20261012/ideal-materialization-dispatch-binding.json",
+    "sha256": "f424c8f4cf06a6e1663a32d29cc275ca20d0121a77777f8a68d624ed1d2ca6ca"
+  }
+}

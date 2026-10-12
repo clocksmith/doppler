@@ -371,12 +371,12 @@
       "gated_delta_recurrent": {
         "kernel": "gated_delta_recurrent.wgsl",
         "entry": "main",
-        "digest": "sha256:fb5629b3baca5d1209d600e9e5a07a7e22f8eb5ed393e33f931cf95f6443a05e"
+        "digest": "sha256:62c75dcabde791a94829d8c4f4e4f5323cd38e5b98abf41d7f92473aa931e1db"
       },
       "gated_delta_fused_decode": {
         "kernel": "gated_delta_fused_decode.wgsl",
         "entry": "main",
-        "digest": "sha256:8b22a71709f9f0518180fa80762b8f071e9fc8dea47de0f2b5884d297dbe56b8"
+        "digest": "sha256:585ca624a2d06e40eb8ebef4a077894db15414437577901a01dec36762424705"
       }
     },
     "preLayer": [
