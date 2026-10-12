@@ -1,0 +1,30 @@
+{
+  "schema": "doppler.source-quality-independent-input-review/v1",
+  "candidateOutputsRead": false,
+  "reviewers": [
+    "native_participation",
+    "root"
+  ],
+  "scope": "Pre-output input and acceptance integrity, not model quality or release qualification.",
+  "frozenSuiteSha256": "fa0b776e1d80de4033c0317cc0daccc604d22d03a88642f03e59797a04c81a2d",
+  "checks": {
+    "fourCasesAndOrderedMessagesUnchanged": true,
+    "allFactualAndCitationCriteriaUnchanged": true,
+    "generationAndBudgetsUnchanged": true,
+    "disjointBatchesReconstructFullSuite": true,
+    "noSystemInstructionAdded": true,
+    "officialTemplateSupportsNonthinking": true,
+    "tokenizerConfigHashVerifiedOnSourceMachine": true
+  },
+  "template": {
+    "path": "/var/tmp/doppler-qwen35-2b-source-20261011/tokenizer_config.json",
+    "sha256": "49e2b6e395f959f077f1e992b338919c0d4a9732fc6e613995e06557f843500c",
+    "trueBranch": "<think>\n",
+    "falseBranch": "<think>\n\n</think>\n\n"
+  },
+  "limits": [
+    "Removing reasoning can reduce answer quality; no success is assumed.",
+    "Every criterion remains required, including meaningful citations and natural completion.",
+    "EOS and matching output tokens alone do not establish usefulness."
+  ]
+}
