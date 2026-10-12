@@ -1,0 +1,14 @@
+{
+  "schema": "doppler.source-policy-run-binding/v1",
+  "host": "x@128.tail995236.ts.net",
+  "ownedPid": 1673603,
+  "threads": 4,
+  "surface": "CPU source equations only",
+  "source": "/var/tmp/doppler-qwen3-17b-source-20261011",
+  "command": "PYTHONPATH=/tmp/doppler-reference-deps OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 python3 -u tools/source-model-task-quality.py --source /var/tmp/doppler-qwen3-17b-source-20261011 --suite artifacts/qwen3-citation-policy-20261012/suite.json --out reports/local/qwen3-citation-policy-20261012/source.json --threads 4",
+  "report": "reports/local/qwen3-citation-policy-20261012/source.json",
+  "log": "reports/local/qwen3-citation-policy-20261012/source.log",
+  "producerSha256": "3e1dd96f7e338a48a0c778e7d9b2b20f0c9c2982ff9a59194d03774ed42da483",
+  "evaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "status": "running"
+}

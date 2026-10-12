@@ -1,0 +1,169 @@
+{
+  "schema": "doppler.short-document-input-audit/v1",
+  "sourceReportSha256": "20cda9ff20d91567176c348e9a64d61706f859d7254da4b311c6a3fa0356a233",
+  "suiteSha256": "395f4d9c8a84d500345b9b5158656d730bb42aecd5a5cebf2e61f77adff8a1bf",
+  "tokenizerConfigSha256": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101",
+  "rows": [
+    {
+      "id": "superseded-invoice",
+      "seed": 17,
+      "orderedMessagesEqual": true,
+      "officialTemplateEqual": true,
+      "inputIdsEqual": true,
+      "inputTokenCount": 82,
+      "renderedPromptSha256": "def7504be620f68d63f7e3d848cb3355f9837128c416bd3eeedec5756c0a4090",
+      "messageSpans": [
+        {
+          "role": "user",
+          "contentStart": 17,
+          "contentLength": 242,
+          "contentSha256": "94a4198f2c7cca298a11bc806533a95321306021b40cf4cd50ce8d23b1ae88f6"
+        }
+      ]
+    },
+    {
+      "id": "conditional-dispatch",
+      "seed": 17,
+      "orderedMessagesEqual": true,
+      "officialTemplateEqual": true,
+      "inputIdsEqual": true,
+      "inputTokenCount": 78,
+      "renderedPromptSha256": "7ba25d7a8df1703afea4179ad746a59a3c37b2e684fae166dee4fb36743ba5c3",
+      "messageSpans": [
+        {
+          "role": "user",
+          "contentStart": 17,
+          "contentLength": 302,
+          "contentSha256": "aa831b8db76d37ca085244e738c0aede7829e5ae1d1a6c169a426d959280aab2"
+        }
+      ]
+    },
+    {
+      "id": "deadline-duration",
+      "seed": 17,
+      "orderedMessagesEqual": true,
+      "officialTemplateEqual": true,
+      "inputIdsEqual": true,
+      "inputTokenCount": 68,
+      "renderedPromptSha256": "b64ad3ae9058876c3c61a0e58cdfe0c99794a50063865f05890790e5513e323f",
+      "messageSpans": [
+        {
+          "role": "user",
+          "contentStart": 17,
+          "contentLength": 244,
+          "contentSha256": "d5b93333d86a5cac4a19c0374d370bd05374208c3a264f5119e550dcb0244e94"
+        }
+      ]
+    },
+    {
+      "id": "retained-subtotal-correction",
+      "seed": 17,
+      "orderedMessagesEqual": true,
+      "officialTemplateEqual": true,
+      "inputIdsEqual": true,
+      "inputTokenCount": 112,
+      "renderedPromptSha256": "15ed965f4beea2e549c63c7dcdfbd7b4ccfb7c42895c0825a7214558b7afbb86",
+      "messageSpans": [
+        {
+          "role": "user",
+          "contentStart": 17,
+          "contentLength": 224,
+          "contentSha256": "77e1afe20e9766daf1bf6c9714e3469cc6b2711bbf1627f604f5975fcdd527eb"
+        },
+        {
+          "role": "assistant",
+          "contentStart": 274,
+          "contentLength": 69,
+          "contentSha256": "88f60451289de13bb0acba2ca3cbcca8c3131ac5387a4f40afc37a4bcdc740c9"
+        },
+        {
+          "role": "user",
+          "contentStart": 371,
+          "contentLength": 93,
+          "contentSha256": "5ca91d54f5a53df2dd95e4586ae1294fab72fa2273b2f8e5a756066f87b7cca4"
+        }
+      ]
+    },
+    {
+      "id": "superseded-invoice",
+      "seed": 53,
+      "orderedMessagesEqual": true,
+      "officialTemplateEqual": true,
+      "inputIdsEqual": true,
+      "inputTokenCount": 82,
+      "renderedPromptSha256": "def7504be620f68d63f7e3d848cb3355f9837128c416bd3eeedec5756c0a4090",
+      "messageSpans": [
+        {
+          "role": "user",
+          "contentStart": 17,
+          "contentLength": 242,
+          "contentSha256": "94a4198f2c7cca298a11bc806533a95321306021b40cf4cd50ce8d23b1ae88f6"
+        }
+      ]
+    },
+    {
+      "id": "conditional-dispatch",
+      "seed": 53,
+      "orderedMessagesEqual": true,
+      "officialTemplateEqual": true,
+      "inputIdsEqual": true,
+      "inputTokenCount": 78,
+      "renderedPromptSha256": "7ba25d7a8df1703afea4179ad746a59a3c37b2e684fae166dee4fb36743ba5c3",
+      "messageSpans": [
+        {
+          "role": "user",
+          "contentStart": 17,
+          "contentLength": 302,
+          "contentSha256": "aa831b8db76d37ca085244e738c0aede7829e5ae1d1a6c169a426d959280aab2"
+        }
+      ]
+    },
+    {
+      "id": "deadline-duration",
+      "seed": 53,
+      "orderedMessagesEqual": true,
+      "officialTemplateEqual": true,
+      "inputIdsEqual": true,
+      "inputTokenCount": 68,
+      "renderedPromptSha256": "b64ad3ae9058876c3c61a0e58cdfe0c99794a50063865f05890790e5513e323f",
+      "messageSpans": [
+        {
+          "role": "user",
+          "contentStart": 17,
+          "contentLength": 244,
+          "contentSha256": "d5b93333d86a5cac4a19c0374d370bd05374208c3a264f5119e550dcb0244e94"
+        }
+      ]
+    },
+    {
+      "id": "retained-subtotal-correction",
+      "seed": 53,
+      "orderedMessagesEqual": true,
+      "officialTemplateEqual": true,
+      "inputIdsEqual": true,
+      "inputTokenCount": 112,
+      "renderedPromptSha256": "15ed965f4beea2e549c63c7dcdfbd7b4ccfb7c42895c0825a7214558b7afbb86",
+      "messageSpans": [
+        {
+          "role": "user",
+          "contentStart": 17,
+          "contentLength": 224,
+          "contentSha256": "77e1afe20e9766daf1bf6c9714e3469cc6b2711bbf1627f604f5975fcdd527eb"
+        },
+        {
+          "role": "assistant",
+          "contentStart": 274,
+          "contentLength": 69,
+          "contentSha256": "88f60451289de13bb0acba2ca3cbcca8c3131ac5387a4f40afc37a4bcdc740c9"
+        },
+        {
+          "role": "user",
+          "contentStart": 371,
+          "contentLength": 93,
+          "contentSha256": "5ca91d54f5a53df2dd95e4586ae1294fab72fa2273b2f8e5a756066f87b7cca4"
+        }
+      ]
+    }
+  ],
+  "conclusion": "All ordered message text, citation requests, official thinking template and exact input IDs were delivered unchanged. No evaluator omission found. The model omitted required supporting IDs in final answers despite receiving the source and request."
+}

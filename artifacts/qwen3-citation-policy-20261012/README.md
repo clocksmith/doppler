@@ -1,0 +1,7 @@
+# Explicit final-answer citation policy
+
+The [input audit](input-audit.json) reconstructs every original short-document prompt with the pinned official tokenizer. Ordered messages, rendered thinking template and exact input IDs match all eight retained executions. No source passage, citation request or conversation turn was dropped. The model omitted supporting IDs after receiving the full request; no evaluator fix is justified by this boundary.
+
+The [frozen candidate](suite.json) adds exactly one explicit system instruction requiring supporting passage citations beside final-answer factual claims. It combines the unchanged eight short-document cases and four original contractor cases under seeds 17 and 53, using the same authorized original Qwen3-1.7B checkpoint, recommended thinking policy and limits. Every original task, factual criterion, expected condition and sampling setting is preserved. The [freeze](freeze.json) predates execution, and [run binding](run-binding.json) records the CPU invocation.
+
+This is an exposed paired policy diagnostic, not a fresh holdout or production change. The run is in progress. All twelve cases must finish naturally, meet their original criteria, and remain within 4,096 generated tokens, 8,192 total tokens and 16,000 raw UTF-16 units. Failed historical answers remain retained. No automatic citations, captured-answer substitution, seed selection or larger allowance is permitted. A source pass still would not qualify converted weights, GPU arithmetic, memory or distributed execution.
