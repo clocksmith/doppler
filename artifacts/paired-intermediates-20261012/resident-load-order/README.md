@@ -9,3 +9,7 @@ The lifecycle called the strict resident validator before assigning `resolvedRun
 This repair requires a new ordinary package and fresh numerical, resident, and signed qualification. The prior unsplit receipts do not qualify new package bytes. The retained physical preparation receipt remains pinned to archive 8.
 
 Component: `doppler.runtime-source.inference.pipelines.text`. Intent: preserved. Boundary effects: resident admission now receives its required resolved session. No application pin change.
+
+Archive9 is ordinary package SHA256 `8cae56b0748a5c66add985122d8bbf72b7492e2e0828f713f1b0d7425a59a4e5`, built from clean canonical commit `bddea7ef`. Its 1,974 packaged files match that exported source byte-for-byte. Intervening committed RD-CANON work is included; the numerical run uses the retained legacy profile and unchanged paired graph/model.
+
+The AMD full55 replay passes the unchanged approved F64 reference: maximum error `9.520044947919359e-7`, RMS `7.555127322679271e-8`, zero failing prefixes or values above0.001. All57 outputs (55unique plus resident repeats) are byte-identical to the same-provider archive8 outputs. Device-buffer peak is1,132,260,560bytes under1.42billion; the controller completed and closed its owned browser. Raw output, independent comparison, and resource observations are retained. Matching Mac and physical split qualification remain pending at this checkpoint.
