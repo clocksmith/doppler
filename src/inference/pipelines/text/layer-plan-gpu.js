@@ -100,6 +100,14 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
   const layerType = config.layerTypes?.[layerIdx];
   const isLocalLayer = isSlidingLayerType(layerType);
   const activationDtype = resolveActivationDtype(context.activationDtype);
+  const representation = { precision: context.activationPrecision, components: context.activationComponents,
+    elementStrideBytes: context.activationElementStrideBytes };
+  const paired = representation.precision === 'two-f32';
+  createTensor(inputBuffer, activationDtype, [numTokens, hiddenSize], 'plan_input_contract', representation);
+  if (paired && (steps.some(step => (step.op === 'cast' && step.toDtype !== 'f32') || step.op === 'layernorm' || step.op === 'conv')
+    || hasPerLayerInputBlock(config))) {
+    throw new Error('Paired layer plan requires preserving activation storage; scalar casts, LayerNorm, generic convolution and per-layer input blocks are unsupported.');
+  }
 
   const attnState = {
     ropeFreqsCos: (isLocalLayer && context.ropeLocalCos)
@@ -190,7 +198,12 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
     return required;
   };
 
-  const setSlot = (name, buf, dtype) => {
+  const setSlot = (name, buf, dtype, actualRepresentation = representation) => {
+    if (paired && (dtype !== 'f32' || actualRepresentation.precision !== 'two-f32'
+      || actualRepresentation.components !== 2 || actualRepresentation.elementStrideBytes !== 8)) {
+      if (!protectedBuffers.has(buf) && !refCounts.has(buf)) releaseOrTrack(recorder, buf);
+      throw new Error('Layer pipeline kernel discarded paired activation storage.');
+    }
     const key = name.trim() || 'state';
     const prev = slots.get(key);
     if (prev && prev !== buf) {
@@ -200,7 +213,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
     if (dtype) {
       slotDtypes.set(key, dtype);
     }
-    addRef(buf);
+    if (prev !== buf) addRef(buf);
   };
 
   const clearSlot = (name) => {
@@ -210,6 +223,15 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
     slots.delete(key);
     slotDtypes.delete(key);
     releaseRef(prev);
+  };
+
+  const storeStepOutput = (step, tensor) => {
+    const actual = resolveActivationDtype(tensor.dtype);
+    setSlot(step.dst, tensor.buffer, actual, tensor);
+    if (paired && (tensor.shape?.length !== 2 || tensor.shape[0] !== numTokens || tensor.shape[1] !== hiddenSize)) {
+      throw new Error('Layer pipeline kernel changed the paired logical activation shape.');
+    }
+    return resolveStepOutputDtype(step, actual);
   };
 
   setSlot('state', inputBuffer, activationDtype);
@@ -244,9 +266,9 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
 
 
           const activationDtype = resolveStepInputDtype(step, step.src);
-          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_src');
+          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_src', representation);
           const residualTensor = (residualBuf && allowResidualFuse)
-            ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_residual')
+            ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_attn_residual', representation)
             : null;
 
 
@@ -307,8 +329,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             context.lora
           );
 
-          const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(result.output.dtype));
-          setSlot(step.dst, result.output.buffer, outputDtype);
+          const outputDtype = storeStepOutput(step, result.output);
           if (step.probeStage) {
             await runProbes(step.probeStage, result.output.buffer, {
               layerIdx,
@@ -318,6 +339,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
               recorder,
               operatorDiagnostics: context.operatorDiagnostics,
               dtype: outputDtype,
+              ...representation,
             });
           }
           break;
@@ -325,7 +347,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
         case 'conv': {
           const srcBuf = getSlot(step.src);
           const inputDtype = resolveStepInputDtype(step, step.src);
-          const srcTensor = createTensor(srcBuf, inputDtype, [numTokens, hiddenSize], 'plan_conv_src');
+          const srcTensor = createTensor(srcBuf, inputDtype, [numTokens, hiddenSize], 'plan_conv_src', representation);
 
           const convInProj = layerWeights?.convInProj ?? null;
           const convOutProj = layerWeights?.convOutProj ?? null;
@@ -354,8 +376,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             },
             recorder
           );
-          const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
-          setSlot(step.dst, outputTensor.buffer, outputDtype);
+          const outputDtype = storeStepOutput(step, outputTensor);
           if (step.probeStage) {
             await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,
@@ -365,6 +386,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
               recorder,
               operatorDiagnostics: context.operatorDiagnostics,
               dtype: outputDtype,
+              ...representation,
             });
           }
           break;
@@ -378,8 +400,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             throw new Error(`Layer pipeline LayerNorm requires affine weight and bias for "${step.weight}" at L${layerIdx}.`);
           }
           const srcTensor = createTensor(
-            getSlot(step.src), inputDtype, [numTokens, hiddenSize], 'plan_layernorm_src'
-          );
+            getSlot(step.src), inputDtype, [numTokens, hiddenSize], 'plan_layernorm_src', representation);
           let weightBuffer = null;
           let biasBuffer = null;
           try {
@@ -392,7 +413,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
               label: `L${layerIdx}.layernorm_${step.weight}`,
               layerIdx,
             }, recorder);
-            setSlot(step.dst, output.buffer, outputDtype);
+            setSlot(step.dst, output.buffer, outputDtype, output);
           } finally {
             if (weightBuffer && !isGpuBufferInstance(weight) && !isWeightBuffer(weight)) {
               releaseOrTrack(recorder, weightBuffer);
@@ -415,23 +436,29 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
           if (!weight) {
             throw new Error(`Layer pipeline rmsnorm missing weights for "${step.weight}" at L${layerIdx}`);
           }
-          const normWeightBuf = getNormWeightBuffer(weight, `rmsnorm_${step.weight}`, weightConfig, debugFlags, device);
           const residualBuf = step.residual ? getSlot(step.residual) : null;
 
           const activationDtype = resolveStepInputDtype(step, step.src);
-          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_src');
-          const residualTensor = residualBuf ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_residual') : null;
-          const outputTensor = await doRMSNorm(srcTensor, normWeightBuf, rmsNormEps, {
-            batchSize: numTokens,
-            hiddenSize,
-            residual: residualTensor,
-            label: `L${layerIdx}.rmsnorm_${step.weight}`,
-            layerIdx,
-            rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
-          }, recorder);
-          if (!isGpuBufferInstance(weight) && !isWeightBuffer(weight)) releaseOrTrack(recorder, normWeightBuf);
-          const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
-          setSlot(step.dst, outputTensor.buffer, outputDtype);
+          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_src', representation);
+          const residualTensor = residualBuf ? createTensor(residualBuf, activationDtype, [numTokens, hiddenSize], 'plan_rmsnorm_residual', representation) : null;
+          const normWeightBuf = getNormWeightBuffer(weight, `rmsnorm_${step.weight}`, weightConfig, debugFlags, device);
+          let outputTensor;
+          try {
+            const normWeightTensor = paired
+              ? createTensor(normWeightBuf, requireWeightDtype(weight, 'paired plan norm weight'), [hiddenSize], 'norm_weight')
+              : normWeightBuf;
+            outputTensor = await doRMSNorm(srcTensor, normWeightTensor, rmsNormEps, {
+              batchSize: numTokens,
+              hiddenSize,
+              residual: residualTensor,
+              label: `L${layerIdx}.rmsnorm_${step.weight}`,
+              layerIdx,
+              rmsNormWeightOffset: weightConfig.rmsNormWeightOffset,
+            }, recorder);
+          } finally {
+            if (!isGpuBufferInstance(weight) && !isWeightBuffer(weight)) releaseOrTrack(recorder, normWeightBuf);
+          }
+          const outputDtype = storeStepOutput(step, outputTensor);
           if (step.probeStage) {
             await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,
@@ -441,6 +468,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
               recorder,
               operatorDiagnostics: context.operatorDiagnostics,
               dtype: outputDtype,
+              ...representation,
             });
           }
           break;
@@ -449,7 +477,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
           const srcBuf = getSlot(step.src);
 
           const activationDtype = resolveStepInputDtype(step, step.src);
-          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_ffn_src');
+          const srcTensor = createTensor(srcBuf, activationDtype, [numTokens, hiddenSize], 'plan_ffn_src', representation);
           const ffnContext = step.inputDtype || step.outputDtype
             ? {
               ...context,
@@ -477,13 +505,13 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
             'ffnMode',
             { variant: step.variant, canAutoMoe }
           );
+          if (useMoe && paired) throw new Error('Paired layer plan has no declared MoE execution.');
           if (useMoe) {
             outputTensor = await runMoEFFNGPU(layerIdx, srcTensor, numTokens, ffnContext);
           } else {
             outputTensor = await runDenseFFNGPU(layerIdx, srcTensor, numTokens, ffnContext, layerWeights);
           }
-          const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
-          setSlot(step.dst, outputTensor.buffer, outputDtype);
+          const outputDtype = storeStepOutput(step, outputTensor);
           if (step.probeStage) {
             await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,
@@ -493,6 +521,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
               recorder,
               operatorDiagnostics: context.operatorDiagnostics,
               dtype: outputDtype,
+              ...representation,
             });
           }
           break;
@@ -502,8 +531,8 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
           const bBuf = getSlot(step.b ?? 'residual');
 
           const activationDtype = resolveStepInputDtype(step, step.a ?? 'state');
-          const aTensor = createTensor(aBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_a');
-          const bTensor = createTensor(bBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_b');
+          const aTensor = createTensor(aBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_a', representation);
+          const bTensor = createTensor(bBuf, activationDtype, [numTokens, hiddenSize], 'plan_residual_b', representation);
           const outputScale = resolveResidualOutputScaleForPlan(
             steps,
             stepIndex,
@@ -521,8 +550,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
           if (outputScale !== 1) {
             layerScalarFused = true;
           }
-          const outputDtype = resolveStepOutputDtype(step, resolveActivationDtype(outputTensor.dtype));
-          setSlot(step.dst, outputTensor.buffer, outputDtype);
+          const outputDtype = storeStepOutput(step, outputTensor);
           if (step.probeStage) {
             await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,
@@ -532,6 +560,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
               recorder,
               operatorDiagnostics: context.operatorDiagnostics,
               dtype: outputDtype,
+              ...representation,
             });
           }
           break;
@@ -539,7 +568,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
         case 'cast': {
           const srcBuf = getSlot(step.src);
           const inputDtype = resolveStepInputDtype(step, step.src);
-          const srcTensor = createTensor(srcBuf, inputDtype, [numTokens, hiddenSize], 'plan_cast_src');
+          const srcTensor = createTensor(srcBuf, inputDtype, [numTokens, hiddenSize], 'plan_cast_src', representation);
           if (step.fromDtype) {
             const expected = resolveActivationDtype(step.fromDtype);
             if (inputDtype !== expected) {
@@ -550,7 +579,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
           }
           const toDtype = resolveActivationDtype(step.toDtype);
           const outputTensor = await doCast(srcTensor, toDtype, recorder);
-          setSlot(step.dst, outputTensor.buffer, toDtype);
+          setSlot(step.dst, outputTensor.buffer, toDtype, outputTensor);
           if (step.probeStage) {
             await runProbes(step.probeStage, outputTensor.buffer, {
               layerIdx,
@@ -581,7 +610,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
     if (hasPerLayerInputBlock(config)) {
       const stateBuffer = getSlot('state');
       const stateDtype = getSlotDtype('state') ?? activationDtype;
-      const stateTensor = createTensor(stateBuffer, stateDtype, [numTokens, hiddenSize], 'plan_state');
+      const stateTensor = createTensor(stateBuffer, stateDtype, [numTokens, hiddenSize], 'plan_state', representation);
       const outputTensor = await applyPerLayerInputBlock(
         layerIdx,
         stateTensor,
@@ -591,15 +620,15 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
         layerWeights
       );
       const outputDtype = resolveActivationDtype(outputTensor.dtype);
-      setSlot('state', outputTensor.buffer, outputDtype);
+      setSlot('state', outputTensor.buffer, outputDtype, outputTensor);
     }
     if (!layerScalarFused) {
       const stateBuffer = getSlot('state');
       const stateDtype = getSlotDtype('state') ?? activationDtype;
-      const stateTensor = createTensor(stateBuffer, stateDtype, [numTokens, hiddenSize], 'plan_state_layer_scalar');
+      const stateTensor = createTensor(stateBuffer, stateDtype, [numTokens, hiddenSize], 'plan_state_layer_scalar', representation);
       const scaledTensor = await applyLayerScalar(layerIdx, stateTensor, size, context, layerWeights);
       if (scaledTensor.buffer !== stateTensor.buffer) {
-        setSlot('state', scaledTensor.buffer, resolveActivationDtype(scaledTensor.dtype));
+        setSlot('state', scaledTensor.buffer, resolveActivationDtype(scaledTensor.dtype), scaledTensor);
       }
     }
 
@@ -612,6 +641,7 @@ export async function processLayerPlanGPU(layerIdx, inputBuffer, numTokens, isPr
       recorder,
       operatorDiagnostics: context.operatorDiagnostics,
       dtype: getSlotDtype('state') ?? activationDtype,
+      ...representation,
     });
 
     const computeConfig = context.runtimeComputeConfig ?? null;
