@@ -1,0 +1,384 @@
+{
+  "schema": "doppler-paired-attention-wrapper-physical-v1",
+  "sources": {
+    "src/gpu/kernels/paired-split.js": "41a9f3e135e9ded1feff799e4d6778db70bbdea3e02356413125cd600109af9f",
+    "src/gpu/kernels/split_qg_paired.wgsl": "e5c945262f0badc9ae0ce4fdce4f9ac007a1a244dc49f5692d0a4b52490c765f",
+    "src/gpu/kernels/split_qkv_paired.wgsl": "8b1e90e4e34643b523f331e82ae6cc90f4c37e7404a9cb8e1993dbd841e5c733",
+    "src/gpu/kernels/paired-rope.js": "76f1736bc70ae818d44a904b8ea6d3808ad7574ab6303e94ce260d1877c52964",
+    "src/gpu/kernels/rope_precompute_paired.wgsl": "3342e61b52a62286e4e6b3edb60899b06556608dbc5030771a2b9db50e640523",
+    "src/gpu/kernels/rope_qk_paired.wgsl": "6e665fc250cdc22dd271b9bbc65b6ce2594da2aff4c22987ca20f80b130857b0",
+    "src/gpu/kernels/rmsnorm-qk.js": "6a2c27d4b527a2e4b45222ada712f2aa13bda513e51b891b3fc0ad99e54d8588",
+    "src/gpu/kernels/paired-rmsnorm.js": "ff3112cffb61e488305e8046951a954a4713df8a0dc0b87c4e8c1a5fba530538",
+    "src/gpu/kernels/paired-attention.js": "8445b34cf6b67443eab62b461ee970c133ae88698e02e3422f5e5fb6b4aa1df5",
+    "src/gpu/kernels/attention_paired.wgsl": "50f2bd098df6182bfb544a110c3ceaa9cb72a4d456dfd501fcd44a774dc15ac6",
+    "src/config/kernels/registry.json": "778ee036ec8e97fff1dc13a1e24265b32b65931c060413e0923cd9cb59627a96",
+    "src/rules/generated/rule-bundle.json": "5b7499b2a79163311fa5c84137f5b34ff240f0d946206b8001a54806b9927438"
+  },
+  "scope": "Actual split bit permutations, Q/K normalization, RoPE and causal GQA attention against independent F64 equations; no model qualification.",
+  "result": {
+    "rows": [
+      {
+        "kind": "qg",
+        "recorded": false,
+        "borrowed": false,
+        "exact": true
+      },
+      {
+        "kind": "qg",
+        "recorded": false,
+        "borrowed": true,
+        "exact": true
+      },
+      {
+        "kind": "qg",
+        "recorded": true,
+        "borrowed": false,
+        "exact": true
+      },
+      {
+        "kind": "qg",
+        "recorded": true,
+        "borrowed": true,
+        "exact": true
+      },
+      {
+        "kind": "qkv",
+        "recorded": false,
+        "borrowed": false,
+        "exact": true
+      },
+      {
+        "kind": "qkv",
+        "recorded": false,
+        "borrowed": true,
+        "exact": true
+      },
+      {
+        "kind": "qkv",
+        "recorded": true,
+        "borrowed": false,
+        "exact": true
+      },
+      {
+        "kind": "qkv",
+        "recorded": true,
+        "borrowed": true,
+        "exact": true
+      },
+      {
+        "kind": "precompute",
+        "geometry": {
+          "positionCount": 65,
+          "rotaryDim": 64,
+          "frequencyBaseDim": 64
+        },
+        "sinError": 1.3183898417423734e-13,
+        "cosError": 1.5509815654013437e-13,
+        "tolerance": 2e-10
+      },
+      {
+        "kind": "rotation",
+        "recorded": false,
+        "interleaved": false,
+        "maxError": 2.0339285811132868e-13,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "rotation",
+        "recorded": true,
+        "interleaved": false,
+        "maxError": 2.0339285811132868e-13,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "rotation",
+        "recorded": false,
+        "interleaved": true,
+        "maxError": 2.3592239273284576e-13,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "rotation",
+        "recorded": true,
+        "interleaved": true,
+        "maxError": 2.3592239273284576e-13,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "precompute",
+        "geometry": {
+          "positionCount": 8192,
+          "rotaryDim": 4,
+          "frequencyBaseDim": 64
+        },
+        "sinError": 2.238251251007739e-11,
+        "cosError": 2.2677498767720294e-11,
+        "tolerance": 2e-10
+      },
+      {
+        "kind": "precompute",
+        "geometry": {
+          "positionCount": 5,
+          "rotaryDim": 4,
+          "frequencyBaseDim": 4,
+          "inverseFrequencies": [
+            1,
+            0.3651741147041321
+          ]
+        },
+        "sinError": 1.1102230246251565e-15,
+        "cosError": 9.992007221626409e-16,
+        "tolerance": 2e-10
+      },
+      {
+        "kind": "qknorm",
+        "recorded": false,
+        "maxError": 4.387049872907065e-15,
+        "tolerance": 2e-12
+      },
+      {
+        "kind": "qknorm",
+        "recorded": true,
+        "maxError": 4.387049872907065e-15,
+        "tolerance": 2e-12
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 3,
+          "kv": 7,
+          "heads": 4,
+          "kvheads": 2,
+          "dim": 8,
+          "start": 4,
+          "window": 0
+        },
+        "recorded": false,
+        "borrowed": false,
+        "maxError": 1.0824674490095276e-15,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 3,
+          "kv": 7,
+          "heads": 4,
+          "kvheads": 2,
+          "dim": 8,
+          "start": 4,
+          "window": 0
+        },
+        "recorded": false,
+        "borrowed": true,
+        "maxError": 1.0824674490095276e-15,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 3,
+          "kv": 7,
+          "heads": 4,
+          "kvheads": 2,
+          "dim": 8,
+          "start": 4,
+          "window": 0
+        },
+        "recorded": true,
+        "borrowed": false,
+        "maxError": 1.0824674490095276e-15,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 3,
+          "kv": 7,
+          "heads": 4,
+          "kvheads": 2,
+          "dim": 8,
+          "start": 4,
+          "window": 0
+        },
+        "recorded": true,
+        "borrowed": true,
+        "maxError": 1.0824674490095276e-15,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 1,
+          "kv": 9,
+          "heads": 2,
+          "kvheads": 1,
+          "dim": 256,
+          "start": 8,
+          "window": 3
+        },
+        "recorded": false,
+        "borrowed": false,
+        "maxError": 5.828670879282072e-16,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 1,
+          "kv": 9,
+          "heads": 2,
+          "kvheads": 1,
+          "dim": 256,
+          "start": 8,
+          "window": 3
+        },
+        "recorded": false,
+        "borrowed": true,
+        "maxError": 5.828670879282072e-16,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 1,
+          "kv": 9,
+          "heads": 2,
+          "kvheads": 1,
+          "dim": 256,
+          "start": 8,
+          "window": 3
+        },
+        "recorded": true,
+        "borrowed": false,
+        "maxError": 5.828670879282072e-16,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 1,
+          "kv": 9,
+          "heads": 2,
+          "kvheads": 1,
+          "dim": 256,
+          "start": 8,
+          "window": 3
+        },
+        "recorded": true,
+        "borrowed": true,
+        "maxError": 5.828670879282072e-16,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 1,
+          "kv": 3,
+          "heads": 2,
+          "kvheads": 1,
+          "dim": 8,
+          "start": 0,
+          "kvStart": 4,
+          "window": 0
+        },
+        "recorded": false,
+        "borrowed": false,
+        "maxError": 0,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 1,
+          "kv": 3,
+          "heads": 2,
+          "kvheads": 1,
+          "dim": 8,
+          "start": 0,
+          "kvStart": 4,
+          "window": 0
+        },
+        "recorded": false,
+        "borrowed": true,
+        "maxError": 0,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 1,
+          "kv": 3,
+          "heads": 2,
+          "kvheads": 1,
+          "dim": 8,
+          "start": 0,
+          "kvStart": 4,
+          "window": 0
+        },
+        "recorded": true,
+        "borrowed": false,
+        "maxError": 0,
+        "tolerance": 2e-11
+      },
+      {
+        "kind": "attention",
+        "config": {
+          "tokens": 1,
+          "kv": 3,
+          "heads": 2,
+          "kvheads": 1,
+          "dim": 8,
+          "start": 0,
+          "kvStart": 4,
+          "window": 0
+        },
+        "recorded": true,
+        "borrowed": true,
+        "maxError": 0,
+        "tolerance": 2e-11
+      }
+    ],
+    "errors": [],
+    "stats": {
+      "allocations": 33,
+      "reuses": 50,
+      "totalBytesAllocated": 514816,
+      "peakBytesAllocated": 514816,
+      "currentBytesAllocated": 512768,
+      "totalBytesRequested": 464640,
+      "peakBytesRequested": 429056,
+      "currentBytesRequested": 0,
+      "resources": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 512768,
+          "count": 25
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "activeBuffers": 0,
+      "pooledBuffers": 25,
+      "budgetMaxBytes": 0,
+      "budgetUtilization": 0,
+      "hitRate": "60.2%"
+    },
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3"
+    },
+    "settled": true
+  },
+  "browser": "146.0.7680.177",
+  "passed": true
+}
