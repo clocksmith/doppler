@@ -1,0 +1,13 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0,1,2,3",
+    "node",
+    "tools/run-node-tests.js",
+    "tests/integration/node-provider-standalone.test.js"
+  ],
+  "exitCode": 0,
+  "physicalGpu": false,
+  "reason": "Fixture preinstalls and owns a synthetic GPU; no-GPU discovery override removed only for this fixture"
+}

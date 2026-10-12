@@ -1,0 +1,51 @@
+{
+  "scope": "Canonical unit suite, exact archive8 source; CPU-only with existing optional GPU and local-artifact skips. Successful file exit is not proof that skipped subcases ran.",
+  "selectedFiles": 953,
+  "recordedFiles": 953,
+  "allSelectedFilesRepresented": true,
+  "finalSuccessfulFiles": 953,
+  "finalFailedFiles": [],
+  "filesWithExplicitSkippedCases": 46,
+  "pendingFilesExcluded": [
+    "tests/integration/doppler-public-logits-api-contract.pending.test.js"
+  ],
+  "trials": [
+    {
+      "log": "unit.log",
+      "passedFiles": 943,
+      "failedFiles": [
+        "tests/config/model-support-inventory-contract.test.js",
+        "tests/config/tracked-benchmark-evidence-contract.test.js",
+        "tests/config/vendor-bench-cli-contract.test.js",
+        "tests/inference/paired-model-binding.test.js",
+        "tests/integration/node-provider-standalone.test.js",
+        "tests/tooling/export-w8a8-projection.test.js",
+        "tests/tooling/inspect-prefill-logits-receipt.test.js",
+        "tests/tooling/qualify-sequence-capsule.test.js",
+        "tests/training/host-teacher-qualification.test.js",
+        "tests/training/student-code-experiment.test.js"
+      ]
+    },
+    {
+      "log": "environment-rerun.log",
+      "passedFiles": 7,
+      "failedFiles": [
+        "tests/training/host-teacher-qualification.test.js",
+        "tests/training/student-code-experiment.test.js"
+      ]
+    },
+    {
+      "log": "synthetic-provider-rerun.log",
+      "passedFiles": 1,
+      "failedFiles": []
+    },
+    {
+      "log": "nested-workspace-rerun.log",
+      "passedFiles": 2,
+      "failedFiles": []
+    }
+  ],
+  "sourceCommit": "1cb70cf923822481ac170113be5a68cb4d01ab4e",
+  "archiveSha256": "8ea1767fb61d9009dd257c4065a6acfdbaaf80fa733145898307ed35da0e7f20",
+  "sourceAndArchiveAfterMatch": true
+}
