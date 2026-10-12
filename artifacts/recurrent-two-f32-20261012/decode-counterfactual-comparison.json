@@ -1,0 +1,139 @@
+{
+  "scope": "Only final decode7 layer0 independent same-input QKV replaced, real GPU downstream; not qualification",
+  "qualified": false,
+  "copyControlExact": true,
+  "parentSha256": "16783e8822736f8271a7ff734a1a4de65ff5e9d8cc9109a582dc597d8844260d",
+  "controlSha256": "e12f9aa793b44ac56acec18225e8c24af34eb2e87122af570f9786c116662e81",
+  "interventionSha256": "9b35c90516fbf713060fc424d696efb3a115e0dc7a5fe86be71503963120871e",
+  "approvalSha256": "065a6f065e551995743d183151b500a68761b15f612497b7933551f6c4ae2fb5",
+  "rows": [
+    {
+      "step": 0,
+      "parent": {
+        "maximum": 0.0004278254607363863,
+        "rms": 0.00007868035089994373,
+        "overTolerance": 0,
+        "worstVocabulary": 56142
+      },
+      "correctedLocalDecodeQKV": {
+        "maximum": 0.0004278254607363863,
+        "rms": 0.00007868035089994373,
+        "overTolerance": 0,
+        "worstVocabulary": 56142
+      },
+      "changedLogits": 0
+    },
+    {
+      "step": 1,
+      "parent": {
+        "maximum": 0.0006583665064643363,
+        "rms": 0.00011680571024335614,
+        "overTolerance": 0,
+        "worstVocabulary": 2928
+      },
+      "correctedLocalDecodeQKV": {
+        "maximum": 0.0006583665064643363,
+        "rms": 0.00011680571024335614,
+        "overTolerance": 0,
+        "worstVocabulary": 2928
+      },
+      "changedLogits": 0
+    },
+    {
+      "step": 2,
+      "parent": {
+        "maximum": 0.0007479493939888116,
+        "rms": 0.00014922676081665417,
+        "overTolerance": 0,
+        "worstVocabulary": 5936
+      },
+      "correctedLocalDecodeQKV": {
+        "maximum": 0.0007479493939888116,
+        "rms": 0.00014922676081665417,
+        "overTolerance": 0,
+        "worstVocabulary": 5936
+      },
+      "changedLogits": 0
+    },
+    {
+      "step": 3,
+      "parent": {
+        "maximum": 0.0009013880016812692,
+        "rms": 0.0001764435105094129,
+        "overTolerance": 0,
+        "worstVocabulary": 63084
+      },
+      "correctedLocalDecodeQKV": {
+        "maximum": 0.0009013880016812692,
+        "rms": 0.0001764435105094129,
+        "overTolerance": 0,
+        "worstVocabulary": 63084
+      },
+      "changedLogits": 0
+    },
+    {
+      "step": 4,
+      "parent": {
+        "maximum": 0.0008839739349237874,
+        "rms": 0.00016222366411787692,
+        "overTolerance": 0,
+        "worstVocabulary": 219085
+      },
+      "correctedLocalDecodeQKV": {
+        "maximum": 0.0008839739349237874,
+        "rms": 0.00016222366411787692,
+        "overTolerance": 0,
+        "worstVocabulary": 219085
+      },
+      "changedLogits": 0
+    },
+    {
+      "step": 5,
+      "parent": {
+        "maximum": 0.0007797962510814882,
+        "rms": 0.000162596089522469,
+        "overTolerance": 0,
+        "worstVocabulary": 36339
+      },
+      "correctedLocalDecodeQKV": {
+        "maximum": 0.0007797962510814882,
+        "rms": 0.000162596089522469,
+        "overTolerance": 0,
+        "worstVocabulary": 36339
+      },
+      "changedLogits": 0
+    },
+    {
+      "step": 6,
+      "parent": {
+        "maximum": 0.0007018223205244034,
+        "rms": 0.00014319741718226743,
+        "overTolerance": 0,
+        "worstVocabulary": 51216
+      },
+      "correctedLocalDecodeQKV": {
+        "maximum": 0.0007018223205244034,
+        "rms": 0.00014319741718226743,
+        "overTolerance": 0,
+        "worstVocabulary": 51216
+      },
+      "changedLogits": 0
+    },
+    {
+      "step": 7,
+      "parent": {
+        "maximum": 0.001040836900171982,
+        "rms": 0.00019802565237517542,
+        "overTolerance": 1,
+        "worstVocabulary": 52771
+      },
+      "correctedLocalDecodeQKV": {
+        "maximum": 0.0010427442488047944,
+        "rms": 0.0001969980103551048,
+        "overTolerance": 2,
+        "worstVocabulary": 52771
+      },
+      "changedLogits": 247545
+    }
+  ]
+}
