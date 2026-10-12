@@ -1,5 +1,5 @@
 {
-  "status": "running",
+  "status": "process-completed",
   "cases": [
     {
       "lane": "question-before",
@@ -15,7 +15,8 @@
         "--out",
         "reports/local/qwen35-08b-attachment-layout-20261012/question-before.json"
       ],
-      "suiteSha256": "6806f062ea99f6fb4a6109ebbc7be74dc45f19f210732a8ac6169559c56f77d7"
+      "suiteSha256": "6806f062ea99f6fb4a6109ebbc7be74dc45f19f210732a8ac6169559c56f77d7",
+      "exitCode": 0
     },
     {
       "lane": "question-after",
@@ -31,7 +32,8 @@
         "--out",
         "reports/local/qwen35-08b-attachment-layout-20261012/question-after.json"
       ],
-      "suiteSha256": "4bf432357fdf5b65c0c6806e896095470c34c62b3396c4a9b5d16ee6f2d3bf93"
+      "suiteSha256": "4bf432357fdf5b65c0c6806e896095470c34c62b3396c4a9b5d16ee6f2d3bf93",
+      "exitCode": 0
     }
   ]
 }

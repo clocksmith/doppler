@@ -1,0 +1,440 @@
+{
+  "schema": "doppler.attachment-layout-review/v1",
+  "qualified": false,
+  "completedCases": 14,
+  "passedCases": 0,
+  "shortRequestedConclusions": {
+    "question-before": 2,
+    "question-after": 5,
+    "totalPerLane": 5
+  },
+  "conclusion": "Moving the question improves three short factual answers under identical weights. Exact citations fail all short cases, and contractor facts fail both layouts. No profile is promoted. The existing policy block still precedes JSON; the next predetermined candidate moves the entire existing block after the evidence and adds a fresh holdout.",
+  "cases": [
+    {
+      "lane": "question-before",
+      "id": "attached-three",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Only12-per-ticket unitprice restated; requestedtotal omitted."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Exact[D1:P1] citation omitted."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Naturalcompletion but onlyrestatesunitprice."
+        }
+      ]
+    },
+    {
+      "lane": "question-before",
+      "id": "attached-four-followup",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Only12-per-ticket unitprice restated; requestedtotal omitted."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Exact[D1:P1] citation omitted."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Naturalcompletion but onlyrestatesunitprice."
+        }
+      ]
+    },
+    {
+      "lane": "question-before",
+      "id": "fresh-excluded-tax",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Incorrect85+15=90."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Keeps excluded taxrate/amount unknown."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Required exactpassage citations omitted."
+        }
+      ]
+    },
+    {
+      "lane": "question-before",
+      "id": "fresh-conditional-release",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct no/condition or deadline conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves requiredcondition or statedcompletion; no invented successfulinspection/shortened schedule."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Required exactpair ofpassage citations omitted; candidateconditional namesonlyD1:P1 withoutbrackets."
+        }
+      ]
+    },
+    {
+      "lane": "question-before",
+      "id": "fresh-deadline",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct no/condition or deadline conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves requiredcondition or statedcompletion; no invented successfulinspection/shortened schedule."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Required exactpair ofpassage citations omitted; candidateconditional namesonlyD1:P1 withoutbrackets."
+        }
+      ]
+    },
+    {
+      "lane": "question-before",
+      "id": "contractor-comparison",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Mislabels Harbor electrical as additional tobase; Cedar removal and taxscope contradicted."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "No10550 orbudgetremainders; incorrectly labels10800lowest."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "OmitsCedarMay20+threeweekspastJune1 andMaplematerialcondition; invents milestone/payment meanings."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Quotes Cedar conflict but doesnotbind exactD3:P2 correctly; latercallsremoval/plumbingcontradictory."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "Missing exactsupportingpassage markers and unsupportedclaimssourcedtosnippets."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "RecommendsMaple safest withoutdeadline/excludedcostconditions and inventslaborhoursquestion."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": true,
+          "observation": "No optionaldepositdollar arithmetic."
+        }
+      ]
+    },
+    {
+      "lane": "question-before",
+      "id": "contractor-retained-correction",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Exclusiontablemostlycorrectbutcosttableclaimsnone; treats800includedallowanceasextra."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "WrongHarbor12400; no budgetremainders despitecorrectCedar10550."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "OmitsCedarJune1failure and questionswhetherexplicitcompletiondatesarestarts."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "ChoosesPage2exclusionasoverridingPage1 withoutsourceauthority."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "MisattributesCedarclauses toD3:P1/P3 andinventedfactsto source."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Asksaboutallowancealreadydefined; no usefuldeadlineanalysis."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": false,
+          "observation": "Invents prior1600erroranddoesnotcorrectretainedremoval reversal."
+        },
+        {
+          "criterionIndex": 7,
+          "pass": true,
+          "observation": "No optionaldepositdollar arithmetic."
+        }
+      ]
+    },
+    {
+      "lane": "question-after",
+      "id": "attached-three",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Requested36/48 computed."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Exact[D1:P1] citation omitted."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "Naturalcompletion and noextra fees; total given."
+        }
+      ]
+    },
+    {
+      "lane": "question-after",
+      "id": "attached-four-followup",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Requested36/48 computed."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Exact[D1:P1] citation omitted."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "Naturalcompletion and noextra fees; total given."
+        }
+      ]
+    },
+    {
+      "lane": "question-after",
+      "id": "fresh-excluded-tax",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct100 subtotal."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Keeps excluded taxrate/amount unknown."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Required exactpassage citations omitted."
+        }
+      ]
+    },
+    {
+      "lane": "question-after",
+      "id": "fresh-conditional-release",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct no/condition or deadline conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves requiredcondition or statedcompletion; no invented successfulinspection/shortened schedule."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Required exactpair ofpassage citations omitted; candidateconditional namesonlyD1:P1 withoutbrackets."
+        }
+      ]
+    },
+    {
+      "lane": "question-after",
+      "id": "fresh-deadline",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct no/condition or deadline conclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves requiredcondition or statedcompletion; no invented successfulinspection/shortened schedule."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Required exactpair ofpassage citations omitted; candidateconditional namesonlyD1:P1 withoutbrackets."
+        }
+      ]
+    },
+    {
+      "lane": "question-after",
+      "id": "contractor-comparison",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Mislabels exclusions and claims taxexcludedacrossallquotes despiteHarborinclusion."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Adds800includedallowance to11600=12400; no budgetremainders."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "NoCedarcompletionpastJune1 orMaplematerialcondition."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": true,
+          "observation": "IdentifiesunresolvedCedarplumbingconflict, though onepassageID iswrong."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "IncorrectD3:P1plumbingcitation andD1/P2taxcitation; exactclaimcitationsabsent."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "QuestionsmisattributeCedarplumbingtoHarbor andignoreclearincludedremoval; recommendationrests onfalse12400total."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": true,
+          "observation": "No optionaldepositdollar arithmetic."
+        }
+      ]
+    },
+    {
+      "lane": "question-after",
+      "id": "contractor-retained-correction",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "AddsHarborallowance, endorsesMapleremovalexclusion, importsCedarplumbingintoHarbor."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Cedar9900 totalignores650; no budgetremainders; saysnoadditionalcostbetweenCedarandHarbor."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "No scheduleconditions orCedarJune1assessment."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": true,
+          "observation": "KeepsCedarclausesunresolved, although misattributesconflicttoHarbor too."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "No exactpassagecitations supportingincorrectclaims."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "InventsuncertaintywhetherMaplehasonlytaxexclusion andHarborcontainsPage1."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": false,
+          "observation": "Explicitlyendorses retainedCedar/Mapleremoval reversal."
+        },
+        {
+          "criterionIndex": 7,
+          "pass": true,
+          "observation": "No optionaldepositdollar arithmetic."
+        }
+      ]
+    }
+  ]
+}
