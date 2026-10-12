@@ -336,10 +336,20 @@ export async function embed(tokenIds, embedBuffer, config) {
   }
 
   if (pairedOutput) {
+    let pairedTensor;
     try {
-      return recorder
+      pairedTensor = recorder
         ? await recordExpandF32ToPaired(recorder, gatherOutput, { outputBuffer: preAllocatedOutput })
         : await expandF32ToPaired(gatherOutput, { outputBuffer: preAllocatedOutput });
+      return await finalizeEmbeddingOutput(pairedTensor, null, {
+        recorder, numTokens, hiddenSize, probeStage, debugProbes: config.debugProbes, operatorDiagnostics,
+      });
+    } catch (error) {
+      if (pairedTensor && pairedTensor.buffer !== preAllocatedOutput) {
+        if (recorder) recorder.trackTemporaryBuffer(pairedTensor.buffer);
+        else releaseBuffer(pairedTensor.buffer);
+      }
+      throw error;
     } finally {
       if (recorder) recorder.trackTemporaryBuffer(gatherOutput.buffer);
       else releaseBuffer(gatherOutput.buffer);

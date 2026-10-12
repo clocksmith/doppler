@@ -427,7 +427,7 @@ export async function createLayerRuntimeState(
     convState,
     convStatePrecision: intermediatePrecision,
     convStateComponents: convComponents,
-    normWeightOffset: paired && config.rmsNormWeightOffset === true,
+    normWeightOffset: false,
     recurrentState,
     recurrentStatePrecision: stateLayout.precision,
     recurrentStateComponents: stateLayout.components,
