@@ -1,0 +1,348 @@
+{
+  "archiveSha256": "8ea1767fb61d9009dd257c4065a6acfdbaaf80fa733145898307ed35da0e7f20",
+  "scope": "Physical output identity only; each provider independently compared with approved F64 separately",
+  "outputs": [
+    {
+      "index": 0,
+      "step": 0,
+      "ordinal": 0,
+      "equal": true
+    },
+    {
+      "index": 0,
+      "step": 1,
+      "ordinal": 1,
+      "equal": true
+    },
+    {
+      "index": 1,
+      "step": 0,
+      "ordinal": 2,
+      "equal": true
+    },
+    {
+      "index": 1,
+      "step": 1,
+      "ordinal": 3,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 0,
+      "ordinal": 4,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 1,
+      "ordinal": 5,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 2,
+      "ordinal": 6,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 3,
+      "ordinal": 7,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 4,
+      "ordinal": 8,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 5,
+      "ordinal": 9,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 6,
+      "ordinal": 10,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 7,
+      "ordinal": 11,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 8,
+      "ordinal": 12,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 9,
+      "ordinal": 13,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 10,
+      "ordinal": 14,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 11,
+      "ordinal": 15,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 12,
+      "ordinal": 16,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 13,
+      "ordinal": 17,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 14,
+      "ordinal": 18,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 15,
+      "ordinal": 19,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 16,
+      "ordinal": 20,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 17,
+      "ordinal": 21,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 18,
+      "ordinal": 22,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 19,
+      "ordinal": 23,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 20,
+      "ordinal": 24,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 21,
+      "ordinal": 25,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 22,
+      "ordinal": 26,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 23,
+      "ordinal": 27,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 24,
+      "ordinal": 28,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 25,
+      "ordinal": 29,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 26,
+      "ordinal": 30,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 27,
+      "ordinal": 31,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 28,
+      "ordinal": 32,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 29,
+      "ordinal": 33,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 30,
+      "ordinal": 34,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 31,
+      "ordinal": 35,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 32,
+      "ordinal": 36,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 33,
+      "ordinal": 37,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 34,
+      "ordinal": 38,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 35,
+      "ordinal": 39,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 36,
+      "ordinal": 40,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 37,
+      "ordinal": 41,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 38,
+      "ordinal": 42,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 39,
+      "ordinal": 43,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 40,
+      "ordinal": 44,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 41,
+      "ordinal": 45,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 42,
+      "ordinal": 46,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 43,
+      "ordinal": 47,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 44,
+      "ordinal": 48,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 45,
+      "ordinal": 49,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 46,
+      "ordinal": 50,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 47,
+      "ordinal": 51,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 48,
+      "ordinal": 52,
+      "equal": false
+    },
+    {
+      "index": 2,
+      "step": 49,
+      "ordinal": 53,
+      "equal": true
+    },
+    {
+      "index": 2,
+      "step": 50,
+      "ordinal": 54,
+      "equal": true
+    },
+    {
+      "index": 0,
+      "step": 0,
+      "ordinal": 55,
+      "equal": true
+    },
+    {
+      "index": 0,
+      "step": 1,
+      "ordinal": 56,
+      "equal": true
+    }
+  ]
+}
