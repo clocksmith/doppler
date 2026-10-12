@@ -1,0 +1,428 @@
+{
+  "numpyVersion": "2.4.4",
+  "control": "F64->F32->F64 explicit ties and adjacent sides; zero/subnormal/normal/sign/large-finite",
+  "passed": true,
+  "count": 60,
+  "rows": [
+    {
+      "lowerBits": "0x0",
+      "negative": false,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x0",
+      "actualBits": "0x0"
+    },
+    {
+      "lowerBits": "0x0",
+      "negative": false,
+      "ulpOffset": 0,
+      "expectedBits": "0x0",
+      "actualBits": "0x0"
+    },
+    {
+      "lowerBits": "0x0",
+      "negative": false,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x1",
+      "actualBits": "0x1"
+    },
+    {
+      "lowerBits": "0x0",
+      "negative": true,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x80000000",
+      "actualBits": "0x80000000"
+    },
+    {
+      "lowerBits": "0x0",
+      "negative": true,
+      "ulpOffset": 0,
+      "expectedBits": "0x80000000",
+      "actualBits": "0x80000000"
+    },
+    {
+      "lowerBits": "0x0",
+      "negative": true,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x80000001",
+      "actualBits": "0x80000001"
+    },
+    {
+      "lowerBits": "0x1",
+      "negative": false,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x1",
+      "actualBits": "0x1"
+    },
+    {
+      "lowerBits": "0x1",
+      "negative": false,
+      "ulpOffset": 0,
+      "expectedBits": "0x2",
+      "actualBits": "0x2"
+    },
+    {
+      "lowerBits": "0x1",
+      "negative": false,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x2",
+      "actualBits": "0x2"
+    },
+    {
+      "lowerBits": "0x1",
+      "negative": true,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x80000001",
+      "actualBits": "0x80000001"
+    },
+    {
+      "lowerBits": "0x1",
+      "negative": true,
+      "ulpOffset": 0,
+      "expectedBits": "0x80000002",
+      "actualBits": "0x80000002"
+    },
+    {
+      "lowerBits": "0x1",
+      "negative": true,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x80000002",
+      "actualBits": "0x80000002"
+    },
+    {
+      "lowerBits": "0x2",
+      "negative": false,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x2",
+      "actualBits": "0x2"
+    },
+    {
+      "lowerBits": "0x2",
+      "negative": false,
+      "ulpOffset": 0,
+      "expectedBits": "0x2",
+      "actualBits": "0x2"
+    },
+    {
+      "lowerBits": "0x2",
+      "negative": false,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x3",
+      "actualBits": "0x3"
+    },
+    {
+      "lowerBits": "0x2",
+      "negative": true,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x80000002",
+      "actualBits": "0x80000002"
+    },
+    {
+      "lowerBits": "0x2",
+      "negative": true,
+      "ulpOffset": 0,
+      "expectedBits": "0x80000002",
+      "actualBits": "0x80000002"
+    },
+    {
+      "lowerBits": "0x2",
+      "negative": true,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x80000003",
+      "actualBits": "0x80000003"
+    },
+    {
+      "lowerBits": "0x7ffffe",
+      "negative": false,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x7ffffe",
+      "actualBits": "0x7ffffe"
+    },
+    {
+      "lowerBits": "0x7ffffe",
+      "negative": false,
+      "ulpOffset": 0,
+      "expectedBits": "0x7ffffe",
+      "actualBits": "0x7ffffe"
+    },
+    {
+      "lowerBits": "0x7ffffe",
+      "negative": false,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x7fffff",
+      "actualBits": "0x7fffff"
+    },
+    {
+      "lowerBits": "0x7ffffe",
+      "negative": true,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x807ffffe",
+      "actualBits": "0x807ffffe"
+    },
+    {
+      "lowerBits": "0x7ffffe",
+      "negative": true,
+      "ulpOffset": 0,
+      "expectedBits": "0x807ffffe",
+      "actualBits": "0x807ffffe"
+    },
+    {
+      "lowerBits": "0x7ffffe",
+      "negative": true,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x807fffff",
+      "actualBits": "0x807fffff"
+    },
+    {
+      "lowerBits": "0x7fffff",
+      "negative": false,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x7fffff",
+      "actualBits": "0x7fffff"
+    },
+    {
+      "lowerBits": "0x7fffff",
+      "negative": false,
+      "ulpOffset": 0,
+      "expectedBits": "0x800000",
+      "actualBits": "0x800000"
+    },
+    {
+      "lowerBits": "0x7fffff",
+      "negative": false,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x800000",
+      "actualBits": "0x800000"
+    },
+    {
+      "lowerBits": "0x7fffff",
+      "negative": true,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x807fffff",
+      "actualBits": "0x807fffff"
+    },
+    {
+      "lowerBits": "0x7fffff",
+      "negative": true,
+      "ulpOffset": 0,
+      "expectedBits": "0x80800000",
+      "actualBits": "0x80800000"
+    },
+    {
+      "lowerBits": "0x7fffff",
+      "negative": true,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x80800000",
+      "actualBits": "0x80800000"
+    },
+    {
+      "lowerBits": "0x800000",
+      "negative": false,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x800000",
+      "actualBits": "0x800000"
+    },
+    {
+      "lowerBits": "0x800000",
+      "negative": false,
+      "ulpOffset": 0,
+      "expectedBits": "0x800000",
+      "actualBits": "0x800000"
+    },
+    {
+      "lowerBits": "0x800000",
+      "negative": false,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x800001",
+      "actualBits": "0x800001"
+    },
+    {
+      "lowerBits": "0x800000",
+      "negative": true,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x80800000",
+      "actualBits": "0x80800000"
+    },
+    {
+      "lowerBits": "0x800000",
+      "negative": true,
+      "ulpOffset": 0,
+      "expectedBits": "0x80800000",
+      "actualBits": "0x80800000"
+    },
+    {
+      "lowerBits": "0x800000",
+      "negative": true,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x80800001",
+      "actualBits": "0x80800001"
+    },
+    {
+      "lowerBits": "0x800001",
+      "negative": false,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x800001",
+      "actualBits": "0x800001"
+    },
+    {
+      "lowerBits": "0x800001",
+      "negative": false,
+      "ulpOffset": 0,
+      "expectedBits": "0x800002",
+      "actualBits": "0x800002"
+    },
+    {
+      "lowerBits": "0x800001",
+      "negative": false,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x800002",
+      "actualBits": "0x800002"
+    },
+    {
+      "lowerBits": "0x800001",
+      "negative": true,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x80800001",
+      "actualBits": "0x80800001"
+    },
+    {
+      "lowerBits": "0x800001",
+      "negative": true,
+      "ulpOffset": 0,
+      "expectedBits": "0x80800002",
+      "actualBits": "0x80800002"
+    },
+    {
+      "lowerBits": "0x800001",
+      "negative": true,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x80800002",
+      "actualBits": "0x80800002"
+    },
+    {
+      "lowerBits": "0x3f800000",
+      "negative": false,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x3f800000",
+      "actualBits": "0x3f800000"
+    },
+    {
+      "lowerBits": "0x3f800000",
+      "negative": false,
+      "ulpOffset": 0,
+      "expectedBits": "0x3f800000",
+      "actualBits": "0x3f800000"
+    },
+    {
+      "lowerBits": "0x3f800000",
+      "negative": false,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x3f800001",
+      "actualBits": "0x3f800001"
+    },
+    {
+      "lowerBits": "0x3f800000",
+      "negative": true,
+      "ulpOffset": -0.25,
+      "expectedBits": "0xbf800000",
+      "actualBits": "0xbf800000"
+    },
+    {
+      "lowerBits": "0x3f800000",
+      "negative": true,
+      "ulpOffset": 0,
+      "expectedBits": "0xbf800000",
+      "actualBits": "0xbf800000"
+    },
+    {
+      "lowerBits": "0x3f800000",
+      "negative": true,
+      "ulpOffset": 0.25,
+      "expectedBits": "0xbf800001",
+      "actualBits": "0xbf800001"
+    },
+    {
+      "lowerBits": "0x3f800001",
+      "negative": false,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x3f800001",
+      "actualBits": "0x3f800001"
+    },
+    {
+      "lowerBits": "0x3f800001",
+      "negative": false,
+      "ulpOffset": 0,
+      "expectedBits": "0x3f800002",
+      "actualBits": "0x3f800002"
+    },
+    {
+      "lowerBits": "0x3f800001",
+      "negative": false,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x3f800002",
+      "actualBits": "0x3f800002"
+    },
+    {
+      "lowerBits": "0x3f800001",
+      "negative": true,
+      "ulpOffset": -0.25,
+      "expectedBits": "0xbf800001",
+      "actualBits": "0xbf800001"
+    },
+    {
+      "lowerBits": "0x3f800001",
+      "negative": true,
+      "ulpOffset": 0,
+      "expectedBits": "0xbf800002",
+      "actualBits": "0xbf800002"
+    },
+    {
+      "lowerBits": "0x3f800001",
+      "negative": true,
+      "ulpOffset": 0.25,
+      "expectedBits": "0xbf800002",
+      "actualBits": "0xbf800002"
+    },
+    {
+      "lowerBits": "0x7f7ffffe",
+      "negative": false,
+      "ulpOffset": -0.25,
+      "expectedBits": "0x7f7ffffe",
+      "actualBits": "0x7f7ffffe"
+    },
+    {
+      "lowerBits": "0x7f7ffffe",
+      "negative": false,
+      "ulpOffset": 0,
+      "expectedBits": "0x7f7ffffe",
+      "actualBits": "0x7f7ffffe"
+    },
+    {
+      "lowerBits": "0x7f7ffffe",
+      "negative": false,
+      "ulpOffset": 0.25,
+      "expectedBits": "0x7f7fffff",
+      "actualBits": "0x7f7fffff"
+    },
+    {
+      "lowerBits": "0x7f7ffffe",
+      "negative": true,
+      "ulpOffset": -0.25,
+      "expectedBits": "0xff7ffffe",
+      "actualBits": "0xff7ffffe"
+    },
+    {
+      "lowerBits": "0x7f7ffffe",
+      "negative": true,
+      "ulpOffset": 0,
+      "expectedBits": "0xff7ffffe",
+      "actualBits": "0xff7ffffe"
+    },
+    {
+      "lowerBits": "0x7f7ffffe",
+      "negative": true,
+      "ulpOffset": 0.25,
+      "expectedBits": "0xff7fffff",
+      "actualBits": "0xff7fffff"
+    }
+  ]
+}

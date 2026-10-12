@@ -1,0 +1,42 @@
+{
+  "schema": "doppler.recurrent-storage-independent-review/v1",
+  "scriptSha256": "6cb68eb391d0f26898bc61b8466e916a4af9f05c1b11f39d5c61ebe4b90e607b",
+  "receiptSha256": "fffa14629a68901ae77265d7c6fceefd8c53d83f62d90533fa21f7f2f928235d",
+  "evaluatorSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "controlledSourceSha256": "d5e01474a0b0b5bf6d9a729cee0fe135f040e2ed3a040e4151620f43de38c66e",
+  "shaderHashes": {
+    "gated_delta_recurrent": "0f0823548102284cbfbcfd95a34ebd9bb8ace7273d867baa7e0bf7efe7100a3e",
+    "gated_delta_fused_decode": "7de561a4c5c9734533a0170f7bed8f2d53b69c6832e014f96f7d113dc17f9742"
+  },
+  "runtimeBinding": {
+    "reviewedCorrectionCommit": "e148f2ed",
+    "passed": true,
+    "receiptSha256": "c2fbff92090c89ade5c93d3158c5ed270c1212187f7f6b7f66f88d00977003d4",
+    "exactForcedInputMatchesContract": true
+  },
+  "roundingControls": {
+    "cases": 60,
+    "numpy": "2.4.4",
+    "independentJavaScriptBitsAgree": true
+  },
+  "baseline": "Retained receipt declares exact reproduction of all 51 approved request-2 prefixes before mutation; review did not rerun the model.",
+  "intervention": "Only post-update state is converted F64->nearestF32->F64 in a copied function; occurs before current-token output and next-token recurrence.",
+  "scopeLimits": [
+    "Real shaders also store decayed state before computing memory; this intervention omits that rounding and other F32 arithmetic.",
+    "Unchanged evaluator order and shape do not make the diagnostic equivalent to prefill/decode shader arithmetic.",
+    "This is a causal storage intervention, not a lower bound, global impossibility proof, approved-reference replacement or precision change.",
+    "Original attribution omitted full forced-prefix binding; e148f2ed adds archive/manifest/history/step/fullPrefixes checks and retains a separate validation receipt for the unchanged numerical result."
+  ],
+  "observed": {
+    "prefixesOverTolerance": 7,
+    "maximum": 0.0014604007397549523,
+    "runtimeArchive": "c596ecab6d498b3bb6e4d070e65a640713e693020e77c897271481f197875aae",
+    "signedErrorCorrelation": 0.6262791102073694,
+    "actualTail": 160,
+    "controlTail": 510,
+    "tailOverlap": 71,
+    "sameSignTailOverlap": 71,
+    "actualAgainstControlMaximum": 0.0011689988102523419
+  },
+  "conclusion": "Partial signed-error alignment supports investigating state storage. Unexplained errors remain; no tolerance or authority changes follow."
+}
