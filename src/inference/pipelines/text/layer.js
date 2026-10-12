@@ -1,5 +1,4 @@
 
-
 import { log, trace } from '../../../debug/index.js';
 import { getDevice, getKernelCapabilities } from '../../../gpu/device.js';
 import { releaseBuffer, readBuffer } from '../../../memory/buffer-pool.js';
@@ -70,12 +69,10 @@ export {
 // ============================================================================
 // Architecture Detection
 // ============================================================================
-
 export function detectSandwichNorm(config) {
   const hasPreFeedforwardNorm = config?.preFeedforwardNorm === true;
   const hasPostFeedforwardNorm = config?.postFeedforwardNorm === true;
   const hasPostAttentionNorm = config?.postAttentionNorm === true;
-
   return {
     useSandwichNorm: hasPreFeedforwardNorm || hasPostFeedforwardNorm,
     hasPreFeedforwardNorm,
@@ -83,7 +80,6 @@ export function detectSandwichNorm(config) {
     hasPostAttentionNorm,
   };
 }
-
 function shouldUseSandwichRMSNormPairFusion({
   context,
   sandwichNorm,
@@ -119,7 +115,6 @@ function shouldUseSandwichRMSNormPairFusion({
   }
   return true;
 }
-
 function releasePrecomputedInputNorm(context, recorder) {
   const precomputed = context.__precomputedInputNorm ?? null;
   context.__precomputedInputNorm = null;
@@ -128,7 +123,6 @@ function releasePrecomputedInputNorm(context, recorder) {
     releaseOrTrack(recorder, buffer, context.decodeBuffers);
   }
 }
-
 function takePrecomputedInputNorm(context, layerIdx, recorder) {
   const precomputed = context.__precomputedInputNorm ?? null;
   if (!precomputed) {
@@ -236,7 +230,11 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
   const activationDtype = resolveActivationDtype(context.activationDtype);
 
   // Wrap input buffer as Tensor for dtype-aware processing
-  const inputTensor = createTensor(inputBuffer, activationDtype, [numTokens, hiddenSize], 'layer_input');
+  const representation = context.activationPrecision === 'two-f32' ? {
+    precision: context.activationPrecision, components: context.activationComponents,
+    elementStrideBytes: context.activationElementStrideBytes,
+  } : undefined;
+  const inputTensor = createTensor(inputBuffer, activationDtype, [numTokens, hiddenSize], 'layer_input', representation);
 
   const layerWeights = (weights.get(`layer_${layerIdx}`));
   const sandwichNorm = detectSandwichNorm(config);
@@ -256,6 +254,7 @@ export async function processLayerGPU(layerIdx, inputBuffer, numTokens, isPrefil
     recorder,
     operatorDiagnostics: context.operatorDiagnostics,
     dtype: inputTensor.dtype,
+    precision: inputTensor.precision, components: inputTensor.components, elementStrideBytes: inputTensor.elementStrideBytes,
   });
 
   if (context.pipelinePlan) {

@@ -22,14 +22,12 @@ import { assertImplicitDtypeTransitionAllowed } from './dtype-contract.js';
 import { getLoRAModule } from './lora.js';
 import { applyProjectionLoRA, createLayerRuntimeState, ensureLayerRuntimeGpuBuffers, inferLinearNormModeFromWeight, isGpuBuffer, normalizeLinearNormMode, projectLinearTensor, releaseOrTrackBuffer, releaseResolvedWeightBuffer, resolveMatmulStepDtype, toPositiveInt } from './linear-attention/plan.js';
 export { applyLinearNormWeightOffset } from './linear-attention/plan.js';
-
-import { assertRecurrentStateLayout, resolveRecurrentStateLayout } from './linear-attention/state-layout.js';
-
-const LINEAR_RUNTIME_SCHEMA_VERSION = 3;
+import { assertRecurrentStateLayout, assertConvolutionStateLayout, resolveRecurrentStateLayout } from './linear-attention/state-layout.js';
+const LINEAR_RUNTIME_SCHEMA_VERSION = 4;
 const QK_L2NORM_EPS = 1e-6;
-
 function cloneLayerRuntimeState(layerState) {
   assertRecurrentStateLayout(layerState);
+  assertConvolutionStateLayout(layerState);
   return {
     layerIdx: layerState.layerIdx,
     seqLen: layerState.seqLen,
@@ -53,12 +51,14 @@ function cloneLayerRuntimeState(layerState) {
     aLog: layerState.aLog.slice(),
     normWeight: layerState.normWeight.slice(),
     convState: layerState.convState.slice(),
+    convStatePrecision: layerState.convStatePrecision,
+    convStateComponents: layerState.convStateComponents,
+    normWeightOffset: layerState.normWeightOffset,
     recurrentState: layerState.recurrentState.slice(),
     recurrentStatePrecision: layerState.recurrentStatePrecision,
     recurrentStateComponents: layerState.recurrentStateComponents,
   };
 }
-
 function cloneLayerMap(layers) {
   const cloned = new Map();
   for (const [layerIdx, layerState] of layers.entries()) {
@@ -66,7 +66,6 @@ function cloneLayerMap(layers) {
   }
   return cloned;
 }
-
 function ensureRuntime(runtime) {
   if (runtime && typeof runtime === 'object' && runtime.layers instanceof Map) {
     if (runtime.schemaVersion !== LINEAR_RUNTIME_SCHEMA_VERSION) {
@@ -76,7 +75,6 @@ function ensureRuntime(runtime) {
   }
   return createLinearAttentionRuntime();
 }
-
 function resolveProjectionLayout(config, layerWeights) {
   const numKHeads = toPositiveInt(config.linearNumKeyHeads);
   const numVHeads = toPositiveInt(config.linearNumValueHeads);
@@ -94,7 +92,6 @@ function resolveProjectionLayout(config, layerWeights) {
       `${numVHeads} and ${numKHeads}.`
     );
   }
-
   const keyDim = numKHeads * headKDim;
   const valueDim = numVHeads * headVDim;
   const qSize = toPositiveInt(layerWeights?.qkvSizes?.[0]) ?? keyDim;
@@ -106,7 +103,6 @@ function resolveProjectionLayout(config, layerWeights) {
       `but got [${qSize}, ${kSize}, ${vSize}].`
     );
   }
-
   return {
     numKHeads,
     numVHeads,
@@ -121,11 +117,9 @@ function resolveProjectionLayout(config, layerWeights) {
     convDim: qSize + kSize + vSize,
   };
 }
-
 export function inferLinearNormMode(weight, projectionLayout) {
   return inferLinearNormModeFromWeight(weight, projectionLayout);
 }
-
 function clearDynamicLayerState(layerState) {
   layerState.convState.fill(0);
   layerState.recurrentState.fill(0);
@@ -136,7 +130,6 @@ function clearDynamicLayerState(layerState) {
     uploadData(layerState.recurrentStateGPU, layerState.recurrentState);
   }
 }
-
 async function observeLinearAttentionState(layerState, options) {
   for (const [name, field] of [
     ['conv_weight', 'convWeight'],
@@ -146,23 +139,22 @@ async function observeLinearAttentionState(layerState, options) {
     ['conv_input', 'convState'],
     ['recurrent_input', 'recurrentState'],
   ]) {
+    const precision = field === 'recurrentState' ? layerState.recurrentStatePrecision : field === 'convState' ? layerState.convStatePrecision : 'f32';
+    const paired = precision === 'two-f32';
     await runProbes(`linear_state_${name}`, layerState[`${field}GPU`], {
       layerIdx: options.layerIdx,
       numTokens: 1,
-      hiddenSize: layerState[field].length,
+      hiddenSize: layerState[field].length / (paired ? 2 : 1),
       probes: options.debugProbes,
       recorder: options.recorder,
       operatorDiagnostics: options.operatorDiagnostics,
       dtype: 'f32',
-      storageLayout: field === 'recurrentState' ? {
-        precision: layerState.recurrentStatePrecision,
-        components: layerState.recurrentStateComponents,
-        ordering: 'interleaved-high-low',
-      } : null,
+      precision: paired ? 'two-f32' : undefined, components: paired ? 2 : undefined,
+      elementStrideBytes: paired ? 8 : undefined,
+      storageLayout: paired ? { precision, components: 2, ordering: 'interleaved-high-low' } : null,
     });
   }
 }
-
 async function syncLayerRuntimeStateFromGPU(layerState) {
   if (isGpuBuffer(layerState.convStateGPU)) {
     const rawConvState = await readBuffer(
@@ -179,7 +171,6 @@ async function syncLayerRuntimeStateFromGPU(layerState) {
     layerState.recurrentState = decodeReadback(rawRecurrentState, 'f32');
   }
 }
-
 function releaseLayerRuntimeGpuBuffers(layerState) {
   if (!layerState || typeof layerState !== 'object') return;
   if (isGpuBuffer(layerState.convWeightGPU)) {
@@ -207,7 +198,6 @@ function releaseLayerRuntimeGpuBuffers(layerState) {
     layerState.recurrentStateGPU = null;
   }
 }
-
 function releaseRuntimeLayerBuffers(runtime) {
   if (!runtime || typeof runtime !== 'object' || !(runtime.layers instanceof Map)) {
     return;
@@ -216,7 +206,6 @@ function releaseRuntimeLayerBuffers(runtime) {
     releaseLayerRuntimeGpuBuffers(layerState);
   }
 }
-
 function isLayerRuntimeCompatible(layerState, projectionLayout, requestedNormMode = null) {
   return layerState
     && layerState.convDim === projectionLayout.convDim
@@ -235,12 +224,13 @@ function isLayerRuntimeCompatible(layerState, projectionLayout, requestedNormMod
     && (layerState.normMode === 'shared' || layerState.normMode === 'per_head')
     && (requestedNormMode == null || layerState.normMode === requestedNormMode);
 }
-
 async function getLayerRuntimeState(runtime, layerIdx, layerWeights, config, currentSeqLen, projectionLayout) {
   const requestedNormMode = normalizeLinearNormMode(config.linearNormMode);
   let layerState = runtime.layers.get(layerIdx) ?? null;
   if (layerState) {
     assertRecurrentStateLayout(layerState);
+    assertConvolutionStateLayout(layerState);
+    if (layerState.convStatePrecision !== config.sessionSettings?.intermediatePrecision) throw new Error('Cannot change convolution state precision during an active attempt.');
     if (layerState.recurrentStatePrecision !== resolveRecurrentStateLayout(config.sessionSettings).precision) {
       throw new Error('Cannot change recurrent state precision during an active attempt.');
     }
@@ -260,7 +250,6 @@ async function getLayerRuntimeState(runtime, layerIdx, layerWeights, config, cur
     ensureLayerRuntimeGpuBuffers(layerState);
     return layerState;
   }
-
   if (layerState.seqLen !== currentSeqLen) {
     if (!layerState.warnedSeqMismatch) {
       layerState.warnedSeqMismatch = true;
@@ -273,11 +262,9 @@ async function getLayerRuntimeState(runtime, layerIdx, layerWeights, config, cur
     clearDynamicLayerState(layerState);
     layerState.seqLen = currentSeqLen;
   }
-
   ensureLayerRuntimeGpuBuffers(layerState);
   return layerState;
 }
-
 async function settleLinearAttentionCoreInputDtype(tensor, targetDtype, options) {
   if (tensor.dtype === targetDtype) {
     return tensor;
@@ -302,7 +289,6 @@ async function settleLinearAttentionCoreInputDtype(tensor, targetDtype, options)
   }
   throw new Error(`Unsupported linear_attention core input dtype "${String(targetDtype)}".`);
 }
-
 export function hasLinearAttentionLayers(layerTypes) {
   if (!Array.isArray(layerTypes)) return false;
   for (let i = 0; i < layerTypes.length; i++) {
@@ -318,7 +304,6 @@ export function hasLinearAttentionLayers(layerTypes) {
   }
   return false;
 }
-
 export function createLinearAttentionRuntime() {
   log.debug(
     'Pipeline',
@@ -329,7 +314,6 @@ export function createLinearAttentionRuntime() {
     layers: new Map(),
   };
 }
-
 export function resetLinearAttentionRuntime(runtime) {
   if (!runtime || typeof runtime !== 'object') {
     return createLinearAttentionRuntime();
@@ -339,12 +323,10 @@ export function resetLinearAttentionRuntime(runtime) {
   runtime.layers = new Map();
   return runtime;
 }
-
 export async function cloneLinearAttentionRuntime(runtime) {
   if (!runtime || typeof runtime !== 'object' || !(runtime.layers instanceof Map)) {
     return createLinearAttentionRuntime();
   }
-
   const clonedLayers = new Map();
   for (const [layerIdx, layerState] of runtime.layers.entries()) {
     await syncLayerRuntimeStateFromGPU(layerState);
@@ -355,7 +337,6 @@ export async function cloneLinearAttentionRuntime(runtime) {
     layers: clonedLayers,
   };
 }
-
 export function restoreLinearAttentionRuntime(runtime, snapshot) {
   const target = ensureRuntime(runtime);
   if (snapshot) {
@@ -366,7 +347,7 @@ export function restoreLinearAttentionRuntime(runtime, snapshot) {
     if (!states || typeof states[Symbol.iterator] !== 'function') {
       throw new Error('Linear snapshot requires a layer collection.');
     }
-    for (const state of states) assertRecurrentStateLayout(state);
+    for (const state of states) { assertRecurrentStateLayout(state); assertConvolutionStateLayout(state); }
   }
   releaseRuntimeLayerBuffers(target);
   target.schemaVersion = LINEAR_RUNTIME_SCHEMA_VERSION;
@@ -386,7 +367,6 @@ export function restoreLinearAttentionRuntime(runtime, snapshot) {
   }
   return target;
 }
-
 export async function runLinearAttentionLayer(inputTensor, layerWeights, options) {
   const {
     layerIdx,
@@ -419,6 +399,9 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     );
   }
 
+  if ((inputTensor.precision === 'two-f32') !== (config.sessionSettings?.intermediatePrecision === 'two-f32')) {
+    throw new Error('Linear input representation disagrees with its resolved intermediate precision.');
+  }
   const runtime = ensureRuntime(linearRuntime);
   const projectionLayout = resolveProjectionLayout(config, layerWeights);
   const layerState = await getLayerRuntimeState(
@@ -439,6 +422,9 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
   const phase = numTokens === 1 ? 'decode' : 'prefill';
   let normedTensor = inputTensor;
   let normedCreated = false;
+  let qkvTensor = null, zTensor = null, aTensor = null, bTensor = null;
+  let coreQkvTensor = null, coreZTensor = null, coreATensor = null, coreBTensor = null, coreTensor = null;
+  try {
 
   if (precomputedInputNorm) {
     if (
@@ -512,7 +498,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       executionPolicies,
     })
     : null;
-  const qkvTensor = qkvzTensor ?? await projectLinearTensor({
+  qkvTensor = qkvzTensor ?? await projectLinearTensor({
     inputTensor: normedTensor,
     sourceWeight: layerWeights.qkvProj,
     role: 'linear_qkv_proj',
@@ -528,7 +514,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     executionPolicies,
     loraModule: qkvLoRA,
   });
-  const zTensor = qkvzTensor ?? await projectLinearTensor({
+  zTensor = qkvzTensor ?? await projectLinearTensor({
     inputTensor: normedTensor,
     sourceWeight: layerWeights.linearInProjZ,
     role: 'linear_z_proj',
@@ -570,7 +556,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       executionPolicies,
     })
     : null;
-  const aTensor = abTensor ?? await projectLinearTensor({
+  aTensor = abTensor ?? await projectLinearTensor({
     inputTensor: normedTensor,
     sourceWeight: layerWeights.linearInProjA,
     role: 'linear_a_proj',
@@ -586,7 +572,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     executionPolicies,
     loraModule: aLoRA,
   });
-  const bTensor = abTensor ?? await projectLinearTensor({
+  bTensor = abTensor ?? await projectLinearTensor({
     inputTensor: normedTensor,
     sourceWeight: layerWeights.linearInProjB,
     role: 'linear_b_proj',
@@ -619,12 +605,11 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
     layerOutputDtype,
     'outputDtype'
   );
-  let coreQkvTensor = qkvTensor;
-  let coreZTensor = zTensor;
-  let coreATensor = aTensor;
-  let coreBTensor = bTensor;
+  coreQkvTensor = qkvTensor;
+  coreZTensor = zTensor;
+  coreATensor = aTensor;
+  coreBTensor = bTensor;
 
-  try {
     if (options.debugProbes?.some((probe) => probe.stage.startsWith('linear_state_'))) {
       await observeLinearAttentionState(layerState, options);
     }
@@ -639,6 +624,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
         layerIdx, numTokens, hiddenSize: width,
         probes: options.debugProbes, recorder,
         operatorDiagnostics: options.operatorDiagnostics, dtype: tensor.dtype,
+        precision: tensor.precision, components: tensor.components, elementStrideBytes: tensor.elementStrideBytes,
       });
     }
     const coreInputDtype = qkvTensor.dtype;
@@ -657,7 +643,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       executionPolicies,
       role: 'linear_b_proj',
     });
-    const coreTensor = await runLinearAttentionCoreGPU(
+    coreTensor = await runLinearAttentionCoreGPU(
       coreQkvTensor,
       coreZTensor,
       coreATensor,
@@ -683,6 +669,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       recorder,
       operatorDiagnostics: options.operatorDiagnostics,
       dtype: coreTensor.dtype,
+      precision: coreTensor.precision, components: coreTensor.components, elementStrideBytes: coreTensor.elementStrideBytes,
     });
     layerState.seqLen = currentSeqLen + numTokens;
     const outProjWeight = getWeightBuffer(layerWeights.oProj, `L${layerIdx}.linear_out_proj`);
@@ -731,7 +718,6 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
         kernelPath,
       });
     } finally {
-      releaseOrTrackBuffer(recorder, coreTensor.buffer);
       releaseResolvedWeightBuffer(layerWeights.oProj, outProjWeight, recorder);
     }
   } finally {
@@ -739,7 +725,7 @@ export async function runLinearAttentionLayer(inputTensor, layerWeights, options
       releaseOrTrackBuffer(recorder, normedTensor.buffer);
     }
     const released = new Set();
-    for (const tensor of [qkvTensor, zTensor, aTensor, bTensor, coreQkvTensor, coreZTensor, coreATensor, coreBTensor]) {
+    for (const tensor of [qkvTensor, zTensor, aTensor, bTensor, coreQkvTensor, coreZTensor, coreATensor, coreBTensor, coreTensor]) {
       const buffer = tensor?.buffer ?? null;
       if (!buffer || released.has(buffer)) continue;
       released.add(buffer);

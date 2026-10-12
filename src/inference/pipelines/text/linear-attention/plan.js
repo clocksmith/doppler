@@ -307,28 +307,23 @@ export async function readWeightAsF32(weight, expectedElements, label) {
 
 export function uploadF32Buffer(values, label) {
   const buffer = acquireBuffer(values.byteLength, undefined, label);
-  uploadData(buffer, values);
-  return buffer;
+  try { uploadData(buffer, values); return buffer; }
+  catch (error) { releaseBuffer(buffer); throw error; }
 }
 
 export function ensureLayerRuntimeGpuBuffers(layerState) {
-  if (!isGpuBuffer(layerState.convWeightGPU)) {
-    layerState.convWeightGPU = uploadF32Buffer(layerState.convWeight, `L${layerState.layerIdx}.linear_conv_weight`);
-  }
-  if (!isGpuBuffer(layerState.dtBiasGPU)) {
-    layerState.dtBiasGPU = uploadF32Buffer(layerState.dtBias, `L${layerState.layerIdx}.linear_dt_bias`);
-  }
-  if (!isGpuBuffer(layerState.aLogGPU)) {
-    layerState.aLogGPU = uploadF32Buffer(layerState.aLog, `L${layerState.layerIdx}.linear_a_log`);
-  }
-  if (!isGpuBuffer(layerState.normWeightGPU)) {
-    layerState.normWeightGPU = uploadF32Buffer(layerState.normWeight, `L${layerState.layerIdx}.linear_norm_weight`);
-  }
-  if (!isGpuBuffer(layerState.convStateGPU)) {
-    layerState.convStateGPU = uploadF32Buffer(layerState.convState, `L${layerState.layerIdx}.linear_conv_state`);
-  }
-  if (!isGpuBuffer(layerState.recurrentStateGPU)) {
-    layerState.recurrentStateGPU = uploadF32Buffer(layerState.recurrentState, `L${layerState.layerIdx}.linear_recurrent_state`);
+  const created = [];
+  try {
+    for (const [field, label] of [['convWeight', 'conv_weight'], ['dtBias', 'dt_bias'], ['aLog', 'a_log'],
+      ['normWeight', 'norm_weight'], ['convState', 'conv_state'], ['recurrentState', 'recurrent_state']]) {
+      const gpuField = `${field}GPU`;
+      if (isGpuBuffer(layerState[gpuField])) continue;
+      layerState[gpuField] = uploadF32Buffer(layerState[field], `L${layerState.layerIdx}.linear_${label}`);
+      created.push(gpuField);
+    }
+  } catch (error) {
+    for (const field of created) { releaseBuffer(layerState[field]); layerState[field] = null; }
+    throw error;
   }
 }
 
@@ -390,10 +385,15 @@ export async function createLayerRuntimeState(
     expectedNormElements,
     `L${layerIdx}.linear_attn.norm.weight`
   );
-  const runtimeNorm = applyLinearNormWeightOffset(norm, config.rmsNormWeightOffset === true);
+  const intermediatePrecision = config.sessionSettings?.intermediatePrecision;
+  if (intermediatePrecision !== 'f32' && intermediatePrecision !== 'two-f32') throw new Error('Linear convolution requires explicit intermediatePrecision.');
+  const paired = intermediatePrecision === 'two-f32';
+  const runtimeNorm = paired ? norm : applyLinearNormWeightOffset(norm, config.rmsNormWeightOffset === true);
 
-  const convState = new Float32Array(projectionLayout.convDim * convKernelSize);
+  const convComponents = paired ? 2 : 1;
+  const convState = new Float32Array(projectionLayout.convDim * convKernelSize * convComponents);
   const stateLayout = resolveRecurrentStateLayout(config.sessionSettings);
+  if (paired && stateLayout.components !== 2) throw new Error('Paired intermediate execution requires paired recurrent state.');
   const recurrentState = new Float32Array(
     projectionLayout.numVHeads * projectionLayout.headKDim * projectionLayout.headVDim * stateLayout.components
   );
@@ -425,6 +425,9 @@ export async function createLayerRuntimeState(
     aLog,
     normWeight: runtimeNorm,
     convState,
+    convStatePrecision: intermediatePrecision,
+    convStateComponents: convComponents,
+    normWeightOffset: paired && config.rmsNormWeightOffset === true,
     recurrentState,
     recurrentStatePrecision: stateLayout.precision,
     recurrentStateComponents: stateLayout.components,

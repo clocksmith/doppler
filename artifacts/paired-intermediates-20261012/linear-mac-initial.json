@@ -1,0 +1,71 @@
+{
+  "schema": "doppler-paired-linear-physical-v1",
+  "shaderSha256": [
+    "5e38ed4695d262ee335fe3d4c1d998d3797ca1b020e711c7ccd317293d0f30e2",
+    "affbac7dacd247463685786ff37c79e16e50aba474a8d73349ec0906c1b86d68"
+  ],
+  "fixtureSha256": "da5fd98a93245a53911d6c6a685749fd79e958dafcc4612a23fe0c068bbdcce5",
+  "seed": 624901,
+  "tolerance": 2e-11,
+  "scope": "Independent F64 convolution and gated-delta equations, initial state, source epsilon, paired persistent state, QKV/Z and A/B packing. No model qualification.",
+  "cases": [
+    {
+      "packed": false,
+      "rows": {
+        "conv": {
+          "count": 1536,
+          "maxError": 4.579669976578771e-16,
+          "failures": 0
+        },
+        "convState": {
+          "count": 2048,
+          "maxError": 0,
+          "failures": 0
+        },
+        "state": {
+          "count": 32768,
+          "maxError": 1.4224732503009818e-16,
+          "failures": 0
+        },
+        "output": {
+          "count": 768,
+          "maxError": 3.7470027081099033e-16,
+          "failures": 0
+        }
+      }
+    },
+    {
+      "packed": true,
+      "rows": {
+        "conv": {
+          "count": 1536,
+          "maxError": 4.996003610813204e-16,
+          "failures": 0
+        },
+        "convState": {
+          "count": 2048,
+          "maxError": 0,
+          "failures": 0
+        },
+        "state": {
+          "count": 32768,
+          "maxError": 6.245004513516506e-17,
+          "failures": 0
+        },
+        "output": {
+          "count": 768,
+          "maxError": 9.020562075079397e-16,
+          "failures": 0
+        }
+      }
+    }
+  ],
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "browser": "155.0.8059.39",
+  "errors": [],
+  "storageBindingLimit": 9,
+  "passed": true
+}

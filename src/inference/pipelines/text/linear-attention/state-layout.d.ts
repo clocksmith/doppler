@@ -8,3 +8,5 @@ export declare function assertRecurrentStateLayout(state: {
   headVDim: number;
   recurrentState: Float32Array;
 }): 1 | 2;
+
+export declare function assertConvolutionStateLayout(state: import('../linear-attention.js').LinearLayerRuntimeState): 1 | 2;

@@ -638,14 +638,11 @@ export function kernelPathRequiresWeightDtype(path = undefined, weightDtype, ope
   return kernelSteps.some((step) => {
     const normalizedKernel = normalizeKernelFile(step.kernel);
     const normalizedEntry = step.entry ?? DEFAULT_ENTRY;
-    const operationConfigs = operation
-      ? [getKernelConfigs()[operation]]
-      : Object.values(getKernelConfigs());
-    return operationConfigs.some((variants) => Object.values(variants ?? {}).some((config) =>
-      config.shaderFile === normalizedKernel
-      && config.entryPoint === normalizedEntry
-      && config.weightDtype === weightDtype
-    ));
+    const operations = operation ? [operation] : Object.keys(getKernelConfigs());
+    return operations.some((name) => {
+      const variant = findKernelVariant(name, normalizedKernel, normalizedEntry, null, step.constants);
+      return variant != null && getKernelConfigs()[name]?.[variant]?.weightDtype === weightDtype;
+    });
   });
 }
 

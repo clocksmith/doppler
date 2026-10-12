@@ -31,6 +31,9 @@ export interface LinearLayerRuntimeState {
   aLog: Float32Array;
   normWeight: Float32Array;
   convState: Float32Array;
+  convStatePrecision: 'f32' | 'two-f32';
+  convStateComponents: 1 | 2;
+  normWeightOffset: boolean;
   recurrentState: Float32Array;
   recurrentStatePrecision: 'f32' | 'two-f32';
   recurrentStateComponents: 1 | 2;
@@ -52,7 +55,7 @@ export interface RunLinearAttentionLayerOptions {
   numTokens: number;
   hiddenSize: number;
   config: {
-    sessionSettings?: { linearRecurrentStatePrecision?: 'f32' | 'two-f32' | null } | null;
+    sessionSettings?: { intermediatePrecision?: 'f32' | 'two-f32'; linearRecurrentStatePrecision?: 'f32' | 'two-f32' | null } | null;
     linearNumKeyHeads: number | null;
     linearNumValueHeads: number | null;
     linearKeyHeadDim: number | null;
