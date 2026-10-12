@@ -1,0 +1,41 @@
+{
+  "status": "running",
+  "children": [
+    {
+      "seed": 17,
+      "pid": 2652360,
+      "command": [
+        "python3",
+        "-u",
+        "tools/source-model-task-quality.py",
+        "--source",
+        "/var/tmp/doppler-qwen3-17b-source-20261011",
+        "--suite",
+        "/home/x/deco/doppler/reports/local/qwen3-primary-authority-documents-20261012/suites/suite-seed-17.json",
+        "--out",
+        "/home/x/deco/doppler/reports/local/qwen3-primary-authority-documents-20261012/source-seed-17.json",
+        "--threads",
+        "4"
+      ],
+      "suiteSha256": "15c5c85deb6b59271b3a9e67ec50e32ca489ab857e60d3cd65b6c9ed8b22a7ae"
+    },
+    {
+      "seed": 53,
+      "pid": 2652361,
+      "command": [
+        "python3",
+        "-u",
+        "tools/source-model-task-quality.py",
+        "--source",
+        "/var/tmp/doppler-qwen3-17b-source-20261011",
+        "--suite",
+        "/home/x/deco/doppler/reports/local/qwen3-primary-authority-documents-20261012/suites/suite-seed-53.json",
+        "--out",
+        "/home/x/deco/doppler/reports/local/qwen3-primary-authority-documents-20261012/source-seed-53.json",
+        "--threads",
+        "4"
+      ],
+      "suiteSha256": "2a38a3b257937b9046b73a6792cd80457b49566588d38f33baf99d3f3baa5783"
+    }
+  ]
+}

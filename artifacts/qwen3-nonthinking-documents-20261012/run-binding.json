@@ -1,5 +1,5 @@
 {
-  "status": "running",
+  "status": "completed-reviewed-rejected",
   "children": [
     {
       "seed": 17,
@@ -43,5 +43,10 @@
   "surface": "CPU source equations only",
   "parentSuiteSha256": "6f097c4b36282267b778734fe28fb99b949bd58f56e300fb5c2e3626e954b8ca",
   "performanceClaim": false,
-  "priorCitationProcessExitCode": 0
+  "priorCitationProcessExitCode": 0,
+  "exitCodes": {
+    "17": 0,
+    "53": 0
+  },
+  "completedCases": 12
 }
