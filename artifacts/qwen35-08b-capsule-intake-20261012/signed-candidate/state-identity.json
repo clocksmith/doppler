@@ -1,0 +1,51 @@
+{
+  "scope": "Declared state identity only; portable state import/export unsupported",
+  "stateSpaces": [
+    {
+      "id": "text.kv-state",
+      "factRefs": [
+        "text.useCache",
+        "full.numKvHeads",
+        "full.headDim"
+      ],
+      "kind": "kv",
+      "persistence": "session",
+      "contract": {
+        "numKvHeads": 2,
+        "headDim": 256
+      }
+    },
+    {
+      "id": "text.recurrent-state",
+      "factRefs": [
+        "linear.keyHeads",
+        "linear.valueHeads",
+        "linear.keyHeadDim",
+        "linear.valueHeadDim",
+        "linear.stateDtype",
+        "tensor.linearState"
+      ],
+      "kind": "recurrent",
+      "persistence": "session",
+      "contract": {
+        "keyHeads": 16,
+        "valueHeads": 16,
+        "dtype": "float32"
+      }
+    },
+    {
+      "id": "text.convolutional-state",
+      "factRefs": [
+        "linear.convKernel",
+        "linear.stateDtype",
+        "tensor.linearConv"
+      ],
+      "kind": "convolutional",
+      "persistence": "session",
+      "contract": {
+        "kernelSize": 4,
+        "dtype": "float32"
+      }
+    }
+  ]
+}

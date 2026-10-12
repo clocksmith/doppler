@@ -15,7 +15,9 @@ export async function createCapsulePieceReader(capsule, verifiedStore, source, o
   const indexBytes = await verifiedStore.readArtifact(indexArtifact);
   /** @type {import('../../formats/rdrr/index.js').RDRRManifest} */
   const manifest = JSON.parse(new TextDecoder().decode(manifestBytes));
-  if (manifest.hashAlgorithm !== 'sha256') throw new Error('Signed piece acquisition requires SHA-256 manifest shards.');
+  if (!['sha256', 'blake3'].includes(manifest.hashAlgorithm)) {
+    throw new Error('Signed piece acquisition requires a supported manifest shard hash.');
+  }
   /** @type {{ maxPieceBytes: number; files: Array<{path:string;size:number}> }} */
   const index = JSON.parse(new TextDecoder().decode(indexBytes));
   const { maxAcquisitionChunkBytes } = normalizeCapsuleLoadingPolicy(options);
@@ -36,11 +38,18 @@ export async function createCapsulePieceReader(capsule, verifiedStore, source, o
   for (const [position, shard] of manifest.shards.entries()) {
     const artifact = byPath.get(new URL(shard.filename, base).href);
     if (!artifact || artifact.role !== 'weight-shard' || !weights.has(artifact.artifactId)
-      || artifact.hash !== `sha256:${shard.hash}` || artifact.sizeBytes !== shard.size
+      || !/^[a-f0-9]{64}$/.test(shard.hash)
+      || (manifest.hashAlgorithm === 'sha256' && artifact.hash !== `sha256:${shard.hash}`)
+      || artifact.sizeBytes !== shard.size
       || shards.has(artifact.artifactId)) throw new Error('Piece manifest and signed weight artifact disagree.');
     shards.set(artifact.artifactId, position);
     files.set(shard.filename, artifact);
   }
+  // Rig verifies the complete shard under its declared algorithm. At runtime,
+  // the signed index binds the exact manifest and authenticates each acquired
+  // SHA-256 piece. A partial read cannot verify a BLAKE3 whole-shard hash; it
+  // must not compare that digest to the Capsule's distinct SHA-256 digest or
+  // report whole-shard verification.
   if (weights.size !== shards.size || weights.size !== capsule.program.weightArtifactIds.length) {
     throw new Error('Piece manifest must bind every unique signed weight artifact.');
   }

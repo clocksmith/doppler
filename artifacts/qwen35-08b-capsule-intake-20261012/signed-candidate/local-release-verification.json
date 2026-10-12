@@ -1,0 +1,207 @@
+{
+  "checkedAt": "2026-10-12T22:41:00.985Z",
+  "policy": {
+    "now": "2026-10-12T22:41:00.985Z",
+    "minimumSequence": 1,
+    "checkpoint": {
+      "sequence": 0,
+      "digest": null
+    }
+  },
+  "lifecycle": {
+    "release": {
+      "application": {
+        "applicationId": "reploid-resident-qualification",
+        "applicationRevision": "sha256:e4954c74bf5339fe2d4a86e41db541a1166eff48bf4354358914db334d0b2fc7",
+        "applicationRevisionDigest": "sha256:e4954c74bf5339fe2d4a86e41db541a1166eff48bf4354358914db334d0b2fc7",
+        "oracle": {
+          "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+          "id": "approved-independent-f64"
+        },
+        "workload": {
+          "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+          "id": "frozen-three-request-fifty-five-prefixes"
+        }
+      },
+      "exclusions": {
+        "known": [
+          {
+            "code": "application-gate-failed",
+            "evidenceDigest": "sha256:424f07fa25fa7218935f69bef3084221868fd1181b6fe642fa81090001dad558",
+            "reason": "Signed opening, demanding concurrency and document quality remain unqualified; local qualification only.",
+            "scope": "public-chat-release"
+          },
+          {
+            "code": "unsupported-device",
+            "evidenceDigest": "sha256:424f07fa25fa7218935f69bef3084221868fd1181b6fe642fa81090001dad558",
+            "reason": "Browser split evidence applies only to recorded Mac and AMD providers; native full55 and Suby remain unqualified.",
+            "scope": "unobserved-gpu-provider-tuples"
+          }
+        ],
+        "rejectionTypes": [
+          "acceptance-failed",
+          "application-gate-failed",
+          "artifact-invalid",
+          "evidence-expired",
+          "migration-required",
+          "revoked",
+          "unsupported-device"
+        ]
+      },
+      "lifecycle": {
+        "failedUpgrade": {
+          "preservePrevious": true,
+          "previousCapsuleId": null,
+          "previousSemanticRoot": null
+        },
+        "migration": null,
+        "releaseVersion": "0.6.28",
+        "supersedes": null
+      },
+      "revocation": {
+        "authorityId": "reploid-paired-qualification-20261012",
+        "failClosedAfterExpiry": true,
+        "offlineExpirySeconds": 86400,
+        "policyDigest": "sha256:58425d583e527a1d77bf8020953bd601fbbbad39a8093fd02e9650ef54b32810"
+      },
+      "schema": "doppler.capsule-release/v1",
+      "source": {
+        "license": {
+          "name": "Apache License 2.0",
+          "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "spdxId": "Apache-2.0",
+          "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+        "repository": "Qwen/Qwen3.5-0.8B",
+        "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+        "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+      },
+      "stateSnapshot": {
+        "format": "declared-state-identity-only",
+        "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+        "portableAcrossTargetIds": [
+          "webgpu-f32-f16-portable"
+        ],
+        "schema": "doppler.capsule-state-snapshot/v1"
+      }
+    },
+    "event": {
+      "capsule": {
+        "schema": "doppler.capsule/v3",
+        "semanticRoot": "sha256:091482a87539b3a155a5c2950d3eb4431ae6fdbc6afa99ebf29dc83ab1824b63",
+        "envelopeDigest": "sha256:44eef466e5a37b2624f175ee9ec52f4380783eb36986ecacb14349a911f5656a"
+      },
+      "sequence": 1,
+      "previousEventDigest": null,
+      "issuedAtUtc": "2026-10-12T22:41:00.985Z",
+      "expiresAtUtc": "2026-10-13T22:41:00.985Z",
+      "action": "eligible",
+      "release": {
+        "application": {
+          "applicationId": "reploid-resident-qualification",
+          "applicationRevision": "sha256:e4954c74bf5339fe2d4a86e41db541a1166eff48bf4354358914db334d0b2fc7",
+          "applicationRevisionDigest": "sha256:e4954c74bf5339fe2d4a86e41db541a1166eff48bf4354358914db334d0b2fc7",
+          "oracle": {
+            "digest": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+            "id": "approved-independent-f64"
+          },
+          "workload": {
+            "digest": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+            "id": "frozen-three-request-fifty-five-prefixes"
+          }
+        },
+        "exclusions": {
+          "known": [
+            {
+              "code": "application-gate-failed",
+              "evidenceDigest": "sha256:424f07fa25fa7218935f69bef3084221868fd1181b6fe642fa81090001dad558",
+              "reason": "Signed opening, demanding concurrency and document quality remain unqualified; local qualification only.",
+              "scope": "public-chat-release"
+            },
+            {
+              "code": "unsupported-device",
+              "evidenceDigest": "sha256:424f07fa25fa7218935f69bef3084221868fd1181b6fe642fa81090001dad558",
+              "reason": "Browser split evidence applies only to recorded Mac and AMD providers; native full55 and Suby remain unqualified.",
+              "scope": "unobserved-gpu-provider-tuples"
+            }
+          ],
+          "rejectionTypes": [
+            "acceptance-failed",
+            "application-gate-failed",
+            "artifact-invalid",
+            "evidence-expired",
+            "migration-required",
+            "revoked",
+            "unsupported-device"
+          ]
+        },
+        "lifecycle": {
+          "failedUpgrade": {
+            "preservePrevious": true,
+            "previousCapsuleId": null,
+            "previousSemanticRoot": null
+          },
+          "migration": null,
+          "releaseVersion": "0.6.28",
+          "supersedes": null
+        },
+        "revocation": {
+          "authorityId": "reploid-paired-qualification-20261012",
+          "failClosedAfterExpiry": true,
+          "offlineExpirySeconds": 86400,
+          "policyDigest": "sha256:58425d583e527a1d77bf8020953bd601fbbbad39a8093fd02e9650ef54b32810"
+        },
+        "schema": "doppler.capsule-release/v1",
+        "source": {
+          "license": {
+            "name": "Apache License 2.0",
+            "sourceUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+            "spdxId": "Apache-2.0",
+            "textDigest": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+          },
+          "provenanceDigest": "sha256:55ef3a95c0433e7217486db2c8303c5e76c9d22fba5397de94a469762bc8451a",
+          "repository": "Qwen/Qwen3.5-0.8B",
+          "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+          "revisionDigest": "sha256:f5a57c56e7984f26bbff2b4c10ef7bef4478f8a9401cc712a3e3188af34d05ce"
+        },
+        "stateSnapshot": {
+          "format": "declared-state-identity-only",
+          "identityDigest": "sha256:54c235c3767687c879fa1f1ef30260875b3a21c7bd171a863f292cc0feac7771",
+          "portableAcrossTargetIds": [
+            "webgpu-f32-f16-portable"
+          ],
+          "schema": "doppler.capsule-state-snapshot/v1"
+        }
+      },
+      "migratedFrom": {
+        "schema": "doppler.capsule/v2",
+        "semanticRoot": "sha256:ff6a85767d5769be9479f037f179990807cfb16e57b883a95ea7170a4493ea94",
+        "envelopeDigest": "sha256:e872417c6a7dd917c9ce8ba42dc5c631f8ea9fecff561b85e20380d3adc5716e"
+      },
+      "nextSigner": null,
+      "schema": "doppler.capsule-release-event/v1",
+      "digest": "sha256:15e1234179a0016b67f1cd416a78768af5f8ba84c0c1becc668791e380a9b02f",
+      "signature": {
+        "authority": "reploid-paired-qualification-20261012",
+        "algorithm": "Ed25519",
+        "publicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53",
+        "signatureHex": "73f14ab6e0c95b80f3b75dd4dc9c9b9a3ed895deb837f521ecdaefcd4415f06baffbd61a0b04c031fe2cbf8937046d80f9b938e6bcfd239fdbe63bc22629940f",
+        "signedDigest": "sha256:15e1234179a0016b67f1cd416a78768af5f8ba84c0c1becc668791e380a9b02f"
+      }
+    },
+    "checkpoint": {
+      "sequence": 1,
+      "digest": "sha256:15e1234179a0016b67f1cd416a78768af5f8ba84c0c1becc668791e380a9b02f"
+    },
+    "authorization": {
+      "mode": "managed",
+      "verifiedAtUtc": "2026-10-12T22:41:00.985Z",
+      "eventExpired": false,
+      "unseenRevocations": "unknown",
+      "retainedLocalUse": null
+    },
+    "nextPublicKeyDigest": "sha256:cddc8e43da370860a974cf759b19726bf5e7f9c5d7c0a2a84abb6c9d34ab2d53"
+  },
+  "publicPromotion": false
+}

@@ -1,0 +1,21 @@
+{
+  "repoRoot": "/var/tmp/doppler-0.6.28-source-20261012",
+  "programBundlePath": "/var/tmp/qwen35-capsule-0.6.28-20261012/artifacts/program-bundle.json",
+  "manifestPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/model/manifest.json",
+  "modelDir": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/model",
+  "modelIRReceiptPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/model-ir-receipt.json",
+  "initialExecutionIdentityPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/initial-identity.json",
+  "qualificationReportPaths": [
+    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0-qualification/partition-0.json",
+    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0-qualification/partition-1.json",
+    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-1-qualification/partition-0.json",
+    "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-1-qualification/partition-1.json"
+  ],
+  "residentQualificationContractPath": "/Users/xyz/deco/doppler/artifacts/paired-intermediates-20261012/release-0.6.28/browser-split/direction-0-qualification/contract.json",
+  "pieceIndexPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/pieces.json",
+  "releaseManifestPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/release.json",
+  "signingPrivateKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-private.jwk.json",
+  "signingPublicKeyPath": "/var/tmp/doppler-0.6.28-source-20261012/capsule-input/signing-public.jwk.json",
+  "signingAuthority": "reploid-paired-qualification-20261012",
+  "outputPath": "/var/tmp/qwen35-capsule-0.6.28-20261012/capsule.json"
+}

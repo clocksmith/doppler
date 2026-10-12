@@ -1,0 +1,61 @@
+{
+  "pass": true,
+  "semanticRoot": "sha256:091482a87539b3a155a5c2950d3eb4431ae6fdbc6afa99ebf29dc83ab1824b63",
+  "reads": [
+    "manifest:manifest.json:ef4543d3f909",
+    "piece-index:pieces.json:5417f9423b37"
+  ],
+  "ranges": [
+    {
+      "artifactId": "weight-shard:shard_00000.bin:96d19964c144",
+      "offset": 0,
+      "length": 64
+    }
+  ],
+  "pieceVerification": {
+    "mode": "signed-piece-index",
+    "indexArtifactId": "piece-index:pieces.json:5417f9423b37",
+    "declaredWeightArtifactIds": [
+      "weight-shard:shard_00000.bin:96d19964c144",
+      "weight-shard:shard_00001.bin:c6dbd495c644",
+      "weight-shard:shard_00002.bin:8afc35b2a6dc",
+      "weight-shard:shard_00003.bin:735461c98192",
+      "weight-shard:shard_00004.bin:3cbdeb4e0c25",
+      "weight-shard:shard_00005.bin:e34e6f23816d",
+      "weight-shard:shard_00006.bin:70b3d422749e",
+      "weight-shard:shard_00007.bin:e564556babdf",
+      "weight-shard:shard_00008.bin:82cd4797be5a",
+      "weight-shard:shard_00009.bin:294432c344a6",
+      "weight-shard:shard_00010.bin:1290c563dc82",
+      "weight-shard:shard_00011.bin:4f9be8b80afc",
+      "weight-shard:shard_00012.bin:93daf25bb1b1",
+      "weight-shard:shard_00013.bin:a9926de9af0b",
+      "weight-shard:shard_00014.bin:b338167c0c6a",
+      "weight-shard:shard_00015.bin:8bc98ed89194",
+      "weight-shard:shard_00016.bin:914114c15d53",
+      "weight-shard:shard_00017.bin:d8fb99646d52"
+    ],
+    "indexIdentity": "sha256:5417f9423b37fd49f492932ad07d61ed979aaaf3fe9c365fb4b4623da9b47849",
+    "manifestIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+    "requestedBytes": 1,
+    "verifiedBytes": 64,
+    "pieces": [
+      "sha256:ad78e0805c16a73f70c722e837d1d342df3d9714bea32d353d976e155dd73494"
+    ],
+    "ranges": [
+      {
+        "path": "shard_00000.bin",
+        "offset": 0,
+        "size": 64,
+        "identity": "sha256:ad78e0805c16a73f70c722e837d1d342df3d9714bea32d353d976e155dd73494"
+      }
+    ],
+    "acquisitionMs": 2.3807079999999985,
+    "verificationMs": 0.1388329999999911,
+    "copyMs": 0.001333000000002471,
+    "activeReadBytes": 0,
+    "peakReadBytes": 1
+  },
+  "physicalOpening": false,
+  "publicPromotion": false
+}
