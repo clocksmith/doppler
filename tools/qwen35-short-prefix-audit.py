@@ -114,6 +114,124 @@ def read_capture(capture, prefill=19, decode_steps=1):
     return result
 
 
+def ideal_global_materialization(ref, weights, config, contract, expected, map_path,
+                                 archive_sha256, capture_sha256):
+    """Diagnostic copies only; ideal arithmetic between reviewed global stores."""
+    policy_bytes = Path(map_path).read_bytes()
+    policy = json.loads(policy_bytes)
+    assert policy['reviewStatus'] == 'reviewed'
+    assert policy['evaluatorSha256'] == EVALUATOR_SHA256
+    assert policy['parentArchiveSha256'] == archive_sha256
+    dispatch_bytes = Path(policy['dispatchBinding']['path']).read_bytes()
+    assert ref.digest(dispatch_bytes) == policy['dispatchBinding']['sha256']
+    dispatch = json.loads(dispatch_bytes)
+    assert dispatch['archiveSha256'] == archive_sha256
+    assert dispatch['captureSha256'] == capture_sha256
+    assert policy['request'] == {'index': 2, 'prefillTokens': 184, 'lastDecodeStep': 7}
+    assert contract['requestIndex'] == 2 and contract['prefixLengths'][0] == 184
+    prefill, count = 184, 8
+    enabled = False
+    counts = {}
+
+    def materialize(value, label):
+        if not enabled:
+            return value
+        counts[label] = counts.get(label, 0) + int(np.size(value))
+        return np.asarray(value).astype(np.float32).astype(np.float64)
+
+    def pair_store(value):
+        if not enabled:
+            return value
+        high = materialize(value, 'recurrent-high')
+        low = materialize(value - high, 'recurrent-low')
+        return high + low
+
+    def prefill_store(value, label):
+        if not enabled:
+            return value
+        result = value.copy()
+        result[:prefill] = materialize(result[:prefill], label)
+        return result
+
+    def normalization(value, weight, epsilon, offset=True):
+        epsilon = float(np.float32(epsilon)) if enabled else epsilon
+        return materialize(ref.rms_norm(value, weight, epsilon, offset), 'normalization')
+
+    def rotation(value, theta, dimension):
+        if not enabled:
+            return ref.text_rope(value, theta, dimension)
+        frequencies = float(np.float32(theta)) ** (-np.arange(0, dimension, 2, dtype=np.float64) / dimension)
+        angle = np.arange(len(value), dtype=np.float64)[:, None, None] * frequencies[None, None, :]
+        cosine = materialize(np.cos(angle), 'rope-cos-table')
+        sine = materialize(np.sin(angle), 'rope-sin-table')
+        first, second = np.split(value[..., :dimension], 2, axis=-1)
+        return materialize(np.concatenate((first * cosine - second * sine,
+            second * cosine + first * sine, value[..., dimension:]), axis=-1), 'rope-output')
+
+    delta_source = inspect.getsource(ref.delta_history)
+    delta_changes = [
+        ('        mixed *= sigmoid(mixed)',
+         "        mixed *= sigmoid(mixed)\n        if index < prefill: mixed = materialize(mixed, 'conv-output')"),
+        ('        state *= decay[:, None, None]',
+         '        state *= decay[:, None, None]\n        state = pair_store(state)'),
+        ('        state += key[:, :, None] * delta[:, None, :]',
+         '        state += key[:, :, None] * delta[:, None, :]\n        state = pair_store(state)'),
+        ('        output = np.sum(state * query[:, :, None], axis=1)',
+         "        output = np.sum(state * query[:, :, None], axis=1)\n        output_unrounded = output\n        if index < prefill: output = materialize(output, 'raw-prefill-recurrent-output')"),
+        ("        output = rms_norm(output, norm_weight, config['rms_norm_eps'], offset=False)",
+         "        output = output / np.sqrt(np.mean(output_unrounded * output_unrounded, axis=-1, keepdims=True) + (float(np.float32(config['rms_norm_eps'])) if enabled_flag() else config['rms_norm_eps'])) * norm_weight"),
+        ('        outputs.append((output * gate * sigmoid(gate)).reshape(-1))',
+         "        outputs.append(materialize(output * gate * sigmoid(gate), 'gated-recurrent-output').reshape(-1))"),
+        (' + 1e-6)', ' + (float(np.float32(1e-6)) if enabled_flag() else 1e-6))'),
+    ]
+    for before, after in delta_changes:
+        assert delta_source.count(before) == (2 if before == ' + 1e-6)' else 1), before
+        delta_source = delta_source.replace(before, after)
+    delta_namespace = dict(ref.__dict__, materialize=materialize, pair_store=pair_store,
+                           prefill=prefill, enabled_flag=lambda: enabled)
+    exec(compile(delta_source, '<ideal-global-state-diagnostic>', 'exec'), delta_namespace)
+    source = inspect.getsource(ref.evaluate)
+    changes = [
+        ("weights['embed_tokens.weight'][token_ids].copy()", "materialize(weights['embed_tokens.weight'][token_ids].copy(), 'embedding')"),
+        ("normalized @ local('in_proj_qkv.weight').T", "materialize(normalized @ local('in_proj_qkv.weight').T, 'qkv-projection')"),
+        ("normalized @ local('in_proj_z.weight').T", "materialize(normalized @ local('in_proj_z.weight').T, 'z-projection')"),
+        ("normalized @ local('in_proj_a.weight').T", "materialize(normalized @ local('in_proj_a.weight').T, 'a-projection')"),
+        ("normalized @ local('in_proj_b.weight').T", "materialize(normalized @ local('in_proj_b.weight').T, 'b-projection')"),
+        ("core @ local('out_proj.weight').T", "materialize(core @ local('out_proj.weight').T, 'linear-output-projection')"),
+        ("normalized @ local('q_proj.weight').T", "materialize(normalized @ local('q_proj.weight').T, 'q-projection')"),
+        ("normalized @ local('k_proj.weight').T", "materialize(normalized @ local('k_proj.weight').T, 'k-projection')"),
+        ("normalized @ local('v_proj.weight').T", "materialize(normalized @ local('v_proj.weight').T, 'v-projection')"),
+        ('causal_attention(query, key, value) * sigmoid(gate)', "materialize(materialize(causal_attention(query, key, value), 'attention-output') * sigmoid(gate), 'gated-attention-output')"),
+        ("core.reshape(len(x), -1) @ local('o_proj.weight').T", "materialize(core.reshape(len(x), -1) @ local('o_proj.weight').T, 'attention-output-projection')"),
+        ('        x += update', "        norm_input = x + update\n        x = materialize(norm_input, 'attention-residual')"),
+        ("normalized = rms_norm(x, w('post_attention_layernorm.weight'), epsilon)",
+         "normalized = rms_norm(norm_input, w('post_attention_layernorm.weight'), epsilon)"),
+        ("normalized @ w('mlp.gate_proj.weight').T", "prefill_store(normalized @ w('mlp.gate_proj.weight').T, 'ffn-gate-projection')"),
+        ("normalized @ w('mlp.up_proj.weight').T", "prefill_store(normalized @ w('mlp.up_proj.weight').T, 'ffn-up-projection')"),
+        ("        x += (gate * sigmoid(gate) * up) @ w('mlp.down_proj.weight').T", "        x = materialize(x + materialize(materialize(gate * sigmoid(gate) * up, 'ffn-activation') @ w('mlp.down_proj.weight').T, 'ffn-down-projection'), 'ffn-residual')"),
+        ("normalized @ weights['lm_head.weight'].T", "materialize(normalized @ weights['lm_head.weight'].T, 'logits')"),
+    ]
+    for before, after in changes:
+        assert source.count(before) == 1, before
+        source = source.replace(before, after)
+    namespace = dict(ref.__dict__, materialize=materialize, prefill_store=prefill_store,
+                     rms_norm=normalization, text_rope=rotation,
+                     delta_history=delta_namespace['delta_history'])
+    exec(compile(source, '<ideal-global-buffer-diagnostic>', 'exec'), namespace)
+    evaluate = namespace['evaluate']
+    baseline, _ = evaluate(contract['inputIds'], weights, config, np.array(contract['prefixLengths']) - 1)
+    assert np.array_equal(baseline, expected), 'Inactive diagnostic copy must reproduce every approved vector'
+    enabled = True
+    logits, caches = evaluate(contract['inputIds'][:prefill + count - 1], weights, config,
+                             np.array(contract['prefixLengths'][:count]) - 1)
+    return {'scope': policy['scope'], 'mapSha256': ref.digest(policy_bytes),
+        'evaluateSourceSha256': ref.digest(source.encode()), 'deltaSourceSha256': ref.digest(delta_source.encode()),
+        'inactiveCopyApprovedVectorsExact': True, 'count': count, 'stores': counts,
+        'comparison': error(logits, expected[:count]), 'caches': caches,
+        'perPrefix': [{'step': i, 'comparison': error(logits[i:i + 1], expected[i:i + 1]),
+            'logitsF64': base64.b64encode(logits[i].astype('<f8').tobytes()).decode()} for i in range(count)]}
+
+
 def run(args):
     source = Path(__file__).with_name('qwen35-f64-reference.py')
     spec = importlib.util.spec_from_file_location('approved_f64', source)
@@ -402,6 +520,10 @@ def run(args):
                 'localF64': float(local_logits[-1, worst_vocabulary])}}}
     if replay_comparisons:
         report['normalizationReplay'] = replay_comparisons
+    if args.ideal_materialization_map:
+        report['idealGlobalMaterializationControl'] = ideal_global_materialization(
+            ref, weights, config, contract, expected, args.ideal_materialization_map,
+            capture['archiveSha256'], ref.digest(Path(args.capture).read_bytes()))
     if args.cache_materialization_control:
         # Counterfactual diagnostic, not an acceptance reference. All other
         # equations stay F64; only the mandatory producer F32 store is inserted.
@@ -559,6 +681,7 @@ if __name__ == '__main__':
     parser.add_argument('--recurrent-approved-cache-control', action='store_true',
                         help='Diagnostic only: replace K/V cache with independently evolved approved values')
     parser.add_argument('--cache-materialization-control', action='store_true')
+    parser.add_argument('--ideal-materialization-map', help='Reviewed global-buffer materialization diagnostic map')
     parser.add_argument('--cache-materialization-kind', choices=['both', 'key', 'value'], default='both')
     parser.add_argument('--fixture-directory', help='Export captured prefill projections for the existing physical replay')
     parser.add_argument('--normalization-fixture', help='Exact captured layer-3 fixture for local K comparisons')
