@@ -1,0 +1,19 @@
+[GPU] apple metal-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: direct finalization failure settles raw logits
+
+4 !== 3
+
+    at file:///Users/xyz/deco/doppler/tests/inference/logits-paired-physical.test.js:83:12 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 4,
+  expected: 3,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
