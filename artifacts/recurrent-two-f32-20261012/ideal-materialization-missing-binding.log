@@ -1,0 +1,39 @@
+{"layer": 0, "kind": "linear_attention", "hiddenSha256": "e835352e91fbe3bb6a97a94f26bbd10dad73fb9a4c718a2b6cd07d7a322083cf", "maxAbsHidden": 1.0176759410386886}
+{"layer": 1, "kind": "linear_attention", "hiddenSha256": "da8e878782213ed7b603330cc732c51e2468da3ed961b73280dcf58e0d07a809", "maxAbsHidden": 1.0155770115707163}
+{"layer": 2, "kind": "linear_attention", "hiddenSha256": "a7306a06509ce9a362d841bd43f8fb230aa26949c880221ed460a9a39a453ab8", "maxAbsHidden": 1.5463753147678725}
+{"layer": 3, "kind": "full_attention", "hiddenSha256": "f95378ee1383d42eb8ab6c1a7ce319af31e7b38b6261f82599c0bdf98451d3c1", "maxAbsHidden": 1.271839668082574}
+{"layer": 4, "kind": "linear_attention", "hiddenSha256": "064b3bd3506bf21235c890ac5aabe4311eb754840974de8a8f1487e7d539a04f", "maxAbsHidden": 1.1903345595221904}
+{"layer": 5, "kind": "linear_attention", "hiddenSha256": "7a812b3a6ee5364f8c9b665b4a2d133b5e88241f89e51203264d0a3261a0e3f3", "maxAbsHidden": 1.1444938801810314}
+{"layer": 6, "kind": "linear_attention", "hiddenSha256": "d2fcc763675f52a022af393e7617fc6863490fd73243fd15af88c07fe30380ba", "maxAbsHidden": 4.110688285521716}
+{"layer": 7, "kind": "full_attention", "hiddenSha256": "9838d2a4d951010adec3d3a615b3f5bed3b0b735a21bd928b80ecb9ef4a11b5f", "maxAbsHidden": 2.1517986477491897}
+{"layer": 8, "kind": "linear_attention", "hiddenSha256": "eb5f9b8e70a293047d348b46b5c5bd392103e53a54bdab355f56a49e5d59e1e1", "maxAbsHidden": 2.1368031755014725}
+{"layer": 9, "kind": "linear_attention", "hiddenSha256": "6aebca091757f366f00286a8b3395c217d5cf31fc78fc5056c5f52d28cf786a3", "maxAbsHidden": 2.0906759651243845}
+{"layer": 10, "kind": "linear_attention", "hiddenSha256": "0aaefb98c9504444b5001b821c3ec3e972cfe71e070ee959e627b0c2423f703a", "maxAbsHidden": 2.269357457120475}
+{"layer": 11, "kind": "full_attention", "hiddenSha256": "c47135caa621cbdad3352ac5887e9765c7accba083376e365dea273a93df9cf6", "maxAbsHidden": 1.2099117835962145}
+{"layer": 12, "kind": "linear_attention", "hiddenSha256": "8d1626931be898d1a777784f70d78ce7e0cfae20ad0b253deeb4f1c6177bc122", "maxAbsHidden": 1.2879698814241114}
+{"layer": 13, "kind": "linear_attention", "hiddenSha256": "0c2ed03c9d9837c16f468ddb15fa22d79d7a663c51dc62513ff631d2e1c632d5", "maxAbsHidden": 1.464795327313662}
+{"layer": 14, "kind": "linear_attention", "hiddenSha256": "ce1f3debee9c28be2e4530f8d333c44111be275e147a62d8ba7981c3dcd7a59e", "maxAbsHidden": 4.55840917747158}
+{"layer": 15, "kind": "full_attention", "hiddenSha256": "9fab49b4b06e01f9eb95c2a6845422f3d6c44365d17856289f68bc39cae788f0", "maxAbsHidden": 2.0735674627490637}
+{"layer": 16, "kind": "linear_attention", "hiddenSha256": "54e23f5bbc29b2deaa3b437031a1889e5aef817feac3750461d0d2665776c4c1", "maxAbsHidden": 2.435109438850361}
+{"layer": 17, "kind": "linear_attention", "hiddenSha256": "176f89c9f865ea008cda6a29db7581a6b286a587ab5ad8a4fc4b8f9347c16a8c", "maxAbsHidden": 3.0401711722691003}
+{"layer": 18, "kind": "linear_attention", "hiddenSha256": "671f36ca8991f696ced62af568e3094298594b4b6d5fe654453358d3af91586b", "maxAbsHidden": 4.844962456973439}
+{"layer": 19, "kind": "full_attention", "hiddenSha256": "1e7cdcf52d17328bfa1641f6c4a6024eb8d5db34dac1b3b61571eda673896936", "maxAbsHidden": 5.087202533493935}
+{"layer": 20, "kind": "linear_attention", "hiddenSha256": "b5c46a8737d5f7803260fe8710d4044393c0c246c05da852ed0c4827e046883b", "maxAbsHidden": 5.156443227181329}
+{"layer": 21, "kind": "linear_attention", "hiddenSha256": "1af25c4066a2de9e7a4de0d35af549348a4a522972cbb69ec216a2cef93a630b", "maxAbsHidden": 5.979240574715645}
+{"layer": 22, "kind": "linear_attention", "hiddenSha256": "e76bd7ecbb0036bb86ca3a523b5b18194c08db4ba80392302776e633136eed22", "maxAbsHidden": 5.515903162286961}
+{"layer": 23, "kind": "full_attention", "hiddenSha256": "0a274c5ed831f94fc1c5822731ad6d0d3e78eddea8f40ba70123a40f6c64fd42", "maxAbsHidden": 7.908705590155191}
+Traceback (most recent call last):
+  File "/home/x/deco/doppler/tools/qwen35-short-prefix-audit.py", line 694, in <module>
+    run(args)
+    ~~~^^^^^^
+  File "/home/x/deco/doppler/tools/qwen35-short-prefix-audit.py", line 318, in run
+    binding = ref.read_json(args.binding)
+  File "/home/x/deco/doppler/tools/qwen35-f64-reference.py", line 25, in read_json
+    data = Path(path).read_bytes()
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 778, in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 772, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'artifacts/recurrent-two-f32-20261012/q4-model-binding.json'
