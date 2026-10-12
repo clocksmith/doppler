@@ -1,0 +1,139 @@
+{
+  "scope": "Only prefill layer15 independent same-input attention replaced, real GPU downstream; not qualification",
+  "qualified": false,
+  "copyControlExact": true,
+  "parentSha256": "4d5c8bfd8a442d5a7ba8a5113c86b2946f578819bfae84922a81842bd697d030",
+  "controlSha256": "640f6ba20a4b1b20a5e396738673ecffd04ee361a1632e450ca2f2035b374dfb",
+  "interventionSha256": "4ab75ad1303fdc4cb193f1bfa9cf56a17e2da900c939977e701616fa75b69b21",
+  "approvalSha256": "065a6f065e551995743d183151b500a68761b15f612497b7933551f6c4ae2fb5",
+  "rows": [
+    {
+      "step": 0,
+      "parent": {
+        "maximum": 0.0005566502997025324,
+        "rms": 0.00013280736921212895,
+        "overTolerance": 0,
+        "worstVocabulary": 443
+      },
+      "correctedLocalPrefillAttention": {
+        "maximum": 0.000501338310049837,
+        "rms": 0.00011553605765591451,
+        "overTolerance": 0,
+        "worstVocabulary": 113974
+      },
+      "changedLogits": 248156
+    },
+    {
+      "step": 1,
+      "parent": {
+        "maximum": 0.0006111411167579739,
+        "rms": 0.00013014683960589833,
+        "overTolerance": 0,
+        "worstVocabulary": 54519
+      },
+      "correctedLocalPrefillAttention": {
+        "maximum": 0.0005732816721568668,
+        "rms": 0.00012891564040198977,
+        "overTolerance": 0,
+        "worstVocabulary": 218115
+      },
+      "changedLogits": 246557
+    },
+    {
+      "step": 2,
+      "parent": {
+        "maximum": 0.0005921765937633161,
+        "rms": 0.00008025127229603467,
+        "overTolerance": 0,
+        "worstVocabulary": 17011
+      },
+      "correctedLocalPrefillAttention": {
+        "maximum": 0.0005628511085338239,
+        "rms": 0.00007762373024740505,
+        "overTolerance": 0,
+        "worstVocabulary": 17011
+      },
+      "changedLogits": 247611
+    },
+    {
+      "step": 3,
+      "parent": {
+        "maximum": 0.0008819738215932738,
+        "rms": 0.00018295477108388027,
+        "overTolerance": 0,
+        "worstVocabulary": 53109
+      },
+      "correctedLocalPrefillAttention": {
+        "maximum": 0.0008853116817006956,
+        "rms": 0.00018116767446691852,
+        "overTolerance": 0,
+        "worstVocabulary": 53109
+      },
+      "changedLogits": 245927
+    },
+    {
+      "step": 4,
+      "parent": {
+        "maximum": 0.000943578579699178,
+        "rms": 0.00019895299951955796,
+        "overTolerance": 0,
+        "worstVocabulary": 219085
+      },
+      "correctedLocalPrefillAttention": {
+        "maximum": 0.0009450090911737874,
+        "rms": 0.0001964957990522224,
+        "overTolerance": 0,
+        "worstVocabulary": 219085
+      },
+      "changedLogits": 247094
+    },
+    {
+      "step": 5,
+      "parent": {
+        "maximum": 0.00068881670929688,
+        "rms": 0.00014906984503691633,
+        "overTolerance": 0,
+        "worstVocabulary": 185000
+      },
+      "correctedLocalPrefillAttention": {
+        "maximum": 0.0006768957803418019,
+        "rms": 0.00014635125094292374,
+        "overTolerance": 0,
+        "worstVocabulary": 185000
+      },
+      "changedLogits": 246435
+    },
+    {
+      "step": 6,
+      "parent": {
+        "maximum": 0.000710529965099127,
+        "rms": 0.00013837487761011704,
+        "overTolerance": 0,
+        "worstVocabulary": 86430
+      },
+      "correctedLocalPrefillAttention": {
+        "maximum": 0.0006987520593324525,
+        "rms": 0.00013725584096170644,
+        "overTolerance": 0,
+        "worstVocabulary": 218611
+      },
+      "changedLogits": 247359
+    },
+    {
+      "step": 7,
+      "parent": {
+        "maximum": 0.0014585908626596478,
+        "rms": 0.0002548592432201658,
+        "overTolerance": 42,
+        "worstVocabulary": 32897
+      },
+      "correctedLocalPrefillAttention": {
+        "maximum": 0.001450842258838847,
+        "rms": 0.0002529854371100678,
+        "overTolerance": 39,
+        "worstVocabulary": 32897
+      },
+      "changedLogits": 245495
+    }
+  ]
+}

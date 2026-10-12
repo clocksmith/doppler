@@ -1,0 +1,13 @@
+{
+  "archiveSha256": "d8f76522c9c5d2378f5af983588b33fa8baae72547fa76510b2358c0d8015f12",
+  "parentArchiveSha256": "c596ecab6d498b3bb6e4d070e65a640713e693020e77c897271481f197875aae",
+  "manifestSha256": "a12274ca0062c9a3a0499c46d439082f0c2ce0769b8e99a2774f6b021304c1a2",
+  "sourceManifestSha256": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "fixtureSha256": "8f7255a8696bda9ccd79e40eb8b16536f9abf35e51aba0caea05cf65db46fe57",
+  "captureSha256": "4d377a97fd0f1d4aa3f9a4e92900a35fa3b8b33bca0846e72c1e9e85dc731d18",
+  "injectedOutputSha256": "b7f150fe8c5edef153ee961ce25932d1376877d8f80f5451296f1638d05d3e8e",
+  "mode": "independent-local",
+  "unchangedWeights": true,
+  "tolerance": 0.001,
+  "scope": "Only prefill layer15 attention core overwritten, followed by real GPU downstream; explicitly inadmissible for qualification"
+}
