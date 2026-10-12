@@ -1,0 +1,366 @@
+{
+  "schema": "doppler.attachment-whole-block-layout-review/v1",
+  "qualified": false,
+  "completedCases": 13,
+  "passedCases": 0,
+  "conclusion": "Whole question-and-policy relocation does not qualify the deployed0.8B model. It regresses the three-ticket total and known subtotal, preserves long-document factual failures, and fails all exact citation contracts. Both layouts miss the held-out two-box delivery total. No format promotion and no further0.8B wording candidates.",
+  "cases": [
+    {
+      "lane": "holdout-before",
+      "id": "holdout-invoice-payment",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct89.50."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "No invented charges."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "No exact passage citations."
+        }
+      ]
+    },
+    {
+      "lane": "holdout-before",
+      "id": "holdout-conditional-promise",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Rejects unconditional promise."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves pending inspection."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Inspection status wrongly assigned toD1:P1 instead ofP2; required markers absent."
+        }
+      ]
+    },
+    {
+      "lane": "holdout-before",
+      "id": "holdout-quantity-delivery",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "17.50 prices only one box plus delivery; required29."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Uses one delivery fee and adds no new fee."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "No exact passage citations."
+        }
+      ]
+    },
+    {
+      "lane": "question-policy-after",
+      "id": "attached-three",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Restates one ticket at12; requested36 omitted."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "No exact[D1:P1] marker."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Only restates unit price despite natural EOS."
+        }
+      ]
+    },
+    {
+      "lane": "question-policy-after",
+      "id": "attached-four-followup",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct48."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Names ID D1:P1 without required bracketed citation."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": true,
+          "observation": "Complete total with no invented fees."
+        }
+      ]
+    },
+    {
+      "lane": "question-policy-after",
+      "id": "fresh-excluded-tax",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Claims known subtotal0 instead of100."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Invents final price130 while calling it unknown."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "No exact passage citations."
+        }
+      ]
+    },
+    {
+      "lane": "question-policy-after",
+      "id": "fresh-conditional-release",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correctly says hold until recipient confirmation."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Adds unsupported restriction that confirmation cannot occur until the current date."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "No exact passage citations."
+        }
+      ]
+    },
+    {
+      "lane": "question-policy-after",
+      "id": "fresh-deadline",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correctly rejects September7 against beforeSeptember6."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves distinct start and completion dates."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "No exact passage citations."
+        }
+      ]
+    },
+    {
+      "lane": "question-policy-after",
+      "id": "contractor-comparison",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Table labels included kitchen work/cabinets/installation as exclusions; omits exact removal scope."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Cedar subtotal remains9900, not10550; no budget remainders."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Quotes dates but does not apply Cedar duration to June1; compares its delay to another quote May25 instead."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Identifies conflict but misattributes it to separate P1/P2 and omits requiredD3:P2."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "No exact supporting citations; invented liability/contract consequences unsupported."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Questions do not resolve stated budget/deadline requirements; assumes legal consequences and asks what three weeks means."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": true,
+          "observation": "No optional deposit dollar arithmetic."
+        }
+      ]
+    },
+    {
+      "lane": "question-policy-after",
+      "id": "contractor-retained-correction",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Claims Maple/Cedar electrical not mentioned despite explicit exclusions; Maple no other exclusions."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Adds included800 to Harbor11600=12400; no budget remainders."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "No schedule conditions or Cedar June1 assessment."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Keeps Cedar conflict unresolved but no requiredD3:P2 reference."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "No exact supporting citations; unsupported scope doubts."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Invents uncertainty about explicitly included cabinets/installation, omits deadline issues."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": false,
+          "observation": "Claims unchanged totals as corrections and does not correct prior removal reversal."
+        },
+        {
+          "criterionIndex": 7,
+          "pass": true,
+          "observation": "No optional deposit dollar arithmetic."
+        }
+      ]
+    },
+    {
+      "lane": "question-policy-after",
+      "id": "holdout-invoice-payment",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Correct89.50."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "No invented charges or double tax/delivery."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Names correctD1:P1/P2 without exact bracketed markers."
+        }
+      ]
+    },
+    {
+      "lane": "question-policy-after",
+      "id": "holdout-conditional-promise",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": true,
+          "observation": "Rejects unconditional Thursday promise."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves pending inspection and may-versus-will."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "No exact passage citations."
+        }
+      ]
+    },
+    {
+      "lane": "question-policy-after",
+      "id": "holdout-quantity-delivery",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "23 omits delivery6; required29."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Claims23 includes delivery while calculation omits it."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "No exact passage citations."
+        }
+      ]
+    }
+  ]
+}

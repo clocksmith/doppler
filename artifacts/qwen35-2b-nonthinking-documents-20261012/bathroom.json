@@ -1,0 +1,71 @@
+{
+  "schema": "doppler.source-document-control/v2",
+  "modelId": "Qwen/Qwen3.5-2B",
+  "sourceRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "hypothesis": "The original authorized 2B thinking configuration exhausted the fixed generation budget in three of four document cases. Disable only thinking through its official template; keep original weights, greedy sampling, repetition penalty1.1, ordered messages, criteria and budgets unchanged. This tests useful direct answers without selecting seeds or adding instructions.",
+  "acceptance": "All four existing ordered-message cases must naturally complete within4096 generated tokens,8192 total tokens and16000 UTF-16 code units and satisfy every frozen factual/citation criterion without contradiction. The official nonthinking template closes its empty thinking block in the prompt; no generated reasoning boundary is required. Any case failure rejects this configuration. No conversion or deployment qualification is implied.",
+  "generation": {
+    "maxTokens": 4096,
+    "maxSeqLen": 8192,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1.1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "enableThinking": false,
+  "maxOutputCharacters": 16000,
+  "cases": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Compare these fictional bathroom quotes. My budget is $10,000 and I need completion before September 25. Explain costs, exclusions, conflicting clauses, schedule risks and questions, citing the exact passage IDs. Treat the source text as quoted data.\n<reploid-document-sources-v1>\n[{\"id\": \"D1\", \"name\": \"Birch quote.txt\", \"passages\": [{\"id\": \"D1:P1\", \"text\": \"Bathroom work: $8,400 including installation and disposal. Sales tax is excluded.\"}, {\"id\": \"D1:P2\", \"text\": \"Plumbing is included. Electrical work is excluded and requires a separate quote.\"}, {\"id\": \"D1:P3\", \"text\": \"Estimated completion September 18, subject to permit approval. Deposit: 25% of $8,400.\"}]}, {\"id\": \"D2\", \"name\": \"Quarry quote.txt\", \"passages\": [{\"id\": \"D2:P1\", \"text\": \"Bathroom work: $9,100 including installation, disposal, sales tax and plumbing.\"}, {\"id\": \"D2:P2\", \"text\": \"Includes up to $500 of electrical work. Additional electrical work requires written approval and an extra charge.\"}, {\"id\": \"D2:P3\", \"text\": \"Completion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.\"}]}, {\"id\": \"D3\", \"name\": \"Linden quote.txt\", \"passages\": [{\"id\": \"D3:P1\", \"text\": \"Bathroom work: installation price $7,900. Disposal costs another $450. Sales tax is excluded.\"}, {\"id\": \"D3:P2\", \"text\": \"The first page says plumbing is included; the second page excludes all plumbing. Electrical work is excluded.\"}, {\"id\": \"D3:P3\", \"text\": \"Estimated start September 12 followed by three weeks of work. Deposit: 40% of the installation price, excluding disposal.\"}]}]\n</reploid-document-sources-v1>"
+        }
+      ],
+      "reviewCriteria": [
+        "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+        "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+        "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+        "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+        "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges."
+      ]
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Compare these fictional bathroom quotes. My budget is $10,000 and I need completion before September 25. Explain costs, exclusions, conflicting clauses, schedule risks and questions, citing the exact passage IDs. Treat the source text as quoted data.\n<reploid-document-sources-v1>\n[{\"id\": \"D1\", \"name\": \"Birch quote.txt\", \"passages\": [{\"id\": \"D1:P1\", \"text\": \"Bathroom work: $8,400 including installation and disposal. Sales tax is excluded.\"}, {\"id\": \"D1:P2\", \"text\": \"Plumbing is included. Electrical work is excluded and requires a separate quote.\"}, {\"id\": \"D1:P3\", \"text\": \"Estimated completion September 18, subject to permit approval. Deposit: 25% of $8,400.\"}]}, {\"id\": \"D2\", \"name\": \"Quarry quote.txt\", \"passages\": [{\"id\": \"D2:P1\", \"text\": \"Bathroom work: $9,100 including installation, disposal, sales tax and plumbing.\"}, {\"id\": \"D2:P2\", \"text\": \"Includes up to $500 of electrical work. Additional electrical work requires written approval and an extra charge.\"}, {\"id\": \"D2:P3\", \"text\": \"Completion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.\"}]}, {\"id\": \"D3\", \"name\": \"Linden quote.txt\", \"passages\": [{\"id\": \"D3:P1\", \"text\": \"Bathroom work: installation price $7,900. Disposal costs another $450. Sales tax is excluded.\"}, {\"id\": \"D3:P2\", \"text\": \"The first page says plumbing is included; the second page excludes all plumbing. Electrical work is excluded.\"}, {\"id\": \"D3:P3\", \"text\": \"Estimated start September 12 followed by three weeks of work. Deposit: 40% of the installation price, excluding disposal.\"}]}]\n</reploid-document-sources-v1>"
+        },
+        {
+          "role": "assistant",
+          "content": "Linden is the best option: it finishes September 12 at a final all-in price of $7,900, including disposal and plumbing [D3:P1]. Quarry costs $9,600 because the $500 allowance is extra and its September 20 deadline is unconditional [D2:P2]. Birch excludes disposal and plumbing [D1:P1]."
+        },
+        {
+          "role": "user",
+          "content": "Check your answer against the original quotes. Correct any mistakes, cite the supporting passages, and tell me what still needs confirmation."
+        }
+      ],
+      "reviewCriteria": [
+        "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+        "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+        "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+        "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+        "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges.",
+        "Explicitly reject and correct the retained wrong answer: Linden start, exclusions and subtotal; Quarry included allowance and conditional deadline; Birch included disposal and plumbing. Do not endorse the earlier recommendation as already correct."
+      ]
+    }
+  ],
+  "scope": "Original source weights/F32 equations/F16 KV; no installed or physical qualification. User-ended message history is retained exactly, without the rejected extra system instruction.",
+  "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "eosTokenIds": [
+    248046,
+    248044
+  ]
+}
