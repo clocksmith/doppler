@@ -114,6 +114,8 @@ export interface PipelineContexts {
  * RoPE configuration.
  */
 export interface RoPEConfig {
+  /** Declared schedule; absent direct callers retain explicitly configured local tables. */
+  layerTypes?: string[] | null;
   headDim: number;
   localHeadDim?: number;
   rotaryDim?: number;

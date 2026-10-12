@@ -290,3 +290,31 @@ for (const modelPartition of [null, { index: 0 }]) {
 }
 
 console.log('rope-frequency-cache-contract.test: ok');
+
+// Explicit non-local layer schedules must not allocate unreachable local tables.
+{
+  const device = createFakeDevice();
+  resetRuntimeState(device);
+  const config = { ...ropeConfig, localHeadDim: 256, ropeLocalRotaryDim: 256,
+    ropeLocalFrequencyBaseDim: 256, layerTypes: ['linear_attention', 'full_attention'] };
+  const globalOnly = await initRoPEFrequencies(config, true);
+  assert.equal(globalOnly.localCos, null);
+  assert.equal(globalOnly.localSin, null);
+  const state = { useGPU: true,
+    runtimeConfig: { inference: { session: { kvcache: { maxSeqLen: config.maxSeqLen } } } },
+    modelConfig: { ...config, globalHeadDim: config.headDim,
+      ropeRotaryDim: config.rotaryDim } };
+  await _initRoPE.call(state);
+  assert.equal(state.ropeLocalCos, null, 'Pipeline forwards the declared schedule.');
+  assert.equal(state.ropeFreqsCos, globalOnly.cos);
+  releaseRoPEFrequencies(state.ropeFrequencyLease);
+  for (const layerType of ['sliding_attention', 'local_attention', 'local', 'sliding']) {
+    const withLocal = await initRoPEFrequencies({ ...config, layerTypes: ['full_attention', layerType] }, true);
+    assert.ok(withLocal.localCos);
+    assert.ok(withLocal.localSin);
+    assert.notEqual(withLocal.cos, globalOnly.cos, 'Cache identity includes local-table demand.');
+    releaseRoPEFrequencies(withLocal);
+  }
+  releaseRoPEFrequencies(globalOnly);
+  resetRuntimeState();
+}
