@@ -1,0 +1,32 @@
+{
+  "schema": "doppler.actual-attachment-source-review/v1",
+  "qualified": false,
+  "factualAmountsPassed": 2,
+  "citationContractsPassed": 0,
+  "sourceReportSha256": "89a63b7781cf33398bb9ed2a2e9bb67f9dc3f14043678cf94cf96b4f6a49573e",
+  "disposition": "Correct quantities with original weights; citation contract remains failed. Compare exact deployedQ4 CPU next before attributing distributed output failure.",
+  "cases": [
+    {
+      "id": "attached-three",
+      "text": "Based on the provided text, three tickets cost **$36**.\n\n**Citation:** D1:P1 (\"Tickets cost $12 each.\")",
+      "inputTokens": 127,
+      "generatedTokens": 32,
+      "naturalCompletion": true,
+      "factualAmountPassed": true,
+      "citationPassed": false,
+      "citationObservation": "Names D1:P1, but omits exact [D1:P1] marker needed by the application.",
+      "qualified": false
+    },
+    {
+      "id": "attached-four-followup",
+      "text": "Four tickets would cost **$48**.\n\nThis is calculated by multiplying the unit price ($12) by the quantity (4): 12 \u00d7 4 = 48.",
+      "inputTokens": 166,
+      "generatedTokens": 40,
+      "naturalCompletion": true,
+      "factualAmountPassed": true,
+      "citationPassed": false,
+      "citationObservation": "No source passage identity or citation in follow-up answer.",
+      "qualified": false
+    }
+  ]
+}
