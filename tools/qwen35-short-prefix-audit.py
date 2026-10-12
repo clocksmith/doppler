@@ -66,6 +66,23 @@ def compare_error_sources(actual, controlled, expected):
             for step in range(len(actual))]}
 
 
+def validate_runtime_context(runtime, binding, contract, history, history_hash):
+    """History supplies forced tokens only, never authoritative accuracy values."""
+    assert runtime['archiveSha256'] == binding['archiveSha256']
+    assert runtime['manifestIdentity'] == 'sha256:' + binding['manifestSha256']
+    assert runtime['referenceSha256'] == history_hash
+    assert runtime['frozenManifestIdentity'] == history['modelIdentity']
+    assert runtime['fullPrefixes'] is True
+    assert runtime['physicalExecutionCompleted'] and not runtime['declaredShaderMismatches']
+    rows = [row for row in runtime['results'] if row['index'] == contract['requestIndex']]
+    assert [row['step'] for row in rows] == contract['steps']
+    prefill = contract['prefixLengths'][0]
+    assert all(row['inputIds'] == contract['inputIds'][:prefill] for row in rows)
+    forced = [row['tokenId'] for row in history['expected'][contract['requestIndex']]['steps']]
+    assert rows[0]['inputIds'] + forced[:len(rows) - 1] == contract['inputIds']
+    return rows
+
+
 def read_capture(capture, prefill=19, decode_steps=1):
     """Pair by actual generation step and operation; reject conflicting duplicates."""
     groups, step = {}, -1
@@ -430,11 +447,12 @@ def run(args):
         if args.recurrent_runtime:
             runtime = ref.read_json(args.recurrent_runtime)
             binding = ref.read_json(args.binding)
-            assert runtime['archiveSha256'] == binding['archiveSha256']
-            assert runtime['physicalExecutionCompleted'] and not runtime['declaredShaderMismatches']
-            runtime_rows = [row for row in runtime['results'] if row['index'] == request_index]
-            assert [row['step'] for row in runtime_rows] == contract['steps']
-            assert all(row['inputIds'] == contract['inputIds'][:prefill] for row in runtime_rows)
+            historical = contract['inputs']['historicalReference']
+            history_bytes = Path(historical['path']).read_bytes()
+            assert ref.digest(history_bytes) == historical['sha256']
+            history_bytes = gzip.decompress(history_bytes)
+            runtime_rows = validate_runtime_context(runtime, binding, contract,
+                json.loads(history_bytes), ref.digest(history_bytes))
             actual = np.stack([np.frombuffer(base64.b64decode(row['logits']), dtype='<f4').astype(np.float64)
                                for row in runtime_rows])
             report['recurrentMaterializationControl']['runtimeComparison'] = {
