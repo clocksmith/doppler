@@ -1,0 +1,177 @@
+{
+  "schema": "doppler.original-source-document-review/v1",
+  "qualified": false,
+  "completedCases": 4,
+  "passedCases": 0,
+  "configuration": "Original2B, official nonthinking template, greedy, repetition1.0, F32 equations/F16 KV.",
+  "pairedControl": {
+    "beforeFullPasses": 0,
+    "afterFullPasses": 0,
+    "sameWeightsPrecisionInputsAndRawPrefillTop10": true
+  },
+  "conclusion": "Removing the prompt/output repetition penalty changes answers and improves the first bathroom deadline conclusion, but does not qualify any complete document case. Dates, inclusions/exclusions, arithmetic and citation support still fail. This is not a remedy sufficient for converted-model or application promotion.",
+  "cases": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Correct subtotals occur, but8400 is called lowest despite8350; Quarry plumbing is later said not to be stated, and budget remainders are absent."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": true,
+          "observation": "Preserves permit/deposit conditions and correctly concludes three weeks after September12 cannot complete before September25."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Notes Linden conflict but treats plumbing as excluded in cost summary; adds unsupported deposit-incentive/refund implications."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "No supporting exact passage IDs for schedule/cost claims; document IDs alone do not locate the passages."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": true,
+          "observation": "Stated deposit amounts2100 and2730 are correct; no contrary optional deposit arithmetic."
+        }
+      ]
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Correct8350/9100 calculations appear, but summary falsely excludes Birch plumbing; no budget remainders and uncertainty is invented about explicitly included charges."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "September12 plus three weeks becomes September25, then24; marks estimates safe without permit condition and reverses deadline relation."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Selects Linden plumbing exclusion instead of retaining unresolved conflict; recommendation says Linden alone meets deadline."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Passage references are present but attached to false dates and scope conclusions."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": true,
+          "observation": "Deposit amounts2100,2730,3160 use correct bases."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Corrects allowance addition but repeats Birch plumbing reversal and does not repair Linden schedule/conflict."
+        }
+      ]
+    },
+    {
+      "id": "contractor-comparison",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Omits Cedar removal cost and treats disputed plumbing as excluded."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Uses9900 rather than10550; calls Maple cheapest despite lower Cedar figures; required remainders absent."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Treats May20 start as completion; omits duration and deposit/material conditions from the deadline analysis."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Quotes Cedar conflict but misattributes included clause toD3:P1 and table selects exclusion."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "WrongD3:P1 citation and unsupported completion claims."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Questions assume three completion dates; recommendation does not correctly apply budget/deadline conditions."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": true,
+          "observation": "No optional deposit dollar arithmetic."
+        }
+      ]
+    },
+    {
+      "id": "contractor-retained-correction",
+      "qualified": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "criteria": [
+        {
+          "criterionIndex": 0,
+          "pass": false,
+          "observation": "Repeats false Harbor removal exclusion and later claims all three exclude tax/electrical; turns explicit inclusions into uncertainty."
+        },
+        {
+          "criterionIndex": 1,
+          "pass": false,
+          "observation": "Never combines Cedar9900+650; cost differences ignore removal; no budget remainders."
+        },
+        {
+          "criterionIndex": 2,
+          "pass": false,
+          "observation": "Quotes schedules but does not apply Cedar duration toJune1 or explain feasibility."
+        },
+        {
+          "criterionIndex": 3,
+          "pass": false,
+          "observation": "Correctly quotesD3:P2 but tells client to assume Page1 is operative, then contradicts that assumption."
+        },
+        {
+          "criterionIndex": 4,
+          "pass": false,
+          "observation": "Some correct exact citations occur, but final claims contradict the cited source facts."
+        },
+        {
+          "criterionIndex": 5,
+          "pass": false,
+          "observation": "Questions section only quotes passages; invents uncertainty about explicit included charges and misses deadline analysis."
+        },
+        {
+          "criterionIndex": 6,
+          "pass": false,
+          "observation": "Repeats retained Harbor removal reversal and unjustified plumbing preference instead of correcting them."
+        },
+        {
+          "criterionIndex": 7,
+          "pass": true,
+          "observation": "No optional deposit dollar arithmetic."
+        }
+      ]
+    }
+  ]
+}
