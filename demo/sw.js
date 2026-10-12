@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:9289d8a5652dafa539f1bd12afaabb0ac77cdddecf5b68faa2a43e65db0c76e6';
-const CACHE_NAME = 'doppler-demo-shell-9289d8a5652dafa5';
+const SHELL_MANIFEST_DIGEST = 'sha256:b178a36d95a8971bad2caf35ecbcf0c71398f83a7817aaffb9841a8f54d7ebe1';
+const CACHE_NAME = 'doppler-demo-shell-b178a36d95a8971b';
 const APP_SHELL = Object.freeze([
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
@@ -554,6 +554,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/linear-attention-ab-fusion.js",
   "/src/inference/pipelines/text/linear-attention.js",
   "/src/inference/pipelines/text/linear-attention/plan.js",
+  "/src/inference/pipelines/text/linear-attention/state-layout.js",
   "/src/inference/pipelines/text/load-errors.js",
   "/src/inference/pipelines/text/logits/cpu-output.js",
   "/src/inference/pipelines/text/logits/cpu.js",
