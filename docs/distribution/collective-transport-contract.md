@@ -159,6 +159,6 @@ This contract does not imply survivability on its own.
 
 ## Related contracts
 
-- [rdrr-p2p-plan.md](rdrr-p2p-plan.md)
+- [execution-contract.md](execution-contract.md)
 - [p2p-transport-contract.md](p2p-transport-contract.md)
 - [../rdrr-format.md](../rdrr-format.md)
