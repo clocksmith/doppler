@@ -1,3 +1,7 @@
+import { validateCanonicalGenerationPolicy } from '../config/canonical-generation-policy.js';
+import { contractAssert, admitTokens, count } from '../config/canonical-contract-codec.js';
+import { samplingUniform } from './sampling-rng.js';
+
 function seededRandom(seed) {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
@@ -328,4 +332,64 @@ export function sample(logits, opts) {
     candidates.sort((a, b) => b.logit - a.logit || a.token - b.token);
   }
   return sampleFromLogitCandidates(candidates, temperature, seed, topP, onCandidates);
+}
+
+// A separate, explicitly selected identity preserves every legacy numeric-seed
+// call above. sourceLogits are post-model: softcap is never applied here.
+export function sampleCanonicalLogits(sourceLogits, history, policy, tokenIndex, purpose) {
+  policy = validateCanonicalGenerationPolicy(policy, sourceLogits.length);
+  count(tokenIndex, 'semantic output index');
+  contractAssert(tokenIndex < policy.maxGeneratedTokens && (purpose === 0 || purpose === 1), 'Invalid canonical sampling position or purpose.');
+  const tokens = admitTokens(history, sourceLogits.length, policy.totalAcceptedTokenLimit);
+  for (const score of sourceLogits) {
+    contractAssert(typeof score === 'number' && (Number.isFinite(score) || score === -Infinity), 'Invalid post-model logit.');
+  }
+  const logits = Float32Array.from(sourceLogits);
+  for (const score of logits) contractAssert(score !== Infinity, 'Logit overflows F32.');
+  applyRepetitionPenalty(logits, tokens, policy.repetitionPenalty, policy.repetitionPenaltyWindow);
+  applyPresencePenalty(logits, tokens, policy.presencePenalty, policy.presencePenaltyWindow);
+  for (const score of logits) contractAssert(!Number.isNaN(score) && score !== Infinity, 'Penalty produces invalid F32 logit.');
+  if (policy.padTokenId !== null) logits[policy.padTokenId] = -Infinity;
+  for (const id of policy.suppressTokenIds) logits[id] = -Infinity;
+  const candidates = [];
+  for (let token = 0; token < logits.length; token++) {
+    if (Number.isFinite(logits[token])) candidates.push({ token, logit: logits[token], prob: 0 });
+  }
+  contractAssert(candidates.length > 0, 'Canonical sampling has no finite candidate.');
+  candidates.sort((a, b) => b.logit - a.logit || a.token - b.token);
+  if (policy.temperature === 0) return candidates[0].token;
+  if (policy.topK > 0 && candidates.length > policy.topK) candidates.length = policy.topK;
+  const maximum = candidates[0].logit;
+  let sum = 0;
+  for (const candidate of candidates) {
+    candidate.prob = Math.exp((candidate.logit - maximum) / policy.temperature);
+    sum += candidate.prob;
+  }
+  contractAssert(Number.isFinite(sum) && sum > 0, 'Invalid canonical probability total.');
+  let prefix = 0, cumulative = 0;
+  do { cumulative += candidates[prefix++].prob / sum; } while (prefix < candidates.length && cumulative < policy.topP);
+  candidates.length = prefix;
+  let retained = 0;
+  for (const candidate of candidates) retained += candidate.prob;
+  contractAssert(Number.isFinite(retained) && retained > 0, 'Invalid retained probability total.');
+  for (const candidate of candidates) candidate.prob /= retained;
+  return selectCanonicalCandidate(candidates, samplingUniform(policy.seedHex64, tokenIndex, purpose, 0));
+}
+
+export function selectCanonicalCandidate(candidates, uniform) {
+  contractAssert(Number.isFinite(uniform) && uniform >= 0 && uniform < 1 && candidates.length > 0,
+    'Invalid categorical draw.');
+  let cumulative = 0;
+  for (const candidate of candidates) {
+    contractAssert(Number.isFinite(candidate.prob) && candidate.prob >= 0, 'Invalid categorical probability.');
+    cumulative += candidate.prob;
+  }
+  contractAssert(Math.abs(cumulative - 1) <= Number.EPSILON * candidates.length * 4,
+    'Categorical probabilities are not normalized.');
+  cumulative = 0;
+  for (const candidate of candidates) {
+    cumulative += candidate.prob;
+    if (cumulative > uniform) return candidate.token;
+  }
+  return candidates[candidates.length - 1].token;
 }

@@ -835,6 +835,11 @@
       "reason": "This symbol implements explicitly contracted token sampling or scalar control after logits have been read back."
     },
     {
+      "id": "src/inference/token-sampling.js#sampleCanonicalLogits",
+      "category": "scalar-control",
+      "reason": "RD-CANON/1 explicitly assigns the versioned final-stage categorical sampler to CPU control after logits readback; transformed scores never return to model execution."
+    },
+    {
       "id": "src/inference/pipelines/text/tsir-fixture-writer.js#trackQkvPartialAndMaybeWrite",
       "category": "observation",
       "reason": "This symbol records or decodes bounded diagnostic evidence and cannot feed modified tensor values back into execution."

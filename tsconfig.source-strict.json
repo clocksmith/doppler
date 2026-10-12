@@ -77,6 +77,7 @@
     "src/inference/pipelines/text/attention/cache-cast.js",
     "src/config/canonical-contract-codec.js",
     "src/config/canonical-generation-policy.js",
-    "src/inference/resident-state-contract.js"
+    "src/inference/resident-state-contract.js",
+    "src/inference/sampling-rng.js"
   ]
 }
