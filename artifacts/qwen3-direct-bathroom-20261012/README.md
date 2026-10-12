@@ -33,3 +33,5 @@ journey, converted weights, numerical runtime, distributed execution or release.
 
 Run only on x128 CPUs4–7, four threads, nice10, with no GPU. Exact source/evaluator,
 checkpoint/tokenizer, fixture and preflight hashes are in `freeze.json`.
+
+Completed result: [all four pairs rejected](RESULTS.md); natural completion passed, factual acceptance did not.
