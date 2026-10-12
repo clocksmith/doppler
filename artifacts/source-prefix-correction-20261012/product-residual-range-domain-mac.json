@@ -1,0 +1,17 @@
+{
+  "scope": "Exact finite F32 product residual; subnormal observations retained",
+  "shaderSha256": "a056cdd5a773d12d624a974d4c48bf57f9504bf4713496e44c5dfcf374fe9fc5",
+  "harnessSha256": "5271b424266f78284b6398fa3d58abceb2d5803cf25cac8d8c7d052a5461cddb",
+  "inputSha256": "9cda51c972c135c3ab6f82e88734a955272a4748902ab5af591879a2925e3cc3",
+  "count": 260861,
+  "seed": "624f901b",
+  "browser": "155.0.8059.39",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "errors": [],
+  "mismatches": [],
+  "actualProductMismatches": [],
+  "passed": true
+}

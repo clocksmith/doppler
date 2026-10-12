@@ -1,0 +1,16 @@
+{
+  "scope": "Exact finite F32 product residual; subnormal observations retained",
+  "shaderSha256": "d09cccdfce4b0877fc634c9287cae58f5365a3a996d4df51e250d3de8c9c225e",
+  "inputSha256": "bd1089fd591c4abc5a22d2de7f1e6a6ed5a4592b6902dd0641face4647457f78",
+  "count": 87095,
+  "seed": "624f901b",
+  "browser": "146.0.7680.177",
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3"
+  },
+  "errors": [],
+  "mismatches": [],
+  "actualProductMismatches": [],
+  "passed": true
+}
