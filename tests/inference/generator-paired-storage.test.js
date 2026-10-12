@@ -14,6 +14,7 @@ const probe = globalThis.generatorStorageProbe = {
     const buffer = { __dopplerFakeGPUBuffer: true, size, usage, label, bytes: new Uint8Array(size) };
     this.live.add(buffer); return buffer;
   },
+  sample(options) { if (this.failure==='record-sample') throw Error('injected record-sample'); const buffer=options.outputBuffer ?? this.allocate(4);new Uint32Array(buffer.bytes.buffer)[0]=2;return buffer; },
   release(buffer) { assert(this.live.delete(buffer), 'owned buffer released exactly once'); },
   async embed(ids, weight, options) {
     this.calls.push(options);
@@ -29,6 +30,7 @@ const probe = globalThis.generatorStorageProbe = {
     return buffer.bytes.slice(offset, offset + size).buffer;
   },
   decode(bytes, dtype, representation) {
+    if (!representation) return decodeReadback(bytes, dtype);
     assert.equal(representation.precision, this.paired ? 'two-f32' : undefined);
     const values = decodeReadback(bytes, dtype, representation);
     assert.equal(values[0], this.paired ? 1 + 2 ** -26 : 1);
@@ -38,15 +40,20 @@ const probe = globalThis.generatorStorageProbe = {
 const shared = {
   '../../../../gpu/device.js': 'export const getDevice=()=>generatorStorageProbe.device; export const setTrackSubmits=()=>{};',
   '../../../../memory/buffer-pool.js': `export const acquireBuffer=(...a)=>generatorStorageProbe.allocate(...a);
-    export const releaseBuffer=b=>generatorStorageProbe.release(b);
+    export const releaseBuffer=b=>generatorStorageProbe.release(b); export const discardBuffer=b=>generatorStorageProbe.release(b);
     export const readBuffer=(b,n)=>generatorStorageProbe.read(b,n);
     export const readBufferSlice=(b,o,n)=>generatorStorageProbe.read(b,n,o);
     export const getBufferPool=()=>({settleDeferredDestruction:async()=>{generatorStorageProbe.cleanup.push('settle');}}); export const uploadData=()=>{};`,
   '../../../../gpu/command-recorder.js': `export const createCommandRecorder=()=>generatorStorageProbe.recorder;
     export const createProfilingRecorder=createCommandRecorder; export class CommandRecorder {}`,
+  '../../../../gpu/kernels/sample.js': `export const isGPUSamplingAvailable=()=>generatorStorageProbe.gpuSampling; export const recordArgmax=(r,b,n,o)=>generatorStorageProbe.sample(o); export const recordGPUSample=recordArgmax;`,
+  '../../../../gpu/kernels/rep-penalty.js': `export const recordHistoryPenalties=async()=>{if(generatorStorageProbe.failure==='penalty')throw Error('injected penalty');};`,
+  '../sampling.js': `export const sample=()=>{if(generatorStorageProbe.failure==='sampling')throw Error('injected sampling');return 2;}; export const applyRepetitionPenalty=()=>{}; export const applyPresencePenalty=()=>{}; export const logitsSanity=()=>{};`,
+  '../logits/index.js': `export const computeLogits=async()=>{if(generatorStorageProbe.failure==='logits')throw Error('injected logits');return new Float32Array(8);};
+    export const computeLogitsGPU=async()=>({logitsBuffer:generatorStorageProbe.allocate(32),vocabSize:8,logitsDtype:'f32'}); export const recordLogitsGPU=computeLogitsGPU; export const extractLastPositionLogits=v=>v;`,
   '../embed.js': 'export const embed=(...a)=>generatorStorageProbe.embed(...a);',
   '../layer.js': `export const hasConvLayers=()=>false;
-    export const processLayer=async(l,b)=>{if(generatorStorageProbe.failure==='layer')throw Error('injected layer');return b;};`,
+    export const processLayer=async(l,b)=>{if(generatorStorageProbe.failure==='layer'||(l===1&&generatorStorageProbe.failure==='layer-second'))throw Error('injected layer');return generatorStorageProbe.replaceLayer?generatorStorageProbe.allocate(b.size):b;};`,
   '../per-layer-inputs.js': `export const preparePerLayerInputs=async()=>{if(generatorStorageProbe.failure==='ple')throw Error('injected ple');return null;};
     export const prefetchPerLayerRow=()=>{};`,
   '../debug-utils/index.js': 'export const decodeReadback=(...a)=>generatorStorageProbe.decode(...a); export const getLogitsHealth=()=>({});',
@@ -69,13 +76,15 @@ async function check(name, action) {
   finally { probe.live.clear(); }
 }
 function reset(paired, recorded = false) {
-  probe.paired = paired; probe.failure = null; probe.cleanup = []; probe.abortFailure = false; probe.calls.length = 0; probe.reads.length = 0; probe.copies.length = 0;
+  probe.replaceLayer=false;probe.gpuSampling = false; probe.paired = paired; probe.failure = null; probe.cleanup = []; probe.abortFailure = false; probe.calls.length = 0; probe.reads.length = 0; probe.copies.length = 0;
   const tracked = new Set();
   probe.recorder = {
     getEncoder: () => ({ copyBufferToBuffer(source, sourceOffset, target, targetOffset, size) {
       probe.copies.push(size); target.bytes.set(source.bytes.subarray(sourceOffset, sourceOffset + size), targetOffset);
     } }),
     trackTemporaryBuffer: buffer => tracked.add(buffer),
+    submit(){probe.cleanup.push('submit');},
+    completeDeferredCleanup:async()=>{probe.cleanup.push('deferred');for(const b of tracked)probe.release(b);tracked.clear();},
     async submitAndWait() { for (const buffer of tracked) probe.release(buffer); tracked.clear(); },
     async abort() { probe.cleanup.push('abort'); for (const buffer of tracked) if (probe.live.has(buffer)) probe.release(buffer); tracked.clear(); if (probe.abortFailure) throw Error('injected cleanup'); },
     getStats: () => ({}), isProfilingEnabled: () => false,
@@ -84,16 +93,16 @@ function reset(paired, recorded = false) {
   const plan = { activationDtype: 'f32', ...(paired ? { activationPrecision: 'two-f32', activationComponents: 2, activationElementStrideBytes: 8 } : {}) };
   const state = { modelConfig: { hiddenSize: 4, vocabSize: 8, numLayers: 1 }, weights: new Map([['embed', new Float32Array(32)]]),
     convLayerStates: new Map(), stats: {}, currentSeqLen: 0, useGPU: true, decodeStepCount: 0,
-    runtimeConfig: { inference: { compute: { activationDtype: 'f32' }, session: { prefillChunkLayers: 1, prefillTokenChunkSize: null } },
+    runtimeConfig: { inference: { sampling: {greedyThreshold:0.01}, compute: { activationDtype: 'f32' }, session: { prefillChunkLayers: 1, prefillTokenChunkSize: null } },
       shared: { debug: { probes: null, pipeline: { readbackSampleSize: 63 } } } },
     decodeBuffers: { resetPingPong() {}, swapPingPong() {}, getHiddenBuffer: () => null, getOutputHiddenBuffer: () => null, ownsBuffer: () => false },
   };
   return { state, plan, host: { _state: state, _getEffectiveActivationDtype: () => 'f32' },
-    helpers: { buildLayerContext: () => ({ decodeBuffers: state.decodeBuffers }), releaseSharedAttentionState() {} } };
+    helpers: { buildLayerContext: () => ({ decodeBuffers: state.decodeBuffers }), releaseSharedAttentionState() {}, getLogitsWeights:()=>({}), getLogitsConfig:()=>({}) } };
 }
 try {
   const { _prefill, _commitPrefillHiddenChunk } = await import(prefillURL);
-  const { runDecodeLayers } = await import(decodeURL);
+  const { runDecodeLayers, decodeStep } = await import(decodeURL);
   for (const paired of [false, true]) {
     const label = paired ? 'paired' : 'scalar';
     await check(label + ' recorded prefill carries full storage and commits cleanup', async () => {
@@ -135,6 +144,78 @@ try {
       });
       assert.deepEqual(probe.cleanup, ['abort', 'settle']); assert.equal(probe.live.size, 0);
     });
+    for (const failure of [null, 'ple', 'readback', 'layer', 'logits', 'sampling']) {
+      await check(label + ' actual decodeStep ' + (failure || 'success'), async () => {
+        const {state,plan,helpers} = reset(paired); probe.failure = failure;
+        const work = decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[],debug:failure==='readback'},helpers);
+        if (failure) await assert.rejects(work,/injected/); else assert.equal(await work,2);
+        assert.equal(probe.calls[0].intermediatePrecision,paired?'two-f32':undefined);
+        assert.equal(probe.live.size,0,'decodeStep must release owned activations on every exit');
+      });
+    }
+    await check(label + ' actual decodeStep GPU logits readback failure', async()=>{
+      const {state,plan,helpers} = reset(paired); probe.gpuSampling=true;probe.failure='readback';
+      await assert.rejects(decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[]},helpers),/injected/);
+      assert.equal(probe.live.size,0,'both owned hidden and logits must be released');
+    });
+    for (const failure of ['ple','layer','logits','penalty','record-sample']) {
+      await check(label+' recorded actual decodeStep '+failure,async()=>{
+        const {state,plan,helpers}=reset(paired,true);probe.failure=failure;probe.gpuSampling=['penalty','record-sample'].includes(failure);
+        await assert.rejects(decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[],temperature:0},helpers),/injected/);
+        assert.equal(probe.live.size,0); assert.deepEqual(probe.cleanup,['abort','deferred']);
+      });
+    }
+    for (const failure of [null,'ple','layer','logits']) {
+      await check(label+' actual decodeStep preserves borrowed hidden '+(failure||'success'),async()=>{
+        const {state,plan,helpers}=reset(paired); probe.failure=failure;
+        const borrowed=probe.allocate(4*(paired?8:4));state.decodeBuffers.getHiddenBuffer=()=>borrowed;state.decodeBuffers.ownsBuffer=b=>b===borrowed;
+        const work=decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[]},helpers);
+        if(failure)await assert.rejects(work,/injected/);else assert.equal(await work,2);
+        assert.deepEqual([...probe.live],[borrowed]);probe.release(borrowed);
+      });
+    }
+    await check(label+' actual decodeStep failed recorder cleanup retains cause',async()=>{
+      const {state,plan,helpers}=reset(paired,true);probe.failure='ple';probe.abortFailure=true;
+      await assert.rejects(decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[]},helpers),error=>{
+        assert(error instanceof AggregateError);assert.match(error.cause.message,/injected ple/);assert.match(error.errors[1].message,/cleanup/);return true;
+      });
+      assert.equal(probe.live.size,0);assert.deepEqual(probe.cleanup,['abort','deferred']);
+    });
+    for (const recorded of [false,true]) {
+      await check(label+' decode retires replaced activations '+recorded,async()=>{
+        const {state,plan,helpers}=reset(paired,recorded);state.modelConfig.numLayers=2;probe.replaceLayer=true;probe.failure='layer-second';
+        await assert.rejects(decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[]},helpers),/injected layer/);
+        assert.equal(probe.live.size,0);
+      });
+    }
+    await check(label+' decode pending PLE rejection',async()=>{
+      const {state,plan,helpers}=reset(paired);state.plePrefetchPending=Promise.reject(Error('injected pending PLE'));
+      await assert.rejects(decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[]},helpers),/injected pending PLE/);assert.equal(probe.live.size,0);
+    });
+    for (const failure of [null,'sampling']) {
+      await check(label+' GPU logits decode '+(failure||'success'),async()=>{
+        const {state,plan,helpers}=reset(paired);probe.gpuSampling=true;probe.failure=failure;
+        const work=decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[]},helpers);
+        if(failure)await assert.rejects(work,/injected sampling/);else assert.equal(await work,2);
+        assert.equal(probe.live.size,0);
+      });
+    }
+    for (const failure of [null,'map']) {
+      await check(label+' fused actual decodeStep '+(failure||'success'),async()=>{
+        const {state,plan,helpers}=reset(paired,true);probe.gpuSampling=true;probe.failure=failure;
+        globalThis.GPUBufferUsage={MAP_READ:1,COPY_DST:2};globalThis.GPUMapMode={READ:1};
+        probe.device.queue.writeBuffer=()=>{};
+        probe.device.createBuffer=({size})=>{
+          const buffer=probe.allocate(size);buffer.mapAsync=async()=>{if(failure==='map')throw Error('injected map');};
+          buffer.getMappedRange=()=>buffer.bytes.buffer;buffer.unmap=()=>{};buffer.destroy=()=>probe.release(buffer);return buffer;
+        };
+        const finiteness={bytes:new Uint8Array(16)};state.finitenessBuffer=finiteness;
+        const work=decodeStep(state,[1],{executionPlan:plan,suppressTokenIds:[],temperature:0},helpers);
+        if(failure)await assert.rejects(work,/injected map/);else assert.equal(await work,2);
+        assert.deepEqual([...probe.live],[state.sampleReadbackBuffer],'only retained session staging remains');
+        state.sampleReadbackBuffer.destroy();
+      });
+    }
     for (const failure of [null, 'layer', 'ple']) {
       await check(label + ' ordinary decode ' + (failure || 'success'), async () => {
         const { state, plan, helpers } = reset(paired); probe.failure = failure;

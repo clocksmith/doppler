@@ -6,7 +6,7 @@ const logits = { __dopplerFakeGPUBuffer: true, size: 16, usage: 0 };
 globalThis.decodeOwnershipProbe = { hidden, logits, released: [], fail: 'readback' };
 const modules = {
   '../../../../gpu/device.js': 'export const getDevice = () => null; export const setTrackSubmits = () => {};',
-  '../../../../memory/buffer-pool.js': `export const releaseBuffer = buffer => globalThis.decodeOwnershipProbe.released.push(buffer);
+  '../../../../memory/buffer-pool.js': `export const releaseBuffer = buffer => globalThis.decodeOwnershipProbe.released.push(buffer); export const discardBuffer = releaseBuffer;
     export const readBuffer = async () => { if (globalThis.decodeOwnershipProbe.fail === 'readback') throw Error('readback failed'); return new Float32Array([1, 2, 3, 4]).buffer; };`,
   '../embed.js': 'export const embed = async () => ({ buffer: globalThis.decodeOwnershipProbe.hidden, dtype: "f32", shape: [1, 4] });',
   '../layer.js': 'export const hasConvLayers = () => false; export const processLayer = async () => { if (globalThis.decodeOwnershipProbe.fail === "layer") throw Error("layer failed"); return globalThis.decodeOwnershipProbe.hidden; };',
