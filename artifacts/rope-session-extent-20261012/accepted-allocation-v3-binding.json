@@ -1,0 +1,74 @@
+{
+  "kind": "accepted-base allocation-only diagnostic, no promotion",
+  "canonicalCommits": [
+    "eb306577",
+    "e953eb74",
+    "e7026002",
+    "940dc2a2"
+  ],
+  "parentArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "archiveSha256": "7449618b1e3cf2b96ec18a2f30aa14ddf56c787ce9b871e535df7a9b107b367a",
+  "precedingArchiveSha256": "7ede3796905df580c1c39b7112ddeb6d6853ef7f86d620ac07f76d0d54e8b7d7",
+  "patchSha256": "74d216b1edd85eaf3a2bfab6e9225d14f3216be218574b30d232c83ad3e228c7",
+  "recipe": "Extract allocation-v2; git apply 940dc2a2 runtime diff excluding missing layer-range.d.ts; add canonical declaration; npm pack --ignore-scripts",
+  "acceptedFileCount": 1897,
+  "candidateFileCount": 1898,
+  "changed": [
+    {
+      "path": "src/config/kernels/registry.json",
+      "accepted": "766a1481153ed1491f69116eba743dd326cf8dbe8a0386aa13fc8f9d34e74288",
+      "candidate": "28cb55ef46a2193358ef931290f68df2f2eb61a7cc3134000743d817252ad833"
+    },
+    {
+      "path": "src/gpu/kernels/generated/uniform-writers-2.js",
+      "accepted": "036327ee61e88d7448384d86986077f30e7ad935db9bd62a4394b0bd5ffef51e",
+      "candidate": "ada83b6eacec8cb31eda3afc796e870f26b452d251a69a4a10c809b417b43735"
+    },
+    {
+      "path": "src/gpu/kernels/rope-precompute.js",
+      "accepted": "97ab9c57fa0b79290b99b5a73e2a674ebfeb9f6669f958e1ed2c4719e7ffbe31",
+      "candidate": "1eb5512a30dc89dee0cb1350913807e1b1b057e2e49ab2ab99eabe63a77a615c"
+    },
+    {
+      "path": "src/gpu/kernels/rope_precompute.wgsl",
+      "accepted": "598a100d29cd723814682fd8f5680c072ef2dd2d340504a2c27de8da47a5b7f7",
+      "candidate": "5a8cd9b06791bfcb47b4160e3c1cc6f93576aeaaa663c2b0d644375963e14e4d"
+    },
+    {
+      "path": "src/inference/browser-harness/text-evidence.js",
+      "accepted": "2cce9c796ac8e485809b0c4c4907c5bda5ebb5fb3d6529a774f3a70627f2b949",
+      "candidate": "59e4efa43730a6d40c0febbd059cf07bd19db08b5acc164a0620612edb896a81"
+    },
+    {
+      "path": "src/inference/kv-cache/base.d.ts",
+      "accepted": "126de886ea28a9e3a70d0c3ae1aa8afad8c8a572d03e5df06458c6cd7dd42a0e",
+      "candidate": "c404dd736acde0e1e4cf3c957e1f2cde708f8d0d4b1a6d1cb8431700c49a5e5a"
+    },
+    {
+      "path": "src/inference/kv-cache/layer-range.d.ts",
+      "accepted": null,
+      "candidate": "cb2001aa7640833d5cc893e613c32bfa3041dce1a6145c03515f8eb486fca6d8"
+    },
+    {
+      "path": "src/inference/kv-cache/layer-range.js",
+      "accepted": "8c5d03b5242b21a2813bf9665fa02327ef59bc4032b11336f12b52f4976fc82e",
+      "candidate": "a1beac68fa677801fb1328eafda2282b33d94e3e62704d486791bb85368d166a"
+    },
+    {
+      "path": "src/inference/pipelines/text/init-rope.js",
+      "accepted": "34c76845bfa2e6bac061810152487b3a0d4a8ee85eeac4c57208ab11244f03f3",
+      "candidate": "32ab58d42a6e1c2a56f4ba200ab4b89173f5515deb594fce19bdde5d81970fb4"
+    },
+    {
+      "path": "src/inference/pipelines/text/init.js",
+      "accepted": "bfb8336c9a70b541a3b34cc07cb4e6efbe58a62d4bfcff863026cdfe69ede674",
+      "candidate": "fc98a2018c5518a084545e003dea48cb4053eba200c731539a2d82500c30354f"
+    },
+    {
+      "path": "src/memory/buffer-pool.js",
+      "accepted": "6dd5d04cd8f6d16c15753fa6c6152a5b4a9f48bb4dcdb670f536f889ae351b80",
+      "candidate": "56b75ea634f1b4e08001bafc2b19b74c37f85924e052fe79fe62704fbeeff4dd"
+    }
+  ],
+  "removed": []
+}
