@@ -1,0 +1,22 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: resident layers honor ordinary prefill batching policy
+
+true !== false
+
+    at Object.layer (file:///Users/xyz/deco/doppler/tests/inference/partition-prefill-lifetime.test.js:39:12)
+    at processLayer (data:text/javascript,export%20const%20processLayer%20%3D%20(...args)%20%3D%3E%20partitionLifetime.layer(...args)%3B:1:60)
+    at executePartitionChunk (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/partition-execution.js:210:26)
+    at executePartitionLayers (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/partition-execution.js:108:26)
+    at file:///Users/xyz/deco/doppler/tests/inference/partition-prefill-lifetime.test.js:102:23 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: true,
+  expected: false,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

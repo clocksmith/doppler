@@ -65,4 +65,30 @@ for (const hardFail of [false, true]) {
   await pool.settleDeferredDestruction();
   assert.equal(getDeviceMemorySnapshot(device).liveBytes, 0);
 }
+{
+  const { pool, device, settle } = fixture(false);
+  const active = pool.acquire(256, BufferUsage.STORAGE, 'unrelated-owner');
+  const uncertain = pool.acquire(256, BufferUsage.STORAGE, 'direct-submission-unknown');
+  const originalCompletion = device.queue.onSubmittedWorkDone;
+  device.queue.onSubmittedWorkDone = async () => { throw Error('completion unknown'); };
+  pool.discard(uncertain);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(uncertain.destroyed, false);
+  assert.equal(getDeviceMemorySnapshot(device).liveBytes, 512, 'Unknown completion retains device charge');
+  assert.equal(pool.getStats().pooledBuffers, 0, 'Quarantined storage is unavailable for reuse');
+  assert.throws(() => pool.acquire(256, BufferUsage.STORAGE, 'must-not-reuse-unknown'),
+    error => error.code === 'RESOURCE_EXHAUSTED');
+  await assert.rejects(pool.settleDeferredDestruction(), /completion unknown/);
+  assert.equal(uncertain.destroyed, false);
+  assert.equal(active.destroyed, false);
+  device.queue.onSubmittedWorkDone = originalCompletion;
+  settle();
+  await pool.settleDeferredDestruction();
+  assert.equal(uncertain.destroyed, true);
+  assert.equal(getDeviceMemorySnapshot(device).liveBytes, 256);
+  pool.release(active);
+  pool.destroy();
+  await pool.settleDeferredDestruction();
+  assert.equal(getDeviceMemorySnapshot(device).liveBytes, 0);
+}
 console.log('buffer-pool-device-budget.test: ok');

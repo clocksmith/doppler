@@ -5,6 +5,7 @@ import { registerHooks } from 'node:module';
 // chunk boundaries. This is lifetime evidence, not numerical GPU evidence.
 const target = new URL('../../src/inference/pipelines/text/partition-execution.js', import.meta.url).href;
 let probe;
+let expectRecordedLayers = true;
 globalThis.partitionLifetime = {
   acquire(size) {
     if (probe.live.size >= 7) throw Error('allocation budget exceeded');
@@ -16,6 +17,10 @@ globalThis.partitionLifetime = {
     if (probe.fail === 'recorder' && probe.submissions > 0) throw Error('recorder failed');
     const owned = new Set(); let submitted = false;
     return {
+      device: { queue: { async onSubmittedWorkDone() {
+        probe.queueBarriers = (probe.queueBarriers ?? 0) + 1;
+        if (probe.fail === 'queue' || probe.fail === 'logits-cancel-queue') throw Error('queue failed');
+      } } },
       trackTemporaryBuffer(buffer) { assert(!submitted); owned.add(buffer); },
       getStats: () => ({ submitted }),
       getEncoder: () => ({ copyBufferToBuffer(source, sourceOffset, destination, destinationOffset, size) {
@@ -35,6 +40,7 @@ globalThis.partitionLifetime = {
   },
   layer(layer, previous, tokens, prefill, context) {
     assert(probe.live.has(previous), 'carried activation remains owned');
+    assert.equal(Boolean(context.recorder), expectRecordedLayers, 'resident layers honor ordinary prefill batching policy');
     if (layer === 0 && probe.chunks) probe.chunks.push({ tokens, prefill, position: context.currentSeqLen });
     if (probe.fail === 'layer' && layer === 4) throw Error('layer failed');
     if (probe.fail === 'later-layer' && context.currentSeqLen === 3 && layer === 4) throw Error('later-layer failed');
@@ -45,7 +51,7 @@ globalThis.partitionLifetime = {
     }
     const output = globalThis.partitionLifetime.acquire(previous.size);
     output.bytes.set(previous.bytes);
-    context.recorder.trackTemporaryBuffer(output);
+    context.recorder?.trackTemporaryBuffer(output);
     return output;
   },
 };
@@ -53,6 +59,7 @@ const modules = {
   '../../../gpu/command-recorder.js': 'export const createCommandRecorder = () => partitionLifetime.recorder();',
   '../../../memory/buffer-pool.js': `export const acquireBuffer = size => partitionLifetime.acquire(size);
     export const releaseBuffer = buffer => partitionLifetime.release(buffer);
+    export const discardBuffer = buffer => { partitionLifetime.release(buffer); (partitionLifetime.discarded ??= []).push(buffer); };
     export const uploadData = (buffer, source) => buffer.bytes.set(ArrayBuffer.isView(source)
       ? new Uint8Array(source.buffer, source.byteOffset, source.byteLength) : new Uint8Array(source));
     export const readBuffer = async (buffer, size) => buffer.bytes.slice(0, size).buffer;`,
@@ -66,6 +73,7 @@ const modules = {
 globalThis.partitionLifetime.hasLmHead = () => probe.hasLmHead === true;
 globalThis.partitionLifetime.logits = (_output, tokens) => {
   probe.logitsCalls.push(tokens);
+  if (probe.fail === 'logits-cancel-queue') probe.controller.abort();
   return { logitsBuffer: globalThis.partitionLifetime.acquire(16), vocabSize: 4 };
 };
 const hooks = registerHooks({ resolve(specifier, context, next) {
@@ -92,6 +100,29 @@ try {
     }
     assert.equal(probe.live.size, 0, `${fail || 'success'} settles all owned buffers`);
   }
+  // Even when the prompt is smaller than the token chunk, ordinary prefill
+  // submits operators directly. The resident path must consume that same policy.
+  state.runtimeConfig.inference.session.prefillTokenChunkSize = 256;
+  expectRecordedLayers = false;
+  for (const fail of [null, 'layer', 'submit', 'copy', 'recorder', 'cancel', 'queue']) {
+    probe = { live: new Set(), peak: 0, submissions: 0, fail, controller: new AbortController() };
+    const operation = executePartitionLayers(state, { numTokens: 2, activationBytes: new ArrayBuffer(32) }, probe.controller.signal);
+    if (fail) await assert.rejects(operation, fail === 'cancel' ? /abort/i
+      : fail === 'queue' ? /confirm submitted-work/ : new RegExp(`${fail} failed`));
+    else assert.equal((await operation).activationBytes.byteLength, 32);
+    assert.equal(probe.queueBarriers, 1, 'direct submissions settle independently of carry recorder ownership');
+    assert.equal(probe.live.size, 0, `${fail || 'success'} direct execution transfers every owner`);
+    if (fail === 'queue') assert(globalThis.partitionLifetime.discarded.length > 0, 'unknown completion transfers buffers to quarantine, never reuse');
+  }
+  probe = { live: new Set(), peak: 0, submissions: 0, fail: 'logits-cancel-queue',
+    controller: new AbortController(), hasLmHead: true, logitsCalls: [] };
+  const discardedBefore = globalThis.partitionLifetime.discarded.length;
+  await assert.rejects(executePartitionLayers(state, { numTokens: 2, activationBytes: new ArrayBuffer(32) },
+    probe.controller.signal), error => error instanceof AggregateError
+      && /abort/i.test(error.errors[0].message) && /queue failed/.test(error.errors[1].message));
+  assert.equal(globalThis.partitionLifetime.discarded.length - discardedBefore, 2,
+    'unsettled logits and boundary output are quarantined after cancellation');
+  assert.equal(probe.live.size, 0);
   state.runtimeConfig.inference.session.prefillTokenChunkSize = 3;
   state.modelConfig.layerTypes = Array(12).fill('linear_attention');
   const storage = Uint8Array.from({ length: 144 }, (_, index) => index);
