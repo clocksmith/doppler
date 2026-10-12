@@ -1,4 +1,4 @@
-import type { LayerPartitionPlan } from './layer-partition-contract.js';
+import type { ActivationLayout, LayerPartitionPlan } from './layer-partition-contract.js';
 import type { GenerationOptions, ResolvedGenerationOptions } from '../../../config/generation-contract.js';
 import type { IncrementalTokenDecoder } from '../../tokenizers/bundled/incremental-decoder.js';
 import type { GenerationTokenContract } from '../../generation-step.js';
@@ -46,11 +46,11 @@ export interface ResidentPartitionStep {
 export interface ResidentPartitionARequest extends ResidentPartitionStep { tokenIds: number[]; }
 export interface ResidentPartitionBRequest extends ResidentPartitionStep {
   inputTokenIds: number[];
-  activation: { shape: number[]; dtype: string; seqOffset: number; step: number;
+  activation: ActivationLayout & { shape: number[]; dtype: string; seqOffset: number; step: number;
     tensorData: Float32Array | Uint16Array };
 }
 export interface ResidentPartitionAResult {
-  activationTensor: { shape: number[]; dtype: 'f16' | 'f32'; data: ArrayBuffer; step: number; seqOffset: number };
+  activationTensor: ActivationLayout & { shape: number[]; dtype: 'f16' | 'f32'; data: ArrayBuffer; step: number; seqOffset: number };
   continuation: unknown;
   metrics: ResidentPartitionMetrics;
 }

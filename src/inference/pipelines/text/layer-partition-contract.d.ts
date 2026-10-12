@@ -1,11 +1,18 @@
 /** Partition metadata helpers; these do not execute or qualify distributed inference. */
 export declare const LAYER_PARTITION_SCHEMA: 'doppler.layer-partition-contract/v1';
 export declare const ACTIVATION_TENSOR_SCHEMA: 'doppler.activation-tensor/v1';
+export declare const PAIRED_LAYER_PARTITION_SCHEMA: 'doppler.layer-partition-contract/v2';
+export declare const PAIRED_ACTIVATION_TENSOR_SCHEMA: 'doppler.activation-tensor/v2';
 export declare const PARTITION_COMPARISON_SCHEMA: 'doppler.partition-comparison-contract/v1';
 export declare const DEFAULT_NUMERICAL_TOLERANCE: number;
 export declare const DEFAULT_COSINE_SIMILARITY_MIN: number;
 export type ActivationDtype = 'f32' | 'f16';
-export interface PartitionTensorContract {
+export type ActivationPrecision = ActivationDtype | 'two-f32' | 'i32';
+export interface ActivationLayout {
+  precision?: ActivationPrecision; components?: number; elementStrideBytes?: number;
+}
+export declare function resolveActivationTensorLayout(options: ActivationLayout & { dtype: ActivationDtype | 'i32' }): Required<ActivationLayout>;
+export interface PartitionTensorContract extends ActivationLayout {
   type: 'token-ids' | 'activation-tensor' | 'logits';
   rank: number;
   shapeDescription: string;
@@ -23,30 +30,33 @@ export interface LayerPartition {
   outputContract: PartitionTensorContract;
 }
 export interface LayerPartitionPlan {
-  readonly schema: typeof LAYER_PARTITION_SCHEMA;
+  readonly schema: typeof LAYER_PARTITION_SCHEMA | typeof PAIRED_LAYER_PARTITION_SCHEMA;
   readonly modelId: string;
   readonly totalLayers: number;
   readonly hiddenSize: number;
   readonly vocabSize: number;
   readonly splitLayer: number;
   readonly activationDtype: ActivationDtype;
+  readonly activationPrecision?: ActivationPrecision;
+  readonly activationComponents?: number;
+  readonly activationElementStrideBytes?: number;
   readonly partitions: readonly Readonly<LayerPartition>[];
 }
 export declare function createLayerPartitionPlan(options: {
   modelId: string; numLayers: number; hiddenSize: number; vocabSize: number;
-  splitLayer?: number | null; activationDtype?: ActivationDtype;
+  splitLayer?: number | null; activationDtype?: ActivationDtype; activationPrecision?: ActivationPrecision;
 }): LayerPartitionPlan;
 /** The digest expected by signed resident allocations and TargetPlan qualification. */
 export declare function hashLayerPartitionPlan(plan: LayerPartitionPlan): `sha256:${string}`;
 export declare function resolveLayerPartition(manifest: {
   modelId?: unknown; architecture?: unknown;
 }, allocation: { plan: LayerPartitionPlan; index: 0 | 1 } | null | undefined): Readonly<LayerPartition> | null;
-export declare function validateActivationTensorShape(options: {
+export declare function validateActivationTensorShape(options: ActivationLayout & {
   shape: readonly number[]; dtype: ActivationDtype | 'i32';
   byteLength?: number | null; hiddenSize?: number | null;
 }): { batchSize: number; seqLen: number; hiddenSize: number; expectedBytes: number };
-export interface ActivationFrame {
-  readonly schema: typeof ACTIVATION_TENSOR_SCHEMA;
+export interface ActivationFrame extends ActivationLayout {
+  readonly schema: typeof ACTIVATION_TENSOR_SCHEMA | typeof PAIRED_ACTIVATION_TENSOR_SCHEMA;
   readonly shape: readonly number[];
   readonly dtype: ActivationDtype;
   readonly seqOffset: number;
@@ -55,14 +65,19 @@ export interface ActivationFrame {
   readonly metadata: Readonly<Record<string, unknown>>;
   readonly buffer: ArrayBuffer;
 }
-export declare function serializeActivationFrame(options: {
+export declare function serializeActivationFrame(options: ActivationLayout & {
   shape: readonly number[]; dtype?: ActivationDtype; data: ArrayBuffer | ArrayBufferView;
   seqOffset?: number; step?: number; metadata?: Record<string, unknown>;
 }): ActivationFrame;
-export declare function deserializeActivationFrame(frame: ActivationFrame): {
+export declare function deserializeActivationFrame(frame: ActivationFrame): ActivationLayout & {
   shape: number[]; dtype: ActivationDtype; seqOffset: number; step: number;
   tensorData: Float32Array | Uint16Array; metadata: Readonly<Record<string, unknown>>;
 };
+export declare function getPartitionActivationContract(plan: LayerPartitionPlan): Readonly<Required<ActivationLayout> & {
+  schema: typeof ACTIVATION_TENSOR_SCHEMA | typeof PAIRED_ACTIVATION_TENSOR_SCHEMA;
+  dtype: ActivationDtype; hiddenSize: number;
+}>;
+export declare function validateActivationFrameForPlan(frame: ActivationFrame, plan: LayerPartitionPlan): ReturnType<typeof deserializeActivationFrame>;
 export interface PartitionContinuation {
   readonly partitionIndex: number;
   readonly layerRange: readonly number[];

@@ -2,6 +2,8 @@ import { computeCanonicalSha256 } from '../../../formats/canonical-hash.js';
 
 export const LAYER_PARTITION_SCHEMA = 'doppler.layer-partition-contract/v1';
 export const ACTIVATION_TENSOR_SCHEMA = 'doppler.activation-tensor/v1';
+export const PAIRED_LAYER_PARTITION_SCHEMA = 'doppler.layer-partition-contract/v2';
+export const PAIRED_ACTIVATION_TENSOR_SCHEMA = 'doppler.activation-tensor/v2';
 export const PARTITION_COMPARISON_SCHEMA = 'doppler.partition-comparison-contract/v1';
 export const DEFAULT_NUMERICAL_TOLERANCE = 1e-4;
 export const DEFAULT_COSINE_SIMILARITY_MIN = 0.9999;
@@ -19,7 +21,8 @@ export function createLayerPartitionPlan({
   hiddenSize,
   vocabSize,
   splitLayer = null,
-  activationDtype = 'f32'
+  activationDtype = 'f32',
+  activationPrecision
 }) {
   if (!modelId || typeof modelId !== 'string') {
     throw new TypeError('modelId must be a non-empty string');
@@ -37,6 +40,12 @@ export function createLayerPartitionPlan({
     throw new TypeError(`activationDtype must be 'f32' or 'f16'; got "${activationDtype}"`);
   }
 
+  const paired = activationPrecision === 'two-f32';
+  if (activationPrecision !== undefined && activationPrecision !== activationDtype && !paired) {
+    throw new TypeError('Unsupported activation precision.');
+  }
+  const format = paired ? resolveActivationTensorLayout({ dtype: activationDtype, precision: activationPrecision,
+    components: 2, elementStrideBytes: 8 }) : null;
   const split = splitLayer === null ? Math.floor(numLayers / 2) : splitLayer;
   if (!Number.isSafeInteger(split) || split < 1 || split >= numLayers) {
     throw new RangeError(`splitLayer must be in range [1, ${numLayers - 1}]; got ${split}`);
@@ -60,7 +69,8 @@ export function createLayerPartitionPlan({
       rank: 3,
       shapeDescription: '[batchSize, seqLen, hiddenSize]',
       hiddenSize,
-      dtype: activationDtype
+      dtype: activationDtype,
+      ...(format || {})
     }
   };
 
@@ -76,7 +86,8 @@ export function createLayerPartitionPlan({
       rank: 3,
       shapeDescription: '[batchSize, seqLen, hiddenSize]',
       hiddenSize,
-      dtype: activationDtype
+      dtype: activationDtype,
+      ...(format || {})
     },
     outputContract: {
       type: 'logits',
@@ -88,13 +99,15 @@ export function createLayerPartitionPlan({
   };
 
   return Object.freeze({
-    schema: LAYER_PARTITION_SCHEMA,
+    schema: paired ? PAIRED_LAYER_PARTITION_SCHEMA : LAYER_PARTITION_SCHEMA,
     modelId,
     totalLayers: numLayers,
     hiddenSize,
     vocabSize,
     splitLayer: split,
     activationDtype,
+    ...(format ? { activationPrecision: format.precision, activationComponents: format.components,
+      activationElementStrideBytes: format.elementStrideBytes } : {}),
     partitions: Object.freeze([group0, group1].map(group => Object.freeze({
       ...group,
       layerRange: Object.freeze(group.layerRange),
@@ -106,7 +119,7 @@ export function createLayerPartitionPlan({
 
 /** @type {import('./layer-partition-contract.js').hashLayerPartitionPlan} */
 export function hashLayerPartitionPlan(plan) {
-  if (plan?.schema !== LAYER_PARTITION_SCHEMA) throw new Error('Layer partition plan schema mismatch.');
+  if (![LAYER_PARTITION_SCHEMA, PAIRED_LAYER_PARTITION_SCHEMA].includes(plan?.schema)) throw new Error('Layer partition plan schema mismatch.');
   return /** @type {`sha256:${string}`} */ (computeCanonicalSha256(plan));
 }
 
@@ -114,7 +127,7 @@ export function hashLayerPartitionPlan(plan) {
 export function resolveLayerPartition(manifest, allocation) {
   if (allocation == null) return null;
   const { plan, index } = allocation;
-  if (!plan || plan.schema !== LAYER_PARTITION_SCHEMA || ![0, 1].includes(index)) {
+  if (!plan || ![LAYER_PARTITION_SCHEMA, PAIRED_LAYER_PARTITION_SCHEMA].includes(plan.schema) || ![0, 1].includes(index)) {
     throw new Error('Partition allocation requires a Doppler plan and group index.');
   }
   const architecture = manifest?.architecture;
@@ -127,7 +140,7 @@ export function resolveLayerPartition(manifest, allocation) {
   const canonical = createLayerPartitionPlan({ modelId: manifest?.modelId,
     numLayers: architecture?.numLayers, hiddenSize: architecture?.hiddenSize,
     vocabSize: architecture?.vocabSize, splitLayer: plan.splitLayer,
-    activationDtype: plan.activationDtype });
+    activationDtype: plan.activationDtype, activationPrecision: plan.activationPrecision });
   /** @type {(actual: unknown, expected: unknown) => boolean} */
   const matches = (actual, expected) => {
     if (expected === null || typeof expected !== 'object') return actual === expected;
@@ -144,8 +157,50 @@ export function resolveLayerPartition(manifest, allocation) {
   return canonical.partitions[index];
 }
 
+/** Byte layout only; no tensor arithmetic or precision conversion. */
+/** @type {import('./layer-partition-contract.js').resolveActivationTensorLayout} */
+export function resolveActivationTensorLayout({ dtype, precision, components, elementStrideBytes }) {
+  const scalarBytes = DTYPE_BYTES[dtype];
+  if (!scalarBytes) throw new TypeError('Unsupported activation dtype.');
+  if (precision === 'two-f32') {
+    if (dtype !== 'f32' || components !== 2 || elementStrideBytes !== 8) {
+      throw new TypeError('Paired activation requires f32 precision, two components and eight-byte stride.');
+    }
+    return { precision, components, elementStrideBytes };
+  }
+  if ((precision !== undefined && precision !== dtype)
+    || (components !== undefined && components !== 1)
+    || (elementStrideBytes !== undefined && elementStrideBytes !== scalarBytes)) {
+    throw new TypeError('Scalar activation precision, components or stride mismatch.');
+  }
+  return { precision: dtype, components: 1, elementStrideBytes: scalarBytes };
+}
+
+/** @type {import('./layer-partition-contract.js').getPartitionActivationContract} */
+export function getPartitionActivationContract(plan) {
+  const partition = resolveLayerPartition({ modelId: plan.modelId, architecture: {
+    numLayers: plan.totalLayers, hiddenSize: plan.hiddenSize, vocabSize: plan.vocabSize,
+  } }, { plan, index: 0 });
+  if (!partition) throw new Error('Partition activation contract is missing.');
+  const format = resolveActivationTensorLayout(partition.outputContract);
+  return Object.freeze({ schema: plan.schema === PAIRED_LAYER_PARTITION_SCHEMA
+    ? PAIRED_ACTIVATION_TENSOR_SCHEMA : ACTIVATION_TENSOR_SCHEMA,
+    dtype: plan.activationDtype, hiddenSize: plan.hiddenSize, ...format });
+}
+
+/** @type {import('./layer-partition-contract.js').validateActivationFrameForPlan} */
+export function validateActivationFrameForPlan(frame, plan) {
+  const expected = getPartitionActivationContract(plan);
+  if (frame?.schema !== expected.schema || frame.dtype !== expected.dtype) {
+    throw new Error('Activation frame does not match the partition representation.');
+  }
+  const decoded = deserializeActivationFrame(frame);
+  validateActivationTensorShape({ ...expected, shape: decoded.shape, byteLength: decoded.tensorData.byteLength });
+  return decoded;
+}
+
 /** @type {import('./layer-partition-contract.js').validateActivationTensorShape} */
-export function validateActivationTensorShape({ shape, dtype, byteLength = null, hiddenSize = null }) {
+export function validateActivationTensorShape({ shape, dtype, precision, components, elementStrideBytes, byteLength = null, hiddenSize = null }) {
   if (!Array.isArray(shape) || shape.length !== 3) {
     throw new TypeError(`Activation shape must be 3D [batchSize, seqLen, hiddenSize]; got ${JSON.stringify(shape)}`);
   }
@@ -162,10 +217,7 @@ export function validateActivationTensorShape({ shape, dtype, byteLength = null,
   if (hiddenSize != null && actualHidden !== hiddenSize) {
     throw new RangeError(`Activation hiddenSize mismatch: expected ${hiddenSize}, got ${actualHidden}`);
   }
-  const bytesPerElem = DTYPE_BYTES[dtype];
-  if (!bytesPerElem) {
-    throw new TypeError(`Unsupported activation dtype: ${dtype}`);
-  }
+  const { elementStrideBytes: bytesPerElem } = resolveActivationTensorLayout({ dtype, precision, components, elementStrideBytes });
   const expectedBytes = batchSize * seqLen * actualHidden * bytesPerElem;
   if (!Number.isSafeInteger(expectedBytes)) throw new RangeError('Activation byte size exceeds safe integer range.');
   if (byteLength != null && byteLength !== expectedBytes) {
@@ -178,6 +230,7 @@ export function validateActivationTensorShape({ shape, dtype, byteLength = null,
 export function serializeActivationFrame({
   shape,
   dtype = 'f32',
+  precision, components, elementStrideBytes,
   data,
   seqOffset = 0,
   step = 0,
@@ -186,6 +239,7 @@ export function serializeActivationFrame({
   const { expectedBytes } = validateActivationTensorShape({
     shape,
     dtype,
+    precision, components, elementStrideBytes,
     byteLength: data.byteLength
   });
 
@@ -203,9 +257,10 @@ export function serializeActivationFrame({
   }
 
   return Object.freeze({
-    schema: ACTIVATION_TENSOR_SCHEMA,
+    schema: precision === 'two-f32' ? PAIRED_ACTIVATION_TENSOR_SCHEMA : ACTIVATION_TENSOR_SCHEMA,
     shape: Object.freeze([...shape]),
     dtype,
+    ...(precision === 'two-f32' ? { precision, components, elementStrideBytes } : {}),
     seqOffset,
     step,
     byteLength: buffer.byteLength,
@@ -216,11 +271,18 @@ export function serializeActivationFrame({
 
 /** @type {import('./layer-partition-contract.js').deserializeActivationFrame} */
 export function deserializeActivationFrame(frame) {
-  if (!frame || frame.schema !== ACTIVATION_TENSOR_SCHEMA) {
+  if (!frame || ![ACTIVATION_TENSOR_SCHEMA, PAIRED_ACTIVATION_TENSOR_SCHEMA].includes(frame.schema)) {
     throw new TypeError(`Invalid activation frame schema: ${frame?.schema}`);
   }
-  const { shape, dtype, buffer, seqOffset, step } = frame;
-  validateActivationTensorShape({ shape, dtype, byteLength: buffer.byteLength });
+  const { shape, dtype, buffer, seqOffset, step, precision, components, elementStrideBytes } = frame;
+  if (frame.schema === PAIRED_ACTIVATION_TENSOR_SCHEMA ? precision !== 'two-f32'
+    : precision !== undefined || components !== undefined || elementStrideBytes !== undefined) {
+    throw new TypeError('Activation schema and paired precision disagree.');
+  }
+  if (!(buffer instanceof ArrayBuffer) || frame.byteLength !== buffer.byteLength) {
+    throw new RangeError('Activation frame byteLength mismatch.');
+  }
+  validateActivationTensorShape({ shape, dtype, precision, components, elementStrideBytes, byteLength: buffer.byteLength });
 
   let tensorData;
   if (dtype === 'f32') {
@@ -234,6 +296,7 @@ export function deserializeActivationFrame(frame) {
   return {
     shape: [...shape],
     dtype,
+    ...(precision === 'two-f32' ? { precision, components, elementStrideBytes } : {}),
     seqOffset: seqOffset ?? 0,
     step: step ?? 0,
     tensorData,

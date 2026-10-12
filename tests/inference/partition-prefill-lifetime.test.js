@@ -58,7 +58,8 @@ const modules = {
     export const readBuffer = async (buffer, size) => buffer.bytes.slice(0, size).buffer;`,
   './layer.js': 'export const processLayer = (...args) => partitionLifetime.layer(...args);',
   './generator/session-context.js': 'export const buildLayerContext = (state, recorder) => ({ state, recorder, currentSeqLen: state.currentSeqLen });',
-  './layer-partition-contract.js': 'export const resolveLayerPartition = () => ({layerRange: [0, 11], hasEmbedding: false, hasLmHead: partitionLifetime.hasLmHead()});',
+  './layer-partition-contract.js': `export { validateActivationTensorShape } from '${new URL('../../src/inference/pipelines/text/layer-partition-contract.js', import.meta.url).href}';
+    export const resolveLayerPartition = () => ({layerRange: [0, 11], hasEmbedding: false, hasLmHead: partitionLifetime.hasLmHead()});`,
   './generator/logits-config.js': 'export const getLogitsWeights = () => ({}); export const getLogitsConfig = () => ({});',
   './logits/index.js': 'export const computeLogits = (...args) => partitionLifetime.logits(...args);',
 };
@@ -77,6 +78,7 @@ try {
     modelConfig: { hiddenSize: 4, useMoE: false, numKvSharedLayers: 0, hiddenSizePerLayerInput: null,
       decodeStrategy: 'incremental', causalAttention: true }, currentSeqLen: 0, kvCache: { maxSeqLen: 16 },
     executionPlanState: { primaryPlan: { activationDtype: 'f32', finitenessGuardEnabled: false } },
+    resolvedRuntimeSession: { runtime: { session: { intermediatePrecision: 'f32' } } },
     runtimeConfig: { shared: { debug: { profiler: { enabled: false } } },
       inference: { session: { usePostFfnNextInputRMSNormPairFusion: false, prefillChunkLayers: 4, prefillTokenChunkSize: null } } } };
   for (const fail of [null, 'layer', 'submit', 'copy', 'recorder', 'cancel']) {
@@ -128,5 +130,26 @@ try {
     assert.equal(probe.submissions, 0);
     assert.equal(probe.live.size, 0);
   }
+
+  state.modelPartition.plan = { activationDtype: 'f32', activationPrecision: 'two-f32', activationComponents: 2, activationElementStrideBytes: 8 };
+  state.resolvedRuntimeSession.runtime.session.intermediatePrecision = 'two-f32';
+  probe = { live: new Set(), peak: 0, submissions: 0, controller: new AbortController() };
+  await assert.rejects(executePartitionLayers(state, { numTokens: 2, activationBytes: new ArrayBuffer(64) }, probe.controller.signal), /bound paired kernel/);
+  assert.equal(probe.live.size, 0);
+  Object.assign(state.executionPlanState.primaryPlan, { activationPrecision: 'two-f32', activationComponents: 2, activationElementStrideBytes: 8 });
+  const pairedBytes = Uint8Array.from({length: 272}, (_, i) => i % 256).subarray(8,264);
+  for (const fail of [null, 'later-cancel', 'later-layer']) {
+    state.linearAttentionRuntime = { layers: new Map() };
+    probe = { live: new Set(), peak: 0, submissions: 0, fail, controller: new AbortController(), chunks: [] };
+    const operation = executePartitionLayers(state, { numTokens: 8, activationBytes: pairedBytes }, probe.controller.signal);
+    if (fail) await assert.rejects(operation, fail === 'later-cancel' ? /abort/i : /later-layer failed/);
+    else assert.deepEqual(new Uint8Array((await operation).activationBytes), pairedBytes, 'paired words and row offsets survive chunk/carry/readback');
+    assert.equal(probe.live.size, 0, 'paired intermediate owners settle');
+  }
+  state.linearAttentionRuntime = { layers: new Map() };
+  state.resolvedRuntimeSession.runtime.session.intermediatePrecision = 'f32';
+  probe = { live: new Set(), peak: 0, submissions: 0, controller: new AbortController() };
+  await assert.rejects(executePartitionLayers(state, { numTokens: 8, activationBytes: pairedBytes }, probe.controller.signal), /precision.*match/);
+  assert.equal(probe.live.size, 0); assert.equal(probe.submissions, 0);
 } finally { hooks.deregister(); delete globalThis.partitionLifetime; }
 console.log('partition-prefill-lifetime: bounded chunks, carry, failures and cancellation passed');

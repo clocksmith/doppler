@@ -9,6 +9,9 @@ export interface StaticExecutionPlan {
   kernelPathId: string | null;
   kernelPathSource: KernelPathSource | 'rule' | 'self' | 'none';
   activationDtype: 'f16' | 'f32';
+  activationPrecision?: 'two-f32';
+  activationComponents?: 2;
+  activationElementStrideBytes?: 8;
   finitenessGuardEnabled: boolean;
   finitenessOnTrigger: 'error' | 'fallback-plan';
   finitenessAbsThreshold: number;

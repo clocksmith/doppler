@@ -9,7 +9,7 @@ import { buildLayerContext } from './generator/session-context.js';
 import { releaseSharedAttentionState } from './generator/attention-lifecycle.js';
 import { computeLogits } from './logits/index.js';
 import { getLogitsWeights, getLogitsConfig } from './generator/logits-config.js';
-import { resolveLayerPartition } from './layer-partition-contract.js';
+import { resolveLayerPartition, validateActivationTensorShape } from './layer-partition-contract.js';
 import { resolvePrefillTokenChunkSize } from './generator/prefill-policy.js';
 
 /** @type {import('./partition-execution.js').assertPartitionExecutionSupported} */
@@ -29,6 +29,17 @@ export function assertPartitionExecutionSupported(state, plan) {
   const execution = resolveActiveExecutionPlan(state.executionPlanState);
   if (execution.finitenessGuardEnabled) {
     throw new Error('Resident partition execution does not support finiteness fallback transitions.');
+  }
+  const precision = state.resolvedRuntimeSession?.runtime.session.intermediatePrecision;
+  if (precision !== 'f32' && precision !== 'two-f32') {
+    throw new Error('Resident partition requires explicit resolved intermediate precision.');
+  }
+  if ((precision === 'two-f32') !== (plan.activationPrecision === 'two-f32')) {
+    throw new Error('Partition activation precision must match the resolved session; implicit precision changes are forbidden.');
+  }
+  if (precision === 'two-f32' && (execution.activationPrecision !== 'two-f32'
+    || execution.activationComponents !== 2 || execution.activationElementStrideBytes !== 8)) {
+    throw new Error('Paired partition execution requires a bound paired kernel representation.');
   }
   if (execution.activationDtype !== plan.activationDtype) {
     throw new Error('Partition activation dtype must match the resolved execution plan; implicit casts are forbidden.');
@@ -60,7 +71,6 @@ function resolvePartitionInput(state, input, prefill) {
   }
   const executionPlan = resolveActiveExecutionPlan(state.executionPlanState);
   const dtype = executionPlan.activationDtype;
-  const bytesPerElement = selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype });
   const numTokens = input.numTokens;
   if (!Number.isSafeInteger(numTokens) || numTokens < 1 || !state.kvCache
     || !Number.isSafeInteger(state.currentSeqLen) || state.currentSeqLen < 0
@@ -72,7 +82,10 @@ function resolvePartitionInput(state, input, prefill) {
     || input.tokenIds.some(id => !Number.isSafeInteger(id) || id < 0 || id >= config.vocabSize))) {
     throw new Error('Resident partition token IDs must match the declared input shape and vocabulary.');
   }
-  const byteLength = numTokens * config.hiddenSize * bytesPerElement;
+  const plan = state.modelPartition.plan;
+  const { expectedBytes: byteLength } = validateActivationTensorShape({ shape: [1, numTokens, config.hiddenSize], dtype,
+    precision: plan.activationPrecision, components: plan.activationComponents,
+    elementStrideBytes: plan.activationElementStrideBytes });
   if (!Number.isSafeInteger(byteLength)) throw new Error('Resident activation size exceeds the safe integer range.');
   if (!partition.hasEmbedding && input.activationBytes?.byteLength !== byteLength) {
     throw new Error('Partition activation byte length mismatch.');
@@ -98,7 +111,7 @@ export async function executePartitionLayers(state, input, signal) {
     throw new Error('Resident partition produced no boundary result.');
   }
   const originalSeqLen = state.currentSeqLen;
-  const rowBytes = setup.config.hiddenSize * selectRuleValue('shared', 'dtype', 'bytesFromDtype', { dtype: setup.dtype });
+  const rowBytes = setup.byteLength / setup.numTokens;
   const source = input.activationBytes;
   const bytes = source ? ArrayBuffer.isView(source)
     ? new Uint8Array(source.buffer, source.byteOffset, source.byteLength) : new Uint8Array(source) : null;
@@ -176,6 +189,7 @@ async function executePartitionChunk(state, input, signal, prefill, finalChunk) 
         scaleEmbeddings: config.scaleEmbeddings, embeddingScale: config.embeddingScale,
         embeddingNormalization: config.embeddingNormalization,
         transpose: state.embeddingTranspose, recorder, activationDtype: dtype,
+        intermediatePrecision: /** @type {'f32' | 'two-f32'} */ (state.resolvedRuntimeSession?.runtime.session.intermediatePrecision),
         embeddingDtype: selectRuleValue('inference', 'dtype', 'embeddingDtype', { dtype: embeddingDtype }),
         embeddingStorageEncoding: getWeightMetadata(weight)?.storageEncoding ?? null,
         executionPolicies: state.executionV1State?.policies ?? null,
