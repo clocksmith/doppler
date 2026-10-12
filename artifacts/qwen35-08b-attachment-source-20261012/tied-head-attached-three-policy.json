@@ -1,0 +1,24 @@
+{
+  "schema": "doppler.tied-head-sensitivity/v1",
+  "hypothesis": "Deliberately independent Q4 output-head quantization may explain source-correct/deployed-wrong quantities. Restore only tying to verified unchanged F16 embedding; all remaining converted layers stay unchanged.",
+  "originalWeights": "/var/tmp/doppler-qwen35-08b-source-20261012/model.safetensors-00001-of-00001.safetensors",
+  "originalWeightsSha256": "04b1c301231dd422b8860db31311ab2721511346a32cb1e079c4c4e5f1fe4696",
+  "referenceArguments": {
+    "model": "models/local/qwen-3-5-0-8b-q4k-ehaf16",
+    "source_config": "/var/tmp/doppler-qwen35-08b-source-20261012/config.json",
+    "capture": "/tmp/deployed-input-binding.json",
+    "reference": "reports/local/qwen35-08b-attachment-source-20261012/source.json",
+    "piece_index": "../reploid/self/config/model-pieces/qwen-0-8b-pieces.json",
+    "piece_index_identity": "sha256:18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7",
+    "prefixes": 1,
+    "threads": 4,
+    "generation_control": "/tmp/deployed-control-attached-three.json",
+    "linear_prefill": "source-chunk",
+    "normalization": "source",
+    "boundary_capture": null,
+    "observed_cache_control": false,
+    "cache_midpoint_audit": false
+  },
+  "deployedEmbeddingF16Sha256": "92ceed9bf2860403aa7aa2ed2570b3d6dfa7b0a5932e5a91ee58be12ce870c27",
+  "embeddingProvenance": "Original revision matches origin.json; deployed embedding differs only at retained F16 subnormal rounding. Reuse exact deployed embedding, do not repair it as a second intervention."
+}

@@ -1,0 +1,36 @@
+{
+  "status": "process-completed",
+  "toolSha256": "9fb0529e58440d2b0da5c62fc269b8d1ef505dac77172892776a4aa49a263274",
+  "cases": [
+    {
+      "id": "attached-three",
+      "pid": 3293931,
+      "command": [
+        "python3",
+        "-u",
+        "/tmp/tied-head-control.py",
+        "--policy",
+        "/tmp/tied-head-attached-three-policy.json",
+        "--out",
+        "reports/local/qwen35-08b-attachment-source-20261012/tied-head-attached-three.json"
+      ],
+      "policySha256": "43b29c4a211261eeb123dd76a6b42da602c00b4acb25676f42b04c4d35863147",
+      "exitCode": 0
+    },
+    {
+      "id": "attached-four-followup",
+      "pid": 3296230,
+      "command": [
+        "python3",
+        "-u",
+        "/tmp/tied-head-control.py",
+        "--policy",
+        "/tmp/tied-head-attached-four-followup-policy.json",
+        "--out",
+        "reports/local/qwen35-08b-attachment-source-20261012/tied-head-attached-four-followup.json"
+      ],
+      "policySha256": "475f2b4bb3b06a504c439472ba3f7b117859fcb91785fe1aae5f4ed8e3bb3b19",
+      "exitCode": 0
+    }
+  ]
+}
