@@ -83,7 +83,7 @@ try {
               if(!Number.isFinite(error)||error>tolerance) throw new Error(JSON.stringify({operation,recorded,borrowed,i,x,y,actual:actual.slice(i*2,i*2+2),expected,error,tolerance,errors}));
               maxError=Math.max(maxError,error);
             }
-            if(['scale','silu','sigmoid','silu_unary'].includes(operation) && JSON.stringify(output.shape)!==JSON.stringify([1,count]))throw new Error('Scale lost logical input shape.');
+            if(JSON.stringify(output.shape)!==JSON.stringify([1,count]))throw new Error('Pointwise output lost logical input shape.');
             if(output.precision!=='two-f32'||output.components!==2||output.elementStrideBytes!==8)throw new Error('Missing output pair metadata.');
             rows.push({operation,recorded,borrowed,maxError,actual});
           } finally { if(recorder)await recorder.abort(); }

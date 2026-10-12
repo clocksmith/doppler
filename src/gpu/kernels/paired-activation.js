@@ -54,7 +54,8 @@ async function execute(target, a, b, count, operation, options, scale, constants
 }
 /** @type {typeof import('./paired-activation.js').executePairedAdd} */
 export function executePairedAdd(target, a, b, count, options = {}) {
-  return execute(target, a, b, count, 'add', options, options.scale ?? 1);
+  const shape = a.shape.reduce((total, size) => total * size, 1) === count ? a.shape : [count];
+  return execute(target, a, b, count, 'add', options, options.scale ?? 1, null, shape);
 }
 /** @type {typeof import('./paired-activation.js').executePairedScale} */
 export function executePairedScale(target, input, scale, count, options = {}) {
@@ -63,7 +64,8 @@ export function executePairedScale(target, input, scale, count, options = {}) {
 }
 /** @type {typeof import('./paired-activation.js').executePairedMultiply} */
 export function executePairedMultiply(target, a, b, count, options = {}) {
-  return execute(target, a, b, count, 'multiply', options, 1);
+  const shape = a.shape.reduce((total, size) => total * size, 1) === count ? a.shape : [count];
+  return execute(target, a, b, count, 'multiply', options, 1, null, shape);
 }
 /** @type {typeof import('./paired-activation.js').executePairedSiLU} */
 export async function executePairedSiLU(target, input, count, options) {
