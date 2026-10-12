@@ -1,0 +1,16 @@
+{
+  "candidateSha256": "3ede1077dae8b9e69fc116b5a6bfcad165a68ea116a7ef269cc8220271b6633b",
+  "checkerSha256": "73466db7653087059c8d1ada77b752bf4a27973dd29df26ae8a07eaf6d07c25a",
+  "node": "v22.20.0",
+  "enumeration": {
+    "positiveMidpoints": 31744,
+    "signs": 2,
+    "adjacentF32Values": 3,
+    "residuals": 3
+  },
+  "residuals": "negative quarter F32 ulp, zero, positive quarter F32 ulp",
+  "comparisons": 571392,
+  "mismatchCount": 0,
+  "mismatches": [],
+  "scope": "CPU helper translation and independent binary16 nearest-even reference; no GPU, normalization residual, geometry execution, or whole-model qualification"
+}
