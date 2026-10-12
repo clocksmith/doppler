@@ -1,0 +1,28 @@
+{
+  "scope": "Inactive test-only precision hypothesis; not approval to change production or accepted archive",
+  "evaluatorSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "auditSha256": "d1c14429240d9d72179953462e2c82772573232174df6a5f540e42589ac2c2c9",
+  "contract": "artifacts/whole-model-f64-complete-20261011/request-2-contract.json",
+  "delta": "After each recurrence update, store nearestF32 high and nearestF32(value-high) low, reconstruct in F64 for independent equations. Every other equation, deployed weight, frozen token and nearest-even F16 cache unchanged.",
+  "forbidden": "No approved-cache injection, runtime edits, threshold changes or replacement reference.",
+  "acceptance": {
+    "all51PrefixesMaximumAbsoluteError": 0.001,
+    "finite": true,
+    "approvedVectorsReproducedExactly": true,
+    "allF16CacheIdentitiesMatchApproved": true
+  },
+  "limits": "Passing this ideal arithmetic control establishes storage feasibility only. Actual GPU update, decay, dot, nonlinear and helper errors remain; no performance, full-model GPU or release claim.",
+  "stateGeometry": {
+    "layersTotal": 18,
+    "layersPerPartition": 9,
+    "valueHeads": 16,
+    "keyDimension": 128,
+    "valueDimension": 128,
+    "currentBytesPerLayerPerAttempt": 1048576,
+    "extraBytesPerLayerPerAttempt": 1048576,
+    "extraBytesPerPartitionPerAttempt": 9437184,
+    "extraBytesPerPartitionTwoAttempts": 18874368,
+    "executorAllocationLimit": 1420000000
+  },
+  "revision": "Add explicit cache identity observation; original arithmetic and thresholds unchanged"
+}

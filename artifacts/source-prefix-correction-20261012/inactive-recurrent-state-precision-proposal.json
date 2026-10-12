@@ -1,0 +1,105 @@
+{
+  "status": "inactive; requires explicit user approval before production precision implementation",
+  "proposedDecision": "Permit one separately identified compensated-two-F32 recurrent-state candidate, with unchanged weights, authoritative F64 target and 0.001 tolerance. No deployment or accepted-package replacement is approved by this proposal.",
+  "scope": {
+    "model": "existing deployed Qwen3.5-0.8B Q4",
+    "referenceSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+    "unchanged": [
+      "weights",
+      "tokenizer",
+      "frozen token histories",
+      "F16 K/V cache format",
+      "public model-operation semantics",
+      "0.001 tolerance",
+      "1,420,000,000-byte per-executor allocation cap"
+    ],
+    "changed": "Persistent recurrent state represents each scalar by two F32 components instead of one. This is an effective precision expansion even though each component remains F32."
+  },
+  "evidence": {
+    "singleF32StateControl": "recurrent-materialization-comparison.json.gz",
+    "singleF32Failures": 7,
+    "testedPrefixes": 51,
+    "singleF32MaxError": 0.0014604007397549523,
+    "approvedKVIntervention": "recurrent-approved-cache-control.json.gz",
+    "approvedKVInterventionMaxError": 2.991535907881371e-06,
+    "twoF32Control": "two-f32-state-control.json.gz",
+    "twoF32ControlSha256": "62b852644ca80d6d6f286bbf99851570541b774100eb4b7c67fb0c26b57beb3e",
+    "twoF32MaxError": 1.0391687510491465e-13,
+    "twoF32RmsError": 1.052064112580987e-14,
+    "twoF32Failures": 0,
+    "allSixF16CachePairsIdentical": true,
+    "qualification": "Independent ideal-arithmetic storage feasibility only; no GPU implementation or runtime pass",
+    "prefixScope": "One fixed request: prefill step0 plus50 forced decode prefixes; other four prefixes of full55 not covered by this control",
+    "storeScope": "Ideal two-F32 control rounds only after final update, before output. It does not emulate the current separate decay-store rounding, GPU nonlinear/projection arithmetic, or a complete compensated GPU recurrence."
+  },
+  "currentLayout": {
+    "source": "src/inference/pipelines/text/linear-attention/plan.js",
+    "state": "array<f32>, one scalar per valueHead/keyDimension/valueDimension coordinate",
+    "valueHeads": 16,
+    "keyDimension": 128,
+    "valueDimension": 128,
+    "elementsPerLayer": 262144,
+    "linearLayers": 18,
+    "linearLayersPerPartition": 9,
+    "bytesPerLayerPerAttempt": 1048576,
+    "storeOrder": [
+      "round decayed state to F32",
+      "accumulate state/key memory",
+      "form delta",
+      "round updated state to F32",
+      "read stored state for current-token output"
+    ]
+  },
+  "candidateLayout": {
+    "state": "array<vec2<f32>>, high/low in the existing recurrent-state binding",
+    "newBindings": 0,
+    "bytesPerLayerPerAttempt": 2097152,
+    "extraBytesPerLayerPerAttempt": 1048576,
+    "extraBytesPerPartitionPerAttempt": 9437184,
+    "extraBytesPerPartitionTwoAttempts": 18874368,
+    "totalRecurrentBytesPerPartitionTwoAttempts": 37748736,
+    "cpuMirrorExtraBytesPerPartitionPerAttempt": 9437184,
+    "allocationCap": 1420000000,
+    "necessaryBaselineHeadroomOneAttempt": 9437184,
+    "necessaryBaselineHeadroomTwoAttempts": 18874368,
+    "maximumBaselinePeakBeforeExtraStateOneAttempt": 1410562816,
+    "maximumBaselinePeakBeforeExtraStateTwoAttempts": 1401125632,
+    "actualLongPromptHeadroom": {
+      "status": "First single-attempt1588 physical run completed; repetition/cancellation still running when recorded",
+      "macPeakBytes": 809459080,
+      "amdPeakBytes": 446967976,
+      "macPeakPlusExtraStateArithmetic": 818896264,
+      "amdPeakPlusExtraStateArithmetic": 456405160,
+      "interpretation": "Arithmetic addition to existing single-attempt peak only; proposed buffer layout, temporary work and concurrent attempts not measured."
+    }
+  },
+  "implementationRequirements": [
+    "Declare state representation explicitly in the candidate execution metadata; do not infer it from model name or silently reinterpret an existing buffer.",
+    "Preserve high and low through decay multiplication, state/key reduction, delta update and output accumulation. Merely storing a low component after an already-rounded F32 update is insufficient.",
+    "Use independently validated product/sum residual recovery and normalization. Existing AMD compiler cancellation of floating compensation requires actual physical binary/output checks.",
+    "Keep both components finite and nonoverlapping; define rounding, subnormal, overflow, signed-zero and FMA/reassociation behavior, with independent operands beyond retained model cases.",
+    "Allocate and initialize both components through the existing state owner. Reset, clone, explicit retry, concurrent attempts, cancellation, failed cleanup and device-loss accounting must cover the full doubled buffer.",
+    "Fresh candidate attempts only; reject mismatched one-F32 state rather than reinterpret it. Portable checkpoints remain unsupported.",
+    "Update current prefill and fused decode variants, exact kernel identities, wrapper byte bounds and observation decoding together; do not combine rejected unrelated shader trials."
+  ],
+  "remainingRisks": {
+    "actualRuntimeMinusSingleF32ControlMax": 0.0011689988102523419,
+    "actualRuntimeMinusSingleF32ControlRms": 0.00012609407759373427,
+    "actualRuntimeMinusSingleF32ControlLogitsOverTolerance": 7,
+    "explanation": "Actual GPU arithmetic, inherited activations, decayed-state rounding and F16 threshold switches remain beyond the ideal single-store control. Expanding state can remove the demonstrated storage contribution but is not guaranteed to fix those errors or all55prefixes.",
+    "other": "Extra memory traffic/register pressure may reduce performance. Two-browser physical Mac+AMD1588 memory/lifecycle result and both-platform numerical evaluation are still required."
+  },
+  "acceptanceAfterApproval": [
+    "Independent local recurrence/update/state controls on AMD and Mac, including initial/reset and cancellation paths",
+    "All55 frozen prefixes against approved F64, complete error distributions and both physical placements",
+    "Repeat unchanged1588-token requests at1.42B perexecutor with concurrent ownership, cancellation, reuse and cleanup",
+    "Separate existing model-quality qualification; numerical pass does not fix document usefulness",
+    "One immutable standard archive and browser bundle through existing Reploid signed execution journey before promotion"
+  ],
+  "explicitlyNotClaimed": [
+    "Global impossibility for every one-F32 algorithm",
+    "A new acceptance reference",
+    "GPU correctness or speedup",
+    "Release readiness or automatic promotion"
+  ]
+}
