@@ -1,3 +1,4 @@
+import { isSlidingLayerType } from './attention/dispatch-params.js';
 import { getDevice } from '../../../gpu/device.js';
 import { isBufferActive, releaseBuffer } from '../../../memory/buffer-pool.js';
 import { isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
@@ -96,6 +97,7 @@ function hasLiveCachedGpuRopeBuffers(buffers) {
 
 function buildRoPECacheKey(config) {
   return JSON.stringify({
+    localTablesRequired: !Array.isArray(config.layerTypes) || config.layerTypes.some(isSlidingLayerType),
     headDim: config.headDim,
     localHeadDim: config.localHeadDim ?? null,
     rotaryDim: config.rotaryDim ?? null,
@@ -280,7 +282,10 @@ export async function initRoPEFrequencies(config, useGPU) {
     resolvedLocalScale,
     resolvedLocalScaling
   );
-  if (hasDistinctLocalTheta || hasDistinctLocalScaling || hasDistinctLocalDim) {
+  // Both layer execution paths select local tables only for declared local layers.
+  // Direct preparation callers without a schedule retain their explicit dual-table request.
+  const localTablesRequired = !Array.isArray(config.layerTypes) || config.layerTypes.some(isSlidingLayerType);
+  if (localTablesRequired && (hasDistinctLocalTheta || hasDistinctLocalScaling || hasDistinctLocalDim)) {
     try {
       localFreqs = await computeRoPEFreqsForTheta(
       resolvedLocalTheta,
@@ -356,6 +361,7 @@ export async function _initRoPE() {
     // context that selects LongRoPE factors and magnitude.
     const positionCount = Math.min(maxSeqLen, sessionMaxSeqLen);
     const ropeBuffers = await initRoPEFrequencies({
+      layerTypes: config.layerTypes,
       headDim: config.globalHeadDim ?? config.headDim,
       localHeadDim: config.headDim,
       rotaryDim: config.ropeRotaryDim,
