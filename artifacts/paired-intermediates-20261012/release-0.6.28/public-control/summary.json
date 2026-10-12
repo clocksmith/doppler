@@ -1,0 +1,125 @@
+{
+  "scope": "Two fixed public-unsplit prefixes on each provider; not full55, signed opening or useful-answer acceptance",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "reference": "Approved independent F64 at unchanged0.001",
+  "timingClaim": false,
+  "publicContributors": "Existing idle public browser/native participants preserved; shared correctness window",
+  "results": [
+    {
+      "host": "mac",
+      "captureSha256": "ac4d7fac06fea860e8b6b3411878bf149c9bced61871ceab8ceab0672ac1bb9d",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "unknown",
+        "description": "",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+      },
+      "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+      "processExitCode": 0,
+      "approvedErrors": [
+        {
+          "index": 0,
+          "step": 0,
+          "values": 248320,
+          "maximum": 8.399647413170896e-7,
+          "rms": 6.405475309719644e-8,
+          "overTolerance": 0,
+          "worstVocabulary": 38493
+        },
+        {
+          "index": 0,
+          "step": 1,
+          "values": 248320,
+          "maximum": 6.15752007604442e-7,
+          "rms": 7.987956970869859e-8,
+          "overTolerance": 0,
+          "worstVocabulary": 11
+        }
+      ],
+      "deviceEvents": [],
+      "settlement": {
+        "phase": "after-queue-and-model-settlement",
+        "devicePeakBytes": 1087562064,
+        "deviceLiveBytes": 560289680,
+        "poolResources": {
+          "retainedModel": {
+            "bytes": 0,
+            "count": 0
+          },
+          "active": {
+            "bytes": 0,
+            "count": 0
+          },
+          "reusable": {
+            "bytes": 560288768,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "pooledBuffers": 64
+      }
+    },
+    {
+      "host": "amd",
+      "captureSha256": "e28039161d699851fe124137a87bd129e8836e6333ef2cbe702596e08586a4f9",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "unknown",
+        "description": "",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36"
+      },
+      "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+      "processExitCode": 0,
+      "approvedErrors": [
+        {
+          "index": 0,
+          "step": 0,
+          "values": 248320,
+          "maximum": 8.399647413170896e-7,
+          "rms": 6.405475309719644e-8,
+          "overTolerance": 0,
+          "worstVocabulary": 38493
+        },
+        {
+          "index": 0,
+          "step": 1,
+          "values": 248320,
+          "maximum": 6.15752007604442e-7,
+          "rms": 7.987956970869859e-8,
+          "overTolerance": 0,
+          "worstVocabulary": 11
+        }
+      ],
+      "deviceEvents": [],
+      "settlement": {
+        "phase": "after-queue-and-model-settlement",
+        "devicePeakBytes": 1087758672,
+        "deviceLiveBytes": 560289680,
+        "poolResources": {
+          "retainedModel": {
+            "bytes": 0,
+            "count": 0
+          },
+          "active": {
+            "bytes": 0,
+            "count": 0
+          },
+          "reusable": {
+            "bytes": 560288768,
+            "count": 64
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "pooledBuffers": 64
+      }
+    }
+  ]
+}
