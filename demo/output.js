@@ -246,6 +246,7 @@ export function renderTokenInspection(tokens) {
 export function setFinalStats(stats) {
   if (!stats) return;
   const parts = [];
+  if (stats.observationPolicy?.modifiesExecution === true) parts.push('Diagnostic timing');
   if (stats.totalTokens != null) parts.push(`${stats.totalTokens} tokens`);
   if (stats.prefillMs != null) parts.push(`prefill ${stats.prefillMs.toFixed(0)}ms`);
   if (stats.decodeMs != null) parts.push(`decode ${stats.decodeMs.toFixed(0)}ms`);

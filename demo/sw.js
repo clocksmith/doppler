@@ -2,8 +2,8 @@
 // a module. An older registration must be able to update without booting the app.
 // BEGIN GENERATED DEMO SHELL
 const SHELL_MANIFEST_SCHEMA = 'doppler.demo-shell-manifest/v1';
-const SHELL_MANIFEST_DIGEST = 'sha256:a0ac5a268b7ae029eb831473defb857e299e0798247ec53088621886ce194265';
-const CACHE_NAME = 'doppler-demo-shell-a0ac5a268b7ae029';
+const SHELL_MANIFEST_DIGEST = 'sha256:9289d8a5652dafa539f1bd12afaabb0ac77cdddecf5b68faa2a43e65db0c76e6';
+const CACHE_NAME = 'doppler-demo-shell-9289d8a5652dafa5';
 const APP_SHELL = Object.freeze([
   "/demo/assets/pwa/icon-192.png",
   "/demo/assets/pwa/icon-512.png",
@@ -58,6 +58,7 @@ const APP_SHELL = Object.freeze([
   "/src/client/runtime/capsule-operation-adapters.js",
   "/src/client/runtime/capsule-operation-deltas.js",
   "/src/client/runtime/capsule-operation-executor.js",
+  "/src/client/runtime/capsule-piece-reader.js",
   "/src/client/runtime/capsule-program-adapter.js",
   "/src/client/runtime/capsule-release-authorization.js",
   "/src/client/runtime/capsule-rerank.js",
@@ -127,6 +128,7 @@ const APP_SHELL = Object.freeze([
   "/src/config/platforms/nvidia-gh200-nvl2.json",
   "/src/config/platforms/nvidia-gh200.json",
   "/src/config/quickstart-registry.json",
+  "/src/config/reasoning-output.js",
   "/src/config/required-inference-fields-contract-check.js",
   "/src/config/rerank-reference.js",
   "/src/config/revocation-policy.js",
@@ -189,6 +191,7 @@ const APP_SHELL = Object.freeze([
   "/src/config/schema/training.schema.js",
   "/src/config/schema/ul-training.schema.js",
   "/src/config/schema/units.schema.js",
+  "/src/config/schema/w8a8.schema.js",
   "/src/config/sequence-reference.js",
   "/src/config/supported-operations.js",
   "/src/config/supported-operations.json",
@@ -254,6 +257,7 @@ const APP_SHELL = Object.freeze([
   "/src/formats/rdrr/tensor-config-validator.js",
   "/src/formats/rdrr/types.js",
   "/src/formats/rdrr/validation.js",
+  "/src/formats/rdrr/w8a8-storage.js",
   "/src/formats/sha256.js",
   "/src/formats/source-runtime.js",
   "/src/formats/stable-sort-object.js",
@@ -392,6 +396,7 @@ const APP_SHELL = Object.freeze([
   "/src/gpu/kernels/vision-position-embedding.js",
   "/src/gpu/kernels/vision-rope-2d.js",
   "/src/gpu/kernels/vision-spatial-merge.js",
+  "/src/gpu/kernels/w8a8.js",
   "/src/gpu/perf-guards.js",
   "/src/gpu/readback-buffer.js",
   "/src/gpu/submit-probe.js",
@@ -426,6 +431,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/decode-ring.js",
   "/src/inference/fixtures/embedding-semantic-fixtures.json",
   "/src/inference/fixtures/rerank-semantic-fixtures.json",
+  "/src/inference/generation-output.js",
   "/src/inference/generation-step.js",
   "/src/inference/kv-cache/base.js",
   "/src/inference/kv-cache/basis-decomposed-paged.js",
@@ -535,6 +541,7 @@ const APP_SHELL = Object.freeze([
   "/src/inference/pipelines/text/init-chat-templates.js",
   "/src/inference/pipelines/text/init-qkv-fusion.js",
   "/src/inference/pipelines/text/init-rope.js",
+  "/src/inference/pipelines/text/init-tokenizer.js",
   "/src/inference/pipelines/text/init.js",
   "/src/inference/pipelines/text/kernel-trace.js",
   "/src/inference/pipelines/text/layer-execution-contract.js",
@@ -657,6 +664,7 @@ const APP_SHELL = Object.freeze([
   "/src/loader/tensors/tensor-loader.js",
   "/src/loader/tensors/tensor-reader.js",
   "/src/loader/tensors/tensor-role.js",
+  "/src/loader/tensors/w8a8-loader.js",
   "/src/loader/weight-downcast.js",
   "/src/memory/address-table.js",
   "/src/memory/buffer-pool.js",
@@ -702,6 +710,7 @@ const APP_SHELL = Object.freeze([
   "/src/storage/shards/lifecycle.js",
   "/src/storage/source-artifact-store.js",
   "/src/storage/source-storage-context.js",
+  "/src/storage/verified-piece-reader.js",
   "/src/tooling-exports/evidence.js",
   "/src/tooling-exports/runtime.js",
   "/src/tooling/boundary-evidence.js",
@@ -726,6 +735,10 @@ const APP_SHELL = Object.freeze([
   "/src/tooling/runtime-optimization/candidates.js",
   "/src/tooling/test-harness.js",
   "/src/version.js",
+  "/tests/fixtures/linear-core-activation-accuracy.json",
+  "/tests/fixtures/linear-core-refined-accuracy.json",
+  "/tests/fixtures/q4k-ordered-accumulation.json",
+  "/tests/fixtures/rmsnorm-inverse-root.json",
   "/tests/kernels/browser/kernel-suite.js",
   "/tests/kernels/browser/test-page.js",
   "/tests/kernels/harness/benchmark.js",
