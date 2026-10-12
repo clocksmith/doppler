@@ -1,0 +1,93 @@
+{
+  "schema": "doppler.source-task-quality/v1",
+  "modelId": "Qwen/Qwen3-1.7B",
+  "sourceRevision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "hypothesis": "The previously successful original-source thinking policy can answer bounded single-document questions and correct a retained mistake without the multi-contractor reasoning load. This tests task scope, not a correction of the rejected contractor candidate.",
+  "acceptance": "All four fresh ordered-message tasks under both unchanged seeds17/53 must naturally finish, produce exactly one closing thinking token, remain within4096 generated/8192 total tokens/16000 raw UTF16 units, and satisfy every frozen factual criterion. Natural prose is permitted; exact punctuation is not this task. Preserve all prior literal-output and contractor rejections.",
+  "scope": "Fresh short-document source-quality screen, not a replacement for contractor acceptance, numerical qualification, converted weights, installed runtime, partition memory, or distribution.",
+  "enableThinking": true,
+  "generation": {
+    "maxTokens": 4096,
+    "maxSeqLen": 8192,
+    "temperature": 0.6,
+    "topK": 20,
+    "topP": 0.95,
+    "repetitionPenalty": 1.0,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "stopSequences": [],
+    "useChatTemplate": true,
+    "minP": 0
+  },
+  "cases": [
+    {
+      "id": "superseded-invoice",
+      "prompt": "Use only these quoted records. [R1] Estimate: $248.00. [R2] Final invoice superseding the estimate: $286.40, including delivery and tax. [R3] Payment received: $200.00. How much remains to pay? Briefly explain and cite the supporting records.",
+      "reviewCriteria": [
+        "Calculate remaining payment as $86.40, based on final $286.40 minus received $200.00, not the old estimate.",
+        "State delivery and tax are already included if mentioned; do not add them again.",
+        "Support amount and payment with R2 and R3 citations; no invented fees or unsupported obligation."
+      ]
+    },
+    {
+      "id": "conditional-dispatch",
+      "prompt": "Use only this quoted policy and status. [R4] A parcel may leave on June 14 only after the recipient confirms the address. Without confirmation it must be held. [R5] The recipient has not confirmed the address. Can this parcel leave on June 14 now? What must happen first? Briefly answer with citations.",
+      "reviewCriteria": [
+        "Say the parcel cannot leave now and must be held pending address confirmation.",
+        "Identify recipient address confirmation as the prerequisite, without inventing approval or a guaranteed dispatch date.",
+        "Cite R4 for the rule and R5 for the missing confirmation."
+      ]
+    },
+    {
+      "id": "deadline-duration",
+      "prompt": "Use only this quoted plan. [R6] Work starts on July 8 and takes three calendar days, with completion at the end of July 11. [R7] The customer requires completion before July 10. Does this plan meet that deadline? Briefly explain with citations.",
+      "reviewCriteria": [
+        "Say no: stated completion July11 is later than the before-July10 requirement.",
+        "Do not confuse July8 start with completion or invent a shorter duration.",
+        "Cite R6 and R7 for completion and deadline respectively."
+      ]
+    },
+    {
+      "id": "retained-subtotal-correction",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use only these quoted terms. [R8] Installation costs $160; disposal costs an additional $25. [R9] Sales tax is excluded, and the tax amount is not given. What is the known subtotal and what remains unknown? Cite the records."
+        },
+        {
+          "role": "assistant",
+          "content": "The final all-in cost is $160, including disposal and sales tax [R8]."
+        },
+        {
+          "role": "user",
+          "content": "Check your previous answer against the quoted terms. Correct it briefly and cite the records."
+        }
+      ],
+      "reviewCriteria": [
+        "Explicitly correct the previous $160 all-in claim: known subtotal is $185 from $160 plus $25 disposal.",
+        "Keep final tax-inclusive total unknown because tax is excluded and no amount/rate is given.",
+        "Cite R8 for installation/disposal and R9 for excluded unknown tax; do not endorse the earlier answer."
+      ]
+    }
+  ],
+  "seeds": [
+    17,
+    53
+  ],
+  "answerBoundary": {
+    "text": "</think>",
+    "tokenId": 151668,
+    "exactlyOne": true
+  },
+  "maxOutputCharacters": 16000,
+  "eosTokenIds": [
+    151645,
+    151643
+  ],
+  "officialPolicy": {
+    "url": "https://huggingface.co/Qwen/Qwen3-1.7B/blob/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/README.md",
+    "readmeSha256": "257e52c419dac2258852643f18af6c974f21f8c6c1b6f371b6cca6201cf29091",
+    "generationConfigSha256": "2325da0f15bb848e018c5ae071b7943332e9f871d6b60e2ed22ca97d4cb993d2",
+    "repetitionPenalty": "No source repetition_penalty override. Installed Transformers GenerationConfig resolves None (disabled), mathematically equivalent to multiplier1.0."
+  }
+}

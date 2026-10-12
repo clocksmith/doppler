@@ -1,0 +1,21 @@
+{
+  "schema": "doppler.short-document-freeze/v1",
+  "createdAtUtc": "2026-10-12T02:35:59.316309+00:00",
+  "suiteSha256": "395f4d9c8a84d500345b9b5158656d730bb42aecd5a5cebf2e61f77adff8a1bf",
+  "baselinePolicy": "../qwen3-17b-application-policy-20261011/recommended-thinking-suite.json",
+  "caseCount": 4,
+  "seeds": [
+    17,
+    53
+  ],
+  "status": "frozen-before-execution",
+  "prohibitedChanges": [
+    "No seed selection",
+    "No budget increase",
+    "No modification of old contractor or literal-output acceptance",
+    "No runtime policy promotion from source-only success"
+  ],
+  "commands": {
+    "source": "PYTHONPATH=/tmp/doppler-reference-deps OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 python3 -u tools/source-model-task-quality.py --source /var/tmp/doppler-qwen3-17b-source-20261011 --suite artifacts/qwen3-short-documents-20261012/suite.json --out reports/local/qwen3-short-documents-20261012/source.json --threads 4"
+  }
+}
